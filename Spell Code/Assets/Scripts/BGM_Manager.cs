@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class BGM_Manager : MonoBehaviour
 {
-    [Header("Audio Source")]
+    [Header("BGM Audio Source")]
     [SerializeField] private AudioSource musicAudioSource;
 
     [Header("List of songs that have a chance to play in this scene")]
@@ -17,11 +17,15 @@ public class BGM_Manager : MonoBehaviour
         availableSongs = new List<AudioClip>();
 
         //start a random song
-        StartSong();
+        StartSong(null);
     }
 
     //***** StartSong: Begin playing a random song from availableSongs *****
-    public void StartSong()
+    /// <summary>
+    /// Begin playing a random song from a list of available songs
+    /// </summary>
+    /// <param name="songToPlay"> Song to be played by the BGM Handler. Set it to null to .... CONTINUE HERE</param>
+    public void StartSong(AudioClip songToPlay)
     {
         //stop playing the current song
         StopSong();
@@ -34,6 +38,12 @@ public class BGM_Manager : MonoBehaviour
 
             //return
             return;
+        }
+
+        //if a specific song is specified
+        if()
+        {
+
         }
 
         //choose a random song from availableSongs

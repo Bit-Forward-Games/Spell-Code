@@ -17,20 +17,19 @@ public class BGM_Manager : MonoBehaviour
         availableSongs = new List<AudioClip>();
 
         //start a random song
-        StartSong(null);
+        StartAndPlaySong();
     }
 
-    //***** StartSong: Begin playing a random song from availableSongs *****
     /// <summary>
     /// Begin playing a random song from a list of available songs
     /// </summary>
-    /// <param name="songToPlay"> Song to be played by the BGM Handler. Set it to null to .... CONTINUE HERE</param>
-    public void StartSong(AudioClip songToPlay)
+    /// <param name="songToPlay"> Name of the song to be played. Set it to null to play a random song from the list of available songs</param>
+    public void StartAndPlaySong(string nameOfSongToPlay = null)
     {
         //stop playing the current song
         StopSong();
 
-        //sanity check to see if there are songs available to play
+        //sanity check to make sure that there are songs available to play
         if (availableSongs.Count <= 0)
         {
             //log a warning
@@ -40,26 +39,42 @@ public class BGM_Manager : MonoBehaviour
             return;
         }
 
-        //if a specific song is specified
-        if()
+        //sanity check to make sure that the songToPlay exists within availableSongs
+        if (nameOfSongToPlay != null && availableSongs.Find(x => x.name == nameOfSongToPlay) == null)
         {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": Specified song of name = \"" + nameOfSongToPlay + "\" does not exist within availableSongs of the BGM_Manager script. Playing a random song");
 
+            //set nameOfSongToPlay to null so that a random song is player
+            nameOfSongToPlay = null;
         }
 
-        //choose a random song from availableSongs
-        int choosenSongIndex = UnityEngine.Random.Range(0, availableSongs.Count);
+        //if a specific song is specified,...
+        if (nameOfSongToPlay != null)
+        {
+            //assign the clip of the audio source to the song with the name specified by nameOfSongToPlay
+            musicAudioSource.clip = availableSongs.Find(x => x.name == nameOfSongToPlay);
+        }
+        //else no song name is specified,...
+        else
+        {
+            //choose a random song from availableSongs
+            int choosenSongIndex = UnityEngine.Random.Range(0, availableSongs.Count);
 
-        //assign the resource of the audio source to the randomly choosen song
-        musicAudioSource.resource = availableSongs[choosenSongIndex];
+            //assign the clip of the audio source to the randomly choosen song
+            musicAudioSource.clip = availableSongs[choosenSongIndex];
+        }
 
         //start playing the new song
         PlaySong();
     }
 
-    //***** StopSong: Stop playing the current song (makes song stop playing and return to start of song) *****
+    /// <summary>
+    /// Stop playing the current song (makes song stop playing and return to start of song)
+    /// </summary>
     public void StopSong()
     {
-        //if a song is NOT playing,...
+        //if a song is NOT playing, then return
         if (!musicAudioSource.isPlaying)
             return;
 
@@ -67,10 +82,12 @@ public class BGM_Manager : MonoBehaviour
         musicAudioSource.Stop();
     }
 
-    //***** PauseSong: Pause the current song *****
+    /// <summary>
+    /// Pause the current song
+    /// </summary>
     public void PauseSong()
     {
-        //if a song is NOT playing,...
+        //if a song is NOT playing, then return
         if (!musicAudioSource.isPlaying)
             return;
 
@@ -78,10 +95,13 @@ public class BGM_Manager : MonoBehaviour
         musicAudioSource.Pause();
     }
 
-    //***** PlaySong: Play the current song *****
+    /// <summary>
+    /// Play the current song
+    /// </summary>
     public void PlaySong()
     {
-        if (musicAudioSource.resource == null)
+        //if there is NOT a clip to play, then return
+        if (musicAudioSource.clip == null)
             return;
 
         //start playing current song

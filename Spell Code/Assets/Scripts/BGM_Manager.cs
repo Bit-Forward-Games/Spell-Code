@@ -9,7 +9,14 @@ public class BGM_Manager : MonoBehaviour
     [SerializeField] private AudioSource musicAudioSource;
 
     [Header("List of songs that have a chance to play in this scene")]
-    [SerializeField] private List<AudioClip> availableSongs; 
+    [SerializeField] private List<AudioClip> availableSongs;
+
+    //TESTING FUNCTION
+    //private void Awake()
+    //{
+    //    SFX_Manager sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
+    //    sFX_Manager.PlaySound("mysound");
+    //}
 
     void Start()
     {

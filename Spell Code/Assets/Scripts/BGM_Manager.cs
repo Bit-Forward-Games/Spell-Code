@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 [RequireComponent(typeof(AudioSource))]
 public class BGM_Manager : MonoBehaviour
@@ -8,23 +9,64 @@ public class BGM_Manager : MonoBehaviour
     [Header("BGM Audio Source")]
     [SerializeField] private AudioSource musicAudioSource;
 
+    [Header("Default song (leave as null to play a random song)")]
+    [SerializeField] private AudioClip defaultSong = null;
+
     [Header("List of songs that have a chance to play in this scene")]
     [SerializeField] private List<AudioClip> availableSongs;
 
-    //TESTING FUNCTION
-    //private void Awake()
-    //{
-    //    SFX_Manager sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
-    //    sFX_Manager.PlaySound("mysound");
-    //}
+    private SFX_Manager sFX_Manager;
+
+    //TESTBENCH FUNCTIONS - dear future max, make sure to comment out these functions before pushing to dev
+    private void Awake()
+    {
+        sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
+    }
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            sFX_Manager.PlaySound("v5_ParrySuccess"); //plays the parry success noise (sounds like "shink!")
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            sFX_Manager.PlaySound(null); //logs a warning that reads: "Please specify a sound to play"
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            sFX_Manager.PlaySound("unknown sound"); //logs a warning that says: "Specified sound of name = "unknown sound" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds"
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            StartAndPlaySong(); //plays a random song
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            StartAndPlaySong("vFunnie_StagChi_Henshin"); //plays the funny sounds (sounds like meme sounds)
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            PauseSong(); //pauses the current song
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha7))
+        {
+            PlaySong(); //resumes the current song
+        }
+    }
 
     void Start()
     {
-        //allocate space for availableSongs
-        availableSongs = new List<AudioClip>();
+        //start the default song
+        StartAndPlaySong(defaultSong);
+    }
 
-        //start a random song
-        StartAndPlaySong();
+    /// <summary>
+    /// Begin playing a random song from a list of available songs
+    /// </summary>
+    public void StartAndPlaySong()
+    {
+        //call the string version of StartAndPlaySong() with a null string
+        StartAndPlaySong((string)null);
     }
 
     /// <summary>
@@ -74,6 +116,26 @@ public class BGM_Manager : MonoBehaviour
 
         //start playing the new song
         PlaySong();
+    }
+
+    /// <summary>
+    /// Begin playing a random song from a list of available songs
+    /// </summary>
+    /// <param name="audioClipToPlay"> AudioClip of the song to be played. Set it to null to play a random song from the list of available songs</param>
+    public void StartAndPlaySong(AudioClip audioClipToPlay = null)
+    {
+        //if audioClipToPlay is null,...
+        if (audioClipToPlay == null)
+        {
+            //call the string version of StartAndPlaySong() with a null string
+            StartAndPlaySong((string)null);
+        }
+        //else audioClipToPlay exists,...
+        else
+        {
+            //call the string version of StartAndPlaySong() with the audioClipToPlay's name
+            StartAndPlaySong(audioClipToPlay.name);
+        }
     }
 
     /// <summary>

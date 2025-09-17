@@ -17,42 +17,42 @@ public class BGM_Manager : MonoBehaviour
 
     private SFX_Manager sFX_Manager;
 
-    //TESTBENCH FUNCTIONS - dear future max, make sure to comment out these functions before pushing to dev
-    private void Awake()
-    {
-        sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
-    }
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            sFX_Manager.PlaySound("v5_ParrySuccess"); //plays the parry success noise (sounds like "shink!")
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            sFX_Manager.PlaySound(null); //logs a warning that reads: "Please specify a sound to play"
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            sFX_Manager.PlaySound("unknown sound"); //logs a warning that says: "Specified sound of name = "unknown sound" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds"
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            StartAndPlaySong(); //plays a random song
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            StartAndPlaySong("vFunnie_StagChi_Henshin"); //plays the funny sounds (sounds like meme sounds)
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            PauseSong(); //pauses the current song
-        }
-        else if(Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            PlaySong(); //resumes the current song
-        }
-    }
+    //TESTBENCH FUNCTIONS 
+    //private void Awake()
+    //{
+    //    sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
+    //}
+    //private void Update()
+    //{
+    //    if(Input.GetKeyDown(KeyCode.Alpha1))
+    //    {
+    //        sFX_Manager.PlaySound("v5_ParrySuccess"); //plays the parry success noise (sounds like "shink!")
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha2))
+    //    {
+    //        sFX_Manager.PlaySound(null); //logs a warning that reads: "Please specify a sound to play"
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha3))
+    //    {
+    //        sFX_Manager.PlaySound("unknown sound"); //logs a warning that says: "Specified sound of name = "unknown sound" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds"
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha4))
+    //    {
+    //        StartAndPlaySong(); //plays a random song
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha5))
+    //    {
+    //        StartAndPlaySong("vFunnie_StagChi_Henshin"); //plays the funny sounds (sounds like meme sounds)
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha6))
+    //    {
+    //        PauseSong(); //pauses the current song
+    //    }
+    //    else if(Input.GetKeyDown(KeyCode.Alpha7))
+    //    {
+    //        PlaySong(); //resumes the current song
+    //    }
+    //}
 
     void Start()
     {

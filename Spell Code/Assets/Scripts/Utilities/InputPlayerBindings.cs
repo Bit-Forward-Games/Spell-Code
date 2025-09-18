@@ -122,7 +122,7 @@ public class InputPlayerBindings : MonoBehaviour
     public InputAction LeftAction { get { return leftAction; } }
     public InputAction RightAction { get { return rightAction; } }
     public InputAction CodeAction { get { return codeAction; } }
-    public InputAction JumpAction { get { return jumpAction; } }
+    public InputAction jumpAction { get { return jumpAction; } }
     public InputDevice InputDevice { get { return inputActionAsset.devices.Value[0]; } }
     public InputActionMap PlayerActionMap { get { return playerActionMap; } }
     public InputSnapshot CurrentSnapshop { get; private set; }

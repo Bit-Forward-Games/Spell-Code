@@ -27,4 +27,7 @@ public class SpellData : ScriptableObject
     [Header("Casting Requirements")]
     public SpellDirection[] inputSequence;
     public float cooldown;
+
+    [Header("Prefab")]
+    public GameObject spellPrefab;
 }

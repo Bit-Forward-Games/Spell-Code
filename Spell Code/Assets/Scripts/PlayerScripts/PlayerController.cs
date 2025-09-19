@@ -138,6 +138,58 @@ public class PlayerController : MonoBehaviour
         return charData.playerHealth;
     }
 
+    public void InitCharacter()
+    {
+        //Set Player Values 
+        charData = CharacterDataDictionary.GetCharacterData(characterName);
+        //print(charData.projectileIds);
+
+        currrentPlayerHealth = charData.playerHealth;
+        runSpeed = (float)charData.runSpeed / 10;
+        jumpForce = charData.jumpForce;
+        playerWidth = charData.playerWidth;
+        playerHeight = charData.playerHeight;
+    }
+
+    public void InitializePalette(Texture2D palette)
+    {
+        if (spriteRenderer != null)
+        {
+            MaterialPropertyBlock propertyBlock = new();
+            spriteRenderer.GetPropertyBlock(propertyBlock);
+            // Check if the property "_PaletteTex" exists in the shader
+            if (spriteRenderer.sharedMaterial != null && spriteRenderer.sharedMaterial.HasProperty("_PaletteTex"))
+            {
+                // Assign the palette texture to the property block
+                propertyBlock.SetTexture("_PaletteTex", palette);
+                // Apply the updated property block back to the SpriteRenderer
+                spriteRenderer.SetPropertyBlock(propertyBlock);
+            }
+            else
+            {
+                Debug.LogWarning("Material does not have a '_PaletteTex' property.");
+            }
+        }
+        else
+        {
+            Debug.LogError("SpriteRenderer is not assigned.");
+        }
+    }
+
+
+
+
+    /// MOVEMENT CODE
+    public long GetInputs()
+    {
+        long input = 0;
+        if (inputs.IsActive)
+        {
+            input = inputs.UpdateInputs();
+        }
+        return input;
+    }
+
     void Update()
     {
 
@@ -722,5 +774,8 @@ public class PlayerController : MonoBehaviour
 
     //private int GetPlayerIndex() =>
     //    Array.IndexOf(GameSessionManager.Instance.playerControllers, this);
-
+    public void CheckForInputs(bool enable)
+    {
+        inputs.CheckForInputs(enable);
+    }
 }

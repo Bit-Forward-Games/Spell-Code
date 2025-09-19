@@ -79,7 +79,6 @@ public class AnimFrameContainer
 {
     public AnimFrames idleAnimFrames;
     public AnimFrames runAnimFrames;
-    public AnimFrames crouchAnimFrames;
     public AnimFrames jumpForwardAnimFrames;
     public AnimFrames jumpBackwardAnimFrames;
     public AnimFrames hitRisingAnimFrames;
@@ -151,7 +150,6 @@ public class HurtboxDataContainer
 {
     public HurtboxGroup idleHurtbox;
     public HurtboxGroup runHurtbox;
-    public HurtboxGroup crouchingHurtbox;
     public HurtboxGroup jumpHurtbox;
     public HurtboxGroup hitstunHurtbox;
     public HurtboxGroup techHurtbox;
@@ -165,7 +163,6 @@ public class HurtboxFrames
 {
     public List<int> idleHurtboxFrames;
     public List<int> runHurtboxFrames;
-    public List<int> crouchingHurtboxFrames;
     public List<int> jumpHurtboxFrames;
     public List<int> hitstunHurtboxFrames;
     public List<int> techHurtboxFrames;
@@ -243,13 +240,7 @@ public class CharacterData
 {
     public string character;
     public int runSpeed;
-    public int walkSpeed;
     public int jumpForce;
-    public int airdashSpeed;
-    public int backdashSpeed;
-    public int airdashLength;
-    public int backdashLength;
-    public byte airdashCounter;
     public int jumpCounter;
     //public ushort[] projectileIds; //projectile Manager needs to be able to access this
     public ushort playerHealth;

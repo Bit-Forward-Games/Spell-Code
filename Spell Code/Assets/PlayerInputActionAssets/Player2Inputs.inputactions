@@ -42,45 +42,18 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Light",
+                    "name": "Code",
                     "type": "Button",
                     "id": "8092acbe-9ad3-4735-ae9c-5b18f4bc9aa0",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Medium",
+                    "name": "Jump",
                     "type": "Button",
                     "id": "c1ed586d-db10-4c25-af76-4e69434bd1b9",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Heavy",
-                    "type": "Button",
-                    "id": "6aed143f-5f03-4763-854d-bc516bdd2fb6",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Special",
-                    "type": "Button",
-                    "id": "cf532996-d0bc-4343-9a29-2c62d7020844",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Kill",
-                    "type": "Button",
-                    "id": "f4933315-93e1-42d9-a83a-56e3c9d11b6d",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -139,7 +112,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Light",
+                    "action": "Code",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -150,40 +123,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Medium",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b67ffb31-2b33-471f-bd45-583748f879f1",
-                    "path": "<Keyboard>/rightBracket",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Heavy",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "ae714e2e-46df-49e8-8ea1-2abf36dd8df0",
-                    "path": "<Keyboard>/semicolon",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Special",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "879da5d6-5ba4-4549-a5c0-35183882f2e7",
-                    "path": "<Keyboard>/delete",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Kill",
+                    "action": "Jump",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

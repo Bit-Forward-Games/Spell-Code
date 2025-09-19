@@ -128,7 +128,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Light"",
+                    ""name"": ""Code"",
                     ""type"": ""Button"",
                     ""id"": ""e8859a33-080e-40d0-8f16-f9ae264cda67"",
                     ""expectedControlType"": """",
@@ -137,27 +137,9 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Medium"",
+                    ""name"": ""Jump"",
                     ""type"": ""Button"",
                     ""id"": ""03c5fef3-d1dc-48c1-b56d-31bd83c87272"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Heavy"",
-                    ""type"": ""Button"",
-                    ""id"": ""c742ec14-c10c-4482-a18c-ccb4bdb4945d"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Special"",
-                    ""type"": ""Button"",
-                    ""id"": ""012e058f-74c3-49b2-a33f-e46fa60aecbc"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -216,7 +198,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Medium"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -227,29 +209,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Light"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""bfd27b7a-ad81-49d1-8504-70eca91826cb"",
-                    ""path"": ""<Keyboard>/y"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Heavy"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""47f93ca4-81d9-4d80-8203-a336655ba472"",
-                    ""path"": ""<Keyboard>/f"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Special"",
+                    ""action"": ""Code"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -296,7 +256,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Light"",
+                    ""name"": ""Code"",
                     ""type"": ""Button"",
                     ""id"": ""5a413cdf-cb00-41c7-af27-cb2d75b65884"",
                     ""expectedControlType"": """",
@@ -305,27 +265,9 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Medium"",
+                    ""name"": ""Jump"",
                     ""type"": ""Button"",
                     ""id"": ""5f96e1c3-0b5e-42c4-9d00-960c65ad3b3c"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Heavy"",
-                    ""type"": ""Button"",
-                    ""id"": ""7128ad5e-f412-46a6-a2fe-29b2f5e4c6cd"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Special"",
-                    ""type"": ""Button"",
-                    ""id"": ""788bfcf8-0565-4a06-9ea0-d4d7a6975f5c"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -428,7 +370,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Medium"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -439,29 +381,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Light"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""4adfd93d-0ea8-4022-aaba-9aa7c82dfc81"",
-                    ""path"": ""<Gamepad>/buttonEast"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Heavy"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""e445e35b-2894-4fe8-af6c-da28862c0189"",
-                    ""path"": ""<Gamepad>/buttonSouth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Special"",
+                    ""action"": ""Code"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -508,7 +428,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Light"",
+                    ""name"": ""Code"",
                     ""type"": ""Button"",
                     ""id"": ""7191e0d3-a3e6-46d6-8bed-ef780bd0a27b"",
                     ""expectedControlType"": """",
@@ -517,27 +437,9 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Medium"",
+                    ""name"": ""Jump"",
                     ""type"": ""Button"",
                     ""id"": ""79bbce7e-630f-4092-aefc-092aa4ec8904"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Heavy"",
-                    ""type"": ""Button"",
-                    ""id"": ""cd64e8f4-8f6b-442c-b025-1bac568b1444"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Special"",
-                    ""type"": ""Button"",
-                    ""id"": ""8b876fc7-fe2c-4f0b-a663-fecc8ca1e181"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -553,6 +455,17 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a5708d73-d196-417d-8057-cbfb898866b8"",
+                    ""path"": ""<Joystick>/stick/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Up"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -585,7 +498,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Medium"",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -596,29 +509,7 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Light"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""00cd2606-1a11-4e9f-a39c-045496370517"",
-                    ""path"": """",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Heavy"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""58e6289b-4c75-44ba-abc9-6a6d5942ed04"",
-                    ""path"": """",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Special"",
+                    ""action"": ""Code"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -633,30 +524,24 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         m_KeyboardMaster_Down = m_KeyboardMaster.FindAction("Down", throwIfNotFound: true);
         m_KeyboardMaster_Left = m_KeyboardMaster.FindAction("Left", throwIfNotFound: true);
         m_KeyboardMaster_Right = m_KeyboardMaster.FindAction("Right", throwIfNotFound: true);
-        m_KeyboardMaster_Light = m_KeyboardMaster.FindAction("Light", throwIfNotFound: true);
-        m_KeyboardMaster_Medium = m_KeyboardMaster.FindAction("Medium", throwIfNotFound: true);
-        m_KeyboardMaster_Heavy = m_KeyboardMaster.FindAction("Heavy", throwIfNotFound: true);
-        m_KeyboardMaster_Special = m_KeyboardMaster.FindAction("Special", throwIfNotFound: true);
+        m_KeyboardMaster_Code = m_KeyboardMaster.FindAction("Code", throwIfNotFound: true);
+        m_KeyboardMaster_Jump = m_KeyboardMaster.FindAction("Jump", throwIfNotFound: true);
         // GamepadMaster
         m_GamepadMaster = asset.FindActionMap("GamepadMaster", throwIfNotFound: true);
         m_GamepadMaster_Up = m_GamepadMaster.FindAction("Up", throwIfNotFound: true);
         m_GamepadMaster_Down = m_GamepadMaster.FindAction("Down", throwIfNotFound: true);
         m_GamepadMaster_Left = m_GamepadMaster.FindAction("Left", throwIfNotFound: true);
         m_GamepadMaster_Right = m_GamepadMaster.FindAction("Right", throwIfNotFound: true);
-        m_GamepadMaster_Light = m_GamepadMaster.FindAction("Light", throwIfNotFound: true);
-        m_GamepadMaster_Medium = m_GamepadMaster.FindAction("Medium", throwIfNotFound: true);
-        m_GamepadMaster_Heavy = m_GamepadMaster.FindAction("Heavy", throwIfNotFound: true);
-        m_GamepadMaster_Special = m_GamepadMaster.FindAction("Special", throwIfNotFound: true);
+        m_GamepadMaster_Code = m_GamepadMaster.FindAction("Code", throwIfNotFound: true);
+        m_GamepadMaster_Jump = m_GamepadMaster.FindAction("Jump", throwIfNotFound: true);
         // JoystickMaster
         m_JoystickMaster = asset.FindActionMap("JoystickMaster", throwIfNotFound: true);
         m_JoystickMaster_Up = m_JoystickMaster.FindAction("Up", throwIfNotFound: true);
         m_JoystickMaster_Down = m_JoystickMaster.FindAction("Down", throwIfNotFound: true);
         m_JoystickMaster_Left = m_JoystickMaster.FindAction("Left", throwIfNotFound: true);
         m_JoystickMaster_Right = m_JoystickMaster.FindAction("Right", throwIfNotFound: true);
-        m_JoystickMaster_Light = m_JoystickMaster.FindAction("Light", throwIfNotFound: true);
-        m_JoystickMaster_Medium = m_JoystickMaster.FindAction("Medium", throwIfNotFound: true);
-        m_JoystickMaster_Heavy = m_JoystickMaster.FindAction("Heavy", throwIfNotFound: true);
-        m_JoystickMaster_Special = m_JoystickMaster.FindAction("Special", throwIfNotFound: true);
+        m_JoystickMaster_Code = m_JoystickMaster.FindAction("Code", throwIfNotFound: true);
+        m_JoystickMaster_Jump = m_JoystickMaster.FindAction("Jump", throwIfNotFound: true);
     }
 
     ~@MasterInputs()
@@ -743,10 +628,8 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_KeyboardMaster_Down;
     private readonly InputAction m_KeyboardMaster_Left;
     private readonly InputAction m_KeyboardMaster_Right;
-    private readonly InputAction m_KeyboardMaster_Light;
-    private readonly InputAction m_KeyboardMaster_Medium;
-    private readonly InputAction m_KeyboardMaster_Heavy;
-    private readonly InputAction m_KeyboardMaster_Special;
+    private readonly InputAction m_KeyboardMaster_Code;
+    private readonly InputAction m_KeyboardMaster_Jump;
     /// <summary>
     /// Provides access to input actions defined in input action map "KeyboardMaster".
     /// </summary>
@@ -775,21 +658,13 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Right => m_Wrapper.m_KeyboardMaster_Right;
         /// <summary>
-        /// Provides access to the underlying input action "KeyboardMaster/Light".
+        /// Provides access to the underlying input action "KeyboardMaster/Code".
         /// </summary>
-        public InputAction @Light => m_Wrapper.m_KeyboardMaster_Light;
+        public InputAction @Code => m_Wrapper.m_KeyboardMaster_Code;
         /// <summary>
-        /// Provides access to the underlying input action "KeyboardMaster/Medium".
+        /// Provides access to the underlying input action "KeyboardMaster/Jump".
         /// </summary>
-        public InputAction @Medium => m_Wrapper.m_KeyboardMaster_Medium;
-        /// <summary>
-        /// Provides access to the underlying input action "KeyboardMaster/Heavy".
-        /// </summary>
-        public InputAction @Heavy => m_Wrapper.m_KeyboardMaster_Heavy;
-        /// <summary>
-        /// Provides access to the underlying input action "KeyboardMaster/Special".
-        /// </summary>
-        public InputAction @Special => m_Wrapper.m_KeyboardMaster_Special;
+        public InputAction @Jump => m_Wrapper.m_KeyboardMaster_Jump;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -828,18 +703,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started += instance.OnRight;
             @Right.performed += instance.OnRight;
             @Right.canceled += instance.OnRight;
-            @Light.started += instance.OnLight;
-            @Light.performed += instance.OnLight;
-            @Light.canceled += instance.OnLight;
-            @Medium.started += instance.OnMedium;
-            @Medium.performed += instance.OnMedium;
-            @Medium.canceled += instance.OnMedium;
-            @Heavy.started += instance.OnHeavy;
-            @Heavy.performed += instance.OnHeavy;
-            @Heavy.canceled += instance.OnHeavy;
-            @Special.started += instance.OnSpecial;
-            @Special.performed += instance.OnSpecial;
-            @Special.canceled += instance.OnSpecial;
+            @Code.started += instance.OnCode;
+            @Code.performed += instance.OnCode;
+            @Code.canceled += instance.OnCode;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         /// <summary>
@@ -863,18 +732,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started -= instance.OnRight;
             @Right.performed -= instance.OnRight;
             @Right.canceled -= instance.OnRight;
-            @Light.started -= instance.OnLight;
-            @Light.performed -= instance.OnLight;
-            @Light.canceled -= instance.OnLight;
-            @Medium.started -= instance.OnMedium;
-            @Medium.performed -= instance.OnMedium;
-            @Medium.canceled -= instance.OnMedium;
-            @Heavy.started -= instance.OnHeavy;
-            @Heavy.performed -= instance.OnHeavy;
-            @Heavy.canceled -= instance.OnHeavy;
-            @Special.started -= instance.OnSpecial;
-            @Special.performed -= instance.OnSpecial;
-            @Special.canceled -= instance.OnSpecial;
+            @Code.started -= instance.OnCode;
+            @Code.performed -= instance.OnCode;
+            @Code.canceled -= instance.OnCode;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         /// <summary>
@@ -916,10 +779,8 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_GamepadMaster_Down;
     private readonly InputAction m_GamepadMaster_Left;
     private readonly InputAction m_GamepadMaster_Right;
-    private readonly InputAction m_GamepadMaster_Light;
-    private readonly InputAction m_GamepadMaster_Medium;
-    private readonly InputAction m_GamepadMaster_Heavy;
-    private readonly InputAction m_GamepadMaster_Special;
+    private readonly InputAction m_GamepadMaster_Code;
+    private readonly InputAction m_GamepadMaster_Jump;
     /// <summary>
     /// Provides access to input actions defined in input action map "GamepadMaster".
     /// </summary>
@@ -948,21 +809,13 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Right => m_Wrapper.m_GamepadMaster_Right;
         /// <summary>
-        /// Provides access to the underlying input action "GamepadMaster/Light".
+        /// Provides access to the underlying input action "GamepadMaster/Code".
         /// </summary>
-        public InputAction @Light => m_Wrapper.m_GamepadMaster_Light;
+        public InputAction @Code => m_Wrapper.m_GamepadMaster_Code;
         /// <summary>
-        /// Provides access to the underlying input action "GamepadMaster/Medium".
+        /// Provides access to the underlying input action "GamepadMaster/Jump".
         /// </summary>
-        public InputAction @Medium => m_Wrapper.m_GamepadMaster_Medium;
-        /// <summary>
-        /// Provides access to the underlying input action "GamepadMaster/Heavy".
-        /// </summary>
-        public InputAction @Heavy => m_Wrapper.m_GamepadMaster_Heavy;
-        /// <summary>
-        /// Provides access to the underlying input action "GamepadMaster/Special".
-        /// </summary>
-        public InputAction @Special => m_Wrapper.m_GamepadMaster_Special;
+        public InputAction @Jump => m_Wrapper.m_GamepadMaster_Jump;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1001,18 +854,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started += instance.OnRight;
             @Right.performed += instance.OnRight;
             @Right.canceled += instance.OnRight;
-            @Light.started += instance.OnLight;
-            @Light.performed += instance.OnLight;
-            @Light.canceled += instance.OnLight;
-            @Medium.started += instance.OnMedium;
-            @Medium.performed += instance.OnMedium;
-            @Medium.canceled += instance.OnMedium;
-            @Heavy.started += instance.OnHeavy;
-            @Heavy.performed += instance.OnHeavy;
-            @Heavy.canceled += instance.OnHeavy;
-            @Special.started += instance.OnSpecial;
-            @Special.performed += instance.OnSpecial;
-            @Special.canceled += instance.OnSpecial;
+            @Code.started += instance.OnCode;
+            @Code.performed += instance.OnCode;
+            @Code.canceled += instance.OnCode;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         /// <summary>
@@ -1036,18 +883,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started -= instance.OnRight;
             @Right.performed -= instance.OnRight;
             @Right.canceled -= instance.OnRight;
-            @Light.started -= instance.OnLight;
-            @Light.performed -= instance.OnLight;
-            @Light.canceled -= instance.OnLight;
-            @Medium.started -= instance.OnMedium;
-            @Medium.performed -= instance.OnMedium;
-            @Medium.canceled -= instance.OnMedium;
-            @Heavy.started -= instance.OnHeavy;
-            @Heavy.performed -= instance.OnHeavy;
-            @Heavy.canceled -= instance.OnHeavy;
-            @Special.started -= instance.OnSpecial;
-            @Special.performed -= instance.OnSpecial;
-            @Special.canceled -= instance.OnSpecial;
+            @Code.started -= instance.OnCode;
+            @Code.performed -= instance.OnCode;
+            @Code.canceled -= instance.OnCode;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         /// <summary>
@@ -1089,10 +930,8 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_JoystickMaster_Down;
     private readonly InputAction m_JoystickMaster_Left;
     private readonly InputAction m_JoystickMaster_Right;
-    private readonly InputAction m_JoystickMaster_Light;
-    private readonly InputAction m_JoystickMaster_Medium;
-    private readonly InputAction m_JoystickMaster_Heavy;
-    private readonly InputAction m_JoystickMaster_Special;
+    private readonly InputAction m_JoystickMaster_Code;
+    private readonly InputAction m_JoystickMaster_Jump;
     /// <summary>
     /// Provides access to input actions defined in input action map "JoystickMaster".
     /// </summary>
@@ -1121,21 +960,13 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Right => m_Wrapper.m_JoystickMaster_Right;
         /// <summary>
-        /// Provides access to the underlying input action "JoystickMaster/Light".
+        /// Provides access to the underlying input action "JoystickMaster/Code".
         /// </summary>
-        public InputAction @Light => m_Wrapper.m_JoystickMaster_Light;
+        public InputAction @Code => m_Wrapper.m_JoystickMaster_Code;
         /// <summary>
-        /// Provides access to the underlying input action "JoystickMaster/Medium".
+        /// Provides access to the underlying input action "JoystickMaster/Jump".
         /// </summary>
-        public InputAction @Medium => m_Wrapper.m_JoystickMaster_Medium;
-        /// <summary>
-        /// Provides access to the underlying input action "JoystickMaster/Heavy".
-        /// </summary>
-        public InputAction @Heavy => m_Wrapper.m_JoystickMaster_Heavy;
-        /// <summary>
-        /// Provides access to the underlying input action "JoystickMaster/Special".
-        /// </summary>
-        public InputAction @Special => m_Wrapper.m_JoystickMaster_Special;
+        public InputAction @Jump => m_Wrapper.m_JoystickMaster_Jump;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1174,18 +1005,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started += instance.OnRight;
             @Right.performed += instance.OnRight;
             @Right.canceled += instance.OnRight;
-            @Light.started += instance.OnLight;
-            @Light.performed += instance.OnLight;
-            @Light.canceled += instance.OnLight;
-            @Medium.started += instance.OnMedium;
-            @Medium.performed += instance.OnMedium;
-            @Medium.canceled += instance.OnMedium;
-            @Heavy.started += instance.OnHeavy;
-            @Heavy.performed += instance.OnHeavy;
-            @Heavy.canceled += instance.OnHeavy;
-            @Special.started += instance.OnSpecial;
-            @Special.performed += instance.OnSpecial;
-            @Special.canceled += instance.OnSpecial;
+            @Code.started += instance.OnCode;
+            @Code.performed += instance.OnCode;
+            @Code.canceled += instance.OnCode;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         /// <summary>
@@ -1209,18 +1034,12 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
             @Right.started -= instance.OnRight;
             @Right.performed -= instance.OnRight;
             @Right.canceled -= instance.OnRight;
-            @Light.started -= instance.OnLight;
-            @Light.performed -= instance.OnLight;
-            @Light.canceled -= instance.OnLight;
-            @Medium.started -= instance.OnMedium;
-            @Medium.performed -= instance.OnMedium;
-            @Medium.canceled -= instance.OnMedium;
-            @Heavy.started -= instance.OnHeavy;
-            @Heavy.performed -= instance.OnHeavy;
-            @Heavy.canceled -= instance.OnHeavy;
-            @Special.started -= instance.OnSpecial;
-            @Special.performed -= instance.OnSpecial;
-            @Special.canceled -= instance.OnSpecial;
+            @Code.started -= instance.OnCode;
+            @Code.performed -= instance.OnCode;
+            @Code.canceled -= instance.OnCode;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         /// <summary>
@@ -1290,33 +1109,19 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRight(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Light" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Code" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnLight(InputAction.CallbackContext context);
+        void OnCode(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Medium" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMedium(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Heavy" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnHeavy(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Special" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSpecial(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "GamepadMaster" which allows adding and removing callbacks.
@@ -1354,33 +1159,19 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRight(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Light" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Code" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnLight(InputAction.CallbackContext context);
+        void OnCode(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Medium" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMedium(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Heavy" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnHeavy(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Special" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSpecial(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "JoystickMaster" which allows adding and removing callbacks.
@@ -1418,32 +1209,18 @@ public partial class @MasterInputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRight(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Light" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Code" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnLight(InputAction.CallbackContext context);
+        void OnCode(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Medium" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnMedium(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Heavy" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnHeavy(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Special" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSpecial(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
 }

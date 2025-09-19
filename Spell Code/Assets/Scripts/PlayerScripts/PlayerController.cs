@@ -1,21 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.Rendering.GPUSort;
 
 public enum PlayerState
 {
     Idle,
     Run,
-    Crouch,
     Jump,
     Hitstun,
     Tech,
     Slide,
     CodeWeave,
     CodeRelease
+}
+
+public struct AttackData
+{
+    ushort hitstun;
+    byte hitstop;
+
+    public AttackData(ushort hitstun, ushort blockstun, byte hitstop, ushort metergain)
+    {
+        this.hitstun = hitstun;
+        this.hitstop = hitstop;
+    }
+
+    public ushort Hitstun { readonly get => hitstun; set => hitstun = value; }
+    public byte Hitstop { readonly get => hitstop; set => hitstop = value; }
+    public override readonly string ToString() => $"({Hitstun}, {Hitstop})";
+
 }
 
 [DisallowMultipleComponent] //we only want one player controller per player
@@ -47,8 +66,6 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
-    int forward;
-    int backward;
 
     //leave public to get 
     public float hSpd = 0; //horizontal speed (effectively Velocity)
@@ -93,13 +110,33 @@ public class PlayerController : MonoBehaviour
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
-
+    //SFX VARIABLES
+    //public SFX_Manager mySFXHandler;
 
     void Start()
     {
+        upAction = playerInputs.actionMaps[0].FindAction("Up");
+        downAction = playerInputs.actionMaps[0].FindAction("Down");
+        leftAction = playerInputs.actionMaps[0].FindAction("Left");
+        rightAction = playerInputs.actionMaps[0].FindAction("Right");
+        codeAction = playerInputs.actionMaps[0].FindAction("Code");
+        jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
+        logicFrame = 0;
 
+
+        //bufferInput = InputConverter.ConvertFromLong(5);
+
+        hitboxData = null;
+
+        //specialMoves.SetupSpecialMoves(characterName);
+        InitCharacter();
     }
 
+    //get max health helper func:
+    public ushort GetMaxHealth()
+    {
+        return charData.playerHealth;
+    }
 
     void Update()
     {
@@ -109,12 +146,6 @@ public class PlayerController : MonoBehaviour
     public void PlayerUpdate(long inputs)
     {
         input = InputConverter.ConvertFromLong(inputs);
-        forward = facingRight ? 6 : 4;
-        backward = facingRight ? 4 : 6;
-
-        /*if ((CheckCameraWall(true,  checkOnly:true) || CheckCameraWall(false, checkOnly:true))){
-            Debug.Log($"{characterName} is in camera wall");
-        }*/
 
 
         CheckHit(input);
@@ -149,10 +180,6 @@ public class PlayerController : MonoBehaviour
         if (!isGrounded)
         {
             vSpd -= gravity;
-            if (IsStunnedState(opponent.state) && opponent.CheckWall(opponent.position.x > 0, true) && Mathf.Sign(hSpd) == (facingRight ? -1 : 1))
-            {
-                LerpHspd(0, 2);
-            }
         }
 
         PlayerState tempState = state;
@@ -165,71 +192,33 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
 
-                //Check Attack Inputs
-                CheckAttackInputs(input);
-                if (state != tempState)
-                {
-                    break;
-                }
                 //Check Direction Inputs
-                if (input.Direction == forward)
+                if (input.Direction == 6)
                 {
-                    SetState(PlayerState.WalkForward);
+                    facingRight = true;
+                    SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.Direction == backward)
+                else if (input.Direction == 4)
                 {
-                    if (CheckBlockRange())
-                    {
-                        SetState(PlayerState.Block);
-                        break;
-                    }
-
-                    SetState(PlayerState.WalkBackward);
+                    facingRight = false;
+                    SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.Direction >= 7)
+                else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    SetState(PlayerState.JumpSquat);
-                    break;
-                }
-                else if (input.Direction <= 3)
-                {
-                    if (input.Direction == backward - 3 && CheckBlockRange())
-                    {
-                        SetState(PlayerState.CrouchBlock);
-                        break;
-                    }
-
-                    SetState(PlayerState.Crouch);
-
+                    SetState(PlayerState.Jump);
                     break;
                 }
                 LerpHspd(0, 2);
                 break;
             case PlayerState.Run:
 
-                //Check Attack Inputs
-                CheckAttackInputs(input);
-                if (state != tempState)
-                {
-                    break;
-                }
-
                 //Check Direction Inputs
-                if (input.Direction == backward)
+
+                if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    SetState(PlayerState.WalkBackward);
-                    break;
-                }
-                else if (input.Direction >= 7)
-                {
-                    SetState(PlayerState.JumpSquat);
-                    break;
-                }
-                else if (input.Direction <= 3)
-                {
-                    SetState(PlayerState.Crouch);
+                    SetState(PlayerState.Jump);
                     break;
                 }
                 else if (input.Direction == 5)
@@ -241,70 +230,13 @@ public class PlayerController : MonoBehaviour
                 //run logic
                 hSpd = runSpeed * (facingRight ? 1 : -1);
 
-
-
-                break;
-            case PlayerState.Crouch:
-
-                //Check Attack Inputs
-                CheckAttackInputs(input);
-                if (state != tempState)
-                {
-                    break;
-                }
-
-                //Check Direction Inputs
-                if (input.Direction >= 4 && input.Direction <= 6)
-                {
-                    SetState(PlayerState.Idle);
-                    break;
-                }
-                else if (input.Direction >= 7)
-                {
-                    SetState(PlayerState.Jumpsquat);
-                    break;
-                }
-
-                LerpHspd(0, 3);
                 break;
             case PlayerState.Jump:
-
-                //Check Attack Inputs
-                CheckAttackInputs(input);
-                if (state != tempState)
-                {
-                    break;
-                }
-
-                if (CheckBlockRange() && input.Direction % 3 == backward % 3)
-                {
-                    SetState(PlayerState.JumpBlock);
-                    break;
-                }
-
-
-                //air dash inputs
-                if (input.Direction == forward &&
-                    this.inputs.InputBuffer.SequenceInBuffer(new short[] { (short)forward, 5, (short)forward }, 10) && airdashCounter > 0)
-                {
-
-                    SetState(PlayerState.AirDashStart);
-                    break;
-                }
-
-                if (input.Direction == backward &&
-                    this.inputs.InputBuffer.SequenceInBuffer(new short[] { (short)backward, 5, (short)backward },
-                        10) && airdashCounter > 0)
-                {
-
-                    SetState(PlayerState.AirBackDashStart);
-                    break;
-                }
 
                 //Check Direction Inputs
                 if (isGrounded)
                 {
-                    SetState(PlayerState.Landing);
+                    SetState(PlayerState.Idle);
                     break;
                 }
 
@@ -312,13 +244,13 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //Check Attack Inputs
-                CheckAttackInputs(input);
+                //CheckAttackInputs(input);
                 if (state != tempState)
                 {
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Light))
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeWeave))
                 {
                     SetState(PlayerState.Idle);
                     break;
@@ -328,14 +260,14 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeRelease:
                 //Check Attack Inputs
-                CheckAttackInputs(input);
+                //CheckAttackInputs(input);
                 if (state != tempState)
                 {
                     break;
                 }
 
                 if (logicFrame >=
-                    CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Medium))
+                    CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
                 {
                     SetState(PlayerState.Idle);
                     break;
@@ -344,8 +276,6 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(0, 5);
                 break;
             case PlayerState.Hitstun:
-                CheckFacingRight();
-                AdjustBrightnessForParry();
                 if (isGrounded)
                 {
                     //ground bounce can happen at any point on screen
@@ -362,31 +292,6 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Tech);
                 }
 
-                //check regardless of grounded or not
-                var rightSource = GetHitSource(true);   // ▶ right
-                var leftSource = GetHitSource(false);  // ◀ left
-
-                bool hitRightEdge = rightSource != WallHitSource.None;
-                bool hitLeftEdge = leftSource != WallHitSource.None;
-                bool hitBoundary = hitRightEdge || hitLeftEdge;
-
-                if (hitBoundary && hitboxData is { xKnockback: > 8 })
-                {
-                    var usedSource = hitRightEdge ? rightSource : leftSource;
-                    string side = hitRightEdge ? "right" : "left";
-                    Debug.Log($"{characterName} hit boundary via {usedSource} on {side} edge");
-
-                    // (b) rebound away from the edge we just struck
-                    int reboundDir = hitRightEdge ? -1 : 1;   // ▶ edge → bounce left, ◀ edge → bounce right
-
-                    // (c) build the speeds  //2.25 is most consistnet but we should fix on c
-                    float baseBounce = usedSource == WallHitSource.CameraWall ? 2.1f : 1.5f;
-                    float knockMag = hitboxData.xKnockback * damageProration;
-                    hSpd = baseBounce * Mathf.Log(0.5f + knockMag) * reboundDir;
-                    vSpd = baseBounce / 1.5f * Mathf.Log(1f + knockMag);
-
-                    hitboxData = null;
-                }
                 break;
             case PlayerState.Tech:
                 if (isGrounded)
@@ -418,16 +323,44 @@ public class PlayerController : MonoBehaviour
         logicFrame++;
     }
 
+    /// <summary>
+    /// Returns the current frame index based on the current logic frame
+    /// </summary>
+    /// <param name="frameLengths"></param>
+    int GetCurrentFrameIndex(List<int> frameLengths, bool loopAnim)
+    {
+        int accumulatedLength = 0;
+        int totalAnimationLength = frameLengths.Sum();
+        int animFrame = loopAnim ? (logicFrame % totalAnimationLength) : Math.Clamp(logicFrame, 0, totalAnimationLength - 1);
+
+        for (int i = 0; i < frameLengths.Count; i++)
+        {
+            accumulatedLength += frameLengths[i];
+            if (animFrame < accumulatedLength)
+            {
+                return i; // Return correct frame index
+            }
+        }
+        return 0; // Default to first frame (shouldn't happen)
+    }
+
+    public void PlayerWorldCollisionCheck()
+    {
+        isGrounded = CheckGrounded();
+        //CheckCameraCollision();
+        CheckWall(facingRight);
+        CheckWall(!facingRight);
+        //PlayerCollisionCheck();
+    }
+
     public void SetState(PlayerState targetState, bool canceling = false)
     {
         
 
         prevState = state;
         HandleExitLogic(prevState);
-
-        // If omega override is NOT active, proceed with normal logic
         state = targetState;
-        HandleEnterState(targetState, in canceling); //in as I don't intend to modify the reference
+        HandleEnterState(targetState, in canceling);
         cancelOptions.Clear();
         hitstunOverride = false;
     }
@@ -459,14 +392,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Run:
                 //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
                 break;
-            case PlayerState.Crouch:
-                break;
             case PlayerState.Jump:
                 playerHeight = charData.playerHeight / 2;
                 break;
             case PlayerState.Hitstun:
-                CheckFacingRight();
-                AdjustBrightnessForParry();
                 if (isGrounded)
                 {
                     //ground bounce can happen at any point on screen
@@ -483,31 +412,6 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Tech);
                 }
 
-                //check regardless of grounded or not
-                var rightSource = GetHitSource(true);   // ▶ right
-                var leftSource = GetHitSource(false);  // ◀ left
-
-                bool hitRightEdge = rightSource != WallHitSource.None;
-                bool hitLeftEdge = leftSource != WallHitSource.None;
-                bool hitBoundary = hitRightEdge || hitLeftEdge;
-
-                if (hitBoundary && hitboxData is { xKnockback: > 8 })
-                {
-                    var usedSource = hitRightEdge ? rightSource : leftSource;
-                    string side = hitRightEdge ? "right" : "left";
-                    Debug.Log($"{characterName} hit boundary via {usedSource} on {side} edge");
-
-                    // (b) rebound away from the edge we just struck
-                    int reboundDir = hitRightEdge ? -1 : 1;   // ▶ edge → bounce left, ◀ edge → bounce right
-
-                    // (c) build the speeds  //2.25 is most consistnet but we should fix on c
-                    float baseBounce = usedSource == WallHitSource.CameraWall ? 2.1f : 1.5f;
-                    float knockMag = hitboxData.xKnockback * damageProration;
-                    hSpd = baseBounce * Mathf.Log(0.5f + knockMag) * reboundDir;
-                    vSpd = baseBounce / 1.5f * Mathf.Log(1f + knockMag);
-
-                    hitboxData = null;
-                }
                 break;
 
             case PlayerState.Tech:
@@ -523,10 +427,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
-                mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
+                //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
-                mySFXHandler.PlaySound(SoundType.HEAVY_KICK);
+                //mySFXHandler.PlaySound(SoundType.HEAVY_KICK);
                 break;
         }
     }
@@ -556,25 +460,8 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    //public void CheckFacingRight()
-    //{
-    //    bool shouldFaceRight = position.x < opponent.position.x;
-
-    //    if (facingRight != shouldFaceRight)
-    //    {
-    //        facingRight = shouldFaceRight;
-    //    }
-
-    //    //check for if player is facing the same direction as the opponent
-    //    if (position.x == opponent.position.x)
-    //    {
-    //        facingRight = !opponent.facingRight;
-    //    }
-    //}
-
     public void CheckHit(InputSnapshot input)
     {
-        bool isCounterHit = false;
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
         if (hitboxData != null && isHit)
         {
@@ -582,7 +469,7 @@ public class PlayerController : MonoBehaviour
             if (hitstunOverride)
             {
                 //play the blocked sound
-                mySFXHandler.PlaySound(SoundType.BLOCKED);
+                //mySFXHandler.PlaySound(SoundType.BLOCKED);
 
                 return;
             }
@@ -591,7 +478,7 @@ public class PlayerController : MonoBehaviour
 
             
 
-            mySFXHandler.PlaySound(SoundType.DAMAGED);
+            //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
 
             //checking for death
@@ -604,7 +491,7 @@ public class PlayerController : MonoBehaviour
                 
 
                 // Reduce health 
-                currrentPlayerHealth = (ushort)Math.Max(0, currrentPlayerHealth - (hitboxData.damage * damageProration) - (isCounterHit ? 10 * hitboxData.counterhitMod : 0));
+                currrentPlayerHealth = (ushort)Math.Max(0, currrentPlayerHealth - (hitboxData.damage * damageProration));
 
 
                 // Update damage proration
@@ -615,8 +502,7 @@ public class PlayerController : MonoBehaviour
             }
 
 
-            GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
-            //Debug.Log($"Combo Counter: {comboCounter}, Damage Proration: {damageProration}");
+            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             SetState(PlayerState.Hitstun);
         }
@@ -777,6 +663,56 @@ public class PlayerController : MonoBehaviour
         return current
             ? (previous ? ButtonState.Held : ButtonState.Pressed)
             : (previous ? ButtonState.Released : ButtonState.None);
+    }
+
+    /// NETWORK CODE:
+    public void Serialize(BinaryWriter bw)
+    {
+        bw.Write(position.x);
+        bw.Write(position.y);
+        bw.Write(hSpd);
+        bw.Write(vSpd);
+        bw.Write(facingRight);
+        bw.Write(isGrounded);
+        bw.Write((byte)state);
+        bw.Write((byte)prevState);
+        bw.Write(logicFrame); // 🔹 Save current animation frame
+        bw.Write(lerpDelay);
+        bw.Write(stateSpecificArg);
+        bw.Write(hitstop);
+        bw.Write(hitboxActive);
+        bw.Write(hitstopActive);
+        bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
+    }
+
+
+    public void Deserialize(BinaryReader br)
+    {
+        position.x = br.ReadSingle();
+        position.y = br.ReadSingle();
+        hSpd = br.ReadSingle();
+        vSpd = br.ReadSingle();
+        facingRight = br.ReadBoolean();
+        isGrounded = br.ReadBoolean();
+        state = (PlayerState)br.ReadByte();
+        prevState = (PlayerState)br.ReadByte();
+        logicFrame = br.ReadInt32();
+        lerpDelay = br.ReadUInt16();
+        stateSpecificArg = br.ReadUInt16();
+        hitstop = br.ReadByte();
+        hitboxActive = br.ReadBoolean();
+        hitstopActive = br.ReadBoolean();
+        hitstunOverride = br.ReadBoolean();
+        comboCounter = br.ReadUInt16();
+        //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
+    }
+
+
+    public void ResetHealth()
+    {
+        currrentPlayerHealth = charData.playerHealth;
     }
 
     //private bool IsSpecialStateActive() =>

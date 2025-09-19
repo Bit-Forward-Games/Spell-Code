@@ -1,0 +1,314 @@
+{
+  "CharacterData": [
+    {
+      "character": "Slugomancer",
+      "runSpeed": 21,
+      "jumpForce": 7.5,
+      "jumpCounter": 1,
+      "playerHealth": 1200,
+      "playerWidth": 18,
+      "playerHeight": 30,
+      "animFrames": {
+        "idleAnimFrames": {
+          "frameIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "frameLengths": [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
+          ],
+          "loopAnim": true
+        },
+        "runAnimFrames": {
+          "frameIndexes": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "frameLengths": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "loopAnim": true
+        },
+
+        "jumpAnimFrames": {
+          "frameIndexes": [
+            43,
+            44,
+            45,
+            46
+          ],
+          "frameLengths": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "loopAnim": true
+        },
+        "hitstunAnimFrames": {
+          "frameIndexes": [
+            87,
+            88,
+            89,
+            90
+          ],
+          "frameLengths": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "loopAnim": true
+        },
+        "techAnimFrames": {
+          "frameIndexes": [
+            49,
+            50,
+            51,
+            52,
+            53,
+            50,
+            51,
+            52,
+            53
+          ],
+          "frameLengths": [
+            2,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "loopAnim": false
+        },
+        "spellWeaveAnimFrames": {
+          "frameIndexes": [
+            100,
+            101,
+            102,
+            103,
+            104,
+            105
+          ],
+          "frameLengths": [
+            4,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "loopAnim": false
+        },
+        "spellReleaseAnimFrames": {
+          "frameIndexes": [
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "frameLengths": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2
+          ],
+          "loopAnim": false
+        },
+        "slideAnimFrames": {
+          "frameIndexes": [
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113
+          ],
+          "frameLengths": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            2
+          ],
+          "loopAnim": false
+        }
+      },
+      "hurtboxFrames": {
+        "idleHurtboxFrames": [
+          0
+        ],
+        "runHurtboxFrames": [
+          0
+        ],
+        "jumpHurtboxFrames": [
+          0
+        ],
+        "hitstunHurtboxFrames": [
+          0
+        ],
+        "techHurtboxFrames": [
+          0
+        ],
+        "spellWeaveHurtboxFrames": [
+          0
+        ],
+        "spellReleaseHurtboxFrames": [
+          0
+        ],
+        "slideHurtboxFrames": [
+          0
+        ]
+      },
+      "hurtboxData": {
+        "idleHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -10,
+              "yOffset": 34,
+              "width": 22,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "runHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -10,
+              "yOffset": 30,
+              "width": 27,
+              "height": 31
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "jumpHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -8,
+              "yOffset": 39,
+              "width": 22,
+              "height": 22
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "hitstunHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -13,
+              "yOffset": 36,
+              "width": 26,
+              "height": 32
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "techHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": 0,
+              "yOffset": 0,
+              "width": 0,
+              "height": 0
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "codeWeaveHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "codeReleaseHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "slideHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        }
+      }
+    }
+  ]
+}

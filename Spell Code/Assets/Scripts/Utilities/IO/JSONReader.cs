@@ -79,10 +79,8 @@ public class AnimFrameContainer
 {
     public AnimFrames idleAnimFrames;
     public AnimFrames runAnimFrames;
-    public AnimFrames jumpForwardAnimFrames;
-    public AnimFrames jumpBackwardAnimFrames;
-    public AnimFrames hitRisingAnimFrames;
-    public AnimFrames hitFallingAnimFrames;
+    public AnimFrames jumpAnimFrames;
+    public AnimFrames hitstunAnimFrames;
     public AnimFrames techAnimFrames;
     public AnimFrames codeWeaveAnimFrames;
     public AnimFrames codeReleaseAnimFrames;
@@ -227,13 +225,13 @@ public class HurtboxFrames
 
 
 
-[System.Serializable]
-public class SpecialInputs
-{
-    public List<short> special1Input;
-    public List<short> special2Input;
-    public List<short> special3Input;
-}
+//[System.Serializable]
+//public class SpecialInputs
+//{
+//    public List<short> special1Input;
+//    public List<short> special2Input;
+//    public List<short> special3Input;
+//}
 
 [System.Serializable]
 public class CharacterData

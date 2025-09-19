@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEngine.Rendering.GPUSort;
 
 public enum PlayerState
 {
@@ -55,7 +53,7 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[2];
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
-    public string characterName = "Slugmancer";
+    public string characterName = "Slugomancer";
 
     [HideInInspector]
     public List<int> cancelOptions = new();
@@ -193,6 +191,11 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
+    }
+
+    void FixedUpdate()
+    {
+        PlayerUpdate(GetInputs());
     }
 
     public void PlayerUpdate(long inputs)

@@ -214,7 +214,7 @@ public static class CharacterDataDictionary
         { PlayerState.Jump, data => data.hurtboxData.jumpHurtbox },
         { PlayerState.Hitstun, data => data.hurtboxData.hitstunHurtbox },
         { PlayerState.Tech, data => data.hurtboxData.techHurtbox },
-        { PlayerState.Slide, data => data.hurtboxData.techHurtbox }
+        { PlayerState.Slide, data => data.hurtboxData.slideHurtbox }
 
     };
 
@@ -224,8 +224,8 @@ public static class CharacterDataDictionary
         { PlayerState.CodeRelease, data => data.animFrames.codeReleaseAnimFrames },
         { PlayerState.Idle, data => data.animFrames.idleAnimFrames },
         { PlayerState.Run, data => data.animFrames.runAnimFrames },
-        { PlayerState.Jump, data => data.animFrames.jumpForwardAnimFrames },
-        { PlayerState.Hitstun, data => data.animFrames.hitRisingAnimFrames },
+        { PlayerState.Jump, data => data.animFrames.jumpAnimFrames },
+        { PlayerState.Hitstun, data => data.animFrames.hitstunAnimFrames },
         { PlayerState.Tech, data => data.animFrames.techAnimFrames },
         { PlayerState.Slide, data => data.animFrames.slideAnimFrames }
     };

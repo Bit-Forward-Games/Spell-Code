@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 4993993390338269426}
   - component: {fileID: -1293374541561941338}
   - component: {fileID: 2545922301449357389}
+  - component: {fileID: 8887101072570620987}
+  - component: {fileID: 8219335073837037833}
   m_Layer: 0
   m_Name: pfb_PlayerController
   m_TagString: Untagged
@@ -47,7 +49,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputs: {fileID: 0}
-  playerInputs: {fileID: -944628639613478452, guid: af0fbe83200a6ff47ba62bda892dd3b6, type: 3}
+  playerInputs: {fileID: -944628639613478452, guid: 392994fbb06963e4b9573104a7e05fe6, type: 3}
   characterName: Slugomancer
   cancelOptions: 
   facingRight: 1
@@ -156,3 +158,52 @@ MonoBehaviour:
   jsonFile: {fileID: 4900000, guid: 2b87dd6ccd9b06c479832313940c4fa6, type: 3}
   characterDataList:
     CharacterData: []
+--- !u!114 &8887101072570620987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8711063744521862629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 392994fbb06963e4b9573104a7e05fe6, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: KeyboardMaster
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!114 &8219335073837037833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8711063744521862629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9dcd12d79e9a574dbbd218d5f1df9f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputActionAsset: {fileID: -944628639613478452, guid: 392994fbb06963e4b9573104a7e05fe6, type: 3}
+  playerActionMap:
+    m_Name: Player
+    m_Id: e37addb5-1850-408d-92a3-f25c4384aa2f
+    m_Asset: {fileID: 0}
+    m_Actions: []
+    m_Bindings: []

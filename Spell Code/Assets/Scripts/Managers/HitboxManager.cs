@@ -42,7 +42,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
         cachedForScreenShakeCamera = Camera.main.GetComponent<StageCamera>();
     }
 
-    public void ProcessCollisions()
+    /*public void ProcessCollisions()
     {
         playerOneState = GameSessionManager.Instance.playerControllers[0].state;
         playerTwoState = GameSessionManager.Instance.playerControllers[1].state;
@@ -110,7 +110,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
     //            //Debug.Log($"Projectile {projectile.ProjectileID} has hitbox at offset ({hitbox.xOffset}, {hitbox.yOffset}) with damage {hitbox.damage} who is owned by {players[projectile.owner].name}");
     //        }
     //    }
-    }
+    }*/
 
 
     private bool IsLastHitboxInSequence((HitboxGroup, FrameData) hitInfo, HitboxData hitbox)

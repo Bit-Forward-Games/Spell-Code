@@ -132,7 +132,7 @@ public class InputPlayerBindings : MonoBehaviour
         get { return inputBuffer; }
     }
 
-    public bool IsActive { get; private set; } = false;
+    public bool IsActive { get; private set; } = true;
 
     // ===== | Methods | =====
 
@@ -287,7 +287,7 @@ public class InputPlayerBindings : MonoBehaviour
             inputActionAsset = action.actions;
             inputActionAsset.devices = InputSystem.devices;
 
-            playerActionMap = inputActionAsset.FindActionMap("GameplayMap");
+            playerActionMap = inputActionAsset.FindActionMap("Gameplay");
 
             upAction = playerActionMap.FindAction("Up");
             downAction = playerActionMap.FindAction("Down");

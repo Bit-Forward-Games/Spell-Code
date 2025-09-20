@@ -11,7 +11,7 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
     public Texture2D[] paletteTextures;
     [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;
     //[NonSerialized] public Dictionary<PlayerController, Dictionary<Type, Dictionary<SmartEnum<ProjectileState>, Sprite[]>>> characterSpecificProjectileAnimations;
-    [SerializeField] public  PlayerController[] fighters = new PlayerController[2];
+    [SerializeField] public  PlayerController[] fighters;
 
 
 #if UNITY_EDITOR
@@ -134,6 +134,11 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
     /// 🔹 **Used in Local Play** Either one only does what the old UpdateSprites did, if anything rename later.
     public void RenderGameState()
     {
+        if(GameManager.Instance.players.Length == 0)
+        {
+            return;
+        }
+        fighters = GameManager.Instance.players;
         // First pass: count how many players are attacking
         int attackingCount = fighters.Count(player => HitboxManager.Instance.IsAttackingState(player.state));
 
@@ -142,11 +147,11 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         {
             PlayerController player = fighters[i];
 
-            if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
-            if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
+            //if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
+            //if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
 
             // Update the player's sprite and flip direction
-            player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
+            //player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
             player.spriteRenderer.flipX = !player.facingRight;
 
             // Determine z-index
@@ -169,7 +174,7 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
             else
             {
                 // Non-attacking players use original priority logic
-                zIndex = Array.IndexOf(GameSessionManager.Instance.playerControllers, player) + 2;
+                zIndex = Array.IndexOf(GameManager.Instance.players, player) + 2;
             }
 
             // Update position with new z-index
@@ -180,16 +185,16 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
 
 
     /// 🔹 **Used in GGPO Rollback**
-    public void RenderGameStateNetwork()
-    {
-        foreach (PlayerController player in fighters)
-        {
-            if (player == null) continue;
-            if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
-            if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
-            player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
-            player.spriteRenderer.flipX = !player.facingRight;
-            player.transform.position = transform.position = new Vector3(player.position.x, player.position.y, (Array.IndexOf(GameSessionManager.Instance.playerControllers, player) + 2));
-        }
-    }
+    //public void RenderGameStateNetwork()
+    //{
+    //    foreach (PlayerController player in fighters)
+    //    {
+    //        if (player == null) continue;
+    //        if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
+    //        if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
+    //        player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
+    //        player.spriteRenderer.flipX = !player.facingRight;
+    //        player.transform.position = transform.position = new Vector3(player.position.x, player.position.y, (Array.IndexOf(GameSessionManager.Instance.playerControllers, player) + 2));
+    //    }
+    //}
 }

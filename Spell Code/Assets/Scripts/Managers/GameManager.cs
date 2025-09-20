@@ -7,8 +7,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public List<PlayerController> players = new List<PlayerController>(); 
+    public PlayerController[] players = new PlayerController[0];
 
+    public bool isRunning;
 
     private void Awake()
     {
@@ -28,6 +29,7 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        isRunning = true;
         
     }
 
@@ -37,10 +39,51 @@ public class GameManager : MonoBehaviour
         
     }
 
+    private void FixedUpdate()
+    {
+        RunFrame();
+
+        AnimationManager.Instance.RenderGameState();
+
+    }
+
+    /// <summary>
+    /// Runs a single frame of the game.
+    /// </summary>
+    protected  void RunFrame()
+    {
+        if (!isRunning)
+            return;
+
+        long[] inputs = new long[players.Length];
+        for (int i = 0; i < inputs.Length; ++i)
+        {
+            inputs[i] = players[i].GetInputs();
+        }
+
+        UpdateGameState(inputs);
+    }
+
+    /// <summary>
+    /// Updates the game state based on the provided inputs.
+    /// </summary>
+    /// <param name="inputs">Array of inputs for each player.</param>
+    protected void UpdateGameState(long[] inputs)
+    {
+        //HitboxManager.Instance.ProcessCollisions();
+        for (int i = 0; i < players.Length; i++)
+        {
+            players[i].PlayerUpdate(inputs[i]);
+        }
+    }
+
     public void GetPlayerControllers()
     {
-        players.Clear();
-        PlayerController[] foundPlayers = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
-        players.AddRange(foundPlayers);
+        players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        foreach(PlayerController player in players)
+        {
+            player.inputs.AssignInputDevice(null);
+        }
     }
+
 }

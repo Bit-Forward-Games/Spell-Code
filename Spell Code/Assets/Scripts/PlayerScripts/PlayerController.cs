@@ -74,7 +74,6 @@ public class PlayerController : MonoBehaviour
     public int animationFrame;
     public PlayerState state;
     public PlayerState prevState;
-    [HideInInspector]
     public SpriteRenderer spriteRenderer;
 
     //Character Data
@@ -366,7 +365,7 @@ public class PlayerController : MonoBehaviour
 
 
         //check player collisions
-        ///PlayerWorldCollisionCheck();
+        PlayerWorldCollisionCheck();
         position.x += hSpd;
         position.y += vSpd;
         //handle player animation
@@ -446,6 +445,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
                 playerHeight = charData.playerHeight / 2;
+                vSpd = jumpForce;
                 break;
             case PlayerState.Hitstun:
                 if (isGrounded)

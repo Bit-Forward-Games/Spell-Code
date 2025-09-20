@@ -81,9 +81,9 @@ public class GameManager : MonoBehaviour
 
     public void GetPlayerControllers( PlayerInput playerInput)
     {
-        //players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
+        AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
         
     }

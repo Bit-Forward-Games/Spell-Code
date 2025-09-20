@@ -51,7 +51,6 @@
           ],
           "loopAnim": true
         },
-
         "jumpAnimFrames": {
           "frameIndexes": [
             15,
@@ -85,7 +84,7 @@
           ],
           "loopAnim": false
         },
-        "spellWeaveAnimFrames": {
+        "codeWeaveAnimFrames": {
           "frameIndexes": [
             21,
             22,
@@ -104,7 +103,7 @@
           ],
           "loopAnim": false
         },
-        "spellReleaseAnimFrames": {
+        "codeReleaseAnimFrames": {
           "frameIndexes": [
             27,
             28,
@@ -127,14 +126,12 @@
         },
         "slideAnimFrames": {
           "frameIndexes": [
-            106,
-            107,
-            108,
-            109,
-            110,
-            111,
-            112,
-            113
+            33,
+            34,
+            35,
+            36,
+            37,
+            38
           ],
           "frameLengths": [
             3,
@@ -142,9 +139,7 @@
             3,
             3,
             3,
-            3,
-            2,
-            2
+            3
           ],
           "loopAnim": false
         }

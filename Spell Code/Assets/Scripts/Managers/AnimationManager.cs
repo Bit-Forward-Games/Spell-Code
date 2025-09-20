@@ -25,14 +25,14 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
     }
 #endif
 
-    private struct implicitStateAnimations
-    {
-        public Sprite[] landingHitstunAnim;
-        public Sprite[] RisingHitstunAnim;
-    }
+    //private struct implicitStateAnimations
+    //{
+    //    public Sprite[] landingHitstunAnim;
+    //    public Sprite[] RisingHitstunAnim;
+    //}
 
-    [NonSerialized]
-    private Dictionary<PlayerController, implicitStateAnimations> implicitAnimationSprites = new();
+    //[NonSerialized]
+    //private Dictionary<PlayerController, implicitStateAnimations> implicitAnimationSprites = new();
 
     /// <summary>
     /// Todo: make josh or someone take note of this design decision
@@ -51,6 +51,7 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         AnimFrames idleAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Idle);
         AnimFrames runAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run);
         AnimFrames jumpAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Jump);
+        AnimFrames hitstunAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Hitstun);
         AnimFrames techAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Tech);
         AnimFrames codeWeaveAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.CodeWeave);
         AnimFrames codeReleaseAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.CodeRelease);
@@ -62,16 +63,11 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         Sprite[] idleAnim = idleAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] runAnim = runAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] jumpAnim = jumpAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
+        Sprite[] hitstunAnim = hitstunAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
+        Sprite[] techAnim = techAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] codeWeaveAnim = codeWeaveAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] codeReleaseAnim = codeReleaseAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
-        Sprite[] techAnim = techAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
-
-        // implicit ANIMS **separately per player** 
-        implicitAnimationSprites[player] = new implicitStateAnimations
-        {
-            landingHitstunAnim = spriteSheetData[index].subSprites[95..97],
-            RisingHitstunAnim = spriteSheetData[index].subSprites[97..99]
-        };
+        Sprite[] slideAnim = slideAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
 
         // Initialize player's animation dictionary with default empty sprite arrays for each state
         if (!PlayerAnimations.ContainsKey(player))
@@ -79,26 +75,23 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
             PlayerAnimations[player] = new Dictionary<PlayerState, Sprite[]>();
         }
 
-        // Assign movement ANIMS:
         PlayerAnimations[player][PlayerState.Idle] = idleAnim;
         PlayerAnimations[player][PlayerState.Run] = runAnim;
         PlayerAnimations[player][PlayerState.Jump] = jumpAnim;
-
-
+        PlayerAnimations[player][PlayerState.Hitstun] = hitstunAnim;
         PlayerAnimations[player][PlayerState.Tech] = techAnim;
-
-
-        //Attack ANIMS:
         PlayerAnimations[player][PlayerState.CodeWeave] = codeWeaveAnim;
         PlayerAnimations[player][PlayerState.CodeRelease] = codeReleaseAnim;
+        PlayerAnimations[player][PlayerState.Slide] = slideAnim;
 
         // Initialize player palette
         //player.InitializePalette(paletteTextures[index]);
-        
+
     }
 
     public List<int> GetFrameLengthsForCurrentState(PlayerController player)
     {
+        fighters = GameManager.Instance.players[0..GameManager.Instance.playerCount];
         int index = Array.IndexOf(fighters, player);
         List<int> frameLengthsData = CharacterDataDictionary.GetAnimFrames(spriteSheetData[index].name, player.state)
                 .frameLengths;
@@ -106,26 +99,7 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         return frameLengthsData;
     }
 
-
-    public void SetAirHitstun(PlayerController player)
-    {
-        if (!implicitAnimationSprites.TryGetValue(player, out implicitStateAnimations hitstunAnims))
-        {
-            Debug.LogError($"Hitstun animations not found for player {player.name}");
-            return;
-        }
-
-        // Determine animation based on vertical speed (vSpd)
-        bool rising = player.vSpd > 0;
-
-        PlayerAnimations[player][PlayerState.Hitstun] = rising ? hitstunAnims.RisingHitstunAnim
-            : hitstunAnims.landingHitstunAnim;
-    }
-
     
-
-    
-
     private void Start()
     {
         PlayerAnimations = new Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>>();
@@ -147,11 +121,11 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         {
             PlayerController player = fighters[i];
 
-            //if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
-            //if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
+            if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
+            if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
 
             // Update the player's sprite and flip direction
-            //player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
+            player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
             player.spriteRenderer.flipX = !player.facingRight;
 
             // Determine z-index
@@ -182,19 +156,4 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
         }
 
     }
-
-
-    /// 🔹 **Used in GGPO Rollback**
-    //public void RenderGameStateNetwork()
-    //{
-    //    foreach (PlayerController player in fighters)
-    //    {
-    //        if (player == null) continue;
-    //        if (!PlayerAnimations.TryGetValue(player, out Dictionary<PlayerState, Sprite[]> playerAnimations)) continue;
-    //        if (!playerAnimations.TryGetValue(player.state, out Sprite[] currentAnimation)) continue;
-    //        player.spriteRenderer.sprite = currentAnimation[player.animationFrame];
-    //        player.spriteRenderer.flipX = !player.facingRight;
-    //        player.transform.position = transform.position = new Vector3(player.position.x, player.position.y, (Array.IndexOf(GameSessionManager.Instance.playerControllers, player) + 2));
-    //    }
-    //}
 }

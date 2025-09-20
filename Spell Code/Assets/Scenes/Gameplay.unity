@@ -127,6 +127,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spriteSheetData.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spriteSheetData.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spriteSheetData.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
     - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_PlayerJoinedEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 0

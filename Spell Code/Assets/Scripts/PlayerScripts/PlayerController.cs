@@ -375,8 +375,8 @@ public class PlayerController : MonoBehaviour
         position.x += hSpd;
         position.y += vSpd;
         //handle player animation
-        //List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
-        //animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
+        List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
+        animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
         logicFrame++;
     }
 

@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
 {
     //INPUTS
     public InputPlayerBindings inputs;
-    [SerializeField] private InputActionAsset playerInputs;
+    public InputActionAsset playerInputs;
     private InputAction upAction;
     private InputAction downAction;
     private InputAction leftAction;
@@ -275,6 +275,12 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction == 5)
                 {
                     SetState(PlayerState.Idle);
+                    break;
+                }
+                else if (input.Direction == (facingRight? 4:6))
+                {
+                    facingRight = !facingRight;
+                    SetState(PlayerState.Run);
                     break;
                 }
 

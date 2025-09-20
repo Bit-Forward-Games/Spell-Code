@@ -50,11 +50,11 @@
 //        //create an initial port state
 //        int port = 0;
 
-//        playerHandles = new int[players.Length];
+//        playerHandles = new int[playerCount];
 
 //        next = Utils.TimeGetTime();
 
-//        for (int i = 0; i < players.Length; i++)
+//        for (int i = 0; i < playerCount; i++)
 //        {
 //            if (players[i].type == GGPOPlayerType.GGPO_PLAYERTYPE_LOCAL)
 //            {

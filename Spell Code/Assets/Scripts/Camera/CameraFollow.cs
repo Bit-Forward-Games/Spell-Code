@@ -17,7 +17,6 @@ public class cameraFollow : MonoBehaviour
     private Vector3 vel = Vector3.zero;
     private Camera cam;
     //private PixelPerfectCamera pixelPerfectCamera;
-    public PlayerController[] players;
 
     private void Start()
     {
@@ -27,15 +26,15 @@ public class cameraFollow : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (players.Length > 0)
+        if (GameManager.Instance.playerCount > 0)
         {
             // Get the average position of all players and set the camera to that position
             Vector3 averagePos = Vector3.zero;
-            for (int i = 0; i < players.Length; i++)
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                averagePos += players[i].transform.position;
+                averagePos += GameManager.Instance.players[i].transform.position;
             }
-            averagePos /= players.Length;
+            averagePos /= GameManager.Instance.playerCount;
             target = averagePos + offset;
 
             // Calculate the new zoom level based on the distance between players
@@ -80,10 +79,10 @@ public class cameraFollow : MonoBehaviour
 
     private Bounds GetGreatestDistance()
     {
-        Bounds bounds = new Bounds(players[0].transform.position, Vector3.zero);
-        for (int i = 0; i < players.Length; i++)
+        Bounds bounds = new Bounds(GameManager.Instance.players[0].transform.position, Vector3.zero);
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            bounds.Encapsulate(players[i].transform.position);
+            bounds.Encapsulate(GameManager.Instance.players[i].transform.position);
         }
         return bounds;
     }

@@ -139,15 +139,15 @@ public class InputPlayerBindings : MonoBehaviour
     // Constructor
     public void Awake()
     {
-        inputActionAsset = ScriptableObject.CreateInstance<InputActionAsset>();
-        playerActionMap = inputActionAsset.AddActionMap("Player");
+        //inputActionAsset = ScriptableObject.CreateInstance<InputActionAsset>();
+        playerActionMap = inputActionAsset.actionMaps[0];
 
-        upAction = playerActionMap.AddAction("Up", InputActionType.Button);
-        downAction = playerActionMap.AddAction("Down", InputActionType.Button);
-        leftAction = playerActionMap.AddAction("Left", InputActionType.Button);
-        rightAction = playerActionMap.AddAction("Right", InputActionType.Button);
-        codeAction = playerActionMap.AddAction("Code", InputActionType.Button);
-        jumpAction = playerActionMap.AddAction("Jump", InputActionType.Button);
+        upAction = playerActionMap.FindAction("Up");
+        downAction = playerActionMap.FindAction("Down");
+        leftAction = playerActionMap.FindAction("Left");
+        rightAction = playerActionMap.FindAction("Right");
+        codeAction = playerActionMap.FindAction("Code");
+        jumpAction = playerActionMap.FindAction("Jump");
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -192,7 +192,7 @@ public class InputPlayerBindings : MonoBehaviour
 
     private void SetupInputAsset()
     {
-        inputActionAsset = new InputActionAsset();
+        //inputActionAsset = new InputActionAsset();
         playerActionMap = inputActionAsset.AddActionMap("Player");
 
         upAction = playerActionMap.AddAction("Up", InputActionType.Button);
@@ -212,69 +212,72 @@ public class InputPlayerBindings : MonoBehaviour
         {
             SetupInputAsset();
         }
+        #region nah
+        //if (inputDevice != null)
+        //{
+        //    inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { inputDevice });
 
-        if (inputDevice != null)
-        {
-            inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { inputDevice });
+        //    string[][] bindings = DefaultInputBindings.SetControllerBindings(inputDevice);
 
-            string[][] bindings = DefaultInputBindings.SetControllerBindings(inputDevice);
+        //    for (int i = 0; i < bindings.Length; i++)
+        //    {
+        //        for (int j = 0; j < bindings[i].Length; j++)
+        //        {
+        //            switch (i)
+        //            {
+        //                case 0:
+        //                    playerActionMap.FindAction("Up").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
+        //                    break;
+        //                case 1:
+        //                    playerActionMap.FindAction("Down").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
+        //                    break;
+        //                case 2:
+        //                    playerActionMap.FindAction("Left").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
+        //                    break;
+        //                case 3:
+        //                    playerActionMap.FindAction("Right").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
+        //                    break;
+        //                case 4:
+        //                    playerActionMap.FindAction("Code").AddBinding(bindings[i][j]);
+        //                    break;
+        //                case 5:
+        //                    playerActionMap.FindAction("Jump").AddBinding(bindings[i][j]);
+        //                    break;
+        //            }
+        //        }
+        //    }
 
-            for (int i = 0; i < bindings.Length; i++)
-            {
-                for (int j = 0; j < bindings[i].Length; j++)
-                {
-                    switch (i)
-                    {
-                        case 0:
-                            playerActionMap.FindAction("Up").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
-                            break;
-                        case 1:
-                            playerActionMap.FindAction("Down").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
-                            break;
-                        case 2:
-                            playerActionMap.FindAction("Left").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
-                            break;
-                        case 3:
-                            playerActionMap.FindAction("Right").AddBinding(bindings[i][j]).WithProcessor("axisDeadzone(min=0.9)");
-                            break;
-                        case 4:
-                            playerActionMap.FindAction("Code").AddBinding(bindings[i][j]);
-                            break;
-                        case 5:
-                            playerActionMap.FindAction("Jump").AddBinding(bindings[i][j]);
-                            break;
-                    }
-                }
-            }
+        //    IsActive = true;
+        //}
+        //else
+        //{
+        //    //Debug.Log("True");
+        //    AssignInputDevice();
+        //}
+        #endregion
 
-            IsActive = true;
-        }
-        else
-        {
-            //Debug.Log("True");
-            AssignInputDevice();
-        }
+        AssignInputDevice();
     }
-    public void AssignInputDevice(InputActionMap map, InputDevice device)
-    {
-        playerActionMap.Disable();
-        inputActionAsset.Disable();
+    //public void AssignInputDevice(InputActionMap map, InputDevice device)
+    //{
+    //    playerActionMap.Disable();
+    //    inputActionAsset.Disable();
 
-        inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { device });
-        inputActionAsset.AddActionMap(SCUtils.CreateCloneMap(map));
-        playerActionMap = map;
+    //    inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { device });
+    //    inputActionAsset.AddActionMap(SCUtils.CreateCloneMap(map));
+    //    playerActionMap = map;
 
-        upAction = playerActionMap.FindAction("Up");
-        downAction = playerActionMap.FindAction("Down");
-        leftAction = playerActionMap.FindAction("Left");
-        rightAction = playerActionMap.FindAction("Right");
-        codeAction = playerActionMap.FindAction("Code");
-        jumpAction = playerActionMap.FindAction("Jump");
-        IsActive = true;
+    //    upAction = playerActionMap.FindAction("Up");
+    //    downAction = playerActionMap.FindAction("Down");
+    //    leftAction = playerActionMap.FindAction("Left");
+    //    rightAction = playerActionMap.FindAction("Right");
+    //    codeAction = playerActionMap.FindAction("Code");
+    //    jumpAction = playerActionMap.FindAction("Jump");
+    //    IsActive = true;
 
-        playerActionMap.Enable();
-        inputActionAsset.Enable();
-    }
+    //    playerActionMap.Enable();
+    //    inputActionAsset.Enable();
+    //}
 
     /// <summary>
     /// This overload is used for development, if opening up the game scene directly 
@@ -285,9 +288,10 @@ public class InputPlayerBindings : MonoBehaviour
         if (GetComponent<PlayerInput>() is PlayerInput action)
         {
             inputActionAsset = action.actions;
-            inputActionAsset.devices = InputSystem.devices;
+            //inputActionAsset.devices = InputSystem.devices;
 
-            playerActionMap = inputActionAsset.FindActionMap("Gameplay");
+            //playerActionMap = inputActionAsset.FindActionMap("Gameplay");
+            playerActionMap = action.currentActionMap;
 
             upAction = playerActionMap.FindAction("Up");
             downAction = playerActionMap.FindAction("Down");
@@ -298,6 +302,7 @@ public class InputPlayerBindings : MonoBehaviour
             IsActive = true;
         }
     }
+
 
     public long UpdateInputs()
     {

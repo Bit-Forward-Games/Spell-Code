@@ -51,11 +51,11 @@
 //        //create an initial port state
 //        int port = 0;
 
-//        playerHandles = new int[players.Length];
+//        playerHandles = new int[playerCount];
 
 //        next = Utils.TimeGetTime();
 
-//        for (int i = 0; i < players.Length; i++)
+//        for (int i = 0; i < playerCount; i++)
 //        {
 //            if (players[i].type == GGPOPlayerType.GGPO_PLAYERTYPE_LOCAL)
 //            {
@@ -74,14 +74,14 @@
 //            OnSynchronizedWithPeer, OnRunning,
 //            OnConnectionInterrupted, OnConnectionResumed,
 //            OnDisconnectedFromPeer, OnTimeSync,
-//            name, players.Length, port);
+//            name, playerCount, port);
 
 //        Debug.Log("Result of Starting Session: " + GGPO.GetErrorCodeMessage(result));
 
 //        GGPO.Session.SetDisconnectTimeout(3000);
 //        GGPO.Session.SetDisconnectNotifyStart(1000);
 
-//        for (int i = 0; i < players.Length; i++)
+//        for (int i = 0; i < playerCount; i++)
 //        {
 //            result = GGPO.Session.AddPlayer(players[i], out playerHandles[i]);
 //            Debug.Log("Result of player " + i + ": " + GGPO.GetErrorCodeMessage(result));

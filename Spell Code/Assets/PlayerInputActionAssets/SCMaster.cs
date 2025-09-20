@@ -160,7 +160,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""67868fdd-f040-4c06-97ba-bd20d990d726"",
+                    ""id"": ""a679c413-62fd-48e5-85fd-57abbb083572"",
                     ""path"": ""<Gamepad>/dpad/up"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -182,7 +182,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""6cb4e017-0346-40c9-b890-4ab95345a5b2"",
+                    ""id"": ""cc322730-f44e-4581-b03c-1877ed50893d"",
                     ""path"": ""<Gamepad>/dpad/down"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -204,7 +204,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""ef0e0120-8b72-4e6e-b99f-893b63e034ae"",
+                    ""id"": ""97518d9a-b17d-4aed-b213-f692696e819b"",
                     ""path"": ""<Gamepad>/dpad/left"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -226,7 +226,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""47c79785-618b-4797-a871-432648e39f92"",
+                    ""id"": ""3afae1e8-29b5-457e-ac51-8a3867f64ffe"",
                     ""path"": ""<Gamepad>/dpad/right"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -259,6 +259,17 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""af6b3dd2-1a7c-4c37-87f6-0f3fed18e235"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""3722eeb3-b728-4e19-a7ca-c9c481030a69"",
                     ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
@@ -270,7 +281,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""81048064-2a2b-4a4e-a222-f3408f76b5e2"",
+                    ""id"": ""9e8f4c5a-4bad-40cb-a526-ee6fd77a0034"",
                     ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",

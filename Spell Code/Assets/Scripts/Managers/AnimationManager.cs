@@ -134,11 +134,11 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
     /// 🔹 **Used in Local Play** Either one only does what the old UpdateSprites did, if anything rename later.
     public void RenderGameState()
     {
-        if(GameManager.Instance.players.Length == 0)
+        if(GameManager.Instance.playerCount == 0)
         {
             return;
         }
-        fighters = GameManager.Instance.players;
+        fighters = GameManager.Instance.players[0..GameManager.Instance.playerCount];
         // First pass: count how many players are attacking
         int attackingCount = fighters.Count(player => HitboxManager.Instance.IsAttackingState(player.state));
 

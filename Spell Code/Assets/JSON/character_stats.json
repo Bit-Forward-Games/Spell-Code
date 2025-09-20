@@ -16,13 +16,9 @@
             2,
             3,
             4,
-            5,
-            6,
-            7
+            5
           ],
           "frameLengths": [
-            6,
-            6,
             6,
             6,
             6,
@@ -34,14 +30,14 @@
         },
         "runAnimFrames": {
           "frameIndexes": [
+            6,
+            7,
             8,
             9,
             10,
             11,
             12,
-            13,
-            14,
-            15
+            13
           ],
           "frameLengths": [
             4,
@@ -58,14 +54,10 @@
 
         "jumpAnimFrames": {
           "frameIndexes": [
-            43,
-            44,
-            45,
-            46
+            15,
+            16
           ],
           "frameLengths": [
-            3,
-            3,
             3,
             3
           ],
@@ -73,14 +65,10 @@
         },
         "hitstunAnimFrames": {
           "frameIndexes": [
-            87,
-            88,
-            89,
-            90
+            17,
+            18
           ],
           "frameLengths": [
-            3,
-            3,
             3,
             3
           ],
@@ -88,24 +76,10 @@
         },
         "techAnimFrames": {
           "frameIndexes": [
-            49,
-            50,
-            51,
-            52,
-            53,
-            50,
-            51,
-            52,
-            53
+            19,
+            20
           ],
           "frameLengths": [
-            2,
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
             3,
             3
           ],
@@ -113,15 +87,15 @@
         },
         "spellWeaveAnimFrames": {
           "frameIndexes": [
-            100,
-            101,
-            102,
-            103,
-            104,
-            105
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
           ],
           "frameLengths": [
-            4,
+            3,
             3,
             3,
             3,
@@ -132,14 +106,12 @@
         },
         "spellReleaseAnimFrames": {
           "frameIndexes": [
-            106,
-            107,
-            108,
-            109,
-            110,
-            111,
-            112,
-            113
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
           ],
           "frameLengths": [
             3,

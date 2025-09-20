@@ -2,12 +2,14 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public PlayerController[] players = new PlayerController[0];
+    public PlayerController[] players = new PlayerController[4];
+    public int playerCount = 0;
 
     public bool isRunning;
 
@@ -55,7 +57,7 @@ public class GameManager : MonoBehaviour
         if (!isRunning)
             return;
 
-        long[] inputs = new long[players.Length];
+        long[] inputs = new long[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
         {
             inputs[i] = players[i].GetInputs();
@@ -71,19 +73,19 @@ public class GameManager : MonoBehaviour
     protected void UpdateGameState(long[] inputs)
     {
         //HitboxManager.Instance.ProcessCollisions();
-        for (int i = 0; i < players.Length; i++)
+        for (int i = 0; i < playerCount; i++)
         {
             players[i].PlayerUpdate(inputs[i]);
         }
     }
 
-    public void GetPlayerControllers()
+    public void GetPlayerControllers( PlayerInput playerInput)
     {
-        players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
-        foreach(PlayerController player in players)
-        {
-            player.inputs.AssignInputDevice(null);
-        }
+        //players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
+        players[playerCount] = playerInput.GetComponent<PlayerController>();
+        players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
+        playerCount++;
+        
     }
 
 }

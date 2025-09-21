@@ -50,7 +50,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputs: {fileID: 8219335073837037833}
   playerInputs: {fileID: -944628639613478452, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  characterName: Slugomancer
+  characterName: Code-E
   cancelOptions: 
   facingRight: 1
   isGrounded: 0

@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[2];
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
-    public string characterName = "Slugomancer";
+    public string characterName = "Code-E";
 
     [HideInInspector]
     public List<int> cancelOptions = new();
@@ -256,36 +256,48 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Run);
                     break;
                 }
+                else if (input.ButtonStates[0] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.CodeWeave);
+                    break;
+                }
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Jump);
                     break;
                 }
-                LerpHspd(0, 2);
+                LerpHspd(0, 4);
                 break;
             case PlayerState.Run:
 
                 //Check Direction Inputs
 
-                if (input.ButtonStates[1] == ButtonState.Pressed)
+                
+                if (input.ButtonStates[0] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.CodeWeave);
+                    break;
+                }
+                else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Jump);
                     break;
                 }
-                else if (input.Direction == 5)
-                {
-                    SetState(PlayerState.Idle);
-                    break;
-                }
-                else if (input.Direction == (facingRight? 4:6))
+                else if (input.Direction == (facingRight ? 4 : 6))
                 {
                     facingRight = !facingRight;
-                    SetState(PlayerState.Run);
                     break;
                 }
+                else if (input.Direction == (facingRight ? 6 : 4))
+                {
+                    //run logic
+                    hSpd = runSpeed * (facingRight ? 1 : -1);
+                }
+                else
+                {
+                    SetState(PlayerState.Idle);
+                }
 
-                //run logic
-                hSpd = runSpeed * (facingRight ? 1 : -1);
 
                 break;
             case PlayerState.Jump:
@@ -296,37 +308,45 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
+                if (input.ButtonStates[0] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.CodeWeave);
+                    break;
+                }
+                if (input.Direction == 6)
+                {
+                    //run logic
+                    facingRight = true;
+                    LerpHspd((int)runSpeed, 3);
+                }
+                else if (input.Direction == 4)
+                {
+                    facingRight = false;
+                    LerpHspd(-(int)runSpeed, 3);
+                }
+                else
+                {
+                    LerpHspd(0, 2);
+                }
 
 
                 break;
             case PlayerState.CodeWeave:
-                //Check Attack Inputs
-                //CheckAttackInputs(input);
-                if (state != tempState)
+                if (input.ButtonStates[0] == ButtonState.Released)
                 {
+                    SetState(PlayerState.CodeRelease);
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeWeave))
-                {
-                    SetState(PlayerState.Idle);
-                    break;
-                }
 
                 LerpHspd(0, 5);
                 break;
             case PlayerState.CodeRelease:
-                //Check Attack Inputs
-                //CheckAttackInputs(input);
-                if (state != tempState)
-                {
-                    break;
-                }
 
                 if (logicFrame >=
                     CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
                 {
-                    SetState(PlayerState.Idle);
+                    SetState(isGrounded? PlayerState.Idle:PlayerState.Jump);
                     break;
                 }
 
@@ -358,7 +378,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
                 {
                     
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);

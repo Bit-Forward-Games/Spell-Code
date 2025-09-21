@@ -1,8 +1,8 @@
 {
   "CharacterData": [
     {
-      "character": "Slugomancer",
-      "runSpeed": 21,
+      "character": "Code-E",
+      "runSpeed": 30,
       "jumpForce": 10,
       "jumpCounter": 1,
       "playerHealth": 1200,
@@ -94,14 +94,14 @@
             26
           ],
           "frameLengths": [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
           ],
-          "loopAnim": false
+          "loopAnim": true
         },
         "codeReleaseAnimFrames": {
           "frameIndexes": [
@@ -113,12 +113,10 @@
             32
           ],
           "frameLengths": [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3,
+            2,
+            2,
+            2,
+            2,
             2,
             2
           ],

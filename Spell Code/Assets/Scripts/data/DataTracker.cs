@@ -1,0 +1,71 @@
+using UnityEngine;
+using UnityEngine.Networking;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+//abstract data saving class
+public abstract class SaveData
+{
+    //save data item encapsulating player
+    //asyc via coroutines so that gameplay isn't slowed
+    public abstract IEnumerator Save(PlayerData data);
+}
+
+//data saving class for local file system
+public class SaveDataLFS: SaveData
+{
+    //file path and max files
+    string filePath;
+    int fileLimit;
+
+    //get the file path
+    public SaveDataLFS()
+    {
+        filePath = Application.dataPath + "/PlayerData/";
+        fileLimit = 10;
+    }
+
+    //save all data to directory
+    public override IEnumerator Save(PlayerData data)
+    {
+        //where data will be locally written
+        string fileName = Guid.NewGuid().ToString() + ".json";
+        string path = Path.GetDirectoryName(filePath + fileName);
+
+        //if the path doesnt exist, make it
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        //write the data to the directory
+        File.WriteAllText(filePath + fileName, JsonUtility.ToJson(data));
+
+        yield return null;
+    }
+
+    //get a list of all of our stored json files
+    public List<FileInfo> GetDataFiles()
+    {
+        string path = Path.GetDirectoryName(filePath);
+
+        //if the path doesnt exist, make it
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        List<FileInfo> files = new DirectoryInfo(filePath).GetFiles(".json").OrderByDescending(f => f.LastWriteTime).ToList();
+        return files;
+    }
+
+    //read contents of a file
+    public string GetFileContent(string filePath)
+    {
+        return File.ReadAllText(filePath);
+    }
+}

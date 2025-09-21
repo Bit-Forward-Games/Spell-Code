@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEditor.U2D.Animation;
+//using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -99,7 +99,7 @@ public class PlayerController : MonoBehaviour
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
     public bool hitboxActive = false;
-    public ushort stateSpecificArg = 0; //use only between states
+    public uint stateSpecificArg = 0; //use only between states
 
     public byte hitstop = 0;
     public ushort comboCounter = 0; //this is technically for the player being hit, so if the combo counter is increasings thats on the hurt player
@@ -332,8 +332,70 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
+
+                uint tempTestSpellInput = 0b_0000_0000_0000_0000_0110_0011_0000_0100; // up down left right code
+
+                if(input.Direction is 5 or 1 or 3 or 7 or 9)
+                {
+                    //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
+                    if((stateSpecificArg & (1u << 4)) == 0)
+                    {
+                        stateSpecificArg |= 1 << 4;
+                        Debug.Log("input Primed");
+                        Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+
+                    }
+
+                }
+                else if ((stateSpecificArg & (1u << 4)) != 0) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                {
+                    byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
+                    switch (input.Direction){
+                        case 2:
+                            // Set the 2 highest significant bits minus 2 bits per codeCount to 00
+                            // stateSpecificArg: [high bits ...][codeCount (lowest 4 bits)]
+                            // Example: For codeCount = 1, clear bits 31-30; for codeCount = 2, clear bits 29-28, etc.
+                            stateSpecificArg |= (uint)(0b00 << (8+(codeCount*2)));
+                            stateSpecificArg &= ~(1u << 4);
+                            Debug.Log("down input Pressed!");
+                            break;
+                        case 4:
+                            stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
+                            stateSpecificArg &= ~(1u << 4);
+                            Debug.Log("left input Pressed!");
+                            break;
+                        case 6:
+                            stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
+                            stateSpecificArg &= ~(1u << 4);
+                            Debug.Log("right input Pressed!");
+                            break;
+                        case 8:
+                            stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
+                            stateSpecificArg &= ~(1u << 4);
+                            Debug.Log("up input Pressed!");
+                            
+                            break;
+                        default:
+                            stateSpecificArg &= ~(1u << 4);
+                            break;
+                    }
+                    // Increment the last 4 bits of stateSpecificArg by 1
+                    stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                    Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                }
+
+
                 if (input.ButtonStates[0] == ButtonState.Released)
                 {
+                    //set the 5th bit to 0 to indicate we are no longer primed
+                    stateSpecificArg &= ~(1u << 4);
+                    Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                    Debug.Log($"the test code:      {Convert.ToString(tempTestSpellInput, toBase: 2)}");
+                    //test if the input matches the test spell input
+                    if (stateSpecificArg == tempTestSpellInput)
+                    {
+                        Debug.Log("You Did It!");
+                    }
                     SetState(PlayerState.CodeRelease);
                     break;
                 }
@@ -778,7 +840,7 @@ public class PlayerController : MonoBehaviour
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();
         lerpDelay = br.ReadUInt16();
-        stateSpecificArg = br.ReadUInt16();
+        stateSpecificArg = br.ReadUInt32();
         hitstop = br.ReadByte();
         hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
@@ -805,3 +867,5 @@ public class PlayerController : MonoBehaviour
         inputs.CheckForInputs(enable);
     }
 }
+
+

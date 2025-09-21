@@ -16,7 +16,7 @@ public abstract class SaveData
 }
 
 //data saving class for local file system
-public class SaveDataLFS: SaveData
+public class SaveDataLFS : SaveData
 {
     //file path and max files
     string filePath;
@@ -67,5 +67,23 @@ public class SaveDataLFS: SaveData
     public string GetFileContent(string filePath)
     {
         return File.ReadAllText(filePath);
+    }
+
+    //save data to remote
+    public class SaveDataRemote : SaveData
+    {
+        public override IEnumerator Save(PlayerData data)
+        {
+            yield break;
+        }
+
+        //sync files to remote
+        //file = index of file to sync
+        //data = string of json-compliant data
+        //callback = func to call
+        public IEnumerator Sync(int file, string data, Action<int, bool> callback)
+        {
+            yield break;
+        }
     }
 }

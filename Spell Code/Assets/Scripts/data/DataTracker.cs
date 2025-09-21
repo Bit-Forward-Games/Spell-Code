@@ -7,6 +7,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+public static class DataSaver
+{
+    public static SaveData MakeSaver(bool isRemoteAvailable)
+    {
+        if (isRemoteAvailable)
+        {
+            return new SaveDataRemote();
+        }
+        return new SaveDataLFS();
+    }
+}
+
 //abstract data saving class
 public abstract class SaveData
 {
@@ -68,22 +80,22 @@ public class SaveDataLFS : SaveData
     {
         return File.ReadAllText(filePath);
     }
+}
 
-    //save data to remote
-    public class SaveDataRemote : SaveData
+//save data to remote
+public class SaveDataRemote : SaveData
+{
+    public override IEnumerator Save(PlayerData data)
     {
-        public override IEnumerator Save(PlayerData data)
-        {
-            yield break;
-        }
+        yield break;
+    }
 
-        //sync files to remote
-        //file = index of file to sync
-        //data = string of json-compliant data
-        //callback = func to call
-        public IEnumerator Sync(int file, string data, Action<int, bool> callback)
-        {
-            yield break;
-        }
+    //sync files to remote
+    //file = index of file to sync
+    //data = string of json-compliant data
+    //callback = func to call
+    public IEnumerator Sync(int file, string data, Action<int, bool> callback)
+    {
+        yield break;
     }
 }

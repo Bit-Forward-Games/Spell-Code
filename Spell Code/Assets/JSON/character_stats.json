@@ -3,7 +3,7 @@
     {
       "character": "Slugomancer",
       "runSpeed": 21,
-      "jumpForce": 7.5,
+      "jumpForce": 10,
       "jumpCounter": 1,
       "playerHealth": 1200,
       "playerWidth": 18,

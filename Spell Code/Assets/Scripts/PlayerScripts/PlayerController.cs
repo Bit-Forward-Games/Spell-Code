@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer spriteRenderer;
 
     //Character Data
-    private CharacterData charData;
+    public CharacterData charData { get; private set; }
     public float gravity = 1;
     [HideInInspector]
     public float jumpForce = 10;
@@ -99,13 +99,15 @@ public class PlayerController : MonoBehaviour
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
     public bool hitboxActive = false;
-    public uint stateSpecificArg = 0; //use only between states
+    public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public byte hitstop = 0;
     public ushort comboCounter = 0; //this is technically for the player being hit, so if the combo counter is increasings thats on the hurt player
     public float damageProration = 1f; //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
+
+    public SpellData[] spellList = new SpellData[8];
 
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
@@ -146,6 +148,16 @@ public class PlayerController : MonoBehaviour
         jumpForce = charData.jumpForce;
         playerWidth = charData.playerWidth;
         playerHeight = charData.playerHeight;
+
+        //fill the spell list with the character's initial spells
+        for (int i = 0; i < charData.startingInventory.Count && i < spellList.Length; i++)
+        {
+            SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            spellList[i] = Instantiate(targetSpell);
+            spellList[i].owner = this;
+        }
+
+        ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void InitializePalette(Texture2D palette)
@@ -263,6 +275,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    vSpd = jumpForce;
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -280,6 +293,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    vSpd = jumpForce;
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -332,8 +346,6 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
-
-                uint tempTestSpellInput = 0b_0000_0000_0000_0000_0110_0011_0000_0100; // up down left right code
 
                 if(input.Direction is 5 or 1 or 3 or 7 or 9)
                 {
@@ -390,12 +402,25 @@ public class PlayerController : MonoBehaviour
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
-                    Debug.Log($"the test code:      {Convert.ToString(tempTestSpellInput, toBase: 2)}");
-                    //test if the input matches the test spell input
-                    if (stateSpecificArg == tempTestSpellInput)
+                   // Debug.Log($"the test code:      {Convert.ToString(tempTestSpellInput, toBase: 2)}");
+
+                    for (int i = 0; i < spellList.Length; i++)
                     {
-                        Debug.Log("You Did It!");
+                        if(spellList[i] == null || spellList[i].spellType == SpellType.Passive) break;
+                        if (spellList[i].spellInput == stateSpecificArg)
+                        {
+                            Debug.Log($"You Cast {spellList[i].spellName}!");
+                            spellList[i].activateFlag = true;
+                            SetState(PlayerState.CodeRelease);
+                            break;
+                        }
                     }
+                    //check if we changed state in the spell loop
+                    if (state == PlayerState.CodeRelease) break;
+
+                    //create an instance of your basic spell here
+                    BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
+                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
                     SetState(PlayerState.CodeRelease);
                     break;
                 }
@@ -417,17 +442,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Hitstun:
                 if (isGrounded)
                 {
-                    //ground bounce can happen at any point on screen
-                    if (hitboxData is { yKnockback: < -5 })
-                    {
-                        Debug.Log("Floor bounce!");
-                        // Formula: vSpd = baseBounce * log(1 + knockbackMagnitude)
-                        float baseBounce = 3f;  // Base multiplier (adjust for overall intensity) (might make a character stat down the line)
-                        float knockbackMagnitude = -hitboxData.yKnockback * damageProration;  // Convert to positive
-                        vSpd = baseBounce * Mathf.Log(1f + knockbackMagnitude);
-                        hitboxData = null;
-                        break;
-                    }
+                    
                     SetState(PlayerState.Tech);
                 }
 
@@ -451,6 +466,13 @@ public class PlayerController : MonoBehaviour
         }
 
 
+        for (int i = 0; i < spellList.Length; i++)
+        {
+            if (spellList[i] != null)
+            {
+                spellList[i].SpellUpdate();
+            }
+        }
 
         //check player collisions
         PlayerWorldCollisionCheck();
@@ -533,7 +555,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
                 playerHeight = charData.playerHeight / 2;
-                vSpd = jumpForce;
+                
                 break;
             case PlayerState.Hitstun:
                 if (isGrounded)
@@ -634,8 +656,6 @@ public class PlayerController : MonoBehaviour
                 currrentPlayerHealth = (ushort)Math.Max(0, currrentPlayerHealth - (hitboxData.damage * damageProration));
 
 
-                // Update damage proration
-                damageProration *= hitboxData.damageProration;
 
                 // Increment combo counter
                 comboCounter++;

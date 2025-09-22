@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -153,6 +154,37 @@ public class AnimationManager : NonPersistantSingleton<AnimationManager>
 
             // Update position with new z-index
             player.transform.position = new Vector3(player.position.x, player.position.y, zIndex);
+        }
+
+        for(int i = 0; i < ProjectileManager.Instance.projectilePrefabs.Count; i++)
+        {
+            BaseProjectile proj = ProjectileManager.Instance.projectilePrefabs[i];
+            if (proj.gameObject.activeSelf)
+            {
+                // Get the projectile's owner
+                PlayerController owner = proj.owner;
+                if (owner == null) continue;
+                // Determine z-index based on owner's state
+                //float zIndex;
+                //bool ownerIsAttacking = HitboxManager.Instance.IsAttackingState(owner.state);
+                //if (ownerIsAttacking)
+                //{
+                //    // Projectiles from attacking players are in front of everyone
+                //    zIndex = -1;
+                //}
+                //else
+                //{
+                //    // Projectiles from non-attacking players are behind all players
+                //    zIndex = 1;
+                //}
+                // Update projectile's sprite, flip direction, and position with new z-index
+                if (proj.animFrames.frameLengths.Count > 0)
+                {
+                    proj.gameObject.GetComponent<SpriteRenderer>().sprite = proj.sprites[proj.animationFrame];
+                    proj.gameObject.GetComponent<SpriteRenderer>().flipX = !proj.facingRight;
+                    proj.transform.position = new Vector3(proj.position.x, proj.position.y, 0/*zindex*/);
+                }
+            }
         }
 
     }

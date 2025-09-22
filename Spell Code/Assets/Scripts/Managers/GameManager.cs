@@ -72,6 +72,7 @@ public class GameManager : MonoBehaviour
     /// <param name="inputs">Array of inputs for each player.</param>
     protected void UpdateGameState(long[] inputs)
     {
+        ProjectileManager.Instance.UpdateProjectiles();
         //HitboxManager.Instance.ProcessCollisions();
         for (int i = 0; i < playerCount; i++)
         {
@@ -85,7 +86,10 @@ public class GameManager : MonoBehaviour
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
+
+
         
+
     }
 
 }

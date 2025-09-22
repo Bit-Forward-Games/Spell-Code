@@ -18,7 +18,7 @@ public class HitboxData
     public int xKnockback;
     public int yKnockback;
     public ushort damage;
-    public float damageProration = 0.95f; // this is how much this hitbox scales the damage of the next hit by in the combo, default proration is .9
+    public ushort hitstun;
     public int attackLvl;
     //we don't have to worry about serilizing hitbox data as we are doing a hitbox lookup based on logic frame anyway, so we can properties as bloated as this.
     //That being side design within reason
@@ -69,6 +69,13 @@ public class ImpulseData
 [System.Serializable]
 public class AnimFrames
 {
+    public AnimFrames(List<int> frameIndexes, List<int> frameLengths, bool loopAnim)
+    {
+        this.frameIndexes = frameIndexes;
+        this.frameLengths = frameLengths;
+        this.loopAnim = loopAnim;
+    }
+    public AnimFrames() { }
     public List<int> frameIndexes;
     public List<int> frameLengths;
     public bool loopAnim;
@@ -233,10 +240,13 @@ public class HurtboxFrames
 //    public List<short> special3Input;
 //}
 
+
 [System.Serializable]
 public class CharacterData
 {
     public string character;
+    public string basicAttackProjId;
+    public List<string> startingInventory;
     public int runSpeed;
     public int jumpForce;
     public int jumpCounter;

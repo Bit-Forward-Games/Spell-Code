@@ -14,6 +14,9 @@ GameObject:
   - component: {fileID: 3399086369099882570}
   - component: {fileID: 4648917945992217794}
   - component: {fileID: 6570637313464619683}
+  - component: {fileID: 495033162692388922}
+  - component: {fileID: 7022982774474964000}
+  - component: {fileID: 699450530840418385}
   m_Layer: 0
   m_Name: pfb_GameManager
   m_TagString: Untagged
@@ -67,11 +70,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33bab860917d1ac4192df39e186ef2a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spriteSheetData: []
+  spriteSheetData:
+  - {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
   paletteTextures: []
-  fighters:
-  - {fileID: 0}
-  - {fileID: 0}
+  fighters: []
 --- !u!114 &3399086369099882570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,3 +157,45 @@ MonoBehaviour:
   jsonFile: {fileID: 4900000, guid: 2b87dd6ccd9b06c479832313940c4fa6, type: 3}
   characterDataList:
     CharacterData: []
+--- !u!114 &495033162692388922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9290ec832dad044fbe3a3597ab3dacf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projectileList:
+  - {fileID: 5893221598878733181, guid: e9f48e2d550726843b02c5cc812c0bd0, type: 3}
+  - {fileID: 8219806438660890640, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
+--- !u!114 &7022982774474964000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20a6ed2a617c0b7479082d9388d48396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spellList:
+  - {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
+--- !u!114 &699450530840418385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f064599339455c44eaa6f3a6d6607edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projectilePrefabs: []

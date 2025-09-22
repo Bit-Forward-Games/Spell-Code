@@ -17,17 +17,28 @@ public enum SpellType
 }
 
 
-[CreateAssetMenu(fileName = "New Spell", menuName = "Spells/Spell Data")]
-public class SpellData : ScriptableObject
+/// <summary>
+/// [CreateAssetMenu(fileName = "New Spell", menuName = "Spells/Spell Data")]
+/// </summary>
+public abstract class SpellData : MonoBehaviour
 {
-    [Header("Identification & Network")]
+    //[Header("Identification & Network")]
     public string spellName;
-    public ushort spellId; 
+    //public ushort spellId;
 
-    [Header("Casting Requirements")]
-    public SpellDirection[] inputSequence;
+    //[Header("Casting Requirements")]
+    //public SpellDirection[] inputSequence;
     public float cooldown;
+    public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
+    public bool activateFlag = false;
+    public PlayerController owner;
+    public SpellType spellType;
 
-    [Header("Prefab")]
-    public GameObject spellPrefab;
+    //[Header("Prefab")]
+    public GameObject[] projectilePrefabs;
+
+
+
+
+    public abstract void SpellUpdate();
 }

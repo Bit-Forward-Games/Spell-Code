@@ -92,4 +92,19 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public void MatchEnd()
+    {
+        //general game data
+
+        //player data, looped for each player
+        PlayerData playerData = new PlayerData();
+        playerData.codesFired = 1;
+        playerData.codesMissed = 1;
+        playerData.synthesizer = "sluh";
+
+        //save the data to file
+        SaveData saver = DataSaver.MakeSaver(false);
+        StartCoroutine(saver.Save(playerData));
+    }
+
 }

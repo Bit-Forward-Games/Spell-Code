@@ -39,6 +39,7 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
                 Destroy(projectilePrefabs[i].gameObject);
             }
         }
+        projectilePrefabs.Clear();
         //loop through all players
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {

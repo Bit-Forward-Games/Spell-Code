@@ -1,0 +1,286 @@
+{
+  "CharacterData": [
+    {
+      "character": "Code-E",
+      "basicAttackProjId": "CodeE_Basic_Projectile",
+      "startingInventory": [
+        "Ninja_Build_Blast",
+        "Ninja_Build_Blast",
+        "Ninja_Build_Blast",
+        "Ninja_Build_Blast"
+      ],
+      "runSpeed": 30,
+      "jumpForce": 10,
+      "jumpCounter": 1,
+      "playerHealth": 1200,
+      "playerWidth": 18,
+      "playerHeight": 30,
+      "animFrames": {
+        "idleAnimFrames": {
+          "frameIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "frameLengths": [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
+          ],
+          "loopAnim": true
+        },
+        "runAnimFrames": {
+          "frameIndexes": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "frameLengths": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "loopAnim": true
+        },
+        "jumpAnimFrames": {
+          "frameIndexes": [
+            15,
+            16
+          ],
+          "frameLengths": [
+            3,
+            3
+          ],
+          "loopAnim": true
+        },
+        "hitstunAnimFrames": {
+          "frameIndexes": [
+            17,
+            18
+          ],
+          "frameLengths": [
+            3,
+            3
+          ],
+          "loopAnim": true
+        },
+        "techAnimFrames": {
+          "frameIndexes": [
+            19,
+            20
+          ],
+          "frameLengths": [
+            3,
+            3
+          ],
+          "loopAnim": false
+        },
+        "codeWeaveAnimFrames": {
+          "frameIndexes": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "frameLengths": [
+            6,
+            6,
+            6,
+            6,
+            6,
+            6
+          ],
+          "loopAnim": true
+        },
+        "codeReleaseAnimFrames": {
+          "frameIndexes": [
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "frameLengths": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "loopAnim": false
+        },
+        "slideAnimFrames": {
+          "frameIndexes": [
+            33,
+            34,
+            35,
+            36,
+            37,
+            38
+          ],
+          "frameLengths": [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "loopAnim": false
+        }
+      },
+      "hurtboxFrames": {
+        "idleHurtboxFrames": [
+          0
+        ],
+        "runHurtboxFrames": [
+          0
+        ],
+        "jumpHurtboxFrames": [
+          0
+        ],
+        "hitstunHurtboxFrames": [
+          0
+        ],
+        "techHurtboxFrames": [
+          0
+        ],
+        "spellWeaveHurtboxFrames": [
+          0
+        ],
+        "spellReleaseHurtboxFrames": [
+          0
+        ],
+        "slideHurtboxFrames": [
+          0
+        ]
+      },
+      "hurtboxData": {
+        "idleHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -10,
+              "yOffset": 34,
+              "width": 22,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "runHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -10,
+              "yOffset": 30,
+              "width": 27,
+              "height": 31
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "jumpHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -8,
+              "yOffset": 39,
+              "width": 22,
+              "height": 22
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "hitstunHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -13,
+              "yOffset": 36,
+              "width": 26,
+              "height": 32
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "techHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": 0,
+              "yOffset": 0,
+              "width": 0,
+              "height": 0
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "codeWeaveHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "codeReleaseHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        },
+        "slideHurtbox": {
+          "hurtbox1": [
+            {
+              "xOffset": -9,
+              "yOffset": 33,
+              "width": 21,
+              "height": 33
+            }
+          ],
+          "hurtbox2": [],
+          "hurtbox3": [],
+          "hurtbox4": []
+        }
+      }
+    }
+  ]
+}

@@ -18,20 +18,25 @@ public enum ForceHitstunType
 public class HitboxManager : NonPersistantSingleton<HitboxManager>
 {
     // ===== | Variables | =====
-    PlayerState playerOneState;
-    PlayerState playerTwoState;
+    //PlayerState playerOneState;
+    //PlayerState playerTwoState;
+    PlayerState[] playerStates = new PlayerState[4];
 
-    string playerOneCharacter;
-    string playerTwoCharacter;
+    //string playerOneCharacter;
+    //string playerTwoCharacter;
+    string[] playerCharacters = new string[4];
 
-    int playerOneFrame;
-    int playerTwoFrame;
+    //int playerOneFrame;
+    //int playerTwoFrame;
+    int[] playerFrames = new int[4];
 
-    Vector2 playerOneOrigin;
-    Vector2 playerTwoOrigin;
+    //Vector2 playerOneOrigin;
+    //Vector2 playerTwoOrigin;
+    Vector2[] playerOrigins = new Vector2[4];
 
-    bool playerOneIsRight;
-    bool playerTwoIsRight;
+    //bool playerOneIsRight;
+    //bool playerTwoIsRight;
+    bool[] playerIsRight = new bool[4];
 
     private StageCamera cachedForScreenShakeCamera;
 
@@ -42,75 +47,82 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
         cachedForScreenShakeCamera = Camera.main.GetComponent<StageCamera>();
     }
 
-    /*public void ProcessCollisions()
+    public void ProcessCollisions()
     {
-        playerOneState = GameSessionManager.Instance.playerControllers[0].state;
-        playerTwoState = GameSessionManager.Instance.playerControllers[1].state;
+        //playerOneState = GameSessionManager.Instance.playerControllers[0].state;
+        //playerTwoState = GameSessionManager.Instance.playerControllers[1].state;
+        for(int i = 0; i < GameSessionManager.Instance.playerControllers.Length; i++)
+        {
+            playerStates[i] = GameSessionManager.Instance.playerControllers[i].state;
+            playerCharacters[i] = GameSessionManager.Instance.playerControllers[i].characterName;
+            playerFrames[i] = GameSessionManager.Instance.playerControllers[i].logicFrame;
+            playerOrigins[i] = GameSessionManager.Instance.playerControllers[i].position;
+            playerIsRight[i] = GameSessionManager.Instance.playerControllers[i].facingRight;
+        }
 
-        playerOneCharacter = GameSessionManager.Instance.playerControllers[0].characterName;
-        playerTwoCharacter = GameSessionManager.Instance.playerControllers[1].characterName;
+        //playerOneCharacter = GameSessionManager.Instance.playerControllers[0].characterName;
+        //playerTwoCharacter = GameSessionManager.Instance.playerControllers[1].characterName;
 
-        playerOneFrame = GameSessionManager.Instance.playerControllers[0].logicFrame;
-        playerTwoFrame = GameSessionManager.Instance.playerControllers[1].logicFrame;
 
-        playerOneOrigin = GameSessionManager.Instance.playerControllers[0].position;
-        playerTwoOrigin = GameSessionManager.Instance.playerControllers[1].position;
+        //playerOneFrame = GameSessionManager.Instance.playerControllers[0].logicFrame;
+        //playerTwoFrame = GameSessionManager.Instance.playerControllers[1].logicFrame;
 
-        playerOneIsRight = GameSessionManager.Instance.playerControllers[0].facingRight;
-        playerTwoIsRight = GameSessionManager.Instance.playerControllers[1].facingRight;
+        //playerOneOrigin = GameSessionManager.Instance.playerControllers[0].position;
+        //playerTwoOrigin = GameSessionManager.Instance.playerControllers[1].position;
+
+        //playerOneIsRight = GameSessionManager.Instance.playerControllers[0].facingRight;
+        //playerTwoIsRight = GameSessionManager.Instance.playerControllers[1].facingRight;
 
         List<HitboxData> activeHitboxes;
         List<HurtboxData> activeHurtboxes;
 
-        // THE SINGLE LOOP APPROACH
-        PlayerController[] players = GameSessionManager.Instance.playerControllers;
 
 
         //Projectile vs Player Collision
-    //    AProjectile[] allProjectiles = ProjectileManager.Instance.poolParentTransform.GetComponentsInChildren<AProjectile>();
+        //AProjectile[] allProjectiles = ProjectileManager.Instance.poolParentTransform.GetComponentsInChildren<AProjectile>();
 
-    //    foreach (AProjectile projectile in allProjectiles)
-    //    {
-    //        var activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
-    //        // Combine all hitbox lists into one sequence
-    //        var activeProjHit = activeGroup.hitbox1
-    //            .Concat(activeGroup.hitbox2)
-    //            .Concat(activeGroup.hitbox3)
-    //            .Concat(activeGroup.hitbox4);
+        foreach (BaseProjectile projectile in ProjectileManager.Instance.projectilePrefabs)
+        {
+            var activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
+            // Combine all hitbox lists into one sequence
+            var activeProjHit = activeGroup.hitbox1
+                .Concat(activeGroup.hitbox2)
+                .Concat(activeGroup.hitbox3)
+                .Concat(activeGroup.hitbox4);
 
 
-    //        PlayerController attackingPlayer = players[projectile.owner];
-    //        PlayerController defendingPlayer = players[(projectile.owner + 1) % 2];
-    //        (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
-    //        GetActiveBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
+            PlayerController attackingPlayer = GameManager.Instance.players[projectile.owner];
+            PlayerController defendingPlayer = players[(projectile.owner + 1) % GameManager.Instance.playerCount];
+            (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
+            GetActiveBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
-    //        foreach (HitboxData hitbox in activeProjHit)
-    //        {
-    //            foreach (HurtboxData hurtbox in activeHurtboxes)
-    //            {
-    //                if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
-    //                        projectile.facingRight, defendingPlayer.facingRight))
-    //                {
-    //                    //if parry logic for projectiles:
-    //                    if (!projectile.hitgap)
-    //                    {
-    //                        var attklvl = attackingPlayer.GetAttackData(hitbox.attackLvl);
-    //                        byte hitstopVal = attklvl.Hitstop;
-    //                        defendingPlayer.hitstop = hitstopVal;
-    //                        defendingPlayer.hitboxData = hitbox;
-    //                        defendingPlayer.isHit = true;
-    //                        attackingPlayer.hitboxActive = false;
-    //                        projectile.SetState(ProjectileState.OnHit); 
-    //                        projectile.hitgap = true;
-    //                        projectile.hitFrame = projectile.logicFrame;
-    //                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-    //                    }
-    //                }
-    //            }
-    //            //Debug.Log($"Projectile {projectile.ProjectileID} has hitbox at offset ({hitbox.xOffset}, {hitbox.yOffset}) with damage {hitbox.damage} who is owned by {players[projectile.owner].name}");
-    //        }
-    //    }
-    }*/
+            foreach (HitboxData hitbox in activeProjHit)
+            {
+                foreach (HurtboxData hurtbox in activeHurtboxes)
+                {
+                    if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
+                            projectile.facingRight, defendingPlayer.facingRight))
+                    {
+                        //if parry logic for projectiles:
+                        if (!projectile.hitgap)
+                        {
+                            var attklvl = attackingPlayer.GetAttackData(hitbox.attackLvl);
+                            byte hitstopVal = attklvl.Hitstop;
+                            defendingPlayer.hitstop = hitstopVal;
+                            defendingPlayer.hitboxData = hitbox;
+                            defendingPlayer.isHit = true;
+                            attackingPlayer.hitboxActive = false;
+                            projectile.SetState(ProjectileState.OnHit);
+                            projectile.hitgap = true;
+                            projectile.hitFrame = projectile.logicFrame;
+                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                        }
+                    }
+                }
+                //Debug.Log($"Projectile {projectile.ProjectileID} has hitbox at offset ({hitbox.xOffset}, {hitbox.yOffset}) with damage {hitbox.damage} who is owned by {players[projectile.owner].name}");
+            }
+        }
+    }
 
 
     private bool IsLastHitboxInSequence((HitboxGroup, FrameData) hitInfo, HitboxData hitbox)

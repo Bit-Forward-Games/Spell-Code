@@ -5,9 +5,9 @@ using System.Linq;
 public abstract class BaseProjectile : MonoBehaviour
 {
     public string projName;
-    public HitboxData[] hitboxDatas;
+    public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
-    public byte currentHitboxIndex = 0;
+    public byte activeHitboxGroupIndex = 0;
     public float hSpeed;
     public float vSpeed;
     public Vector2 position;
@@ -38,13 +38,13 @@ public abstract class BaseProjectile : MonoBehaviour
         //this.hSpeed = hSpeed;
         //this.vSpeed = vSpeed;
         //this.hitboxDatas = hitboxDatas;
-        this.currentHitboxIndex = 0;
+        this.activeHitboxGroupIndex = 0;
         this.logicFrame = 0;
     }
 
     public virtual void ResetValues()
     {
-        this.currentHitboxIndex = 0;
+        this.activeHitboxGroupIndex = 0;
         this.logicFrame = 0;
         this.hSpeed = 0;
         this.vSpeed = 0;
@@ -54,7 +54,7 @@ public abstract class BaseProjectile : MonoBehaviour
     public virtual void LoadProjectile()
     {
 
-        this.currentHitboxIndex = 0;
+        this.activeHitboxGroupIndex = 0;
         this.logicFrame = 0;
     }
     public virtual void ProjectileUpdate()

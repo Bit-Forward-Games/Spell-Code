@@ -6,6 +6,7 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
 {
 
     public List<BaseProjectile> projectilePrefabs = new List<BaseProjectile>();
+    public List<BaseProjectile> activeProjectiles = new List<BaseProjectile>();
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -20,12 +21,22 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
 
     public void UpdateProjectiles()
     {
+        //activeProjectiles.Clear();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
+                activeProjectiles.Add(projectilePrefabs[i]);
                 projectilePrefabs[i].ProjectileUpdate();
             }
+            else
+            {
+                if (activeProjectiles.Contains(projectilePrefabs[i]))
+                {
+                    activeProjectiles.Remove(projectilePrefabs[i]);
+                }
+            }
+            
         }
     }
 

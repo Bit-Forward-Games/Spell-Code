@@ -73,7 +73,7 @@ public class GameManager : MonoBehaviour
     protected void UpdateGameState(long[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
-        //HitboxManager.Instance.ProcessCollisions();
+        HitboxManager.Instance.ProcessCollisions();
         for (int i = 0; i < playerCount; i++)
         {
             players[i].PlayerUpdate(inputs[i]);

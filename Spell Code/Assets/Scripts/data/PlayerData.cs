@@ -8,4 +8,6 @@ public class PlayerData
     public int codesMissed;
 
     public string synthesizer;
+
+    public string[] spellList;
 }

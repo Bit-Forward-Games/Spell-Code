@@ -112,6 +112,10 @@ public class PlayerController : MonoBehaviour
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
 
+    //Player Data (for data saving and balancing, different from the above Character Data)
+    public int spellsFired = 0;
+    public int spellsHit = 0;
+
     void Start()
     {
         upAction = playerInputs.actionMaps[0].FindAction("Up");

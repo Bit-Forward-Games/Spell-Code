@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -32,13 +33,13 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         isRunning = true;
-        
+        StartCoroutine(End());
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+    
     }
 
     private void FixedUpdate()
@@ -95,16 +96,40 @@ public class GameManager : MonoBehaviour
     public void MatchEnd()
     {
         //general game data
+        SaveDataHolder gameData = new SaveDataHolder();
+        gameData.dateTime = System.DateTime.Now.ToString();
 
         //player data, looped for each player
-        PlayerData playerData = new PlayerData();
-        playerData.codesFired = 1;
-        playerData.codesMissed = 1;
-        playerData.synthesizer = "sluh";
+        if (playerCount > 0)
+        {
+            gameData.playerData = new PlayerData[playerCount];
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                gameData.playerData[i] = new PlayerData();
+
+                gameData.playerData[i].codesFired = players[i].spellsFired;
+                gameData.playerData[i].codesMissed = players[i].spellsHit;
+                gameData.playerData[i].synthesizer = players[i].characterName;
+
+                //gameData.playerData[i].spellList = new string[players[i].spellList.Length];
+                //for (int j = 0; j < players[i].spellList.Length; j++)
+                //{
+                //    gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                //}
+            }
+        }
 
         //save the data to file
+        //if true, it will use remote save as well (which isn't a thing yet, so keep it false)
         SaveData saver = DataSaver.MakeSaver(false);
-        StartCoroutine(saver.Save(playerData));
+        StartCoroutine(saver.Save(gameData));
+    }
+
+    private IEnumerator End()
+    {
+        yield return new WaitForSeconds(3);
+        MatchEnd();
     }
 
 }

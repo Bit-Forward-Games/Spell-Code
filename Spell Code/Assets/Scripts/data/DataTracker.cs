@@ -24,7 +24,7 @@ public abstract class SaveData
 {
     //save data item encapsulating player
     //asyc via coroutines so that gameplay isn't slowed
-    public abstract IEnumerator Save(PlayerData data);
+    public abstract IEnumerator Save(SaveDataHolder data);
 }
 
 //data saving class for local file system
@@ -42,7 +42,7 @@ public class SaveDataLFS : SaveData
     }
 
     //save all data to directory
-    public override IEnumerator Save(PlayerData data)
+    public override IEnumerator Save(SaveDataHolder data)
     {
         //where data will be locally written
         string fileName = Guid.NewGuid().ToString() + ".json";
@@ -85,7 +85,7 @@ public class SaveDataLFS : SaveData
 //save data to remote
 public class SaveDataRemote : SaveData
 {
-    public override IEnumerator Save(PlayerData data)
+    public override IEnumerator Save(SaveDataHolder data)
     {
         yield break;
     }

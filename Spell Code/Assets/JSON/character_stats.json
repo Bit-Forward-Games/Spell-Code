@@ -5,8 +5,8 @@
       "basicAttackProjId": "CodeE_Basic_Projectile",
       "startingInventory": [
         "Ninja_Build_Blast",
-        "Ninja_Build_Blast",
-        "Ninja_Build_Blast",
+        "Active_Spell_2",
+        "Active_Spell_3",
         "Ninja_Build_Blast"
       ],
       "runSpeed": 30,

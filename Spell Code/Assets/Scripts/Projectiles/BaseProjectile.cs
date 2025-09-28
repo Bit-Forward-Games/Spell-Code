@@ -16,7 +16,9 @@ public abstract class BaseProjectile : MonoBehaviour
     public ushort animationFrame; //which frame of animation the projectile is on
     public ushort lifeSpan = 60; //in logic frames
     public PlayerController owner;
+    public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
     public AnimFrames animFrames;
+    public bool deleteOnHit = true;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,28 +46,41 @@ public abstract class BaseProjectile : MonoBehaviour
 
     public virtual void ResetValues()
     {
-        this.activeHitboxGroupIndex = 0;
-        this.logicFrame = 0;
-        this.hSpeed = 0;
-        this.vSpeed = 0;
-        this.position = Vector2.zero;
-        this.facingRight = true;
+        activeHitboxGroupIndex = 0;
+        logicFrame = 0;
+        hSpeed = 0;
+        vSpeed = 0;
+        position = Vector2.zero;
+        playerIgnoreArr = new bool[4] { false, false, false, false };
+        facingRight = true;
     }
     public virtual void LoadProjectile()
     {
 
-        this.activeHitboxGroupIndex = 0;
-        this.logicFrame = 0;
+        activeHitboxGroupIndex = 0;
+        logicFrame = 0;
     }
     public virtual void ProjectileUpdate()
     {
         position.x += hSpeed;
         position.y += vSpeed;
         logicFrame++;
+
+        // Check lifespan
         if (logicFrame >= lifeSpan)
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
+
+        //check if the projectile hit something and if it did, delete if necessary
+        if (deleteOnHit)
+        {
+            if (playerIgnoreArr.Any(ignore => ignore))
+            {
+                ProjectileManager.Instance.DeleteProjectile(this);
+            }
+        }
+
 
         // Update animation frame
         animationFrame = GetCurrentFrameIndex(animFrames.frameLengths, animFrames.loopAnim);

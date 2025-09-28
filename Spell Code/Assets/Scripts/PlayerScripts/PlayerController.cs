@@ -446,8 +446,16 @@ public class PlayerController : MonoBehaviour
                     
                     SetState(PlayerState.Tech);
                 }
-                stateSpecificArg++;
 
+                //bounce off the ground if we hit it
+                if (CheckGrounded(true) && vSpd < 0)
+                {
+                    position.y = StageData.Instance.floorYval + 1;
+                    vSpd = -vSpd;
+                }
+
+                
+                stateSpecificArg++;
                 break;
             case PlayerState.Tech:
                 if (isGrounded)
@@ -560,7 +568,7 @@ public class PlayerController : MonoBehaviour
                 
                 break;
             case PlayerState.Hitstun:
-                hSpd = hitboxData.xKnockback;
+                hSpd = hitboxData.xKnockback * (facingRight? -1:1);
                 vSpd = hitboxData.yKnockback;
 
                 if (isGrounded)
@@ -603,12 +611,16 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
     }
 
-    private bool CheckGrounded()
+    private bool CheckGrounded(bool checkOnly = false)
     {
         float floorYval = StageData.Instance.floorYval;
 
         if (position.y + vSpd <= floorYval)
         {
+            if (checkOnly)
+            {
+                return true;
+            }
             position.y = floorYval;
             vSpd = 0;
             return true;

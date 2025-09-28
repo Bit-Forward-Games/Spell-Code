@@ -73,6 +73,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
+                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) return;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
@@ -83,20 +84,18 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                         if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
-                            //var attklvl = projectile.GetAttackData(hitbox.attackLvl);
-                            byte hitstopVal = 5;//attklvl.Hitstop;
+
+                            defendingPlayer.facingRight = !projectile.facingRight;
+                            byte hitstopVal = 5;
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
-                            //projectile.SetState(ProjectileState.OnHit);
-                            //projectile.hitFrame = projectile.logicFrame;
                             cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                            projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
                         }
                     }
-                    //Debug.Log($"Projectile {projectile.ProjectileID} has hitbox at offset ({hitbox.xOffset}, {hitbox.yOffset}) with damage {hitbox.damage} who is owned by {players[projectile.owner].name}");
                 }
-            }
-            
+            }  
         }
     }
 

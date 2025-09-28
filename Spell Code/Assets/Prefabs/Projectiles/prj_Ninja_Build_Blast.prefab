@@ -46,17 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projName: Ninja_Build_Blast
-  hitboxDatas:
-  - xOffset: 0
-    yOffset: 0
-    width: 10
-    height: 10
-    xKnockback: 10
-    yKnockback: 10
-    damage: 10
-    hitstun: 10
-    attackLvl: 1
-    cancelOptions: 
+  projectileHitboxes: []
   sprites:
   - {fileID: 4226276550207967897, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: 4024342336021662751, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
@@ -70,15 +60,16 @@ MonoBehaviour:
   - {fileID: -7782823160579863754, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: -629526638467248694, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: -533848655770290490, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  currentHitboxIndex: 0
+  activeHitboxGroupIndex: 0
   hSpeed: 0
   vSpeed: 0
   position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 300
+  lifeSpan: 100
   owner: {fileID: 0}
+  playerIgnoreArr: 00000000
   animFrames:
     frameIndexes: 
     frameLengths: 040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000

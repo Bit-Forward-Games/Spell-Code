@@ -24,9 +24,12 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
         //activeProjectiles.Clear();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
-            if (projectilePrefabs[i].gameObject.activeSelf && !activeProjectiles.Contains(projectilePrefabs[i]))
+            if (projectilePrefabs[i].gameObject.activeSelf)
             {
-                activeProjectiles.Add(projectilePrefabs[i]);
+                if (!activeProjectiles.Contains(projectilePrefabs[i]))
+                {
+                    activeProjectiles.Add(projectilePrefabs[i]);
+                }
                 projectilePrefabs[i].ProjectileUpdate();
             }
             else
@@ -117,6 +120,11 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
     {
         targetProjectile.ResetValues();
         targetProjectile.gameObject.SetActive(false);
+        //remove from activeProjectiles
+        if (activeProjectiles.Contains(targetProjectile))
+        {
+            activeProjectiles.Remove(targetProjectile);
+        }
     }
 
     public List<BaseProjectile> GetMatchingProjectiles(string projectileName, PlayerController owner)

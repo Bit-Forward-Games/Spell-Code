@@ -129,10 +129,18 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spriteSheetData.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spriteSheetData.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spriteSheetData.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spriteSheetData.Array.data[3]'
       value: 
       objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}

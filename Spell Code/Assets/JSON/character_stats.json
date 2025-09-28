@@ -71,8 +71,8 @@
         },
         "hitstunAnimFrames": {
           "frameIndexes": [
-            17,
-            18
+            19,
+            20
           ],
           "frameLengths": [
             3,
@@ -82,8 +82,8 @@
         },
         "techAnimFrames": {
           "frameIndexes": [
-            19,
-            20
+            17,
+            18
           ],
           "frameLengths": [
             3,

@@ -196,7 +196,8 @@ GameObject:
   - component: {fileID: 1013759792}
   - component: {fileID: 1013759791}
   - component: {fileID: 1013759794}
-  - component: {fileID: 1013759795}
+  - component: {fileID: 1013759797}
+  - component: {fileID: 1013759796}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -247,7 +248,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 90
+  orthographic size: 90.333336
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -322,7 +323,7 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &1013759795
+--- !u!114 &1013759796
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -331,17 +332,44 @@ MonoBehaviour:
   m_GameObject: {fileID: 1013759790}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60ef28968da5e5544b889a80306db420, type: 3}
+  m_Script: {fileID: 11500000, guid: c88f5cead0c0b2a4eb05b5900433f8d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 48, z: 0}
+  m_ComponentVersion: 1
+  m_AssetsPPU: 1
+  m_RefResolutionX: 320
+  m_RefResolutionY: 180
+  m_CropFrame: 0
+  m_GridSnapping: 0
+  m_FilterMode: 0
+  m_UpscaleRT: 0
+  m_PixelSnapping: 0
+  m_CropFrameX: 0
+  m_CropFrameY: 0
+  m_StretchFill: 0
+--- !u!114 &1013759797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013759790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6814927c10c0a174aa00cdc5c7ae4c7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  offset: {x: 0, y: 48}
   damping: 0
   minZoom: 90
   maxZoom: 360
   minDistance: 180
   zoomLimiter: 480
   zoomSpeed: 1
-  target: {x: 0, y: 0, z: 0}
+  shakeDuration: 0.5
+  shakeMagnitude: 1
+  target: {x: 0, y: 0}
+  pixelPerfectCamera: {fileID: 1013759796}
 --- !u!1001 &1115939708
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -165,10 +165,10 @@
         "techHurtboxFrames": [
           0
         ],
-        "spellWeaveHurtboxFrames": [
+        "codeWeaveHurtboxFrames": [
           0
         ],
-        "spellReleaseHurtboxFrames": [
+        "codeReleaseHurtboxFrames": [
           0
         ],
         "slideHurtboxFrames": [
@@ -270,10 +270,10 @@
         "slideHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -9,
-              "yOffset": 33,
-              "width": 21,
-              "height": 33
+              "xOffset": 0,
+              "yOffset": 0,
+              "width": 0,
+              "height": 0
             }
           ],
           "hurtbox2": [],

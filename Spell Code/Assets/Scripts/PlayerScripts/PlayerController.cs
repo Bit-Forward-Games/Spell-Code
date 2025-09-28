@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 //using UnityEditor.U2D.Animation;
@@ -440,11 +441,12 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(0, 5);
                 break;
             case PlayerState.Hitstun:
-                if (isGrounded)
+                if (stateSpecificArg >= hitboxData.hitstun)
                 {
                     
                     SetState(PlayerState.Tech);
                 }
+                stateSpecificArg++;
 
                 break;
             case PlayerState.Tech:
@@ -548,7 +550,7 @@ public class PlayerController : MonoBehaviour
         switch (curstate)
         {
             case PlayerState.Idle:
-                //hitboxData = null;
+                hitboxData = null;
                 break;
             case PlayerState.Run:
                 //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
@@ -558,20 +560,13 @@ public class PlayerController : MonoBehaviour
                 
                 break;
             case PlayerState.Hitstun:
+                hSpd = hitboxData.xKnockback;
+                vSpd = hitboxData.yKnockback;
+
                 if (isGrounded)
                 {
-                    //ground bounce can happen at any point on screen
-                    if (hitboxData is { yKnockback: < -5 })
-                    {
-                        Debug.Log("Floor bounce!");
-                        // Formula: vSpd = baseBounce * log(1 + knockbackMagnitude)
-                        float baseBounce = 3f;  // Base multiplier (adjust for overall intensity) (might make a character stat down the line)
-                        float knockbackMagnitude = -hitboxData.yKnockback * damageProration;  // Convert to positive
-                        vSpd = baseBounce * Mathf.Log(1f + knockbackMagnitude);
-                        hitboxData = null;
-                        break;
-                    }
-                    SetState(PlayerState.Tech);
+                    position.y = StageData.Instance.floorYval + 1;
+                    isGrounded = false;
                 }
 
                 break;

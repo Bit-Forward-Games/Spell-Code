@@ -33,14 +33,12 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
     // ===== | Methods | =====
     private void Start()
     {
-        BoxRenderer.RenderBoxes = false;
+        BoxRenderer.RenderBoxes = true;
         cachedForScreenShakeCamera = Camera.main.GetComponent<StageCamera>();
     }
 
     public void ProcessCollisions()
     {
-        //playerOneState = GameSessionManager.Instance.playerControllers[0].state;
-        //playerTwoState = GameSessionManager.Instance.playerControllers[1].state;
         for(int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerStates[i] = GameManager.Instance.players[i].state;
@@ -70,7 +68,9 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
 
             //PlayerController attackingPlayer = projectile.owner;
-            PlayerController[] defendingPlayers = GameSessionManager.Instance.playerControllers.Where(p => p != projectile.owner).ToArray();
+            PlayerController[] defendingPlayers = GameManager.Instance.players
+                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount)
+                .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
@@ -275,16 +275,17 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
     private void OnGUI()
     {
         if (!BoxRenderer.RenderBoxes) return;
-        //playerOneState = GameSessionManager.Instance.playerControllers[0].state;
-        //playerTwoState = GameSessionManager.Instance.playerControllers[1].state;
-        playerStates = GameManager.Instance.players.Select(p => p.state).ToArray();
 
-        //(HurtboxGroup, List<int>) playerOneHurtInfo = GetHurtboxes(GameSessionManager.Instance.playerControllers[0]);
-        //(HurtboxGroup, List<int>) playerTwoHurtInfo = GetHurtboxes(GameSessionManager.Instance.playerControllers[1]);
+
+        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            playerStates[i] = GameManager.Instance.players[i].state;
+        }
+
         (HurtboxGroup, List<int>)[] playerHurtInfos = new (HurtboxGroup, List<int>)[GameManager.Instance.playerCount];
         for(int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            playerHurtInfos[i] = GetHurtboxes(GameSessionManager.Instance.playerControllers[i]);
+            playerHurtInfos[i] = GetHurtboxes(GameManager.Instance.players[i]);
         }
 
 
@@ -296,8 +297,8 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
         }
 
         //draw projectile hitboxes
-        var allProjectiles = ProjectileManager.Instance.activeProjectiles;
-        foreach (var projectile in allProjectiles)
+        var activeProjectiles = ProjectileManager.Instance.activeProjectiles;
+        foreach (var projectile in activeProjectiles)
         {
             HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
             // Combine all hitbox lists into one sequence

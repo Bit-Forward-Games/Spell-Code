@@ -29,36 +29,33 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameSessionManager.Instance.playerControllers.Length > 0)
+        if (GameManager.Instance.playerCount > 0)
         {
             Vector2 averagePosition = Vector3.zero;
-            for (int i = 0; i < GameSessionManager.Instance.playerControllers.Length; i++)
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                averagePosition += GameSessionManager.Instance.playerControllers[i].position;
+                averagePosition += GameManager.Instance.players[i].position;
             }
-            averagePosition /= GameSessionManager.Instance.playerControllers.Length;
+            averagePosition /= GameManager.Instance.playerCount;
             target = averagePosition + offset;
 
             Bounds greatestDistance = GetGreatestDistance();
             float newZoom = minZoom;
 
-            if (greatestDistance.size.x > minDistance ||
-                greatestDistance.size.y > (minDistance / 16 * 9))
+            if (greatestDistance.size.x > minDistance || greatestDistance.size.y > (minDistance / 16 * 9))
             {
+                //newZoom = Mathf.Lerp(minZoom, maxZoom, (greatestDistance.size.magnitude - minDistance) / zoomLimiter);
                 if (greatestDistance.size.x >= greatestDistance.size.y)
                 {
-                    newZoom = Mathf.Lerp(minZoom, maxZoom, ((greatestDistance.size.x / 16 * 9)
-                        - (minDistance / 16 * 9) / zoomLimiter));
+                    newZoom = Mathf.Lerp(minZoom, maxZoom, ((greatestDistance.size.x / 16 * 9) - (minDistance / 16 * 9)) / zoomLimiter);
                 }
                 else
                 {
-                    newZoom = Mathf.Lerp(minZoom, maxZoom, (greatestDistance.size.y
-                        - (minDistance / 16 * 9)) / zoomLimiter);
+                    newZoom = Mathf.Lerp(minZoom, maxZoom, (greatestDistance.size.y - (minDistance / 16 * 9)) / zoomLimiter);
                 }
             }
 
-            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize,
-                newZoom, zoomSpeed * Time.deltaTime);
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, zoomSpeed * Time.deltaTime);
 
             if (cam.orthographicSize <= minZoom)
             {
@@ -75,22 +72,22 @@ public class StageCamera : MonoBehaviour
 
             ApplyShake();
 
-            transform.position = new Vector3(
-                Mathf.Clamp(transform.position.x, StageData.Instance.leftWallXval + cam.orthographicSize * 16 / 9,
-                    StageData.Instance.rightWallXval - cam.orthographicSize * 16 / 9),
-                Mathf.Clamp(transform.position.y, 0, StageData.Instance.ceilingYval - cam.orthographicSize),
-                -10);
+            //transform.position = new Vector3(
+            //    Mathf.Clamp(transform.position.x, StageData.Instance.leftWallXval + cam.orthographicSize * 16 / 9,
+            //    StageData.Instance.rightWallXval - cam.orthographicSize * 16 / 9),
+            //    Mathf.Clamp(transform.position.y, 0, StageData.Instance.ceilingYval - cam.orthographicSize),
+            //    -10);
         }
     }
 
     private Bounds GetGreatestDistance()
     {
-        Bounds bounds = new Bounds(GameSessionManager.Instance.playerControllers[0].position, Vector3.zero);
-        for (int i = 0; i < GameSessionManager.Instance.playerControllers.Length; i++)
+        Bounds bounds = new Bounds(GameManager.Instance.players[0].position, Vector3.zero);
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             bounds.Encapsulate(new Vector3(
-                GameSessionManager.Instance.playerControllers[i].position.x,
-                GameSessionManager.Instance.playerControllers[i].position.y,
+                GameManager.Instance.players[i].position.x,
+                GameManager.Instance.players[i].position.y,
                 -10));
         }
         return bounds;

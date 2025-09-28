@@ -24,7 +24,7 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
         //activeProjectiles.Clear();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
-            if (projectilePrefabs[i].gameObject.activeSelf)
+            if (projectilePrefabs[i].gameObject.activeSelf && !activeProjectiles.Contains(projectilePrefabs[i]))
             {
                 activeProjectiles.Add(projectilePrefabs[i]);
                 projectilePrefabs[i].ProjectileUpdate();

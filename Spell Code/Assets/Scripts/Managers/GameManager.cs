@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         isRunning = true;
+        StartCoroutine(End());
     }
 
     // Update is called once per frame
@@ -68,6 +69,7 @@ public class GameManager : MonoBehaviour
         {
             //Game end logic here
             MatchEnd();
+            isRunning = false;
         }
     }
 
@@ -134,7 +136,14 @@ public class GameManager : MonoBehaviour
                 gameData.playerData[i].spellList = new string[players[i].spellList.Length];
                 for (int j = 0; j < players[i].spellList.Length; j++)
                 {
-                    gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                    if (players[i].spellList[j] is null)
+                    {
+                        gameData.playerData[i].spellList[j] = "no spell";
+                    }
+                    else
+                    {
+                        gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                   }
                 }
             }
         }

@@ -1,14 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public enum SpellDirection 
+/*public enum SpellDirection 
 { 
     None, 
     Up, 
     Down, 
     Left, 
     Right 
-}
+}*/
 
 public enum SpellType
 {

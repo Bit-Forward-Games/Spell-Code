@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7745486899729457613}
   - component: {fileID: 4086900605317289789}
   m_Layer: 0
-  m_Name: Active_Spell_2
+  m_Name: MightOfZeus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,11 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5dc104d22106c84a8bf73ec275e2592, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: Active_Spell_2
+  spellName: MightOfZeus
   cooldown: 1
   spellInput: 37636
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
   projectilePrefabs:
-  - {fileID: 0}
+  - {fileID: 3459829395073810853, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}

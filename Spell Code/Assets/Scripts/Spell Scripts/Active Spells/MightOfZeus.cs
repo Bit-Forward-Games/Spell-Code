@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class Active_Spell_2 : SpellData
+public class MightOfZeus : SpellData
 {
-    public Active_Spell_2()
+    public MightOfZeus()
     {
-        spellName = "Active_Spell_2";
+        spellName = "MightOfZeus";
         cooldown = 1.0f;
         spellInput = 0b_0000_0000_0000_0000_1001_0011_0000_0100; // Example input sequence
         spellType = SpellType.Active;
@@ -19,7 +19,7 @@ public class Active_Spell_2 : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 10));
+                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 15));
             }
             // Reset the activate flag
             activateFlag = false;

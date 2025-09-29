@@ -67,6 +67,7 @@ public class GameManager : MonoBehaviour
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
             //Game end logic here
+            MatchEnd();
         }
     }
 
@@ -91,7 +92,6 @@ public class GameManager : MonoBehaviour
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
-        StartCoroutine(End());
 
 
 
@@ -104,7 +104,7 @@ public class GameManager : MonoBehaviour
         {
             if (player.currrentPlayerHealth <= 0) alivePlayers++;
         }
-        if (alivePlayers <= 1)
+        if (alivePlayers <= 1 && playerCount >1)
         {
             return true;
         }

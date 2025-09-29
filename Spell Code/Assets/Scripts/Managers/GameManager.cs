@@ -64,6 +64,10 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateGameState(inputs);
+        if (CheckGameEnd(GetActivePlayerControllers()))
+        {
+            //Game end logic here
+        }
     }
 
     /// <summary>
@@ -92,6 +96,20 @@ public class GameManager : MonoBehaviour
 
     }
 
+    public bool CheckGameEnd(PlayerController[] playerControllers)
+    {
+        int alivePlayers = 0;
+        foreach(PlayerController player in playerControllers)
+        {
+            if (player.currrentPlayerHealth <= 0) alivePlayers++;
+        }
+        if (alivePlayers <= 1)
+        {
+            return true;
+        }
+        return false;
+    }
+
     public void MatchEnd()
     {
         //general game data
@@ -106,5 +124,13 @@ public class GameManager : MonoBehaviour
         SaveData saver = DataSaver.MakeSaver(false);
         StartCoroutine(saver.Save(playerData));
     }
-
+    public PlayerController[] GetActivePlayerControllers()
+    {
+        PlayerController[] activePlayers = new PlayerController[playerCount];
+        for (int i = 0; i < playerCount; i++)
+        {
+            activePlayers[i] = players[i];
+        }
+        return activePlayers;
+    }
 }

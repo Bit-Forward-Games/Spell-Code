@@ -31,7 +31,7 @@ public class StageCamera : MonoBehaviour
     {
         if (GameManager.Instance.playerCount > 0)
         {
-            Vector2 averagePosition = Vector3.zero;
+            Vector2 averagePosition = Vector3.up;
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
                 averagePosition += GameManager.Instance.players[i].position;

@@ -1,0 +1,689 @@
+fileFormatVersion: 2
+guid: 0444f7ae355c89740bb22ceda046c43e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6235665953308371285
+    second: fire_projectile-Sheet_0
+  - first:
+      213: -8477757068148189817
+    second: fire_projectile-Sheet_1
+  - first:
+      213: 3819467779578263626
+    second: fire_projectile-Sheet_2
+  - first:
+      213: 4371731257926106881
+    second: fire_projectile-Sheet_3
+  - first:
+      213: 435599576827848697
+    second: fire_projectile-Sheet_4
+  - first:
+      213: -3730417135611523641
+    second: fire_projectile-Sheet_5
+  - first:
+      213: 6368198059920382957
+    second: fire_projectile-Sheet_6
+  - first:
+      213: -146836014441091904
+    second: fire_projectile-Sheet_7
+  - first:
+      213: -5268594125615762923
+    second: fire_projectile-Sheet_8
+  - first:
+      213: -2373779607502437444
+    second: fire_projectile-Sheet_9
+  - first:
+      213: -162150006034326544
+    second: fire_projectile-Sheet_10
+  - first:
+      213: -7075002438176569647
+    second: fire_projectile-Sheet_11
+  - first:
+      213: -5633356135334036173
+    second: fire_projectile-Sheet_12
+  - first:
+      213: 6195978874719313668
+    second: fire_projectile-Sheet_13
+  - first:
+      213: -1657629346432936189
+    second: fire_projectile-Sheet_14
+  - first:
+      213: 6718072111766590842
+    second: fire_projectile-Sheet_15
+  - first:
+      213: 4718183637060026655
+    second: fire_projectile-Sheet_16
+  - first:
+      213: 4964499816343191390
+    second: fire_projectile-Sheet_17
+  - first:
+      213: 4243250798108312873
+    second: fire_projectile-Sheet_18
+  - first:
+      213: 9014908829376533636
+    second: fire_projectile-Sheet_19
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 29
+        y: 93
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55961f48529898650800000000000000
+      internalID: 6235665953308371285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 93
+        y: 92
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78558f41dd4f85a80800000000000000
+      internalID: -8477757068148189817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 90
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48ffc885b9710530800000000000000
+      internalID: 3819467779578263626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 89
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10f382aaa628bac30800000000000000
+      internalID: 4371731257926106881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 89
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f76229d18f8b0600800000000000000
+      internalID: 435599576827848697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 90
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7cd48d73165ea3cc0800000000000000
+      internalID: -3730417135611523641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 92
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: debd2e43562606850800000000000000
+      internalID: 6368198059920382957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 477
+        y: 93
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cc210f3c6556fdf0800000000000000
+      internalID: -146836014441091904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 15
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51276f49e8132e6b0800000000000000
+      internalID: -5268594125615762923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 8
+        width: 47
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb340c71604ae0fd0800000000000000
+      internalID: -2373779607502437444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 19
+        width: 40
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0fb1ff9bd6defbdf0800000000000000
+      internalID: -162150006034326544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 39
+        width: 17
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d6867774ca80dd90800000000000000
+      internalID: -7075002438176569647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 31
+        width: 39
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33db524117c42d1b0800000000000000
+      internalID: -5633356135334036173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 51
+        width: 30
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40f187775f98cf550800000000000000
+      internalID: 6195978874719313668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 369
+        y: 49
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3071a9454eaeef8e0800000000000000
+      internalID: -1657629346432936189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 30
+        y: 23
+        width: 76
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a755e45edf26b3d50800000000000000
+      internalID: 6718072111766590842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 4
+        width: 30
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f110608150b5a7140800000000000000
+      internalID: 4718183637060026655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 12
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5fb0a8a74275e440800000000000000
+      internalID: 4964499816343191390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 3
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92583228e1e03ea30800000000000000
+      internalID: 4243250798108312873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fire_projectile-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 11
+        width: 23
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 484558931d36b1d70800000000000000
+      internalID: 9014908829376533636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      fire_projectile-Sheet_0: 6235665953308371285
+      fire_projectile-Sheet_1: -8477757068148189817
+      fire_projectile-Sheet_10: -162150006034326544
+      fire_projectile-Sheet_11: -7075002438176569647
+      fire_projectile-Sheet_12: -5633356135334036173
+      fire_projectile-Sheet_13: 6195978874719313668
+      fire_projectile-Sheet_14: -1657629346432936189
+      fire_projectile-Sheet_15: 6718072111766590842
+      fire_projectile-Sheet_16: 4718183637060026655
+      fire_projectile-Sheet_17: 4964499816343191390
+      fire_projectile-Sheet_18: 4243250798108312873
+      fire_projectile-Sheet_19: 9014908829376533636
+      fire_projectile-Sheet_2: 3819467779578263626
+      fire_projectile-Sheet_3: 4371731257926106881
+      fire_projectile-Sheet_4: 435599576827848697
+      fire_projectile-Sheet_5: -3730417135611523641
+      fire_projectile-Sheet_6: 6368198059920382957
+      fire_projectile-Sheet_7: -146836014441091904
+      fire_projectile-Sheet_8: -5268594125615762923
+      fire_projectile-Sheet_9: -2373779607502437444
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

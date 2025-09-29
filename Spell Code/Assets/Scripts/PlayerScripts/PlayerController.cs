@@ -115,6 +115,8 @@ public class PlayerController : MonoBehaviour
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
     public int spellsHit = 0;
+    public float timer = 0.0f;
+    public List<float> times = new List<float>();
 
     void Start()
     {
@@ -351,7 +353,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
 
-                if(input.Direction is 5 or 1 or 3 or 7 or 9)
+                //keep track of how lojng player is in state for
+                timer += Time.deltaTime;
+
+                if (input.Direction is 5 or 1 or 3 or 7 or 9)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if((stateSpecificArg & (1u << 4)) == 0)
@@ -403,6 +408,10 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] == ButtonState.Released)
                 {
+                    //keep track of how long player is in state for
+                    times.Add(timer);
+                    timer = 0;
+
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");

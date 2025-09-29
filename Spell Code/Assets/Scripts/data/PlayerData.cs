@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public class PlayerData
@@ -9,5 +10,6 @@ public class PlayerData
 
     public string synthesizer;
 
+    public List<float> times;
     public string[] spellList;
 }

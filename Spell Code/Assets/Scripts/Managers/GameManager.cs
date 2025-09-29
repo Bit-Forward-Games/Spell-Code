@@ -33,7 +33,6 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         isRunning = true;
-        StartCoroutine(End());
     }
 
     // Update is called once per frame
@@ -81,15 +80,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //gets called everytime a new player enters, recreates player array
     public void GetPlayerControllers( PlayerInput playerInput)
     {
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
+        StartCoroutine(End());
 
 
-        
 
     }
 
@@ -111,12 +111,13 @@ public class GameManager : MonoBehaviour
                 gameData.playerData[i].codesFired = players[i].spellsFired;
                 gameData.playerData[i].codesMissed = players[i].spellsHit;
                 gameData.playerData[i].synthesizer = players[i].characterName;
+                gameData.playerData[i].times = players[i].times;
 
-                //gameData.playerData[i].spellList = new string[players[i].spellList.Length];
-                //for (int j = 0; j < players[i].spellList.Length; j++)
-                //{
-                //    gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
-                //}
+                gameData.playerData[i].spellList = new string[players[i].spellList.Length];
+                for (int j = 0; j < players[i].spellList.Length; j++)
+                {
+                    gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                }
             }
         }
 

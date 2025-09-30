@@ -127,7 +127,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < playerCount; i++)
             {
                 gameData.playerData[i] = new PlayerData();
-
+                gameData.playerData[i].basicsFired = players[i].basicsFired;
                 gameData.playerData[i].codesFired = players[i].spellsFired;
                 gameData.playerData[i].codesMissed = players[i].spellsHit;
                 gameData.playerData[i].synthesizer = players[i].characterName;

@@ -115,6 +115,7 @@ public class PlayerController : MonoBehaviour
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
+    public int basicsFired = 0;
     public int spellsHit = 0;
     public float timer = 0.0f;
     public List<float> times = new List<float>();
@@ -440,7 +441,7 @@ public class PlayerController : MonoBehaviour
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
                     SetState(PlayerState.CodeRelease);
 
-                    spellsFired++;
+                    basicsFired++;
 
                     break;
                 }

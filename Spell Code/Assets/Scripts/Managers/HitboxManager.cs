@@ -92,6 +92,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                             defendingPlayer.isHit = true;
                             cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
+                            projectile.owner.spellsHit++;
                         }
                     }
                 }

@@ -426,6 +426,9 @@ public class PlayerController : MonoBehaviour
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
                             SetState(PlayerState.CodeRelease);
+
+                            spellsFired++;
+
                             break;
                         }
                     }
@@ -436,6 +439,9 @@ public class PlayerController : MonoBehaviour
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
                     SetState(PlayerState.CodeRelease);
+
+                    spellsFired++;
+
                     break;
                 }
 

@@ -7,10 +7,10 @@ public class PlayerData
     //Data class to represent our players & their performance
     public int codesFired;
     public int basicsFired;
-    public int codesMissed;
+    public int codesHit;
 
     public string synthesizer;
 
-    public List<float> times;
+    public List<string> times;
     public string[] spellList;
 }

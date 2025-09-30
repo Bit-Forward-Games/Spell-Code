@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class GameManager : NonPersistantSingleton<GameManager>
 {
@@ -13,6 +14,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public int playerCount = 0;
 
     public bool isRunning;
+    public bool isSaved;
 
     //private void Awake()
     //{
@@ -33,7 +35,8 @@ public class GameManager : NonPersistantSingleton<GameManager>
     void Start()
     {
         isRunning = true;
-        ///StartCoroutine(End());
+        isSaved = false;
+        //StartCoroutine(End());
     }
 
     // Update is called once per frame
@@ -71,9 +74,13 @@ public class GameManager : NonPersistantSingleton<GameManager>
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
             //Game end logic here
-            MatchEnd();
-            isRunning = false;
+            if (!isSaved)
+            {
+                MatchEnd();
+                isSaved = true;
+            }
 
+            SceneManager.LoadScene("End");
         }
     }
 
@@ -133,7 +140,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
                 gameData.playerData[i] = new PlayerData();
                 gameData.playerData[i].basicsFired = players[i].basicsFired;
                 gameData.playerData[i].codesFired = players[i].spellsFired;
-                gameData.playerData[i].codesMissed = players[i].spellsHit;
+                gameData.playerData[i].codesHit = players[i].spellsHit;
                 gameData.playerData[i].synthesizer = players[i].characterName;
                 gameData.playerData[i].times = players[i].times;
 

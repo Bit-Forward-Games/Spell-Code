@@ -118,7 +118,8 @@ public class PlayerController : MonoBehaviour
     public int basicsFired = 0;
     public int spellsHit = 0;
     public float timer = 0.0f;
-    public List<float> times = new List<float>();
+    //public bool timerRunning = false;
+    public List<string> times = new List<string>();
 
     void Start()
     {
@@ -137,6 +138,7 @@ public class PlayerController : MonoBehaviour
 
         //specialMoves.SetupSpecialMoves(characterName);
         InitCharacter();
+
     }
 
     //get max health helper func:
@@ -411,7 +413,7 @@ public class PlayerController : MonoBehaviour
                 if (input.ButtonStates[0] == ButtonState.Released)
                 {
                     //keep track of how long player is in state for
-                    times.Add(timer);
+                    times.Add(timer.ToString("F2"));
                     timer = 0;
 
                     //set the 5th bit to 0 to indicate we are no longer primed
@@ -428,6 +430,7 @@ public class PlayerController : MonoBehaviour
                             spellList[i].activateFlag = true;
                             SetState(PlayerState.CodeRelease);
 
+                            //spellcode is fired
                             spellsFired++;
 
                             break;
@@ -441,6 +444,7 @@ public class PlayerController : MonoBehaviour
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
                     SetState(PlayerState.CodeRelease);
 
+                    //basic spell is fired
                     basicsFired++;
 
                     break;

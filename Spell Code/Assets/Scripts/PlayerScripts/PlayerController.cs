@@ -665,7 +665,11 @@ public class PlayerController : MonoBehaviour
 
             isHit = false;
 
-            
+            //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
+            if (state == PlayerState.CodeWeave && hitboxData.attackLvl < 2)
+            {
+                return;  
+            }
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
@@ -680,7 +684,7 @@ public class PlayerController : MonoBehaviour
                 
 
                 // Reduce health 
-                currrentPlayerHealth = (ushort)Math.Max(0, currrentPlayerHealth - (hitboxData.damage * damageProration));
+                currrentPlayerHealth = (ushort)(currrentPlayerHealth - (int)hitboxData.damage);
 
 
 

@@ -58,6 +58,7 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
 
+
             GameObject spawnedBaseProjectile = Instantiate(ProjectileDictionary.Instance.projectileDict[GameManager.Instance.players[i].charData.basicAttackProjId].gameObject);
             spawnedBaseProjectile.GetComponent<BaseProjectile>().LoadProjectile();
             projectilePrefabs.Add(spawnedBaseProjectile.GetComponent<BaseProjectile>());

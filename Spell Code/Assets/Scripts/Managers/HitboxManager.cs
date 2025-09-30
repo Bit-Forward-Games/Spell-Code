@@ -33,7 +33,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
     // ===== | Methods | =====
     private void Start()
     {
-        BoxRenderer.RenderBoxes = true;
+        BoxRenderer.RenderBoxes = false;
         cachedForScreenShakeCamera = Camera.main.GetComponent<StageCamera>();
     }
 

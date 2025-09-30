@@ -47,7 +47,10 @@ public class GameManager : MonoBehaviour
         RunFrame();
 
         AnimationManager.Instance.RenderGameState();
-
+        if (Input.GetKeyDown(KeyCode.Backslash))
+        {
+            BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
+        }
     }
 
     /// <summary>
@@ -104,7 +107,7 @@ public class GameManager : MonoBehaviour
         int alivePlayers = 0;
         foreach(PlayerController player in playerControllers)
         {
-            if (player.currrentPlayerHealth <= 0) alivePlayers++;
+            if (player.currrentPlayerHealth > 0) alivePlayers++;
         }
         if (alivePlayers <= 1 && playerCount >1)
         {

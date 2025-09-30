@@ -42,7 +42,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
                     yKnockback = 15,
                     damage = 15,
                     hitstun = 30,
-                    attackLvl = 3,
+                    attackLvl = 2,
                     cancelOptions = new List<int> { } // No cancel options
                 }
             },

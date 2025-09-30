@@ -12,7 +12,7 @@
       "runSpeed": 30,
       "jumpForce": 10,
       "jumpCounter": 1,
-      "playerHealth": 1200,
+      "playerHealth": 100,
       "playerWidth": 18,
       "playerHeight": 30,
       "animFrames": {

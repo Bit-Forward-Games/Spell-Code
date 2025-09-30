@@ -50,5 +50,4 @@ MonoBehaviour:
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
-  projectilePrefabs:
-  - {fileID: 0}
+  projectilePrefabs: []

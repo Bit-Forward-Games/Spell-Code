@@ -127,30 +127,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: projectileList.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'projectileList.Array.data[2]'
-      value: 
-      objectReference: {fileID: -4885699391038279724, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
-    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: spriteSheetData.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spriteSheetData.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
-    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spriteSheetData.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
-    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spriteSheetData.Array.data[3]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 8d8915a982093204d9432a31f8972aa3, type: 2}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -191,18 +167,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: spellList.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spellList.Array.data[1]'
-      value: 
-      objectReference: {fileID: 4086900605317289789, guid: e20692c84a0616b4e852994d0fd9dff3, type: 3}
-    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spellList.Array.data[2]'
-      value: 
-      objectReference: {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -276,7 +240,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 90.333336
+  orthographic size: 90.166664
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

@@ -5,35 +5,35 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NonPersistantSingleton<GameManager>
 {
-    public static GameManager Instance { get; private set; }
+    //public static GameManager Instance { get; private set; }
 
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
 
     public bool isRunning;
 
-    private void Awake()
-    {
-        // If an instance already exists and it's not this one, destroy this duplicate
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            // Otherwise, set this as the instance
-            Instance = this;
-            // Optional: Prevent the GameObject from being destroyed when loading new scenes
-            DontDestroyOnLoad(gameObject);
-        }
-    }
+    //private void Awake()
+    //{
+    //    // If an instance already exists and it's not this one, destroy this duplicate
+    //    if (Instance != null && Instance != this)
+    //    {
+    //        Destroy(gameObject);
+    //    }
+    //    else
+    //    {
+    //        // Otherwise, set this as the instance
+    //        Instance = this;
+    //        // Optional: Prevent the GameObject from being destroyed when loading new scenes
+    //        DontDestroyOnLoad(gameObject);
+    //    }
+    //}
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         isRunning = true;
-        StartCoroutine(End());
+        ///StartCoroutine(End());
     }
 
     // Update is called once per frame
@@ -73,6 +73,7 @@ public class GameManager : MonoBehaviour
             //Game end logic here
             MatchEnd();
             isRunning = false;
+
         }
     }
 
@@ -146,7 +147,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
-                   }
+                    }
                 }
             }
         }
@@ -155,6 +156,13 @@ public class GameManager : MonoBehaviour
         //if true, it will use remote save as well (which isn't a thing yet, so keep it false)
         SaveData saver = DataSaver.MakeSaver(false);
         StartCoroutine(saver.Save(gameData));
+
+
+        players = new PlayerController[4];
+        playerCount = 0;
+
+        //load main menu
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
 
     private IEnumerator End()

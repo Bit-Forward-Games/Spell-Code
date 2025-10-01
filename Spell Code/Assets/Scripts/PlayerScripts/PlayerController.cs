@@ -360,6 +360,12 @@ public class PlayerController : MonoBehaviour
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
 
+                if (input.ButtonStates[1] == ButtonState.Pressed)
+                {
+                    stateSpecificArg = 0;
+                    break;
+                }
+
                 if (input.Direction is 5 or 1 or 3 or 7 or 9)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed

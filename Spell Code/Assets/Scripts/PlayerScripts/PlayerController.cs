@@ -360,6 +360,10 @@ public class PlayerController : MonoBehaviour
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
 
+                if(vSpd < 0 && !isGrounded)
+                {
+                    gravity = .2f;
+                }
                 if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     stateSpecificArg = 0;
@@ -416,7 +420,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                if (input.ButtonStates[0] == ButtonState.Released)
+                if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
                     //keep track of how long player is in state for
                     times.Add(timer.ToString("F2"));
@@ -622,6 +626,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
+                if(vSpd < 0 && !isGrounded)
+                {
+                    vSpd = 0;
+                }
                 //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
@@ -636,6 +644,9 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Jump:
                 playerHeight = charData.playerHeight;
+                break;
+            case PlayerState.CodeWeave:
+                gravity = 1;
                 break;
         }
         stateSpecificArg = 0;

@@ -10,7 +10,7 @@
         "Ninja_Build_Blast"
       ],
       "runSpeed": 30,
-      "jumpForce": 10,
+      "jumpForce": 15,
       "jumpCounter": 1,
       "playerHealth": 100,
       "playerWidth": 18,
@@ -124,8 +124,8 @@
             4,
             4,
             4,
-            4,
-            4
+            3,
+            3
           ],
           "loopAnim": false
         },

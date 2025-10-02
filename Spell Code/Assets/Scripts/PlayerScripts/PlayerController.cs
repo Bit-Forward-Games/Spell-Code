@@ -360,11 +360,11 @@ public class PlayerController : MonoBehaviour
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
 
-                if(vSpd < 0 && !isGrounded)
+                if(vSpd <= 0 && !isGrounded)
                 {
-                    gravity = .2f;
+                    gravity = Math.Clamp(gravity + .002f,0,1f);
                 }
-                if (input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)
                 {
                     stateSpecificArg = 0;
                     break;
@@ -461,7 +461,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                LerpHspd(0, 5);
+                LerpHspd(0, 10);
                 break;
             case PlayerState.CodeRelease:
 
@@ -472,7 +472,10 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                LerpHspd(0, 5);
+                if (isGrounded)
+                {
+                    LerpHspd(0, 5);
+                }
                 break;
             case PlayerState.Hitstun:
                 if (stateSpecificArg >= hitboxData.hitstun)
@@ -626,9 +629,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
-                if(vSpd < 0 && !isGrounded)
+                if(/*vSpd < 0 && */!isGrounded)
                 {
                     vSpd = 0;
+                    gravity = 0;
                 }
                 //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
@@ -884,6 +888,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(position.y);
         bw.Write(hSpd);
         bw.Write(vSpd);
+        bw.Write(gravity);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write((byte)state);
@@ -906,6 +911,7 @@ public class PlayerController : MonoBehaviour
         position.y = br.ReadSingle();
         hSpd = br.ReadSingle();
         vSpd = br.ReadSingle();
+        gravity = br.ReadSingle();
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();

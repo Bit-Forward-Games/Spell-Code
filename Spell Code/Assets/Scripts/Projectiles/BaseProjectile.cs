@@ -48,6 +48,7 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+        animationFrame = 0;
         hSpeed = 0;
         vSpeed = 0;
         position = Vector2.zero;

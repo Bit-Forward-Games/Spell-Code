@@ -19,7 +19,7 @@ public class GiftOfPrometheus : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 10));
+                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 15));
             }
             // Reset the activate flag
             activateFlag = false;

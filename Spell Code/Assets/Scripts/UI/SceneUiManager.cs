@@ -5,10 +5,12 @@ using UnityEngine.SceneManagement;
 public class SceneUiManager : MonoBehaviour
 {
     public string sceneName;
+
+    private DataManager dm;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        dm = FindAnyObjectByType<DataManager>();
     }
 
     public enum sampleEnum{
@@ -27,6 +29,12 @@ public class SceneUiManager : MonoBehaviour
 
     public void QuitGame()
     {
+        //if there is data, save it before quitting
+        if (dm.gameData.matchData.Count > 0)
+        {
+            dm.SaveToFile();
+        }
+
         Application.Quit();
     }
 }

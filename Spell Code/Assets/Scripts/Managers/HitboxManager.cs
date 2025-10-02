@@ -141,90 +141,90 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
         }
     }
 
-    private void GetActiveBoxes(out List<HitboxData> activeHitboxes, (HitboxGroup, FrameData) hitInfo, PlayerController attackingPlayer)
-    {
-        activeHitboxes = new List<HitboxData>();
+    //private void GetActiveBoxes(out List<HitboxData> activeHitboxes, (HitboxGroup, FrameData) hitInfo, PlayerController attackingPlayer)
+    //{
+    //    activeHitboxes = new List<HitboxData>();
 
-        for (int i = 0; i < hitInfo.Item2.startFrames.Count; i++)
-        {
-            if (attackingPlayer.logicFrame >= hitInfo.Item2.startFrames[i] && attackingPlayer.logicFrame <= hitInfo.Item2.endFrames[i])
-            {
+    //    for (int i = 0; i < hitInfo.Item2.startFrames.Count; i++)
+    //    {
+    //        if (attackingPlayer.logicFrame >= hitInfo.Item2.startFrames[i] && attackingPlayer.logicFrame <= hitInfo.Item2.endFrames[i])
+    //        {
 
-                if (attackingPlayer.logicFrame == hitInfo.Item2.startFrames[i] && !attackingPlayer.hitstopActive)
-                {
-                    attackingPlayer.hitboxActive = true;
-                }
+    //            if (attackingPlayer.logicFrame == hitInfo.Item2.startFrames[i] && !attackingPlayer.hitstopActive)
+    //            {
+    //                attackingPlayer.hitboxActive = true;
+    //            }
 
-                if (hitInfo.Item1.hitbox1.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox1[i]);
+    //            if (hitInfo.Item1.hitbox1.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox1[i]);
 
-                if (hitInfo.Item1.hitbox2.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox2[i]);
+    //            if (hitInfo.Item1.hitbox2.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox2[i]);
 
-                if (hitInfo.Item1.hitbox3.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox3[i]);
+    //            if (hitInfo.Item1.hitbox3.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox3[i]);
 
-                if (hitInfo.Item1.hitbox4.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox4[i]);
-            }
-        }
-    }
+    //            if (hitInfo.Item1.hitbox4.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox4[i]);
+    //        }
+    //    }
+    //}
 
-    private void GetActiveBoxes(out List<HitboxData> activeHitboxes, out List<HurtboxData> activeHurtboxes, 
-        (HitboxGroup, FrameData) hitInfo, (HurtboxGroup, List<int>) hurtInfo, PlayerController attackingPlayer, PlayerController defendingPlayer)
-    {
-        activeHitboxes = new List<HitboxData>();
-        activeHurtboxes = new List<HurtboxData>();
+    //private void GetActiveBoxes(out List<HitboxData> activeHitboxes, out List<HurtboxData> activeHurtboxes, 
+    //    (HitboxGroup, FrameData) hitInfo, (HurtboxGroup, List<int>) hurtInfo, PlayerController attackingPlayer, PlayerController defendingPlayer)
+    //{
+    //    activeHitboxes = new List<HitboxData>();
+    //    activeHurtboxes = new List<HurtboxData>();
 
-        for (int i = 0; i < hitInfo.Item2.startFrames.Count; i++)
-        {
-            if (attackingPlayer.logicFrame >= hitInfo.Item2.startFrames[i] && attackingPlayer.logicFrame <= hitInfo.Item2.endFrames[i])
-            {
+    //    for (int i = 0; i < hitInfo.Item2.startFrames.Count; i++)
+    //    {
+    //        if (attackingPlayer.logicFrame >= hitInfo.Item2.startFrames[i] && attackingPlayer.logicFrame <= hitInfo.Item2.endFrames[i])
+    //        {
                 
-                if(attackingPlayer.logicFrame == hitInfo.Item2.startFrames[i] && !attackingPlayer.hitstopActive)
-                {
-                    attackingPlayer.hitboxActive = true;
-                }
+    //            if(attackingPlayer.logicFrame == hitInfo.Item2.startFrames[i] && !attackingPlayer.hitstopActive)
+    //            {
+    //                attackingPlayer.hitboxActive = true;
+    //            }
 
-                if (hitInfo.Item1.hitbox1.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox1[i]);
+    //            if (hitInfo.Item1.hitbox1.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox1[i]);
 
-                if (hitInfo.Item1.hitbox2.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox2[i]);
+    //            if (hitInfo.Item1.hitbox2.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox2[i]);
 
-                if (hitInfo.Item1.hitbox3.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox3[i]);
+    //            if (hitInfo.Item1.hitbox3.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox3[i]);
 
-                if (hitInfo.Item1.hitbox4.Count > i)
-                    activeHitboxes.Add(hitInfo.Item1.hitbox4[i]);
-            }
-        }
+    //            if (hitInfo.Item1.hitbox4.Count > i)
+    //                activeHitboxes.Add(hitInfo.Item1.hitbox4[i]);
+    //        }
+    //    }
 
-        if (hurtInfo.Item2.Count == 1)
-        {
-            activeHurtboxes.Add(hurtInfo.Item1.hurtbox1[0]);
-        }
-        else
-        {
-            int renderIndex = -1;
-            foreach (int frame in hurtInfo.Item2)
-            {
-                if (defendingPlayer.logicFrame >= frame) renderIndex++;
-            }
+    //    if (hurtInfo.Item2.Count == 1)
+    //    {
+    //        activeHurtboxes.Add(hurtInfo.Item1.hurtbox1[0]);
+    //    }
+    //    else
+    //    {
+    //        int renderIndex = -1;
+    //        foreach (int frame in hurtInfo.Item2)
+    //        {
+    //            if (defendingPlayer.logicFrame >= frame) renderIndex++;
+    //        }
 
-            if (hurtInfo.Item1.hurtbox1.Count > renderIndex)
-                activeHurtboxes.Add(hurtInfo.Item1.hurtbox1[renderIndex]);
+    //        if (hurtInfo.Item1.hurtbox1.Count > renderIndex)
+    //            activeHurtboxes.Add(hurtInfo.Item1.hurtbox1[renderIndex]);
 
-            if (hurtInfo.Item1.hurtbox2.Count > renderIndex)
-                activeHurtboxes.Add(hurtInfo.Item1.hurtbox2[renderIndex]);
+    //        if (hurtInfo.Item1.hurtbox2.Count > renderIndex)
+    //            activeHurtboxes.Add(hurtInfo.Item1.hurtbox2[renderIndex]);
 
-            if (hurtInfo.Item1.hurtbox3.Count > renderIndex)
-                activeHurtboxes.Add(hurtInfo.Item1.hurtbox3[renderIndex]);
+    //        if (hurtInfo.Item1.hurtbox3.Count > renderIndex)
+    //            activeHurtboxes.Add(hurtInfo.Item1.hurtbox3[renderIndex]);
 
-            if (hurtInfo.Item1.hurtbox4.Count > renderIndex)
-                activeHurtboxes.Add(hurtInfo.Item1.hurtbox4[renderIndex]);
-        }
-    }
+    //        if (hurtInfo.Item1.hurtbox4.Count > renderIndex)
+    //            activeHurtboxes.Add(hurtInfo.Item1.hurtbox4[renderIndex]);
+    //    }
+    //}
 
     /// <summary>
     /// Check for Collision between a Hitbox and a Hurtbox

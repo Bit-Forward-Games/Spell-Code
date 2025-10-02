@@ -15,6 +15,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
     public bool isRunning;
     public bool isSaved;
+    private DataManager dataManager;
 
     //private void Awake()
     //{
@@ -36,13 +37,15 @@ public class GameManager : NonPersistantSingleton<GameManager>
     {
         isRunning = true;
         isSaved = false;
+
+        dataManager = FindAnyObjectByType<DataManager>();
         //StartCoroutine(End());
     }
 
     // Update is called once per frame
     void Update()
     {
-    
+        
     }
 
     private void FixedUpdate()
@@ -127,49 +130,52 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public void MatchEnd()
     {
         //general game data
-        SaveDataHolder gameData = new SaveDataHolder();
-        gameData.dateTime = System.DateTime.Now.ToString();
+        MatchData matchData = new MatchData();
+        matchData.dateTime = System.DateTime.Now.ToString();
 
         //player data, looped for each player
         if (playerCount > 0)
         {
-            gameData.playerData = new PlayerData[playerCount];
+            matchData.playerData = new PlayerData[playerCount];
 
             for (int i = 0; i < playerCount; i++)
             {
-                gameData.playerData[i] = new PlayerData();
-                gameData.playerData[i].basicsFired = players[i].basicsFired;
-                gameData.playerData[i].codesFired = players[i].spellsFired;
-                gameData.playerData[i].codesHit = players[i].spellsHit;
-                gameData.playerData[i].synthesizer = players[i].characterName;
-                gameData.playerData[i].times = players[i].times;
+                matchData.playerData[i] = new PlayerData();
+                matchData.playerData[i].basicsFired = players[i].basicsFired;
+                matchData.playerData[i].codesFired = players[i].spellsFired;
+                matchData.playerData[i].codesHit = players[i].spellsHit;
+                matchData.playerData[i].synthesizer = players[i].characterName;
+                matchData.playerData[i].times = players[i].times;
 
-                gameData.playerData[i].spellList = new string[players[i].spellList.Length];
+                matchData.playerData[i].spellList = new string[players[i].spellList.Length];
                 for (int j = 0; j < players[i].spellList.Length; j++)
                 {
                     if (players[i].spellList[j] is null)
                     {
-                        gameData.playerData[i].spellList[j] = "no spell";
+                        matchData.playerData[i].spellList[j] = "no spell";
                     }
                     else
                     {
-                        gameData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                        matchData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
                     }
                 }
             }
         }
 
-        //save the data to file
-        //if true, it will use remote save as well (which isn't a thing yet, so keep it false)
-        SaveData saver = DataSaver.MakeSaver(false);
-        StartCoroutine(saver.Save(gameData));
-
+        //save match data to gameData object
+        dataManager.gameData.matchData.Add(matchData);
 
         players = new PlayerController[4];
         playerCount = 0;
 
         //load main menu
-        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
+
+    //called when a game ends (game is a series of matches/rounds)
+    public void GameEnd()
+    {
+
     }
 
     private IEnumerator End()

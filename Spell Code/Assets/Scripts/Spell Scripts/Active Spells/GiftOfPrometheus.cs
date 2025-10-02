@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class Active_Spell_3 : SpellData
+public class GiftOfPrometheus : SpellData
 {
-    public Active_Spell_3()
+    public GiftOfPrometheus()
     {
         spellName = "Active_Spell_3";
         cooldown = 1.0f;

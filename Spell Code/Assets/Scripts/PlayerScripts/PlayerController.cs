@@ -99,7 +99,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
-    public bool hitboxActive = false;
+    //public bool hitboxActive = false;
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public byte hitstop = 0;
@@ -214,7 +214,7 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    
+
 
     public void PlayerUpdate(long inputs)
     {
@@ -229,7 +229,7 @@ public class PlayerController : MonoBehaviour
         if (hitstop > 0)
         {
             hitstop--;
-            hitboxActive = false;
+            //hitboxActive = false;
             hitstopActive = true;
 
 
@@ -295,7 +295,7 @@ public class PlayerController : MonoBehaviour
 
                 //Check Direction Inputs
 
-                
+
                 if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.CodeWeave);
@@ -360,11 +360,11 @@ public class PlayerController : MonoBehaviour
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
 
-                if(vSpd < 0 && !isGrounded)
+                if (vSpd <= 0 && !isGrounded)
                 {
-                    gravity = .2f;
+                    gravity = Math.Clamp(gravity + .002f, 0, 1f);
                 }
-                if (input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)
                 {
                     stateSpecificArg = 0;
                     break;
@@ -373,7 +373,7 @@ public class PlayerController : MonoBehaviour
                 if (input.Direction is 5 or 1 or 3 or 7 or 9)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
-                    if((stateSpecificArg & (1u << 4)) == 0)
+                    if ((stateSpecificArg & (1u << 4)) == 0)
                     {
                         stateSpecificArg |= 1 << 4;
                         Debug.Log("input Primed");
@@ -385,12 +385,13 @@ public class PlayerController : MonoBehaviour
                 else if ((stateSpecificArg & (1u << 4)) != 0) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
-                    switch (input.Direction){
+                    switch (input.Direction)
+                    {
                         case 2:
                             // Set the 2 highest significant bits minus 2 bits per codeCount to 00
                             // stateSpecificArg: [high bits ...][codeCount (lowest 4 bits)]
                             // Example: For codeCount = 1, clear bits 31-30; for codeCount = 2, clear bits 29-28, etc.
-                            stateSpecificArg |= (uint)(0b00 << (8+(codeCount*2)));
+                            stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
                             break;
@@ -408,7 +409,7 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-                            
+
                             break;
                         default:
                             stateSpecificArg &= ~(1u << 4);
@@ -429,16 +430,37 @@ public class PlayerController : MonoBehaviour
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
-                   // Debug.Log($"the test code:      {Convert.ToString(tempTestSpellInput, toBase: 2)}");
 
+                    SetState(PlayerState.CodeRelease, stateSpecificArg);
+
+                    break;
+                }
+
+
+                LerpHspd(0, 10);
+                break;
+            case PlayerState.CodeRelease:
+
+                if(input.Direction == 6)
+                {
+                    facingRight = true;
+                }
+                else if(input.Direction == 4)
+                {
+                    facingRight = false;
+                }
+                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
+                {
                     for (int i = 0; i < spellList.Length; i++)
                     {
-                        if(spellList[i] == null || spellList[i].spellType == SpellType.Passive) break;
+                        if (spellList[i] == null || spellList[i].spellType == SpellType.Passive) break;
                         if (spellList[i].spellInput == stateSpecificArg)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
-                            SetState(PlayerState.CodeRelease);
+
+                            //set stateSpecificArg to 255 as it is a value we can never normally set it to, to indicate that we successfully fired a spell
+                            stateSpecificArg = 255;
 
                             //spellcode is fired
                             spellsFired++;
@@ -446,38 +468,32 @@ public class PlayerController : MonoBehaviour
                             break;
                         }
                     }
-                    //check if we changed state in the spell loop
-                    if (state == PlayerState.CodeRelease) break;
+                    //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop
+                    if (stateSpecificArg == 255) break;
 
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
-                    SetState(PlayerState.CodeRelease);
 
                     //basic spell is fired
                     basicsFired++;
-
-                    break;
                 }
 
-
-                LerpHspd(0, 5);
-                break;
-            case PlayerState.CodeRelease:
-
-                if (logicFrame >=
-                    CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
                 {
-                    SetState(isGrounded? PlayerState.Idle:PlayerState.Jump);
+                    SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
 
-                LerpHspd(0, 5);
+                if (isGrounded)
+                {
+                    LerpHspd(0, 5);
+                }
                 break;
             case PlayerState.Hitstun:
                 if (stateSpecificArg >= hitboxData.hitstun)
                 {
-                    
+
                     SetState(PlayerState.Tech);
                 }
 
@@ -488,20 +504,20 @@ public class PlayerController : MonoBehaviour
                     vSpd = -vSpd;
                 }
 
-                
+
                 stateSpecificArg++;
                 break;
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-                    
+
                     SetState(PlayerState.Idle);
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech) * 2)
                 {
-                    
+
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
@@ -558,14 +574,14 @@ public class PlayerController : MonoBehaviour
         //PlayerCollisionCheck();
     }
 
-    public void SetState(PlayerState targetState, bool canceling = false)
+    public void SetState(PlayerState targetState, uint inputSpellArg = 0)
     {
-        
+
 
         prevState = state;
         HandleExitLogic(prevState);
         state = targetState;
-        HandleEnterState(targetState, in canceling);
+        HandleEnterState(targetState, inputSpellArg);
         cancelOptions.Clear();
         hitstunOverride = false;
     }
@@ -573,10 +589,9 @@ public class PlayerController : MonoBehaviour
 
 
     //move logic for each state here
-    private void HandleEnterState(PlayerState curstate, in bool canceling)
+    private void HandleEnterState(PlayerState curstate, uint inputSpellArg)
     {
 
-        //Debug.Log($"Canceling: {canceling}, Strength: {strength}, Counterhitmod: {chmod}");
 
         bool wasInHitstun = prevState is PlayerState.Hitstun;
         bool isNowHitstun = curstate is PlayerState.Hitstun;
@@ -599,10 +614,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
                 playerHeight = charData.playerHeight / 2;
-                
+
                 break;
             case PlayerState.Hitstun:
-                hSpd = hitboxData.xKnockback * (facingRight? -1:1);
+                hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
 
                 if (isGrounded)
@@ -626,13 +641,16 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
-                if(vSpd < 0 && !isGrounded)
+                if (/*vSpd < 0 && */!isGrounded)
                 {
                     vSpd = 0;
+                    gravity = 0;
                 }
+                
                 //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
+                stateSpecificArg = inputSpellArg;
                 //mySFXHandler.PlaySound(SoundType.HEAVY_KICK);
                 break;
         }
@@ -689,7 +707,7 @@ public class PlayerController : MonoBehaviour
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
             if (state == PlayerState.CodeWeave && hitboxData.attackLvl < 2)
             {
-                return;  
+                return;
             }
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
@@ -702,7 +720,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                
+
 
                 // Reduce health 
                 currrentPlayerHealth = (ushort)(currrentPlayerHealth - (int)hitboxData.damage);
@@ -884,6 +902,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(position.y);
         bw.Write(hSpd);
         bw.Write(vSpd);
+        bw.Write(gravity);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write((byte)state);
@@ -892,7 +911,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
-        bw.Write(hitboxActive);
+        //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
@@ -906,6 +925,7 @@ public class PlayerController : MonoBehaviour
         position.y = br.ReadSingle();
         hSpd = br.ReadSingle();
         vSpd = br.ReadSingle();
+        gravity = br.ReadSingle();
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
@@ -914,7 +934,7 @@ public class PlayerController : MonoBehaviour
         lerpDelay = br.ReadUInt16();
         stateSpecificArg = br.ReadUInt32();
         hitstop = br.ReadByte();
-        hitboxActive = br.ReadBoolean();
+        //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();

@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 
+//holds all data
 [Serializable]
 public class SaveDataHolder
 {
-    //hold all data we wont to consolidate
-    public PlayerData[] playerData;
+    public List<MatchData> matchData;
 }

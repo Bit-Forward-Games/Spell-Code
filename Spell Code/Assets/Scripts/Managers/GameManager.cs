@@ -1,0 +1,195 @@
+using NUnit.Framework;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+
+public class GameManager : NonPersistantSingleton<GameManager>
+{
+    //public static GameManager Instance { get; private set; }
+
+    public PlayerController[] players = new PlayerController[4];
+    public int playerCount = 0;
+
+    public bool isRunning;
+    public bool isSaved;
+    private DataManager dataManager;
+
+    //private void Awake()
+    //{
+    //    // If an instance already exists and it's not this one, destroy this duplicate
+    //    if (Instance != null && Instance != this)
+    //    {
+    //        Destroy(gameObject);
+    //    }
+    //    else
+    //    {
+    //        // Otherwise, set this as the instance
+    //        Instance = this;
+    //        // Optional: Prevent the GameObject from being destroyed when loading new scenes
+    //        DontDestroyOnLoad(gameObject);
+    //    }
+    //}
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        isRunning = true;
+        isSaved = false;
+
+        dataManager = FindAnyObjectByType<DataManager>();
+        //StartCoroutine(End());
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    private void FixedUpdate()
+    {
+        RunFrame();
+
+        AnimationManager.Instance.RenderGameState();
+        if (Input.GetKeyDown(KeyCode.Backslash))
+        {
+            BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
+        }
+    }
+
+    /// <summary>
+    /// Runs a single frame of the game.
+    /// </summary>
+    protected  void RunFrame()
+    {
+        if (!isRunning)
+            return;
+
+        long[] inputs = new long[playerCount];
+        for (int i = 0; i < inputs.Length; ++i)
+        {
+            inputs[i] = players[i].GetInputs();
+        }
+
+        UpdateGameState(inputs);
+        if (CheckGameEnd(GetActivePlayerControllers()))
+        {
+            //Game end logic here
+            if (!isSaved)
+            {
+                MatchEnd();
+                isSaved = true;
+            }
+
+            SceneManager.LoadScene("End");
+        }
+    }
+
+    /// <summary>
+    /// Updates the game state based on the provided inputs.
+    /// </summary>
+    /// <param name="inputs">Array of inputs for each player.</param>
+    protected void UpdateGameState(long[] inputs)
+    {
+        ProjectileManager.Instance.UpdateProjectiles();
+        HitboxManager.Instance.ProcessCollisions();
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].PlayerUpdate(inputs[i]);
+        }
+    }
+
+    //gets called everytime a new player enters, recreates player array
+    public void GetPlayerControllers( PlayerInput playerInput)
+    {
+        players[playerCount] = playerInput.GetComponent<PlayerController>();
+        players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
+        AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
+        playerCount++;
+
+
+
+    }
+
+    public bool CheckGameEnd(PlayerController[] playerControllers)
+    {
+        int alivePlayers = 0;
+        foreach(PlayerController player in playerControllers)
+        {
+            if (player.currrentPlayerHealth > 0) alivePlayers++;
+        }
+        if (alivePlayers <= 1 && playerCount >1)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void MatchEnd()
+    {
+        //general game data
+        MatchData matchData = new MatchData();
+        matchData.dateTime = System.DateTime.Now.ToString();
+
+        //player data, looped for each player
+        if (playerCount > 0)
+        {
+            matchData.playerData = new PlayerData[playerCount];
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                matchData.playerData[i] = new PlayerData();
+                matchData.playerData[i].basicsFired = players[i].basicsFired;
+                matchData.playerData[i].codesFired = players[i].spellsFired;
+                matchData.playerData[i].codesHit = players[i].spellsHit;
+                matchData.playerData[i].synthesizer = players[i].characterName;
+                matchData.playerData[i].times = players[i].times;
+
+                matchData.playerData[i].spellList = new string[players[i].spellList.Length];
+                for (int j = 0; j < players[i].spellList.Length; j++)
+                {
+                    if (players[i].spellList[j] is null)
+                    {
+                        matchData.playerData[i].spellList[j] = "no spell";
+                    }
+                    else
+                    {
+                        matchData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
+                    }
+                }
+            }
+        }
+
+        //save match data to gameData object
+        dataManager.gameData.matchData.Add(matchData);
+
+        players = new PlayerController[4];
+        playerCount = 0;
+
+        //load main menu
+        //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    }
+
+    //called when a game ends (game is a series of matches/rounds)
+    public void GameEnd()
+    {
+
+    }
+
+    private IEnumerator End()
+    {
+        yield return new WaitForSeconds(3);
+        MatchEnd();
+    }
+    public PlayerController[] GetActivePlayerControllers()
+    {
+        PlayerController[] activePlayers = new PlayerController[playerCount];
+        for (int i = 0; i < playerCount; i++)
+        {
+            activePlayers[i] = players[i];
+        }
+        return activePlayers;
+    }
+}

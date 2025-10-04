@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7323394407539773554
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 389584798577933438}
+  - component: {fileID: -4727238776019900093}
+  - component: {fileID: 4063394636849562880}
+  m_Layer: 0
+  m_Name: prj_GiftOfPrometheus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &389584798577933438
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7323394407539773554}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &-4727238776019900093
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7323394407539773554}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: 6235665953308371285, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 64, y: 64.125}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!114 &4063394636849562880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7323394407539773554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b730826e0549525468634d95a47f40a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projName: GiftOfPrometheus
+  projectileHitboxes: []
+  sprites:
+  - {fileID: 6235665953308371285, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -8477757068148189817, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 3819467779578263626, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 4371731257926106881, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 435599576827848697, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -3730417135611523641, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 6368198059920382957, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -146836014441091904, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -5268594125615762923, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -2373779607502437444, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -162150006034326544, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -7075002438176569647, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: -5633356135334036173, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 6195978874719313668, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  activeHitboxGroupIndex: 0
+  hSpeed: 1
+  vSpeed: 0
+  position: {x: 0, y: 0}
+  facingRight: 0
+  logicFrame: 0
+  animationFrame: 0
+  lifeSpan: 120
+  owner: {fileID: 0}
+  playerIgnoreArr: 00000000
+  animFrames:
+    frameIndexes: 
+    frameLengths: 0600000006000000060000000600000006000000060000000600000006000000040000000400000004000000040000000400000004000000
+    loopAnim: 0
+  deleteOnHit: 0

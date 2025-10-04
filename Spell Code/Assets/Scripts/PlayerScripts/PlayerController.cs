@@ -265,6 +265,13 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
 
+
+                //check for slide input:
+                if( input.Direction < 4 && input.ButtonStates[0] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.Slide);
+                    break;
+                }
                 //Check Direction Inputs
                 if (input.Direction == 6)
                 {
@@ -292,6 +299,14 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(0, 4);
                 break;
             case PlayerState.Run:
+
+
+                //check for slide input:
+                if (input.Direction < 4 && input.ButtonStates[0] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.Slide);
+                    break;
+                }
 
                 //Check Direction Inputs
 
@@ -515,13 +530,22 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech) * 2)
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
                 {
 
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
 
+                break;
+            case PlayerState.Slide:
+                LerpHspd(0, 15);
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
+                {
+
+                    SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
+                    break;
+                }
                 break;
         }
 
@@ -652,6 +676,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
                 stateSpecificArg = inputSpellArg;
                 //mySFXHandler.PlaySound(SoundType.HEAVY_KICK);
+                break;
+
+            case PlayerState.Slide:
+                hSpd = facingRight ? charData.runSpeed*2 : -charData.runSpeed*2;
                 break;
         }
     }

@@ -10,6 +10,8 @@
         "Ninja_Build_Blast"
       ],
       "runSpeed": 30,
+      "slideSpeed": 40,
+      "slideFriction": 10,
       "jumpForce": 13,
       "jumpCounter": 1,
       "playerHealth": 100,
@@ -139,12 +141,12 @@
             38
           ],
           "frameLengths": [
-            3,
-            3,
-            3,
-            3,
-            3,
-            3
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
           ],
           "loopAnim": false
         }
@@ -172,7 +174,8 @@
           0
         ],
         "slideHurtboxFrames": [
-          0
+          0,
+          13
         ]
       },
       "hurtboxData": {
@@ -274,6 +277,12 @@
               "yOffset": 0,
               "width": 0,
               "height": 0
+            },
+            {
+              "xOffset": -10,
+              "yOffset": 30,
+              "width": 27,
+              "height": 31
             }
           ],
           "hurtbox2": [],

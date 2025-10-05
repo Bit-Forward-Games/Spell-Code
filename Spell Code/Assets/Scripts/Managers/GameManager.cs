@@ -17,6 +17,9 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool isSaved;
     private DataManager dataManager;
 
+    public int round = 1;
+    public bool roundOver;
+
     //private void Awake()
     //{
     //    // If an instance already exists and it's not this one, destroy this duplicate
@@ -77,13 +80,15 @@ public class GameManager : NonPersistantSingleton<GameManager>
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
             //Game end logic here
-            if (!isSaved)
+            for (int i = 0; i < playerCount; i++)
             {
-                SaveMatch();
-                isSaved = true;
+                if (players[i].roundsWon == 3)
+                {
+                    GameEnd();
+                }
             }
-
-            SceneManager.LoadScene("End");
+            
+            
         }
     }
 
@@ -125,11 +130,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
             return true;
         }
         return false;
-    }
-
-    public void EndRound()
-    {
-
     }
 
     public void SaveMatch()
@@ -189,10 +189,22 @@ public class GameManager : NonPersistantSingleton<GameManager>
         playerCount = 0;
     }
 
+    //A round is 1 match + spell acquisition phase
+    public void RoundEnd()
+    {
+
+    }
+
     //called when a game ends (game is a series of matches/rounds)
     public void GameEnd()
     {
+        if (!isSaved)
+        {
+            SaveMatch();
+            isSaved = true;
+        }
 
+        SceneManager.LoadScene("End");
     }
 
     public PlayerController[] GetActivePlayerControllers()

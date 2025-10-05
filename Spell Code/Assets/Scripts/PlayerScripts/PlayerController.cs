@@ -120,6 +120,7 @@ public class PlayerController : MonoBehaviour
     public float timer = 0.0f;
     //public bool timerRunning = false;
     public List<string> times = new List<string>();
+    public int roundsWon = 0;
 
     void Start()
     {

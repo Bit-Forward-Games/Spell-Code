@@ -10,6 +10,9 @@ public class PlayerData
     public int codesHit;
 
     public string synthesizer;
+    public float accuracy;
+    public float avgTimeToCast;
+    public bool matchWon;
 
     public List<string> times;
     public string[] spellList;

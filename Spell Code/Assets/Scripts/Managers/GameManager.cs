@@ -79,7 +79,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
             //Game end logic here
             if (!isSaved)
             {
-                MatchEnd();
+                SaveMatch();
                 isSaved = true;
             }
 
@@ -127,7 +127,12 @@ public class GameManager : NonPersistantSingleton<GameManager>
         return false;
     }
 
-    public void MatchEnd()
+    public void EndRound()
+    {
+
+    }
+
+    public void SaveMatch()
     {
         //general game data
         MatchData matchData = new MatchData();
@@ -140,6 +145,9 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
             for (int i = 0; i < playerCount; i++)
             {
+                float totalSpelltime = 0;
+
+                //raw stats
                 matchData.playerData[i] = new PlayerData();
                 matchData.playerData[i].basicsFired = players[i].basicsFired;
                 matchData.playerData[i].codesFired = players[i].spellsFired;
@@ -147,6 +155,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
                 matchData.playerData[i].synthesizer = players[i].characterName;
                 matchData.playerData[i].times = players[i].times;
 
+                //calculated accuracy
+                matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+
+                //calculated avg time to cast a spell (totalTime / instances of times) 
+                for (int k = 0; k < players[i].times.Count; i++)
+                {
+                    totalSpelltime += int.Parse(players[i].times[k]);
+                }
+
+                matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+
+                //save spell name to spellList provided it isn't null. If null, add 'no spell'
                 matchData.playerData[i].spellList = new string[players[i].spellList.Length];
                 for (int j = 0; j < players[i].spellList.Length; j++)
                 {
@@ -167,9 +187,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
         players = new PlayerController[4];
         playerCount = 0;
-
-        //load main menu
-        //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
 
     //called when a game ends (game is a series of matches/rounds)
@@ -178,11 +195,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
     }
 
-    private IEnumerator End()
-    {
-        yield return new WaitForSeconds(3);
-        MatchEnd();
-    }
     public PlayerController[] GetActivePlayerControllers()
     {
         PlayerController[] activePlayers = new PlayerController[playerCount];

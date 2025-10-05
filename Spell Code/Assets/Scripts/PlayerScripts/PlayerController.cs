@@ -357,7 +357,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
 
-                //keep track of how lojng player is in state for
+                //keep track of how long player is in state for
                 timer += Time.deltaTime;
 
                 if (vSpd <= 0 && !isGrounded)
@@ -423,9 +423,6 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
-                    //keep track of how long player is in state for
-                    times.Add(timer.ToString("F2"));
-                    timer = 0;
 
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
@@ -465,6 +462,10 @@ public class PlayerController : MonoBehaviour
                             //spellcode is fired
                             spellsFired++;
 
+                            //save time to list as a spell was cast
+                            times.Add(timer.ToString("F2"));
+                            timer = 0;
+                            Debug.Log("Spell time saved");
                             break;
                         }
                     }
@@ -476,7 +477,9 @@ public class PlayerController : MonoBehaviour
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
 
                     //basic spell is fired
+                    //dont save time, just reset timer
                     basicsFired++;
+                    timer = 0;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))

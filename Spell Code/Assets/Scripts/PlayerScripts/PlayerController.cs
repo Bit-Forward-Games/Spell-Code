@@ -83,6 +83,8 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public float jumpForce = 10;
     private float runSpeed = 0f;
+    private float slideSpeed = 0f;
+
 
 
     //MATCH STATS
@@ -155,6 +157,7 @@ public class PlayerController : MonoBehaviour
 
         currrentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
+        slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
         playerWidth = charData.playerWidth;
         playerHeight = charData.playerHeight;
@@ -267,7 +270,7 @@ public class PlayerController : MonoBehaviour
 
 
                 //check for slide input:
-                if( input.Direction < 4 && input.ButtonStates[0] == ButtonState.Pressed)
+                if( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -302,7 +305,7 @@ public class PlayerController : MonoBehaviour
 
 
                 //check for slide input:
-                if (input.Direction < 4 && input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -539,7 +542,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Slide:
-                LerpHspd(0, 15);
+                LerpHspd(0, charData.slideFriction);
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
                 {
 
@@ -679,7 +682,7 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Slide:
-                hSpd = facingRight ? charData.runSpeed*2 : -charData.runSpeed*2;
+                hSpd = facingRight ? slideSpeed : -slideSpeed;
                 break;
         }
     }

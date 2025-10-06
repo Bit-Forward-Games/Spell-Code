@@ -248,6 +248,8 @@ public class CharacterData
     public string basicAttackProjId;
     public List<string> startingInventory;
     public int runSpeed;
+    public int slideSpeed;
+    public int slideFriction;
     public int jumpForce;
     public int jumpCounter;
     //public ushort[] projectileIds; //projectile Manager needs to be able to access this

@@ -14,6 +14,6 @@ public class PlayerData
     public float avgTimeToCast;
     public bool matchWon;
 
-    public List<string> times;
+    public List<float> times;
     public string[] spellList;
 }

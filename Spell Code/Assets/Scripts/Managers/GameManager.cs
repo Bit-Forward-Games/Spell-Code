@@ -16,6 +16,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool isRunning;
     public bool isSaved;
     private DataManager dataManager;
+    public Canvas shop;
 
     public int round = 1;
     public bool roundOver;
@@ -43,12 +44,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
         dataManager = FindAnyObjectByType<DataManager>();
         //StartCoroutine(End());
+        shop.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        //This is just a shortcut for me to test stuff
         
+        //if (Input.GetKeyDown(KeyCode.K))
+        //{
+        //    SaveMatch();
+        //}
     }
 
     private void FixedUpdate()
@@ -79,16 +86,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
         UpdateGameState(inputs);
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
+            dataManager.totalRoundsPlayed += 1;
+
             //Game end logic here
-            for (int i = 0; i < playerCount; i++)
+            if (dataManager.totalRoundsPlayed == 3)
             {
-                if (players[i].roundsWon == 3)
-                {
-                    GameEnd();
-                }
+                dataManager.totalRoundsPlayed = 0;
+                GameEnd();
             }
-            
-            
+            else
+            {
+                RoundEnd();
+            }            
         }
     }
 
@@ -155,13 +164,22 @@ public class GameManager : NonPersistantSingleton<GameManager>
                 matchData.playerData[i].synthesizer = players[i].characterName;
                 matchData.playerData[i].times = players[i].times;
 
-                //calculated accuracy
-                matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+                if (players[i].currrentPlayerHealth > 0)
+                {
+                    matchData.playerData[i].matchWon = true;
+                }
+                else
+                {
+                    matchData.playerData[i].matchWon = false;
+                }
+
+                    //calculated accuracy
+                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 
-                for (int k = 0; k < players[i].times.Count; i++)
+                for (int k = 0; k < players[i].times.Count; k++)
                 {
-                    totalSpelltime += int.Parse(players[i].times[k]);
+                    totalSpelltime += players[i].times[k];
                 }
 
                 matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
@@ -185,14 +203,20 @@ public class GameManager : NonPersistantSingleton<GameManager>
         //save match data to gameData object
         dataManager.gameData.matchData.Add(matchData);
 
-        players = new PlayerController[4];
-        playerCount = 0;
+        //players = new PlayerController[4];
+        //playerCount = 0;
     }
 
     //A round is 1 match + spell acquisition phase
     public void RoundEnd()
     {
+        if (!isSaved)
+        {
+            SaveMatch();
+            isSaved = true;
+        }
 
+        SceneManager.LoadScene("Shop");
     }
 
     //called when a game ends (game is a series of matches/rounds)
@@ -215,5 +239,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
             activePlayers[i] = players[i];
         }
         return activePlayers;
+    }
+
+    //resets the raw stats for each player back to 0 or their base state
+    public void ResetPlayerStats()
+    {
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].basicsFired = 0;
+            players[i].spellsFired = 0;
+            players[i].spellsHit = 0;
+            players[i].times = new List<float>();
+
+        }
     }
 }

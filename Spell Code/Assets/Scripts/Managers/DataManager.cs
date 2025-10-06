@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 //this script is purely so that I can keep a persistent storage of data
 //throughout the entire game, I can't have the shell deleting itself every time
@@ -9,6 +10,7 @@ public class DataManager : MonoBehaviour
 
     public SaveDataHolder gameData = new SaveDataHolder();
 
+    public int totalRoundsPlayed = 0;
     void Awake()
     {
         // If an instance already exists and it's not this one, destroy this duplicate
@@ -33,15 +35,17 @@ public class DataManager : MonoBehaviour
     //temp for testing in-engine
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L))
-        {
+        //This is just a shortcut for me to test stuff
+
+        //if (Input.GetKeyDown(KeyCode.L))
+        //{
             //save the data to file
             //if true, it will use remote save as well (which isn't a thing yet, so keep it false)
-            SaveData saver = DataSaver.MakeSaver(false);
-            StartCoroutine(saver.Save(gameData));
+         //   SaveData saver = DataSaver.MakeSaver(false);
+         //   StartCoroutine(saver.Save(gameData));
 
-            Debug.Log("Data Saved");
-        }
+         //   Debug.Log("Data Saved");
+        //}
     }
 
 

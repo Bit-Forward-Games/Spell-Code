@@ -119,7 +119,7 @@ public class PlayerController : MonoBehaviour
     public int spellsHit = 0;
     public float timer = 0.0f;
     //public bool timerRunning = false;
-    public List<string> times = new List<string>();
+    public List<float> times = new List<float>();
     public int roundsWon = 0;
 
     void Start()
@@ -464,7 +464,7 @@ public class PlayerController : MonoBehaviour
                             spellsFired++;
 
                             //save time to list as a spell was cast
-                            times.Add(timer.ToString("F2"));
+                            times.Add(timer);
                             timer = 0;
                             Debug.Log("Spell time saved");
                             break;

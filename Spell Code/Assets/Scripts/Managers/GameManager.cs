@@ -16,6 +16,10 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool isRunning;
     public bool isSaved;
     private DataManager dataManager;
+    public Canvas shop;
+
+    public int round = 1;
+    public bool roundOver;
 
     //private void Awake()
     //{
@@ -40,12 +44,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
         dataManager = FindAnyObjectByType<DataManager>();
         //StartCoroutine(End());
+        shop.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        //This is just a shortcut for me to test stuff
         
+        //if (Input.GetKeyDown(KeyCode.K))
+        //{
+        //    SaveMatch();
+        //}
     }
 
     private void FixedUpdate()
@@ -76,14 +86,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
         UpdateGameState(inputs);
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
-            //Game end logic here
-            if (!isSaved)
-            {
-                MatchEnd();
-                isSaved = true;
-            }
+            dataManager.totalRoundsPlayed += 1;
 
-            SceneManager.LoadScene("End");
+            //Game end logic here
+            if (dataManager.totalRoundsPlayed == 3)
+            {
+                dataManager.totalRoundsPlayed = 0;
+                GameEnd();
+            }
+            else
+            {
+                RoundEnd();
+            }            
         }
     }
 
@@ -127,7 +141,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
         return false;
     }
 
-    public void MatchEnd()
+    public void SaveMatch()
     {
         //general game data
         MatchData matchData = new MatchData();
@@ -140,6 +154,9 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
             for (int i = 0; i < playerCount; i++)
             {
+                float totalSpelltime = 0;
+
+                //raw stats
                 matchData.playerData[i] = new PlayerData();
                 matchData.playerData[i].basicsFired = players[i].basicsFired;
                 matchData.playerData[i].codesFired = players[i].spellsFired;
@@ -147,6 +164,27 @@ public class GameManager : NonPersistantSingleton<GameManager>
                 matchData.playerData[i].synthesizer = players[i].characterName;
                 matchData.playerData[i].times = players[i].times;
 
+                if (players[i].currrentPlayerHealth > 0)
+                {
+                    matchData.playerData[i].matchWon = true;
+                }
+                else
+                {
+                    matchData.playerData[i].matchWon = false;
+                }
+
+                    //calculated accuracy
+                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+
+                //calculated avg time to cast a spell (totalTime / instances of times) 
+                for (int k = 0; k < players[i].times.Count; k++)
+                {
+                    totalSpelltime += players[i].times[k];
+                }
+
+                matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+
+                //save spell name to spellList provided it isn't null. If null, add 'no spell'
                 matchData.playerData[i].spellList = new string[players[i].spellList.Length];
                 for (int j = 0; j < players[i].spellList.Length; j++)
                 {
@@ -165,24 +203,34 @@ public class GameManager : NonPersistantSingleton<GameManager>
         //save match data to gameData object
         dataManager.gameData.matchData.Add(matchData);
 
-        players = new PlayerController[4];
-        playerCount = 0;
+        //players = new PlayerController[4];
+        //playerCount = 0;
+    }
 
-        //load main menu
-        //UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+    //A round is 1 match + spell acquisition phase
+    public void RoundEnd()
+    {
+        if (!isSaved)
+        {
+            SaveMatch();
+            isSaved = true;
+        }
+
+        SceneManager.LoadScene("Shop");
     }
 
     //called when a game ends (game is a series of matches/rounds)
     public void GameEnd()
     {
+        if (!isSaved)
+        {
+            SaveMatch();
+            isSaved = true;
+        }
 
+        SceneManager.LoadScene("End");
     }
 
-    private IEnumerator End()
-    {
-        yield return new WaitForSeconds(3);
-        MatchEnd();
-    }
     public PlayerController[] GetActivePlayerControllers()
     {
         PlayerController[] activePlayers = new PlayerController[playerCount];
@@ -191,5 +239,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
             activePlayers[i] = players[i];
         }
         return activePlayers;
+    }
+
+    //resets the raw stats for each player back to 0 or their base state
+    public void ResetPlayerStats()
+    {
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].basicsFired = 0;
+            players[i].spellsFired = 0;
+            players[i].spellsHit = 0;
+            players[i].times = new List<float>();
+
+        }
     }
 }

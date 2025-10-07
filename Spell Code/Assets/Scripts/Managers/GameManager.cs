@@ -51,7 +51,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     void Update()
     {
         //This is just a shortcut for me to test stuff
-        
+
         //if (Input.GetKeyDown(KeyCode.K))
         //{
         //    SaveMatch();
@@ -72,7 +72,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     /// <summary>
     /// Runs a single frame of the game.
     /// </summary>
-    protected  void RunFrame()
+    protected void RunFrame()
     {
         if (!isRunning)
             return;
@@ -97,7 +97,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
             else
             {
                 RoundEnd();
-            }            
+            }
         }
     }
 
@@ -116,7 +116,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     }
 
     //gets called everytime a new player enters, recreates player array
-    public void GetPlayerControllers( PlayerInput playerInput)
+    public void GetPlayerControllers(PlayerInput playerInput)
     {
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
@@ -130,11 +130,11 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool CheckGameEnd(PlayerController[] playerControllers)
     {
         int alivePlayers = 0;
-        foreach(PlayerController player in playerControllers)
+        foreach (PlayerController player in playerControllers)
         {
             if (player.currrentPlayerHealth > 0) alivePlayers++;
         }
-        if (alivePlayers <= 1 && playerCount >1)
+        if (alivePlayers <= 1 && playerCount > 1)
         {
             return true;
         }
@@ -173,8 +173,8 @@ public class GameManager : NonPersistantSingleton<GameManager>
                     matchData.playerData[i].matchWon = false;
                 }
 
-                    //calculated accuracy
-                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+                //calculated accuracy
+                matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 
                 for (int k = 0; k < players[i].times.Count; k++)

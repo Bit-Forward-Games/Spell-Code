@@ -122,7 +122,6 @@ public class PlayerController : MonoBehaviour
     public float timer = 0.0f;
     //public bool timerRunning = false;
     public List<float> times = new List<float>();
-    public int roundsWon = 0;
 
     void Start()
     {
@@ -376,7 +375,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
 
-                //keep track of how long player is in state for
+                //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
 
                 if (vSpd <= 0 && !isGrounded)
@@ -395,15 +394,47 @@ public class PlayerController : MonoBehaviour
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
                         stateSpecificArg |= 1 << 4;
-                        Debug.Log("input Primed");
-                        Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                        //Debug.Log("input Primed");
+                        //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
                     }
 
                 }
-                else if ((stateSpecificArg & (1u << 4)) != 0) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                byte currentInput = 0b00;
+
+                switch (input.Direction)
                 {
-                    byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
+                    case 2:
+                        currentInput = 0b00;
+                        break;
+                    case 4:
+                        currentInput = 0b10;
+                        break;
+                    case 6:
+                        currentInput = 0b01;
+                        break;
+                    case 8:
+                        currentInput = 0b11;
+
+                        break;
+                    default:
+                        break;
+                }
+                byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
+                byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
+
+                Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
+                Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+
+                Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
+                Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
+                {
+                                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                }
+
+                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                {
                     switch (input.Direction)
                     {
                         case 2:
@@ -431,17 +462,23 @@ public class PlayerController : MonoBehaviour
 
                             break;
                         default:
-                            stateSpecificArg &= ~(1u << 4);
+                            //stateSpecificArg &= ~(1u << 4);
                             break;
                     }
                     // Increment the last 4 bits of stateSpecificArg by 1
-                    stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
-                    Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                    if((stateSpecificArg & (1u << 4)) == 0)
+                    {
+                        stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                    }
+                    //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
 
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
+                    //keep track of how long player is in state for
+                    times.Add(timer);
+                    timer = 0;
 
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
@@ -481,10 +518,6 @@ public class PlayerController : MonoBehaviour
                             //spellcode is fired
                             spellsFired++;
 
-                            //save time to list as a spell was cast
-                            times.Add(timer);
-                            timer = 0;
-                            Debug.Log("Spell time saved");
                             break;
                         }
                     }
@@ -496,9 +529,7 @@ public class PlayerController : MonoBehaviour
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
 
                     //basic spell is fired
-                    //dont save time, just reset timer
                     basicsFired++;
-                    timer = 0;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 385533811009496428}
   - component: {fileID: 140728963025960245}
   m_Layer: 0
-  m_Name: Active_Spell_3
+  m_Name: GiftOfPrometheus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08dc1ca7c5669674081f2388edf67fde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: Active_Spell_3
+  spellName: GiftOfPrometheus
   cooldown: 1
   spellInput: 39940
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
-  projectilePrefabs: []
+  projectilePrefabs:
+  - {fileID: 7323394407539773554, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}

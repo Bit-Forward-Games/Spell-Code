@@ -108,7 +108,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 1
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -212,10 +212,10 @@ TextureImporter:
       name: fire_projectile-Sheet_0
       rect:
         serializedVersion: 2
-        x: 29
-        y: 93
-        width: 7
-        height: 7
+        x: 0
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -234,10 +234,10 @@ TextureImporter:
       name: fire_projectile-Sheet_1
       rect:
         serializedVersion: 2
-        x: 93
-        y: 92
-        width: 7
-        height: 7
+        x: 64
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -256,10 +256,10 @@ TextureImporter:
       name: fire_projectile-Sheet_2
       rect:
         serializedVersion: 2
-        x: 157
-        y: 90
-        width: 7
-        height: 7
+        x: 128
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -278,10 +278,10 @@ TextureImporter:
       name: fire_projectile-Sheet_3
       rect:
         serializedVersion: 2
-        x: 221
-        y: 89
-        width: 7
-        height: 7
+        x: 192
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -300,10 +300,10 @@ TextureImporter:
       name: fire_projectile-Sheet_4
       rect:
         serializedVersion: 2
-        x: 285
-        y: 89
-        width: 7
-        height: 7
+        x: 256
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -322,10 +322,10 @@ TextureImporter:
       name: fire_projectile-Sheet_5
       rect:
         serializedVersion: 2
-        x: 349
-        y: 90
-        width: 7
-        height: 7
+        x: 320
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -344,10 +344,10 @@ TextureImporter:
       name: fire_projectile-Sheet_6
       rect:
         serializedVersion: 2
-        x: 413
-        y: 92
-        width: 7
-        height: 7
+        x: 384
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -366,10 +366,10 @@ TextureImporter:
       name: fire_projectile-Sheet_7
       rect:
         serializedVersion: 2
-        x: 477
-        y: 93
-        width: 7
-        height: 7
+        x: 448
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -388,10 +388,10 @@ TextureImporter:
       name: fire_projectile-Sheet_8
       rect:
         serializedVersion: 2
-        x: 143
-        y: 15
-        width: 35
-        height: 35
+        x: 0
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -410,10 +410,10 @@ TextureImporter:
       name: fire_projectile-Sheet_9
       rect:
         serializedVersion: 2
-        x: 200
-        y: 8
-        width: 47
-        height: 47
+        x: 64
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -432,10 +432,10 @@ TextureImporter:
       name: fire_projectile-Sheet_10
       rect:
         serializedVersion: 2
-        x: 264
-        y: 19
-        width: 40
-        height: 36
+        x: 128
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -454,10 +454,10 @@ TextureImporter:
       name: fire_projectile-Sheet_11
       rect:
         serializedVersion: 2
-        x: 265
-        y: 39
-        width: 17
-        height: 17
+        x: 192
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -476,10 +476,10 @@ TextureImporter:
       name: fire_projectile-Sheet_12
       rect:
         serializedVersion: 2
-        x: 295
-        y: 31
-        width: 39
-        height: 28
+        x: 256
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -498,10 +498,10 @@ TextureImporter:
       name: fire_projectile-Sheet_13
       rect:
         serializedVersion: 2
-        x: 324
-        y: 51
-        width: 30
-        height: 10
+        x: 320
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -516,143 +516,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_14
-      rect:
-        serializedVersion: 2
-        x: 369
-        y: 49
-        width: 12
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3071a9454eaeef8e0800000000000000
-      internalID: -1657629346432936189
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_15
-      rect:
-        serializedVersion: 2
-        x: 30
-        y: 23
-        width: 76
-        height: 19
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a755e45edf26b3d50800000000000000
-      internalID: 6718072111766590842
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_16
-      rect:
-        serializedVersion: 2
-        x: 260
-        y: 4
-        width: 30
-        height: 22
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f110608150b5a7140800000000000000
-      internalID: 4718183637060026655
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_17
-      rect:
-        serializedVersion: 2
-        x: 295
-        y: 12
-        width: 14
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e5fb0a8a74275e440800000000000000
-      internalID: 4964499816343191390
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_18
-      rect:
-        serializedVersion: 2
-        x: 323
-        y: 3
-        width: 8
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 92583228e1e03ea30800000000000000
-      internalID: 4243250798108312873
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: fire_projectile-Sheet_19
-      rect:
-        serializedVersion: 2
-        x: 351
-        y: 11
-        width: 23
-        height: 11
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 484558931d36b1d70800000000000000
-      internalID: 9014908829376533636
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 496fc28542df1844fb1f50e184ac5bf8
     internalID: 0
     vertices: []
     indices: 
@@ -668,12 +536,6 @@ TextureImporter:
       fire_projectile-Sheet_11: -7075002438176569647
       fire_projectile-Sheet_12: -5633356135334036173
       fire_projectile-Sheet_13: 6195978874719313668
-      fire_projectile-Sheet_14: -1657629346432936189
-      fire_projectile-Sheet_15: 6718072111766590842
-      fire_projectile-Sheet_16: 4718183637060026655
-      fire_projectile-Sheet_17: 4964499816343191390
-      fire_projectile-Sheet_18: 4243250798108312873
-      fire_projectile-Sheet_19: 9014908829376533636
       fire_projectile-Sheet_2: 3819467779578263626
       fire_projectile-Sheet_3: 4371731257926106881
       fire_projectile-Sheet_4: 435599576827848697

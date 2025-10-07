@@ -6,11 +6,11 @@
       "startingInventory": [
         "Ninja_Build_Blast",
         "MightOfZeus",
-        "Active_Spell_3",
+        "GiftOfPrometheus",
         "Ninja_Build_Blast"
       ],
       "runSpeed": 30,
-      "jumpForce": 15,
+      "jumpForce": 13,
       "jumpCounter": 1,
       "playerHealth": 100,
       "playerWidth": 18,

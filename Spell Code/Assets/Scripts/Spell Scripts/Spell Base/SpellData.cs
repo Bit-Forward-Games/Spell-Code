@@ -16,6 +16,16 @@ public enum SpellType
     Active
 }
 
+public enum Brand
+{
+    None,
+    VWave,
+    RawrDX,
+    Killeez,
+    BigStox,
+    SLUG,
+    Halk
+}
 
 /// <summary>
 /// [CreateAssetMenu(fileName = "New Spell", menuName = "Spells/Spell Data")]
@@ -24,7 +34,7 @@ public abstract class SpellData : MonoBehaviour
 {
     //[Header("Identification & Network")]
     public string spellName;
-    //public ushort spellId;
+    public Brand[] brands = { Brand.None };
 
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;
@@ -41,4 +51,8 @@ public abstract class SpellData : MonoBehaviour
 
 
     public abstract void SpellUpdate();
+
+    public abstract void CheckCondition();
+
+    public abstract void ProcEffect();
 }

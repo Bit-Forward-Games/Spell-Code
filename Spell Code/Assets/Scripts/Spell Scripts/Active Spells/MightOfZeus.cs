@@ -5,6 +5,7 @@ public class MightOfZeus : SpellData
     public MightOfZeus()
     {
         spellName = "MightOfZeus";
+        brands = new Brand[]{ Brand.Killeez };
         cooldown = 1.0f;
         spellInput = 0b_0000_0000_0000_0000_1001_0011_0000_0100; // Example input sequence
         spellType = SpellType.Active;
@@ -24,5 +25,15 @@ public class MightOfZeus : SpellData
             // Reset the activate flag
             activateFlag = false;
         }
+    }
+
+    public override void CheckCondition()
+    {
+        // Implement any conditions that need to be checked before the spell can proc effects
+    }
+
+    public override void ProcEffect()
+    {
+        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }
 }

@@ -25,4 +25,14 @@ public class Active_Spell_4 : SpellData
             activateFlag = false;
         }
     }
+
+    public override void CheckCondition()
+    {
+        // Implement any conditions that need to be checked before the spell can be activated
+    }
+
+    public override void ProcEffect()
+    {
+        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
+    }
 }

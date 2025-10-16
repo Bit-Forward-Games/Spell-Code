@@ -87,10 +87,12 @@ public class PlayerController : MonoBehaviour
 
     //Spell Resource Variables
     public bool flowState = false;
-    public int critChance = 0;
-    public int bloodGauge = 0;
+    public float stockStability = 0.0f; //percentage chance to crit, e.g. 0.25 = 25% chance
+    public int demonAura = 0;
+    public int maxDemonAura = 100;
     public int reps = 0;
-    public int slugSlime = 0;
+    public int momentum = 0;
+    public bool slimed = false;
 
 
 

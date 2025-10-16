@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.VFX;
 
 [RequireComponent(typeof(AudioSource))]
 public class BGM_Manager : MonoBehaviour
 {
+    /// <value>Property <c>Instance</c> is the single instance of the BGM_Manager.</value>
+    public static BGM_Manager Instance { get; private set; }
+
     [Header("BGM Audio Source")]
     [SerializeField] private AudioSource musicAudioSource;
 
@@ -15,9 +19,9 @@ public class BGM_Manager : MonoBehaviour
     [Header("List of songs that have a chance to play in this scene")]
     [SerializeField] private List<AudioClip> availableSongs;
 
-    private SFX_Manager sFX_Manager;
-
     //TESTBENCH FUNCTIONS 
+    //private SFX_Manager sFX_Manager;
+    //
     //private void Awake()
     //{
     //    sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
@@ -53,6 +57,22 @@ public class BGM_Manager : MonoBehaviour
     //        PlaySong(); //resumes the current song
     //    }
     //}
+
+    private void Awake()
+    {
+        //if there is an instance of BGM_Manager that is NOT this one,...
+        if (Instance != null && Instance != this)
+        {
+            //delete myself
+            Destroy(this);
+        }
+        //else there is only 1 instance of BGM_Manager,...
+        else
+        {
+            //set instance to this instance of BGM_Manager
+            Instance = this;
+        }
+    }
 
     void Start()
     {

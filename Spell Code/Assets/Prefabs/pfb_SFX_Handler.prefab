@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7108996257177461571}
   - component: {fileID: 8921497308674347015}
   m_Layer: 0
-  m_Name: pfb_SFX_Manager
+  m_Name: pfb_SFX_Handler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

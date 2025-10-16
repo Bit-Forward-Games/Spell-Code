@@ -6,7 +6,7 @@ using UnityEngine.Audio;
 //[Serializable] class SFXTuple { public string nameOfSoundToPlay; public AudioClip soundClip; }
 
 [RequireComponent(typeof(AudioSource))]
-public class SFX_Manager : MonoBehaviour
+public class SFX_Handler : MonoBehaviour
 {
     [Header("SFX Audio Source")]
     [SerializeField] private AudioSource sfxAudioSource;

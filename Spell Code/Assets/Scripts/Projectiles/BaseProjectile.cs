@@ -2,11 +2,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+public enum Brands
+{
+    None,
+    VWave,
+    BigStox,
+    RawrDX,
+    SLUG,
+    Killeez,
+    Halk
+}
+
 public abstract class BaseProjectile : MonoBehaviour
 {
     public string projName;
     public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
+    public Brands[] brands;
     public byte activeHitboxGroupIndex = 0;
     public float hSpeed;
     public float vSpeed;

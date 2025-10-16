@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CodeE_BasicProjectile : BaseProjectile
+public class CodeE_BasicProjectile : BaseProjectile , IBaseProjectile
 {
-
     public CodeE_BasicProjectile()
     {
         projName = "CodeE_Basic_Projectile";
@@ -12,6 +11,7 @@ public class CodeE_BasicProjectile : BaseProjectile
         lifeSpan = 15; // lasts for 300 logic frames
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, true);
+        
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -25,6 +25,7 @@ public class CodeE_BasicProjectile : BaseProjectile
     public override void LoadProjectile()
     {
         base.LoadProjectile();
+        brands = new Brands[] { Brands.RawrDX };
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {

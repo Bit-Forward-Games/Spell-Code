@@ -82,8 +82,8 @@ public class PlayerController : MonoBehaviour
     public float gravity = 1;
     [HideInInspector]
     public float jumpForce = 10;
-    private float runSpeed = 0f;
-    private float slideSpeed = 0f;
+    public float runSpeed = 0f;
+    public float slideSpeed = 0f;
 
 
 
@@ -168,6 +168,7 @@ public class PlayerController : MonoBehaviour
             SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
             spellList[i] = Instantiate(targetSpell);
             spellList[i].owner = this;
+            spellList[i].LoadSpell();
         }
 
         ProjectileManager.Instance.InitializeAllProjectiles();
@@ -334,6 +335,7 @@ public class PlayerController : MonoBehaviour
                 {
                     //run logic
                     hSpd = runSpeed * (facingRight ? 1 : -1);
+                    //Debug.Log(runSpeed);
                 }
                 else
                 {

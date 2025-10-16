@@ -2,27 +2,44 @@ using UnityEngine;
 
 public class JumpBoost_Spell : SpellData
 {
+    float baseJumpForce;
+    public float jumpMultiplier = 1.5f;
+    int jumpBoostDuration = 180; // Duration of the speed boost in frames
+    int jumpBoostCounter = 0;
+    Brands[] brands = new Brands[] { Brands.VWave, Brands.BigStox, Brands.RawrDX, Brands.SLUG, Brands.Killeez, Brands.Halk };
+    int selectedBrandIndex = 1; // Index to select which brand to use
+
     public JumpBoost_Spell()
     {
         spellName = "JumpBoost";
         cooldown = 1.0f;
-        //spellInput = 0b_0000_0000_0000_0000_1001_0011_0000_0100; // Example input sequence
         spellType = SpellType.Passive;
-        //projectilePrefabs = new GameObject[1];
     }
 
     public override void SpellUpdate()
     {
-        if (activateFlag)
+        Brands brandToCheck = brands[selectedBrandIndex];
+        if (ProjectileManager.Instance.CheckProjectileHit(owner, brandToCheck))
         {
-            // Instantiate the projectile prefab at the player's position
-            // Assuming you have a reference to the player GameObject
-            //if (owner != null && projectilePrefabs.Length > 0)
-            //{
-              //  ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 15));
-            //}
-            // Reset the activate flag
-            activateFlag = false;
+            Debug.Log("Jump Boost Activated!");
+            if (owner.jumpForce == baseJumpForce)
+            {
+                owner.jumpForce *= jumpMultiplier;
+                jumpBoostCounter = jumpBoostDuration; // Reset counter
+            }
         }
+        if (jumpBoostCounter > 0)
+        {
+            jumpBoostCounter--;
+            if (jumpBoostCounter == 0)
+            {
+                owner.jumpForce = baseJumpForce; // Reset to base jump foce when counter ends
+            }
+        }
+    }
+
+    public override void LoadSpell()
+    {
+        baseJumpForce = owner.jumpForce; // Initialize base jump force
     }
 }

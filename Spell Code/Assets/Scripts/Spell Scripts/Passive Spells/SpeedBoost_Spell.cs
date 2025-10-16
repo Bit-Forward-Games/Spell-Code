@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class SpeedBoost_Spell : SpellData
 {
+    float baseSpeed;
+    public float speedMultiplier = 2;
+    int speedBoostDuration = 180; // Duration of the speed boost in frames
+    int speedBoostCounter = 0; 
+    Brands[] brands = new Brands[] { Brands.VWave, Brands.BigStox, Brands.RawrDX, Brands.SLUG, Brands.Killeez, Brands.Halk };
+    int selectedBrandIndex = 2; // Index to select which brand to use
     public SpeedBoost_Spell()
     {
         spellName = "SpeedBoost";
@@ -13,16 +19,32 @@ public class SpeedBoost_Spell : SpellData
 
     public override void SpellUpdate()
     {
-        if (activateFlag)
+        Brands brandToCheck = brands[selectedBrandIndex];
+        if (ProjectileManager.Instance.CheckProjectileHit(owner, brandToCheck))
         {
-            // Instantiate the projectile prefab at the player's position
-            // Assuming you have a reference to the player GameObject
-            //if (owner != null && projectilePrefabs.Length > 0)
-            //{
-            //  ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10, 15));
-            //}
-            // Reset the activate flag
-            activateFlag = false;
+            Debug.Log("Speed Boost Activated!");
+            if (owner.runSpeed == baseSpeed)
+            {
+                owner.runSpeed *= speedMultiplier;
+                speedBoostCounter = speedBoostDuration; // Reset counter
+            }
         }
+        /*else
+        {
+            owner.runSpeed = baseSpeed; // Reset to base speed
+        }*/
+        if (speedBoostCounter > 0)
+        {
+            speedBoostCounter--;
+            if (speedBoostCounter == 0)
+            {
+                owner.runSpeed = baseSpeed; // Reset to base speed when counter ends
+            }
+        }
+    }
+
+    public override void LoadSpell()
+    {
+        baseSpeed = owner.runSpeed; // Initialize base speed
     }
 }

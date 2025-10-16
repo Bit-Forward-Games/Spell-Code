@@ -38,7 +38,10 @@ public abstract class SpellData : MonoBehaviour
     public GameObject[] projectilePrefabs;
 
 
-
+    public virtual void LoadSpell()
+    {
+        // Load or initialize spell-specific data here
+    }
 
     public abstract void SpellUpdate();
 }

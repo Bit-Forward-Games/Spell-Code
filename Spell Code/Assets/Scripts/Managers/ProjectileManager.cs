@@ -19,6 +19,39 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
 
     }
 
+    //public bool CheckBasicProjectileHit(PlayerController owner)
+    //{
+    //    for (int i = 0; i < activeProjectiles.Count; i++)
+    //    {
+    //        if ((activeProjectiles[i].owner == owner) && (activeProjectiles[i] is IBaseProjectile) && System.Array.Exists(activeProjectiles[i].playerIgnoreArr, ignore => ignore)) return true;
+    //    }
+    //    return false;
+    //}
+
+    //public bool CheckNinjaBuildBlastProjectileHit(PlayerController owner)
+    //{
+    //    for (int i = 0; i < activeProjectiles.Count; i++)
+    //    {
+    //        if ((activeProjectiles[i].owner == owner) && (activeProjectiles[i] is INinjaBuildBlastProjectile) && System.Array.Exists(activeProjectiles[i].playerIgnoreArr, ignore => ignore)) return true;
+    //    }
+    //    return false;
+    //}
+
+    public bool CheckProjectileHit(PlayerController owner, Brands brand)
+    {
+        for (int i = 0; i < activeProjectiles.Count; i++)
+        {
+            if (activeProjectiles[i].owner == owner &&
+                activeProjectiles[i].brands != null &&
+                System.Array.Exists(activeProjectiles[i].brands, b => b == brand) &&
+                System.Array.Exists(activeProjectiles[i].playerIgnoreArr, ignore => ignore))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void UpdateProjectiles()
     {
         //activeProjectiles.Clear();

@@ -84,7 +84,6 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                         if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
-
                             defendingPlayer.facingRight = !projectile.facingRight;
                             byte hitstopVal = 5;
                             defendingPlayer.hitstop = hitstopVal;

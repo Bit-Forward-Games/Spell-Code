@@ -6,6 +6,7 @@ using System.Linq;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public enum PlayerState
 {
@@ -115,6 +116,9 @@ public class PlayerController : MonoBehaviour
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
 
+    //TMPro
+    public TextMeshProUGUI inputDisplay;
+
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
     public int basicsFired = 0;
@@ -133,6 +137,7 @@ public class PlayerController : MonoBehaviour
         jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
         logicFrame = 0;
 
+        inputDisplay = GetComponentInChildren<TextMeshProUGUI>();
 
         //bufferInput = InputConverter.ConvertFromLong(5);
 
@@ -1023,6 +1028,33 @@ public class PlayerController : MonoBehaviour
     public void CheckForInputs(bool enable)
     {
         inputs.CheckForInputs(enable);
+    }
+
+    public void UpdateInputDisplay(int direction)
+    {
+        //down
+        if (direction == 2)
+        {
+
+        }
+
+        //left
+        if (direction == 4)
+        {
+
+        }
+
+        //right
+        if (direction == 6)
+        {
+
+        }
+
+        //up
+        if (direction == 8)
+        {
+
+        }
     }
 }
 

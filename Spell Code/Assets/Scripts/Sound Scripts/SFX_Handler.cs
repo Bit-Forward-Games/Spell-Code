@@ -8,12 +8,18 @@ using UnityEngine.Audio;
 [RequireComponent(typeof(AudioSource))]
 public class SFX_Handler : MonoBehaviour
 {
-    [Header("SFX Audio Source")]
-    [SerializeField] private AudioSource sfxAudioSource;
+    //AudioSource that will play sounds
+    private AudioSource sfxAudioSource;
 
     [Header("Sounds that SFX Manager can play")]
     //[SerializeField] private List<SFXTuple> sounds;
     [SerializeField] private List<AudioClip> availableSounds;
+
+    void Awake()
+    {
+        //assign sfxAudioSource
+        sfxAudioSource = gameObject.GetComponent<AudioSource>();
+    }
 
     /// <summary>
     /// Play a sound defined by "soundTypeToPlay"

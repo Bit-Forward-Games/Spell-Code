@@ -10,8 +10,8 @@ public class BGM_Manager : MonoBehaviour
     /// <value>Property <c>Instance</c> is the single instance of the BGM_Manager.</value>
     public static BGM_Manager Instance { get; private set; }
 
-    [Header("BGM Audio Source")]
-    [SerializeField] private AudioSource musicAudioSource;
+    //AudioSource that will play songs
+    private AudioSource musicAudioSource;
 
     [Header("Default song (leave as null to play a random song)")]
     [SerializeField] private AudioClip defaultSong = null;
@@ -19,40 +19,35 @@ public class BGM_Manager : MonoBehaviour
     [Header("List of songs that have a chance to play in this scene")]
     [SerializeField] private List<AudioClip> availableSongs;
 
-    //TESTBENCH FUNCTIONS 
-    //private SFX_Manager sFX_Manager;
-    //
-    //private void Awake()
-    //{
-    //    sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
-    //}
+    //TESTBENCH FUNCTIONS
+    //private SFX_Handler sFX_Manager;
     //private void Update()
     //{
-    //    if(Input.GetKeyDown(KeyCode.Alpha1))
+    //    if (Input.GetKeyDown(KeyCode.Alpha1))
     //    {
     //        sFX_Manager.PlaySound("v5_ParrySuccess"); //plays the parry success noise (sounds like "shink!")
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha2))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha2))
     //    {
     //        sFX_Manager.PlaySound(null); //logs a warning that reads: "Please specify a sound to play"
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha3))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha3))
     //    {
     //        sFX_Manager.PlaySound("unknown sound"); //logs a warning that says: "Specified sound of name = "unknown sound" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds"
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha4))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha4))
     //    {
     //        StartAndPlaySong(); //plays a random song
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha5))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha5))
     //    {
     //        StartAndPlaySong("vFunnie_StagChi_Henshin"); //plays the funny sounds (sounds like meme sounds)
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha6))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha6))
     //    {
     //        PauseSong(); //pauses the current song
     //    }
-    //    else if(Input.GetKeyDown(KeyCode.Alpha7))
+    //    else if (Input.GetKeyDown(KeyCode.Alpha7))
     //    {
     //        PlaySong(); //resumes the current song
     //    }
@@ -60,6 +55,12 @@ public class BGM_Manager : MonoBehaviour
 
     private void Awake()
     {
+        //MORE TESTBENCH STUFF
+        //sFX_Manager = GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>();
+
+        //assign musicAudioSource
+        musicAudioSource = gameObject.GetComponent<AudioSource>();
+
         //if there is an instance of BGM_Manager that is NOT this one,...
         if (Instance != null && Instance != this)
         {

@@ -26,10 +26,7 @@ public class Active_Spell_4 : SpellData
         }
     }
 
-    public override void CheckCondition()
-    {
-        // Implement any conditions that need to be checked before the spell can be activated
-    }
+    
 
     public override void ProcEffect()
     {

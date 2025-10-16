@@ -52,7 +52,7 @@ public abstract class SpellData : MonoBehaviour
 
     public abstract void SpellUpdate();
 
-    public abstract void CheckCondition();
+    //public abstract void CheckCondition();
 
     public abstract void ProcEffect();
 }

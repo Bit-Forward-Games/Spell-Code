@@ -85,6 +85,13 @@ public class PlayerController : MonoBehaviour
     private float runSpeed = 0f;
     private float slideSpeed = 0f;
 
+    //Spell Resource Variables
+    public bool flowState = false;
+    public int critChance = 0;
+    public int bloodGauge = 0;
+    public int reps = 0;
+    public int slugSlime = 0;
+
 
 
     //MATCH STATS

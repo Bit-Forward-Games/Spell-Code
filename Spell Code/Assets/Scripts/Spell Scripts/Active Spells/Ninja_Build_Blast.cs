@@ -25,10 +25,6 @@ public class Ninja_Build_Blast : SpellData
         }
     }
 
-    public override void CheckCondition()
-    {
-        // Implement any conditions that need to be checked before the spell can be activated
-    }
 
     public override void ProcEffect()
     {

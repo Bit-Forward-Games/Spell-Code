@@ -27,6 +27,22 @@ public enum Brand
     Halk
 }
 
+public enum ProcCondition
+{
+    OnSpellHit,
+    OnBasicHit,
+    OnDamaged,
+    OnDodge,
+    OnDodged,
+    OnBlock,
+    OnSpellCast,
+    OnBasicCast,
+    OnKill,
+    OnDeath,
+    OnLocationCheck
+    
+}
+
 /// <summary>
 /// [CreateAssetMenu(fileName = "New Spell", menuName = "Spells/Spell Data")]
 /// </summary>
@@ -34,11 +50,13 @@ public abstract class SpellData : MonoBehaviour
 {
     //[Header("Identification & Network")]
     public string spellName;
-    public Brand[] brands = { Brand.None };
+    public Brand[] brands;
+    public ProcCondition[]procConditions;
 
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;
-    public float cooldown;
+    public int cooldown;
+    public int cooldownCounter = 0;
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
     public bool activateFlag = false;
     public PlayerController owner;
@@ -54,5 +72,5 @@ public abstract class SpellData : MonoBehaviour
 
     //public abstract void CheckCondition();
 
-    public abstract void ProcEffect();
+    public abstract void CheckProcEffect();
 }

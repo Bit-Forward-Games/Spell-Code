@@ -5,7 +5,7 @@ public class Ninja_Build_Blast : SpellData
     public Ninja_Build_Blast()
     {
         spellName = "Ninja_Build_Blast";
-        cooldown = 1.0f;
+        cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0110_0011_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
@@ -26,7 +26,7 @@ public class Ninja_Build_Blast : SpellData
     }
 
 
-    public override void ProcEffect()
+    public override void CheckProcEffect()
     {
         // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }

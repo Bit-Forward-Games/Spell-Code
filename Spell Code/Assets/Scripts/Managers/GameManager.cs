@@ -108,10 +108,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
     protected void UpdateGameState(long[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
+
         HitboxManager.Instance.ProcessCollisions();
+
+        //update each player update values
         for (int i = 0; i < playerCount; i++)
         {
             players[i].PlayerUpdate(inputs[i]);
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].ProcEffectUpdate();
         }
     }
 

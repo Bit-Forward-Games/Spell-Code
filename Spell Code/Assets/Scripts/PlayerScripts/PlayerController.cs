@@ -86,12 +86,12 @@ public class PlayerController : MonoBehaviour
     private float slideSpeed = 0f;
 
     //Spell Resource Variables
-    public bool flowState = false;
-    public float stockStability = 0.0f; //percentage chance to crit, e.g. 0.25 = 25% chance
-    public int demonAura = 0;
-    public int maxDemonAura = 100;
-    public int reps = 0;
-    public int momentum = 0;
+    public ushort flowState = 0; //the timer for how long you are in flow state
+    public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
+    public ushort demonAura = 0;
+    public ushort maxDemonAura = 100;
+    public ushort reps = 0;
+    public ushort momentum = 0;
     public bool slimed = false;
 
 
@@ -990,6 +990,13 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
+        bw.Write(flowState);
+        bw.Write(stockStability);
+        bw.Write(demonAura);
+        bw.Write(reps);
+        bw.Write(momentum);
+        bw.Write(slimed);
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -1013,6 +1020,12 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
+        flowState = br.ReadUInt16();
+        stockStability = br.ReadUInt16();
+        demonAura = br.ReadUInt16();
+        reps = br.ReadUInt16();
+        momentum = br.ReadUInt16();
+        slimed = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
     }
 
@@ -1022,6 +1035,18 @@ public class PlayerController : MonoBehaviour
         currrentPlayerHealth = charData.playerHealth;
     }
 
+
+    public void ProcEffectUpdate()
+    {
+        //go through the player's spell list and update any proc effects
+        for (int i = 0; i < spellList.Length; i++)
+        {
+            if (spellList[i] != null)
+            {
+                spellList[i].CheckProcEffect();
+            }
+        }
+    }
     //private bool IsSpecialStateActive() =>
     //    state == PlayerState.Special1 ||
     //    state == PlayerState.Special2 ||

@@ -16,7 +16,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool isRunning;
     public bool isSaved;
     private DataManager dataManager;
-    public Canvas shop;
 
     public int round = 1;
     public bool roundOver;
@@ -44,7 +43,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
 
         dataManager = FindAnyObjectByType<DataManager>();
         //StartCoroutine(End());
-        shop.enabled = false;
     }
 
     // Update is called once per frame

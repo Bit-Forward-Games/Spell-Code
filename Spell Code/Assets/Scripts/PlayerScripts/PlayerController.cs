@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public enum PlayerState
 {
@@ -124,6 +126,10 @@ public class PlayerController : MonoBehaviour
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
 
+    //TMPro
+    public TextMeshPro inputDisplay;
+    public bool removeInputDisplay;
+
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
     public int basicsFired = 0;
@@ -141,7 +147,6 @@ public class PlayerController : MonoBehaviour
         codeAction = playerInputs.actionMaps[0].FindAction("Code");
         jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
         logicFrame = 0;
-
 
         //bufferInput = InputConverter.ConvertFromLong(5);
 
@@ -383,6 +388,12 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
+                //only reset the display at the start of CodeWeave state
+                if (removeInputDisplay)
+                {
+                    removeInputDisplay = false;
+                    DisappearInputdisplay();
+                }
 
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
@@ -453,22 +464,25 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
+                            UpdateInputDisplay(2);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
+                            UpdateInputDisplay(4);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
+                            UpdateInputDisplay(6);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-
+                            UpdateInputDisplay(8);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
@@ -502,6 +516,8 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(0, 10);
                 break;
             case PlayerState.CodeRelease:
+                //allow the display to be reset upon entering CodeWeave state
+                removeInputDisplay = true;
 
                 if(input.Direction == 6)
                 {
@@ -527,6 +543,9 @@ public class PlayerController : MonoBehaviour
                             //spellcode is fired
                             spellsFired++;
 
+                            //make input display flash green to indicate correct input sequence
+                            inputDisplay.color = Color.green;
+
                             break;
                         }
                     }
@@ -539,6 +558,9 @@ public class PlayerController : MonoBehaviour
 
                     //basic spell is fired
                     basicsFired++;
+
+                    //make input display flash red to indicate incorrect sequence
+                    inputDisplay.color = Color.red;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -1057,6 +1079,39 @@ public class PlayerController : MonoBehaviour
     public void CheckForInputs(bool enable)
     {
         inputs.CheckForInputs(enable);
+    }
+
+    public void UpdateInputDisplay(int direction)
+    {
+        //down
+        if (direction == 2)
+        {
+            inputDisplay.text += "DOWN, ";
+        }
+
+        //left
+        if (direction == 4)
+        {
+            inputDisplay.text += "LEFT,  ";
+        }
+
+        //right
+        if (direction == 6)
+        {
+            inputDisplay.text += "RIGHT, ";
+        }
+
+        //up
+        if (direction == 8)
+        {
+            inputDisplay.text += "UP, ";
+        }
+    }
+
+    public void DisappearInputdisplay()
+    {
+        inputDisplay.text = "";
+        inputDisplay.color = Color.white;
     }
 }
 

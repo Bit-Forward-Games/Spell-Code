@@ -89,9 +89,10 @@ public class PlayerController : MonoBehaviour
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
+    public const ushort maxFlowState = 300;
     public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
     public ushort demonAura = 0;
-    public ushort maxDemonAura = 100;
+    public const ushort maxDemonAura = 100;
     public ushort reps = 0;
     public ushort momentum = 0;
     public bool slimed = false;
@@ -443,17 +444,17 @@ public class PlayerController : MonoBehaviour
                 byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
-                Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
-                Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                //Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
+                //Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-                Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
-                Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
-                {
-                                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                }
+                //Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
+                //Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                //if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
+                //{
+                //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                //}
 
-                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     switch (input.Direction)
                     {
@@ -626,6 +627,8 @@ public class PlayerController : MonoBehaviour
                 spellList[i].SpellUpdate();
             }
         }
+
+        UpdateResources();
 
         //check player collisions
         PlayerWorldCollisionCheck();

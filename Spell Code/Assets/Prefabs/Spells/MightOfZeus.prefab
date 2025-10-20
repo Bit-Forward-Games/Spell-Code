@@ -45,10 +45,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: MightOfZeus
+  brands: 03000000
+  procConditions: 
   cooldown: 1
-  spellInput: 37636
+  cooldownCounter: 0
+  spellInput: 2
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
+  spawnOffsetX: 50
+  spawnOffsetY: 0
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}

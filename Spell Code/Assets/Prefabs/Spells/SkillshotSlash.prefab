@@ -53,5 +53,7 @@ MonoBehaviour:
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
+  spawnOffsetX: 15
+  spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: e3392c449e53ba74fab6383512e8f0d9, type: 3}

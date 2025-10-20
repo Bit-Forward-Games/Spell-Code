@@ -45,10 +45,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: Ninja_Build_Blast
+  brands: 
+  procConditions: 
   cooldown: 1
-  spellInput: 25348
+  cooldownCounter: 0
+  spellInput: 53764
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
+  spawnOffsetX: 10
+  spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}

@@ -45,10 +45,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: GiftOfPrometheus
+  brands: 
+  procConditions: 
   cooldown: 1
+  cooldownCounter: 0
   spellInput: 39940
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
+  spawnOffsetX: 10
+  spawnOffsetY: 15
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}

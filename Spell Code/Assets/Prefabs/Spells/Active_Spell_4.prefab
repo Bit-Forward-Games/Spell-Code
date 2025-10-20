@@ -45,10 +45,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: Active_Spell_4
+  brands: 
+  procConditions: 
   cooldown: 1
+  cooldownCounter: 0
   spellInput: 27652
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1
+  spawnOffsetX: 10
+  spawnOffsetY: 15
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 2edd52bb117036f488fac2fe2e350579, type: 3}

@@ -62,6 +62,8 @@ public abstract class SpellData : MonoBehaviour
     public bool activateFlag = false;
     public PlayerController owner;
     public SpellType spellType;
+    public int spawnOffsetX = 10;
+    public int spawnOffsetY = 15;
 
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;
@@ -71,7 +73,20 @@ public abstract class SpellData : MonoBehaviour
     /// <summary>
     /// tis function is called every logic frame to update the spell's internal state
     /// </summary>
-    public abstract void SpellUpdate();
+    public virtual void SpellUpdate()
+    {
+        if (activateFlag)
+        {
+            // Instantiate the projectile prefab at the player's position
+            // Assuming you have a reference to the player GameObject
+            if (owner != null && projectilePrefabs.Length > 0)
+            {
+                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+            }
+            // Reset the activate flag
+            activateFlag = false;
+        }
+    }
 
 
     /// <summary>

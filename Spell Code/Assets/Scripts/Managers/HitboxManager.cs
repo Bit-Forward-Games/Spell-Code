@@ -39,7 +39,11 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
     public void ProcessCollisions()
     {
-        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        
+
+
+
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerStates[i] = GameManager.Instance.players[i].state;
             playerCharacters[i] = GameManager.Instance.players[i].characterName;
@@ -274,6 +278,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
     private void OnGUI()
     {
+        
         if (!BoxRenderer.RenderBoxes) return;
 
 

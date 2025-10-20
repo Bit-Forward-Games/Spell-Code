@@ -54,10 +54,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
         //{
         //    SaveMatch();
         //}
+
+        //if ` is pressed, toggle box rendering
+        if (Input.GetKeyDown(KeyCode.BackQuote))
+        {
+            BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
+        }
     }
 
     private void FixedUpdate()
     {
+        
+
         RunFrame();
 
         AnimationManager.Instance.RenderGameState();

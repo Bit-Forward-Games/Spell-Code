@@ -102,7 +102,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
     }
 
-    ushort GetCurrentFrameIndex(List<int> frameLengths, bool loopAnim)
+    public ushort GetCurrentFrameIndex(List<int> frameLengths, bool loopAnim)
     {
         int accumulatedLength = 0;
         int totalAnimationLength = frameLengths.Sum();

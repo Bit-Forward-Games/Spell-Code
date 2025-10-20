@@ -73,10 +73,13 @@ public class SkillshotSlash_Projectile : BaseProjectile
 
     public override void ProjectileUpdate()
     {
-        base.ProjectileUpdate();
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
-        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
-        //and then waits until the animation is done to delete itself.
+        logicFrame++;
+        // Update animation frame
+        animationFrame = GetCurrentFrameIndex(animFrames.frameLengths, animFrames.loopAnim);
+
+        position.x = owner.position.x + ownerSpell.spawnOffsetX * (owner.facingRight?1:-1);
+        position.y = owner.position.y + ownerSpell.spawnOffsetY;
+
         if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
         {
             activeHitboxGroupIndex = 1;

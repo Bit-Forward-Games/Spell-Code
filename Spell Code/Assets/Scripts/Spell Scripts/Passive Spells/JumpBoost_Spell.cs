@@ -38,10 +38,10 @@ public class JumpBoost_Spell : SpellData
         //}
     }
 
-    //public override void LoadSpell()
-    //{
-    //    baseJumpForce = owner.jumpForce; // Initialize base jump force
-    //}
+    public override void LoadSpell()
+    {
+        baseJumpForce = owner.jumpForce; // Initialize base jump force
+    }
 
     public override void CheckCondition()
     {

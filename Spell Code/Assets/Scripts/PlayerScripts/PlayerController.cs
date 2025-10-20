@@ -785,11 +785,45 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Updates spell resource values each frame
+    /// </summary>
+    public void UpdateResources()
+    {
+        //update flow state
+        if (flowState > 0)
+        {
+            flowState--;
+        }
+    }
+
+    /// <summary>
+    /// this function makes the player take damage outside of hitstun, notably from spell effect damage
+    /// </summary>
+    /// <param name="damageAmount"></param>
+    public void TakeEffectDamage(int damageAmount)
+    {
+        //checking for death
+        if (damageAmount > currrentPlayerHealth)
+        {
+            currrentPlayerHealth = 0;
+        }
+        else
+        {
+            // Reduce health 
+            currrentPlayerHealth = (ushort)((int)currrentPlayerHealth - damageAmount);
+
+        }
+
+        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currrentPlayerHealth}");
+    }
+
     public void CheckHit(InputSnapshot input)
     {
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
         if (hitboxData != null && isHit)
         {
+            PlayerController attacker = hitboxData.parentProjectile.owner;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (hitstunOverride)
             {
@@ -828,6 +862,35 @@ public class PlayerController : MonoBehaviour
                 comboCounter++;
             }
 
+            //call the active on hit proc of the spell that created the projectile that hit us
+            if(hitboxData.parentProjectile.ownerSpell != null)
+            {
+                hitboxData.parentProjectile.ownerSpell.ActiveOnHitProc(this);
+            }
+
+            //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
+            for (int i = 0; i < attacker.spellList.Length; i++)
+            {
+                if (attacker.spellList[i] != null)
+                {
+                    if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
+                    {
+                        attacker.spellList[i].CheckCondition();
+                    }
+                }
+            }
+
+            //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
+            for (int i = 0; i < spellList.Length; i++)
+            {
+                if (spellList[i] != null)
+                {
+                    if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
+                    {
+                        spellList[i].CheckCondition();
+                    }
+                }
+            }
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
@@ -835,6 +898,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    /// <summary>
+    /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.
+    /// </summary>
+    /// <param name="rightWall"></param>
+    /// <param name="checkOnly"></param>
+    /// <returns></returns>
     public bool CheckWall(bool rightWall, bool checkOnly = false)
     {
         float wallXval = rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval;
@@ -925,6 +995,12 @@ public class PlayerController : MonoBehaviour
     }
 
 
+
+    /// <summary>
+    /// this function lerps the horizontal speed towards a target value over time deterministically
+    /// </summary>
+    /// <param name="targetHspd"></param>
+    /// <param name="lerpval"></param>
     public void LerpHspd(int targetHspd, int lerpval)
     {
         if (lerpDelay >= lerpval)
@@ -1065,7 +1141,7 @@ public class PlayerController : MonoBehaviour
         {
             if (spellList[i] != null)
             {
-                spellList[i].CheckProcEffect();
+                spellList[i].CheckCondition();
             }
         }
     }

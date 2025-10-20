@@ -29,14 +29,12 @@ public enum Brand
 
 public enum ProcCondition
 {
-    OnSpellHit,
-    OnBasicHit,
-    OnDamaged,
+    OnHit,
+    OnHurt,
     OnDodge,
     OnDodged,
     OnBlock,
-    OnSpellCast,
-    OnBasicCast,
+    OnCast,
     OnKill,
     OnDeath,
     OnLocationCheck
@@ -49,8 +47,11 @@ public enum ProcCondition
 public abstract class SpellData : MonoBehaviour
 {
     //[Header("Identification & Network")]
+    [HideInInspector]
     public string spellName;
+    [HideInInspector]
     public Brand[] brands;
+    [HideInInspector]
     public ProcCondition[]procConditions;
 
     //[Header("Casting Requirements")]
@@ -67,10 +68,26 @@ public abstract class SpellData : MonoBehaviour
 
 
 
-
+    /// <summary>
+    /// tis function is called every logic frame to update the spell's internal state
+    /// </summary>
     public abstract void SpellUpdate();
 
-    //public abstract void CheckCondition();
 
-    public abstract void CheckProcEffect();
+    /// <summary>
+    /// this function is called when a SPECIFIC spell need its own unique proc behavior on hit
+    /// e.g. an active spell that does something special when you hit it, but wouldn't apply to all spell's on hit
+    /// </summary>
+    public virtual void ActiveOnHitProc( PlayerController defender)
+    {
+
+    }
+
+
+    /// <summary>
+    /// This function checks if the conditions for setting the given spell's activateFlag is met after its procCondition is triggered
+    /// e.g. if the spell's procCondition is OnHit and requires the player to have a certain number of some resource to activate,
+    /// this function would check for that.
+    /// </summary>
+    public abstract void CheckCondition();
 }

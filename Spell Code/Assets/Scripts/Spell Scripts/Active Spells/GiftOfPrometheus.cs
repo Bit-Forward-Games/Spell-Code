@@ -27,7 +27,7 @@ public class GiftOfPrometheus : SpellData
     }
 
 
-    public override void CheckProcEffect()
+    public override void CheckCondition()
     {
         // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }

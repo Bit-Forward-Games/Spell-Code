@@ -23,7 +23,6 @@ public class Ninja_Build_Blast_prj : BaseProjectile
     }
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
 
         deleteOnHit = false;
         projectileHitboxes = new HitboxGroup[2];
@@ -43,7 +42,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
                     damage = 20,
                     hitstun = 30,
                     attackLvl = 2,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -57,6 +56,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()

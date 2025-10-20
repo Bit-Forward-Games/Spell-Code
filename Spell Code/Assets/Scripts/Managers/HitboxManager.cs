@@ -311,7 +311,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                 Vector2 projOrigin = projectile.position;
                 projOrigin.x += GetOffsetX(hitbox, projectile.facingRight);
                 projOrigin.y += hitbox.yOffset; //i defintely need patrick to fix this
-                BoxRenderer.DrawBox(projOrigin, hitbox.width, hitbox.height, new Color(1, 0, 0, 0.5f));
+                BoxRenderer.DrawBox(projOrigin, hitbox.width, hitbox.height, hitbox.sweetSpot? new Color(1, 1, 0, 0.5f): new Color(1, 0, 0, 0.5f));
             }
         }
     }

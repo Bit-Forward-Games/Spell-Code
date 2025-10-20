@@ -24,7 +24,6 @@ public class CodeE_BasicProjectile : BaseProjectile
 
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {
@@ -41,12 +40,13 @@ public class CodeE_BasicProjectile : BaseProjectile
                     damage = 5,
                     hitstun = 15,
                     attackLvl = 1,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 }

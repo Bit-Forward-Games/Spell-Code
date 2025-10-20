@@ -1,12 +1,13 @@
 using UnityEngine;
 
-public class Active_Spell_4 : SpellData
+public class SkillshotSlash : SpellData
 {
-    public Active_Spell_4()
+    public SkillshotSlash()
     {
-        spellName = "Active_Spell_4";
+        spellName = "SkillshotSlash";
+        brands = new Brand[]{ Brand.VWave };
         cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_0110_1100_0000_0100; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
     }
@@ -26,7 +27,16 @@ public class Active_Spell_4 : SpellData
         }
     }
 
-    
+    public override void ActiveOnHitProc(PlayerController defender)
+    {
+        //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+        if (defender.hitboxData.sweetSpot)
+        {
+            owner.flowState = 300;
+            Debug.Log("Sweet Spot Hit! Flow State set to 300.");
+        }
+    }
+
 
     public override void CheckCondition()
     {

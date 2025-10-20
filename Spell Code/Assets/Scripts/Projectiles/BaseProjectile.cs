@@ -4,9 +4,13 @@ using System.Linq;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
+
+    [HideInInspector]
     public string projName;
+    [HideInInspector]
     public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
+    [HideInInspector]
     public byte activeHitboxGroupIndex = 0;
     public float hSpeed;
     public float vSpeed;
@@ -16,6 +20,7 @@ public abstract class BaseProjectile : MonoBehaviour
     public ushort animationFrame; //which frame of animation the projectile is on
     public ushort lifeSpan = 60; //in logic frames
     public PlayerController owner;
+    public SpellData ownerSpell;
     public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
     public AnimFrames animFrames;
     public bool deleteOnHit = true;
@@ -57,7 +62,16 @@ public abstract class BaseProjectile : MonoBehaviour
     }
     public virtual void LoadProjectile()
     {
-
+        foreach (HitboxGroup hitboxGroup in projectileHitboxes)
+        {
+            foreach (List<HitboxData> hitboxList in new List<List<HitboxData>> { hitboxGroup.hitbox1, hitboxGroup.hitbox2, hitboxGroup.hitbox3, hitboxGroup.hitbox4 })
+            {
+                foreach (HitboxData hitbox in hitboxList)
+                {
+                    hitbox.parentProjectile = this;
+                }
+            }
+        }
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
     }
@@ -104,4 +118,6 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         return 0; // Default to first frame (shouldn't happen)
     }
+
+    
 }

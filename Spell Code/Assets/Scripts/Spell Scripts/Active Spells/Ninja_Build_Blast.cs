@@ -25,8 +25,14 @@ public class Ninja_Build_Blast : SpellData
         }
     }
 
+    public override void ActiveOnHitProc(PlayerController defender)
+    {
+        int consumedFlow = owner.flowState;
+        owner.flowState = 0;
+        defender.TakeEffectDamage(consumedFlow);
+    }
 
-    public override void CheckProcEffect()
+    public override void CheckCondition()
     {
         // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }

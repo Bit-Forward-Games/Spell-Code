@@ -59,6 +59,9 @@ MonoBehaviour:
   - {fileID: 0}
   playerCount: 0
   isRunning: 0
+  isSaved: 0
+  round: 1
+  roundOver: 0
 --- !u!114 &640447128905950754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -177,6 +180,8 @@ MonoBehaviour:
   - {fileID: 5893221598878733181, guid: e9f48e2d550726843b02c5cc812c0bd0, type: 3}
   - {fileID: 8219806438660890640, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
   - {fileID: -4885699391038279724, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
+  - {fileID: -6894877409213945372, guid: 2edd52bb117036f488fac2fe2e350579, type: 3}
+  - {fileID: -9124946400819393822, guid: e3392c449e53ba74fab6383512e8f0d9, type: 3}
 --- !u!114 &7022982774474964000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,6 +198,8 @@ MonoBehaviour:
   - {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
   - {fileID: 4086900605317289789, guid: e20692c84a0616b4e852994d0fd9dff3, type: 3}
   - {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
+  - {fileID: -5944361601967456338, guid: 31b5d048822a4c44dadf1818579965c5, type: 3}
+  - {fileID: 6018045562301869049, guid: 4d04079dedaa5194a941eefff3452143, type: 3}
 --- !u!114 &699450530840418385
 MonoBehaviour:
   m_ObjectHideFlags: 0

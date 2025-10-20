@@ -263,14 +263,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: projectileList.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'projectileList.Array.data[3]'
-      value: 
-      objectReference: {fileID: -6894877409213945372, guid: 2edd52bb117036f488fac2fe2e350579, type: 3}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -311,18 +303,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: shop
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: spellList.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spellList.Array.data[3]'
-      value: 
-      objectReference: {fileID: -5944361601967456338, guid: 31b5d048822a4c44dadf1818579965c5, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -443,7 +423,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 91.666664
+  orthographic size: 103.166664
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

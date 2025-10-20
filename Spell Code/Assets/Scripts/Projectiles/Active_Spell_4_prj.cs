@@ -26,7 +26,6 @@ public class Active_Spell_4_prj : BaseProjectile
 
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
         projectileHitboxes = new HitboxGroup[2];
         projectileHitboxes[1] = new HitboxGroup
         {
@@ -43,7 +42,7 @@ public class Active_Spell_4_prj : BaseProjectile
                     damage = 10,
                     hitstun = 30,
                     attackLvl = 2,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -57,6 +56,7 @@ public class Active_Spell_4_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()

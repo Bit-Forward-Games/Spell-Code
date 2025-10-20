@@ -77,6 +77,7 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
                     spawnedProjectile.GetComponent<BaseProjectile>().LoadProjectile();
                     projectilePrefabs.Add(spawnedProjectile.GetComponent<BaseProjectile>());
                     spawnedProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.players[i];
+                    spawnedProjectile.GetComponent<BaseProjectile>().ownerSpell = GameManager.Instance.players[i].spellList[j];
                     spawnedProjectile.SetActive(false);
                 }
             }

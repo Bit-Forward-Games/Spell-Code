@@ -180,7 +180,14 @@ public class GameManager : NonPersistantSingleton<GameManager>
                 }
 
                 //calculated accuracy
-                matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+                if(players[i].basicsFired + players[i].spellsFired == 0)
+                {
+                    matchData.playerData[i].accuracy = 0;
+                }
+                else
+                {
+                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+                }
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 
                 for (int k = 0; k < players[i].times.Count; k++)

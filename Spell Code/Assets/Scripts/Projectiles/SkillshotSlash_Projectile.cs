@@ -2,17 +2,17 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class MightOfZeus_Projectile : BaseProjectile
+public class SkillshotSlash_Projectile : BaseProjectile
 {
 
-    public MightOfZeus_Projectile()
+    public SkillshotSlash_Projectile()
     {
-        projName = "MightOfZeus";
+        projName = "SkillshotSlash";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 2, 2, 2, 2 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 3, 3, 3, 3, 3 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -31,19 +31,33 @@ public class MightOfZeus_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 0,
-                    yOffset = 3,
-                    width = 160,
-                    height = 6,
-                    xKnockback = 0,
-                    yKnockback = 1,
+                    xOffset = -5*2,
+                    yOffset = 12*2,
+                    width = 65*2,
+                    height = 27*2,
+                    xKnockback = 2,
+                    yKnockback = 3,
                     damage = 10,
-                    hitstun = 30,
+                    hitstun = 15,
                     attackLvl = 2,
-                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
-            hitbox2 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = 60*2,
+                    yOffset = 12*2,
+                    width = 14*2,
+                    height = 19*2,
+                    xKnockback = 1,
+                    yKnockback = 5,
+                    damage = 15,
+                    hitstun = 25,
+                    attackLvl = 3,
+                    sweetSpot = true
+                }
+            },
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
@@ -63,9 +77,13 @@ public class MightOfZeus_Projectile : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame >= animFrames.frameLengths.Take(1).Sum()+1)
+        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
         {
             activeHitboxGroupIndex = 1;
+        }
+        else
+        {
+            activeHitboxGroupIndex = 0;
         }
         if (logicFrame >= animFrames.frameLengths.Sum())
         {

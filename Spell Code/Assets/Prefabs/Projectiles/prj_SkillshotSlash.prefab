@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7323394407539773554
+--- !u!1 &3459829395073810853
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,23 +8,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 389584798577933438}
-  - component: {fileID: -4727238776019900093}
-  - component: {fileID: 4063394636849562880}
+  - component: {fileID: 2816024633464485900}
+  - component: {fileID: 7265437768916896761}
+  - component: {fileID: -9124946400819393822}
   m_Layer: 0
-  m_Name: prj_GiftOfPrometheus
+  m_Name: prj_SkillshotSlash
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &389584798577933438
+--- !u!4 &2816024633464485900
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -33,13 +33,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &-4727238776019900093
+--- !u!212 &7265437768916896761
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -77,59 +77,51 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 6235665953308371285, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  m_Sprite: {fileID: -6586202232960028723, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 64, y: 64.125}
+  m_Size: {x: 64, y: 64}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4063394636849562880
+--- !u!114 &-9124946400819393822
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b730826e0549525468634d95a47f40a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ade138997ac1da43b32f7aabab1520c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: GiftOfPrometheus
+  projName: SkillshotSlash
   projectileHitboxes: []
   sprites:
-  - {fileID: 6235665953308371285, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -8477757068148189817, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: 3819467779578263626, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: 4371731257926106881, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: 435599576827848697, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -3730417135611523641, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: 6368198059920382957, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -146836014441091904, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -5268594125615762923, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -2373779607502437444, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -162150006034326544, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -7075002438176569647, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: -5633356135334036173, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
-  - {fileID: 6195978874719313668, guid: 0444f7ae355c89740bb22ceda046c43e, type: 3}
+  - {fileID: 3061697633262554110, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
+  - {fileID: 4943429128381845468, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
+  - {fileID: -6586202232960028723, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
+  - {fileID: 7339876702462068351, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
+  - {fileID: -4802190300465818803, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
+  - {fileID: 337406857512283502, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   activeHitboxGroupIndex: 0
-  hSpeed: 1
+  hSpeed: 0
   vSpeed: 0
   position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 120
+  lifeSpan: 30
   owner: {fileID: 0}
   ownerSpell: {fileID: 0}
   playerIgnoreArr: 00000000
   animFrames:
     frameIndexes: 
-    frameLengths: 0300000003000000030000000300000003000000030000000300000003000000040000000400000004000000040000000400000004000000
+    frameLengths: 040000000300000003000000030000000300000003000000
     loopAnim: 0
   deleteOnHit: 0

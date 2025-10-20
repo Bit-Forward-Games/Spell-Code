@@ -5,23 +5,26 @@ public class Ninja_Build_Blast : SpellData
     public Ninja_Build_Blast()
     {
         spellName = "Ninja_Build_Blast";
-        cooldown = 1.0f;
-        spellInput = 0b_0000_0000_0000_0000_0110_0011_0000_0100; // Example input sequence
+        cooldown = 180;
+        spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
+        spawnOffsetX = 10;
+        spawnOffsetY = 20;
     }
-    public override void SpellUpdate()
+    
+
+    public override void ActiveOnHitProc(PlayerController defender)
     {
-        if (activateFlag)
-        {
-            // Instantiate the projectile prefab at the player's position
-            // Assuming you have a reference to the player GameObject
-            if (owner != null && projectilePrefabs.Length > 0)
-            {
-                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(10,20));
-            }
-            // Reset the activate flag
-            activateFlag = false;
-        }
+        int consumedFlow = owner.flowState;
+        float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
+        int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
+        owner.flowState = 0;
+        defender.TakeEffectDamage(damageToDeal);
+    }
+
+    public override void CheckCondition()
+    {
+        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }
 }

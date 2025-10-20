@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
+using UnityEngine.Rendering.Universal;
+using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -39,6 +43,8 @@ public struct AttackData
 [DisallowMultipleComponent] //we only want one player controller per player
 public class PlayerController : MonoBehaviour
 {
+
+    public bool isAlive = true;
     //INPUTS
     public InputPlayerBindings inputs;
     public InputActionAsset playerInputs;
@@ -82,8 +88,18 @@ public class PlayerController : MonoBehaviour
     public float gravity = 1;
     [HideInInspector]
     public float jumpForce = 10;
-    public float runSpeed = 0f;
-    public float slideSpeed = 0f;
+    private float runSpeed = 0f;
+    private float slideSpeed = 0f;
+
+    //Spell Resource Variables
+    public ushort flowState = 0; //the timer for how long you are in flow state
+    public const ushort maxFlowState = 300;
+    public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
+    public ushort demonAura = 0;
+    public const ushort maxDemonAura = 100;
+    public ushort reps = 0;
+    public ushort momentum = 0;
+    public bool slimed = false;
 
 
 
@@ -110,10 +126,18 @@ public class PlayerController : MonoBehaviour
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
-    public SpellData[] spellList = new SpellData[8];
+    public List<SpellData> spellList = new List<SpellData>();
+    //public int spellCount = 0;
 
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
+
+    //TMPro
+    public TextMeshPro inputDisplay;
+    public bool removeInputDisplay;
+
+    [SerializeField]
+    public Color colorSuccess;
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
@@ -123,6 +147,10 @@ public class PlayerController : MonoBehaviour
     //public bool timerRunning = false;
     public List<float> times = new List<float>();
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+    }
     void Start()
     {
         upAction = playerInputs.actionMaps[0].FindAction("Up");
@@ -132,7 +160,6 @@ public class PlayerController : MonoBehaviour
         codeAction = playerInputs.actionMaps[0].FindAction("Code");
         jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
         logicFrame = 0;
-
 
         //bufferInput = InputConverter.ConvertFromLong(5);
 
@@ -149,6 +176,9 @@ public class PlayerController : MonoBehaviour
         return charData.playerHealth;
     }
 
+    /// <summary>
+    /// this function is called to initialize the character's data on start, notably not to simply reset the values during a game
+    /// </summary>
     public void InitCharacter()
     {
         //Set Player Values 
@@ -163,15 +193,93 @@ public class PlayerController : MonoBehaviour
         playerHeight = charData.playerHeight;
 
         //fill the spell list with the character's initial spells
-        for (int i = 0; i < charData.startingInventory.Count && i < spellList.Length; i++)
+        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         {
-            SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
-            spellList[i] = Instantiate(targetSpell);
-            spellList[i].owner = this;
-            spellList[i].LoadSpell();
+            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            //spellList.Add = Instantiate(targetSpell);
+            //spellList[i].owner = this;
+            //spellCount++;
+
+            AddSpellToSpellList(charData.startingInventory[i]);
         }
+        SpawnPlayer(Vector2.zero);
+
+        //ProjectileManager.Instance.InitializeAllProjectiles();
+    }
+
+    public void SpawnPlayer(Vector2 spawmPos)
+    {
+        isAlive = true;
+        gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        position = spawmPos;
+        currrentPlayerHealth = charData.playerHealth;
+        runSpeed = (float)charData.runSpeed / 10;
+        slideSpeed = (float)charData.slideSpeed / 10;
+        jumpForce = charData.jumpForce;
+        playerWidth = charData.playerWidth;
+        playerHeight = charData.playerHeight;
+        SetState(PlayerState.Idle);
+
+        //initialize resources
+        flowState = 0;
+        stockStability = 0;
+        demonAura = 0;
+        reps = 0;
+        momentum = 0;
+        slimed = false;
+
+        
 
         ProjectileManager.Instance.InitializeAllProjectiles();
+
+    }
+
+    public void AddSpellToSpellList(string spellToAdd)
+    {
+        if(spellList.Count >= 6)
+        {
+            Debug.LogWarning("Spell List Full, cannot add more spells!");
+            return;
+        }
+        SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
+        spellList.Add(Instantiate(targetSpell));
+        spellList[spellList.Count-1].owner = this;
+        ProjectileManager.Instance.InitializeAllProjectiles();
+        //spellCount++;
+    }
+
+
+    public void ClearSpellList()
+    {
+        // Destroy all spell GameObjects (iterate backwards to be safe)
+        for (int i = spellList.Count - 1; i >= 0; i--)
+        {
+            SpellData spell = spellList[i];
+            if (spell != null)
+            {
+                // Destroy the MonoBehaviour's GameObject that holds this SpellData
+                Destroy(spell.gameObject);
+            }
+        }
+
+        // Remove all references from the list
+        spellList.Clear();
+        ProjectileManager.Instance.InitializeAllProjectiles();
+    }
+
+    public void RemoveSpellFromSpellList(string spellToRemove)
+    {
+        for(int i = 0; i < spellList.Count; i++)
+        {
+            if(spellList[i] != null && spellList[i].spellName == spellToRemove)
+            {
+                Destroy(spellList[i]);
+                spellList.RemoveAt(i);
+                ProjectileManager.Instance.InitializeAllProjectiles();
+                return;
+            }
+        }
+        Debug.LogWarning("Spell not found in spell list, cannot remove!");
     }
 
     public void InitializePalette(Texture2D palette)
@@ -222,6 +330,14 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(long inputs)
     {
+        if(!isAlive) return;
+        if(currrentPlayerHealth <= 0)
+        {
+            isAlive = false;
+            gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            return;
+        }
+
         input = InputConverter.ConvertFromLong(inputs);
 
 
@@ -335,7 +451,6 @@ public class PlayerController : MonoBehaviour
                 {
                     //run logic
                     hSpd = runSpeed * (facingRight ? 1 : -1);
-                    //Debug.Log(runSpeed);
                 }
                 else
                 {
@@ -376,6 +491,12 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
+                //only reset the display at the start of CodeWeave state
+                if (removeInputDisplay)
+                {
+                    removeInputDisplay = false;
+                    ClearInputDisplay();
+                }
 
                 //keep track of how lojng player is in state for
                 timer += Time.deltaTime;
@@ -384,8 +505,11 @@ public class PlayerController : MonoBehaviour
                 {
                     gravity = Math.Clamp(gravity + .002f, 0, 1f);
                 }
+
+                //jump button pressed
                 if (input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    ClearInputDisplay();
                     stateSpecificArg = 0;
                     break;
                 }
@@ -425,17 +549,17 @@ public class PlayerController : MonoBehaviour
                 byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
-                Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
-                Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                //Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
+                //Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-                Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
-                Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
-                {
-                                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                }
+                //Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
+                //Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                //if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
+                //{
+                //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
+                //}
 
-                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     switch (input.Direction)
                     {
@@ -446,22 +570,25 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
+                            UpdateInputDisplay(2);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
+                            UpdateInputDisplay(4);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
+                            UpdateInputDisplay(6);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-
+                            UpdateInputDisplay(8);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
@@ -478,10 +605,6 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
-                    //keep track of how long player is in state for
-                    times.Add(timer);
-                    timer = 0;
-
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
@@ -495,6 +618,8 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(0, 10);
                 break;
             case PlayerState.CodeRelease:
+                //allow the display to be reset upon entering CodeWeave state
+                removeInputDisplay = true;
 
                 if(input.Direction == 6)
                 {
@@ -506,19 +631,26 @@ public class PlayerController : MonoBehaviour
                 }
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
                 {
-                    for (int i = 0; i < spellList.Length; i++)
+                    for (int i = 0; i < spellList.Count; i++)
                     {
-                        if (spellList[i] == null || spellList[i].spellType == SpellType.Passive) break;
+                        if ( spellList[i].spellType == SpellType.Passive) break;
                         if (spellList[i].spellInput == stateSpecificArg)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
+
+                            //keep track of how long player is in state for
+                            times.Add(timer);
+                            timer = 0;
 
                             //set stateSpecificArg to 255 as it is a value we can never normally set it to, to indicate that we successfully fired a spell
                             stateSpecificArg = 255;
 
                             //spellcode is fired
                             spellsFired++;
+
+                            //make input display flash green to indicate correct input sequence
+                            inputDisplay.color = Color.green;
 
                             break;
                         }
@@ -532,6 +664,9 @@ public class PlayerController : MonoBehaviour
 
                     //basic spell is fired
                     basicsFired++;
+
+                    //make input display flash red to indicate incorrect sequence
+                    inputDisplay.color = Color.red;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -546,7 +681,7 @@ public class PlayerController : MonoBehaviour
                 }
                 break;
             case PlayerState.Hitstun:
-                if (stateSpecificArg >= hitboxData.hitstun)
+                if (stateSpecificArg <= 0)
                 {
 
                     SetState(PlayerState.Tech);
@@ -560,7 +695,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                stateSpecificArg++;
+                stateSpecificArg--;
                 break;
             case PlayerState.Tech:
                 if (isGrounded)
@@ -590,13 +725,12 @@ public class PlayerController : MonoBehaviour
         }
 
 
-        for (int i = 0; i < spellList.Length; i++)
+        for (int i = 0; i < spellList.Count; i++)
         {
-            if (spellList[i] != null)
-            {
-                spellList[i].SpellUpdate();
-            }
+            spellList[i].SpellUpdate();
         }
+
+        UpdateResources();
 
         //check player collisions
         PlayerWorldCollisionCheck();
@@ -681,6 +815,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Hitstun:
+                stateSpecificArg = hitboxData.hitstun;
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
 
@@ -734,6 +869,9 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeWeave:
                 gravity = 1;
                 break;
+            case PlayerState.CodeRelease:
+                ClearInputDisplay();
+                break;
         }
         stateSpecificArg = 0;
     }
@@ -756,11 +894,46 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Updates spell resource values each frame
+    /// </summary>
+    public void UpdateResources()
+    {
+        //update flow state
+        if (flowState > 0)
+        {
+            flowState--;
+        }
+    }
+
+    /// <summary>
+    /// this function makes the player take damage outside of hitstun, notably from spell effect damage
+    /// </summary>
+    /// <param name="damageAmount"></param>
+    public void TakeEffectDamage(int damageAmount)
+    {
+        //checking for death
+        if (damageAmount > currrentPlayerHealth)
+        {
+            currrentPlayerHealth = 0;
+            
+        }
+        else
+        {
+            // Reduce health 
+            currrentPlayerHealth = (ushort)((int)currrentPlayerHealth - damageAmount);
+
+        }
+
+        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currrentPlayerHealth}");
+    }
+
     public void CheckHit(InputSnapshot input)
     {
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
         if (hitboxData != null && isHit)
         {
+            PlayerController attacker = hitboxData.parentProjectile.owner;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (hitstunOverride)
             {
@@ -799,13 +972,45 @@ public class PlayerController : MonoBehaviour
                 comboCounter++;
             }
 
+            
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             SetState(PlayerState.Hitstun);
+
+            //call the active on hit proc of the spell that created the projectile that hit us
+            if (hitboxData.parentProjectile.ownerSpell != null)
+            {
+                hitboxData.parentProjectile.ownerSpell.ActiveOnHitProc(this);
+            }
+
+            //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
+            for (int i = 0; i < attacker.spellList.Count; i++)
+            {
+                if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
+                {
+                    attacker.spellList[i].CheckCondition();
+                }
+            }
+
+            //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
+            for (int i = 0; i < spellList.Count; i++)
+            {
+                if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
+                {
+                    spellList[i].CheckCondition();
+                }
+            }
         }
     }
 
+
+    /// <summary>
+    /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.
+    /// </summary>
+    /// <param name="rightWall"></param>
+    /// <param name="checkOnly"></param>
+    /// <returns></returns>
     public bool CheckWall(bool rightWall, bool checkOnly = false)
     {
         float wallXval = rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval;
@@ -896,6 +1101,12 @@ public class PlayerController : MonoBehaviour
     }
 
 
+
+    /// <summary>
+    /// this function lerps the horizontal speed towards a target value over time deterministically
+    /// </summary>
+    /// <param name="targetHspd"></param>
+    /// <param name="lerpval"></param>
     public void LerpHspd(int targetHspd, int lerpval)
     {
         if (lerpDelay >= lerpval)
@@ -983,6 +1194,13 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
+        bw.Write(flowState);
+        bw.Write(stockStability);
+        bw.Write(demonAura);
+        bw.Write(reps);
+        bw.Write(momentum);
+        bw.Write(slimed);
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -1006,6 +1224,12 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
+        flowState = br.ReadUInt16();
+        stockStability = br.ReadUInt16();
+        demonAura = br.ReadUInt16();
+        reps = br.ReadUInt16();
+        momentum = br.ReadUInt16();
+        slimed = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
     }
 
@@ -1015,6 +1239,15 @@ public class PlayerController : MonoBehaviour
         currrentPlayerHealth = charData.playerHealth;
     }
 
+
+    public void ProcEffectUpdate()
+    {
+        //go through the player's spell list and update any proc effects
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            spellList[i].CheckCondition();
+        }
+    }
     //private bool IsSpecialStateActive() =>
     //    state == PlayerState.Special1 ||
     //    state == PlayerState.Special2 ||
@@ -1025,6 +1258,39 @@ public class PlayerController : MonoBehaviour
     public void CheckForInputs(bool enable)
     {
         inputs.CheckForInputs(enable);
+    }
+
+    public void UpdateInputDisplay(int direction)
+    {
+        //down
+        if (direction == 2)
+        {
+            inputDisplay.text += "DOWN, ";
+        }
+
+        //left
+        if (direction == 4)
+        {
+            inputDisplay.text += "LEFT,  ";
+        }
+
+        //right
+        if (direction == 6)
+        {
+            inputDisplay.text += "RIGHT, ";
+        }
+
+        //up
+        if (direction == 8)
+        {
+            inputDisplay.text += "UP, ";
+        }
+    }
+
+    public void ClearInputDisplay()
+    {
+        inputDisplay.text = "";
+        inputDisplay.color = Color.white;
     }
 }
 

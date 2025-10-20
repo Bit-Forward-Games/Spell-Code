@@ -20,11 +20,13 @@ public class HitboxData
     public ushort damage;
     public ushort hitstun;
     public int attackLvl;
+    public BaseProjectile parentProjectile;
+    public bool sweetSpot = false;
     //we don't have to worry about serilizing hitbox data as we are doing a hitbox lookup based on logic frame anyway, so we can properties as bloated as this.
     //That being side design within reason
 
     //the optionals:
-    public List<int> cancelOptions; //this is a states that the player can transition into to keep attacking 
+    //public List<int> cancelOptions; //this is a states that the player can transition into to keep attacking 
 
 
     public HitboxData Clone() => (HitboxData)this.MemberwiseClone();

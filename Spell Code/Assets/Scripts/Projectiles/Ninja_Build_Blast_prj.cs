@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-public class Ninja_Build_Blast_prj : BaseProjectile , INinjaBuildBlastProjectile
+public class Ninja_Build_Blast_prj : BaseProjectile
 {
     
     public Ninja_Build_Blast_prj()
@@ -13,7 +13,6 @@ public class Ninja_Build_Blast_prj : BaseProjectile , INinjaBuildBlastProjectile
         lifeSpan = 120; // lasts for 120 logic frames
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
-        
     }
     
     public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
@@ -24,8 +23,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile , INinjaBuildBlastProjectile
     }
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
-        brands = new Brands[] { Brands.BigStox };
+
         deleteOnHit = false;
         projectileHitboxes = new HitboxGroup[2];
 
@@ -44,7 +42,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile , INinjaBuildBlastProjectile
                     damage = 20,
                     hitstun = 30,
                     attackLvl = 2,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -58,6 +56,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile , INinjaBuildBlastProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()

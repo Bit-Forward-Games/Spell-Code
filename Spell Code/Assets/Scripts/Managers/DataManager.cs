@@ -29,6 +29,7 @@ public class DataManager : MonoBehaviour
 
     private void Start()
     {
+        gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
     }
 

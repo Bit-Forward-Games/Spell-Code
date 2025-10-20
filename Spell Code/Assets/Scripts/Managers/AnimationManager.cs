@@ -6,8 +6,24 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class AnimationManager : NonPersistantSingleton<AnimationManager>
+public class AnimationManager : MonoBehaviour
 {
+    public static AnimationManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
     public SpriteSheetData[] spriteSheetData;
     public Texture2D[] paletteTextures;
     [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;

@@ -159,7 +159,6 @@ public class GameManager : NonPersistantSingleton<GameManager>
     {
         //general game data
         MatchData matchData = new MatchData();
-        matchData.dateTime = System.DateTime.Now.ToString();
 
         //player data, looped for each player
         if (playerCount > 0)
@@ -249,6 +248,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
             isSaved = true;
         }
 
+        dataManager.SaveToFile();
         SceneManager.LoadScene("End");
     }
 

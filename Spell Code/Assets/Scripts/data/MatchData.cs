@@ -5,6 +5,5 @@ using System;
 public class MatchData
 {
     //hold all data we wont to consolidate
-    public string dateTime;
     public PlayerData[] playerData;
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.Rendering.Universal;
 
 public enum PlayerState
 {
@@ -120,6 +121,9 @@ public class PlayerController : MonoBehaviour
     //TMPro
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
+
+    [SerializeField]
+    public Color colorSuccess;
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;

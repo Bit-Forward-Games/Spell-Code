@@ -4,8 +4,8 @@ public class SpeedBoost_Spell : SpellData
 {
     float baseSpeed;
     public float speedMultiplier = 2;
-    int speedBoostDuration = 180; // Duration of the speed boost in frames
-    int speedBoostCounter = 0; 
+    //int speedBoostDuration = 180; // Duration of the speed boost in frames
+    //int speedBoostCounter = 0; 
 
     public SpeedBoost_Spell()
     {
@@ -25,27 +25,27 @@ public class SpeedBoost_Spell : SpellData
             if (owner.runSpeed == baseSpeed)
             {
                 owner.runSpeed *= speedMultiplier;
-                speedBoostCounter = speedBoostDuration; // Reset counter
+                //speedBoostCounter = speedBoostDuration; // Reset counter
             }
         }
         /*else
         {
             owner.runSpeed = baseSpeed; // Reset to base speed
         }*/
-        if (speedBoostCounter > 0)
-        {
-            speedBoostCounter--;
-            if (speedBoostCounter == 0)
-            {
-                owner.runSpeed = baseSpeed; // Reset to base speed when counter ends
-            }
-        }
+        //if (speedBoostCounter > 0)
+        //{
+        //    speedBoostCounter--;
+        //    if (speedBoostCounter == 0)
+        //    {
+        //        owner.runSpeed = baseSpeed; // Reset to base speed when counter ends
+        //    }
+        //}
     }
 
-    //public override void LoadSpell()
-    //{
-    //    baseSpeed = owner.runSpeed; // Initialize base speed
-    //}
+    public override void LoadSpell()
+    {
+        baseSpeed = owner.runSpeed; // Initialize base speed
+    }
 
     public override void CheckCondition()
     {

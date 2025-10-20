@@ -56,4 +56,4 @@ MonoBehaviour:
   spawnOffsetX: 10
   spawnOffsetY: 15
   projectilePrefabs: []
-  jumpMultiplier: 5
+  jumpMultiplier: 1.5

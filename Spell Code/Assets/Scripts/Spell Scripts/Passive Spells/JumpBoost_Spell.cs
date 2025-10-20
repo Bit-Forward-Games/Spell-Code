@@ -20,6 +20,7 @@ public class JumpBoost_Spell : SpellData
     {
         if (activateFlag)
         {
+            activateFlag = false;
             Debug.Log("Jump Boost Activated!");
             if (owner.jumpForce == baseJumpForce)
             {

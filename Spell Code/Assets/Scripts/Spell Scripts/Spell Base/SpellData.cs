@@ -46,6 +46,7 @@ public enum ProcCondition
 /// </summary>
 public abstract class SpellData : MonoBehaviour
 {
+    
     //[Header("Identification & Network")]
     [HideInInspector]
     public string spellName;
@@ -69,7 +70,10 @@ public abstract class SpellData : MonoBehaviour
     public GameObject[] projectilePrefabs;
 
 
-
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+    }
     /// <summary>
     /// tis function is called every logic frame to update the spell's internal state
     /// </summary>

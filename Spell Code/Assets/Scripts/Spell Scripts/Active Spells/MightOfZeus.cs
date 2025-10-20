@@ -15,6 +15,16 @@ public class MightOfZeus : SpellData
         spawnOffsetY = 0;
     }
 
+    public override void ActiveOnHitProc(PlayerController defender)
+    {
+        owner.reps++;
+
+        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
+        {
+            defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
+            Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");
+        }
+    }
 
     public override void CheckCondition()
     {

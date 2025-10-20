@@ -11,7 +11,12 @@ public class GiftOfPrometheus : SpellData
         projectilePrefabs = new GameObject[1];
     }
 
-
+    public override void ActiveOnHitProc(PlayerController defender)
+    {
+        owner.reps++;
+        defender.TakeEffectDamage(owner.reps*2);
+        Debug.Log($"Gift of Prometheus proc: Dealt {owner.reps*2} damage to defender. Owner reps: {owner.reps}");
+    }
 
     public override void CheckCondition()
     {

@@ -579,7 +579,7 @@ public class PlayerController : MonoBehaviour
                 }
                 break;
             case PlayerState.Hitstun:
-                if (stateSpecificArg >= hitboxData.hitstun)
+                if (stateSpecificArg <= 0)
                 {
 
                     SetState(PlayerState.Tech);
@@ -593,7 +593,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                stateSpecificArg++;
+                stateSpecificArg--;
                 break;
             case PlayerState.Tech:
                 if (isGrounded)
@@ -716,6 +716,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Hitstun:
+                stateSpecificArg = hitboxData.hitstun;
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
 
@@ -871,8 +872,14 @@ public class PlayerController : MonoBehaviour
                 comboCounter++;
             }
 
+            
+
+            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+
+            SetState(PlayerState.Hitstun);
+
             //call the active on hit proc of the spell that created the projectile that hit us
-            if(hitboxData.parentProjectile.ownerSpell != null)
+            if (hitboxData.parentProjectile.ownerSpell != null)
             {
                 hitboxData.parentProjectile.ownerSpell.ActiveOnHitProc(this);
             }
@@ -900,10 +907,6 @@ public class PlayerController : MonoBehaviour
                     }
                 }
             }
-
-            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
-
-            SetState(PlayerState.Hitstun);
         }
     }
 

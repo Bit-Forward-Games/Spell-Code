@@ -6,22 +6,21 @@ public class SpeedBoost_Spell : SpellData
     public float speedMultiplier = 2;
     int speedBoostDuration = 180; // Duration of the speed boost in frames
     int speedBoostCounter = 0; 
-    Brands[] brands = new Brands[] { Brands.VWave, Brands.BigStox, Brands.RawrDX, Brands.SLUG, Brands.Killeez, Brands.Halk };
-    int selectedBrandIndex = 2; // Index to select which brand to use
+
     public SpeedBoost_Spell()
     {
         spellName = "SpeedBoost";
-        cooldown = 1.0f;
-        //spellInput = 0b_0000_0000_0000_0000_1001_0011_0000_0100; // Example input sequence
+        cooldown = 180;
         spellType = SpellType.Passive;
-        //projectilePrefabs = new GameObject[1];
+        procConditions = new ProcCondition[1] { ProcCondition.OnHit };
+        brands = new Brand[1] { Brand.Halk };
     }
 
     public override void SpellUpdate()
     {
-        Brands brandToCheck = brands[selectedBrandIndex];
-        if (ProjectileManager.Instance.CheckProjectileHit(owner, brandToCheck))
+        if (activateFlag)
         {
+            activateFlag = false;
             Debug.Log("Speed Boost Activated!");
             if (owner.runSpeed == baseSpeed)
             {
@@ -43,8 +42,17 @@ public class SpeedBoost_Spell : SpellData
         }
     }
 
-    public override void LoadSpell()
+    //public override void LoadSpell()
+    //{
+    //    baseSpeed = owner.runSpeed; // Initialize base speed
+    //}
+
+    public override void CheckCondition()
     {
-        baseSpeed = owner.runSpeed; // Initialize base speed
+        if (owner.flowState > 0)
+        {
+            activateFlag = true;
+        }
+        else { activateFlag = false; }
     }
 }

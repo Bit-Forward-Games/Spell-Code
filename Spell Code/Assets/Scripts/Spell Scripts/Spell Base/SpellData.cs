@@ -37,7 +37,7 @@ public enum ProcCondition
     OnCast,
     OnKill,
     OnDeath,
-    OnLocationCheck
+    OnUpdate
     
 }
 
@@ -92,6 +92,10 @@ public abstract class SpellData : MonoBehaviour
         }
     }
 
+    public virtual void LoadSpell()
+    {
+
+    }
 
     /// <summary>
     /// this function is called when a SPECIFIC spell need its own unique proc behavior on hit

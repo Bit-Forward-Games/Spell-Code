@@ -45,9 +45,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: JumpBoost
+  brands: 
+  procConditions: 
   cooldown: 1
+  cooldownCounter: 180
   spellInput: 0
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 0
+  spawnOffsetX: 10
+  spawnOffsetY: 15
   projectilePrefabs: []
+  jumpMultiplier: 5

@@ -383,7 +383,7 @@ public class PlayerController : MonoBehaviour
                 if (removeInputDisplay)
                 {
                     removeInputDisplay = false;
-                    DisappearInputdisplay();
+                    ClearInputDisplay();
                 }
 
                 //keep track of how lojng player is in state for
@@ -393,8 +393,11 @@ public class PlayerController : MonoBehaviour
                 {
                     gravity = Math.Clamp(gravity + .002f, 0, 1f);
                 }
+
+                //jump button pressed
                 if (input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    ClearInputDisplay();
                     stateSpecificArg = 0;
                     break;
                 }
@@ -490,10 +493,6 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
-                    //keep track of how long player is in state for
-                    times.Add(timer);
-                    timer = 0;
-
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
@@ -527,6 +526,10 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
+
+                            //keep track of how long player is in state for
+                            times.Add(timer);
+                            timer = 0;
 
                             //set stateSpecificArg to 255 as it is a value we can never normally set it to, to indicate that we successfully fired a spell
                             stateSpecificArg = 255;
@@ -753,6 +756,9 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 gravity = 1;
+                break;
+            case PlayerState.CodeRelease:
+                ClearInputDisplay();
                 break;
         }
         stateSpecificArg = 0;
@@ -1074,7 +1080,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void DisappearInputdisplay()
+    public void ClearInputDisplay()
     {
         inputDisplay.text = "";
         inputDisplay.color = Color.white;

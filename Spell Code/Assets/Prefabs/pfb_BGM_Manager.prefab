@@ -142,5 +142,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d53073cde6508a242a07b22b737f330b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicAudioSource: {fileID: 2240546473119985592}
-  availableSongs: []
+  defaultSong: {fileID: 0}
+  availableSongs:
+  - {fileID: 8300000, guid: 8b35d4c9a4e2d3d499a7a3afdddf45b0, type: 3}
+  - {fileID: 8300000, guid: 4267bd3f40c00654f9df26c4ee4d0d00, type: 3}
+  - {fileID: 8300000, guid: e0e5c82a1cc596f42a364d711bafbab7, type: 3}

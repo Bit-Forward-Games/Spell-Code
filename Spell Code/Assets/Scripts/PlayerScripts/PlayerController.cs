@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using UnityEngine.Rendering.Universal;
+using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -42,6 +43,8 @@ public struct AttackData
 [DisallowMultipleComponent] //we only want one player controller per player
 public class PlayerController : MonoBehaviour
 {
+
+    public bool isAlive = true;
     //INPUTS
     public InputPlayerBindings inputs;
     public InputActionAsset playerInputs;
@@ -123,7 +126,8 @@ public class PlayerController : MonoBehaviour
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
-    public SpellData[] spellList = new SpellData[8];
+    public List<SpellData> spellList = new List<SpellData>();
+    //public int spellCount = 0;
 
     //SFX VARIABLES
     //public SFX_Manager mySFXHandler;
@@ -143,6 +147,10 @@ public class PlayerController : MonoBehaviour
     //public bool timerRunning = false;
     public List<float> times = new List<float>();
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+    }
     void Start()
     {
         upAction = playerInputs.actionMaps[0].FindAction("Up");
@@ -168,6 +176,9 @@ public class PlayerController : MonoBehaviour
         return charData.playerHealth;
     }
 
+    /// <summary>
+    /// this function is called to initialize the character's data on start, notably not to simply reset the values during a game
+    /// </summary>
     public void InitCharacter()
     {
         //Set Player Values 
@@ -182,14 +193,93 @@ public class PlayerController : MonoBehaviour
         playerHeight = charData.playerHeight;
 
         //fill the spell list with the character's initial spells
-        for (int i = 0; i < charData.startingInventory.Count && i < spellList.Length; i++)
+        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         {
-            SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
-            spellList[i] = Instantiate(targetSpell);
-            spellList[i].owner = this;
+            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            //spellList.Add = Instantiate(targetSpell);
+            //spellList[i].owner = this;
+            //spellCount++;
+
+            AddSpellToSpellList(charData.startingInventory[i]);
         }
+        SpawnPlayer(Vector2.zero);
+
+        //ProjectileManager.Instance.InitializeAllProjectiles();
+    }
+
+    public void SpawnPlayer(Vector2 spawmPos)
+    {
+        isAlive = true;
+        gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        position = spawmPos;
+        currrentPlayerHealth = charData.playerHealth;
+        runSpeed = (float)charData.runSpeed / 10;
+        slideSpeed = (float)charData.slideSpeed / 10;
+        jumpForce = charData.jumpForce;
+        playerWidth = charData.playerWidth;
+        playerHeight = charData.playerHeight;
+        SetState(PlayerState.Idle);
+
+        //initialize resources
+        flowState = 0;
+        stockStability = 0;
+        demonAura = 0;
+        reps = 0;
+        momentum = 0;
+        slimed = false;
+
+        
 
         ProjectileManager.Instance.InitializeAllProjectiles();
+
+    }
+
+    public void AddSpellToSpellList(string spellToAdd)
+    {
+        if(spellList.Count >= 6)
+        {
+            Debug.LogWarning("Spell List Full, cannot add more spells!");
+            return;
+        }
+        SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
+        spellList.Add(Instantiate(targetSpell));
+        spellList[spellList.Count-1].owner = this;
+        ProjectileManager.Instance.InitializeAllProjectiles();
+        //spellCount++;
+    }
+
+
+    public void ClearSpellList()
+    {
+        // Destroy all spell GameObjects (iterate backwards to be safe)
+        for (int i = spellList.Count - 1; i >= 0; i--)
+        {
+            SpellData spell = spellList[i];
+            if (spell != null)
+            {
+                // Destroy the MonoBehaviour's GameObject that holds this SpellData
+                Destroy(spell.gameObject);
+            }
+        }
+
+        // Remove all references from the list
+        spellList.Clear();
+        ProjectileManager.Instance.InitializeAllProjectiles();
+    }
+
+    public void RemoveSpellFromSpellList(string spellToRemove)
+    {
+        for(int i = 0; i < spellList.Count; i++)
+        {
+            if(spellList[i] != null && spellList[i].spellName == spellToRemove)
+            {
+                Destroy(spellList[i]);
+                spellList.RemoveAt(i);
+                ProjectileManager.Instance.InitializeAllProjectiles();
+                return;
+            }
+        }
+        Debug.LogWarning("Spell not found in spell list, cannot remove!");
     }
 
     public void InitializePalette(Texture2D palette)
@@ -240,6 +330,14 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(long inputs)
     {
+        if(!isAlive) return;
+        if(currrentPlayerHealth <= 0)
+        {
+            isAlive = false;
+            gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            return;
+        }
+
         input = InputConverter.ConvertFromLong(inputs);
 
 
@@ -533,9 +631,9 @@ public class PlayerController : MonoBehaviour
                 }
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
                 {
-                    for (int i = 0; i < spellList.Length; i++)
+                    for (int i = 0; i < spellList.Count; i++)
                     {
-                        if (spellList[i] == null || spellList[i].spellType == SpellType.Passive) break;
+                        if ( spellList[i].spellType == SpellType.Passive) break;
                         if (spellList[i].spellInput == stateSpecificArg)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
@@ -627,12 +725,9 @@ public class PlayerController : MonoBehaviour
         }
 
 
-        for (int i = 0; i < spellList.Length; i++)
+        for (int i = 0; i < spellList.Count; i++)
         {
-            if (spellList[i] != null)
-            {
-                spellList[i].SpellUpdate();
-            }
+            spellList[i].SpellUpdate();
         }
 
         UpdateResources();
@@ -821,6 +916,7 @@ public class PlayerController : MonoBehaviour
         if (damageAmount > currrentPlayerHealth)
         {
             currrentPlayerHealth = 0;
+            
         }
         else
         {
@@ -889,26 +985,20 @@ public class PlayerController : MonoBehaviour
             }
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
-            for (int i = 0; i < attacker.spellList.Length; i++)
+            for (int i = 0; i < attacker.spellList.Count; i++)
             {
-                if (attacker.spellList[i] != null)
+                if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
                 {
-                    if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
-                    {
-                        attacker.spellList[i].CheckCondition();
-                    }
+                    attacker.spellList[i].CheckCondition();
                 }
             }
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
-            for (int i = 0; i < spellList.Length; i++)
+            for (int i = 0; i < spellList.Count; i++)
             {
-                if (spellList[i] != null)
+                if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
                 {
-                    if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
-                    {
-                        spellList[i].CheckCondition();
-                    }
+                    spellList[i].CheckCondition();
                 }
             }
         }
@@ -1153,12 +1243,9 @@ public class PlayerController : MonoBehaviour
     public void ProcEffectUpdate()
     {
         //go through the player's spell list and update any proc effects
-        for (int i = 0; i < spellList.Length; i++)
+        for (int i = 0; i < spellList.Count; i++)
         {
-            if (spellList[i] != null)
-            {
-                spellList[i].CheckCondition();
-            }
+            spellList[i].CheckCondition();
         }
     }
     //private bool IsSpecialStateActive() =>

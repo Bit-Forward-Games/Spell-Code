@@ -15,8 +15,23 @@ public enum ForceHitstunType
     Air,
 }
 
-public class HitboxManager : NonPersistantSingleton<HitboxManager>
+public class HitboxManager : MonoBehaviour
 {
+    // Singleton Instance
+    public static HitboxManager Instance { get; private set; }
+    private void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
     // ===== | Variables | =====
     PlayerState[] playerStates = new PlayerState[4];
 

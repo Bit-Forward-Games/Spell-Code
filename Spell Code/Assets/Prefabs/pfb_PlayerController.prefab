@@ -240,6 +240,12 @@ MonoBehaviour:
   spriteRenderer: {fileID: -1293374541561941338}
   gravity: 1
   jumpForce: 10
+  flowState: 0
+  stockStability: 0
+  demonAura: 0
+  reps: 0
+  momentum: 0
+  slimed: 0
   matchPalette:
   - {fileID: 0}
   - {fileID: 0}
@@ -256,7 +262,8 @@ MonoBehaviour:
     damage: 0
     hitstun: 0
     attackLvl: 0
-    cancelOptions: 
+    parentProjectile: {fileID: 0}
+    sweetSpot: 0
   isHit: 0
   stateSpecificArg: 0
   hitstop: 0
@@ -264,15 +271,7 @@ MonoBehaviour:
   damageProration: 1
   hitstopActive: 0
   hitstunOverride: 0
-  spellList:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  spellList: []
   inputDisplay: {fileID: 8759932525811072817}
   removeInputDisplay: 0
   colorSuccess: {r: 0.40392157, g: 0.99215686, b: 0.7176471, a: 0}

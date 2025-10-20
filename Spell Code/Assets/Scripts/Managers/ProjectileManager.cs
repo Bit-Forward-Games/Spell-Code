@@ -2,9 +2,22 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 
-public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
+public class ProjectileManager : MonoBehaviour
 {
-
+    public static ProjectileManager Instance { get; private set; }
+    private void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
     public List<BaseProjectile> projectilePrefabs = new List<BaseProjectile>();
     public List<BaseProjectile> activeProjectiles = new List<BaseProjectile>();
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -21,9 +34,15 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
 
     public void UpdateProjectiles()
     {
+
         //activeProjectiles.Clear();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
+            if(projectilePrefabs[i] == null)
+            {
+                projectilePrefabs.RemoveAt(i);
+                i--;
+            }
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
                 if (!activeProjectiles.Contains(projectilePrefabs[i]))
@@ -43,8 +62,9 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
         }
     }
 
-    public void InitializeAllProjectiles()
+    public void DeleteAllProjectiles()
     {
+        activeProjectiles.Clear();
         //first destroy all projectiles in the list then clear the list
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
@@ -54,6 +74,12 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
             }
         }
         projectilePrefabs.Clear();
+    }
+
+    public void InitializeAllProjectiles()
+    {
+        //first destroy all projectiles in the list then clear the list
+        DeleteAllProjectiles();
         //loop through all players
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
@@ -66,9 +92,9 @@ public class ProjectileManager : NonPersistantSingleton<ProjectileManager>
             spawnedBaseProjectile.SetActive(false);
 
             //all spells in the player's inventory for their spells
-            for (int j = 0; j < GameManager.Instance.players[i].spellList.Length; j++)
+            for (int j = 0; j < GameManager.Instance.players[i].spellList.Count; j++)
             {
-                if (GameManager.Instance.players[i].spellList[j] == null) break;
+                //if (GameManager.Instance.players[i].spellList[j] == null) break;
 
                 //all projectiles in each spelldata
                 for (int k = 0; k < GameManager.Instance.players[i].spellList[j].projectilePrefabs.Length; k++)

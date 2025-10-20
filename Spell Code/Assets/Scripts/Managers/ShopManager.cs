@@ -12,7 +12,10 @@ public class ShopManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        StartCoroutine(Shop());
+        //StartCoroutine(Shop());
+        GameManager.Instance.isRunning = true;
+        GameManager.Instance.ResetPlayers();
+        SceneManager.LoadScene("Gameplay");
     }
 
     // Update is called once per frame
@@ -25,6 +28,8 @@ public class ShopManager : MonoBehaviour
     public IEnumerator Shop()
     {
         yield return new WaitForSeconds(4);
+        GameManager.Instance.isRunning = true;
+        GameManager.Instance.ResetPlayers();
         SceneManager.LoadScene("Gameplay");
     }
 }

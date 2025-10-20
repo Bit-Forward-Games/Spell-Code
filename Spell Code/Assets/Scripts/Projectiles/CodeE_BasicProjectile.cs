@@ -37,7 +37,7 @@ public class CodeE_BasicProjectile : BaseProjectile
                     height = 10,
                     xKnockback = 3,
                     yKnockback = 7,
-                    damage = 5,
+                    damage = 100,
                     hitstun = 15,
                     attackLvl = 1,
                     //cancelOptions = new List<int> { } // No cancel options

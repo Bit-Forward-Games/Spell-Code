@@ -65,8 +65,10 @@ MonoBehaviour:
   - {fileID: 2281324229870074382}
   - {fileID: 6820317830917821359}
   - {fileID: 4763732171476173978}
+  tempUI: {fileID: 2090409580585679845}
   round: 1
   roundOver: 0
+  prevSceneWasShop: 0
 --- !u!114 &640447128905950754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,6 +285,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3283720938821058256, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
   m_PrefabInstance: {fileID: 2512792044154174187}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2090409580585679845 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+  m_PrefabInstance: {fileID: 2512792044154174187}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7185f7efe6e63364ebff3fbe3bd5848a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &2281324229870074382 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4429254232311922917, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}

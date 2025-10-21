@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool isSaved;
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
+    public TempUIScript tempUI;
 
     public int round = 1;
     public bool roundOver;
@@ -54,6 +55,51 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Update is called once per frame
     void Update()
     {
+        // If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "Gameplay")
+        {
+            // Set all known players to not alive
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        //players[i].isAlive = false;
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                }
+            }
+
+            // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
+            //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
+
+        }
+        else
+        {
+                       // Ensure temp UI is enabled during gameplay
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
+            // Also ensure all players' sprites are enabled
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                    }
+                }
+            } 
+        }
+
         //This is just a shortcut for me to test stuff
 
         //if (Input.GetKeyDown(KeyCode.K))
@@ -66,6 +112,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
+
+        
     }
 
     private void FixedUpdate()

@@ -46,6 +46,7 @@ public class PlayerController : MonoBehaviour
 {
 
     public bool isAlive = true;
+    public SpriteRenderer playerSpriteRenderer;
     //INPUTS
     public InputPlayerBindings inputs;
     public InputActionAsset playerInputs;
@@ -150,6 +151,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        ///playerSpriteRenderer = GetComponent<SpriteRenderer>();
         DontDestroyOnLoad(this.gameObject);
     }
     void Start()
@@ -213,6 +215,9 @@ public class PlayerController : MonoBehaviour
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
         position = spawmPos;
+        hSpd = 0;
+        vSpd = 0;
+        stateSpecificArg = 0;
         currrentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
@@ -340,11 +345,24 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(long inputs)
     {
-        if(!isAlive) return;
-        if(currrentPlayerHealth <= 0)
+        if (!isAlive)
+        {
+            //if (spriteRenderer.enabled == true)
+            //{
+            //    spriteRenderer.enabled = false;
+            //}
+            return;
+
+        }
+        //if (spriteRenderer.enabled == false)
+        //{
+        //    spriteRenderer.enabled = false;
+        //}
+
+        if (currrentPlayerHealth <= 0)
         {
             isAlive = false;
-            gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            spriteRenderer.enabled = false;
             return;
         }
 

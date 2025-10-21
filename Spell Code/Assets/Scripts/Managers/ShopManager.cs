@@ -33,16 +33,17 @@ public class ShopManager : MonoBehaviour
 
     public IEnumerator Shop()
     {
-        for (int i = 0; i < gameManager.playerCount; i++)
-        {
-            gameManager.players[i].GetComponent<SpriteRenderer>().enabled = false;
-        }
+        //for (int i = 0; i < gameManager.playerCount; i++)
+        //{
+        //    gameManager.players[i].GetComponent<SpriteRenderer>().enabled = false;
+        //}
         GivePlayersSpell();
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(4);
         GameManager.Instance.isRunning = true;
         spellText.text = " ";
         SceneManager.LoadScene("Gameplay");
+
     }
 
     public string GrantSpell()

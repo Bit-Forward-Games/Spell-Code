@@ -247,7 +247,9 @@ public class PlayerController : MonoBehaviour
         spellList[spellList.Count-1].owner = this;
         spellList[spellList.Count - 1].LoadSpell();
         ProjectileManager.Instance.InitializeAllProjectiles();
-        //spellCount++;
+
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 
 
@@ -267,6 +269,9 @@ public class PlayerController : MonoBehaviour
         // Remove all references from the list
         spellList.Clear();
         ProjectileManager.Instance.InitializeAllProjectiles();
+
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 
     public void RemoveSpellFromSpellList(string spellToRemove)
@@ -278,6 +283,9 @@ public class PlayerController : MonoBehaviour
                 Destroy(spellList[i]);
                 spellList.RemoveAt(i);
                 ProjectileManager.Instance.InitializeAllProjectiles();
+
+                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
                 return;
             }
         }

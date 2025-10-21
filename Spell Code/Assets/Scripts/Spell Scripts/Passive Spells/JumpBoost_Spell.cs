@@ -20,13 +20,21 @@ public class JumpBoost_Spell : SpellData
     {
         if (activateFlag)
         {
-            activateFlag = false;
+            //activateFlag = false;
             Debug.Log("Jump Boost Activated!");
             if (owner.jumpForce == baseJumpForce)
             {
                 owner.jumpForce *= jumpMultiplier;
                 Debug.Log($"{owner.jumpForce}");
                 //jumpBoostCounter = jumpBoostDuration; // Reset counter
+            }
+        }
+        else
+        {
+            if (owner.jumpForce != baseJumpForce)
+            {
+                owner.jumpForce = baseJumpForce; // Reset to base jump force
+                Debug.Log("Jump Boost Deactivated, reset jump force.");
             }
         }
         //if (jumpBoostCounter > 0)

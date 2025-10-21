@@ -88,7 +88,7 @@ public class HitboxManager : MonoBehaviour
 
             //PlayerController attackingPlayer = projectile.owner;
             PlayerController[] defendingPlayers = GameManager.Instance.players
-                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount)
+                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount && p.isAlive)
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {

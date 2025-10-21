@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering.Universal;
 
 public enum PlayerState
 {
@@ -347,22 +344,21 @@ public class PlayerController : MonoBehaviour
     {
         if (!isAlive)
         {
-            //if (spriteRenderer.enabled == true)
-            //{
-            //    spriteRenderer.enabled = false;
-            //}
+            if (spriteRenderer.enabled == true)
+            {
+                spriteRenderer.enabled = false;
+            }
             return;
 
         }
-        //if (spriteRenderer.enabled == false)
-        //{
-        //    spriteRenderer.enabled = false;
-        //}
+        if (spriteRenderer.enabled == false)
+        {
+            spriteRenderer.enabled = false;
+        }
 
         if (currrentPlayerHealth <= 0)
         {
             isAlive = false;
-            spriteRenderer.enabled = false;
             return;
         }
 

@@ -92,12 +92,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 for (int i = 0; i < players.Length; i++)
                 {
-                    if (players[i] != null)
+                    if (players[i] != null && players[i].isAlive)
                     {
                         players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
                     }
                 }
-            } 
+            }
         }
 
         //This is just a shortcut for me to test stuff

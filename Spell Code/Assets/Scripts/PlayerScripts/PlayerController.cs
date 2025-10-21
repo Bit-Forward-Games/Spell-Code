@@ -1323,6 +1323,32 @@ public class PlayerController : MonoBehaviour
         inputDisplay.text = "";
         inputDisplay.color = Color.white;
     }
+
+    public static string ConvertCodeToString(uint code)
+    {
+        string codeString = "";
+        byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
+        for (int i = 0; i < codeCount; i++)
+        {
+            byte currentInput = (byte)((code >> (8 + (i * 2))) & 0b11);
+            switch (currentInput)
+            {
+                case 0b00:
+                    codeString += "D ";
+                    break;
+                case 0b01:
+                    codeString += "R ";
+                    break;
+                case 0b10:
+                    codeString += "L ";
+                    break;
+                case 0b11:
+                    codeString += "U ";
+                    break;
+            }
+        }
+        return codeString.Trim();
+    }
 }
 
 

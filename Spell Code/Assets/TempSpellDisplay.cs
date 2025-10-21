@@ -26,11 +26,11 @@ public class TempSpellDisplay : MonoBehaviour
         {
             if (i < playerSpells.Count)
             {
-                spellSlots[i].text = playerSpells[i].spellName;
+                spellSlots[i].text = playerSpells[i].spellName + ":\n" + PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
             }
             else
             {
-                spellSlots[i].text = "Empty";
+                spellSlots[i].text = "Empty\n...";
             }
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         }

@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public int round = 1;
     public bool roundOver;
 
+    public bool prevSceneWasShop;
+
     private void Awake()
     {
         // if an instance already exists and it's not this one, destroy this duplicate
@@ -64,6 +66,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     private void FixedUpdate()
     {
+        if (prevSceneWasShop)
+        {
+            ResetPlayers();
+            prevSceneWasShop = false;
+        }
 
         RunFrame();
 

@@ -12,15 +12,15 @@ public class SpeedBoost_Spell : SpellData
         spellName = "SpeedBoost";
         cooldown = 180;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[1] { ProcCondition.OnHit };
-        brands = new Brand[1] { Brand.Halk };
+        procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
+        brands = new Brand[1] { Brand.Killeez };
     }
 
     public override void SpellUpdate()
     {
         if (activateFlag)
         {
-            activateFlag = false;
+            //activateFlag = false;
             Debug.Log("Speed Boost Activated!");
             if (owner.runSpeed == baseSpeed)
             {
@@ -49,7 +49,7 @@ public class SpeedBoost_Spell : SpellData
 
     public override void CheckCondition()
     {
-        if (owner.flowState > 0)
+        if (owner.reps > 3)
         {
             activateFlag = true;
         }

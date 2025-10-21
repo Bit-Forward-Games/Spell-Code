@@ -4,10 +4,12 @@ public class GiftOfPrometheus : SpellData
 {
     public GiftOfPrometheus()
     {
-        spellName = "Active_Spell_3";
+        spellName = "GiftOfPromethius";
         cooldown = 180;
+        brands = new Brand[] { Brand.Killeez };
         spellInput = 0b_0000_0000_0000_0000_1001_1100_0000_0100; // Example input sequence
         spellType = SpellType.Active;
+
         projectilePrefabs = new GameObject[1];
     }
 

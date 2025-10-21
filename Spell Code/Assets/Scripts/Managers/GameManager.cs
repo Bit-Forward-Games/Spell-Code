@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,6 +17,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool isRunning;
     public bool isSaved;
     private DataManager dataManager;
+    public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
 
     public int round = 1;
     public bool roundOver;

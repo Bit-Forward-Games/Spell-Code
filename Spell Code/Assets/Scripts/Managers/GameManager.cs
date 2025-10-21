@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool prevSceneWasShop;
 
+    public System.Random myRandom = new System.Random(14826);
+
     private void Awake()
     {
         // if an instance already exists and it's not this one, destroy this duplicate

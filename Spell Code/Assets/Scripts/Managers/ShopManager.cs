@@ -14,8 +14,6 @@ public class ShopManager : MonoBehaviour
     private GameManager gameManager;
     public TextMeshProUGUI spellText;
 
-    public int rndSeed = 18246;
-
 
     public List<string> spells;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -39,7 +37,6 @@ public class ShopManager : MonoBehaviour
         {
             gameManager.players[i].GetComponent<SpriteRenderer>().enabled = false;
         }
-        Random.InitState(rndSeed);
         GivePlayersSpell();
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(4);
@@ -58,7 +55,7 @@ public class ShopManager : MonoBehaviour
             spells.Add(item.Key);
         }
 
-        int randomInt = Random.Range(0, spells.Count);
+        int randomInt = gameManager.myRandom.Next(0, spells.Count);
 
         string spellToAdd = spells[randomInt];
 
@@ -71,6 +68,11 @@ public class ShopManager : MonoBehaviour
         for (int i = 0; i < gameManager.playerCount; i++)
         {
             string newSpell = GrantSpell();
+
+            //for (int j = 0; j < gameManager.players[i].spellList.Count; j++)
+            //{
+                
+            //}
 
             gameManager.players[i].AddSpellToSpellList(newSpell);
 

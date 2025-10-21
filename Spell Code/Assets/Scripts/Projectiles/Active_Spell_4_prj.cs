@@ -35,12 +35,12 @@ public class Active_Spell_4_prj : BaseProjectile
                 {
                     xOffset = 0,
                     yOffset = 3,
-                    width = 160,
+                    width = 40,
                     height = 6,
                     xKnockback = 0,
                     yKnockback = 1,
                     damage = 10,
-                    hitstun = 30,
+                    hitstun = 20,
                     attackLvl = 2,
                     //cancelOptions = new List<int> { } // No cancel options
                 }

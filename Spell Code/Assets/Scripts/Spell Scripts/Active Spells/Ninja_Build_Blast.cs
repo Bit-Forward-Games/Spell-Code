@@ -5,6 +5,7 @@ public class Ninja_Build_Blast : SpellData
     public Ninja_Build_Blast()
     {
         spellName = "Ninja_Build_Blast";
+        brands = new Brand[] { Brand.Halk };
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;

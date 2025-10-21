@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
 using UnityEngine.Rendering.Universal;
-using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -88,8 +89,8 @@ public class PlayerController : MonoBehaviour
     public float gravity = 1;
     [HideInInspector]
     public float jumpForce = 10;
-    private float runSpeed = 0f;
-    private float slideSpeed = 0f;
+    public float runSpeed = 0f;
+    public float slideSpeed = 0f;
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
@@ -244,6 +245,7 @@ public class PlayerController : MonoBehaviour
         SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
         spellList.Add(Instantiate(targetSpell));
         spellList[spellList.Count-1].owner = this;
+        spellList[spellList.Count - 1].LoadSpell();
         ProjectileManager.Instance.InitializeAllProjectiles();
         //spellCount++;
     }
@@ -724,6 +726,13 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
+            {
+                spellList[i].CheckCondition();
+            }
+        }
 
         for (int i = 0; i < spellList.Count; i++)
         {
@@ -736,6 +745,20 @@ public class PlayerController : MonoBehaviour
         PlayerWorldCollisionCheck();
         position.x += hSpd;
         position.y += vSpd;
+        
+        // Check conditions of all spells with the onupdate condition
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
+            {
+                spellList[i].CheckCondition();
+            }
+        }
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            spellList[i].SpellUpdate();
+        }
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);

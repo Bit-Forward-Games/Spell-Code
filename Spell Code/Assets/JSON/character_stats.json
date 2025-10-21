@@ -7,7 +7,9 @@
         "Ninja_Build_Blast",
         "MightOfZeus",
         "GiftOfPrometheus",
-        "SkillshotSlash"
+        "SkillshotSlash",
+        "JumpBoost",
+        "SpeedBoost"
       ],
       "runSpeed": 30,
       "slideSpeed": 40,

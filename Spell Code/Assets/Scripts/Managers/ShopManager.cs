@@ -14,12 +14,15 @@ public class ShopManager : MonoBehaviour
     private GameManager gameManager;
     public TextMeshProUGUI spellText;
 
+    public System.Random myRandom;
 
     public List<string> spells;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         gameManager = GameManager.Instance;
+
+        myRandom = new System.Random(Random.Range(0, 10000));
 
         StartCoroutine(Shop());
     }
@@ -33,11 +36,10 @@ public class ShopManager : MonoBehaviour
 
     public IEnumerator Shop()
     {
-        //for (int i = 0; i < gameManager.playerCount; i++)
-        //{
-        //    gameManager.players[i].GetComponent<SpriteRenderer>().enabled = false;
-        //}
-        GivePlayersSpell();
+        for (int i = 0; i < gameManager.playerCount; i++)
+        {
+            GivePlayerSpell(i);
+        }
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(4);
         GameManager.Instance.isRunning = true;
@@ -56,7 +58,9 @@ public class ShopManager : MonoBehaviour
             spells.Add(item.Key);
         }
 
-        int randomInt = gameManager.myRandom.Next(0, spells.Count);
+        spells.Remove("Active_Spell_4");
+
+        int randomInt = myRandom.Next(0, spells.Count);
 
         string spellToAdd = spells[randomInt];
 
@@ -64,20 +68,30 @@ public class ShopManager : MonoBehaviour
 
     }
 
-    public void GivePlayersSpell()
-    {
-        for (int i = 0; i < gameManager.playerCount; i++)
+    public void GivePlayerSpell(int index)
+    {        
+        string newSpell = GrantSpell();
+
+        //string fullSpellString = newSpell + "(Clone) " + newSpell;
+        List<string> playerSpells = new List<string>();
+
+        for (int i = 0; i < gameManager.players[index].spellList.Count; i++)
         {
-            string newSpell = GrantSpell();
-
-            //for (int j = 0; j < gameManager.players[i].spellList.Count; j++)
-            //{
-                
-            //}
-
-            gameManager.players[i].AddSpellToSpellList(newSpell);
-
-            spellText.text += "player " + (i + 1) + " acquired: " + newSpell + "\n";
+            playerSpells.Add(gameManager.players[index].spellList[i].spellName);
         }
+
+        if (!playerSpells.Contains(newSpell))//gameManager.players[index].spellList.Contains((SpellData)SpellDictionary.Instance.spellDict[newSpell]) == false)
+        {
+            Debug.Log("Giving player " + (index + 1) + " " + newSpell);
+            gameManager.players[index].AddSpellToSpellList(newSpell);
+
+            spellText.text += "player " + (index + 1) + " acquired: " + newSpell + "\n";
+
+            return;
+        }
+
+        Debug.Log("player " + (index + 1) + " already has " + newSpell);
+        GivePlayerSpell(index);
+
     }
 }

@@ -25,8 +25,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool prevSceneWasShop;
 
-    public System.Random myRandom = new System.Random(14826);
-
     private void Awake()
     {
         // if an instance already exists and it's not this one, destroy this duplicate
@@ -48,7 +46,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isRunning = true;
         isSaved = false;
 
-        dataManager = FindAnyObjectByType<DataManager>();
+        dataManager = DataManager.Instance;
         //StartCoroutine(End());
     }
 
@@ -233,6 +231,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 player.SpawnPlayer(Vector2.zero);
             }
         }
+
+        isSaved = false;
     }
 
     public void SaveMatch()
@@ -282,10 +282,17 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     totalSpelltime += players[i].times[k];
                 }
 
-                matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+                if (players[i].times.Count > 0)
+                {
+                    matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+                }
+                else
+                {
+                    matchData.playerData[i].avgTimeToCast = 0;
+                }
 
-                //save spell name to spellList provided it isn't null. If null, add 'no spell'
-                matchData.playerData[i].spellList = new string[players[i].spellList.Count];
+                    //save spell name to spellList provided it isn't null. If null, add 'no spell'
+                    matchData.playerData[i].spellList = new string[players[i].spellList.Count];
                 for (int j = 0; j < players[i].spellList.Count; j++)
                 {
                     if (players[i].spellList[j] is null)

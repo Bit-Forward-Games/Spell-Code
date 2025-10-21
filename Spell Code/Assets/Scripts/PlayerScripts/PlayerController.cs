@@ -417,13 +417,13 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //Check Direction Inputs
-                if (input.Direction == 6)
+                if (input.Direction%3 == 0) //3 6 or 9
                 {
                     facingRight = true;
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.Direction == 4)
+                else if (input.Direction%3 == 1)// 1 4 or 7
                 {
                     facingRight = false;
                     SetState(PlayerState.Run);
@@ -444,7 +444,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Run:
 
-
+                
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
@@ -466,12 +466,12 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
-                else if (input.Direction == (facingRight ? 4 : 6))
+                else if (input.Direction%3 == (facingRight ? 1 : 0))
                 {
                     facingRight = !facingRight;
                     break;
                 }
-                else if (input.Direction == (facingRight ? 6 : 4))
+                else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
                     hSpd = runSpeed * (facingRight ? 1 : -1);

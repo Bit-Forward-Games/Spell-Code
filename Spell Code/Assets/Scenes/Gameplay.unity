@@ -424,7 +424,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 103.166664
+  orthographic size: 104.666664
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -538,10 +538,10 @@ MonoBehaviour:
   offset: {x: 0, y: 48}
   damping: 0
   minZoom: 90
-  maxZoom: 360
-  minDistance: 180
+  maxZoom: 420
+  minDistance: 120
   zoomLimiter: 480
-  zoomSpeed: 1
+  zoomSpeed: 5
   shakeDuration: 0.5
   shakeMagnitude: 1
   target: {x: 0, y: 0}

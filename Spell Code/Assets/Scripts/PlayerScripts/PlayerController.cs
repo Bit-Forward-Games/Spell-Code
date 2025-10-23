@@ -396,7 +396,8 @@ public class PlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            vSpd -= gravity;
+            vSpd -= vSpd>0?gravity:gravity/2;
+
         }
 
         PlayerState tempState = state;

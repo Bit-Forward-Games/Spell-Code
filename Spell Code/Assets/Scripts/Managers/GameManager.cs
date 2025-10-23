@@ -1,14 +1,15 @@
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public class GameManager : NonPersistantSingleton<GameManager>
+public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
-    //public static GameManager Instance { get; private set; }
+    public static GameManager Instance { get; private set; }
 
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
@@ -16,50 +17,111 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool isRunning;
     public bool isSaved;
     private DataManager dataManager;
-    public Canvas shop;
+    public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
+    public TempUIScript tempUI;
 
     public int round = 1;
     public bool roundOver;
 
-    //private void Awake()
-    //{
-    //    // If an instance already exists and it's not this one, destroy this duplicate
-    //    if (Instance != null && Instance != this)
-    //    {
-    //        Destroy(gameObject);
-    //    }
-    //    else
-    //    {
-    //        // Otherwise, set this as the instance
-    //        Instance = this;
-    //        // Optional: Prevent the GameObject from being destroyed when loading new scenes
-    //        DontDestroyOnLoad(gameObject);
-    //    }
-    //}
+    public bool prevSceneWasShop;
+
+    private void Awake()
+    {
+        // if an instance already exists and it's not this one, destroy this duplicate
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            // otherwise, set this as the instance
+            Instance = this;
+            // optional: prevent the gameobject from being destroyed when loading new scenes
+            DontDestroyOnLoad(gameObject);
+        }
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         isRunning = true;
         isSaved = false;
 
-        dataManager = FindAnyObjectByType<DataManager>();
+        dataManager = DataManager.Instance;
         //StartCoroutine(End());
-        shop.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        // If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "Gameplay")
+        {
+            // Set all known players to not alive
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        //players[i].isAlive = false;
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                }
+            }
+
+            // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
+            //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
+
+        }
+        else
+        {
+                       // Ensure temp UI is enabled during gameplay
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
+            // Also ensure all players' sprites are enabled
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null && players[i].isAlive)
+                    {
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                    }
+                }
+            }
+        }
+
         //This is just a shortcut for me to test stuff
-        
+
         //if (Input.GetKeyDown(KeyCode.K))
         //{
         //    SaveMatch();
         //}
+
+        //if ` is pressed, toggle box rendering
+        if (Input.GetKeyDown(KeyCode.BackQuote))
+        {
+            BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
+        }
+
+        
     }
 
     private void FixedUpdate()
     {
+        if (prevSceneWasShop)
+        {
+            ResetPlayers();
+            prevSceneWasShop = false;
+        }
+
         RunFrame();
 
         AnimationManager.Instance.RenderGameState();
@@ -72,7 +134,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
     /// <summary>
     /// Runs a single frame of the game.
     /// </summary>
-    protected  void RunFrame()
+    protected void RunFrame()
     {
         if (!isRunning)
             return;
@@ -86,6 +148,15 @@ public class GameManager : NonPersistantSingleton<GameManager>
         UpdateGameState(inputs);
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (players[i].isAlive)
+                {
+                    Debug.Log("Player " + (i + 1) + " wins the match!");
+                    players[i].isAlive = false; //reset for next round
+                    break;
+                }
+            }
             dataManager.totalRoundsPlayed += 1;
 
             //Game end logic here
@@ -97,7 +168,7 @@ public class GameManager : NonPersistantSingleton<GameManager>
             else
             {
                 RoundEnd();
-            }            
+            }
         }
     }
 
@@ -108,15 +179,25 @@ public class GameManager : NonPersistantSingleton<GameManager>
     protected void UpdateGameState(long[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
+
         HitboxManager.Instance.ProcessCollisions();
+
+        //update each player update values
         for (int i = 0; i < playerCount; i++)
         {
             players[i].PlayerUpdate(inputs[i]);
         }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i].isAlive) {
+                players[i].ProcEffectUpdate();
+            }
+        }
     }
 
     //gets called everytime a new player enters, recreates player array
-    public void GetPlayerControllers( PlayerInput playerInput)
+    public void GetPlayerControllers(PlayerInput playerInput)
     {
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
@@ -130,22 +211,34 @@ public class GameManager : NonPersistantSingleton<GameManager>
     public bool CheckGameEnd(PlayerController[] playerControllers)
     {
         int alivePlayers = 0;
-        foreach(PlayerController player in playerControllers)
+        foreach (PlayerController player in playerControllers)
         {
-            if (player.currrentPlayerHealth > 0) alivePlayers++;
+            if (player.isAlive) alivePlayers++;
         }
-        if (alivePlayers <= 1 && playerCount >1)
+        if (alivePlayers <= 1 && playerCount > 1)
         {
             return true;
         }
         return false;
     }
 
+    public void ResetPlayers()
+    {
+        foreach (PlayerController player in players)
+        {
+            if (player != null)
+            {
+                player.SpawnPlayer(Vector2.zero);
+            }
+        }
+
+        isSaved = false;
+    }
+
     public void SaveMatch()
     {
         //general game data
         MatchData matchData = new MatchData();
-        matchData.dateTime = System.DateTime.Now.ToString();
 
         //player data, looped for each player
         if (playerCount > 0)
@@ -173,8 +266,15 @@ public class GameManager : NonPersistantSingleton<GameManager>
                     matchData.playerData[i].matchWon = false;
                 }
 
-                    //calculated accuracy
+                //calculated accuracy
+                if(players[i].basicsFired + players[i].spellsFired == 0)
+                {
+                    matchData.playerData[i].accuracy = 0;
+                }
+                else
+                {
                     matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
+                }
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 
                 for (int k = 0; k < players[i].times.Count; k++)
@@ -182,11 +282,18 @@ public class GameManager : NonPersistantSingleton<GameManager>
                     totalSpelltime += players[i].times[k];
                 }
 
-                matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+                if (players[i].times.Count > 0)
+                {
+                    matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+                }
+                else
+                {
+                    matchData.playerData[i].avgTimeToCast = 0;
+                }
 
-                //save spell name to spellList provided it isn't null. If null, add 'no spell'
-                matchData.playerData[i].spellList = new string[players[i].spellList.Length];
-                for (int j = 0; j < players[i].spellList.Length; j++)
+                    //save spell name to spellList provided it isn't null. If null, add 'no spell'
+                    matchData.playerData[i].spellList = new string[players[i].spellList.Count];
+                for (int j = 0; j < players[i].spellList.Count; j++)
                 {
                     if (players[i].spellList[j] is null)
                     {
@@ -215,7 +322,8 @@ public class GameManager : NonPersistantSingleton<GameManager>
             SaveMatch();
             isSaved = true;
         }
-
+        ProjectileManager.Instance.DeleteAllProjectiles();
+        isRunning = false;
         SceneManager.LoadScene("Shop");
     }
 
@@ -228,6 +336,9 @@ public class GameManager : NonPersistantSingleton<GameManager>
             isSaved = true;
         }
 
+        dataManager.SaveToFile();
+        ProjectileManager.Instance.DeleteAllProjectiles();
+        isRunning = false;
         SceneManager.LoadScene("End");
     }
 

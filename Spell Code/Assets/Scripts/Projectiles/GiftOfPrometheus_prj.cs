@@ -21,7 +21,6 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
     }
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
 
         deleteOnHit = false;
         projectileHitboxes = new HitboxGroup[2];
@@ -48,13 +47,14 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
                     damage = 34,
                     hitstun = 30,
                     attackLvl = 2,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()

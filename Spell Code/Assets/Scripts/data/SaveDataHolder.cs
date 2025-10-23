@@ -5,5 +5,6 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveDataHolder
 {
+    public string dateTime;
     public List<MatchData> matchData;
 }

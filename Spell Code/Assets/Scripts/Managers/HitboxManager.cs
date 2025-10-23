@@ -15,8 +15,23 @@ public enum ForceHitstunType
     Air,
 }
 
-public class HitboxManager : NonPersistantSingleton<HitboxManager>
+public class HitboxManager : MonoBehaviour
 {
+    // Singleton Instance
+    public static HitboxManager Instance { get; private set; }
+    private void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
     // ===== | Variables | =====
     PlayerState[] playerStates = new PlayerState[4];
 
@@ -39,7 +54,11 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
     public void ProcessCollisions()
     {
-        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        
+
+
+
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerStates[i] = GameManager.Instance.players[i].state;
             playerCharacters[i] = GameManager.Instance.players[i].characterName;
@@ -69,7 +88,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
             //PlayerController attackingPlayer = projectile.owner;
             PlayerController[] defendingPlayers = GameManager.Instance.players
-                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount)
+                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount && p.isAlive)
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
@@ -84,7 +103,6 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                         if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
-
                             defendingPlayer.facingRight = !projectile.facingRight;
                             byte hitstopVal = 5;
                             defendingPlayer.hitstop = hitstopVal;
@@ -274,6 +292,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
 
     private void OnGUI()
     {
+        
         if (!BoxRenderer.RenderBoxes) return;
 
 
@@ -311,7 +330,7 @@ public class HitboxManager : NonPersistantSingleton<HitboxManager>
                 Vector2 projOrigin = projectile.position;
                 projOrigin.x += GetOffsetX(hitbox, projectile.facingRight);
                 projOrigin.y += hitbox.yOffset; //i defintely need patrick to fix this
-                BoxRenderer.DrawBox(projOrigin, hitbox.width, hitbox.height, new Color(1, 0, 0, 0.5f));
+                BoxRenderer.DrawBox(projOrigin, hitbox.width, hitbox.height, hitbox.sweetSpot? new Color(1, 1, 0, 0.5f): new Color(1, 0, 0, 0.5f));
             }
         }
     }

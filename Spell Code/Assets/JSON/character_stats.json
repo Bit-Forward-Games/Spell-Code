@@ -4,10 +4,8 @@
       "character": "Code-E",
       "basicAttackProjId": "CodeE_Basic_Projectile",
       "startingInventory": [
-        "Ninja_Build_Blast",
-        "MightOfZeus",
         "GiftOfPrometheus",
-        "Ninja_Build_Blast"
+        "SkillshotSlash"
       ],
       "runSpeed": 30,
       "slideSpeed": 40,

@@ -12,7 +12,7 @@ public class MightOfZeus_Projectile : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 2, 2, 2, 2 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -24,7 +24,6 @@ public class MightOfZeus_Projectile : BaseProjectile
 
     public override void LoadProjectile()
     {
-        base.LoadProjectile();
         projectileHitboxes = new HitboxGroup[2];
         projectileHitboxes[1] = new HitboxGroup
         {
@@ -32,16 +31,16 @@ public class MightOfZeus_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 0,
-                    yOffset = 3,
-                    width = 160,
-                    height = 6,
+                    xOffset = -12,
+                    yOffset = 180,
+                    width = 30,
+                    height = 180,
                     xKnockback = 0,
                     yKnockback = 1,
                     damage = 10,
                     hitstun = 30,
                     attackLvl = 2,
-                    cancelOptions = new List<int> { } // No cancel options
+                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -55,6 +54,7 @@ public class MightOfZeus_Projectile : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()

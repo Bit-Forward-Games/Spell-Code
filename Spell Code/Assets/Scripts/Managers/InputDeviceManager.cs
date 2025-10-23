@@ -2,8 +2,23 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-public class InputDeviceManager : NonPersistantSingleton<InputDeviceManager>
+public class InputDeviceManager : MonoBehaviour
 {
+    public static InputDeviceManager Instance { get; private set; }
+    private void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
     // ===== | Variables | =====
     private ReadOnlyArray<InputDevice> connectedInputDevices;
 

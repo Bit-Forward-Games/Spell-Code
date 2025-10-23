@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TempUIScript : MonoBehaviour
 {
-    public TextMeshProUGUI[] playerHpVals = new TextMeshProUGUI[4];
+    public TextMeshProUGUI[] playerHpVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

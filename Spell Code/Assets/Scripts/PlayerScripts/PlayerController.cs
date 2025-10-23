@@ -496,13 +496,13 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                if (input.Direction == 6)
+                if (input.Direction%3 == 0)
                 {
                     //run logic
                     facingRight = true;
                     LerpHspd((int)runSpeed, 3);
                 }
-                else if (input.Direction == 4)
+                else if (input.Direction%3 == 1)
                 {
                     facingRight = false;
                     LerpHspd(-(int)runSpeed, 3);

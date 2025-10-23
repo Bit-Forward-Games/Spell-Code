@@ -535,7 +535,6 @@ public class PlayerController : MonoBehaviour
                 {
                     ClearInputDisplay();
                     stateSpecificArg = 0;
-                    break;
                 }
 
                 if (input.Direction is 5 or 1 or 3 or 7 or 9)

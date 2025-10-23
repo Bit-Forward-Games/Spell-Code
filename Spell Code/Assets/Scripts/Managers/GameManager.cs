@@ -228,6 +228,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (player != null)
             {
+                player.basicsFired = 0;
+                player.spellsFired = 0;
+                player.spellsHit = 0;
+                player.times = new List<float>();
                 player.SpawnPlayer(Vector2.zero);
             }
         }
@@ -235,91 +239,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isSaved = false;
     }
 
-    public void SaveMatch()
-    {
-        //general game data
-        MatchData matchData = new MatchData();
-
-        //player data, looped for each player
-        if (playerCount > 0)
-        {
-            matchData.playerData = new PlayerData[playerCount];
-
-            for (int i = 0; i < playerCount; i++)
-            {
-                float totalSpelltime = 0;
-
-                //raw stats
-                matchData.playerData[i] = new PlayerData();
-                matchData.playerData[i].basicsFired = players[i].basicsFired;
-                matchData.playerData[i].codesFired = players[i].spellsFired;
-                matchData.playerData[i].codesHit = players[i].spellsHit;
-                matchData.playerData[i].synthesizer = players[i].characterName;
-                matchData.playerData[i].times = players[i].times;
-
-                if (players[i].currrentPlayerHealth > 0)
-                {
-                    matchData.playerData[i].matchWon = true;
-                }
-                else
-                {
-                    matchData.playerData[i].matchWon = false;
-                }
-
-                //calculated accuracy
-                if(players[i].basicsFired + players[i].spellsFired == 0)
-                {
-                    matchData.playerData[i].accuracy = 0;
-                }
-                else
-                {
-                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
-                }
-
-                //calculated avg time to cast a spell (totalTime / instances of times) 
-                for (int k = 0; k < players[i].times.Count; k++)
-                {
-                    totalSpelltime += players[i].times[k];
-                }
-
-                if (players[i].times.Count > 0)
-                {
-                    matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
-                }
-                else
-                {
-                    matchData.playerData[i].avgTimeToCast = 0;
-                }
-
-                    //save spell name to spellList provided it isn't null. If null, add 'no spell'
-                    matchData.playerData[i].spellList = new string[players[i].spellList.Count];
-                for (int j = 0; j < players[i].spellList.Count; j++)
-                {
-                    if (players[i].spellList[j] is null)
-                    {
-                        matchData.playerData[i].spellList[j] = "no spell";
-                    }
-                    else
-                    {
-                        matchData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
-                    }
-                }
-            }
-        }
-
-        //save match data to gameData object
-        dataManager.gameData.matchData.Add(matchData);
-
-        //players = new PlayerController[4];
-        //playerCount = 0;
-    }
-
     //A round is 1 match + spell acquisition phase
     public void RoundEnd()
     {
         if (!isSaved)
         {
-            SaveMatch();
+            dataManager.SaveMatch();
             isSaved = true;
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
@@ -332,7 +257,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         if (!isSaved)
         {
-            SaveMatch();
+            dataManager.SaveMatch();
             isSaved = true;
         }
 
@@ -350,18 +275,5 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             activePlayers[i] = players[i];
         }
         return activePlayers;
-    }
-
-    //resets the raw stats for each player back to 0 or their base state
-    public void ResetPlayerStats()
-    {
-        for (int i = 0; i < playerCount; i++)
-        {
-            players[i].basicsFired = 0;
-            players[i].spellsFired = 0;
-            players[i].spellsHit = 0;
-            players[i].times = new List<float>();
-
-        }
     }
 }

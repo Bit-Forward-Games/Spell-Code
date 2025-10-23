@@ -24,17 +24,15 @@ public class SceneUiManager : MonoBehaviour
     // Update is called once per frame
     public void LoadScene(string sceneName)
     {
+        if (sceneName == "Gameplay")
+        {
+            DataManager.Instance.ResetData();
+        }
         SceneManager.LoadScene(sceneName);
     }
 
     public void QuitGame()
     {
-        //if there is data, save it before quitting
-        if (dm.gameData.matchData.Count > 0)
-        {
-            dm.SaveToFile();
-        }
-
         Application.Quit();
     }
 }

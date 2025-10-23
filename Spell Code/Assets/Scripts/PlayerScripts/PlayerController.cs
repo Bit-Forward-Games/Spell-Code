@@ -860,6 +860,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Hitstun:
+                ClearInputDisplay();
                 stateSpecificArg = hitboxData.hitstun;
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;

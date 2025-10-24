@@ -248,7 +248,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void RestartGame()
     {
         dataManager.totalRoundsPlayed = 0;
-        players = new PlayerController[4];
     }
 
     //A round is 1 match + spell acquisition phase

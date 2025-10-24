@@ -22,17 +22,25 @@ public class SceneUiManager : MonoBehaviour
 	}
 
     /// <summary>
-    /// Reset Data objects as well as all players
+    /// Load the sceme
     /// </summary>
     /// <param name="sceneName"></param>
     public void LoadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
+    }
+
+    /// <summary>
+    /// Reset Data objects as well as all players
+    /// </summary>
+    public void Restart()
     {
         if (sceneName == "Gameplay")
         {
             DataManager.Instance.ResetData();
             GameManager.Instance.RestartGame();
         }
-        SceneManager.LoadScene(sceneName);
+        SceneManager.LoadScene("Gameplay");
     }
 
     public void QuitGame()

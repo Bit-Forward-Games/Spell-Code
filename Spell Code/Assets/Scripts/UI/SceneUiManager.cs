@@ -21,12 +21,16 @@ public class SceneUiManager : MonoBehaviour
 		
 	}
 
-    // Update is called once per frame
+    /// <summary>
+    /// Reset Data objects as well as all players
+    /// </summary>
+    /// <param name="sceneName"></param>
     public void LoadScene(string sceneName)
     {
         if (sceneName == "Gameplay")
         {
             DataManager.Instance.ResetData();
+            GameManager.Instance.RestartGame();
         }
         SceneManager.LoadScene(sceneName);
     }

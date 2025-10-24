@@ -204,7 +204,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
 
-
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].playerNum.text = "P" + (i + 1);
+        }
 
     }
 
@@ -237,6 +240,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         isSaved = false;
+    }
+
+    /// <summary>
+    /// Restart gamestate when "play" or "rematch" is pressed
+    /// </summary>
+    public void RestartGame()
+    {
+        dataManager.totalRoundsPlayed = 0;
+        players = new PlayerController[4];
     }
 
     //A round is 1 match + spell acquisition phase

@@ -134,6 +134,7 @@ public class PlayerController : MonoBehaviour
     //TMPro
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
+    public TextMeshPro playerNum;
 
     [SerializeField]
     public Color colorSuccess;

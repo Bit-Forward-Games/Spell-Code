@@ -109,7 +109,7 @@ public class DataManager : MonoBehaviour
                 }
                 else
                 {
-                    matchData.playerData[i].accuracy = gM.players[i].spellsHit / (gM.players[i].basicsFired + gM.players[i].spellsFired);
+                    matchData.playerData[i].accuracy = 0f;
                 }
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 

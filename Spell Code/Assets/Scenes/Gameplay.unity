@@ -539,7 +539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6814927c10c0a174aa00cdc5c7ae4c7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 48}
+  offset: {x: 0, y: 36}
   damping: 0
   minZoom: 90
   maxZoom: 420

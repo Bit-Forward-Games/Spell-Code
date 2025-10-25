@@ -396,7 +396,8 @@ public class PlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            vSpd -= gravity;
+            vSpd -= vSpd>0?gravity:gravity/2;
+
         }
 
         PlayerState tempState = state;
@@ -496,13 +497,13 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                if (input.Direction == 6)
+                if (input.Direction%3 == 0)
                 {
                     //run logic
                     facingRight = true;
                     LerpHspd((int)runSpeed, 3);
                 }
-                else if (input.Direction == 4)
+                else if (input.Direction%3 == 1)
                 {
                     facingRight = false;
                     LerpHspd(-(int)runSpeed, 3);
@@ -535,7 +536,6 @@ public class PlayerController : MonoBehaviour
                 {
                     ClearInputDisplay();
                     stateSpecificArg = 0;
-                    break;
                 }
 
                 if (input.Direction is 5 or 1 or 3 or 7 or 9)

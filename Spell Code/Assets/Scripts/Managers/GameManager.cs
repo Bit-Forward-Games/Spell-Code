@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         // If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
         Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name != "Gameplay")
+        if (activeScene.name != "TestGameplay")
         {
             // Set all known players to not alive
             if (players != null)

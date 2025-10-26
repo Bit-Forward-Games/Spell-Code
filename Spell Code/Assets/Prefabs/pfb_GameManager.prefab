@@ -67,6 +67,7 @@ MonoBehaviour:
   - {fileID: 6820317830917821359}
   - {fileID: 4763732171476173978}
   tempUI: {fileID: 2090409580585679845}
+  currentStage: {fileID: 11400000, guid: ba424905c3eddaf49adde63fe8b3030f, type: 2}
   round: 1
   roundOver: 0
   prevSceneWasShop: 0

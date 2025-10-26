@@ -409,7 +409,6 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
 
-
                 //check for slide input:
                 if( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
@@ -474,7 +473,8 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    hSpd = runSpeed * (facingRight ? 1 : -1);
+                    LerpHspd((int)runSpeed * (facingRight ? 1 : -1), 0);
+                    //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
                 {
@@ -809,16 +809,18 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerWorldCollisionCheck()
     {
-        isGrounded = CheckGrounded();
+        //isGrounded = CheckGrounded();
         //CheckCameraCollision();
-        CheckWall(facingRight);
-        CheckWall(!facingRight);
+        //CheckWall(facingRight);
+        //CheckWall(!facingRight);
         CheckStageDataSOCollision();
         //PlayerCollisionCheck();
     }
 
     public bool CheckStageDataSOCollision(bool checkOnly = false)
     {
+        isGrounded = false;
+        bool returnVal = false;
         StageDataSO stageDataSO = GameManager.Instance.currentStage;
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
@@ -836,10 +838,10 @@ public class PlayerController : MonoBehaviour
                 float halfH = playerHeight * 0.5f;
 
                 // Player AABB
-                float pMinX = position.x - halfW;
-                float pMaxX = position.x + halfW;
-                float pMinY = position.y - halfH;
-                float pMaxY = position.y + halfH;
+                float pMinX = position.x + hSpd - halfW;
+                float pMaxX = position.x + hSpd + halfW;
+                float pMinY = position.y + vSpd;
+                float pMaxY = position.y + vSpd + playerHeight;
 
                 for (int i = 0; i < solidCount; i++)
                 {
@@ -879,12 +881,14 @@ public class PlayerController : MonoBehaviour
                         if (position.x < center.x)
                         {
                             // Player is left of solid -> push left
-                            position.x -= overlapX;
+                            //position.x -= overlapX;
+                            position.x = sMin.x - halfW;
                         }
                         else
                         {
                             // Player is right of solid -> push right
-                            position.x += overlapX;
+                            //position.x += overlapX;
+                            position.x = sMax.x + halfW;
                         }
                         hSpd = 0f;
                     }
@@ -894,20 +898,22 @@ public class PlayerController : MonoBehaviour
                         if (position.y < center.y)
                         {
                             // Player is below solid -> push down
-                            position.y -= overlapY;
+                            //position.y -= overlapY;
+                            position.y = sMin.y - playerHeight;
                             // If hitting underside, zero vertical speed
                             vSpd = 0f;
                         }
                         else
                         {
                             // Player is above solid -> land on top
-                            position.y += overlapY;
+                            //position.y += overlapY;
+                            position.y = sMax.y;
                             vSpd = 0f;
                             isGrounded = true;
                         }
                     }
 
-                    return true;
+                    returnVal = true;
                 }
             }
         }
@@ -922,10 +928,10 @@ public class PlayerController : MonoBehaviour
             float halfH = playerHeight * 0.5f;
 
             // Player AABB
-            float pMinX = position.x - halfW;
-            float pMaxX = position.x + halfW;
-            float pMinY = position.y - halfH;
-            float pMaxY = position.y + halfH;
+            float pMinX = position.x + hSpd - halfW;
+            float pMaxX = position.x + hSpd + halfW;
+            float pMinY = position.y + vSpd;
+            float pMaxY = position.y + vSpd + playerHeight;
 
             for (int i = 0; i < platformCount; i++)
             {
@@ -971,23 +977,23 @@ public class PlayerController : MonoBehaviour
                 if (pMinY < platformTop && pMaxY > platformTop && vSpd <= 0f)
                 {
                     // Snap player to platform top
-                    position.y = platformTop + halfH;
+                    position.y = platformTop;
                     vSpd = 0f;
                     isGrounded = true;
-                    return true;
+                    returnVal = true;
                 }
 
                 // Also handle the case where player is already slightly embedded (numerical drift) and not moving upward:
                 if (pMinY < platformTop && pMaxY > platformTop && Mathf.Approximately(vSpd, 0f))
                 {
-                    position.y = platformTop + halfH;
+                    position.y = platformTop;
                     isGrounded = true;
-                    return true;
+                    returnVal = true;
                 }
             }
         }
 
-        return false;
+        return returnVal;
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)

@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
+    public StageDataSO currentStage;
 
     public int round = 1;
     public bool roundOver;

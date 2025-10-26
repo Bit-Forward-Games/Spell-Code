@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -814,7 +813,181 @@ public class PlayerController : MonoBehaviour
         //CheckCameraCollision();
         CheckWall(facingRight);
         CheckWall(!facingRight);
+        CheckStageDataSOCollision();
         //PlayerCollisionCheck();
+    }
+
+    public bool CheckStageDataSOCollision(bool checkOnly = false)
+    {
+        StageDataSO stageDataSO = GameManager.Instance.currentStage;
+        if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
+        {
+            // if there's no stage or no solids at all, still check platforms below (handled later)
+            if (stageDataSO == null) return false;
+        }
+
+        // --- SOLIDS (unchanged behavior) ---
+        if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
+        {
+            int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
+            if (solidCount > 0)
+            {
+                float halfW = playerWidth * 0.5f;
+                float halfH = playerHeight * 0.5f;
+
+                // Player AABB
+                float pMinX = position.x - halfW;
+                float pMaxX = position.x + halfW;
+                float pMinY = position.y - halfH;
+                float pMaxY = position.y + halfH;
+
+                for (int i = 0; i < solidCount; i++)
+                {
+                    Vector2 center = stageDataSO.solidCenter[i];
+                    Vector2 extent = stageDataSO.solidExtent[i];
+
+                    // Treat extent as half-extents: solid min/max
+                    Vector2 sMin = center - extent;
+                    Vector2 sMax = center + extent;
+
+                    // Quick rejection test
+                    if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                    {
+                        continue;
+                    }
+
+                    // Overlap detected
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
+                    // Compute penetration amounts
+                    float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                    float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+
+                    if (overlapX <= 0f || overlapY <= 0f)
+                    {
+                        // Numerical edge-case: treat as no collision
+                        continue;
+                    }
+
+                    // Resolve along the smallest penetration axis
+                    if (overlapX < overlapY)
+                    {
+                        // Resolve horizontally
+                        if (position.x < center.x)
+                        {
+                            // Player is left of solid -> push left
+                            position.x -= overlapX;
+                        }
+                        else
+                        {
+                            // Player is right of solid -> push right
+                            position.x += overlapX;
+                        }
+                        hSpd = 0f;
+                    }
+                    else
+                    {
+                        // Resolve vertically
+                        if (position.y < center.y)
+                        {
+                            // Player is below solid -> push down
+                            position.y -= overlapY;
+                            // If hitting underside, zero vertical speed
+                            vSpd = 0f;
+                        }
+                        else
+                        {
+                            // Player is above solid -> land on top
+                            position.y += overlapY;
+                            vSpd = 0f;
+                            isGrounded = true;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        // --- PLATFORMS (one-way: only collide from above while falling/standing) ---
+        if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
+        {
+            int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
+            if (platformCount == 0) return false;
+
+            float halfW = playerWidth * 0.5f;
+            float halfH = playerHeight * 0.5f;
+
+            // Player AABB
+            float pMinX = position.x - halfW;
+            float pMaxX = position.x + halfW;
+            float pMinY = position.y - halfH;
+            float pMaxY = position.y + halfH;
+
+            for (int i = 0; i < platformCount; i++)
+            {
+                Vector2 center = stageDataSO.platformCenter[i];
+                Vector2 extent = stageDataSO.platformExtent[i];
+
+                // Treat extent as half-extents: platform min/max
+                Vector2 sMin = center - extent;
+                Vector2 sMax = center + extent;
+
+                // Quick horizontal rejection (platforms only matter when horizontally overlapping)
+                if (pMaxX < sMin.x || pMinX > sMax.x)
+                {
+                    continue;
+                }
+
+                // Quick vertical rejection: platforms are thin surfaces; only consider collisions near the top surface.
+                // We'll only allow collision when the player is at or above the platform top and moving downward (or stationary).
+                // This implements a simple one-way platform behaviour.
+                float platformTop = sMax.y;
+
+                // If player is completely below platform top, ignore.
+                if (pMaxY <= sMin.y)
+                    continue;
+
+                // Overlap in X direction
+                float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                if (overlapX <= 0f)
+                    continue;
+
+                // If checkOnly is requested and player's AABB intersects platform horizontally and vertically area, report true.
+                if (checkOnly)
+                {
+                    // Only report true for platforms when player is above or intersecting the top surface area
+                    if (pMinY < platformTop && pMaxY > sMin.y)
+                        return true;
+                    continue;
+                }
+
+                // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
+                // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
+                // This avoids blocking the player from jumping up through the platform.
+                if (pMinY < platformTop && pMaxY > platformTop && vSpd <= 0f)
+                {
+                    // Snap player to platform top
+                    position.y = platformTop + halfH;
+                    vSpd = 0f;
+                    isGrounded = true;
+                    return true;
+                }
+
+                // Also handle the case where player is already slightly embedded (numerical drift) and not moving upward:
+                if (pMinY < platformTop && pMaxY > platformTop && Mathf.Approximately(vSpd, 0f))
+                {
+                    position.y = platformTop + halfH;
+                    isGrounded = true;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
@@ -1364,5 +1537,6 @@ public class PlayerController : MonoBehaviour
         return codeString.Trim();
     }
 }
+
 
 

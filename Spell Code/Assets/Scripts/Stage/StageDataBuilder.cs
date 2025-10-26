@@ -24,9 +24,16 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.solidCenter = new Vector2[solids.Length];
         stageDataSO.solidExtent = new Vector2[solids.Length];
 
-        GetStageData();
+        
+    }
 
-        SaveStageData();
+    void Update()
+    {
+        if (Input.GetKey("s") && Input.GetKeyDown("o"))
+        {
+            GetStageData();
+            SaveStageData();
+        }
     }
 
     void GetStageData()

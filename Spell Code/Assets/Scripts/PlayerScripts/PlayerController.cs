@@ -710,12 +710,12 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Tech);
                 }
 
-                //bounce off the ground if we hit it
-                if (CheckGrounded(true) && vSpd < 0)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    vSpd = -vSpd;
-                }
+                ////bounce off the ground if we hit it
+                //if (CheckGrounded(true) && vSpd < 0)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    vSpd = -vSpd;
+                //}
 
 
                 stateSpecificArg--;
@@ -810,10 +810,10 @@ public class PlayerController : MonoBehaviour
     public void PlayerWorldCollisionCheck()
     {
         //isGrounded = CheckGrounded();
-        //CheckCameraCollision();
         //CheckWall(facingRight);
         //CheckWall(!facingRight);
         CheckStageDataSOCollision();
+        //CheckCameraCollision();
         //PlayerCollisionCheck();
     }
 
@@ -1035,7 +1035,7 @@ public class PlayerController : MonoBehaviour
                 //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
                 break;
             case PlayerState.Jump:
-                playerHeight = charData.playerHeight / 2;
+                //playerHeight = charData.playerHeight / 2;
 
                 break;
             case PlayerState.Hitstun:
@@ -1043,22 +1043,22 @@ public class PlayerController : MonoBehaviour
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
 
-                if (isGrounded)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    isGrounded = false;
-                }
+                //if (isGrounded)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    isGrounded = false;
+                //}
 
                 break;
 
             case PlayerState.Tech:
                 hSpd = facingRight ? -1 : 1;
                 vSpd = 5;
-                if (isGrounded)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    isGrounded = false;
-                }
+                //if (isGrounded)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    isGrounded = false;
+                //}
                 comboCounter = 0;
                 damageProration = 1f;
                 break;
@@ -1088,7 +1088,7 @@ public class PlayerController : MonoBehaviour
         switch (prevStateparam)
         {
             case PlayerState.Jump:
-                playerHeight = charData.playerHeight;
+                //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
                 gravity = 1;

@@ -428,7 +428,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.ButtonStates[0] == ButtonState.Pressed)
+                else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -454,7 +454,7 @@ public class PlayerController : MonoBehaviour
                 //Check Direction Inputs
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -491,7 +491,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -723,7 +723,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-
                     SetState(PlayerState.Idle);
                     break;
                 }

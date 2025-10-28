@@ -267,6 +267,22 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_JoinBehavior
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_JoinAction.m_Reference
+      value: 
+      objectReference: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_JoinAction.m_UseReference
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_JoinAction.m_Action.m_Name
+      value: Join
+      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -428,7 +444,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 99.166664
+  orthographic size: 94.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -989,8 +1005,8 @@ Transform:
   m_GameObject: {fileID: 2043363993}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 64, z: 100}
-  m_LocalScale: {x: 3.96, y: 3.96, z: 3.96}
+  m_LocalPosition: {x: 0, y: 0, z: 100}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}

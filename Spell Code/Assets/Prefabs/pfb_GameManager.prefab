@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 495033162692388922}
   - component: {fileID: 7022982774474964000}
   - component: {fileID: 699450530840418385}
+  - component: {fileID: 282400343946288658}
   m_Layer: 0
   m_Name: pfb_GameManager
   m_TagString: Untagged
@@ -66,6 +67,7 @@ MonoBehaviour:
   - {fileID: 6820317830917821359}
   - {fileID: 4763732171476173978}
   tempUI: {fileID: 2090409580585679845}
+  currentStage: {fileID: 11400000, guid: ba424905c3eddaf49adde63fe8b3030f, type: 2}
   round: 1
   roundOver: 0
   prevSceneWasShop: 0
@@ -223,6 +225,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefabs: []
   activeProjectiles: []
+--- !u!114 &282400343946288658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b482fe1c3d8c4c5196a7c8bad6d3168, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stageDataSO: {fileID: 11400000, guid: 1da0368d168d848b7aa45e21767bd742, type: 2}
 --- !u!1001 &2512792044154174187
 PrefabInstance:
   m_ObjectHideFlags: 0

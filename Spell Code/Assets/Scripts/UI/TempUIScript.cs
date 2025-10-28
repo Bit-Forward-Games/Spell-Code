@@ -20,7 +20,7 @@ public class TempUIScript : MonoBehaviour
     {
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currrentPlayerHealth;
+            playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currentPlayerHealth;
         }
     }
 }

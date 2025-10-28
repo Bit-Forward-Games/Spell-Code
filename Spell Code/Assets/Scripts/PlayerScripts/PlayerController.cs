@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -104,7 +103,7 @@ public class PlayerController : MonoBehaviour
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[2];
-    public ushort currrentPlayerHealth = 0;
+    public ushort currentPlayerHealth = 0;
 
     // Push Box Variables
     [HideInInspector]
@@ -186,7 +185,7 @@ public class PlayerController : MonoBehaviour
         charData = CharacterDataDictionary.GetCharacterData(characterName);
         //print(charData.projectileIds);
 
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -216,7 +215,7 @@ public class PlayerController : MonoBehaviour
         hSpd = 0;
         vSpd = 0;
         stateSpecificArg = 0;
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -357,7 +356,7 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.enabled = false;
         }
 
-        if (currrentPlayerHealth <= 0)
+        if (currentPlayerHealth <= 0)
         {
             isAlive = false;
             return;
@@ -411,7 +410,6 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
 
-
                 //check for slide input:
                 if( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
@@ -431,7 +429,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.ButtonStates[0] == ButtonState.Pressed)
+                else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -457,7 +455,7 @@ public class PlayerController : MonoBehaviour
                 //Check Direction Inputs
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -476,7 +474,8 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    hSpd = runSpeed * (facingRight ? 1 : -1);
+                    LerpHspd((int)runSpeed * (facingRight ? 1 : -1), 0);
+                    //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
                 {
@@ -493,7 +492,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -712,12 +711,12 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Tech);
                 }
 
-                //bounce off the ground if we hit it
-                if (CheckGrounded(true) && vSpd < 0)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    vSpd = -vSpd;
-                }
+                ////bounce off the ground if we hit it
+                //if (CheckGrounded(true) && vSpd < 0)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    vSpd = -vSpd;
+                //}
 
 
                 stateSpecificArg--;
@@ -725,7 +724,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-
                     SetState(PlayerState.Idle);
                     break;
                 }
@@ -811,11 +809,191 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerWorldCollisionCheck()
     {
-        isGrounded = CheckGrounded();
+        //isGrounded = CheckGrounded();
+        //CheckWall(facingRight);
+        //CheckWall(!facingRight);
+        CheckStageDataSOCollision();
         //CheckCameraCollision();
-        CheckWall(facingRight);
-        CheckWall(!facingRight);
         //PlayerCollisionCheck();
+    }
+
+    public bool CheckStageDataSOCollision(bool checkOnly = false)
+    {
+        isGrounded = false;
+        bool returnVal = false;
+        StageDataSO stageDataSO = GameManager.Instance.currentStage;
+        if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
+        {
+            // if there's no stage or no solids at all, still check platforms below (handled later)
+            if (stageDataSO == null) return false;
+        }
+
+        // --- SOLIDS (unchanged behavior) ---
+        if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
+        {
+            int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
+            if (solidCount > 0)
+            {
+                float halfW = playerWidth * 0.5f;
+                float halfH = playerHeight * 0.5f;
+
+                // Player AABB
+                float pMinX = position.x + hSpd - halfW;
+                float pMaxX = position.x + hSpd + halfW;
+                float pMinY = position.y + vSpd;
+                float pMaxY = position.y + vSpd + playerHeight;
+
+                for (int i = 0; i < solidCount; i++)
+                {
+                    Vector2 center = stageDataSO.solidCenter[i];
+                    Vector2 extent = stageDataSO.solidExtent[i];
+
+                    // Treat extent as half-extents: solid min/max
+                    Vector2 sMin = center - extent;
+                    Vector2 sMax = center + extent;
+
+                    // Quick rejection test
+                    if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                    {
+                        continue;
+                    }
+
+                    // Overlap detected
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
+                    // Compute penetration amounts
+                    float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                    float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+
+                    if (overlapX <= 0f || overlapY <= 0f)
+                    {
+                        // Numerical edge-case: treat as no collision
+                        continue;
+                    }
+
+                    // Resolve along the smallest penetration axis
+                    if (overlapX < overlapY)
+                    {
+                        // Resolve horizontally
+                        if (position.x < center.x)
+                        {
+                            // Player is left of solid -> push left
+                            //position.x -= overlapX;
+                            position.x = sMin.x - halfW;
+                        }
+                        else
+                        {
+                            // Player is right of solid -> push right
+                            //position.x += overlapX;
+                            position.x = sMax.x + halfW;
+                        }
+                        hSpd = 0f;
+                    }
+                    else
+                    {
+                        // Resolve vertically
+                        if (position.y < center.y)
+                        {
+                            // Player is below solid -> push down
+                            //position.y -= overlapY;
+                            position.y = sMin.y - playerHeight;
+                            // If hitting underside, zero vertical speed
+                            vSpd = 0f;
+                        }
+                        else
+                        {
+                            // Player is above solid -> land on top
+                            //position.y += overlapY;
+                            position.y = sMax.y;
+                            vSpd = 0f;
+                            isGrounded = true;
+                        }
+                    }
+
+                    returnVal = true;
+                }
+            }
+        }
+
+        // --- PLATFORMS (one-way: only collide from above while falling/standing) ---
+        if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
+        {
+            int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
+            if (platformCount == 0) return false;
+
+            float halfW = playerWidth * 0.5f;
+            float halfH = playerHeight * 0.5f;
+
+            // Player AABB
+            float pMinX = position.x + hSpd - halfW;
+            float pMaxX = position.x + hSpd + halfW;
+            float pMinY = position.y + vSpd;
+            float pMaxY = position.y + vSpd + playerHeight;
+
+            for (int i = 0; i < platformCount; i++)
+            {
+                Vector2 center = stageDataSO.platformCenter[i];
+                Vector2 extent = stageDataSO.platformExtent[i];
+
+                // Treat extent as half-extents: platform min/max
+                Vector2 sMin = center - extent;
+                Vector2 sMax = center + extent;
+
+                // Quick horizontal rejection (platforms only matter when horizontally overlapping)
+                if (pMaxX < sMin.x || pMinX > sMax.x)
+                {
+                    continue;
+                }
+
+                // Quick vertical rejection: platforms are thin surfaces; only consider collisions near the top surface.
+                // We'll only allow collision when the player is at or above the platform top and moving downward (or stationary).
+                // This implements a simple one-way platform behaviour.
+                float platformTop = sMax.y;
+
+                // If player is completely below platform top, ignore.
+                if (pMaxY <= sMin.y)
+                    continue;
+
+                // Overlap in X direction
+                float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                if (overlapX <= 0f)
+                    continue;
+
+                // If checkOnly is requested and player's AABB intersects platform horizontally and vertically area, report true.
+                if (checkOnly)
+                {
+                    // Only report true for platforms when player is above or intersecting the top surface area
+                    if (pMinY < platformTop && pMaxY > sMin.y)
+                        return true;
+                    continue;
+                }
+
+                // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
+                // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
+                // This avoids blocking the player from jumping up through the platform.
+                if (pMinY < platformTop && pMaxY > platformTop && vSpd <= 0f)
+                {
+                    // Snap player to platform top
+                    position.y = platformTop;
+                    vSpd = 0f;
+                    isGrounded = true;
+                    returnVal = true;
+                }
+
+                // Also handle the case where player is already slightly embedded (numerical drift) and not moving upward:
+                if (pMinY < platformTop && pMaxY > platformTop && Mathf.Approximately(vSpd, 0f))
+                {
+                    position.y = platformTop;
+                    isGrounded = true;
+                    returnVal = true;
+                }
+            }
+        }
+
+        return returnVal;
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
@@ -857,7 +1035,7 @@ public class PlayerController : MonoBehaviour
                 //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
                 break;
             case PlayerState.Jump:
-                playerHeight = charData.playerHeight / 2;
+                //playerHeight = charData.playerHeight / 2;
 
                 break;
             case PlayerState.Hitstun:
@@ -866,22 +1044,22 @@ public class PlayerController : MonoBehaviour
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
 
-                if (isGrounded)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    isGrounded = false;
-                }
+                //if (isGrounded)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    isGrounded = false;
+                //}
 
                 break;
 
             case PlayerState.Tech:
                 hSpd = facingRight ? -1 : 1;
                 vSpd = 5;
-                if (isGrounded)
-                {
-                    position.y = StageData.Instance.floorYval + 1;
-                    isGrounded = false;
-                }
+                //if (isGrounded)
+                //{
+                //    position.y = StageData.Instance.floorYval + 1;
+                //    isGrounded = false;
+                //}
                 comboCounter = 0;
                 damageProration = 1f;
                 break;
@@ -911,7 +1089,7 @@ public class PlayerController : MonoBehaviour
         switch (prevStateparam)
         {
             case PlayerState.Jump:
-                playerHeight = charData.playerHeight;
+                //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
                 gravity = 1;
@@ -960,19 +1138,19 @@ public class PlayerController : MonoBehaviour
     public void TakeEffectDamage(int damageAmount)
     {
         //checking for death
-        if (damageAmount > currrentPlayerHealth)
+        if (damageAmount > currentPlayerHealth)
         {
-            currrentPlayerHealth = 0;
+            currentPlayerHealth = 0;
             
         }
         else
         {
             // Reduce health 
-            currrentPlayerHealth = (ushort)((int)currrentPlayerHealth - damageAmount);
+            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
 
-        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currrentPlayerHealth}");
+        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
 
     public void CheckHit(InputSnapshot input)
@@ -1002,16 +1180,16 @@ public class PlayerController : MonoBehaviour
 
 
             //checking for death
-            if (hitboxData.damage > currrentPlayerHealth)
+            if (hitboxData.damage > currentPlayerHealth)
             {
-                currrentPlayerHealth = 0;
+                currentPlayerHealth = 0;
             }
             else
             {
 
 
                 // Reduce health 
-                currrentPlayerHealth = (ushort)(currrentPlayerHealth - (int)hitboxData.damage);
+                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
 
 
@@ -1283,7 +1461,7 @@ public class PlayerController : MonoBehaviour
 
     public void ResetHealth()
     {
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
     }
 
 
@@ -1366,5 +1544,6 @@ public class PlayerController : MonoBehaviour
         return codeString.Trim();
     }
 }
+
 
 

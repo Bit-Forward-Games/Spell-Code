@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
+    public StageDataSO currentStage;
 
     public int round = 1;
     public bool roundOver;
@@ -55,7 +56,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         // If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
         Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name != "Gameplay")
+        if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
         {
             // Set all known players to not alive
             if (players != null)

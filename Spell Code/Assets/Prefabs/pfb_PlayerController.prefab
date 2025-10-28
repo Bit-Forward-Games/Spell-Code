@@ -366,6 +366,7 @@ GameObject:
   - component: {fileID: 2545922301449357389}
   - component: {fileID: 8887101072570620987}
   - component: {fileID: 8219335073837037833}
+  - component: {fileID: 2073745163053996702}
   m_Layer: 0
   m_Name: pfb_PlayerController
   m_TagString: Untagged
@@ -605,3 +606,16 @@ MonoBehaviour:
     m_Asset: {fileID: 0}
     m_Actions: []
     m_Bindings: []
+--- !u!114 &2073745163053996702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8711063744521862629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bf80506f34f34fc8a71c966316fae43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerHealth: {fileID: 0}

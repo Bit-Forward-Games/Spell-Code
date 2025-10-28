@@ -93,7 +93,7 @@ public class DataManager : MonoBehaviour
                 matchData.playerData[i].synthesizer = gM.players[i].characterName;
                 matchData.playerData[i].times = gM.players[i].times;
 
-                if (gM.players[i].currrentPlayerHealth > 0)
+                if (gM.players[i].currentPlayerHealth > 0)
                 {
                     matchData.playerData[i].matchWon = true;
                 }

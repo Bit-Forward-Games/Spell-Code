@@ -249,6 +249,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void RestartGame()
     {
         dataManager.totalRoundsPlayed = 0;
+        playerCount = 0;
+
+       for (int i = players.Length - 1; i >= 0; i--)
+        {
+            players[i].RemovePlayer();
+        }
     }
 
     //A round is 1 match + spell acquisition phase
@@ -264,7 +270,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         SceneManager.LoadScene("Shop");
     }
 
-    //called when a game ends (game is a series of matches/rounds)
+    /// <summary>
+    /// called when a game ends (game is a series of matches/rounds)
+    /// </summary>
     public void GameEnd()
     {
         if (!isSaved)

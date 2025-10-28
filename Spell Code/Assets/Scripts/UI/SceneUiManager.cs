@@ -35,11 +35,10 @@ public class SceneUiManager : MonoBehaviour
     /// </summary>
     public void Restart()
     {
-        if (sceneName == "Gameplay")
-        {
-            DataManager.Instance.ResetData();
-            GameManager.Instance.RestartGame();
-        }
+        
+        DataManager.Instance.ResetData();
+        GameManager.Instance.RestartGame();
+        
         SceneManager.LoadScene("Gameplay");
     }
 

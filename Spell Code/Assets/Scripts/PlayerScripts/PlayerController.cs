@@ -319,7 +319,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
+    public void RemovePlayer()
+    {
+        ClearSpellList();
+        Destroy(this.gameObject);
+    }
 
 
     /// MOVEMENT CODE

@@ -103,7 +103,7 @@ public class PlayerController : MonoBehaviour
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[2];
-    public ushort currentPlayerHealth = 0;
+    public ushort currrentPlayerHealth = 0;
 
     // Push Box Variables
     [HideInInspector]
@@ -185,7 +185,7 @@ public class PlayerController : MonoBehaviour
         charData = CharacterDataDictionary.GetCharacterData(characterName);
         //print(charData.projectileIds);
 
-        currentPlayerHealth = charData.playerHealth;
+        currrentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -215,7 +215,7 @@ public class PlayerController : MonoBehaviour
         hSpd = 0;
         vSpd = 0;
         stateSpecificArg = 0;
-        currentPlayerHealth = charData.playerHealth;
+        currrentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -360,7 +360,7 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.enabled = false;
         }
 
-        if (currentPlayerHealth <= 0)
+        if (currrentPlayerHealth <= 0)
         {
             isAlive = false;
             return;
@@ -956,6 +956,7 @@ public class PlayerController : MonoBehaviour
                 // We'll only allow collision when the player is at or above the platform top and moving downward (or stationary).
                 // This implements a simple one-way platform behaviour.
                 float platformTop = sMax.y;
+                float platformBottom = sMin.y;
 
                 // If player is completely below platform top, ignore.
                 if (pMaxY <= sMin.y)
@@ -978,7 +979,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY < platformTop && pMaxY > platformTop && vSpd <= 0f)
+                if (pMinY < platformTop && pMinY > platformBottom && vSpd <= 0f)
                 {
                     // Snap player to platform top
                     position.y = platformTop;
@@ -987,13 +988,13 @@ public class PlayerController : MonoBehaviour
                     returnVal = true;
                 }
 
-                // Also handle the case where player is already slightly embedded (numerical drift) and not moving upward:
-                if (pMinY < platformTop && pMaxY > platformTop && Mathf.Approximately(vSpd, 0f))
-                {
-                    position.y = platformTop;
-                    isGrounded = true;
-                    returnVal = true;
-                }
+                //// Also handle the case where player is already slightly embedded (numerical drift) and not moving upward:
+                //if (pMinY < platformTop && pMaxY > platformTop && Mathf.Approximately(vSpd, 0f))
+                //{
+                //    position.y = platformTop;
+                //    isGrounded = true;
+                //    returnVal = true;
+                //}
             }
         }
 
@@ -1142,19 +1143,19 @@ public class PlayerController : MonoBehaviour
     public void TakeEffectDamage(int damageAmount)
     {
         //checking for death
-        if (damageAmount > currentPlayerHealth)
+        if (damageAmount > currrentPlayerHealth)
         {
-            currentPlayerHealth = 0;
+            currrentPlayerHealth = 0;
             
         }
         else
         {
             // Reduce health 
-            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
+            currrentPlayerHealth = (ushort)((int)currrentPlayerHealth - damageAmount);
 
         }
 
-        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
+        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currrentPlayerHealth}");
     }
 
     public void CheckHit(InputSnapshot input)
@@ -1184,16 +1185,16 @@ public class PlayerController : MonoBehaviour
 
 
             //checking for death
-            if (hitboxData.damage > currentPlayerHealth)
+            if (hitboxData.damage > currrentPlayerHealth)
             {
-                currentPlayerHealth = 0;
+                currrentPlayerHealth = 0;
             }
             else
             {
 
 
                 // Reduce health 
-                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
+                currrentPlayerHealth = (ushort)(currrentPlayerHealth - (int)hitboxData.damage);
 
 
 
@@ -1465,7 +1466,7 @@ public class PlayerController : MonoBehaviour
 
     public void ResetHealth()
     {
-        currentPlayerHealth = charData.playerHealth;
+        currrentPlayerHealth = charData.playerHealth;
     }
 
 

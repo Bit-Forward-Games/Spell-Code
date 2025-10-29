@@ -17,7 +17,7 @@ public class StageCamera : MonoBehaviour
     public Vector2 target;
     private Vector3 vel = Vector3.one;
     private Camera cam;
-    [SerializeField] private PixelPerfectCamera pixelPerfectCamera;
+    //[SerializeField] private PixelPerfectCamera pixelPerfectCamera;
 
     private float shakeTimeRemaining;
     private Vector3 shakeOffset;
@@ -57,15 +57,15 @@ public class StageCamera : MonoBehaviour
 
             cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, zoomSpeed * Time.deltaTime);
 
-            if (cam.orthographicSize <= minZoom)
-            {
-                cam.orthographicSize = minZoom;
-                pixelPerfectCamera.enabled = true;
-            }
-            else
-            {
-                pixelPerfectCamera.enabled = false;
-            }
+            //if (cam.orthographicSize <= minZoom)
+            //{
+            //    cam.orthographicSize = minZoom;
+            //    pixelPerfectCamera.enabled = true;
+            //}
+            //else
+            //{
+            //    pixelPerfectCamera.enabled = false;
+            //}
 
             Vector3 targetPosition = new Vector3(target.x, target.y, -10);
             transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref vel, damping);

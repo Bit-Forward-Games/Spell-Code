@@ -1,13 +1,13 @@
 using UnityEngine;
-using TMPro; // Make sure to add this for TextMeshPro components
-using Steamworks; // Make sure to add this for SteamId
+using TMPro; 
+using Steamworks;
 using System;
 
 public class TempConnectionUI : MonoBehaviour
 {
     public TMP_InputField opponentIdField;
     public TextMeshProUGUI myIdText;
-    public GameObject connectionUI; // Assign the parent UI object (Canvas, Panel, etc.)
+    public GameObject connectionUI; 
 
     void Start()
     {
@@ -23,7 +23,6 @@ public class TempConnectionUI : MonoBehaviour
         myIdText.text = $"My Steam ID: {SteamClient.SteamId.Value}";
     }
 
-    // Link this method to your Button's OnClick() event in the Inspector
     public void OnConnectClicked()
     {
         string idString = opponentIdField.text.Trim();

@@ -67,7 +67,6 @@ namespace IdolShowdown.Managers
         private int consecutiveDrop = 0;
         public int localFrame => matchRunner.FrameNumber;
 
-        private OnStageObjects onStageObjects => GlobalManager.Instance.OnStageObjects;
 
         public void Start()
         {
@@ -285,10 +284,21 @@ namespace IdolShowdown.Managers
 
         public void SaveState()
         {
+            // Ensure GameManager instance is valid
+            if (GameManager.Instance == null)
+            {
+                Debug.LogError("GameManager instance is null during SaveState!");
+                return;
+            }
+
+            // Call GameManager to get the serialized state
+            byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
+
+            // Store the state in the circular buffer
             states[localFrame % StateArraySize] = new GameState()
             {
                 frame = localFrame,
-                state = onStageObjects.ToBytes()
+                state = currentStateBytes // Store the byte array from GameManager
             };
         }
 
@@ -299,17 +309,52 @@ namespace IdolShowdown.Managers
         }
 
         public void LoadState(int frame)
-        {   
-            if(states[frame % StateArraySize].frame != frame)
+        {
+            // Ensure GameManager instance is valid
+            if (GameManager.Instance == null)
             {
-                #if UNITY_EDITOR
-                UnityEngine.Debug.Log("Missing state when loading from frame " + frame);
-                #endif
+                Debug.LogError("GameManager instance is null during LoadState!");
                 return;
             }
-            GlobalManager.Instance.OnStageObjects.FromBytes(states[frame % StateArraySize].state);
-            GlobalManager.Instance.MatchRunner.CurrentMatch.ForceSetFrame(frame);
-            GlobalManager.Instance.MatchRunner.CurrentMatch.UpdatePhysics(true);
+
+            int index = frame % StateArraySize;
+
+            // Check if the state for the requested frame exists
+            if (states[index].frame != frame || states[index].state == null || states[index].state.Length == 0)
+            {
+                //#if UNITY_EDITOR // Keep debug logs potentially for editor only
+                UnityEngine.Debug.LogError($"Missing or invalid state when attempting to load frame {frame} at index {index}. Possible desync or state saving issue.");
+                //#endif
+                // Cannot proceed without valid state. Might need more robust error handling (e.g., request resync)
+                // For now, just return to prevent further errors.
+                // You could potentially try loading the *closest* valid older state, but that complicates logic.
+                return;
+            }
+
+            // Get the saved byte array
+            byte[] stateBytes = states[index].state;
+
+            // Call GameManager to deserialize and apply the state
+            GameManager.Instance.DeserializeManagedState(stateBytes);
+
+            // Force the MatchRunner/IdolMatch frame number to match the loaded state
+            // (Ensure CurrentMatch reference is valid)
+            if (matchRunner != null && matchRunner.CurrentMatch != null)
+            {
+                matchRunner.CurrentMatch.ForceSetFrame(frame); // Assuming ForceSetFrame exists in IdolMatch
+            }
+            else
+            {
+                Debug.LogError("MatchRunner or CurrentMatch is null during LoadState, cannot force frame number.");
+            }
+
+            // Optional: Update physics state immediately after loading if needed
+            // This depends on how the physics update relates to the main game loop update.
+            // If UpdatePhysics uses the state *just* set, calling it here might be correct.
+            // if (matchRunner != null && matchRunner.CurrentMatch != null)
+            // {
+            //     matchRunner.CurrentMatch.UpdatePhysics(true); // Assuming UpdatePhysics exists
+            // }
         }
 
         public void ExtendFrame()

@@ -174,36 +174,42 @@ using BestoNet.Collections; // For CircularArray
             }
         }
 
-        /// <summary>
-        /// Processes an ACK message to calculate ping.
-        /// </summary>
-        private void ProcessACK(int frame)
-        {
-            if (sentFrameTimes.ContainsKey(frame)) // Use ContainsKey if added to CircularArray, otherwise check validity
-            {
-                float sentTime = sentFrameTimes.Get(frame);
-                if (sentTime > 0) // Basic validity check
-                {
-                    // Calculate Round Trip Time (RTT) in milliseconds
-                    int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
-                    // Simple smoothing (e.g., lerp or moving average) is often good here
-                    Ping = (int)Mathf.Lerp(Ping, rttMs, 0.1f); // Smooth ping value
-                    // Optional: Remove frame from sentFrameTimes to prevent reprocessing? Depends on CircularArray behavior.
-                    // sentFrameTimes.Remove(frame); // Or set value to 0/negative
-                }
-            }
-            else
-            {
-                // Debug.LogWarning($"Received ACK for frame {frame} but no sent time recorded.");
-            }
-        }
+    /// <summary>
+    /// Processes an ACK message to calculate ping.
+    /// </summary>
+    private void ProcessACK(int frame)
+    {
+        // --- Check if a valid timestamp exists ---
+        // Get the timestamp stored at the index for this frame.
+        float sentTime = sentFrameTimes.Get(frame);
 
-        /// <summary>
-        /// Sends local inputs to the opponent. Bundles multiple frames if possible.
-        /// </summary>
-        /// <param name="targetFrame">The frame number the input corresponds to (current frame + input delay).</param>
-        /// <param name="input">The input value for the target frame.</param>
-        public void SendInputs(ulong targetFrameInput) // Simplified: Send a bundle starting from oldest unsent up to targetFrame
+        // Check if the retrieved time is positive (meaning we likely stored a valid Time.unscaledTime)
+        if (sentTime > 0f)
+        // --- End Check ---
+        {
+            // Calculate Round Trip Time (RTT) in milliseconds
+            int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
+
+            // Simple smoothing
+            Ping = (int)Mathf.Lerp(Ping, rttMs, 0.1f);
+
+            // Invalidate the timestamp in the array to prevent reprocessing
+            // (Set it back to 0 or a negative value)
+            sentFrameTimes.Insert(frame, 0f); // Overwrite with 0
+        }
+        else
+        {
+            // ACK received for a frame we didn't record sending or already processed.
+            // Debug.LogWarning($"Received ACK for frame {frame} but no valid sent time recorded ({sentTime}).");
+        }
+    }
+
+    /// <summary>
+    /// Sends local inputs to the opponent. Bundles multiple frames if possible.
+    /// </summary>
+    /// <param name="targetFrame">The frame number the input corresponds to (current frame + input delay).</param>
+    /// <param name="input">The input value for the target frame.</param>
+    public void SendInputs(ulong targetFrameInput) // Simplified: Send a bundle starting from oldest unsent up to targetFrame
         {
             // Ensure RollbackManager and opponent ID are valid
             if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)
@@ -259,12 +265,21 @@ using BestoNet.Collections; // For CircularArray
                         // --- End Serialize Input ---
 
                         byte[] data = memoryStream.ToArray();
+                        int dataSize = data.Length;
 
                         // Send packet via Steam P2P
-                        Result result = SteamNetworking.SendP2PPacket(opponentSteamId, data, data.Length, channel: MATCH_MESSAGE_CHANNEL, sendType: SEND_TYPE);
-                        if (result != Result.OK && result != Result.Ignored)
-                        { // Ignored is okay if sending too fast
-                            Debug.LogWarning($"Failed to send P2P packet: {result}");
+                        bool success = SteamNetworking.SendP2PPacket( // Store return value as bool
+                                opponentSteamId,
+                                data,
+                                dataSize,
+                                MATCH_MESSAGE_CHANNEL,
+                                SEND_TYPE
+                            );
+                        if (!success)
+                        {
+                            // Ignored result isn't directly available with bool,
+                            // but false generally indicates a more serious failure.
+                            Debug.LogWarning($"Failed to send P2P packet (returned false).");
                         }
                     }
                 }
@@ -297,8 +312,15 @@ using BestoNet.Collections; // For CircularArray
                         writer.Write(frameToAck); // Frame being acknowledged
 
                         byte[] data = memoryStream.ToArray();
-                        SteamNetworking.SendP2PPacket(opponentSteamId, data, data.Length, channel: MATCH_MESSAGE_CHANNEL, sendType: SEND_TYPE);
-                        // No need to check result as much for ACKs, they are less critical than inputs
+                        int dataSize = data.Length;
+                    bool success = SteamNetworking.SendP2PPacket( // Store return value as bool
+                            opponentSteamId,
+                            data,
+                            dataSize,
+                            MATCH_MESSAGE_CHANNEL,
+                            SEND_TYPE
+                        );
+                    // No need to check result as much for ACKs, they are less critical than inputs
                     }
                 }
             }

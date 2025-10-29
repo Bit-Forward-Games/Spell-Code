@@ -55,7 +55,7 @@ using BestoNet.Collections; // Use BestoNet collections
         // --- Constants ---
         // Make array sizes configurable or keep as constants
         private const int StateArraySize = 60;
-        private const int InputArraySize = 60; // Should match StateArraySize generally
+        public const int InputArraySize = 60; // Should match StateArraySize generally
         private const int FrameAdvantageArraySize = 32;
         // --- End Constants ---
 

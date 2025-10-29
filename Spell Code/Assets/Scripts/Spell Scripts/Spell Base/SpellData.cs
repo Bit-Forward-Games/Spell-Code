@@ -79,16 +79,30 @@ public abstract class SpellData : MonoBehaviour
     /// </summary>
     public virtual void SpellUpdate()
     {
+        if (cooldownCounter > 0)
+        {
+            cooldownCounter--;
+            return;
+        }
         if (activateFlag)
         {
+
+            // Reset the activate flag
+            activateFlag = false;
+
+            // Handle cooldown check
+            if (cooldownCounter > 0)
+            {
+                cooldownCounter--;
+                return;
+            }
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
                 ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
             }
-            // Reset the activate flag
-            activateFlag = false;
+            cooldownCounter = cooldown;
         }
     }
 

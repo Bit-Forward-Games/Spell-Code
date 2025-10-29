@@ -258,7 +258,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 matchData.playerData[i].synthesizer = players[i].characterName;
                 matchData.playerData[i].times = players[i].times;
 
-                if (players[i].currentPlayerHealth > 0)
+                if (players[i].currrentPlayerHealth > 0)
                 {
                     matchData.playerData[i].matchWon = true;
                 }

@@ -328,12 +328,13 @@ public class PlayerController : MonoBehaviour
 
 
     /// MOVEMENT CODE
-    public long GetInputs()
+    public ulong GetInputs()
     {
-        long input = 0;
+        ulong input = 0;
         if (inputs.IsActive)
         {
-            input = inputs.UpdateInputs();
+            long longInput = inputs.UpdateInputs();
+            input = (ulong)longInput;
         }
         return input;
     }

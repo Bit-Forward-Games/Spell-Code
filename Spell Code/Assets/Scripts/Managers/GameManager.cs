@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (!isRunning)
             return;
 
-        long[] inputs = new long[playerCount];
+        ulong[] inputs = new ulong[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
         {
             inputs[i] = players[i].GetInputs();
@@ -184,7 +184,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// Updates the game state based on the provided inputs.
     /// </summary>
     /// <param name="inputs">Array of inputs for each player.</param>
-    protected void UpdateGameState(long[] inputs)
+    protected void UpdateGameState(ulong[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
 
@@ -263,7 +263,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 matchData.playerData[i].codesFired = players[i].spellsFired;
                 matchData.playerData[i].codesHit = players[i].spellsHit;
                 matchData.playerData[i].synthesizer = players[i].characterName;
-                matchData.playerData[i].times = players[i].times;
+                matchData.playerData[i].times = new List<float>();
+                foreach (Fixed timeValue in players[i].times)
+                {
+                    matchData.playerData[i].times.Add(timeValue.ToFloat()); // Convert Fixed to float
+                }
 
                 if (players[i].currrentPlayerHealth > 0)
                 {
@@ -292,7 +296,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
                 if (players[i].times.Count > 0)
                 {
-                    matchData.playerData[i].avgTimeToCast = totalSpelltime / players[i].times.Count;
+                    Fixed averageTimeFixed = totalSpelltime / Fixed.FromInt(players[i].times.Count);
+                    matchData.playerData[i].avgTimeToCast = averageTimeFixed.ToFloat();
                 }
                 else
                 {

@@ -9,6 +9,7 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using IdolShowdown.Managers;
 
 public enum ForceHitstunType
 { 
@@ -111,7 +112,10 @@ public class HitboxManager : MonoBehaviour
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
-                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                            if (!RollbackManager.Instance.isRollbackFrame)
+                            {
+                                cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                            }
                             projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
                             projectile.owner.spellsHit++;
                         }

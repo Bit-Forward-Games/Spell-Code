@@ -1,10 +1,16 @@
 ﻿//using Ardalis.SmartEnum;
+using IdolShowdown.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+
 
 public class AnimationManager : MonoBehaviour
 {
@@ -125,7 +131,12 @@ public class AnimationManager : MonoBehaviour
     /// 🔹 **Used in Local Play** Either one only does what the old UpdateSprites did, if anything rename later.
     public void RenderGameState()
     {
-        if(GameManager.Instance.playerCount == 0)
+        // Check if RollbackManager exists and we are rolling back
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return; // Skip all rendering updates during rollback
+        }
+        if (GameManager.Instance.playerCount == 0)
         {
             return;
         }
@@ -169,7 +180,11 @@ public class AnimationManager : MonoBehaviour
             }
 
             // Update position with new z-index
-            player.transform.position = new Vector3(player.position.x, player.position.y, zIndex);
+            player.transform.position = new Vector3(
+                player.position.X.ToFloat(), // Corrected: Uppercase X, ToFloat()
+                player.position.Y.ToFloat(), // Corrected: Uppercase Y, ToFloat()
+                zIndex
+            );
         }
 
         for(int i = 0; i < ProjectileManager.Instance.projectilePrefabs.Count; i++)
@@ -198,10 +213,9 @@ public class AnimationManager : MonoBehaviour
                 {
                     proj.gameObject.GetComponent<SpriteRenderer>().sprite = proj.sprites[proj.animationFrame];
                     proj.gameObject.GetComponent<SpriteRenderer>().flipX = !proj.facingRight;
-                    proj.transform.position = new Vector3(proj.position.x, proj.position.y, 0/*zindex*/);
+                    proj.transform.position = new Vector3(proj.position.X.ToFloat(), proj.position.Y.ToFloat(), 0/*zindex*/);
                 }
             }
         }
-
     }
 }

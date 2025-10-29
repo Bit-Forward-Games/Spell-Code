@@ -13,6 +13,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using Unity.VisualScripting;
+using IdolShowdown.Managers;
 
 public enum PlayerState
 {
@@ -1555,35 +1556,41 @@ public class PlayerController : MonoBehaviour
 
     public void UpdateInputDisplay(int direction)
     {
-        //down
-        if (direction == 2)
+        if (!RollbackManager.Instance.isRollbackFrame)
         {
-            inputDisplay.text += "DOWN, ";
-        }
+            //down
+            if (direction == 2)
+            {
+                inputDisplay.text += "DOWN, ";
+            }
 
-        //left
-        if (direction == 4)
-        {
-            inputDisplay.text += "LEFT,  ";
-        }
+            //left
+            if (direction == 4)
+            {
+                inputDisplay.text += "LEFT,  ";
+            }
 
-        //right
-        if (direction == 6)
-        {
-            inputDisplay.text += "RIGHT, ";
-        }
+            //right
+            if (direction == 6)
+            {
+                inputDisplay.text += "RIGHT, ";
+            }
 
-        //up
-        if (direction == 8)
-        {
-            inputDisplay.text += "UP, ";
-        }
+            //up
+            if (direction == 8)
+            {
+                inputDisplay.text += "UP, ";
+            }
+        } 
     }
 
     public void ClearInputDisplay()
     {
-        inputDisplay.text = "";
-        inputDisplay.color = Color.white;
+        if (!RollbackManager.Instance.isRollbackFrame)
+        {
+            inputDisplay.text = "";
+            inputDisplay.color = Color.white;
+        }    
     }
 
     public static string ConvertCodeToString(uint code)

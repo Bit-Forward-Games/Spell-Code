@@ -1,5 +1,11 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using BestoNet.Types;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using IdolShowdown.Managers;
 
 public class StageCamera : MonoBehaviour
 {
@@ -29,14 +35,32 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return; // Skip camera updates during rollback
+        }
+
         if (GameManager.Instance.playerCount > 0)
         {
-            Vector2 averagePosition = Vector3.up;
+            FixedVec2 fixedAveragePosition = FixedVec2.Zero;
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                averagePosition += GameManager.Instance.players[i].position;
+                if (GameManager.Instance.players[i] != null) // Check player exists
+                {
+                    fixedAveragePosition += GameManager.Instance.players[i].position; // Add FixedVec2 positions
+                }
             }
-            averagePosition /= GameManager.Instance.playerCount;
+            fixedAveragePosition /= Fixed.FromInt(GameManager.Instance.playerCount);
+            Vector2 averagePosition = new Vector2(
+                fixedAveragePosition.X.ToFloat(),
+                fixedAveragePosition.Y.ToFloat()
+            );
+            //Vector2 averagePosition = Vector3.up;
+            //for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            //{
+            //    averagePosition += GameManager.Instance.players[i].position;
+            //}
+            //averagePosition /= GameManager.Instance.playerCount;
             target = averagePosition + offset;
 
             Bounds greatestDistance = GetGreatestDistance();
@@ -82,13 +106,21 @@ public class StageCamera : MonoBehaviour
 
     private Bounds GetGreatestDistance()
     {
-        Bounds bounds = new Bounds(GameManager.Instance.players[0].position, Vector3.zero);
+        FixedVec2 firstPlayerPosFixed = GameManager.Instance.players[0].position;
+        Vector3 firstPlayerPos = new Vector3(firstPlayerPosFixed.X.ToFloat(), firstPlayerPosFixed.Y.ToFloat(), -10);
+        Bounds bounds = new Bounds(firstPlayerPos, Vector3.zero);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            bounds.Encapsulate(new Vector3(
-                GameManager.Instance.players[i].position.x,
-                GameManager.Instance.players[i].position.y,
-                -10));
+            if (GameManager.Instance.players[i] == null) continue;
+
+            // Convert player FixedVec2 position to Vector3 for Encapsulate
+            FixedVec2 playerPosFixed = GameManager.Instance.players[i].position;
+            Vector3 playerPos = new Vector3(
+                playerPosFixed.X.ToFloat(),
+                playerPosFixed.Y.ToFloat(),
+                -10 
+            );
+            bounds.Encapsulate(playerPos);
         }
         return bounds;
     }
@@ -101,6 +133,11 @@ public class StageCamera : MonoBehaviour
 
     private void ApplyShake()
     {
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            shakeOffset = Vector3.zero; // Ensure no residual shake during rollback
+            return;
+        }
         if (shakeTimeRemaining > 0)
         {
             shakeOffset = Random.insideUnitCircle * shakeMagnitude;

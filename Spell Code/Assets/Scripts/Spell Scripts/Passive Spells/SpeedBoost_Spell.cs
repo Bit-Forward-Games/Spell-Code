@@ -1,9 +1,13 @@
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class SpeedBoost_Spell : SpellData
 {
-    float baseSpeed;
-    public float speedMultiplier = 2;
+    Fixed baseSpeed;
+    public Fixed speedMultiplier = Fixed.FromInt(2); // Speed multiplier when boost is active
     //int speedBoostDuration = 180; // Duration of the speed boost in frames
     //int speedBoostCounter = 0; 
 

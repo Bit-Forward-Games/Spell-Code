@@ -1,9 +1,13 @@
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class JumpBoost_Spell : SpellData
 {
-    float baseJumpForce;
-    public float jumpMultiplier = 1.5f;
+    Fixed baseJumpForce;
+    public Fixed jumpMultiplier = Fixed.FromInt(2);
     //int jumpBoostDuration = 180; // Duration of the speed boost in frames
     //int jumpBoostCounter = 0;
 

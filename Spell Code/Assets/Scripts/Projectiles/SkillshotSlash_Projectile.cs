@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class SkillshotSlash_Projectile : BaseProjectile
 {
@@ -17,7 +21,7 @@ public class SkillshotSlash_Projectile : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
     }
@@ -77,8 +81,13 @@ public class SkillshotSlash_Projectile : BaseProjectile
         // Update animation frame
         animationFrame = GetCurrentFrameIndex(animFrames.frameLengths, animFrames.loopAnim);
 
-        position.x = owner.position.x + ownerSpell.spawnOffsetX * (owner.facingRight?1:-1);
-        position.y = owner.position.y + ownerSpell.spawnOffsetY;
+        Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
+        Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
+        Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
+        Fixed newX = owner.position.X + (xOffset * direction);
+        Fixed newY = owner.position.Y + yOffset;
+
+        position = new FixedVec2(newX, newY);
 
         if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
         {

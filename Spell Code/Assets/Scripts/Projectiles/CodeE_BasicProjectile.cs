@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class CodeE_BasicProjectile : BaseProjectile
 {
@@ -16,10 +20,10 @@ public class CodeE_BasicProjectile : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = (facingRight ? 1 : -1) * 6; // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 6); // Set horizontal speed based on facing direction
     }
 
     public override void LoadProjectile()

@@ -1,5 +1,4 @@
 ﻿//using Ardalis.SmartEnum;
-using IdolShowdown.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

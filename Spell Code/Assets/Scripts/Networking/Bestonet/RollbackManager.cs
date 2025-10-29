@@ -122,9 +122,9 @@ using BestoNet.Collections; // Use BestoNet collections
             Debug.Log("Initializing Rollback Connection...");
             this.opponentNetworkId = opponentNetId;
 
-            // Find MatchMessageManager instance
-            matchManager = FindObjectOfType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
-            if (matchManager == null)
+        // Find MatchMessageManager instance
+        matchManager = FindFirstObjectByType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
+        if (matchManager == null)
             {
                 Debug.LogError("MatchMessageManager not found!");
                 // Handle error appropriately
@@ -298,7 +298,7 @@ using BestoNet.Collections; // Use BestoNet collections
             SetClientInput(targetFrame, input);
 
             // Send input packet via MatchMessageManager
-            matchManager.SendInputs(opponentNetworkId, targetFrame, input); // Send target frame and input
+            matchManager.SendInputs(); // Send target frame and input
             return true;
         }
 
@@ -427,24 +427,139 @@ using BestoNet.Collections; // Use BestoNet collections
             }
         }
 
-        // --- SaveState and LoadState implemented earlier using GameManager ---
-        // public void SaveState() { ... }
-        // public void LoadState(int frame) { ... }
-        // public void ClearState(int frame) { ... }
+    //// <summary>
+    /// Saves the current game state by calling GameManager's serialization.
+    /// </summary>
+    public void SaveState()
+    {
+        // Ensure GameManager instance is valid
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("GameManager instance is null during SaveState!");
+            return;
+        }
+
+        // Call GameManager to get the serialized state
+        byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
+
+        // Store the state in the circular buffer using the current local frame
+        int frameIndex = localFrame % StateArraySize;
+        states[frameIndex] = new GameState()
+        {
+            frame = localFrame,
+            state = currentStateBytes // Store the byte array from GameManager
+        };
+    }
+
+    /// <summary>
+    /// Clears the saved state for a specific frame number.
+    /// </summary>
+    /// <param name="frame">The frame number to clear.</param>
+    public void ClearState(int frame)
+    {
+        int index = frame % StateArraySize;
+        // Only clear if the stored frame matches the requested frame
+        if (states[index].frame == frame)
+        {
+            states[index].frame = -1; // Mark as invalid
+            states[index].state = null; // Release byte array reference
+        }
+    }
+
+    /// <summary>
+    /// Loads a game state snapshot for the specified frame using GameManager.
+    /// </summary>
+    /// <param name="frame">The frame number to load.</param>
+    public void LoadState(int frame)
+    {
+        // Ensure GameManager instance is valid
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("GameManager instance is null during LoadState!");
+            return;
+        }
+
+        int index = frame % StateArraySize;
+
+        // Check if the state for the requested frame exists and is valid
+        if (states[index].frame != frame || states[index].state == null || states[index].state.Length == 0)
+        {
+            UnityEngine.Debug.LogError($"Missing or invalid state when attempting to load frame {frame} at index {index}. Possible desync or state saving issue.");
+            // Cannot proceed without valid state. Consider more robust error handling.
+            return;
+        }
+
+        // Get the saved byte array
+        byte[] stateBytes = states[index].state;
+
+        // Call GameManager to deserialize and apply the state
+        GameManager.Instance.DeserializeManagedState(stateBytes);
+
+        // Force the GameManager's frame number to match the loaded state
+        GameManager.Instance.ForceSetFrame(frame);
+    }
 
 
-        // --- Frame Timing / Advantage Methods ---
-        // ExtendFrame/StartFrameExtensions removed as they depend on FPSLock which was removed
-        // public void ExtendFrame() { ... }
-        // public void StartFrameExtensions(float frameAdvantageDifference) { ... }
+    // --- Frame Timing / Advantage Methods ---
+    // NOTE: These methods depended on an 'FPSLock' component which was removed.
+    // They are provided here for reference but will cause errors or have no effect
+    // without reimplementing a similar frame rate/timing control mechanism.
 
-        /// <summary>
-        /// Checks if the local simulation is too far ahead or behind the remote simulation.
-        /// Used by AllowUpdate to potentially drop frames.
-        /// </summary>
-        /// <param name="frameAdvantageDifference">Output: Calculated average frame advantage difference.</param>
-        /// <returns>True if simulation timing is acceptable, false if a frame drop is recommended.</returns>
-        public bool CheckTimeSync(out float frameAdvantageDifference)
+    /// <summary>
+    /// [Requires FPSLock] Manages frame extensions based on network conditions.
+    /// </summary>
+    public void ExtendFrame()
+    {
+        /* // Original logic requiring FPSLock:
+        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        {
+            return;
+        }
+
+        if (totalConsecutiveFrameExtensions < FrameExtensionWindow)
+        {
+            totalConsecutiveFrameExtensions++;
+        }
+        else
+        {
+            FPSLock.Instance.SetFrameExtension(0); // Stop extending
+        }
+        */
+        Debug.LogWarning("ExtendFrame called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+    }
+
+    /// <summary>
+    /// [Requires FPSLock] Initiates frame extensions if frame advantage is too high.
+    /// </summary>
+    /// <param name="frameAdvantageDifference">The calculated frame advantage difference.</param>
+    public void StartFrameExtensions(float frameAdvantageDifference)
+    {
+        /* // Original logic requiring FPSLock:
+        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        {
+            return;
+        }
+
+        // Only start extending if we haven't done so recently (within the window)
+        if (totalConsecutiveFrameExtensions >= FrameExtensionWindow) // Use >= for check
+        {
+            #if UNITY_EDITOR
+            Debug.Log($"Starting Frame Extensions: Local frame {localFrame}, Frame Advantage Diff {frameAdvantageDifference}");
+            #endif
+            FPSLock.Instance.SetFrameExtension(SleepTimeMicro); // Start extending
+            totalConsecutiveFrameExtensions = 0; // Reset window counter
+        }
+        */
+        Debug.LogWarning("StartFrameExtensions called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+    }
+
+    /// <summary>
+    /// Checks if the local simulation is too far ahead or behind the remote simulation.
+    /// Used by AllowUpdate to potentially drop frames.
+    /// </summary>
+    /// <param name="frameAdvantageDifference">Output: Calculated average frame advantage difference.</param>
+    /// <returns>True if simulation timing is acceptable, false if a frame drop is recommended.</returns>
+    public bool CheckTimeSync(out float frameAdvantageDifference)
         {
             localFrameAdvantage = localFrame - predictedRemoteFrame; // Calculate current advantage
             SetLocalFrameAdvantage(localFrameAdvantage); // Store it in history

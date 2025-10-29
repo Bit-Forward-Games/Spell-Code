@@ -316,6 +316,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     }
 
     /// <summary>
+    /// Forces the internal frame number to a specific value.
+    /// Used by RollbackManager after loading a previous state.
+    /// </summary>
+    /// <param name="newFrame">The frame number to set.</param>
+    public void ForceSetFrame(int newFrame) // Make sure this is PUBLIC
+    {
+        this.frameNumber = newFrame;
+    }
+
+    /// <summary>
     /// Executes one frame of local (offline) match simulation.
     /// </summary>
     protected void RunLocalFrame()

@@ -209,7 +209,7 @@ using BestoNet.Collections; // For CircularArray
     /// </summary>
     /// <param name="targetFrame">The frame number the input corresponds to (current frame + input delay).</param>
     /// <param name="input">The input value for the target frame.</param>
-    public void SendInputs(ulong targetFrameInput) // Simplified: Send a bundle starting from oldest unsent up to targetFrame
+    public void SendInputs() // Simplified: Send a bundle starting from oldest unsent up to targetFrame
         {
             // Ensure RollbackManager and opponent ID are valid
             if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)

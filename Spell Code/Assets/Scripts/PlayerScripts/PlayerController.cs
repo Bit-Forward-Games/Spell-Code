@@ -13,7 +13,6 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using Unity.VisualScripting;
-using IdolShowdown.Managers;
 
 public enum PlayerState
 {

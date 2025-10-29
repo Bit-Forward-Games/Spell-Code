@@ -5,7 +5,6 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
-using IdolShowdown.Managers;
 
 public class StageCamera : MonoBehaviour
 {

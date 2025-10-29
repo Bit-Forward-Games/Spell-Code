@@ -95,8 +95,91 @@ namespace BestoNet.Types
 
         public static Fixed32 operator +(Fixed32 a, Fixed32 b) => new Fixed32(a._rawValue + b._rawValue);
         public static Fixed32 operator -(Fixed32 a, Fixed32 b) => new Fixed32(a._rawValue - b._rawValue);
+        
+        public static Fixed32 operator -(Fixed32 a) => new Fixed32(-a._rawValue);
         public static Fixed32 operator *(Fixed32 a, Fixed32 b) => new Fixed32((int)(((long)a._rawValue * b._rawValue) >> FractionBits));
         public static Fixed32 operator /(Fixed32 a, Fixed32 b) => new Fixed32((int)(((long)a._rawValue << FractionBits) / b._rawValue));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue > b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue < b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue >= b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue <= b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue == b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue != b._rawValue;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed32 Clamp(Fixed32 value, Fixed32 min, Fixed32 max)
+        {
+            if (value < min)
+            {
+                return min;
+            }
+            if (value > max)
+            {
+                return max;
+            }
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed32 Min(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue < b._rawValue ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed32 Max(Fixed32 a, Fixed32 b)
+        {
+            return a._rawValue > b._rawValue ? a : b;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed32 Abs(Fixed32 value)
+        {
+            // Check if the raw value is negative (sign bit is set for signed integers)
+            // If negative, negate the raw value; otherwise, return as is.
+            return new Fixed32(value._rawValue < 0 ? -value._rawValue : value._rawValue);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Fixed32 other && Equals(other);
+        }
+
+
+        public override int GetHashCode()
+        {
+            return _rawValue;
+        }
 
         public bool Equals(Fixed32 other) => _rawValue == other._rawValue;
         public int CompareTo(Fixed32 other) => _rawValue.CompareTo(other._rawValue);

@@ -128,6 +128,46 @@ namespace BestoNet.Types
         /// </summary>
         /// <returns>A string in the format "(X, Y)".</returns>
         public override string ToString() => $"({X}, {Y})";
+
+        /// <summary>
+        /// Creates a new Vector2<T> from float x and y components.
+        /// Relies on the underlying fixed-point type T having a FromFloat method.
+        /// </summary>
+        /// <param name="x">The float X coordinate.</param>
+        /// <param name="y">The float Y coordinate.</param>
+        /// <returns>A new Vector2<T> with fixed-point components.</returns>
+        public static Vector2<T> FromFloat(float x, float y)
+        {
+            // This requires the type T (e.g., Fixed32) to have a static FromFloat method.
+            // We use dynamic dispatch or type checking via Operations<T> if needed,
+            // but assuming T is Fixed32/Fixed64, a direct call is cleaner if possible.
+
+            // Simplest approach if T is constrained or known (e.g., Fixed32):
+            if (typeof(T) == typeof(Fixed32))
+            {
+                return new Vector2<T>(
+                    (T)(object)Fixed32.FromFloat(x),
+                    (T)(object)Fixed32.FromFloat(y)
+                );
+            }
+            if (typeof(T) == typeof(Fixed64)) // Add for Fixed64 if you use it
+            {
+                return new Vector2<T>(
+                   (T)(object)Fixed64.FromFloat(x),
+                   (T)(object)Fixed64.FromFloat(y)
+               );
+            }
+            if (typeof(T) == typeof(Fixed16)) // Add for Fixed16 if you use it
+            {
+                return new Vector2<T>(
+                   (T)(object)Fixed16.FromFloat(x),
+                   (T)(object)Fixed16.FromFloat(y)
+               );
+            }
+
+            // Fallback or error if T is not a supported fixed-point type
+            throw new NotSupportedException($"Type {typeof(T)} does not support FromFloat conversion in Vector2<T>.FromFloat");
+        }
     }
 
     /// <summary>

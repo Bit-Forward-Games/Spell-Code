@@ -1,5 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
+using BestoNet.Types;
+using System.IO;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 /*public enum SpellDirection 
 { 
@@ -85,7 +91,8 @@ public abstract class SpellData : MonoBehaviour
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+                FixedVec2 offset = new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY));
+                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, offset);
             }
             // Reset the activate flag
             activateFlag = false;

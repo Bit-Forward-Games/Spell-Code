@@ -1,6 +1,10 @@
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class ProjectileManager : MonoBehaviour
 {
@@ -143,7 +147,7 @@ public class ProjectileManager : MonoBehaviour
         }
     }
 
-    public void SpawnProjectile(string projectileName, PlayerController owner, bool facingRight, Vector2 spawnOffset)
+    public void SpawnProjectile(string projectileName, PlayerController owner, bool facingRight, FixedVec2 spawnOffset)
     {
 
         List<BaseProjectile> matchingProjectiles = GetMatchingProjectiles(projectileName, owner);

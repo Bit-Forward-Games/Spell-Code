@@ -126,7 +126,7 @@ public class PlayerController : MonoBehaviour
 
     public byte hitstop = 0;
     public ushort comboCounter = 0; //this is technically for the player being hit, so if the combo counter is increasings thats on the hurt player
-    public Fixed damageProration = 1f; //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
+    public Fixed damageProration = Fixed.FromInt(1); //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
@@ -1039,7 +1039,7 @@ public class PlayerController : MonoBehaviour
         if (wasInHitstun && !isNowHitstun)
         {
             comboCounter = 0;
-            damageProration = 1f;
+            damageProration = Fixed.FromInt(1);
         }
         logicFrame = 0;
         animationFrame = 0;

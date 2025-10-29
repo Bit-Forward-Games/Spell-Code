@@ -1555,7 +1555,7 @@ public class PlayerController : MonoBehaviour
 
     public void UpdateInputDisplay(int direction)
     {
-        if (!RollbackManager.Instance.isRollbackFrame)
+        if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
             //down
             if (direction == 2)
@@ -1585,7 +1585,7 @@ public class PlayerController : MonoBehaviour
 
     public void ClearInputDisplay()
     {
-        if (!RollbackManager.Instance.isRollbackFrame)
+        if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
             inputDisplay.text = "";
             inputDisplay.color = Color.white;

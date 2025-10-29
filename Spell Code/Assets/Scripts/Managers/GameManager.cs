@@ -6,6 +6,13 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using System.IO;
+using System.Linq;
+using BestoNet.Types;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -229,7 +236,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (player != null)
             {
-                player.SpawnPlayer(Vector2.zero);
+                player.SpawnPlayer(FixedVec2.Zero);
             }
         }
 
@@ -248,7 +255,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
             for (int i = 0; i < playerCount; i++)
             {
-                float totalSpelltime = 0;
+                Fixed totalSpelltime = Fixed.FromInt(0);
 
                 //raw stats
                 matchData.playerData[i] = new PlayerData();
@@ -361,8 +368,211 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             players[i].basicsFired = 0;
             players[i].spellsFired = 0;
             players[i].spellsHit = 0;
-            players[i].times = new List<float>();
+            players[i].times = new List<Fixed>();
 
+        }
+    }
+
+    // Central State Serialization Methods
+
+    /// <summary>
+    /// Serializes the entire deterministic game state managed by GameManager.
+    /// Includes players and active projectiles.
+    /// </summary>
+    /// <returns>A byte array representing the game state snapshot.</returns>
+    public byte[] SerializeManagedState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        {
+            using (BinaryWriter bw = new BinaryWriter(memoryStream))
+            {
+
+                // Player State
+                bw.Write(playerCount); // Save number of active players
+                for (int i = 0; i < playerCount; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        players[i].Serialize(bw); // Call player's serialize method
+                    }
+                    else
+                    {
+                        // Handle potential null player slot if necessary, though playerCount should be accurate
+                        Debug.LogError($"Attempted to serialize null player at index {i}");
+                        // Need placeholder data or ensure players array is always contiguous
+                    }
+                }
+
+                // Projectile State
+                List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
+                bw.Write(activeProjectiles.Count); // Save number of active projectiles
+
+                foreach (BaseProjectile projectile in activeProjectiles)
+                {
+                    // Save an identifier to find this projectile instance later during Deserialize
+                    // Using its index in the *master* prefab list is generally reliable if that list never changes order after init.
+                    int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
+                    if (prefabIndex == -1)
+                    {
+                        Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
+                        // Handle error: Maybe skip this projectile, but it indicates a problem
+                        bw.Write(-1); // Write invalid index
+                    }
+                    else
+                    {
+                        bw.Write(prefabIndex); // Write its index from the master list
+                        projectile.Serialize(bw); // Call projectile's serialize method
+                    }
+                }
+
+                return memoryStream.ToArray();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Deserializes and applies a game state snapshot.
+    /// Restores players and manages projectile activation/state.
+    /// </summary>
+    /// <param name="stateData">The byte array snapshot to load.</param>
+    public void DeserializeManagedState(byte[] stateData)
+    {
+        using (MemoryStream memoryStream = new MemoryStream(stateData))
+        {
+            using (BinaryReader br = new BinaryReader(memoryStream))
+            {
+                // Global State
+                // currentGameTimer = br.ReadSingle(); // Load any global state saved first
+
+                // Player State
+                int savedPlayerCount = br.ReadInt32();
+                if (savedPlayerCount != playerCount)
+                {
+                    Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}. State might be corrupted if players joined/left mid-match (not typical for rollback).");
+                    // Adjust playerCount or handle error
+                    // Assuming playerCount is stable for rollback segment:
+                    // playerCount = savedPlayerCount;
+                }
+                for (int i = 0; i < playerCount; i++) // Use current (or updated) playerCount
+                {
+                    if (players[i] != null)
+                    {
+                        players[i].Deserialize(br);
+                    }
+                    else
+                    {
+                        Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
+                        // Need to skip the appropriate bytes if a player is unexpectedly null
+                    }
+                }
+
+                // Projectile State 
+                int savedProjectileCount = br.ReadInt32();
+                List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
+                List<BaseProjectile> currentlyActive = ProjectileManager.Instance.activeProjectiles.ToList(); // Copy to allow modification
+                List<BaseProjectile> shouldBeActive = new List<BaseProjectile>(); // Track projectiles loaded from state
+
+                // Read data and identify which projectiles should be active
+                Dictionary<int, byte[]> projectileStateData = new Dictionary<int, byte[]>(); // Store raw state data temporarily
+                List<int> activePrefabIndices = new List<int>();
+
+                for (int i = 0; i < savedProjectileCount; i++)
+                {
+                    int prefabIndex = br.ReadInt32();
+                    if (prefabIndex == -1 || prefabIndex >= masterList.Count)
+                    {
+                        Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
+                        // Need robust skipping logic here if SpellData.Deserialize can vary in length
+                        continue; // Skip this entry
+                    }
+                    activePrefabIndices.Add(prefabIndex);
+
+                    // Read the projectile's state into a temporary buffer
+                    // This requires knowing the exact size of a serialized projectile, OR read until end marker (complex)
+                    // A simpler (but less efficient) approach: Serialize includes size, or use fixed size
+                    // Assuming BaseProjectile.Deserialize reads exactly its data:
+                    // Need to temporarily store the BinaryReader position or read into temp memory.
+
+                    // Re-seek or re-read approach (Less efficient but simpler to write now):
+                    long currentPos = br.BaseStream.Position;
+                    // Dummy deserialize to advance stream (inefficient - better to calculate size)
+                    if (prefabIndex >= 0 && prefabIndex < masterList.Count && masterList[prefabIndex] != null)
+                    {
+                        masterList[prefabIndex].Deserialize(br);
+                    }
+                    else
+                    {
+                        // Cannot determine size to skip - this approach has issues.
+                        Debug.LogError("Cannot skip unknown projectile data.");
+                        // Alternative: Calculate exact size of serialized projectile data.
+                    }
+                    long nextPos = br.BaseStream.Position;
+                    long dataSize = nextPos - currentPos;
+                    br.BaseStream.Position = currentPos; // Rewind
+                    byte[] projData = br.ReadBytes((int)dataSize); // Read the exact bytes
+                    projectileStateData[prefabIndex] = projData; // Store bytes keyed by prefab index
+                }
+
+
+                // Synchronize active state
+                // Deactivate projectiles that are currently active but shouldn't be
+                foreach (BaseProjectile activeProj in currentlyActive)
+                {
+                    int currentPrefabIndex = masterList.IndexOf(activeProj);
+                    if (!activePrefabIndices.Contains(currentPrefabIndex))
+                    {
+                        // This projectile shouldn't be active, deactivate it
+                        ProjectileManager.Instance.DeleteProjectile(activeProj); // Use manager's method to handle pool state
+                    }
+                }
+
+                // Activate projectiles that should be active but aren't
+                foreach (int prefabIndex in activePrefabIndices)
+                {
+                    BaseProjectile projectileInstance = masterList[prefabIndex];
+                    if (!projectileInstance.gameObject.activeSelf)
+                    {
+                        // Activate from pool (Reset values first)
+                        projectileInstance.ResetValues();
+                        projectileInstance.gameObject.SetActive(true);
+                        // Add to active list if DeleteProjectile doesn't handle it
+                        if (!ProjectileManager.Instance.activeProjectiles.Contains(projectileInstance))
+                        {
+                            ProjectileManager.Instance.activeProjectiles.Add(projectileInstance);
+                        }
+                    }
+                    shouldBeActive.Add(projectileInstance); // Add to the list of projectiles to load state for
+                }
+
+
+                // Load state into the now-correctly-active projectiles
+                foreach (BaseProjectile projectileToLoad in shouldBeActive)
+                {
+                    int prefabIndex = masterList.IndexOf(projectileToLoad);
+                    if (projectileStateData.TryGetValue(prefabIndex, out byte[] projData))
+                    {
+                        using (MemoryStream projStream = new MemoryStream(projData))
+                        {
+                            using (BinaryReader projReader = new BinaryReader(projStream))
+                            {
+                                projectileToLoad.Deserialize(projReader);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
+                    }
+                }
+
+                // Resolve References
+                // Call ResolveReferences on players if they need it (unlikely for player->spell)
+                // Call ResolveReferences on all *active* projectiles
+                foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles) // Iterate over the now correct list
+                {
+                    projectile.ResolveReferences();
+                }
+            }
         }
     }
 }

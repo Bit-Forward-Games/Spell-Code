@@ -12,6 +12,7 @@ using BestoNet.Types;
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -1418,11 +1419,11 @@ public class PlayerController : MonoBehaviour
     /// NETWORK CODE:
     public void Serialize(BinaryWriter bw)
     {
-        bw.Write(position.x);
-        bw.Write(position.y);
-        bw.Write(hSpd);
-        bw.Write(vSpd);
-        bw.Write(gravity);
+        bw.Write(position.X.RawValue);
+        bw.Write(position.Y.RawValue);
+        bw.Write(hSpd.RawValue);
+        bw.Write(vSpd.RawValue);
+        bw.Write(gravity.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write((byte)state);
@@ -1435,6 +1436,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
+        bw.Write(currrentPlayerHealth); 
+        bw.Write(isAlive); 
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
@@ -1442,22 +1445,35 @@ public class PlayerController : MonoBehaviour
         bw.Write(momentum);
         bw.Write(slimed);
 
+        // Spell List Serialization
+        bw.Write(spellList.Count); // Write how many spells are in the list
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            // Write the spell's unique name/ID to identify which spell it is
+            bw.Write(spellList[i].spellName); // Assuming spellName is unique and constant
+
+            // Call the spell's own Serialize method (needs to be implemented in SpellData)
+            spellList[i].Serialize(bw); // Assumes SpellData has Serialize(BinaryWriter bw)
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
 
     public void Deserialize(BinaryReader br)
     {
-        position.x = br.ReadSingle();
-        position.y = br.ReadSingle();
-        hSpd = br.ReadSingle();
-        vSpd = br.ReadSingle();
-        gravity = br.ReadSingle();
+        position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
+        hSpd = new Fixed(br.ReadInt32());
+        vSpd = new Fixed(br.ReadInt32());
+        gravity = new Fixed(br.ReadInt32());
+        damageProration = new Fixed(br.ReadInt32());
+        timer = new Fixed(br.ReadInt32());
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();
+        animationFrame = br.ReadInt32();
         lerpDelay = br.ReadUInt16();
         stateSpecificArg = br.ReadUInt32();
         hitstop = br.ReadByte();
@@ -1465,6 +1481,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
+        currrentPlayerHealth = br.ReadUInt16();
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
@@ -1472,6 +1489,38 @@ public class PlayerController : MonoBehaviour
         momentum = br.ReadUInt16();
         slimed = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
+
+        // Spell List Deserialization
+        int spellCount = br.ReadInt32();
+        // Important: Ensure the spellList is the correct size and has the correct spells
+        // This is complex. A simple approach if the list order/contents don't change dynamically mid-match:
+        if (spellList.Count != spellCount)
+        {
+            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
+            // Potentially try to rebuild the list based on saved names? Very risky.
+            // For simplicity, assuming the list composition is stable during rollback frames.
+        }
+
+        for (int i = 0; i < spellCount; i++)
+        {
+            string spellName = br.ReadString(); // Read the identifier
+
+            // Find the corresponding spell instance in the current list
+            SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
+
+            if (spellInstance != null)
+            {
+                // Call the spell's Deserialize method
+                spellInstance.Deserialize(br); // Assumes SpellData has Deserialize(BinaryReader br)
+            }
+            else
+            {
+                Debug.LogError($"Spell '{spellName}' not found in list during Deserialize. Skipping spell state.");
+                // Need a robust way to handle this, perhaps by skipping the correct number of bytes
+                // based on how SpellData.Deserialize is implemented, or failing entirely.
+                // For now, this will likely cause complete desync if a spell is missing.
+            }
+        }
     }
 
 

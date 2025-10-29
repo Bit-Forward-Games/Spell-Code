@@ -13,7 +13,6 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
-using IdolShowdown.Managers;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -345,7 +344,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// Called by both online and local loops.
     /// </summary>
     /// <param name="currentInputs">The ulong input array for players this frame.</param>
-    private void RunDeterministicSimulationStep(ulong[] currentInputs)
+    public void RunDeterministicSimulationStep(ulong[] currentInputs)
     {
         // Order of Operations
         ProjectileManager.Instance.UpdateProjectiles(); // 1. Update Projectiles

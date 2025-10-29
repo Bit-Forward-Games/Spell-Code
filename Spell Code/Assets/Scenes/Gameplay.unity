@@ -405,6 +405,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1217261648871265678, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -11.559021
+      objectReference: {fileID: 0}
     - target: {fileID: 1675249283009119576, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -839,7 +843,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1013759790}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c88f5cead0c0b2a4eb05b5900433f8d1, type: 3}
   m_Name: 
@@ -870,7 +874,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 36}
   damping: 0
-  minZoom: 90
+  minZoom: 120
   maxZoom: 420
   minDistance: 120
   zoomLimiter: 480
@@ -878,7 +882,6 @@ MonoBehaviour:
   shakeDuration: 0.5
   shakeMagnitude: 1
   target: {x: 0, y: 0}
-  pixelPerfectCamera: {fileID: 1013759796}
 --- !u!1 &1087714001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1629,7 +1632,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 8134256411904724372, guid: 3b640551bd8425c4692aa8baa1201c73, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.482, g: 0.482, b: 0.482, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

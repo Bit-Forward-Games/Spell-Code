@@ -120,4 +120,30 @@ public abstract class SpellData : MonoBehaviour
     /// this function would check for that.
     /// </summary>
     public abstract void CheckCondition();
+
+    // Serialization Methods
+
+    /// <summary>
+    /// Saves the current dynamic state of the spell.
+    /// Base implementation saves cooldownCounter and activateFlag.
+    /// Override in derived classes to save additional state.
+    /// </summary>
+    public virtual void Serialize(BinaryWriter bw)
+    {
+        bw.Write(cooldownCounter);
+        bw.Write(activateFlag);
+        // Derived classes should call base.Serialize(bw) then write their own state.
+    }
+
+    /// <summary>
+    /// Loads the dynamic state of the spell.
+    /// Base implementation loads cooldownCounter and activateFlag.
+    /// Override in derived classes to load additional state.
+    /// </summary>
+    public virtual void Deserialize(BinaryReader br)
+    {
+        cooldownCounter = br.ReadInt32();
+        activateFlag = br.ReadBoolean();
+        // Derived classes should call base.Deserialize(br) then read their own state.
+    }
 }

@@ -1059,8 +1059,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Hitstun:
                 stateSpecificArg = hitboxData.hitstun;
-                hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
-                vSpd = hitboxData.yKnockback;
+                Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
+                Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);
+                hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
+                vSpd = yKnockback;
 
                 //if (isGrounded)
                 //{
@@ -1071,15 +1073,15 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Tech:
-                hSpd = facingRight ? -1 : 1;
-                vSpd = 5;
+                hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
+                vSpd = Fixed.FromInt(5);
                 //if (isGrounded)
                 //{
                 //    position.y = StageData.Instance.floorYval + 1;
                 //    isGrounded = false;
                 //}
                 comboCounter = 0;
-                damageProration = 1f;
+                damageProration = Fixed.FromInt(1);
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
@@ -1121,15 +1123,15 @@ public class PlayerController : MonoBehaviour
 
     private bool CheckGrounded(bool checkOnly = false)
     {
-        float floorYval = StageData.Instance.floorYval;
+        Fixed floorYval = Fixed.FromInt(StageData.Instance.floorYval);
 
-        if (position.y + vSpd <= floorYval)
+        if (position.Y + vSpd <= floorYval)
         {
             if (checkOnly)
             {
                 return true;
             }
-            position.y = floorYval;
+            position = new FixedVec2(position.X, floorYval);
             vSpd = Fixed.FromInt(0);
             return true;
         }
@@ -1257,11 +1259,11 @@ public class PlayerController : MonoBehaviour
     public bool CheckWall(bool rightWall, bool checkOnly = false)
     {
         Fixed wallXval = Fixed.FromInt(rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval);
-        Fixed offset = rightWall ? playerWidth / 2 : -playerWidth / 2;
+        Fixed offset = rightWall ? playerWidth / Fixed.FromInt(2) : -playerWidth / Fixed.FromInt(2);
 
         // Check if the player has hit the wall and adjust position and speed
-        if ((rightWall && position.X + hSpd + playerWidth / 2 >= wallXval) ||
-            (!rightWall && position.X + hSpd - playerWidth / 2 <= wallXval))
+        if ((rightWall && position.X + hSpd + playerWidth / Fixed.FromInt(2) >= wallXval) ||
+            (!rightWall && position.X + hSpd - playerWidth / Fixed.FromInt(2) <= wallXval))
         {
             if (checkOnly)
             {
@@ -1327,17 +1329,17 @@ public class PlayerController : MonoBehaviour
     public bool IsCloserToStageCenter()
     {
         // 1) compute the absolute center of the stage
-        float leftWall = StageData.Instance.leftWallXval;
-        float rightWall = StageData.Instance.rightWallXval;
-        float stageCenter = (leftWall + rightWall) * 0.5f;
+        Fixed leftWall = Fixed.FromInt(StageData.Instance.leftWallXval);
+        Fixed rightWall = Fixed.FromInt(StageData.Instance.rightWallXval);
+        Fixed stageCenter = (leftWall + rightWall) / Fixed.FromInt(2);
 
         // 2) distance from player to center
-        float distToCenter = Mathf.Abs(position.x - stageCenter);
+        Fixed distToCenter = Fixed.Abs(position.X - stageCenter);
 
         // 3) distance to the nearest wall
-        float distToLeft = Mathf.Abs(position.x - leftWall);
-        float distToRight = Mathf.Abs(position.x - rightWall);
-        float distToWall = Mathf.Min(distToLeft, distToRight);
+        Fixed distToLeft = Fixed.Abs(position.X - leftWall); 
+        Fixed distToRight = Fixed.Abs(position.X - rightWall); 
+        Fixed distToWall = Fixed.Min(distToLeft, distToRight);
 
         // 4) are we closer to center than to the wall?
         return distToCenter < distToWall;

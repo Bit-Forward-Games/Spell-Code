@@ -5,7 +5,10 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using BestoNet.Types;
 
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public enum ForceHitstunType
 { 
@@ -39,7 +42,7 @@ public class HitboxManager : MonoBehaviour
 
     int[] playerFrames = new int[4];
 
-    Vector2[] playerOrigins = new Vector2[4];
+    FixedVec2[] playerOrigins = new FixedVec2[4];
 
     bool[] playerIsRight = new bool[4];
 
@@ -252,9 +255,17 @@ public class HitboxManager : MonoBehaviour
     /// <param name="hurtbox">The hurtbox checking collision</param>
     /// <param name="hurtboxOrigin">The center of the player who the hurtbox belongs too</param>
     /// <returns></returns>
-    private bool CheckCollision(HitboxData hitbox, Vector2 hitboxOrigin, HurtboxData hurtbox, 
-        Vector2 hurtboxOrigin, bool playerOneFacingRight, bool playerTwoFacingRight)
+    private bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, HurtboxData hurtbox,
+        FixedVec2 hurtboxOrigin, bool playerOneFacingRight, bool playerTwoFacingRight)
     {
+
+        Fixed hitWidth = Fixed.FromInt(hitbox.width);
+        Fixed hitHeight = Fixed.FromInt(hitbox.height);
+        Fixed hitYOffset = Fixed.FromInt(hitbox.yOffset);
+
+        Fixed hurtWidth = Fixed.FromInt(hurtbox.width);
+        Fixed hurtHeight = Fixed.FromInt(hurtbox.height);
+        Fixed hurtYOffset = Fixed.FromInt(hurtbox.yOffset);
 
         // If either box has no width or height, return false
         if (hurtbox.width == 0 || hurtbox.height == 0)
@@ -262,18 +273,20 @@ public class HitboxManager : MonoBehaviour
             return false;
         }
         // Construct Hitbox Boundaries
-        float hitboxLeft = hitboxOrigin.x + GetOffsetX(hitbox, playerOneFacingRight);
-        float hitboxRight = hitboxOrigin.x + GetOffsetX(hitbox, playerOneFacingRight) + hitbox.width;
-        float hitboxTop = hitboxOrigin.y + hitbox.yOffset;
-        float hitboxBottom = hitboxOrigin.y + hitbox.yOffset - hitbox.height;
-            
+        Fixed hitOffsetX = Fixed.FromInt(GetOffsetX(hitbox, playerOneFacingRight));
+        Fixed hitboxLeft = hitboxOrigin.X + hitOffsetX;
+        Fixed hitboxRight = hitboxLeft + hitWidth;
+        Fixed hitboxTop = hitboxOrigin.Y + hitYOffset;
+        Fixed hitboxBottom = hitboxTop - hitHeight;
+
         //Debug.Log($"Hit: Left {hitboxLeft} Right {hitboxRight} Top {hitboxTop} Bottom {hitboxBottom}");
 
         // Construct Hurtbox Boundaries
-        float hurtboxLeft = hurtboxOrigin.x + GetOffsetX(hurtbox, playerTwoFacingRight);
-        float hurtboxRight = hurtboxOrigin.x + GetOffsetX(hurtbox, playerTwoFacingRight) + hurtbox.width;
-        float hurtboxTop = hurtboxOrigin.y + hurtbox.yOffset;
-        float hurtboxBottom = hurtboxOrigin.y + hurtbox.yOffset - hurtbox.height;
+        Fixed hurtOffsetX = Fixed.FromInt(GetOffsetX(hurtbox, playerTwoFacingRight));
+        Fixed hurtboxLeft = hurtboxOrigin.X + hurtOffsetX;
+        Fixed hurtboxRight = hurtboxLeft + hurtWidth;
+        Fixed hurtboxTop = hurtboxOrigin.Y + hurtYOffset;
+        Fixed hurtboxBottom = hurtboxTop - hurtHeight;
 
         //Debug.Log($"Hurt: Left {hurtboxLeft} Right {hurtboxRight} Top {hurtboxTop} Bottom {hurtboxBottom}");
 
@@ -312,7 +325,8 @@ public class HitboxManager : MonoBehaviour
         //DrawHurtBoxes(playerTwoOrigin, playerTwoHurtInfo, playerTwoFrame, playerTwoState, playerTwoIsRight);
         for(int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            DrawHurtBoxes(playerOrigins[i], playerHurtInfos[i], playerFrames[i], playerStates[i], playerIsRight[i]);
+            Vector2 drawOrigin = new Vector2(playerOrigins[i].X.ToFloat(), playerOrigins[i].Y.ToFloat());
+            DrawHurtBoxes(drawOrigin, playerHurtInfos[i], playerFrames[i], playerStates[i], playerIsRight[i]);
         }
 
         //draw projectile hitboxes
@@ -327,10 +341,20 @@ public class HitboxManager : MonoBehaviour
                 .Concat(activeGroup.hitbox4);
             foreach (var hitbox in activeProjHit)
             {
-                Vector2 projOrigin = projectile.position;
-                projOrigin.x += GetOffsetX(hitbox, projectile.facingRight);
-                projOrigin.y += hitbox.yOffset; //i defintely need patrick to fix this
-                BoxRenderer.DrawBox(projOrigin, hitbox.width, hitbox.height, hitbox.sweetSpot? new Color(1, 1, 0, 0.5f): new Color(1, 0, 0, 0.5f));
+                Fixed fixedOffsetX = Fixed.FromInt(GetOffsetX(hitbox, projectile.facingRight));
+                Fixed fixedOffsetY = Fixed.FromInt(hitbox.yOffset);
+                FixedVec2 projOrigin = projectile.position;
+                //i defintely need patrick to fix this
+                Fixed drawX = projectile.position.X + fixedOffsetX;
+                Fixed drawY = projectile.position.Y + fixedOffsetY - Fixed.FromInt(hitbox.height); // Bottom edge
+
+                // Convert the calculated FixedVec2 position to UnityEngine.Vector2 for BoxRenderer
+                Vector2 drawPos = new Vector2(drawX.ToFloat(), drawY.ToFloat());
+
+                // Get width and height (convert Fixed or use int directly if BoxRenderer accepts float/int)
+                float drawWidth = hitbox.width; // Assuming BoxRenderer takes float or int
+                float drawHeight = hitbox.height;
+                BoxRenderer.DrawBox(drawPos, hitbox.width, hitbox.height, hitbox.sweetSpot? new Color(1, 1, 0, 0.5f): new Color(1, 0, 0, 0.5f));
             }
         }
     }

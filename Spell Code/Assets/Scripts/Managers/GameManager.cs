@@ -184,7 +184,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     /// <param name="localIndex">Player index (0 or 1) for this client.</param>
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
-    public void StartOnlineMatch(int localIndex, int remoteIndex)
+    public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId) // <-- Added opponentId
     {
         Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
@@ -192,6 +192,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("Cannot start online match: RollbackManager not found!");
             return;
         }
+        if (!opponentId.IsValid) // Add check for valid opponent ID
+        {
+            Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
+            return;
+        }
+
 
         ResetMatchState(); // Reset frame counter, player states etc.
         localPlayerIndex = localIndex;
@@ -202,12 +208,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // Ensure players are spawned/reset
         ResetPlayers();
 
-        // Initialize Rollback Manager specific things
-        RollbackManager.Instance.Init(); // Ensure RollbackManager knows player identities if needed
-        RollbackManager.Instance.InitDesyncDetector(); // If using desync detection
+        // Pass opponent ID to RollbackManager.Init 
+        // Get the ulong value from the SteamId struct
+        RollbackManager.Instance.Init(opponentId.Value);
+
 
         // Initialize local player input device (example)
-        // players[localPlayerIndex]?.inputs.AssignInputDevice(...); // Needs the specific input setup
+        // players[localPlayerIndex]?.inputs.AssignInputDevice(...); // Needs your specific input setup
+
+        // Also initialize MatchMessageManager
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.StartMatch(opponentId);
+        }
+        else
+        {
+            Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
+        }
+
 
         Debug.Log("Online Match Started.");
     }
@@ -307,7 +325,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         else // Not time synced (likely connection issue)
         {
             timeoutFrames++;
-            if (timeoutFrames > rbManager.TimeoutFrameLimit)
+            if (timeoutFrames > rbManager.TimeoutFrames)
             {
                 rbManager.TriggerMatchTimeout(); // Let RollbackManager handle the disconnect
                 // StopMatch("Connection Timeout"); // GameManager stops itself

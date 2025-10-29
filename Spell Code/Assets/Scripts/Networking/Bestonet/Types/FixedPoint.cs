@@ -66,6 +66,8 @@ namespace BestoNet.Types
         private const int One = 1 << FractionBits;
         private readonly int _rawValue;
 
+        public int RawValue => _rawValue;
+
         public Fixed32(int rawValue)
         {
             _rawValue = rawValue;
@@ -194,6 +196,8 @@ namespace BestoNet.Types
         private const int FractionBits = 32;
         private const long One = 1L << FractionBits;
         private readonly long _rawValue;
+
+        public long RawValue => _rawValue;
 
         public Fixed64(long rawValue)
         {

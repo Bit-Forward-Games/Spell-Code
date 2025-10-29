@@ -84,20 +84,22 @@ using BestoNet.Collections; // For CircularArray
             // Process all available packets on the channel
             while (SteamNetworking.IsP2PPacketAvailable(MATCH_MESSAGE_CHANNEL))
             {
+
                 P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
+                Debug.Log($"Received Packet from {packet.Value.SteamId}");
                 if (packet.HasValue && packet.Value.SteamId == opponentSteamId) // Ensure packet is from the opponent
-                {
-                    try
                     {
-                        ProcessPacket(packet.Value.Data);
+                        try
+                        {
+                            ProcessPacket(packet.Value.Data);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"Error processing packet: {e}");
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Debug.LogError($"Error processing packet: {e}");
-                    }
+                    // Discard packets not from the opponent if necessary
                 }
-                // Discard packets not from the opponent if necessary
-            }
             // --- End Receive Packets ---
         }
 
@@ -267,6 +269,8 @@ using BestoNet.Collections; // For CircularArray
                         byte[] data = memoryStream.ToArray();
                         int dataSize = data.Length;
 
+                        Debug.Log($"Sending Input Bundle: StartFrame={firstFrameToSend}, Count={inputCount}");
+                        
                         // Send packet via Steam P2P
                         bool success = SteamNetworking.SendP2PPacket( // Store return value as bool
                                 opponentSteamId,

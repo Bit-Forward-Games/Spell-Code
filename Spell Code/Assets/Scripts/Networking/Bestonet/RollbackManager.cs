@@ -9,6 +9,7 @@ namespace IdolShowdown.Managers
 {
     public class RollbackManager : MonoBehaviour
     {
+        public static RollbackManager Instance { get; private set; }
         public struct GameState {
             public int frame;
             public byte[] state;
@@ -66,6 +67,22 @@ namespace IdolShowdown.Managers
         private int lastDroppedFrame  = -1;
         private int consecutiveDrop = 0;
         public int localFrame => matchRunner.FrameNumber;
+
+        private void Awake()
+        {
+            // if an instance already exists and it's not this one, destroy this duplicate
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                // otherwise, set this as the instance
+                Instance = this;
+                // optional: prevent the gameobject from being destroyed when loading new scenes
+                DontDestroyOnLoad(gameObject);
+            }
+        }
 
 
         public void Start()

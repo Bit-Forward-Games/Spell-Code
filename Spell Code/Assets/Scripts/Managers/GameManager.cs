@@ -13,6 +13,7 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using IdolShowdown.Managers;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -32,6 +33,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool roundOver;
 
     public bool prevSceneWasShop;
+
+    // New variables for Online Match State
+    public int frameNumber { get; private set; } = 0; // Master frame counter
+    private bool isOnlineMatchActive = false;
+    private ulong localPlayerInput = 0; // Stores local input for the current frame
+    private ulong[] syncedInput = new ulong[2] { 0, 0 }; // Inputs for both players this frame
+    public int localPlayerIndex = 0; // Set this before starting online match
+    public int remotePlayerIndex = 1; // Set this before starting online match
+    private int timeoutFrames = 0; // Timeout counter
 
     private void Awake()
     {
@@ -130,12 +140,232 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             prevSceneWasShop = false;
         }
 
+        if (isOnlineMatchActive)
+        {
+            // Execute the online frame logic using RollbackManager
+            RunOnlineFrame();
+        }
+        else
+        {
+            // Execute the simple offline frame logic
+            RunLocalFrame();
+        }
+
         RunFrame();
 
-        AnimationManager.Instance.RenderGameState();
+        if (!isOnlineMatchActive || (RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame))
+        {
+            AnimationManager.Instance.RenderGameState();
+        }
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
+        }
+    }
+
+    // Match Control Methods
+
+    /// <summary>
+    /// Starts a local (offline) match.
+    /// </summary>
+    public void StartLocalMatch()
+    {
+        Debug.Log("Starting Local Match...");
+        // Ensure playerCount is set correctly based on local players joined
+
+        ResetMatchState(); // Reset frame counter, player states etc.
+        isOnlineMatchActive = false;
+        isRunning = true;
+        // Call ResetPlayers or player spawning logic here
+        ResetPlayers();
+    }
+
+    /// <summary>
+    /// Initializes and starts an online match. Requires RollbackManager.
+    /// </summary>
+    /// <param name="localIndex">Player index (0 or 1) for this client.</param>
+    /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
+    public void StartOnlineMatch(int localIndex, int remoteIndex)
+    {
+        Debug.Log("Starting Online Match...");
+        if (RollbackManager.Instance == null)
+        {
+            Debug.LogError("Cannot start online match: RollbackManager not found!");
+            return;
+        }
+
+        ResetMatchState(); // Reset frame counter, player states etc.
+        localPlayerIndex = localIndex;
+        remotePlayerIndex = remoteIndex;
+        isOnlineMatchActive = true;
+        isRunning = true;
+
+        // Ensure players are spawned/reset
+        ResetPlayers();
+
+        // Initialize Rollback Manager specific things
+        RollbackManager.Instance.Init(); // Ensure RollbackManager knows player identities if needed
+        RollbackManager.Instance.InitDesyncDetector(); // If using desync detection
+
+        // Initialize local player input device (example)
+        // players[localPlayerIndex]?.inputs.AssignInputDevice(...); // Needs the specific input setup
+
+        Debug.Log("Online Match Started.");
+    }
+
+    /// <summary>
+    /// Stops the currently running match (local or online).
+    /// </summary>
+    /// <param name="reason">Reason for stopping.</param>
+    public void StopMatch(string reason = "Match Ended")
+    {
+        if (!isRunning) return;
+        Debug.Log($"Stopping Match: {reason}");
+
+        isRunning = false;
+        if (isOnlineMatchActive)
+        {
+            RollbackManager.Instance?.Disconnect(); // Clean up rollback state
+            isOnlineMatchActive = false;
+        }
+
+        // General cleanup
+        ProjectileManager.Instance.DeleteAllProjectiles();
+        // Maybe reset player states or positions
+    }
+
+    /// <summary>
+    /// Resets common match state variables.
+    /// </summary>
+    private void ResetMatchState()
+    {
+        frameNumber = 0;
+        localPlayerInput = 0;
+        syncedInput = new ulong[2] { 0, 0 };
+        timeoutFrames = 0;
+        // Reset game-specific things like round number if needed
+        // round = 1;
+    }
+
+
+    // Simulation Loop Methods
+
+    /// <summary>
+    /// Executes one frame of the online match simulation using RollbackManager.
+    /// </summary>
+    private void RunOnlineFrame()
+    {
+        RollbackManager rbManager = RollbackManager.Instance; // Cache for readability
+
+        // Initial save state for frame 0 (or up to input delay)
+        if (frameNumber <= rbManager.InputDelay)
+        {
+            rbManager.SaveState(); // Calls SerializeManagedState internally
+        }
+
+        // Read Local Input (for the *next* frame + input delay)
+        localPlayerInput = 0; // Default to no input
+        if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
+        {
+            localPlayerInput = players[localPlayerIndex].GetInputs(); // Assuming returns ulong
+        }
+
+        // Check Network Sync & Handle Rollback
+        bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
+        if (timeSynced)
+        {
+            timeoutFrames = 0;
+            rbManager.RollbackEvent(); // Checks for input mismatch and loads state if needed
+
+            // Core Rollback Step
+            frameNumber++; // Increment frame *before* simulating it
+            rbManager.SendLocalInput(localPlayerInput); // Send input from *last* tick
+            syncedInput = rbManager.SynchronizeInput(); // Get inputs for *this* frame
+
+            // Check if RollbackManager wants to stall (e.g., waiting for input in delay-based mode)
+            if (!rbManager.AllowUpdate())
+            {
+                frameNumber--; // Don't advance frame counter if stalled
+                return; // Skip simulation this tick
+            }
+
+            // Run Deterministic Simulation
+            RunDeterministicSimulationStep(syncedInput);
+
+            // Save State (if not rolled back)
+            if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
+            {
+                rbManager.SaveState();
+            }
+
+            // Handle Frame Advantage Timing
+            if (frameAdvantageDifference > rbManager.FrameExtensionLimit)
+            {
+                rbManager.StartFrameExtensions(frameAdvantageDifference);
+            }
+            rbManager.ExtendFrame(); // Apply timing adjustments
+        }
+        else // Not time synced (likely connection issue)
+        {
+            timeoutFrames++;
+            if (timeoutFrames > rbManager.TimeoutFrameLimit)
+            {
+                rbManager.TriggerMatchTimeout(); // Let RollbackManager handle the disconnect
+                // StopMatch("Connection Timeout"); // GameManager stops itself
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes one frame of local (offline) match simulation.
+    /// </summary>
+    protected void RunLocalFrame()
+    {
+        frameNumber++; // Increment frame counter
+
+        // Gather local inputs as ulong
+        ulong[] localInputsULong = new ulong[playerCount];
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null && players[i].isAlive)
+            {
+                localInputsULong[i] = players[i].GetInputs(); // Assuming returns ulong
+            }
+        }
+
+        // Run the deterministic simulation step
+        RunDeterministicSimulationStep(localInputsULong);
+
+        // Check local game end condition
+        // if (CheckGameEnd(GetActivePlayerControllers())) { /* Handle local win/loss */ }
+    }
+
+    /// <summary>
+    /// The core deterministic update sequence for one frame.
+    /// Called by both online and local loops.
+    /// </summary>
+    /// <param name="currentInputs">The ulong input array for players this frame.</param>
+    private void RunDeterministicSimulationStep(ulong[] currentInputs)
+    {
+        // Order of Operations
+        ProjectileManager.Instance.UpdateProjectiles(); // 1. Update Projectiles
+        HitboxManager.Instance.ProcessCollisions();   // 2. Process Collisions
+        // 3. Update Players
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null)
+            {
+                ulong inputForPlayer = (i < currentInputs.Length) ? currentInputs[i] : 0UL; // Get input or default
+                players[i].PlayerUpdate(inputForPlayer); // Assumes PlayerUpdate takes ulong
+            }
+        }
+        // 4. Update Player Effects (after main state update)
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null && players[i].isAlive)
+            {
+                players[i].ProcEffectUpdate();
+            }
         }
     }
 

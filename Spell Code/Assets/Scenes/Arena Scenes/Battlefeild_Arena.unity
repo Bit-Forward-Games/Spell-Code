@@ -310,7 +310,7 @@ PrefabInstance:
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: currentStage
       value: 
-      objectReference: {fileID: 11400000, guid: bf07034279780144d9f34ab0b2b4b65a, type: 2}
+      objectReference: {fileID: 11400000, guid: 991e2ea107ccb05409dda59f343b8551, type: 2}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -432,7 +432,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 160
+  orthographic size: 88
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

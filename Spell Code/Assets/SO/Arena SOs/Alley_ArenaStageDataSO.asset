@@ -49,4 +49,7 @@ MonoBehaviour:
   - {x: 16, y: 224}
   - {x: 16, y: 224}
   playerSpawnTransform:
-  - {x: 0, y: -192, z: 0}
+  - {x: 208, y: 32, z: 0}
+  - {x: -112, y: 32, z: 0}
+  - {x: 112, y: -128, z: 0}
+  - {x: -208, y: -128, z: 0}

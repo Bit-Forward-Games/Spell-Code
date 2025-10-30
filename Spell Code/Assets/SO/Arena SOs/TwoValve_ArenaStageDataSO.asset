@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: TwoValve_ArenaStageDataSO
+  m_EditorClassIdentifier: 
+  platformCenter:
+  - {x: 176, y: 92}
+  - {x: 176, y: -100}
+  - {x: 208, y: -4}
+  - {x: -176, y: 92}
+  - {x: 32, y: 92}
+  - {x: -32, y: -100}
+  - {x: -176, y: -100}
+  - {x: -208, y: -4}
+  platformExtent:
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 32, y: 4}
+  - {x: 32, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  solidCenter:
+  - {x: 48, y: -112}
+  - {x: 0, y: 208}
+  - {x: -48, y: 80}
+  - {x: 0, y: -208}
+  - {x: -272, y: 0}
+  - {x: 272, y: 0}
+  - {x: -112, y: -16}
+  - {x: 112, y: -16}
+  solidExtent:
+  - {x: 48, y: 16}
+  - {x: 286, y: 16}
+  - {x: 48.129005, y: 16}
+  - {x: 286, y: 16}
+  - {x: 16, y: 224}
+  - {x: 16, y: 224}
+  - {x: 16, y: 112}
+  - {x: 16, y: 112}

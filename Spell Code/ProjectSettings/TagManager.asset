@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Platform
   - Solid
+  - Player Spawn
   layers:
   - Default
   - TransparentFX

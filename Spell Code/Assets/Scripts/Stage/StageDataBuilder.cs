@@ -10,11 +10,13 @@ public class StageDataBuilder : MonoBehaviour
 
     private GameObject[] platforms;
     private GameObject[] solids;
+    private GameObject[] playerSpawns;
     
     void Start()
     {
         platforms = GameObject.FindGameObjectsWithTag("Platform");
         solids = GameObject.FindGameObjectsWithTag("Solid");
+        playerSpawns = GameObject.FindGameObjectsWithTag("Player Spawn");
 
         stageDataSO = ScriptableObject.CreateInstance<StageDataSO>();
 
@@ -24,6 +26,7 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.solidCenter = new Vector2[solids.Length];
         stageDataSO.solidExtent = new Vector2[solids.Length];
 
+        stageDataSO.playerSpawnTransform = new Vector3[playerSpawns.Length];
         
     }
 
@@ -40,6 +43,7 @@ public class StageDataBuilder : MonoBehaviour
     {
         int i = 0;
         int j = 0; 
+        int k = 0;
         foreach (GameObject platform in platforms)
         {
             Bounds platformColliderBounds = platform.GetComponent<BoxCollider2D>().bounds;
@@ -54,6 +58,13 @@ public class StageDataBuilder : MonoBehaviour
             stageDataSO.solidCenter[j] = solidColliderBounds.center;
             stageDataSO.solidExtent[j] = solidColliderBounds.extents;
             j++;
+        }
+
+        foreach (GameObject spawn in playerSpawns)
+        {
+            Transform spawnTransforms = spawn.GetComponent<Transform>();
+            stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
+            k++;
         }
     }
 

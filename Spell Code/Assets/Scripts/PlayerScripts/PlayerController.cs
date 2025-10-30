@@ -661,8 +661,7 @@ public class PlayerController : MonoBehaviour
                 {
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        if ( spellList[i].spellType == SpellType.Passive) break;
-                        if (spellList[i].spellInput == stateSpecificArg)
+                        if (spellList[i].spellInput == stateSpecificArg && spellList[i].spellType == SpellType.Active)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;

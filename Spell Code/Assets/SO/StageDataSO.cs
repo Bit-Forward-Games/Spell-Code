@@ -7,4 +7,5 @@ public class StageDataSO : ScriptableObject
     public Vector2[] platformExtent;
     public Vector2[] solidCenter;
     public Vector2[] solidExtent;
+    public Vector3[] playerSpawnTransform;
 }

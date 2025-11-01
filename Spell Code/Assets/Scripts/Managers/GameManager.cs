@@ -198,16 +198,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             return;
         }
 
-
-        ResetMatchState(); // Reset frame counter, player states etc.
-        localPlayerIndex = localIndex;
-        remotePlayerIndex = remoteIndex;
-        isOnlineMatchActive = true;
-        isRunning = true;
-
-        // Ensure players are spawned/reset
-        ResetPlayers();
-
         // Pass opponent ID to RollbackManager.Init 
         // Get the ulong value from the SteamId struct
         RollbackManager.Instance.Init(opponentId.Value);
@@ -225,6 +215,25 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
+
+        this.playerCount = 2; // Assuming 2-player online match for now
+
+        if (players[0] == null || players[1] == null)
+        {
+            Debug.LogError("Player prefabs are not assigned or instantiated before StartOnlineMatch!");
+        }
+
+        players[localIndex].CheckForInputs(true); // Enable input for local player
+        players[remoteIndex].CheckForInputs(false); // Disable input for remote player
+
+        ResetMatchState(); // Reset frame counter, player states etc.
+        localPlayerIndex = localIndex;
+        remotePlayerIndex = remoteIndex;
+        isOnlineMatchActive = true;
+        isRunning = true;
+
+        // Ensure players are spawned/reset
+        ResetPlayers();
 
 
         Debug.Log("Online Match Started.");

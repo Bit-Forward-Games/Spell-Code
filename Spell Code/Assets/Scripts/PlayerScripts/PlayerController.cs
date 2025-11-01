@@ -75,9 +75,6 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
-    // Need a flag to track if the controller is controlled by the local device
-    // or if it should wait for netcode input.
-    public bool isLocalPlayer = false;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)

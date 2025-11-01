@@ -207,15 +207,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // Ensure players are spawned/reset
         ResetPlayers();
 
-        if (players[localIndex] != null)
-        {
-            players[localIndex].CheckForInputs(true); // Enable input for local player
-        }
-
-        if (players[remoteIndex] != null)
-        {
-            players[remoteIndex].CheckForInputs(false); // Disable input for remote player
-        }
 
         // Pass opponent ID to RollbackManager.Init 
         // Get the ulong value from the SteamId struct

@@ -198,10 +198,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             return;
         }
 
+        ResetMatchState(); // Reset frame counter, player states etc.
+        localPlayerIndex = localIndex;
+        remotePlayerIndex = remoteIndex;
+
+        this.playerCount = 2; // Assuming 2-player online match for now
+
+        // Ensure players are spawned/reset
+        ResetPlayers();
+
+        if (players[localIndex] != null)
+        {
+            players[localIndex].CheckForInputs(true); // Enable input for local player
+        }
+
+        if (players[remoteIndex] != null)
+        {
+            players[remoteIndex].CheckForInputs(false); // Disable input for remote player
+        }
+
         // Pass opponent ID to RollbackManager.Init 
         // Get the ulong value from the SteamId struct
         RollbackManager.Instance.Init(opponentId.Value);
-
 
         // Initialize local player input device (example)
         // players[localPlayerIndex]?.inputs.AssignInputDevice(...); // Needs your specific input setup
@@ -216,25 +234,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
 
-        this.playerCount = 2; // Assuming 2-player online match for now
-
-        if (players[0] == null || players[1] == null)
-        {
-            Debug.LogError("Player prefabs are not assigned or instantiated before StartOnlineMatch!");
-        }
-
-        players[localIndex].CheckForInputs(true); // Enable input for local player
-        players[remoteIndex].CheckForInputs(false); // Disable input for remote player
-
-        ResetMatchState(); // Reset frame counter, player states etc.
-        localPlayerIndex = localIndex;
-        remotePlayerIndex = remoteIndex;
         isOnlineMatchActive = true;
         isRunning = true;
-
-        // Ensure players are spawned/reset
-        ResetPlayers();
-
 
         Debug.Log("Online Match Started.");
     }

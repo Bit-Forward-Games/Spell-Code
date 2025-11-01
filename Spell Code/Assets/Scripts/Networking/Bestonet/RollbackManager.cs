@@ -263,7 +263,7 @@ using BestoNet.Collections; // Use BestoNet collections
                 ulong[] inputsForResim = SynchronizeInput(i); // Use version that takes frame number
 
                 // Run the simulation step using GameManager
-                GameManager.Instance.RunDeterministicSimulationStep(inputsForResim);
+                GameManager.Instance.UpdateGameState(inputsForResim);
                 GameManager.Instance.ForceSetFrame(i); // Ensure GameManager frame number matches simulation
 
                 // Save state during resimulation (optional, GGPO does speculative saving)

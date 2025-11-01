@@ -147,10 +147,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         else
         {
             // Execute the simple offline frame logic
-            RunLocalFrame();
+            RunFrame();
         }
 
-        RunFrame();
 
         if (!isOnlineMatchActive || (RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame))
         {
@@ -274,6 +273,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private void RunOnlineFrame()
     {
         RollbackManager rbManager = RollbackManager.Instance; // Cache for readability
+        if (rbManager == null)
+        {
+            Debug.LogError("RollbackManager instance is null during RunOnlineFrame!");
+            return;
+        }
 
         // Initial save state for frame 0 (or up to input delay)
         if (frameNumber <= rbManager.InputDelay)
@@ -290,47 +294,56 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         // Check Network Sync & Handle Rollback
         bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
-        if (timeSynced)
-        {
-            timeoutFrames = 0;
-            rbManager.RollbackEvent(); // Checks for input mismatch and loads state if needed
-
-            // Core Rollback Step
-            frameNumber++; // Increment frame *before* simulating it
-            rbManager.SendLocalInput(localPlayerInput); // Send input from *last* tick
-            syncedInput = rbManager.SynchronizeInput(); // Get inputs for *this* frame
-
-            // Check if RollbackManager wants to stall (e.g., waiting for input in delay-based mode)
-            if (!rbManager.AllowUpdate())
-            {
-                frameNumber--; // Don't advance frame counter if stalled
-                return; // Skip simulation this tick
-            }
-
-            // Run Deterministic Simulation
-            RunDeterministicSimulationStep(syncedInput);
-
-            // Save State (if not rolled back)
-            if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
-            {
-                rbManager.SaveState();
-            }
-
-            // Handle Frame Advantage Timing
-            if (frameAdvantageDifference > rbManager.FrameExtensionLimit)
-            {
-                rbManager.StartFrameExtensions(frameAdvantageDifference);
-            }
-            rbManager.ExtendFrame(); // Apply timing adjustments
-        }
-        else // Not time synced (likely connection issue)
+        if (!timeSynced) // Not time synced (likely connection issue)
         {
             timeoutFrames++;
             if (timeoutFrames > rbManager.TimeoutFrames)
             {
                 rbManager.TriggerMatchTimeout(); // Let RollbackManager handle the disconnect
-                // StopMatch("Connection Timeout"); // GameManager stops itself
             }
+            return; // Skip simulation if not synced
+        }
+
+        timeoutFrames = 0;
+        rbManager.RollbackEvent();
+
+        frameNumber++; // Increment frame *before* simulating it
+        rbManager.SendLocalInput(localPlayerInput); // Send input from *last* tick
+        syncedInput = rbManager.SynchronizeInput(); // Get inputs for *this* frame
+
+        // Stall check (skip simulation if inputs haven't arrived)
+        if (!rbManager.AllowUpdate())
+        {
+            frameNumber--; // Don't advance frame counter if stalled
+            return;
+        }
+
+        UpdateGameState(syncedInput);
+
+        if (!rbManager.isRollbackFrame)
+        {
+            if (CheckGameEnd(GetActivePlayerControllers()))
+            {
+                for (int i = 0; i < playerCount; i++)
+                {
+                    if (players[i].isAlive)
+                    {
+                        Debug.Log("Player " + (i + 1) + " wins the match!");
+                        players[i].isAlive = false; // Set state for subsequent saves
+                        break;
+                    }
+                }
+
+                // DON'T call RoundEnd() or GameEnd() because they change scenes.
+                // Stop the simulation and let managers handle the "game over" state.
+                isRunning = false;
+                StopMatch("Game Over");
+            }
+        }
+
+        if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
+        {
+            rbManager.SaveState();
         }
     }
 
@@ -344,58 +357,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         this.frameNumber = newFrame;
     }
 
-    /// <summary>
-    /// Executes one frame of local (offline) match simulation.
-    /// </summary>
-    protected void RunLocalFrame()
-    {
-        frameNumber++; // Increment frame counter
-
-        // Gather local inputs as ulong
-        ulong[] localInputsULong = new ulong[playerCount];
-        for (int i = 0; i < playerCount; i++)
-        {
-            if (players[i] != null && players[i].isAlive)
-            {
-                localInputsULong[i] = players[i].GetInputs(); // Assuming returns ulong
-            }
-        }
-
-        // Run the deterministic simulation step
-        RunDeterministicSimulationStep(localInputsULong);
-
-        // Check local game end condition
-        // if (CheckGameEnd(GetActivePlayerControllers())) { /* Handle local win/loss */ }
-    }
-
-    /// <summary>
-    /// The core deterministic update sequence for one frame.
-    /// Called by both online and local loops.
-    /// </summary>
-    /// <param name="currentInputs">The ulong input array for players this frame.</param>
-    public void RunDeterministicSimulationStep(ulong[] currentInputs)
-    {
-        // Order of Operations
-        ProjectileManager.Instance.UpdateProjectiles(); // 1. Update Projectiles
-        HitboxManager.Instance.ProcessCollisions();   // 2. Process Collisions
-        // 3. Update Players
-        for (int i = 0; i < playerCount; i++)
-        {
-            if (players[i] != null)
-            {
-                ulong inputForPlayer = (i < currentInputs.Length) ? currentInputs[i] : 0UL; // Get input or default
-                players[i].PlayerUpdate(inputForPlayer); // Assumes PlayerUpdate takes ulong
-            }
-        }
-        // 4. Update Player Effects (after main state update)
-        for (int i = 0; i < playerCount; i++)
-        {
-            if (players[i] != null && players[i].isAlive)
-            {
-                players[i].ProcEffectUpdate();
-            }
-        }
-    }
 
     /// <summary>
     /// Runs a single frame of the game.
@@ -442,7 +403,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// Updates the game state based on the provided inputs.
     /// </summary>
     /// <param name="inputs">Array of inputs for each player.</param>
-    protected void UpdateGameState(ulong[] inputs)
+    public void UpdateGameState(ulong[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
 
@@ -451,7 +412,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //update each player update values
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].PlayerUpdate(inputs[i]);
+            players[i].PlayerUpdate((ulong)inputs[i]);
         }
 
         for (int i = 0; i < playerCount; i++)

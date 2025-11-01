@@ -47,7 +47,8 @@ MonoBehaviour:
   spellName: Ninja_Build_Blast
   brands: 
   procConditions: 
-  cooldown: 1
+  description: 
+  cooldown: 600
   cooldownCounter: 0
   spellInput: 53764
   activateFlag: 0

@@ -656,7 +656,9 @@ public class PlayerController : MonoBehaviour
                 {
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        if (spellList[i].spellInput == stateSpecificArg && spellList[i].spellType == SpellType.Active)
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter <= 0)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
@@ -973,7 +975,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY < platformTop && pMinY > platformBottom && vSpd <= 0f)
+                if (pMinY < platformTop && position.y > platformBottom && vSpd <= 0f)
                 {
                     // Snap player to platform top
                     position.y = platformTop;

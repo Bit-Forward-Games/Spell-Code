@@ -461,7 +461,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: pfb_GameManager
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 282400343946288658, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

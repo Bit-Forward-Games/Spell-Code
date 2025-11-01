@@ -122,6 +122,6 @@ MonoBehaviour:
   playerIgnoreArr: 00000000
   animFrames:
     frameIndexes: 
-    frameLengths: 040000000300000003000000030000000300000003000000
+    frameLengths: 030000000300000003000000030000000300000003000000
     loopAnim: 0
   deleteOnHit: 0

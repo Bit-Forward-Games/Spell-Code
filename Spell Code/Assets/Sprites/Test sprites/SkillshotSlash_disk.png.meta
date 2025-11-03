@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 70989c79050da8d4abf437c30d7bfdb4
+guid: d7bb8ed575da7994794151f7378662ca
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7856469796204123701
-    second: MightOfZeus_disk_0
+      213: -7168651054881535364
+    second: SkillshotSlash_disk_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -152,13 +152,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MightOfZeus_disk_0
+      name: SkillshotSlash_disk_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 99
-        width: 952
-        height: 855
+        x: 1
+        y: 92
+        width: 959
+        height: 864
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -167,8 +167,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 536155f77a9c70d60800000000000000
-      internalID: 7856469796204123701
+      spriteID: c7a8e03c8d5d38c90800000000000000
+      internalID: -7168651054881535364
       vertices: []
       indices: 
       edges: []
@@ -187,7 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      MightOfZeus_disk_0: 7856469796204123701
+      SkillshotSlash_disk_0: -7168651054881535364
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

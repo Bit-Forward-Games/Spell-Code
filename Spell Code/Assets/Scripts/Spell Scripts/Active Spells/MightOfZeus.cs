@@ -6,8 +6,8 @@ public class MightOfZeus : SpellData
     {
         spellName = "MightOfZeus";
         brands = new Brand[]{ Brand.Killeez };
-        cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_1001_0011_0000_0100; // Example input sequence
+        cooldown = 300;
+        spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
 

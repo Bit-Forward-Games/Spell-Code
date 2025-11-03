@@ -451,11 +451,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public void ResetPlayers()
     {
-        foreach (PlayerController player in players)
+        for(int i = 0; i < players.Length; i++)
         {
-            if (player != null)
+            if (players[i] != null)
             {
-                player.SpawnPlayer(FixedVec2.Zero);
+                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
         }
 
@@ -488,7 +488,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     matchData.playerData[i].times.Add(timeValue.ToFloat()); // Convert Fixed to float
                 }
 
-                if (players[i].currrentPlayerHealth > 0)
+                if (players[i].currentPlayerHealth > 0)
                 {
                     matchData.playerData[i].matchWon = true;
                 }

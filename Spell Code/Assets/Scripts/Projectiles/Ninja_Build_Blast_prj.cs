@@ -12,11 +12,11 @@ public class Ninja_Build_Blast_prj : BaseProjectile
     public Ninja_Build_Blast_prj()
     {
         projName = "Ninja_Build_Blast";
-        hSpeed = Fixed.FromInt(1);
-        vSpeed = Fixed.FromInt(0);
-        lifeSpan = 120; // lasts for 120 logic frames
+        hSpeed = 1f;
+        vSpeed = 0f;
+        lifeSpan = 600; // lasts for 120 logic frames
         deleteOnHit = false;
-        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -69,7 +69,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(8).Sum() || logicFrame >= animFrames.frameLengths.Sum())
+        if (logicFrame == animFrames.frameLengths.Take(16).Sum() || logicFrame >= animFrames.frameLengths.Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }

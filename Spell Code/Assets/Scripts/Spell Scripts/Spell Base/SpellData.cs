@@ -61,15 +61,25 @@ public abstract class SpellData : MonoBehaviour
     [HideInInspector]
     public ProcCondition[]procConditions;
 
+    public string description;
+
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;
+    //[HideInInspector]
     public int cooldown;
+    [HideInInspector]
     public int cooldownCounter = 0;
+    [HideInInspector]
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
+    [HideInInspector]
     public bool activateFlag = false;
+    [HideInInspector]
     public PlayerController owner;
+    [HideInInspector]
     public SpellType spellType;
+    [HideInInspector]
     public int spawnOffsetX = 10;
+    [HideInInspector]
     public int spawnOffsetY = 15;
 
     //[Header("Prefab")]
@@ -96,12 +106,7 @@ public abstract class SpellData : MonoBehaviour
             // Reset the activate flag
             activateFlag = false;
 
-            // Handle cooldown check
-            if (cooldownCounter > 0)
-            {
-                cooldownCounter--;
-                return;
-            }
+            
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)

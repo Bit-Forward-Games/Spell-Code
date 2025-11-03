@@ -33,6 +33,13 @@ public class TempSpellDisplay : MonoBehaviour
                 codeStringWithSpaces = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
                 codeString = codeStringWithSpaces.Replace(" ", "");
 
+
+                //if the player's input isnt initialized, dont even try to access it (notably when the player is first initialized)
+                if (GameManager.Instance.players[playerIndex].input.ButtonStates == null)
+                {
+                    return;
+                }
+
                 if (GameManager.Instance.players[playerIndex].input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     if (arrowLists != null && i < arrowLists.Length && arrowLists[i] != null && arrowLists[i].arrows != null)

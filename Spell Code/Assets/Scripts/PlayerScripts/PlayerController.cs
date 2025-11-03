@@ -217,7 +217,7 @@ public class PlayerController : MonoBehaviour
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        position = spawnPos;
+        position = new FixedVec2(spawnPos.X, spawnPos.Y);
         hSpd = Fixed.FromInt(0); 
         vSpd = Fixed.FromInt(0);
         stateSpecificArg = 0;

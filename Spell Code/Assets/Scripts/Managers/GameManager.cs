@@ -431,7 +431,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
         playerCount++;
 
-
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].playerNum.text = "P" + (i + 1);
+        }
 
     }
 
@@ -455,98 +458,35 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (players[i] != null)
             {
-                FixedVec2 startPos;
-                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
-                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
-                players[i].SpawnPlayer(startPos);
+                players[i].basicsFired = 0;
+                players[i].spellsFired = 0;
+                players[i].spellsHit = 0;
+                players[i].times = new List<float>();
+                players[i].SpawnPlayer(Vector2.zero);
+                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
         }
 
         isSaved = false;
     }
 
-    public void SaveMatch()
+    /// <summary>
+    /// Restart gamestate when "play" or "rematch" is pressed
+    /// </summary>
+    public void RestartGame()
     {
-        //general game data
-        MatchData matchData = new MatchData();
-
-        //player data, looped for each player
-        if (playerCount > 0)
-        {
-            matchData.playerData = new PlayerData[playerCount];
-
-            for (int i = 0; i < playerCount; i++)
+        dataManager.totalRoundsPlayed = 0;
+        
+       //reset each player to their starting values
+       for (int i = 0; i < players.Length; i++)
+       {
+            if (players[i] != null)
             {
-                Fixed totalSpelltime = Fixed.FromInt(0);
-
-                //raw stats
-                matchData.playerData[i] = new PlayerData();
-                matchData.playerData[i].basicsFired = players[i].basicsFired;
-                matchData.playerData[i].codesFired = players[i].spellsFired;
-                matchData.playerData[i].codesHit = players[i].spellsHit;
-                matchData.playerData[i].synthesizer = players[i].characterName;
-                matchData.playerData[i].times = new List<float>();
-                foreach (Fixed timeValue in players[i].times)
-                {
-                    matchData.playerData[i].times.Add(timeValue.ToFloat()); // Convert Fixed to float
-                }
-
-                if (players[i].currentPlayerHealth > 0)
-                {
-                    matchData.playerData[i].matchWon = true;
-                }
-                else
-                {
-                    matchData.playerData[i].matchWon = false;
-                }
-
-                //calculated accuracy
-                if(players[i].basicsFired + players[i].spellsFired == 0)
-                {
-                    matchData.playerData[i].accuracy = 0;
-                }
-                else
-                {
-                    matchData.playerData[i].accuracy = players[i].spellsHit / (players[i].basicsFired + players[i].spellsFired);
-                }
-
-                //calculated avg time to cast a spell (totalTime / instances of times) 
-                for (int k = 0; k < players[i].times.Count; k++)
-                {
-                    totalSpelltime += players[i].times[k];
-                }
-
-                if (players[i].times.Count > 0)
-                {
-                    Fixed averageTimeFixed = totalSpelltime / Fixed.FromInt(players[i].times.Count);
-                    matchData.playerData[i].avgTimeToCast = averageTimeFixed.ToFloat();
-                }
-                else
-                {
-                    matchData.playerData[i].avgTimeToCast = 0;
-                }
-
-                    //save spell name to spellList provided it isn't null. If null, add 'no spell'
-                    matchData.playerData[i].spellList = new string[players[i].spellList.Count];
-                for (int j = 0; j < players[i].spellList.Count; j++)
-                {
-                    if (players[i].spellList[j] is null)
-                    {
-                        matchData.playerData[i].spellList[j] = "no spell";
-                    }
-                    else
-                    {
-                        matchData.playerData[i].spellList[j] = players[i].spellList[j].spellName;
-                    }
-                }
+                //this is different from ResetPlayers()
+                players[i].ResetPlayer();
+                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
-        }
-
-        //save match data to gameData object
-        dataManager.gameData.matchData.Add(matchData);
-
-        //players = new PlayerController[4];
-        //playerCount = 0;
+       }
     }
 
     //A round is 1 match + spell acquisition phase
@@ -554,7 +494,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         if (!isSaved)
         {
-            SaveMatch();
+            dataManager.SaveMatch();
             isSaved = true;
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
@@ -562,12 +502,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         SceneManager.LoadScene("Shop");
     }
 
-    //called when a game ends (game is a series of matches/rounds)
+    /// <summary>
+    /// called when a game ends (game is a series of matches/rounds)
+    /// </summary>
     public void GameEnd()
     {
         if (!isSaved)
         {
-            SaveMatch();
+            dataManager.SaveMatch();
             isSaved = true;
         }
 

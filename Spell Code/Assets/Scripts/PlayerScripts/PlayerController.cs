@@ -140,6 +140,7 @@ public class PlayerController : MonoBehaviour
     //TMPro
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
+    public TextMeshPro playerNum;
 
     [SerializeField]
     public Color colorSuccess;
@@ -329,7 +330,41 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Reset player back to initial state
+    public void ResetPlayer()
+    {
+        ClearSpellList();
 
+        //fill the spell list with the character's initial spells
+        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        {
+            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            //spellList.Add = Instantiate(targetSpell);
+            //spellList[i].owner = this;
+            //spellCount++;
+
+            AddSpellToSpellList(charData.startingInventory[i]);
+        }
+
+        //data
+        spellsFired = 0;
+        basicsFired = 0;
+        spellsHit = 0;
+        timer = 0.0f;
+        times = new List<float>();
+
+        //passive resources
+        flowState = 0;
+        stockStability = 0;
+        demonAura = 0;
+        reps = 0;
+        momentum = 0;
+        slimed = false;
+        comboCounter = 0;
+
+        currentPlayerHealth = 100;
+        isAlive = true;
+    }
 
 
     /// MOVEMENT CODE
@@ -1079,6 +1114,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Hitstun:
+                ClearInputDisplay();
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
                 Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);

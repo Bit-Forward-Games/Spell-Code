@@ -8,7 +8,10 @@ public class DataManager : MonoBehaviour
 {
     public static DataManager Instance { get; private set; }
 
+    private GameManager gM;
+
     public SaveDataHolder gameData = new SaveDataHolder();
+    
 
     public int totalRoundsPlayed = 0;
     void Awake()
@@ -31,6 +34,8 @@ public class DataManager : MonoBehaviour
     {
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
+
+        gM = GameManager.Instance;
     }
 
     //temp for testing in-engine
@@ -59,5 +64,98 @@ public class DataManager : MonoBehaviour
         StartCoroutine(saver.Save(gameData));
 
         Debug.Log("Data Saved");
+    }
+
+    public void SaveMatch()
+    {
+        if (gM == null)
+        {
+            gM = GameManager.Instance;
+        }
+
+        //general game data
+        MatchData matchData = new MatchData();
+
+        //player data, looped for each player
+        if (gM.playerCount > 0)
+        {
+            matchData.playerData = new PlayerData[gM.playerCount];
+
+            for (int i = 0; i < gM.playerCount; i++)
+            {
+                float totalSpelltime = 0;
+
+                //raw stats
+                matchData.playerData[i] = new PlayerData();
+                matchData.playerData[i].basicsFired = gM.players[i].basicsFired;
+                matchData.playerData[i].codesFired = gM.players[i].spellsFired;
+                matchData.playerData[i].codesHit = gM.players[i].spellsHit;
+                matchData.playerData[i].synthesizer = gM.players[i].characterName;
+                matchData.playerData[i].times = gM.players[i].times;
+
+                if (gM.players[i].currentPlayerHealth > 0)
+                {
+                    matchData.playerData[i].matchWon = true;
+                }
+                else
+                {
+                    matchData.playerData[i].matchWon = false;
+                }
+
+                //calculated accuracy
+                if (gM.players[i].basicsFired > 0 && gM.players[i].spellsFired > 0)
+                {
+                    matchData.playerData[i].accuracy = gM.players[i].spellsHit / (gM.players[i].basicsFired + gM.players[i].spellsFired);
+                }               
+                if (gM.players[i].basicsFired == 0 || gM.players[i].spellsFired == 0)
+                {
+                    matchData.playerData[i].accuracy = 0f;
+                }
+
+                //calculated avg time to cast a spell (totalTime / instances of times) 
+                for (int k = 0; k < gM.players[i].times.Count; k++)
+                {
+                    totalSpelltime += gM.players[i].times[k];
+                }
+
+                if (gM.players[i].times.Count > 0)
+                {
+                    matchData.playerData[i].avgTimeToCast = totalSpelltime / gM.players[i].times.Count;
+                }
+                else
+                {
+                    matchData.playerData[i].avgTimeToCast = 0;
+                }
+
+                //save spell name to spellList provided it isn't null. If null, add 'no spell'
+                matchData.playerData[i].spellList = new string[gM.players[i].spellList.Count];
+
+                for (int j = 0; j < gM.players[i].spellList.Count; j++)
+                {
+                    if (gM.players[i].spellList[j] is null)
+                    {
+                        matchData.playerData[i].spellList[j] = "no spell";
+                    }
+                    else
+                    {
+                        matchData.playerData[i].spellList[j] = gM.players[i].spellList[j].spellName;
+                    }
+                }
+            }
+        }
+
+        //save match data to gameData object
+        gameData.matchData.Add(matchData);
+    }
+
+
+    /// <summary>
+    /// Readies the data saver for the next game
+    /// </summary>
+    public void ResetData()
+    {
+        gameData = new SaveDataHolder();
+        gameData.dateTime = System.DateTime.Now.ToString();
+        gameData.matchData = new List<MatchData>();
     }
 }

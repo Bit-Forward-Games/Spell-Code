@@ -942,7 +942,7 @@ public class PlayerController : MonoBehaviour
                     Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
                     Fixed overlapY = Fixed.Min(pMaxY, sMax.Y) - Fixed.Max(pMinY, sMin.Y);
 
-                    if (overlapX <= Fixed.FromInt(0) || overlapY <= Fixed.FromInt(0))
+                    if (overlapX < Fixed.FromInt(0) || overlapY < Fixed.FromInt(0))
                     {
                         // Numerical edge-case: treat as no collision
                         continue;

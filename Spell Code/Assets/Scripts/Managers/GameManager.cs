@@ -249,12 +249,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void RestartGame()
     {
         dataManager.totalRoundsPlayed = 0;
-        playerCount = 0;
-
-       for (int i = players.Length - 1; i >= 0; i--)
-        {
-            players[i].RemovePlayer();
-        }
+        
+       //reset each player to their starting values
+       foreach (PlayerController player in players)
+       {
+            //this is different from ResetPlayers()
+            player.ResetPlayer();
+       }
     }
 
     //A round is 1 match + spell acquisition phase

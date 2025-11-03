@@ -319,11 +319,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void RemovePlayer()
+    //Reset player back to initial state
+    public void ResetPlayer()
     {
         ClearSpellList();
-        Destroy(this.gameObject);
-    }
+
+        //fill the spell list with the character's initial spells
+        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        {
+            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            //spellList.Add = Instantiate(targetSpell);
+            //spellList[i].owner = this;
+            //spellCount++;
+
+            AddSpellToSpellList(charData.startingInventory[i]);
+        }
+
+    spellsFired = 0;
+    basicsFired = 0;
+    spellsHit = 0;
+    timer = 0.0f;
+    times = new List<float>();
+}
 
 
     /// MOVEMENT CODE

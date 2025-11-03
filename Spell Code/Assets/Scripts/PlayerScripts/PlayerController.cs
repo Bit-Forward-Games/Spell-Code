@@ -581,13 +581,13 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //jump button pressed
-                if (input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)
+                if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     ClearInputDisplay();
                     stateSpecificArg = 0;
                 }
 
-                if (input.Direction is 5 or 1 or 3 or 7 or 9)
+                if (input.Direction == 5)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if ((stateSpecificArg & (1u << 4)) == 0)

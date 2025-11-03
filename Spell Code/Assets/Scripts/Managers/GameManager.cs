@@ -232,11 +232,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (players[i] != null)
             {
-                player.basicsFired = 0;
-                player.spellsFired = 0;
-                player.spellsHit = 0;
-                player.times = new List<float>();
-                player.SpawnPlayer(Vector2.zero);
+                players[i].basicsFired = 0;
+                players[i].spellsFired = 0;
+                players[i].spellsHit = 0;
+                players[i].times = new List<float>();
+                players[i].SpawnPlayer(Vector2.zero);
                 players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
         }
@@ -252,10 +252,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         dataManager.totalRoundsPlayed = 0;
         
        //reset each player to their starting values
-       foreach (PlayerController player in players)
+       for (int i = 0; i < players.Length; i++)
        {
-            //this is different from ResetPlayers()
-            player.ResetPlayer();
+            if (players[i] != null)
+            {
+                //this is different from ResetPlayers()
+                players[i].ResetPlayer();
+                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+            }
        }
     }
 

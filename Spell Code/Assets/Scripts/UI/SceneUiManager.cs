@@ -38,6 +38,8 @@ public class SceneUiManager : MonoBehaviour
         
         DataManager.Instance.ResetData();
         GameManager.Instance.RestartGame();
+
+        GameManager.Instance.isRunning = true;
         
         SceneManager.LoadScene("Gameplay");
     }

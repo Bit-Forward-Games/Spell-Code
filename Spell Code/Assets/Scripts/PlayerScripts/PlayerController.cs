@@ -335,12 +335,25 @@ public class PlayerController : MonoBehaviour
             AddSpellToSpellList(charData.startingInventory[i]);
         }
 
-    spellsFired = 0;
-    basicsFired = 0;
-    spellsHit = 0;
-    timer = 0.0f;
-    times = new List<float>();
-}
+        //data
+        spellsFired = 0;
+        basicsFired = 0;
+        spellsHit = 0;
+        timer = 0.0f;
+        times = new List<float>();
+
+        //passive resources
+        flowState = 0;
+        stockStability = 0;
+        demonAura = 0;
+        reps = 0;
+        momentum = 0;
+        slimed = false;
+        comboCounter = 0;
+
+        currentPlayerHealth = 100;
+        isAlive = true;
+    }
 
 
     /// MOVEMENT CODE

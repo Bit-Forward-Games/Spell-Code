@@ -93,7 +93,7 @@ public class DataManager : MonoBehaviour
                 matchData.playerData[i].synthesizer = gM.players[i].characterName;
                 matchData.playerData[i].times = gM.players[i].times;
 
-                if (gM.players[i].currrentPlayerHealth > 0)
+                if (gM.players[i].currentPlayerHealth > 0)
                 {
                     matchData.playerData[i].matchWon = true;
                 }
@@ -103,11 +103,11 @@ public class DataManager : MonoBehaviour
                 }
 
                 //calculated accuracy
-                if (gM.players[i].basicsFired == 0 && gM.players[i].spellsFired == 0)
+                if (gM.players[i].basicsFired > 0 && gM.players[i].spellsFired > 0)
                 {
                     matchData.playerData[i].accuracy = gM.players[i].spellsHit / (gM.players[i].basicsFired + gM.players[i].spellsFired);
                 }               
-                if (gM.players[i].basicsFired > 0 || gM.players[i].spellsFired > 0)
+                if (gM.players[i].basicsFired == 0 || gM.players[i].spellsFired == 0)
                 {
                     matchData.playerData[i].accuracy = 0f;
                 }

@@ -47,6 +47,7 @@ MonoBehaviour:
   spellName: JumpBoost
   brands: 
   procConditions: 
+  description: 
   cooldown: 1
   cooldownCounter: 180
   spellInput: 0
@@ -56,4 +57,5 @@ MonoBehaviour:
   spawnOffsetX: 10
   spawnOffsetY: 15
   projectilePrefabs: []
+  shopSprite: {fileID: 21300000, guid: d100258269e7508449925401f4188916, type: 3}
   jumpMultiplier: 1.5

@@ -18,22 +18,17 @@ public class ShopManager : MonoBehaviour
 
     public System.Random myRandom;
 
-    public Dictionary<string, Image> spellCards;
-
-    [Header("Spellcard Images")]
-    public Sprite zeus;
-    public Sprite prometheus;
-    public Sprite hermes;
-    public Sprite ninja;
-    public Sprite overclock;
-    public Sprite skillshot;
-
     public Image p1_spellCard;
     public Image p2_spellCard;
     public Image p3_spellCard;
     public Image p4_spellCard;
 
     public List<string> spells;
+
+    private List<string> p1_choices;
+    private List<string> p2_choices;
+    private List<string> p3_choices;
+    private List<string> p4_choices;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -119,11 +114,13 @@ public class ShopManager : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// Adds all necessary information to the spellcode card
-    /// </summary>
-    public void MakeSpellcodeCard(int index)
+    public void GenerateSpellChoices()
     {
-        string spellName = RandomizeSpell(index);
+        p1_choices = new List<string>();
+        p2_choices = new List<string>();
+        p3_choices = new List<string>();
+        p4_choices = new List<string>();
+
+        p1_choices.Add(RandomizeSpell(0));
     }
 }

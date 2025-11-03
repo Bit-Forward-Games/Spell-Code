@@ -45,9 +45,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: SpeedBoost
+  brands: 03000000
+  procConditions: 08000000
+  description: 
   cooldown: 1
+  cooldownCounter: 0
   spellInput: 0
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 0
+  spawnOffsetX: 10
+  spawnOffsetY: 15
   projectilePrefabs: []
+  shopSprite: {fileID: 21300000, guid: 166b203bcef96644fb823c8a1be59b2b, type: 3}
+  speedMultiplier: 2

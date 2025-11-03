@@ -58,3 +58,4 @@ MonoBehaviour:
   spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
+  shopSprite: {fileID: 21300000, guid: 003ebf56b1674414c95a440b55d5cd51, type: 3}

@@ -79,6 +79,8 @@ public abstract class SpellData : MonoBehaviour
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;
 
+    public Sprite shopSprite;
+
 
     private void Awake()
     {

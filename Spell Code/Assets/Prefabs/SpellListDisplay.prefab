@@ -709,7 +709,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4683095508994244735}
-  - component: {fileID: 5607603898564166094}
   m_Layer: 0
   m_Name: SpellListDisplay
   m_TagString: Untagged
@@ -742,26 +741,6 @@ RectTransform:
   m_AnchoredPosition: {x: 79, y: -104}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5607603898564166094
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7802503401814190844}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3683ce80fcce84f4cabe4475c585b4be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spellSlots:
-  - {fileID: 2432643004004242247}
-  - {fileID: 4867762457701068148}
-  - {fileID: 40019792859678942}
-  - {fileID: 7038315633903690267}
-  - {fileID: 8229741073472823628}
-  - {fileID: 3168697386388470708}
-  invertAlign: 0
 --- !u!1 &9070069162064692317
 GameObject:
   m_ObjectHideFlags: 0

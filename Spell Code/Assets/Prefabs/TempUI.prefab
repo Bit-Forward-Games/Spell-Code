@@ -125,6 +125,11 @@ MonoBehaviour:
   - {fileID: 8959108643432188804}
   - {fileID: 6194068694660875551}
   - {fileID: 8854329105776836193}
+  flowStateVals:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &4213745831153141686
 GameObject:
   m_ObjectHideFlags: 0

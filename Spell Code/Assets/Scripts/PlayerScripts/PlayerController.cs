@@ -350,8 +350,8 @@ public class PlayerController : MonoBehaviour
         spellsFired = 0;
         basicsFired = 0;
         spellsHit = 0;
-        timer = 0.0f;
-        times = new List<float>();
+        timer = Fixed.FromInt(0);
+        times = new List<Fixed>();
 
         //passive resources
         flowState = 0;

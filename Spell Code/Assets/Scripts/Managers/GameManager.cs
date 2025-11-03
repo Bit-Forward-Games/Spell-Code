@@ -461,9 +461,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].basicsFired = 0;
                 players[i].spellsFired = 0;
                 players[i].spellsHit = 0;
-                players[i].times = new List<float>();
-                players[i].SpawnPlayer(Vector2.zero);
-                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                players[i].times = new List<Fixed>();
+                players[i].SpawnPlayer(FixedVec2.Zero);
+                FixedVec2 startPos;
+                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
+                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+                players[i].SpawnPlayer(startPos);
+                //players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
         }
 
@@ -484,7 +488,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 //this is different from ResetPlayers()
                 players[i].ResetPlayer();
-                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                FixedVec2 startPos;
+                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
+                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+                players[i].SpawnPlayer(startPos);
+                //players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
        }
     }

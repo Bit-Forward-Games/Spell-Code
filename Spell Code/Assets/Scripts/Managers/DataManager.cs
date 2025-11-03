@@ -1,6 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using BestoNet.Types;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 //this script is purely so that I can keep a persistent storage of data
 //throughout the entire game, I can't have the shell deleting itself every time
@@ -83,7 +88,7 @@ public class DataManager : MonoBehaviour
 
             for (int i = 0; i < gM.playerCount; i++)
             {
-                float totalSpelltime = 0;
+                Fixed totalSpelltime = Fixed.FromInt(0);
 
                 //raw stats
                 matchData.playerData[i] = new PlayerData();
@@ -120,11 +125,12 @@ public class DataManager : MonoBehaviour
 
                 if (gM.players[i].times.Count > 0)
                 {
-                    matchData.playerData[i].avgTimeToCast = totalSpelltime / gM.players[i].times.Count;
+                    Fixed playerTimesCount = Fixed.FromInt(gM.players[i].times.Count);
+                    matchData.playerData[i].avgTimeToCast = totalSpelltime / playerTimesCount;
                 }
                 else
                 {
-                    matchData.playerData[i].avgTimeToCast = 0;
+                    matchData.playerData[i].avgTimeToCast = Fixed.FromInt(0);
                 }
 
                 //save spell name to spellList provided it isn't null. If null, add 'no spell'

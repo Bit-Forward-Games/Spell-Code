@@ -21,7 +21,7 @@ public class PlayerUI : MonoBehaviour
     {
         if (playerHealth.isHit)
         {
-            healthBar.fillAmount = playerHealth.currrentPlayerHealth / 100f;
+            healthBar.fillAmount = playerHealth.currentPlayerHealth / 100f;
         }
     }
 }

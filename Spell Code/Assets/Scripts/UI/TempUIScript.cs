@@ -27,7 +27,7 @@ public class TempUIScript : MonoBehaviour
     {
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currrentPlayerHealth;
+            playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currentPlayerHealth;
 
             flowStateVals[i].enabled = true;
             flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / 300;

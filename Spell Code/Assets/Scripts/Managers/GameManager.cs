@@ -228,15 +228,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public void ResetPlayers()
     {
-        foreach (PlayerController player in players)
+        for(int i = 0; i < players.Length; i++)
         {
-            if (player != null)
+            if (players[i] != null)
             {
                 player.basicsFired = 0;
                 player.spellsFired = 0;
                 player.spellsHit = 0;
                 player.times = new List<float>();
                 player.SpawnPlayer(Vector2.zero);
+                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
             }
         }
 

@@ -20,7 +20,7 @@ public class TempSpellDisplay : MonoBehaviour
         // arrowsSprite[3] = Resources.Load<Sprite>("Sprites/Test sprites/UI Elements/Player Panel/Arrows/Left_Arrow");
     }
 
-    public void UpdateSpellDisplay(int playerIndex)
+    public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
     {   
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;
         
@@ -34,14 +34,11 @@ public class TempSpellDisplay : MonoBehaviour
                 codeString = codeStringWithSpaces.Replace(" ", "");
 
 
-                //if the player's input isnt initialized, dont even try to access it (notably when the player is first initialized)
-                if (GameManager.Instance.players[playerIndex].input.ButtonStates == null)
-                {
-                    return;
-                }
+                
 
-                if (GameManager.Instance.players[playerIndex].input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                if (showInputs)
                 {
+                    spellSlots[i].text = playerSpells[i].spellName + ":\n" ;
                     if (arrowLists != null && i < arrowLists.Length && arrowLists[i] != null && arrowLists[i].arrows != null)
                     {
                         for (int j = 0; j < codeString.Length && j < arrowLists[i].arrows.Length; j++)

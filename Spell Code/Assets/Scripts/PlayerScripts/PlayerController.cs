@@ -1068,7 +1068,11 @@ public class PlayerController : MonoBehaviour
                     vSpd = 0;
                     gravity = 0;
                 }
-                
+
+                //update the player's spell display to show the spell inputs
+                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
+
                 //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
@@ -1090,6 +1094,9 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
+                //update the player's spell display to show the spell names
+                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
                 gravity = 1;
                 break;
             case PlayerState.CodeRelease:

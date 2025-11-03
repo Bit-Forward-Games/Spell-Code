@@ -26,27 +26,24 @@ public class TempSpellDisplay : MonoBehaviour
         
         string codeStringWithSpaces;
         string codeString;
+
         for (int i = 0; i < spellSlots.Count; i++)
         {
             if (i < playerSpells.Count)
             {
                 codeStringWithSpaces = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
                 codeString = codeStringWithSpaces.Replace(" ", "");
-
-
-                
-
-                if (showInputs)
+                if (arrowLists != null && i < arrowLists.Length && arrowLists[i] != null && arrowLists[i].arrows != null)
                 {
-                    spellSlots[i].text = playerSpells[i].spellName + ":\n" ;
-                    if (arrowLists != null && i < arrowLists.Length && arrowLists[i] != null && arrowLists[i].arrows != null)
+                    for (int j = 0; j < codeString.Length && j < arrowLists[i].arrows.Length; j++)
                     {
-                        for (int j = 0; j < codeString.Length && j < arrowLists[i].arrows.Length; j++)
+                        Color currentAlpha = arrowLists[i].arrows[j].color;
+
+                        if (showInputs)
                         {
-                            Color currentAlpha = arrowLists[i].arrows[j].color;
+                            spellSlots[i].text = "";
                             currentAlpha.a = 255f;
                             arrowLists[i].arrows[j].color = currentAlpha;
-
                             if (codeString[j] == 'U')
                                 arrowLists[i].arrows[j].sprite = arrowsSprite[0];
                             else if (codeString[j] == 'D')
@@ -56,24 +53,15 @@ public class TempSpellDisplay : MonoBehaviour
                             else if (codeString[j] == 'L')
                                 arrowLists[i].arrows[j].sprite = arrowsSprite[3];
                         }
-                    }
-                    // for (int j = 0; j < codeString.Length; j++)
-                    // {
-                    //     Color currentAlpha = arrowLists[i].arrows[j].color;
-                    //     currentAlpha.a = 255f;
-                    //     arrowLists[i].arrows[j].color = currentAlpha;
+                        else 
+                        {
+                            currentAlpha.a = 0;
+                            arrowLists[i].arrows[j].color = currentAlpha;
+                            spellSlots[i].text = playerSpells[i].spellName;
+                        }
 
-                    //     if (codeString[j] == 'U')
-                    //         arrowLists[i].arrows[j].sprite = arrowsSprite[0];
-                    //     else if (codeString[j] == 'D')
-                    //         arrowLists[i].arrows[j].sprite = arrowsSprite[1];
-                    //     else if (codeString[j] == 'R')
-                    //         arrowLists[i].arrows[j].sprite = arrowsSprite[2];
-                    //     else if (codeString[j] == 'L')
-                    //         arrowLists[i].arrows[j].sprite = arrowsSprite[3];
-                    // }
-                }     
-                else spellSlots[i].text = playerSpells[i].spellName;
+                    }
+                }
 
             }
             else

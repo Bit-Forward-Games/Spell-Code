@@ -32,7 +32,7 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.solidCenter = new Vector2[solids.Length];
         stageDataSO.solidExtent = new Vector2[solids.Length];
 
-        stageDataSO.playerSpawnTransform = new FixedVec3[playerSpawns.Length];
+        stageDataSO.playerSpawnTransform = new Vector3[playerSpawns.Length];
         
     }
 
@@ -73,7 +73,7 @@ public class StageDataBuilder : MonoBehaviour
         {
             Transform spawnTransforms = spawn.GetComponent<Transform>();
             Vector3 floatPos = spawnTransforms.position;
-            stageDataSO.playerSpawnTransform[k] = new FixedVec3(Fixed32.FromFloat(floatPos.x), Fixed32.FromFloat(floatPos.y), Fixed32.FromFloat(floatPos.z));
+            stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
             k++;
         }
     }

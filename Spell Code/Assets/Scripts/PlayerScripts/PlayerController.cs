@@ -501,6 +501,11 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
+                if (vSpd > 0 && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                {
+                    //reapply gravity more strongly to create a variable jump height
+                    vSpd -= gravity;
+                }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
@@ -666,8 +671,10 @@ public class PlayerController : MonoBehaviour
                 {
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        if (spellList[i].spellInput == stateSpecificArg && spellList[i].spellType == SpellType.Active)
-                        {
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter <= 0)
+                            {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
 

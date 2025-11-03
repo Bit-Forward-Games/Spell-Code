@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
+
 
 public class StageDataBuilder : MonoBehaviour
 {
@@ -26,7 +32,7 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.solidCenter = new Vector2[solids.Length];
         stageDataSO.solidExtent = new Vector2[solids.Length];
 
-        stageDataSO.playerSpawnTransform = new Vector3[playerSpawns.Length];
+        stageDataSO.playerSpawnTransform = new FixedVec3[playerSpawns.Length];
         
     }
 
@@ -66,7 +72,8 @@ public class StageDataBuilder : MonoBehaviour
         foreach (GameObject spawn in playerSpawns)
         {
             Transform spawnTransforms = spawn.GetComponent<Transform>();
-            stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
+            Vector3 floatPos = spawnTransforms.position;
+            stageDataSO.playerSpawnTransform[k] = new FixedVec3(Fixed32.FromFloat(floatPos.x), Fixed32.FromFloat(floatPos.y), Fixed32.FromFloat(floatPos.z));
             k++;
         }
     }

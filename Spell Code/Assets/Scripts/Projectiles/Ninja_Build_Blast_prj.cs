@@ -12,8 +12,8 @@ public class Ninja_Build_Blast_prj : BaseProjectile
     public Ninja_Build_Blast_prj()
     {
         projName = "Ninja_Build_Blast";
-        hSpeed = 1f;
-        vSpeed = 0f;
+        hSpeed = Fixed.FromInt(1);
+        vSpeed = Fixed.FromInt(0);
         lifeSpan = 600; // lasts for 120 logic frames
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);

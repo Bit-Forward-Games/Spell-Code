@@ -1002,7 +1002,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY <= platformTop && position.y > platformBottom && vSpd <= 0f)
+                if (pMinY <= platformTop && position.Y > platformBottom && vSpd <= Fixed.FromInt(0))
                 {
                     // Snap player to platform top
                     position = new FixedVec2(position.X, platformTop);
@@ -1128,7 +1128,7 @@ public class PlayerController : MonoBehaviour
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
-                gravity = 1;
+                gravity = Fixed.FromInt(1);
                 break;
             case PlayerState.CodeRelease:
                 ClearInputDisplay();

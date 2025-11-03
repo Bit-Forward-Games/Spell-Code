@@ -962,7 +962,7 @@ public class PlayerController : MonoBehaviour
                         {
                             // Player is right of solid -> push right
                             //position.x += overlapX;
-                            position = new FixedVec2(sMin.X + halfW, position.Y);
+                            position = new FixedVec2(sMax.X + halfW, position.Y);
                         }
                         hSpd = Fixed.FromInt(0);
                     }

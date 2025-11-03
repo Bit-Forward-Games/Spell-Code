@@ -19,6 +19,7 @@ namespace BestoNet.Types
     /// Represents a 2D vector with fixed-point components.
     /// </summary>
     /// <typeparam name="T">The fixed-point type (Fixed16, Fixed32, or Fixed64) used for vector components.</typeparam>
+    [System.Serializable]
     public readonly struct Vector2<T> : IEquatable<Vector2<T>> where T : struct
     {
         /// <summary>The X component of the vector.</summary>
@@ -174,6 +175,7 @@ namespace BestoNet.Types
     /// Represents a 3D vector with fixed-point components.
     /// </summary>
     /// <typeparam name="T">The fixed-point type (Fixed16, Fixed32, or Fixed64) used for vector components.</typeparam>
+    [System.Serializable]
     public readonly struct Vector3<T> : IEquatable<Vector3<T>> where T : struct
     {
         /// <summary>The X component of the vector.</summary>
@@ -317,6 +319,7 @@ namespace BestoNet.Types
     /// Represents a 4D vector with fixed-point components.
     /// </summary>
     /// <typeparam name="T">The fixed-point type (Fixed16, Fixed32, or Fixed64) used for vector components.</typeparam>
+    [System.Serializable]
     public readonly struct Vector4<T> : IEquatable<Vector4<T>> where T : struct
     {
         /// <summary>The X component of the vector.</summary>

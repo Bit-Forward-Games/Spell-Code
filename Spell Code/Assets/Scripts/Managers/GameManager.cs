@@ -455,7 +455,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (players[i] != null)
             {
-                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                FixedVec2 startPos;
+                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
+                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+                players[i].SpawnPlayer(startPos);
             }
         }
 

@@ -208,16 +208,20 @@ public class PlayerController : MonoBehaviour
 
             AddSpellToSpellList(charData.startingInventory[i]);
         }
-        SpawnPlayer(GameManager.Instance.currentStage.playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        Vector3 spawnPosV3 = Vector3.zero;
+        spawnPosV3 = GameManager.Instance.currentStage.playerSpawnTransform[playerIndex];
+        FixedVec2 startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+        SpawnPlayer(startPos);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
-    public void SpawnPlayer(FixedVec3 spawnPos)
+    public void SpawnPlayer(FixedVec2 spawnPos)
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        position = new FixedVec2(spawnPos.X, spawnPos.Y);
+        position = spawnPos;
         hSpd = Fixed.FromInt(0); 
         vSpd = Fixed.FromInt(0);
         stateSpecificArg = 0;

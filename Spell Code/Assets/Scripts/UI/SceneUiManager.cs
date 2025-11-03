@@ -21,20 +21,31 @@ public class SceneUiManager : MonoBehaviour
 		
 	}
 
-    // Update is called once per frame
+    /// <summary>
+    /// Load the sceme
+    /// </summary>
+    /// <param name="sceneName"></param>
     public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
     }
 
+    /// <summary>
+    /// Reset Data objects as well as all players
+    /// </summary>
+    public void Restart()
+    {
+        
+        DataManager.Instance.ResetData();
+        GameManager.Instance.RestartGame();
+
+        GameManager.Instance.isRunning = true;
+        
+        SceneManager.LoadScene("Gameplay");
+    }
+
     public void QuitGame()
     {
-        //if there is data, save it before quitting
-        if (dm.gameData.matchData.Count > 0)
-        {
-            dm.SaveToFile();
-        }
-
         Application.Quit();
     }
 }

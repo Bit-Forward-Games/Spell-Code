@@ -103,7 +103,7 @@ public class PlayerController : MonoBehaviour
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[2];
-    public ushort currrentPlayerHealth = 0;
+    public ushort currentPlayerHealth = 0;
 
     // Push Box Variables
     [HideInInspector]
@@ -133,6 +133,7 @@ public class PlayerController : MonoBehaviour
     //TMPro
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
+    public TextMeshPro playerNum;
 
     [SerializeField]
     public Color colorSuccess;
@@ -184,7 +185,7 @@ public class PlayerController : MonoBehaviour
         charData = CharacterDataDictionary.GetCharacterData(characterName);
         //print(charData.projectileIds);
 
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -201,20 +202,20 @@ public class PlayerController : MonoBehaviour
 
             AddSpellToSpellList(charData.startingInventory[i]);
         }
-        SpawnPlayer(Vector2.zero);
+        SpawnPlayer(GameManager.Instance.currentStage.playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
-    public void SpawnPlayer(Vector2 spawmPos)
+    public void SpawnPlayer(Vector2 spawnPos)
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        position = spawmPos;
+        position = spawnPos;
         hSpd = 0;
         vSpd = 0;
         stateSpecificArg = 0;
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = (float)charData.runSpeed / 10;
         slideSpeed = (float)charData.slideSpeed / 10;
         jumpForce = charData.jumpForce;
@@ -318,7 +319,41 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Reset player back to initial state
+    public void ResetPlayer()
+    {
+        ClearSpellList();
 
+        //fill the spell list with the character's initial spells
+        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        {
+            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+            //spellList.Add = Instantiate(targetSpell);
+            //spellList[i].owner = this;
+            //spellCount++;
+
+            AddSpellToSpellList(charData.startingInventory[i]);
+        }
+
+        //data
+        spellsFired = 0;
+        basicsFired = 0;
+        spellsHit = 0;
+        timer = 0.0f;
+        times = new List<float>();
+
+        //passive resources
+        flowState = 0;
+        stockStability = 0;
+        demonAura = 0;
+        reps = 0;
+        momentum = 0;
+        slimed = false;
+        comboCounter = 0;
+
+        currentPlayerHealth = 100;
+        isAlive = true;
+    }
 
 
     /// MOVEMENT CODE
@@ -355,7 +390,7 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.enabled = false;
         }
 
-        if (currrentPlayerHealth <= 0)
+        if (currentPlayerHealth <= 0)
         {
             isAlive = false;
             return;
@@ -409,8 +444,13 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Idle:
 
+                if (!isGrounded)
+                {
+                    SetState(PlayerState.Jump);
+                    break;
+                }
                 //check for slide input:
-                if( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                if ( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -443,7 +483,12 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Run:
 
-                
+                if (!isGrounded)
+                {
+                    SetState(PlayerState.Jump);
+                    break;
+                }
+
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
@@ -490,6 +535,11 @@ public class PlayerController : MonoBehaviour
                 {
                     SetState(PlayerState.Idle);
                     break;
+                }
+                if (vSpd > 0 && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                {
+                    //reapply gravity more strongly to create a variable jump height
+                    vSpd -= gravity;
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
@@ -659,7 +709,7 @@ public class PlayerController : MonoBehaviour
                         if (spellList[i].spellInput == stateSpecificArg &&
                             spellList[i].spellType == SpellType.Active &&
                             spellList[i].cooldownCounter <= 0)
-                        {
+                            {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
 
@@ -868,7 +918,7 @@ public class PlayerController : MonoBehaviour
                     float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
                     float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
 
-                    if (overlapX <= 0f || overlapY <= 0f)
+                    if (overlapX < 0f || overlapY < 0f)
                     {
                         // Numerical edge-case: treat as no collision
                         continue;
@@ -975,7 +1025,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY < platformTop && position.y > platformBottom && vSpd <= 0f)
+                if (pMinY <= platformTop && position.y > platformBottom && vSpd <= 0f)
                 {
                     // Snap player to platform top
                     position.y = platformTop;
@@ -1040,6 +1090,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Hitstun:
+                ClearInputDisplay();
                 stateSpecificArg = hitboxData.hitstun;
                 hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
                 vSpd = hitboxData.yKnockback;
@@ -1070,7 +1121,11 @@ public class PlayerController : MonoBehaviour
                     vSpd = 0;
                     gravity = 0;
                 }
-                
+
+                //update the player's spell display to show the spell inputs
+                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
+
                 //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
@@ -1092,6 +1147,9 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
+                //update the player's spell display to show the spell names
+                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
                 gravity = 1;
                 break;
             case PlayerState.CodeRelease:
@@ -1138,19 +1196,19 @@ public class PlayerController : MonoBehaviour
     public void TakeEffectDamage(int damageAmount)
     {
         //checking for death
-        if (damageAmount > currrentPlayerHealth)
+        if (damageAmount > currentPlayerHealth)
         {
-            currrentPlayerHealth = 0;
+            currentPlayerHealth = 0;
             
         }
         else
         {
             // Reduce health 
-            currrentPlayerHealth = (ushort)((int)currrentPlayerHealth - damageAmount);
+            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
 
-        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currrentPlayerHealth}");
+        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
 
     public void CheckHit(InputSnapshot input)
@@ -1180,16 +1238,16 @@ public class PlayerController : MonoBehaviour
 
 
             //checking for death
-            if (hitboxData.damage > currrentPlayerHealth)
+            if (hitboxData.damage > currentPlayerHealth)
             {
-                currrentPlayerHealth = 0;
+                currentPlayerHealth = 0;
             }
             else
             {
 
 
                 // Reduce health 
-                currrentPlayerHealth = (ushort)(currrentPlayerHealth - (int)hitboxData.damage);
+                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
 
 
@@ -1461,7 +1519,7 @@ public class PlayerController : MonoBehaviour
 
     public void ResetHealth()
     {
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
     }
 
 

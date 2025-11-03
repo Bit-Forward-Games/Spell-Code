@@ -144,6 +144,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultSong: {fileID: 0}
   availableSongs:
-  - {fileID: 8300000, guid: 8b35d4c9a4e2d3d499a7a3afdddf45b0, type: 3}
-  - {fileID: 8300000, guid: 4267bd3f40c00654f9df26c4ee4d0d00, type: 3}
-  - {fileID: 8300000, guid: e0e5c82a1cc596f42a364d711bafbab7, type: 3}
+  - {fileID: 8300000, guid: 014cf47e3584d2b478778707bd959d62, type: 3}
+  - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}

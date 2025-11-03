@@ -12,6 +12,7 @@ using BestoNet.Types;
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
 using Unity.VisualScripting;
 
 public enum PlayerState
@@ -212,7 +213,7 @@ public class PlayerController : MonoBehaviour
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
-    public void SpawnPlayer(FixedVec2 spawnPos)
+    public void SpawnPlayer(FixedVec3 spawnPos)
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;

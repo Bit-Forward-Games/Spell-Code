@@ -1,9 +1,10 @@
 fileFormatVersion: 2
+guid: b2e545fcccdeeb44fa106d897a1e0b68
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7168651054881535364
-    second: SkillshotSlash_disk_0
+      213: -3509290334612848260
+    second: GiftOfPromethius_disk_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -151,13 +152,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: SkillshotSlash_disk_0
+      name: GiftOfPromethius_disk_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 0
-        height: 0
+        x: 1
+        y: 92
+        width: 959
+        height: 864
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,8 +167,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c7a8e03c8d5d38c90800000000000000
-      internalID: -7168651054881535364
+      spriteID: c7180bf980f7c4fc0800000000000000
+      internalID: -3509290334612848260
       vertices: []
       indices: 
       edges: []
@@ -186,7 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      SkillshotSlash_disk_0: -7168651054881535364
+      GiftOfPromethius_disk_0: -3509290334612848260
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

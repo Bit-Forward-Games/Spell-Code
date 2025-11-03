@@ -319,7 +319,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //Reset player back to initial state
+    /// <summary>
+    /// Reset player back to initial state
+    /// Called at end of each game
+    /// </summary>
     public void ResetPlayer()
     {
         ClearSpellList();

@@ -1,12 +1,14 @@
-using UnityEngine;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using Unity.VisualScripting;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using TMPro;
-using System.Linq;
+using UnityEngine.UI;
 
 public class ShopManager : MonoBehaviour
 {
@@ -16,13 +18,28 @@ public class ShopManager : MonoBehaviour
 
     public System.Random myRandom;
 
+    public Dictionary<string, Image> spellCards;
+
+    [Header("Spellcard Images")]
+    public Sprite zeus;
+    public Sprite prometheus;
+    public Sprite hermes;
+    public Sprite ninja;
+    public Sprite overclock;
+    public Sprite skillshot;
+
+    public Image p1_spellCard;
+    public Image p2_spellCard;
+    public Image p3_spellCard;
+    public Image p4_spellCard;
+
     public List<string> spells;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         gameManager = GameManager.Instance;
 
-        myRandom = new System.Random(Random.Range(0, 10000));
+        myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
 
         StartCoroutine(Shop());
     }
@@ -30,7 +47,7 @@ public class ShopManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+       
     }
 
 
@@ -48,50 +65,65 @@ public class ShopManager : MonoBehaviour
 
     }
 
-    public string GrantSpell()
+    public string RandomizeSpell(int index)
     {
-
+        //list of all spells in dictionary
         spells = new List<string>();
 
+        //list of spells in player[index]'s spellbook
+        List<string> playerSpells = new List<string>();
+
+        //fill list of all spells in dictionary
         foreach (var item in SpellDictionary.Instance.spellDict)
         {
             spells.Add(item.Key);
         }
 
-        spells.Remove("Active_Spell_4");
-
-        int randomInt = myRandom.Next(0, spells.Count);
-
-        string spellToAdd = spells[randomInt];
-
-        return spellToAdd;
-
-    }
-
-    public void GivePlayerSpell(int index)
-    {        
-        string newSpell = GrantSpell();
-
-        //string fullSpellString = newSpell + "(Clone) " + newSpell;
-        List<string> playerSpells = new List<string>();
-
+        //fill list of specific player's spells
         for (int i = 0; i < gameManager.players[index].spellList.Count; i++)
         {
             playerSpells.Add(gameManager.players[index].spellList[i].spellName);
         }
 
-        if (!playerSpells.Contains(newSpell))//gameManager.players[index].spellList.Contains((SpellData)SpellDictionary.Instance.spellDict[newSpell]) == false)
+        //remove spell since it doesn't actually really exist
+        spells.Remove("Active_Spell_4");
+
+        //get a random spell
+        int randomInt = myRandom.Next(0, spells.Count);
+        string spellToAdd = spells[randomInt];
+
+        //if the player doesn't have the spell, return it
+        if (!playerSpells.Contains(spellToAdd))
         {
-            Debug.Log("Giving player " + (index + 1) + " " + newSpell);
-            gameManager.players[index].AddSpellToSpellList(newSpell);
-
-            spellText.text += "player " + (index + 1) + " acquired: " + newSpell + "\n";
-
-            return;
+            return spellToAdd;
         }
 
-        Debug.Log("player " + (index + 1) + " already has " + newSpell);
-        GivePlayerSpell(index);
+        //if the player does have the spell, call this function again to get a new spell
+        Debug.Log("player " + (index + 1) + " already has " + spellToAdd);
+        return RandomizeSpell(index);
+    }
 
+    /// <summary>
+    /// Grant a spell to a specific player
+    /// </summary>
+    /// <param name="index">Player to give the spell to</param>
+    public void GivePlayerSpell(int index)
+    {        
+        string newSpell = RandomizeSpell(index);
+
+        
+        Debug.Log("Giving player " + (index + 1) + " " + newSpell);
+        gameManager.players[index].AddSpellToSpellList(newSpell);
+
+        spellText.text += "player " + (index + 1) + " acquired: " + newSpell + "\n";
+
+    }
+
+    /// <summary>
+    /// Adds all necessary information to the spellcode card
+    /// </summary>
+    public void MakeSpellcodeCard(int index)
+    {
+        string spellName = RandomizeSpell(index);
     }
 }

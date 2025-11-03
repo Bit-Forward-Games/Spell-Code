@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 70989c79050da8d4abf437c30d7bfdb4
+guid: 7d78ba47b3ef5b74caea129a298fda6b
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -152,7 +152,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: MightOfZeus_disk_0
+      name: MightOfZeus
       rect:
         serializedVersion: 2
         x: 3
@@ -160,7 +160,7 @@ TextureImporter:
         width: 952
         height: 855
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -177,7 +177,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2d1c51086afbdaa4597328788b696c89
     internalID: 0
     vertices: []
     indices: 
@@ -187,7 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      MightOfZeus_disk_0: 7856469796204123701
+      MightOfZeus: 7856469796204123701
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

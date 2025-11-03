@@ -226,6 +226,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         return false;
     }
 
+    //reset players after each round
     public void ResetPlayers()
     {
         for(int i = 0; i < players.Length; i++)

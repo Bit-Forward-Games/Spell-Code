@@ -190,7 +190,7 @@ public class PlayerController : MonoBehaviour
         charData = CharacterDataDictionary.GetCharacterData(characterName);
         //print(charData.projectileIds);
 
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
         jumpForce = Fixed.FromInt(charData.jumpForce);
@@ -212,7 +212,7 @@ public class PlayerController : MonoBehaviour
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
-    public void SpawnPlayer(Vector2 spawmPos)
+    public void SpawnPlayer(FixedVec2 spawnPos)
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
@@ -220,7 +220,7 @@ public class PlayerController : MonoBehaviour
         hSpd = Fixed.FromInt(0); 
         vSpd = Fixed.FromInt(0);
         stateSpecificArg = 0;
-        currrentPlayerHealth = charData.playerHealth;
+        currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
         jumpForce = Fixed.FromInt(charData.jumpForce);
@@ -516,7 +516,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
-                if (vSpd > 0 && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity;
@@ -1462,7 +1462,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
-        bw.Write(currrentPlayerHealth); 
+        bw.Write(currentPlayerHealth); 
         bw.Write(isAlive); 
         bw.Write(flowState);
         bw.Write(stockStability);
@@ -1507,7 +1507,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
-        currrentPlayerHealth = br.ReadUInt16();
+        currentPlayerHealth = br.ReadUInt16();
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();

@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   platformCenter:
   - {x: 160, y: -68}
-  - {x: 160, y: 92}
+  - {x: 160, y: 60}
   - {x: 112, y: -132}
   - {x: -208, y: -132}
-  - {x: 208, y: 28}
-  - {x: -112, y: 28}
-  - {x: -160, y: 92}
+  - {x: 208, y: -4}
+  - {x: -112, y: -4}
+  - {x: -160, y: 60}
   - {x: -160, y: -68}
   platformExtent:
   - {x: 96, y: 4}
@@ -33,8 +33,8 @@ MonoBehaviour:
   solidCenter:
   - {x: 48, y: -100}
   - {x: -48, y: -100}
-  - {x: 48, y: 60}
-  - {x: -48, y: 60}
+  - {x: 48, y: 28}
+  - {x: -48, y: 28}
   - {x: 0, y: 208}
   - {x: 0, y: -208}
   - {x: 272, y: 0}
@@ -50,6 +50,6 @@ MonoBehaviour:
   - {x: 16, y: 224}
   playerSpawnTransform:
   - {x: 208, y: 32, z: 0}
-  - {x: -112, y: 32, z: 0}
   - {x: 112, y: -128, z: 0}
+  - {x: -112, y: 32, z: 0}
   - {x: -208, y: -128, z: 0}

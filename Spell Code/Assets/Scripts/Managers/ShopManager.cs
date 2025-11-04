@@ -51,6 +51,16 @@ public class ShopManager : MonoBehaviour
 
         myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
         Debug.Log("SHOP ENTERED");
+
+        if (gameManager.players[2] == null)
+        {
+            p3_spellCard.enabled = false;
+        }
+        if (gameManager.players[3] == null)
+        {
+            p4_spellCard.enabled = false;
+        }
+
         GenerateSpellChoices();
 
         //StartCoroutine(Shop());
@@ -161,7 +171,7 @@ public class ShopManager : MonoBehaviour
             if (gameManager.players[3].chosenSpell == false)
             {
                 //cycle spells (spellWeave button)
-                if (gameManager.players[3].inputs.CodeAction.IsPressed())
+                if (inputSnapshots[3].ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log("p4 pressed cycle spell");
                     if (p4_index == 3)
@@ -223,7 +233,7 @@ public class ShopManager : MonoBehaviour
             gameManager.players[i].chosenSpell = false;
         }
         gameManager.prevSceneWasShop = true;
-        yield return new WaitForSeconds(4);
+        yield return new WaitForSeconds(1);
         GameManager.Instance.isRunning = true;
         spellText.text = " ";
         SceneManager.LoadScene("Gameplay");
@@ -282,6 +292,7 @@ public class ShopManager : MonoBehaviour
 
     }
 
+    //generates the spell choices for all players, in the future it will be randomized
     public void GenerateSpellChoices()
     {
         p1_choices = new List<string>();
@@ -299,14 +310,20 @@ public class ShopManager : MonoBehaviour
         p2_choices.Add("GiftOfPrometheus");
         p2_choices.Add("Ninja_Build_Blast");
 
-        p3_choices.Add("BootsOfHermes");
-        p3_choices.Add("Overclock");
-        p3_choices.Add("GiftOfPrometheus");
-        p3_choices.Add("Ninja_Build_Blast");
+        if (gameManager.players[2] != null)
+        {
+            p3_choices.Add("BootsOfHermes");
+            p3_choices.Add("Overclock");
+            p3_choices.Add("GiftOfPrometheus");
+            p3_choices.Add("Ninja_Build_Blast");
+        }
 
-        p4_choices.Add("BootsOfHermes");
-        p4_choices.Add("Overclock");
-        p4_choices.Add("GiftOfPrometheus");
-        p4_choices.Add("Ninja_Build_Blast");
+        if (gameManager.players[3] != null)
+        {
+            p4_choices.Add("BootsOfHermes");
+            p4_choices.Add("Overclock");
+            p4_choices.Add("GiftOfPrometheus");
+            p4_choices.Add("Ninja_Build_Blast");
+        }
     }
 }

@@ -55,56 +55,49 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     void Update()
     {
         //// If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
-        //Scene activeScene = SceneManager.GetActiveScene();
-        //if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
-        //{
-        //    // Set all known players to not alive
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null)
-        //            {
-        //                //players[i].isAlive = false;
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
-        //            }
-        //        }
-        //    }
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
+        {
+            // Set all known players to not alive
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        //players[i].isAlive = false;
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                }
+            }
 
-        //    // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
-        //    //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(false);
-        //    }
+            // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
+            //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
 
-        //}
-        //else
-        //{
-        //               // Ensure temp UI is enabled during gameplay
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(true);
-        //    }
-        //    // Also ensure all players' sprites are enabled
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null && players[i].isAlive)
-        //            {
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //This is just a shortcut for me to test stuff
-
-        //if (Input.GetKeyDown(KeyCode.K))
-        //{
-        //    SaveMatch();
-        //}
+        }
+        else
+        {
+            // Ensure temp UI is enabled during gameplay
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
+            // Also ensure all players' sprites are enabled
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null && players[i].isAlive)
+                    {
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                    }
+                }
+            }
+        }
 
         //if ` is pressed, toggle box rendering
         if (Input.GetKeyDown(KeyCode.BackQuote))

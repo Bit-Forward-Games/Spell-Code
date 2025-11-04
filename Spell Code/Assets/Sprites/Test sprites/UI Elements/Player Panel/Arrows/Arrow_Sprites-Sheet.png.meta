@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 912f38ba0ba844ff885a8d41af5f25a5
+guid: 0a7795b7cf4c0b04996dc4699160e2cc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8778649588299342138
-    second: Arrow-3_0
+      213: 7682775282628432987
+    second: Arrow_Sprites-Sheet_0
+  - first:
+      213: -5614905376672287769
+    second: Arrow_Sprites-Sheet_1
+  - first:
+      213: 8015265116165982136
+    second: Arrow_Sprites-Sheet_2
+  - first:
+      213: -1648118097254788853
+    second: Arrow_Sprites-Sheet_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,11 +55,11 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 6
-  spritePivot: {x: 0, y: 0}
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 4
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
@@ -72,12 +81,12 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
-    crunchedCompression: 1
+    crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
     ignorePlatformSupport: 0
@@ -100,23 +109,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Arrow-3_0
+      name: Arrow_Sprites-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 4
-        width: 96
-        height: 81
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        y: 0
+        width: 85
+        height: 85
+      alignment: 6
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6ced9c1f5b8fb2680800000000000000
-      internalID: -8778649588299342138
+      spriteID: b54183a1a63be9a60800000000000000
+      internalID: 7682775282628432987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Arrow_Sprites-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 0
+        width: 85
+        height: 85
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e374081f49d312b0800000000000000
+      internalID: -5614905376672287769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Arrow_Sprites-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 0
+        width: 85
+        height: 85
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b747ad0821fb3f60800000000000000
+      internalID: 8015265116165982136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Arrow_Sprites-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 0
+        width: 85
+        height: 85
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b015c399255b029e0800000000000000
+      internalID: -1648118097254788853
       vertices: []
       indices: 
       edges: []
@@ -125,8 +200,8 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 1faa725d570b42544981910d7cc8a119
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Arrow-3_0: -8778649588299342138
+      Arrow_Sprites-Sheet_0: 7682775282628432987
+      Arrow_Sprites-Sheet_1: -5614905376672287769
+      Arrow_Sprites-Sheet_2: 8015265116165982136
+      Arrow_Sprites-Sheet_3: -1648118097254788853
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

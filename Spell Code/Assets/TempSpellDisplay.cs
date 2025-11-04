@@ -8,8 +8,8 @@ public class TempSpellDisplay : MonoBehaviour
 
     public List<TextMeshProUGUI> spellSlots = new List<TextMeshProUGUI>();
     public bool invertAlign = false;
-    public CodeList[] arrowLists;
-    [SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
+    //public CodeList[] arrowLists;
+    //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
 
     public void Start()
     {
@@ -31,36 +31,13 @@ public class TempSpellDisplay : MonoBehaviour
         {
             if (i < playerSpells.Count)
             {
-                codeStringWithSpaces = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-                codeString = codeStringWithSpaces.Replace(" ", "");
-                if (arrowLists != null && i < arrowLists.Length && arrowLists[i] != null && arrowLists[i].arrows != null)
+                if (showInputs)
                 {
-                    for (int j = 0; j < codeString.Length && j < arrowLists[i].arrows.Length; j++)
-                    {
-                        Color currentAlpha = arrowLists[i].arrows[j].color;
-
-                        if (showInputs)
-                        {
-                            spellSlots[i].text = "";
-                            currentAlpha.a = 255f;
-                            arrowLists[i].arrows[j].color = currentAlpha;
-                            if (codeString[j] == 'U')
-                                arrowLists[i].arrows[j].sprite = arrowsSprite[0];
-                            else if (codeString[j] == 'D')
-                                arrowLists[i].arrows[j].sprite = arrowsSprite[1];
-                            else if (codeString[j] == 'R')
-                                arrowLists[i].arrows[j].sprite = arrowsSprite[2];
-                            else if (codeString[j] == 'L')
-                                arrowLists[i].arrows[j].sprite = arrowsSprite[3];
-                        }
-                        else 
-                        {
-                            currentAlpha.a = 0;
-                            arrowLists[i].arrows[j].color = currentAlpha;
-                            spellSlots[i].text = playerSpells[i].spellName;
-                        }
-
-                    }
+                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                }
+                else
+                {
+                    spellSlots[i].text = playerSpells[i].spellName;
                 }
 
             }

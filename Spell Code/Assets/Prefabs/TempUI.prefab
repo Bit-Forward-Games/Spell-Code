@@ -130,6 +130,11 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  stockStabilityVals: []
+  demonAuraVals: []
+  repsVals: []
+  momentumVals: []
+  slimedVals: []
 --- !u!1 &4213745831153141686
 GameObject:
   m_ObjectHideFlags: 0

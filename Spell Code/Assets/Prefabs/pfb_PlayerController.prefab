@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.1, y: 36.200424}
+  m_AnchoredPosition: {x: 2.17, y: 37.34}
   m_SizeDelta: {x: 44.3026, y: 15.8458}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4983569709763771326
@@ -129,8 +129,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 64
-  m_fontSizeBase: 64
+  m_fontSize: 86.6
+  m_fontSizeBase: 86.6
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -0.27132416, y: 0, z: 0.27132797, w: 8.234764}
+  m_margin: {x: -0.27132416, y: 0, z: 0.27132797, w: -0.030521393}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -431,7 +431,7 @@ MonoBehaviour:
   matchPalette:
   - {fileID: 0}
   - {fileID: 0}
-  currrentPlayerHealth: 0
+  currentPlayerHealth: 0
   playerWidth: 0
   playerHeight: 0
   hitboxData:
@@ -619,3 +619,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerHealth: {fileID: 0}
+  healthBar: {fileID: 0}

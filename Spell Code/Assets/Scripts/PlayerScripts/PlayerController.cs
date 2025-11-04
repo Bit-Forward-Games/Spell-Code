@@ -7,6 +7,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.U2D;
 
 public enum PlayerState
 {
@@ -637,7 +638,7 @@ public class PlayerController : MonoBehaviour
                 //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
                 //}
 
-                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     switch (input.Direction)
                     {
@@ -648,25 +649,21 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
-                            UpdateInputDisplay(2);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
-                            UpdateInputDisplay(4);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
-                            UpdateInputDisplay(6);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-                            UpdateInputDisplay(8);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
@@ -680,7 +677,7 @@ public class PlayerController : MonoBehaviour
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
-
+                inputDisplay.text = ConvertCodeToString(stateSpecificArg);
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
                     //set the 5th bit to 0 to indicate we are no longer primed
@@ -1571,7 +1568,7 @@ public class PlayerController : MonoBehaviour
         //up
         if (direction == 8)
         {
-            inputDisplay.text += "UP, ";
+            inputDisplay.text += "UP, "; 
         }
     }
 
@@ -1591,22 +1588,23 @@ public class PlayerController : MonoBehaviour
             switch (currentInput)
             {
                 case 0b00:
-                    codeString += "D ";
+                    codeString += "<sprite name=\"ArrowDown\"> ";
                     break;
                 case 0b01:
-                    codeString += "R ";
+                    codeString += "<sprite name=\"ArrowRight\"> ";
                     break;
                 case 0b10:
-                    codeString += "L ";
+                    codeString += "<sprite name=\"ArrowLeft\"> ";
                     break;
                 case 0b11:
-                    codeString += "U ";
+                    codeString += "<sprite name=\"ArrowUp\"> ";
                     break;
             }
         }
         return codeString.Trim();
     }
 }
+
 
 
 

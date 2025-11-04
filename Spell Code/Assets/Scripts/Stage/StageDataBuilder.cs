@@ -35,7 +35,9 @@ public class StageDataBuilder : MonoBehaviour
         if (Input.GetKey("s") && Input.GetKeyDown("o"))
         {
             GetStageData();
+            #if UNITY_EDITOR
             SaveStageData();
+            #endif
         }
     }
 

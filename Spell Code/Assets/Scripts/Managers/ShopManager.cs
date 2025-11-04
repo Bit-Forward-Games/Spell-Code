@@ -212,10 +212,10 @@ public class ShopManager : MonoBehaviour
 
     public IEnumerator Shop()
     {
-        //for (int i = 0; i < gameManager.playerCount; i++)
-        //{
-        //    GivePlayerSpell(i);
-        //}
+        for (int i = 0; i < gameManager.playerCount; i++)
+        {
+            gameManager.players[i].chosenSpell = false;
+        }
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(4);
         GameManager.Instance.isRunning = true;

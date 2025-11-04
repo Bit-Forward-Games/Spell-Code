@@ -1085,7 +1085,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY <= platformTop && position.y >= platformTop && vSpd <= 0f)
+                if (pMinY <= platformTop && position.Y >= platformTop && vSpd <= Fixed.FromInt(0))
                 {
                     if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
                     {

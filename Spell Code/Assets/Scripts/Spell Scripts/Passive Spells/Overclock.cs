@@ -1,10 +1,13 @@
 using UnityEngine;
 using BestoNet.Types;
 
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+
 public class Overclock : SpellData
 {
-    float baseSpeed;
-    public float speedMultiplier = 2;
+    Fixed baseSpeed;
+    public Fixed speedMultiplier = Fixed.FromInt(2);
     //int OverclockDuration = 180; // Duration of the speed boost in frames
     //int OverclockCounter = 0; 
 

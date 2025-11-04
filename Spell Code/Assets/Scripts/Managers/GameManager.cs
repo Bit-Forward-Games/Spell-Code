@@ -17,7 +17,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
-    public StageDataSO currentStage;
+    public StageDataSO[] stages;
+   // public StageDataSO currentStage;
+   public int currentStageIndex = 0;
+
+    public List<GameObject> tempMapGOs = new List<GameObject>();
+
     [HideInInspector]
     public ShopManager shopManager;
 
@@ -254,7 +259,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].spellsHit = 0;
                 players[i].times = new List<float>();
                 players[i].SpawnPlayer(Vector2.zero);
-                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
             }
         }
 
@@ -275,7 +280,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 //this is different from ResetPlayers()
                 players[i].ResetPlayer();
-                players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
             }
        }
     }
@@ -290,6 +295,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
+        
         SceneManager.LoadScene("Shop");
     }
 
@@ -318,5 +324,23 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             activePlayers[i] = players[i];
         }
         return activePlayers;
+    }
+
+    public void SetStage(int stageIndex)
+    {
+        currentStageIndex = stageIndex;
+
+        //enable the temp map gameobject corresponding to the stage index, disable others
+        for (int i = 0; i < tempMapGOs.Count; i++)
+        {
+            if (i == stageIndex)
+            {
+                tempMapGOs[i].SetActive(true);
+            }
+            else
+            {
+                tempMapGOs[i].SetActive(false);
+            }
+        }
     }
 }

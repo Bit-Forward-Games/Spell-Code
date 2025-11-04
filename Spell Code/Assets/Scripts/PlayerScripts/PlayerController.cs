@@ -233,7 +233,7 @@ public class PlayerController : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
-        SpawnPlayer(GameManager.Instance.currentStage.playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
+        SpawnPlayer(GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
@@ -897,7 +897,7 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStage;
+        StageDataSO stageDataSO = GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)

@@ -236,6 +236,15 @@ public class ShopManager : MonoBehaviour
         yield return new WaitForSeconds(1);
         GameManager.Instance.isRunning = true;
         spellText.text = " ";
+
+        //make the next stage random but different from the last stage
+        int newStageIndex;
+        do
+        {
+            newStageIndex = UnityEngine.Random.Range(0, gameManager.stages.Length);
+
+        }while (gameManager.currentStageIndex == newStageIndex);
+        gameManager.SetStage(newStageIndex);
         SceneManager.LoadScene("Gameplay");
 
     }

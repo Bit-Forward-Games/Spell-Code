@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,11 +30,43 @@ public class TempUIScript : MonoBehaviour
         {
             playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currentPlayerHealth;
 
+            flowStateVals[i].enabled = false;
+            stockStabilityVals[i].enabled = false;
+            demonAuraVals[i].enabled = false;
+            repsVals[i].enabled = false;
+            momentumVals[i].enabled = false;
+            //slimedVals[i].enabled = false;
+
+            foreach (SpellData spell in GameManager.Instance.players[i].spellList)
+            {
+                if (spell.brands.Contains(Brand.VWave))
+                {
+                    flowStateVals[i].enabled = true;
+                }
+                if (spell.brands.Contains(Brand.BigStox))
+                {
+                    stockStabilityVals[i].enabled = true;
+                }
+                if (spell.brands.Contains(Brand.RawrDX))
+                {
+                    demonAuraVals[i].enabled = true;
+                }
+                if (spell.brands.Contains(Brand.Killeez))
+                {
+                    repsVals[i].enabled = true;
+                }
+                if (spell.brands.Contains(Brand.Halk))
+                {
+                    momentumVals[i].enabled = true;
+                }
+
+            }
+
             flowStateVals[i].enabled = true;
             flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / 300;
 
             stockStabilityVals[i].enabled = true;
-            stockStabilityVals[i].text = "CC: " + GameManager.Instance.players[i].stockStability;
+            stockStabilityVals[i].text = "Crit: " + GameManager.Instance.players[i].stockStability;
             
             demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / 100;

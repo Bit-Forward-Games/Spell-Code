@@ -50,7 +50,7 @@ MonoBehaviour:
   description: 
   cooldown: 180
   cooldownCounter: 0
-  spellInput: 39940
+  spellInput: 11524
   activateFlag: 0
   owner: {fileID: 0}
   spellType: 1

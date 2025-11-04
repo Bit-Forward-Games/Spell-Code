@@ -1,8 +1,6 @@
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -20,6 +18,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
     public StageDataSO currentStage;
+    [HideInInspector]
+    public ShopManager shopManager;
 
     public int round = 1;
     public bool roundOver;
@@ -123,6 +123,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             prevSceneWasShop = false;
         }
 
+        //if the current scene is shop and shop manager is not assigned, assign it
+        
+
         RunFrame();
 
         AnimationManager.Instance.RenderGameState();
@@ -137,15 +140,33 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     protected void RunFrame()
     {
-
-        if (!isRunning)
-            return;
+        //if (!isRunning)
+        //    return;
 
         long[] inputs = new long[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
         {
             inputs[i] = players[i].GetInputs();
         }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "Shop" )
+        {
+            if (shopManager == null)
+            {
+                shopManager = FindAnyObjectByType<ShopManager>();
+            }
+            shopManager.ShopUpdate(inputs);
+        }
+        else
+        {
+            shopManager = null;
+        }
+
+        if (!isRunning)
+            return;
+
+        
 
         UpdateGameState(inputs);
 

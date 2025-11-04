@@ -10,6 +10,7 @@ public class TempSpellDisplay : MonoBehaviour
     public bool invertAlign = false;
     //public CodeList[] arrowLists;
     //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
+    public List<Image> cooldownFills = new List<Image>();
 
     public void Start()
     {
@@ -18,14 +19,13 @@ public class TempSpellDisplay : MonoBehaviour
         // arrowsSprite[2] = Resources.Load<Sprite>("Arrows/Right_Arrow");
         // arrowsSprite[3] = Resources.Load<Sprite>("Arrows/Left_Arrow");
         // arrowsSprite[3] = Resources.Load<Sprite>("Sprites/Test sprites/UI Elements/Player Panel/Arrows/Left_Arrow");
+
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
     {   
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;
         
-        string codeStringWithSpaces;
-        string codeString;
 
         for (int i = 0; i < spellSlots.Count; i++)
         {
@@ -43,9 +43,29 @@ public class TempSpellDisplay : MonoBehaviour
             }
             else
             {
-                spellSlots[i].text = "Empty\n...";
+                spellSlots[i].text = "Empty";
             }
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
+        }
+    }
+
+    public void UpdateCooldownDisplay(int playerIndex)
+    {
+        var playerSpells = GameManager.Instance.players[playerIndex].spellList;
+
+
+        for (int i = 0; i < spellSlots.Count; i++)
+        {
+            if (i < playerSpells.Count)
+            {
+                cooldownFills[i].fillAmount = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
+
+                cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
+            }
+            else
+            {
+                cooldownFills[i].fillAmount = 0f;
+            }
         }
     }
 
@@ -60,7 +80,7 @@ public class TempSpellDisplay : MonoBehaviour
             }
             else
             {
-                spellSlots[i].text = "Empty\n...";
+                spellSlots[i].text = "Empty";
             }
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         }

@@ -205,6 +205,34 @@ public class PlayerController : MonoBehaviour
 
             AddSpellToSpellList(charData.startingInventory[i]);
         }
+
+        //temp palette assignment based on player index
+        switch (Array.IndexOf(GameManager.Instance.players, this))
+        {
+            case 0:
+                InitializePalette(matchPalette[0]);
+                //playerNum.text = "P1";
+                playerNum.color = Color.magenta;
+                break;
+            case 1:
+                InitializePalette(matchPalette[1]);
+                //playerNum.text = "P2";
+                playerNum.color = Color.cyan;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
+                break;
+            case 2:
+                InitializePalette(matchPalette[0]);
+                //playerNum.text = "P3";
+                playerNum.color = Color.yellow;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.yellow;
+                break;
+            case 3:
+                InitializePalette(matchPalette[1]);
+                //playerNum.text = "P4";
+                playerNum.color = Color.green;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.green;
+                break;
+        }
         SpawnPlayer(GameManager.Instance.currentStage.playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -372,12 +400,6 @@ public class PlayerController : MonoBehaviour
         }
         return input;
     }
-
-    void Update()
-    {
-
-    }
-
 
 
     public void PlayerUpdate(long inputs)
@@ -593,7 +615,7 @@ public class PlayerController : MonoBehaviour
                     stateSpecificArg = 0;
                 }
 
-                if (input.Direction == 5)
+                if (input.Direction is 5 or 7 or 1 or 3 or 9)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if ((stateSpecificArg & (1u << 4)) == 0)
@@ -770,7 +792,6 @@ public class PlayerController : MonoBehaviour
                 //    vSpd = -vSpd;
                 //}
 
-
                 stateSpecificArg--;
                 break;
             case PlayerState.Tech:
@@ -835,6 +856,9 @@ public class PlayerController : MonoBehaviour
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
+
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
         logicFrame++;
     }
 

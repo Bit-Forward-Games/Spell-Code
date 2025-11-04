@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7745486899729457613}
-  - component: {fileID: -5896991823923336134}
+  - component: {fileID: 3228513247226345638}
   m_Layer: 0
-  m_Name: SpeedBoost
+  m_Name: BootsOfHermes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-5896991823923336134
+--- !u!114 &3228513247226345638
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,15 +41,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 3884774707739521384}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8135508f9f549040bb41f0c3b6ecfcf, type: 3}
+  m_Script: {fileID: 11500000, guid: 1e4e8f965593ff14ba5e32958bb75a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: SpeedBoost
-  brands: 03000000
-  procConditions: 08000000
+  spellName: BootsOfHermes
+  brands: 
+  procConditions: 
   description: 
   cooldown: 1
-  cooldownCounter: 0
+  cooldownCounter: 180
   spellInput: 0
   activateFlag: 0
   owner: {fileID: 0}
@@ -57,5 +57,5 @@ MonoBehaviour:
   spawnOffsetX: 10
   spawnOffsetY: 15
   projectilePrefabs: []
-  shopSprite: {fileID: 21300000, guid: 166b203bcef96644fb823c8a1be59b2b, type: 3}
-  speedMultiplier: 2
+  shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
+  jumpMultiplier: 1.5

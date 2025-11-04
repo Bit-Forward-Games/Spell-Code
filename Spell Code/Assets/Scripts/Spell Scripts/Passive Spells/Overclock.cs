@@ -1,19 +1,19 @@
 using UnityEngine;
 
-public class SpeedBoost_Spell : SpellData
+public class Overclock : SpellData
 {
     float baseSpeed;
     public float speedMultiplier = 2;
-    //int speedBoostDuration = 180; // Duration of the speed boost in frames
-    //int speedBoostCounter = 0; 
+    //int OverclockDuration = 180; // Duration of the speed boost in frames
+    //int OverclockCounter = 0; 
 
-    public SpeedBoost_Spell()
+    public Overclock()
     {
-        spellName = "SpeedBoost";
-        cooldown = 180;
+        spellName = "Overclock";
+        cooldown = 0;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
-        brands = new Brand[1] { Brand.Killeez };
+        brands = new Brand[1] { Brand.VWave };
     }
 
     public override void SpellUpdate()
@@ -25,21 +25,23 @@ public class SpeedBoost_Spell : SpellData
             if (owner.runSpeed == baseSpeed)
             {
                 owner.runSpeed *= speedMultiplier;
-                //speedBoostCounter = speedBoostDuration; // Reset counter
+                //OverclockCounter = OverclockDuration; // Reset counter
             }
         }
         /*else
         {
             owner.runSpeed = baseSpeed; // Reset to base speed
         }*/
-        //if (speedBoostCounter > 0)
+        //if (OverclockCounter > 0)
         //{
-        //    speedBoostCounter--;
-        //    if (speedBoostCounter == 0)
+        //    OverclockCounter--;
+        //    if (OverclockCounter == 0)
         //    {
         //        owner.runSpeed = baseSpeed; // Reset to base speed when counter ends
         //    }
         //}
+
+
     }
 
     public override void LoadSpell()
@@ -49,7 +51,8 @@ public class SpeedBoost_Spell : SpellData
 
     public override void CheckCondition()
     {
-        if (owner.reps > 3)
+
+        if (owner.flowState > 0)
         {
             activateFlag = true;
         }

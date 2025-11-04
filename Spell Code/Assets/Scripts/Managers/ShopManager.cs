@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -21,6 +20,8 @@ public class ShopManager : MonoBehaviour
 
     private bool allPlayersChosen = false;
     private bool backToGameplay = false;
+
+    public InputSnapshot[] inputSnapshots = new InputSnapshot[4];
 
     public Image p1_spellCard;
     public Image p2_spellCard;
@@ -42,6 +43,7 @@ public class ShopManager : MonoBehaviour
     private int p2_index = 0;
     private int p3_index = 0;
     private int p4_index = 0;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -54,17 +56,21 @@ public class ShopManager : MonoBehaviour
         //StartCoroutine(Shop());
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    public void ShopUpdate(long[] playerInputs)
     {
+        for (int i = 0; i < playerInputs.Length; i++)
+        {
+            inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
+        }
+        
         //player 1 stuff
         if (gameManager.players[0].chosenSpell == false)
         {
             //cycle spells (spellWeave button)
-            if (gameManager.players[0].inputs.CodeAction.IsPressed())
+            if (inputSnapshots[0].ButtonStates[0] == ButtonState.Pressed)
             {
                 Debug.Log("p1 pressed cycle spell");
-                if (p1_index == 2)
+                if (p1_index == 3)
                 {
                     p1_index = 0;
                 }
@@ -77,7 +83,7 @@ public class ShopManager : MonoBehaviour
             }
 
             //choose spell (jump button)
-            if (gameManager.players[0].inputs.JumpAction.IsPressed())
+            if (inputSnapshots[0].ButtonStates[1] == ButtonState.Pressed)
             {
                 Debug.Log("p1 chose a spell");
                 GivePlayerSpell(0, p1_choices[p1_index]);
@@ -90,10 +96,10 @@ public class ShopManager : MonoBehaviour
         if (gameManager.players[1].chosenSpell == false)
         {
             //cycle spells (spellWeave button)
-            if (gameManager.players[1].inputs.CodeAction.IsPressed())
+            if (inputSnapshots[1].ButtonStates[0] == ButtonState.Pressed)
             {
                 Debug.Log("p2 pressed cycle spell");
-                if (p2_index == 2)
+                if (p2_index == 3)
                 {
                     p2_index = 0;
                 }
@@ -106,7 +112,7 @@ public class ShopManager : MonoBehaviour
             }
 
             //choose spell (jump button)
-            if (gameManager.players[1].inputs.JumpAction.IsPressed())
+            if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed)
             {
                 Debug.Log("p2 chose a spell");
                 GivePlayerSpell(1, p2_choices[p2_index]);
@@ -122,10 +128,10 @@ public class ShopManager : MonoBehaviour
             if (gameManager.players[2].chosenSpell == false)
             {
                 //cycle spells (spellWeave button)
-                if (gameManager.players[2].inputs.CodeAction.IsPressed())
+                if (inputSnapshots[2].ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log("p3 pressed cycle spell");
-                    if (p3_index == 2)
+                    if (p3_index == 3)
                     {
                         p3_index = 0;
                     }
@@ -138,7 +144,7 @@ public class ShopManager : MonoBehaviour
                 }
 
                 //choose spell (jump button)
-                if (gameManager.players[2].inputs.JumpAction.IsPressed())
+                if (inputSnapshots[2].ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log("p3 chose a spell");
                     GivePlayerSpell(2, p3_choices[p3_index]);
@@ -158,7 +164,7 @@ public class ShopManager : MonoBehaviour
                 if (gameManager.players[3].inputs.CodeAction.IsPressed())
                 {
                     Debug.Log("p4 pressed cycle spell");
-                    if (p4_index == 2)
+                    if (p4_index == 3)
                     {
                         p4_index = 0;
                     }
@@ -171,7 +177,7 @@ public class ShopManager : MonoBehaviour
                 }
 
                 //choose spell (jump button)
-                if (gameManager.players[3].inputs.JumpAction.IsPressed())
+                if (inputSnapshots[3].ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log("p4 chose a spell");
                     GivePlayerSpell(3, p4_choices[p4_index]);
@@ -202,7 +208,7 @@ public class ShopManager : MonoBehaviour
                 playersChosen = 0;
             }
         }
-        if(allPlayersChosen && !backToGameplay)
+        if (allPlayersChosen && !backToGameplay)
         {
             backToGameplay = true;
             StartCoroutine(Shop());
@@ -283,20 +289,24 @@ public class ShopManager : MonoBehaviour
         p3_choices = new List<string>();
         p4_choices = new List<string>();
 
-        p1_choices.Add("JumpBoost");
-        p1_choices.Add("SpeedBoost");
+        p1_choices.Add("BootsOfHermes");
+        p1_choices.Add("Overclock");
         p1_choices.Add("GiftOfPrometheus");
+        p1_choices.Add("Ninja_Build_Blast");
 
-        p2_choices.Add("JumpBoost");
-        p2_choices.Add("SpeedBoost");
+        p2_choices.Add("BootsOfHermes");
+        p2_choices.Add("Overclock");
         p2_choices.Add("GiftOfPrometheus");
+        p2_choices.Add("Ninja_Build_Blast");
 
-        p3_choices.Add("JumpBoost");
-        p3_choices.Add("SpeedBoost");
+        p3_choices.Add("BootsOfHermes");
+        p3_choices.Add("Overclock");
         p3_choices.Add("GiftOfPrometheus");
+        p3_choices.Add("Ninja_Build_Blast");
 
-        p4_choices.Add("JumpBoost");
-        p4_choices.Add("SpeedBoost");
+        p4_choices.Add("BootsOfHermes");
+        p4_choices.Add("Overclock");
         p4_choices.Add("GiftOfPrometheus");
+        p4_choices.Add("Ninja_Build_Blast");
     }
 }

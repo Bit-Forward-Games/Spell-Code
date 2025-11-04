@@ -1,23 +1,20 @@
 using UnityEngine;
 using BestoNet.Types;
 
-using Fixed = BestoNet.Types.Fixed32;
-using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
-
-public class JumpBoost_Spell : SpellData
+public class BootsOfHermes : SpellData
 {
-    Fixed baseJumpForce;
-    public Fixed jumpMultiplier = Fixed.FromInt(2);
-    //int jumpBoostDuration = 180; // Duration of the speed boost in frames
-    //int jumpBoostCounter = 0;
+    float baseJumpForce;
+    public float jumpMultiplier = 1.5f;
+    //int BootsOfHermesDuration = 180; // Duration of the speed boost in frames
+    //int BootsOfHermesCounter = 0;
 
-    public JumpBoost_Spell()
+    public BootsOfHermes()
     {
-        spellName = "JumpBoost";
-        cooldown = 180;
+        spellName = "BootsOfHermes";
+        cooldown = 0;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
-        brands = new Brand[1] { Brand.VWave };
+        brands = new Brand[1] { Brand.Killeez };
     }
 
     public override void SpellUpdate()
@@ -30,7 +27,7 @@ public class JumpBoost_Spell : SpellData
             {
                 owner.jumpForce *= jumpMultiplier;
                 Debug.Log($"{owner.jumpForce}");
-                //jumpBoostCounter = jumpBoostDuration; // Reset counter
+                //BootsOfHermesCounter = BootsOfHermesDuration; // Reset counter
             }
         }
         else
@@ -41,10 +38,10 @@ public class JumpBoost_Spell : SpellData
                 Debug.Log("Jump Boost Deactivated, reset jump force.");
             }
         }
-        //if (jumpBoostCounter > 0)
+        //if (BootsOfHermesCounter > 0)
         //{
-        //    jumpBoostCounter--;
-        //    if (jumpBoostCounter == 0)
+        //    BootsOfHermesCounter--;
+        //    if (BootsOfHermesCounter == 0)
         //    {
         //        owner.jumpForce = baseJumpForce; // Reset to base jump foce when counter ends
         //    }
@@ -58,7 +55,8 @@ public class JumpBoost_Spell : SpellData
 
     public override void CheckCondition()
     {
-        if (owner.flowState > 0)
+
+        if (owner.reps >= 3)
         {
             activateFlag = true;
         }

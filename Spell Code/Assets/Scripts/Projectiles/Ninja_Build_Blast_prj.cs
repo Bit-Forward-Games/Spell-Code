@@ -80,7 +80,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
             activeHitboxGroupIndex = 1;
 
             playerIgnoreArr = new bool[4] { false, false, false, false };
-            logicFrame = animFrames.frameLengths.Take(8).Sum()+1; //set the logic frame to the start of the end animation
+            logicFrame = animFrames.frameLengths.Take(16).Sum()+1; //set the logic frame to the start of the end animation
         }
     }
 }

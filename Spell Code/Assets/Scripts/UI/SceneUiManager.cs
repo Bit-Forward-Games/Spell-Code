@@ -32,15 +32,20 @@ public class SceneUiManager : MonoBehaviour
 
     /// <summary>
     /// Reset Data objects as well as all players
+    /// at the end of each game
     /// </summary>
     public void Restart()
     {
-        
-        DataManager.Instance.ResetData();
-        GameManager.Instance.RestartGame();
+        if (GameManager.Instance != null)
+        {
+            DataManager.Instance.ResetData();
+            GameManager.Instance.RestartGame();
 
-        GameManager.Instance.isRunning = true;
-        
+            GameManager.Instance.isRunning = true;
+
+            SceneManager.LoadScene("Gameplay");
+        }
+
         SceneManager.LoadScene("Gameplay");
     }
 

@@ -1,8 +1,6 @@
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -26,7 +24,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
-    public StageDataSO currentStage;
+    public StageDataSO[] stages;
+   // public StageDataSO currentStage;
+   public int currentStageIndex = 0;
+
+    public List<GameObject> tempMapGOs = new List<GameObject>();
+
+    [HideInInspector]
+    public ShopManager shopManager;
 
     public int round = 1;
     public bool roundOver;
@@ -71,56 +76,49 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     void Update()
     {
         //// If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
-        //Scene activeScene = SceneManager.GetActiveScene();
-        //if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
-        //{
-        //    // Set all known players to not alive
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null)
-        //            {
-        //                //players[i].isAlive = false;
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
-        //            }
-        //        }
-        //    }
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
+        {
+            // Set all known players to not alive
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null)
+                    {
+                        //players[i].isAlive = false;
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
+                    }
+                }
+            }
 
-        //    // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
-        //    //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(false);
-        //    }
+            // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
+            //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
 
-        //}
-        //else
-        //{
-        //               // Ensure temp UI is enabled during gameplay
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(true);
-        //    }
-        //    // Also ensure all players' sprites are enabled
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null && players[i].isAlive)
-        //            {
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        //            }
-        //        }
-        //    }
-        //}
-
-        //This is just a shortcut for me to test stuff
-
-        //if (Input.GetKeyDown(KeyCode.K))
-        //{
-        //    SaveMatch();
-        //}
+        }
+        else
+        {
+            // Ensure temp UI is enabled during gameplay
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
+            // Also ensure all players' sprites are enabled
+            if (players != null)
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i] != null && players[i].isAlive)
+                    {
+                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                    }
+                }
+            }
+        }
 
         //if ` is pressed, toggle box rendering
         if (Input.GetKeyDown(KeyCode.BackQuote))
@@ -363,8 +361,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     protected void RunFrame()
     {
-        if (!isRunning)
-            return;
+        //if (!isRunning)
+        //    return;
 
         ulong[] inputs = new ulong[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
@@ -372,7 +370,27 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             inputs[i] = players[i].GetInputs();
         }
 
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "Shop" )
+        {
+            if (shopManager == null)
+            {
+                shopManager = FindAnyObjectByType<ShopManager>();
+            }
+            shopManager.ShopUpdate(inputs);
+        }
+        else
+        {
+            shopManager = null;
+        }
+
+        if (!isRunning)
+            return;
+
+        
+
         UpdateGameState(inputs);
+
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
             for (int i = 0; i < playerCount; i++)
@@ -452,6 +470,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         return false;
     }
 
+    //reset players after each round
     public void ResetPlayers()
     {
         for(int i = 0; i < players.Length; i++)
@@ -461,13 +480,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].basicsFired = 0;
                 players[i].spellsFired = 0;
                 players[i].spellsHit = 0;
-                players[i].times = new List<Fixed>();
-                players[i].SpawnPlayer(FixedVec2.Zero);
-                FixedVec2 startPos;
-                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
-                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
-                players[i].SpawnPlayer(startPos);
-                //players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                players[i].times = new List<float>();
+                players[i].SpawnPlayer(Vector2.zero);
+                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
             }
         }
 
@@ -488,11 +503,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 //this is different from ResetPlayers()
                 players[i].ResetPlayer();
-                FixedVec2 startPos;
-                Vector3 spawnPosV3 = currentStage.playerSpawnTransform[i];
-                startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
-                players[i].SpawnPlayer(startPos);
-                //players[i].SpawnPlayer(currentStage.playerSpawnTransform[i]);
+                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
             }
        }
     }
@@ -507,6 +518,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
+        
         SceneManager.LoadScene("Shop");
     }
 
@@ -535,6 +547,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             activePlayers[i] = players[i];
         }
         return activePlayers;
+    }
+
+    public void SetStage(int stageIndex)
+    {
+        currentStageIndex = stageIndex;
+
+        //enable the temp map gameobject corresponding to the stage index, disable others
+        for (int i = 0; i < tempMapGOs.Count; i++)
+        {
+            if (i == stageIndex)
+            {
+                tempMapGOs[i].SetActive(true);
+            }
+            else
+            {
+                tempMapGOs[i].SetActive(false);
+            }
+        }
     }
 
     //resets the raw stats for each player back to 0 or their base state

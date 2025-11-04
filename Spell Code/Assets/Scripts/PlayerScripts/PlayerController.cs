@@ -7,7 +7,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using BestoNet.Types;
+using UnityEngine.U2D;
 
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
@@ -76,6 +76,7 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
+    public bool onPlatform = false;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -153,6 +154,8 @@ public class PlayerController : MonoBehaviour
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
 
+    public bool chosenSpell = false;
+
     private void Awake()
     {
         ///playerSpriteRenderer = GetComponent<SpriteRenderer>();
@@ -209,11 +212,35 @@ public class PlayerController : MonoBehaviour
 
             AddSpellToSpellList(charData.startingInventory[i]);
         }
-        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-        Vector3 spawnPosV3 = Vector3.zero;
-        spawnPosV3 = GameManager.Instance.currentStage.playerSpawnTransform[playerIndex];
-        FixedVec2 startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
-        SpawnPlayer(startPos);
+
+        //temp palette assignment based on player index
+        switch (Array.IndexOf(GameManager.Instance.players, this))
+        {
+            case 0:
+                InitializePalette(matchPalette[0]);
+                //playerNum.text = "P1";
+                playerNum.color = Color.magenta;
+                break;
+            case 1:
+                InitializePalette(matchPalette[1]);
+                //playerNum.text = "P2";
+                playerNum.color = Color.cyan;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
+                break;
+            case 2:
+                InitializePalette(matchPalette[0]);
+                //playerNum.text = "P3";
+                playerNum.color = Color.yellow;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.yellow;
+                break;
+            case 3:
+                InitializePalette(matchPalette[1]);
+                //playerNum.text = "P4";
+                playerNum.color = Color.green;
+                gameObject.GetComponent<SpriteRenderer>().color = Color.green;
+                break;
+        }
+        SpawnPlayer(GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
@@ -330,7 +357,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //Reset player back to initial state
+    /// <summary>
+    /// Reset player back to initial state
+    /// Called at end of each game
+    /// </summary>
     public void ResetPlayer()
     {
         ClearSpellList();
@@ -377,11 +407,6 @@ public class PlayerController : MonoBehaviour
             input = (ulong)longInput;
         }
         return input;
-    }
-
-    void Update()
-    {
-
     }
 
 
@@ -471,7 +496,11 @@ public class PlayerController : MonoBehaviour
                 }
                 //check for slide input:
                 if ( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
-                {
+                { 
+                    if(input.Direction == 2 && onPlatform)
+                    {
+                        break;
+                    }
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -607,7 +636,7 @@ public class PlayerController : MonoBehaviour
                     stateSpecificArg = 0;
                 }
 
-                if (input.Direction == 5)
+                if (input.Direction is 5 or 7 or 1 or 3 or 9)
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if ((stateSpecificArg & (1u << 4)) == 0)
@@ -652,7 +681,7 @@ public class PlayerController : MonoBehaviour
                 //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
                 //}
 
-                if ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0)) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     switch (input.Direction)
                     {
@@ -663,25 +692,21 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
-                            UpdateInputDisplay(2);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
-                            UpdateInputDisplay(4);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
-                            UpdateInputDisplay(6);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-                            UpdateInputDisplay(8);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
@@ -695,7 +720,7 @@ public class PlayerController : MonoBehaviour
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
-
+                inputDisplay.text = ConvertCodeToString(stateSpecificArg);
                 if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                 {
                     //set the 5th bit to 0 to indicate we are no longer primed
@@ -722,6 +747,14 @@ public class PlayerController : MonoBehaviour
                 {
                     facingRight = false;
                 }
+
+
+                //float if holding the jump button
+                //if(input.ButtonStates[1] == ButtonState.Pressed && vSpd <=0)
+                //{
+                //    vSpd = jumpForce;
+                //}
+
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
                 {
                     for (int i = 0; i < spellList.Count; i++)
@@ -787,7 +820,6 @@ public class PlayerController : MonoBehaviour
                 //    position.y = StageData.Instance.floorYval + 1;
                 //    vSpd = -vSpd;
                 //}
-
 
                 stateSpecificArg--;
                 break;
@@ -855,6 +887,9 @@ public class PlayerController : MonoBehaviour
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
+
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
         logicFrame++;
     }
 
@@ -892,8 +927,9 @@ public class PlayerController : MonoBehaviour
     public bool CheckStageDataSOCollision(bool checkOnly = false)
     {
         isGrounded = false;
+        onPlatform = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStage;
+        StageDataSO stageDataSO = GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
@@ -1049,12 +1085,18 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY <= platformTop && position.Y > platformBottom && vSpd <= Fixed.FromInt(0))
+                if (pMinY <= platformTop && position.y >= platformTop && vSpd <= 0f)
                 {
+                    if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
+                    {
+                        // Player is pressing down-jump while above platform: ignore collision (drop through)
+                        return returnVal;
+                    }
                     // Snap player to platform top
                     position = new FixedVec2(position.X, platformTop);
                     vSpd = Fixed.FromInt(0);
                     isGrounded = true;
+                    onPlatform = true;
                     returnVal = true;
                 }
 
@@ -1493,6 +1535,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(gravity.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
+        bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
         bw.Write(logicFrame); // 🔹 Save current animation frame
@@ -1537,6 +1580,7 @@ public class PlayerController : MonoBehaviour
         timer = new Fixed(br.ReadInt32());
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
+        onPlatform = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();
@@ -1666,22 +1710,23 @@ public class PlayerController : MonoBehaviour
             switch (currentInput)
             {
                 case 0b00:
-                    codeString += "D ";
+                    codeString += "<sprite name=\"ArrowDown\"> ";
                     break;
                 case 0b01:
-                    codeString += "R ";
+                    codeString += "<sprite name=\"ArrowRight\"> ";
                     break;
                 case 0b10:
-                    codeString += "L ";
+                    codeString += "<sprite name=\"ArrowLeft\"> ";
                     break;
                 case 0b11:
-                    codeString += "U ";
+                    codeString += "<sprite name=\"ArrowUp\"> ";
                     break;
             }
         }
         return codeString.Trim();
     }
 }
+
 
 
 

@@ -70,6 +70,7 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
+    public bool onPlatform = false;
 
     //leave public to get 
     public float hSpd = 0; //horizontal speed (effectively Velocity)
@@ -479,7 +480,11 @@ public class PlayerController : MonoBehaviour
                 }
                 //check for slide input:
                 if ( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
-                {
+                { 
+                    if(input.Direction == 2 && onPlatform)
+                    {
+                        break;
+                    }
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -726,6 +731,14 @@ public class PlayerController : MonoBehaviour
                 {
                     facingRight = false;
                 }
+
+
+                //float if holding the jump button
+                //if(input.ButtonStates[1] == ButtonState.Pressed && vSpd <=0)
+                //{
+                //    vSpd = jumpForce;
+                //}
+
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
                 {
                     for (int i = 0; i < spellList.Count; i++)
@@ -896,6 +909,7 @@ public class PlayerController : MonoBehaviour
     public bool CheckStageDataSOCollision(bool checkOnly = false)
     {
         isGrounded = false;
+        onPlatform = false;
         bool returnVal = false;
         StageDataSO stageDataSO = GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
@@ -1051,12 +1065,18 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY <= platformTop && position.y > platformBottom && vSpd <= 0f)
+                if (pMinY <= platformTop && position.y >= platformTop && vSpd <= 0f)
                 {
+                    if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
+                    {
+                        // Player is pressing down-jump while above platform: ignore collision (drop through)
+                        return returnVal;
+                    }
                     // Snap player to platform top
                     position.y = platformTop;
                     vSpd = 0f;
                     isGrounded = true;
+                    onPlatform = true;
                     returnVal = true;
                 }
 
@@ -1493,6 +1513,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(gravity);
         bw.Write(facingRight);
         bw.Write(isGrounded);
+        bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
         bw.Write(logicFrame); // 🔹 Save current animation frame
@@ -1523,6 +1544,7 @@ public class PlayerController : MonoBehaviour
         gravity = br.ReadSingle();
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
+        onPlatform = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();

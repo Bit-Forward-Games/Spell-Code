@@ -57,5 +57,5 @@ MonoBehaviour:
   spawnOffsetX: 10
   spawnOffsetY: 15
   projectilePrefabs: []
-  shopSprite: {fileID: 21300000, guid: d100258269e7508449925401f4188916, type: 3}
+  shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
   jumpMultiplier: 1.5

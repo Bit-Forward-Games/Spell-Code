@@ -146,6 +146,8 @@ public class PlayerController : MonoBehaviour
     //public bool timerRunning = false;
     public List<float> times = new List<float>();
 
+    public bool chosenSpell = false;
+
     private void Awake()
     {
         ///playerSpriteRenderer = GetComponent<SpriteRenderer>();

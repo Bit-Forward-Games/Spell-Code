@@ -137,6 +137,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     protected void RunFrame()
     {
+
         if (!isRunning)
             return;
 
@@ -147,6 +148,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         UpdateGameState(inputs);
+
         if (CheckGameEnd(GetActivePlayerControllers()))
         {
             for (int i = 0; i < playerCount; i++)

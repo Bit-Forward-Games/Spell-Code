@@ -240,7 +240,11 @@ public class PlayerController : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
-        SpawnPlayer(GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
+
+        FixedVec2 startPos;
+        Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
+        startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+        SpawnPlayer(startPos);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
@@ -433,7 +437,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        input = InputConverter.ConvertFromLong((long)rawInput);
+        input = InputConverter.ConvertFromLong((ulong)rawInput);
 
 
         CheckHit(input);

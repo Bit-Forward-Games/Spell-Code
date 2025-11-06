@@ -833,6 +833,8 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
+
+        //Check conditions of all spells with the onupdate condition
         for (int i = 0; i < spellList.Count; i++)
         {
             if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
@@ -872,6 +874,55 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
+
+        //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
+        if (IsCurrentHurtboxGroupEmpty())
+        {
+
+            Color tempColor;
+            switch (Array.IndexOf(GameManager.Instance.players, this))
+            {
+                case 0:
+                    tempColor = Color.white;
+                    break;
+                case 1:
+                    tempColor = Color.cyan;
+                    break;
+                case 2:
+                    tempColor = Color.yellow;
+                    break;
+                case 3:
+                    tempColor = Color.green;
+                    break;
+                default:
+                    tempColor = Color.white;
+                    break;
+            }
+            tempColor.r = Math.Clamp(tempColor.r - 0.5f, 0, 1f);
+            tempColor.g = Math.Clamp(tempColor.g - 0.5f, 0, 1f);
+            tempColor.b = Math.Clamp(tempColor.b - 0.5f, 0, 1f);
+            playerSpriteRenderer.color = tempColor;
+        }
+        else
+        {
+            switch(Array.IndexOf(GameManager.Instance.players, this))
+            {
+                case 0:
+                    playerSpriteRenderer.color = Color.white;
+                    break;
+                case 1:
+                    playerSpriteRenderer.color = Color.cyan;
+                    break;
+                case 2:
+                    playerSpriteRenderer.color = Color.yellow;
+                    break;
+                case 3:
+                    playerSpriteRenderer.color = Color.green;
+                    break;
+            }
+        }
+
+
         logicFrame++;
     }
 
@@ -904,6 +955,61 @@ public class PlayerController : MonoBehaviour
         CheckStageDataSOCollision();
         //CheckCameraCollision();
         //PlayerCollisionCheck();
+    }
+
+    /// <summary>
+    /// Returns true when the hurtbox group for the current character/state/frame
+    /// has no active hurtboxes or all active hurtboxes are null or have width==0 and height==0.
+    /// </summary>
+    public bool IsCurrentHurtboxGroupEmpty()
+    {
+        var hurtInfo = CharacterDataDictionary.GetHurtboxInfo(characterName, state);
+        HurtboxGroup group = hurtInfo.Item1;
+        List<int> frames = hurtInfo.Item2;
+
+        if (group == null || frames == null)
+            return true;
+
+        var activeHurtboxes = new List<HurtboxData>();
+
+        // Single-frame (static) hurtbox group
+        if (frames.Count == 1)
+        {
+            if (group.hurtbox1 != null && group.hurtbox1.Count > 0) activeHurtboxes.Add(group.hurtbox1[0]);
+            if (group.hurtbox2 != null && group.hurtbox2.Count > 0) activeHurtboxes.Add(group.hurtbox2[0]);
+            if (group.hurtbox3 != null && group.hurtbox3.Count > 0) activeHurtboxes.Add(group.hurtbox3[0]);
+            if (group.hurtbox4 != null && group.hurtbox4.Count > 0) activeHurtboxes.Add(group.hurtbox4[0]);
+        }
+        else
+        {
+            // Determine which indexed frame we should use for the current logicFrame
+            int renderIndex = -1;
+            foreach (int f in frames)
+            {
+                if (logicFrame >= f) renderIndex++;
+            }
+
+            // No frame active yet -> consider empty
+            if (renderIndex < 0)
+                return true;
+
+            if (group.hurtbox1 != null && group.hurtbox1.Count > renderIndex) activeHurtboxes.Add(group.hurtbox1[renderIndex]);
+            if (group.hurtbox2 != null && group.hurtbox2.Count > renderIndex) activeHurtboxes.Add(group.hurtbox2[renderIndex]);
+            if (group.hurtbox3 != null && group.hurtbox3.Count > renderIndex) activeHurtboxes.Add(group.hurtbox3[renderIndex]);
+            if (group.hurtbox4 != null && group.hurtbox4.Count > renderIndex) activeHurtboxes.Add(group.hurtbox4[renderIndex]);
+        }
+
+        // If there are no hurtboxes to check, treat as empty (invulnerable)
+        if (activeHurtboxes.Count == 0) return true;
+
+        // Return false if any active hurtbox is non-null and has non-zero size
+        foreach (var hb in activeHurtboxes)
+        {
+            if (hb != null && !(hb.width == 0 && hb.height == 0))
+                return false;
+        }
+
+        return true;
     }
 
     public bool CheckStageDataSOCollision(bool checkOnly = false)

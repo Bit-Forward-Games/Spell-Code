@@ -29,10 +29,10 @@ public class Overclock : SpellData
                 //OverclockCounter = OverclockDuration; // Reset counter
             }
         }
-        /*else
+        else
         {
             owner.runSpeed = baseSpeed; // Reset to base speed
-        }*/
+        }
         //if (OverclockCounter > 0)
         //{
         //    OverclockCounter--;

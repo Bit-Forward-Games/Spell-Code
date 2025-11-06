@@ -10,6 +10,7 @@ public class MightOfZeus : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
+        description = "Summon down a lightning strike which grants you 1 \"Rep\" if it hits. If you have 5 or more \"Reps\", this Spell-Code stuns!";
 
         spawnOffsetX = 30;
         spawnOffsetY = 0;

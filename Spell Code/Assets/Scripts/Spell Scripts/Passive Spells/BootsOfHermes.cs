@@ -14,6 +14,7 @@ public class BootsOfHermes : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.Killeez };
+        description = "While you have 3 or more \"Reps\", your jump height is massively increased.";
     }
 
     public override void SpellUpdate()

@@ -9,6 +9,7 @@ public class GiftOfPrometheus : SpellData
         brands = new Brand[] { Brand.Killeez };
         spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
         spellType = SpellType.Active;
+        description = "Send forth an orb of promethian flame, granting 2 \"Reps\" on hit. Deals massive damage, increased by how many \"Reps\" you currently have";
 
         projectilePrefabs = new GameObject[1];
     }

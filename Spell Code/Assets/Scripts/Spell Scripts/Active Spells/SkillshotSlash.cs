@@ -10,6 +10,7 @@ public class SkillshotSlash : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         projectilePrefabs = new GameObject[1];
+        description = "Slash through reality in an area in frot of you. If you hit the tip of Skillshot Slash, you enter \"Flow State\".";
 
         spawnOffsetX = 10;
         spawnOffsetY = 20;

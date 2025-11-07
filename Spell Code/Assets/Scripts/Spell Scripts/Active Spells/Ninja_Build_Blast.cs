@@ -9,6 +9,7 @@ public class Ninja_Build_Blast : SpellData
         cooldown = 600;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
+        description = "Project forth a massive orb which consumes all of your \"Flow State\" and deals massively increased damage based on the amount consumed";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 10;
         spawnOffsetY = 20;

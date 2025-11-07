@@ -403,7 +403,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
             dataManager.totalRoundsPlayed += 1;
-
+            ClearStages();
             //Game end logic here
             if (dataManager.totalRoundsPlayed == 3)
             {
@@ -559,6 +559,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         currentStageIndex = stageIndex;
 
+        ClearStages();
         //enable the temp map gameobject corresponding to the stage index, disable others
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
@@ -566,10 +567,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 tempMapGOs[i].SetActive(true);
             }
-            else
-            {
-                tempMapGOs[i].SetActive(false);
-            }
+        }
+    }
+
+    public void ClearStages()
+    {
+        for (int i = 0; i < tempMapGOs.Count; i++)
+        {
+            tempMapGOs[i].SetActive(false);
         }
     }
 

@@ -18,6 +18,7 @@ public class Overclock : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.VWave };
+        description = "While in Flow State, you overclock your movement, increasing your run speed.";
     }
 
     public override void SpellUpdate()
@@ -32,10 +33,10 @@ public class Overclock : SpellData
                 //OverclockCounter = OverclockDuration; // Reset counter
             }
         }
-        /*else
+        else
         {
             owner.runSpeed = baseSpeed; // Reset to base speed
-        }*/
+        }
         //if (OverclockCounter > 0)
         //{
         //    OverclockCounter--;

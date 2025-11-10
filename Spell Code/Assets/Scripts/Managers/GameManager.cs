@@ -18,10 +18,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
     public StageDataSO[] stages;
-   // public StageDataSO currentStage;
-   public int currentStageIndex = 0;
+    public StageDataSO lobbySO;
+    // public StageDataSO currentStage;
+    public int currentStageIndex = 0;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
+    public GameObject lobbyMapGO;
 
     [HideInInspector]
     public ShopManager shopManager;
@@ -53,6 +55,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isSaved = false;
 
         dataManager = DataManager.Instance;
+
+        SetStage(-1);
         //StartCoroutine(End());
     }
 
@@ -60,49 +64,49 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     void Update()
     {
         //// If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
-        Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
-        {
-            // Set all known players to not alive
-            if (players != null)
-            {
-                for (int i = 0; i < players.Length; i++)
-                {
-                    if (players[i] != null)
-                    {
-                        //players[i].isAlive = false;
-                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
-                    }
-                }
-            }
+        //Scene activeScene = SceneManager.GetActiveScene();
+        //if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
+        //{
+        //    // Set all known players to not alive
+        //    if (players != null)
+        //    {
+        //        for (int i = 0; i < players.Length; i++)
+        //        {
+        //            if (players[i] != null)
+        //            {
+        //                //players[i].isAlive = false;
+        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
+        //            }
+        //        }
+        //    }
 
-            // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
-            //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
-            if (tempUI != null)
-            {
-                tempUI.gameObject.SetActive(false);
-            }
+        //    // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
+        //    //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
+        //    if (tempUI != null)
+        //    {
+        //        tempUI.gameObject.SetActive(false);
+        //    }
 
-        }
-        else
-        {
-            // Ensure temp UI is enabled during gameplay
-            if (tempUI != null)
-            {
-                tempUI.gameObject.SetActive(true);
-            }
-            // Also ensure all players' sprites are enabled
-            if (players != null)
-            {
-                for (int i = 0; i < players.Length; i++)
-                {
-                    if (players[i] != null && players[i].isAlive)
-                    {
-                        players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
-                    }
-                }
-            }
-        }
+        //}
+        //else
+        //{
+        //    // Ensure temp UI is enabled during gameplay
+        //    if (tempUI != null)
+        //    {
+        //        tempUI.gameObject.SetActive(true);
+        //    }
+        //    // Also ensure all players' sprites are enabled
+        //    if (players != null)
+        //    {
+        //        for (int i = 0; i < players.Length; i++)
+        //        {
+        //            if (players[i] != null && players[i].isAlive)
+        //            {
+        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        //            }
+        //        }
+        //    }
+        //}
 
         //if ` is pressed, toggle box rendering
         if (Input.GetKeyDown(KeyCode.BackQuote))
@@ -110,7 +114,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-        
+
     }
 
     private void FixedUpdate()
@@ -122,7 +126,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         //if the current scene is shop and shop manager is not assigned, assign it
-        
+
 
         RunFrame();
 
@@ -138,8 +142,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     protected void RunFrame()
     {
-        //if (!isRunning)
-        //    return;
 
         long[] inputs = new long[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
@@ -148,7 +150,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name == "Shop" )
+        if (activeScene.name == "Shop")
         {
             if (shopManager == null)
             {
@@ -164,7 +166,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (!isRunning)
             return;
 
-        
+
 
         UpdateGameState(inputs);
 
@@ -212,7 +214,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i].isAlive) {
+            if (players[i].isAlive)
+            {
                 players[i].ProcEffectUpdate();
             }
         }
@@ -250,7 +253,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     //reset players after each round
     public void ResetPlayers()
     {
-        for(int i = 0; i < players.Length; i++)
+        Vector2[] spawnPos = GetSpawnPositions();
+        for (int i = 0; i < players.Length; i++)
         {
             if (players[i] != null)
             {
@@ -258,8 +262,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].spellsFired = 0;
                 players[i].spellsHit = 0;
                 players[i].times = new List<float>();
-                players[i].SpawnPlayer(Vector2.zero);
-                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
+                players[i].isAlive = true;
+                players[i].SpawnPlayer(spawnPos[i]);
             }
         }
 
@@ -272,17 +276,39 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void RestartGame()
     {
         dataManager.totalRoundsPlayed = 0;
-        
-       //reset each player to their starting values
-       for (int i = 0; i < players.Length; i++)
-       {
-            if (players[i] != null)
+        Vector2[] spawnPositions = GetSpawnPositions();
+        //reset each player to their starting values
+        for (int i = 0; i < players.Length; i++)
             {
-                //this is different from ResetPlayers()
-                players[i].ResetPlayer();
-                players[i].SpawnPlayer(stages[currentStageIndex].playerSpawnTransform[i]);
+                if (players[i] != null)
+                {
+                    //this is different from ResetPlayers()
+
+
+                    players[i].ResetPlayer();
+                players[i].SpawnPlayer(spawnPositions[i]);
+                }
             }
-       }
+    }
+
+    public Vector2[] GetSpawnPositions()
+    {
+        if (currentStageIndex < 0)
+        {
+            return new Vector2[] {
+                lobbySO.playerSpawnTransform[0],
+                lobbySO.playerSpawnTransform[1],
+                lobbySO.playerSpawnTransform[2],
+                lobbySO.playerSpawnTransform[3]};
+        }
+        else
+        {
+            return new Vector2[] {
+                stages[currentStageIndex].playerSpawnTransform[0],
+                stages[currentStageIndex].playerSpawnTransform[1],
+                stages[currentStageIndex].playerSpawnTransform[2],
+                stages[currentStageIndex].playerSpawnTransform[3]};
+        }
     }
 
     //A round is 1 match + spell acquisition phase
@@ -295,7 +321,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
-        
+
         SceneManager.LoadScene("Shop");
     }
 
@@ -332,6 +358,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         ClearStages();
         //enable the temp map gameobject corresponding to the stage index, disable others
+        if (currentStageIndex == -1)
+        {
+            lobbyMapGO.SetActive(true);
+            return;
+        }
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
             if (i == stageIndex)
@@ -347,5 +378,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             tempMapGOs[i].SetActive(false);
         }
+        lobbyMapGO.SetActive(false);
     }
 }

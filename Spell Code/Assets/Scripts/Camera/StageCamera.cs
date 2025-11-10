@@ -8,6 +8,7 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float damping;
     [SerializeField] private float minZoom = 180f;
     [SerializeField] private float maxZoom = 1280F;
+    [SerializeField] private float HardSetZoom = 180f;
     [SerializeField] private float minDistance = 360f;
     [SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
@@ -17,6 +18,7 @@ public class StageCamera : MonoBehaviour
     public Vector2 target;
     private Vector3 vel = Vector3.one;
     private Camera cam;
+
     //[SerializeField] private PixelPerfectCamera pixelPerfectCamera;
 
     private float shakeTimeRemaining;
@@ -29,6 +31,13 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
+        //if the current scene is main menu, don't do anything
+        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            cam.orthographicSize = HardSetZoom;
+            return;
+        }
+
         if (GameManager.Instance.playerCount > 0)
         {
             Vector2 averagePosition = Vector3.up;

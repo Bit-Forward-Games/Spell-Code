@@ -1730,9 +1730,11 @@ public class PlayerController : MonoBehaviour
         inputDisplay.color = Color.white;
     }
 
-    public static string ConvertCodeToString(uint code)
+    public static string ConvertCodeToString(uint code, Color ?color = null)
     {
-        string codeString = "";
+        if (color == null) { color = Color.white; }
+
+        string codeString = "<tint=\"1\">";
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
         for (int i = 0; i < codeCount; i++)
         {

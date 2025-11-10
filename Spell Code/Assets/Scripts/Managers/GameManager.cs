@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
     public static GameManager Instance { get; private set; }
 
+    public GameObject MainMenuScreen;
+
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
 
@@ -379,5 +381,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             tempMapGOs[i].SetActive(false);
         }
         lobbyMapGO.SetActive(false);
+    }
+
+
+    public void SetMenuActive(bool isActive)
+    {
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(isActive);
+        }
     }
 }

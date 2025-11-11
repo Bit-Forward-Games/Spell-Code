@@ -860,6 +860,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5677330542442070519, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -19.099976
+      objectReference: {fileID: 0}
+    - target: {fileID: 5677330542442070519, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 95.29999
+      objectReference: {fileID: 0}
+    - target: {fileID: 7931897855868922977, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: Press Jump!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8166886011738011117, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 210.8363
+      objectReference: {fileID: 0}
+    - target: {fileID: 8166886011738011117, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 324.80817
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

@@ -176,21 +176,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     Debug.Log("Player " + (i + 1) + " wins the match!");
                     players[i].isAlive = false; //reset for next round
+                    players[i].roundsWon += 1;
+
+                    if (players[i].roundsWon == 3) { GameEnd(); }
                     break;
                 }
             }
-            dataManager.totalRoundsPlayed += 1;
             ClearStages();
-            //Game end logic here
-            if (dataManager.totalRoundsPlayed == 3)
-            {
-                dataManager.totalRoundsPlayed = 0;
-                GameEnd();
-            }
-            else
-            {
-                RoundEnd();
-            }
+            
+            RoundEnd();            
         }
     }
 
@@ -271,7 +265,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     public void RestartGame()
     {
-        dataManager.totalRoundsPlayed = 0;
         
        //reset each player to their starting values
        for (int i = 0; i < players.Length; i++)

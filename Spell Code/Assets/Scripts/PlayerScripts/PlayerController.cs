@@ -148,6 +148,8 @@ public class PlayerController : MonoBehaviour
     //public bool timerRunning = false;
     public List<float> times = new List<float>();
 
+    public int roundsWon;
+
     public bool chosenSpell = false;
 
     private void Awake()
@@ -369,6 +371,8 @@ public class PlayerController : MonoBehaviour
 
             AddSpellToSpellList(charData.startingInventory[i]);
         }
+
+        roundsWon = 0;
 
         //data
         spellsFired = 0;

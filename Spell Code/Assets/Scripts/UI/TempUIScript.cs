@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerHpVals;
+    public Image[] playerHpBar;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;
@@ -29,6 +30,7 @@ public class TempUIScript : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerHpVals[i].text = "P" + (i + 1) + " HP: " + GameManager.Instance.players[i].currentPlayerHealth;
+            playerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;

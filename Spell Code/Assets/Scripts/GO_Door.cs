@@ -1,5 +1,9 @@
 using UnityEngine;
+using BestoNet.Types;
 
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class GO_Door : MonoBehaviour
 {
     Animator animator;
@@ -29,7 +33,15 @@ public class GO_Door : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             player = GameManager.Instance.players[i];
-            if (Mathf.Abs(gameObject.transform.position.x - player.position.x) > player.playerWidth/2)
+            // Convert transform.position.x (float) to Fixed32 before subtraction
+            Fixed doorPosX = Fixed.FromFloat(this.transform.position.x);
+            Fixed distanceX = doorPosX - player.position.X;
+
+            Fixed absDistanceX = Fixed.Abs(distanceX);
+
+            Fixed playerHalfWidth = player.playerWidth / Fixed.FromInt(2);
+
+            if (absDistanceX > playerHalfWidth)
             {
                 return false;
             }

@@ -557,6 +557,14 @@ PrefabInstance:
       propertyPath: 'tempMapGOs.Array.data[2]'
       value: 
       objectReference: {fileID: 444985263}
+    - target: {fileID: 5677330542442070519, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -19.099976
+      objectReference: {fileID: 0}
+    - target: {fileID: 5677330542442070519, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 95.29999
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -1957,7 +1965,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -100
   m_Sprite: {fileID: 8134256411904724372, guid: 3b640551bd8425c4692aa8baa1201c73, type: 3}
   m_Color: {r: 0.482, g: 0.482, b: 0.482, a: 1}
   m_FlipX: 0

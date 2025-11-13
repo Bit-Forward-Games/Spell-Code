@@ -7,6 +7,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 
 public enum PlayerState
@@ -924,6 +925,13 @@ public class PlayerController : MonoBehaviour
         }
 
 
+
+        //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "Gameplay")
+        {
+            currentPlayerHealth = charData.playerHealth;
+        }
         logicFrame++;
     }
 

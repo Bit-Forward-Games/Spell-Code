@@ -12,7 +12,7 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float minDistance = 360f;
     [SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
-    [SerializeField] private float shakeDuration = 0.5f;
+    //[SerializeField] private float shakeDuration = 0.5f;
     [SerializeField] private float shakeMagnitude = 1f;
 
     public Vector2 target;

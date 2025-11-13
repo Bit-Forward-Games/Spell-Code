@@ -238,14 +238,7 @@ public class ShopManager : MonoBehaviour
         spellText.text = " ";
 
         //make the next stage random but different from the last stage
-        int newStageIndex;
-        do
-        {
-            newStageIndex = UnityEngine.Random.Range(0, gameManager.stages.Length);
-
-        }while (gameManager.currentStageIndex == newStageIndex);
-        gameManager.SetStage(newStageIndex);
-        SceneManager.LoadScene("Gameplay");
+        gameManager.LoadRandomGameplayStage();
 
     }
 

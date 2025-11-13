@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     [HideInInspector]
     public ShopManager shopManager;
 
+    public GO_Door goDoorPrefab;
+
     public int round = 1;
     public bool roundOver;
 
@@ -57,6 +59,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isSaved = false;
 
         dataManager = DataManager.Instance;
+
+        //goDoorPrefab = GetComponentInChildren<GO_Door>();
 
         SetStage(-1);
         //StartCoroutine(End());
@@ -121,11 +125,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     private void FixedUpdate()
     {
-        if (prevSceneWasShop)
-        {
-            ResetPlayers();
-            prevSceneWasShop = false;
-        }
+        //if (prevSceneWasShop)
+        //{
+        //    ResetPlayers();
+        //    prevSceneWasShop = false;
+        //}
 
         //if the current scene is shop and shop manager is not assigned, assign it
 
@@ -144,7 +148,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     protected void RunFrame()
     {
-
+        //get controller inputs for all players
         long[] inputs = new long[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
         {
@@ -152,6 +156,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
+
+        ///shop specific update
         if (activeScene.name == "Shop")
         {
             if (shopManager == null)
@@ -165,35 +171,49 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             shopManager = null;
         }
 
+
+        //if the game is not running, skip the update (everything after this uses player controller updates)
         if (!isRunning)
             return;
 
-
+       
 
         UpdateGameState(inputs);
 
-        if (CheckGameEnd(GetActivePlayerControllers()))
+        if(activeScene.name == "MainMenu")
         {
-            for (int i = 0; i < playerCount; i++)
+            goDoorPrefab.CheckOpenDoor();
+            
+            if(goDoorPrefab.CheckAllPlayersReady())
             {
-                if (players[i].isAlive)
+                LoadRandomGameplayStage();
+            }
+        }
+        else if (activeScene.name == "Gameplay")
+        {
+            if (CheckGameEnd(GetActivePlayerControllers()))
+            {
+                for (int i = 0; i < playerCount; i++)
                 {
-                    Debug.Log("Player " + (i + 1) + " wins the match!");
-                    players[i].isAlive = false; //reset for next round
-                    break;
+                    if (players[i].isAlive)
+                    {
+                        Debug.Log("Player " + (i + 1) + " wins the match!");
+                        players[i].isAlive = false; //reset for next round
+                        break;
+                    }
                 }
-            }
-            dataManager.totalRoundsPlayed += 1;
-            ClearStages();
-            //Game end logic here
-            if (dataManager.totalRoundsPlayed == 3)
-            {
-                dataManager.totalRoundsPlayed = 0;
-                GameEnd();
-            }
-            else
-            {
-                RoundEnd();
+                dataManager.totalRoundsPlayed += 1;
+                ClearStages();
+                //Game end logic here
+                if (dataManager.totalRoundsPlayed == 3)
+                {
+                    dataManager.totalRoundsPlayed = 0;
+                    GameEnd();
+                }
+                else
+                {
+                    RoundEnd();
+                }
             }
         }
     }
@@ -372,6 +392,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 tempMapGOs[i].SetActive(true);
             }
         }
+    }
+
+    public void LoadRandomGameplayStage()
+    {
+        //make the next stage random but different from the last stage
+        int newStageIndex;
+        do
+        {
+            newStageIndex = Random.Range(0, stages.Length);
+
+        } while (currentStageIndex == newStageIndex);
+        SetStage(newStageIndex);
+        SceneManager.LoadScene("Gameplay");
+        ResetPlayers();
     }
 
     public void ClearStages()

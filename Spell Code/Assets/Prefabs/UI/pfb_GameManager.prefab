@@ -934,8 +934,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 319, y: -227}
-  m_SizeDelta: {x: 199.22, y: 50}
+  m_AnchoredPosition: {x: 324.80817, y: -227}
+  m_SizeDelta: {x: 210.8363, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &96449152126068509
 CanvasRenderer:
@@ -965,7 +965,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press Start!
+  m_text: Press Jump!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
   m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
@@ -3905,6 +3905,7 @@ MonoBehaviour:
   - {fileID: 6714676575999424325}
   lobbyMapGO: {fileID: 543041774932217825}
   shopManager: {fileID: 0}
+  goDoorPrefab: {fileID: 0}
   round: 1
   roundOver: 0
   prevSceneWasShop: 0
@@ -3962,6 +3963,18 @@ MonoBehaviour:
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: GetPlayerControllers
         m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 5608558492889886841}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: SetMenuActive
+        m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -4443,11 +4456,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4683095508994244735, guid: b8cea5c540a87374c83b36428a222053, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -19.1
+      value: -19.099976
       objectReference: {fileID: 0}
     - target: {fileID: 4683095508994244735, guid: b8cea5c540a87374c83b36428a222053, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 95.3
+      value: 95.29999
       objectReference: {fileID: 0}
     - target: {fileID: 4683095508994244735, guid: b8cea5c540a87374c83b36428a222053, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

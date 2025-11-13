@@ -241,13 +241,16 @@ public class PlayerController : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
-        Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
-        SpawnPlayer(spawnPos);
 
         FixedVec2 startPos;
-        Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
-        startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+        Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
+        startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
+
+        
+        //Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
+        //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+        //SpawnPlayer(startPos);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }

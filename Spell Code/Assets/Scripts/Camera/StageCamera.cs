@@ -5,6 +5,7 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
 
 public class StageCamera : MonoBehaviour
 {
@@ -48,7 +49,9 @@ public class StageCamera : MonoBehaviour
             Vector2 averagePosition = Vector3.up;
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                averagePosition += GameManager.Instance.players[i].position;
+                FixedVec2 fixedPos = GameManager.Instance.players[i].position;
+                Vector2 floatPos = new Vector2(fixedPos.X.ToFloat(), fixedPos.Y.ToFloat());
+                averagePosition += floatPos;
             }
             averagePosition /= GameManager.Instance.playerCount;
             target = averagePosition + offset;
@@ -96,13 +99,20 @@ public class StageCamera : MonoBehaviour
 
     private Bounds GetGreatestDistance()
     {
-        Bounds bounds = new Bounds(GameManager.Instance.players[0].position, Vector3.zero);
+        Vector3 initialCenter = new Vector3(
+        GameManager.Instance.players[0].position.X.ToFloat(),
+        GameManager.Instance.players[0].position.Y.ToFloat(),
+        -10f // Use -10f for Z
+    );
+        Bounds bounds = new Bounds(initialCenter, Vector3.zero);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            bounds.Encapsulate(new Vector3(
-                GameManager.Instance.players[i].position.x,
-                GameManager.Instance.players[i].position.y,
-                -10));
+            Vector3 playerPosV3 = new Vector3(
+            GameManager.Instance.players[i].position.X.ToFloat(),
+            GameManager.Instance.players[i].position.Y.ToFloat(),
+            -10f 
+        );
+            bounds.Encapsulate(playerPosV3);
         }
         return bounds;
     }

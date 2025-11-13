@@ -171,27 +171,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     // Match Control Methods
 
-    /// <summary>
-    /// Starts a local (offline) match.
-    /// </summary>
-    public void StartLocalMatch()
-    {
-        Debug.Log("Starting Local Match...");
-        // Ensure playerCount is set correctly based on local players joined
-
-        ResetMatchState(); // Reset frame counter, player states etc.
-        isOnlineMatchActive = false;
-        isRunning = true;
-        // Call ResetPlayers or player spawning logic here
-        ResetPlayers();
-    }
 
     /// <summary>
     /// Initializes and starts an online match. Requires RollbackManager.
     /// </summary>
     /// <param name="localIndex">Player index (0 or 1) for this client.</param>
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
-    public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId) // <-- Added opponentId
+    public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
         Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
@@ -500,7 +486,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     //reset players after each round
     public void ResetPlayers()
     {
-        Vector2[] spawnPos = GetSpawnPositions();
+        FixedVec2[] spawnPos = GetSpawnPositions()
+            .Select(v => FixedVec2.FromFloat(v.x, v.y))
+            .ToArray();
         for (int i = 0; i < players.Length; i++)
         {
             if (players[i] != null)
@@ -508,7 +496,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].basicsFired = 0;
                 players[i].spellsFired = 0;
                 players[i].spellsHit = 0;
-                players[i].times = new List<float>();
+                players[i].times = new List<Fixed>();
                 players[i].isAlive = true;
                 players[i].SpawnPlayer(spawnPos[i]);
             }
@@ -524,18 +512,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         dataManager.totalRoundsPlayed = 0;
         Vector2[] spawnPositions = GetSpawnPositions();
+        // Convert spawn positions to FixedVec2
+        FixedVec2[] fixedSpawnPositions = spawnPositions
+            .Select(v => FixedVec2.FromFloat(v.x, v.y))
+            .ToArray();
         //reset each player to their starting values
         for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
             {
-                if (players[i] != null)
-                {
-                    //this is different from ResetPlayers()
-
-
-                    players[i].ResetPlayer();
-                players[i].SpawnPlayer(spawnPositions[i]);
-                }
+                //this is different from ResetPlayers()
+                players[i].ResetPlayer();
+                players[i].SpawnPlayer(fixedSpawnPositions[i]);
             }
+        }
     }
 
     public Vector2[] GetSpawnPositions()

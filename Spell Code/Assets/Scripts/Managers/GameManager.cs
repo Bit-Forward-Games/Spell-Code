@@ -199,15 +199,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("Player " + (i + 1) + " wins the match!");
                         players[i].isAlive = false; //reset for next round
+                        players[i].roundsWon++;
+
+                        if (players[i].roundsWon >= 3) { gameOver = true; }
                         break;
                     }
                 }
-                dataManager.totalRoundsPlayed += 1;
                 ClearStages();
                 //Game end logic here
-                if (dataManager.totalRoundsPlayed == 3)
+                if (gameOver)
                 {
-                    dataManager.totalRoundsPlayed = 0;
                     GameEnd();
                 }
                 else

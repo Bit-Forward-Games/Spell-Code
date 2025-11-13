@@ -1747,7 +1747,7 @@ public class PlayerController : MonoBehaviour
     {
         if (color == null) { color = Color.white; }
 
-        string codeString = "<tint=\"1\">";
+        string codeString = "";
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
         for (int i = 0; i < codeCount; i++)
         {
@@ -1755,16 +1755,16 @@ public class PlayerController : MonoBehaviour
             switch (currentInput)
             {
                 case 0b00:
-                    codeString += "<sprite name=\"ArrowDown\"> ";
+                    codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
                     break;
                 case 0b01:
-                    codeString += "<sprite name=\"ArrowRight\"> ";
+                    codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
                     break;
                 case 0b10:
-                    codeString += "<sprite name=\"ArrowLeft\"> ";
+                    codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
                     break;
                 case 0b11:
-                    codeString += "<sprite name=\"ArrowUp\"> ";
+                    codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
                     break;
             }
         }

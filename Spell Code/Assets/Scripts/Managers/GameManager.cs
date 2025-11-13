@@ -32,8 +32,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public GO_Door goDoorPrefab;
 
-    public int round = 1;
     public bool roundOver;
+    public bool gameOver;
 
     public bool prevSceneWasShop;
 

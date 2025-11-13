@@ -7,6 +7,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 
 public enum PlayerState
@@ -236,7 +237,8 @@ public class PlayerController : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
-        SpawnPlayer(GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)]);
+        Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
+        SpawnPlayer(spawnPos);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
@@ -927,6 +929,13 @@ public class PlayerController : MonoBehaviour
         }
 
 
+
+        //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "Gameplay")
+        {
+            currentPlayerHealth = charData.playerHealth;
+        }
         logicFrame++;
     }
 
@@ -1021,7 +1030,7 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         onPlatform = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex<0?GameManager.Instance.lobbySO: GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)

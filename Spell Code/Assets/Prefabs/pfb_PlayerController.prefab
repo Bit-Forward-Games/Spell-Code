@@ -411,6 +411,7 @@ MonoBehaviour:
   cancelOptions: 
   facingRight: 1
   isGrounded: 0
+  onPlatform: 0
   hSpd: 0
   vSpd: 0
   logicFrame: 0
@@ -463,6 +464,7 @@ MonoBehaviour:
   spellsHit: 0
   timer: 0
   times: []
+  chosenSpell: 0
 --- !u!212 &-1293374541561941338
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -504,8 +506,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1090599107
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

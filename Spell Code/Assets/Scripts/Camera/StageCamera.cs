@@ -13,15 +13,17 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float damping;
     [SerializeField] private float minZoom = 180f;
     [SerializeField] private float maxZoom = 1280F;
+    [SerializeField] private float HardSetZoom = 180f;
     [SerializeField] private float minDistance = 360f;
     [SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
-    [SerializeField] private float shakeDuration = 0.5f;
+    //[SerializeField] private float shakeDuration = 0.5f;
     [SerializeField] private float shakeMagnitude = 1f;
 
     public Vector2 target;
     private Vector3 vel = Vector3.one;
     private Camera cam;
+
     //[SerializeField] private PixelPerfectCamera pixelPerfectCamera;
 
     private float shakeTimeRemaining;
@@ -34,32 +36,21 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        //if the current scene is main menu, don't do anything
+        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
         {
-            return; // Skip camera updates during rollback
+            cam.orthographicSize = HardSetZoom;
+            return;
         }
 
         if (GameManager.Instance.playerCount > 0)
         {
-            FixedVec2 fixedAveragePosition = FixedVec2.Zero;
+            Vector2 averagePosition = Vector3.up;
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                if (GameManager.Instance.players[i] != null) // Check player exists
-                {
-                    fixedAveragePosition += GameManager.Instance.players[i].position; // Add FixedVec2 positions
-                }
+                averagePosition += GameManager.Instance.players[i].position;
             }
-            fixedAveragePosition /= Fixed.FromInt(GameManager.Instance.playerCount);
-            Vector2 averagePosition = new Vector2(
-                fixedAveragePosition.X.ToFloat(),
-                fixedAveragePosition.Y.ToFloat()
-            );
-            //Vector2 averagePosition = Vector3.up;
-            //for (int i = 0; i < GameManager.Instance.playerCount; i++)
-            //{
-            //    averagePosition += GameManager.Instance.players[i].position;
-            //}
-            //averagePosition /= GameManager.Instance.playerCount;
+            averagePosition /= GameManager.Instance.playerCount;
             target = averagePosition + offset;
 
             Bounds greatestDistance = GetGreatestDistance();
@@ -105,21 +96,13 @@ public class StageCamera : MonoBehaviour
 
     private Bounds GetGreatestDistance()
     {
-        FixedVec2 firstPlayerPosFixed = GameManager.Instance.players[0].position;
-        Vector3 firstPlayerPos = new Vector3(firstPlayerPosFixed.X.ToFloat(), firstPlayerPosFixed.Y.ToFloat(), -10);
-        Bounds bounds = new Bounds(firstPlayerPos, Vector3.zero);
+        Bounds bounds = new Bounds(GameManager.Instance.players[0].position, Vector3.zero);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            if (GameManager.Instance.players[i] == null) continue;
-
-            // Convert player FixedVec2 position to Vector3 for Encapsulate
-            FixedVec2 playerPosFixed = GameManager.Instance.players[i].position;
-            Vector3 playerPos = new Vector3(
-                playerPosFixed.X.ToFloat(),
-                playerPosFixed.Y.ToFloat(),
-                -10 
-            );
-            bounds.Encapsulate(playerPos);
+            bounds.Encapsulate(new Vector3(
+                GameManager.Instance.players[i].position.x,
+                GameManager.Instance.players[i].position.y,
+                -10));
         }
         return bounds;
     }

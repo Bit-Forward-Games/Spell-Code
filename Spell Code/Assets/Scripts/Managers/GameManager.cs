@@ -44,6 +44,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool prevSceneWasShop;
 
+
+    [Header("Online UI")]
+    public GameObject onlineMenuUI;
+    public KeyCode toggleOnlineMenuKey = KeyCode.F5;
+
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
     private bool isOnlineMatchActive = false;

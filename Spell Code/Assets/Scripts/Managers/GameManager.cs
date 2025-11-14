@@ -82,6 +82,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         dataManager = DataManager.Instance;
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
+        if (onlineMenuUI != null)
+        {
+            onlineMenuUI.SetActive(false);
+        }
 
         SetStage(-1);
         //StartCoroutine(End());

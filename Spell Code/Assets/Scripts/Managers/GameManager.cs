@@ -145,6 +145,18 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
+        if (!isOnlineMatchActive)
+        {
+            if (Input.GetKeyDown(toggleOnlineMenuKey))
+            {
+                if (onlineMenuUI != null)
+                {
+                    // Toggle the online menu's visibility
+                    bool isOnlineMenuVisible = !onlineMenuUI.activeSelf;
+                    onlineMenuUI.SetActive(isOnlineMenuVisible);
+                }
+            }
+        }
 
     }
 

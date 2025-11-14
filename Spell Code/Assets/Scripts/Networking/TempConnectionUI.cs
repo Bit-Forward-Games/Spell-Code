@@ -8,10 +8,10 @@ public class TempConnectionUI : MonoBehaviour
 {
     public TMP_InputField opponentIdField;
     public TextMeshProUGUI myIdText;
-    public GameObject connectionUI;
+    public GameObject onlineUI;
 
     [Header("Scene Setup")]
-    public string gameplaySceneName = "Gameplay";
+    public string gameplaySceneName = "MainMenu";
 
     void Start()
     {
@@ -78,9 +78,9 @@ public class TempConnectionUI : MonoBehaviour
 
 
             // --- Hide UI & Load Scene ---
-            if (connectionUI != null)
+            if (onlineUI != null)
             {
-                connectionUI.SetActive(false);
+                onlineUI.SetActive(false);
             }
             else
             {

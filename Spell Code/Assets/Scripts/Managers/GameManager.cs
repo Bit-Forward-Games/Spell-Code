@@ -157,7 +157,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
         }
-
     }
 
     private void FixedUpdate()

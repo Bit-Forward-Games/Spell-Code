@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -36,6 +37,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool gameOver;
 
     public bool prevSceneWasShop;
+
+    //game timers
+    public float roundEndTimer = 0f;
+    public int roundEndTransitionTime = 2;
+    public TextMeshPro playerWinText;
 
     private void Awake()
     {
@@ -198,6 +204,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[i].isAlive)
                     {
                         Debug.Log("Player " + (i + 1) + " wins the match!");
+                        //playerWinText.text = "Player " + (i + 1) + " wins the match!";
                         players[i].isAlive = false; //reset for next round
                         players[i].roundsWon++;
 
@@ -205,15 +212,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         break;
                     }
                 }
-                ClearStages();
-                //Game end logic here
-                if (gameOver)
-                {
-                    GameEnd();
+
+                if (roundEndTransitionTime >= roundEndTimer) 
+                { 
+                    roundEndTimer += Time.deltaTime;
                 }
-                else
+
+                //Game end logic here
+                if (roundEndTransitionTime <= roundEndTimer)
                 {
-                    RoundEnd();
+                    ClearStages();
+                    if (gameOver)
+                    {
+                        GameEnd();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                    }
+                    else
+                    {
+                        RoundEnd();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                    }
                 }
             }
         }

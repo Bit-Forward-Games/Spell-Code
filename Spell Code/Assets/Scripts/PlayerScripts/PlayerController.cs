@@ -771,6 +771,15 @@ public class PlayerController : MonoBehaviour
 
                             break;
                         }
+
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter > 0)
+                        {
+                            inputDisplay.color = Color.yellow;
+                            Debug.Log("COOLDOWN");
+                        }
+                        else { inputDisplay.color = Color.red; }
                     }
                     //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop
                     if (stateSpecificArg == 255) break;
@@ -779,11 +788,11 @@ public class PlayerController : MonoBehaviour
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
 
+
                     //basic spell is fired
                     basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
-                    inputDisplay.color = Color.red;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))

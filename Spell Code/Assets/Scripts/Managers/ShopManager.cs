@@ -99,6 +99,7 @@ public class ShopManager : MonoBehaviour
                 GivePlayerSpell(0, p1_choices[p1_index]);
                 gameManager.players[0].chosenSpell = true;
                 p1_spellCard.enabled = false;
+                inputSnapshots[0].SetNull();
             }
         }
 

@@ -740,6 +740,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 95.29999
       objectReference: {fileID: 0}
+    - target: {fileID: 6799741710189557667, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -101.20001
+      objectReference: {fileID: 0}
+    - target: {fileID: 6799741710189557667, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 7.299988
+      objectReference: {fileID: 0}
+    - target: {fileID: 6831030964434361805, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 7.299988
+      objectReference: {fileID: 0}
     - target: {fileID: 7373989415915641726, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 86.1
@@ -747,6 +759,14 @@ PrefabInstance:
     - target: {fileID: 7854828249919274906, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -0.9000163
+      objectReference: {fileID: 0}
+    - target: {fileID: 7996563540153155250, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -101.20001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7996563540153155250, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -10.700012
       objectReference: {fileID: 0}
     - target: {fileID: 8292319761769612303, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1627,18 +1647,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3121169818732901688, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
-      propertyPath: availableSongs.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 3121169818732901688, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
-      propertyPath: 'availableSongs.Array.data[2]'
-      value: 
-      objectReference: {fileID: 8300000, guid: dfd0997f2f67a8a4d96c7ed95a8123db, type: 3}
-    - target: {fileID: 3121169818732901688, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
-      propertyPath: 'availableSongs.Array.data[3]'
-      value: 
-      objectReference: {fileID: 8300000, guid: 6323ea404cc512f4db0fd37666ab0b4a, type: 3}
     - target: {fileID: 9215106008471674171, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
       propertyPath: m_Name
       value: pfb_BGM_Manager

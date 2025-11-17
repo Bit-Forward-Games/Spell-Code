@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public GameObject MainMenuScreen;
 
+    public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
 
@@ -215,7 +216,27 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
 
+        ClearPlayerObjects(); // Remove old players
         this.playerCount = 2; // Assuming 2-player online match for now
+
+        if (playerPrefab == null)
+        {
+            Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
+            return;
+        }
+
+        // Force Instantiate 2 Players
+        for (int i = 0; i < 2; i++)
+        {
+            GameObject p = Instantiate(playerPrefab);
+            players[i] = p.GetComponent<PlayerController>();
+            AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
+            // Assign default input device to null or dummy initially
+            // inputs will be handled by RunOnlineFrame overrides
+        }
+
+        players[localPlayerIndex].CheckForInputs(true);
+        players[remotePlayerIndex].CheckForInputs(false);
 
         // Ensure players are spawned/reset
         ResetPlayers();
@@ -240,7 +261,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         isOnlineMatchActive = true;
         isRunning = true;
-
         Debug.Log("Online Match Started.");
     }
 
@@ -265,6 +285,19 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // Maybe reset player states or positions
     }
 
+    private void ClearPlayerObjects()
+    {
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                Destroy(players[i].gameObject);
+                players[i] = null;
+            }
+        }
+        playerCount = 0;
+    }
+
     /// <summary>
     /// Resets common match state variables.
     /// </summary>
@@ -286,72 +319,110 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     private void RunOnlineFrame()
     {
-        RollbackManager rbManager = RollbackManager.Instance; // Cache for readability
-        if (rbManager == null)
-        {
-            Debug.LogError("RollbackManager instance is null during RunOnlineFrame!");
-            return;
-        }
+        RollbackManager rbManager = RollbackManager.Instance;
+        if (rbManager == null) return;
 
-        // Initial save state for frame 0 (or up to input delay)
         if (frameNumber <= rbManager.InputDelay)
         {
-            rbManager.SaveState(); // Calls SerializeManagedState internally
+            rbManager.SaveState();
         }
 
-        // Read Local Input (for the *next* frame + input delay)
-        localPlayerInput = 0; // Default to no input
+        localPlayerInput = 0;
         if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
         {
-            localPlayerInput = players[localPlayerIndex].GetInputs(); // Assuming returns ulong
+            localPlayerInput = players[localPlayerIndex].GetInputs();
         }
 
-        // Check Network Sync & Handle Rollback
         bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
-        if (!timeSynced) // Not time synced (likely connection issue)
+        if (!timeSynced)
         {
             timeoutFrames++;
             if (timeoutFrames > rbManager.TimeoutFrames)
             {
-                rbManager.TriggerMatchTimeout(); // Let RollbackManager handle the disconnect
+                rbManager.TriggerMatchTimeout();
             }
-            return; // Skip simulation if not synced
+            return; // Skip frame
         }
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
-        frameNumber++; // Increment frame *before* simulating it
-        rbManager.SendLocalInput(localPlayerInput); // Send input from *last* tick
-        syncedInput = rbManager.SynchronizeInput(); // Get inputs for *this* frame
+        frameNumber++;
+        rbManager.SendLocalInput(localPlayerInput);
+        syncedInput = rbManager.SynchronizeInput();
 
-        // Stall check (skip simulation if inputs haven't arrived)
+        // Stall check
         if (!rbManager.AllowUpdate())
         {
-            frameNumber--; // Don't advance frame counter if stalled
+            frameNumber--;
             return;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+
+        if (activeScene.name == "Shop")
+        {
+            // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
+            // Assuming ShopUpdate relies on inputs and needs to be deterministic:
+            if (shopManager == null)
+            {
+                shopManager = FindAnyObjectByType<ShopManager>();
+            }
+
+            if (shopManager != null)
+            {
+                // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
+                // Assuming ShopUpdate accepts ulong[] or casting is handled
+                ulong[] shopInputs = new ulong[playerCount];
+                for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
+
+                shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
+            }
+        }
+        else
+        {
+            shopManager = null;
         }
 
         UpdateGameState(syncedInput);
 
-        if (!rbManager.isRollbackFrame)
+        if (activeScene.name == "Gameplay")
         {
-            if (CheckGameEnd(GetActivePlayerControllers()))
+            // Only check end conditions if NOT rolling back
+            // Don't want to trigger a scene change during a resimulation
+            if (!rbManager.isRollbackFrame)
             {
-                for (int i = 0; i < playerCount; i++)
+                if (CheckGameEnd(GetActivePlayerControllers()))
                 {
-                    if (players[i].isAlive)
+                    // Tally wins
+                    for (int i = 0; i < playerCount; i++)
                     {
-                        Debug.Log("Player " + (i + 1) + " wins the match!");
-                        players[i].isAlive = false; // Set state for subsequent saves
-                        break;
+                        if (players[i].isAlive)
+                        {
+                            Debug.Log("Player " + (i + 1) + " wins the match!");
+                            players[i].isAlive = false;
+                            players[i].roundsWon++;
+
+                            if (players[i].roundsWon >= 3) { gameOver = true; }
+                            break;
+                        }
+                    }
+
+                    ClearStages();
+
+                    // Handle Transitions
+                    // NOTE: Scene changes in Online Play can be risky if not synced. 
+                    // Should send a "Ready" packet before loading ideally.
+                    // For now, mirror offline logic:
+                    if (gameOver)
+                    {
+                        GameEnd();
+                    }
+                    else
+                    {
+                        RoundEnd();
                     }
                 }
-
-                // DON'T call RoundEnd() or GameEnd() because they change scenes.
-                // Stop the simulation and let managers handle the "game over" state.
-                isRunning = false;
-                StopMatch("Game Over");
             }
         }
 
@@ -359,6 +430,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             rbManager.SaveState();
         }
+
     }
 
     /// <summary>

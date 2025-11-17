@@ -1647,6 +1647,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3121169818732901688, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
+      propertyPath: availableSongs.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3121169818732901688, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
+      propertyPath: 'availableSongs.Array.data[4]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 64b3fd6befad8e247abbd4a2c20c535a, type: 3}
     - target: {fileID: 9215106008471674171, guid: d743eb18f7572524a978aa26080e8fd7, type: 3}
       propertyPath: m_Name
       value: pfb_BGM_Manager

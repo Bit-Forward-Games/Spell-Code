@@ -375,6 +375,7 @@ public class PlayerController : MonoBehaviour
         }
 
         roundsWon = 0;
+        
 
         //data
         spellsFired = 0;

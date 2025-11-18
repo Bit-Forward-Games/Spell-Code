@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool prevSceneWasShop;
 
+    public SpellCode_Gate[] gates = new SpellCode_Gate[4];
+
     //game timers
     public float roundEndTimer = 0f;
     public int roundEndTransitionTime = 2;
@@ -318,7 +320,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// </summary>
     public void RestartGame()
     {
-        dataManager.totalRoundsPlayed = 0;
+        gameOver = false;
         Vector2[] spawnPositions = GetSpawnPositions();
         //reset each player to their starting values
         for (int i = 0; i < players.Length; i++)
@@ -403,6 +405,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //enable the temp map gameobject corresponding to the stage index, disable others
         if (currentStageIndex == -1)
         {
+            foreach (SpellCode_Gate gate in gates) { gate.isOpen = false; }
             lobbyMapGO.SetActive(true);
             return;
         }

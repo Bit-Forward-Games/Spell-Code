@@ -306,10 +306,14 @@ public class InputPlayerBindings : MonoBehaviour
 
     public long UpdateInputs()
     {
-        direction[0] = upAction.inProgress;
-        direction[1] = downAction.inProgress;
-        direction[2] = leftAction.inProgress;
-        direction[3] = rightAction.inProgress;
+        direction[0] = upAction.ReadValue<float>() > 0.33f;
+        direction[1] = downAction.ReadValue<float>() > 0.33f;
+        direction[2] = leftAction.ReadValue<float>() > 0.33f;
+        direction[3] = rightAction.ReadValue<float>() > 0.33f;
+        //direction[0] = upAction.inProgress;
+        //direction[1] = downAction.inProgress;
+        //direction[2] = leftAction.inProgress;
+        //direction[3] = rightAction.inProgress;
 
         codeButton[0] = codeButton[1];
         jumpButton[0] = jumpButton[1];

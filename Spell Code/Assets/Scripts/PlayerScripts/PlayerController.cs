@@ -1209,6 +1209,120 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        // --- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
+        if (stageDataSO.activatableSolidCenter != null && stageDataSO.activatableSolidExtent != null)
+        {
+            int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
+            if (activatableSolidCount > 0)
+            {
+                float halfW = playerWidth * 0.5f;
+                float halfH = playerHeight * 0.5f;
+
+                // Player AABB
+                float pMinX = position.x + hSpd - halfW;
+                float pMaxX = position.x + hSpd + halfW;
+                float pMinY = position.y + vSpd;
+                float pMaxY = position.y + vSpd + playerHeight;
+
+                for (int i = 0; i < activatableSolidCount; i++)
+                {
+
+                    //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
+                    GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
+
+                    //find the activatable solid that corresponds to this index via matching the center position
+                    bool isOpen = false;
+                    foreach (GameObject obj in activatableSolidsInScene)
+                    {
+                        Vector3 objPos = obj.transform.position;
+                        if (Mathf.Approximately(objPos.x, stageDataSO.activatableSolidCenter[i].x) &&
+                            Mathf.Approximately(objPos.y, stageDataSO.activatableSolidCenter[i].y))
+                        {
+                            isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
+                            break;
+                        }
+                    }
+                    if (isOpen)
+                    {
+                        return false;
+                    }
+
+
+
+
+                    Vector2 center = stageDataSO.activatableSolidCenter[i];
+                    Vector2 extent = stageDataSO.activatableSolidExtent[i];
+
+                    // Treat extent as half-extents: solid min/max
+                    Vector2 sMin = center - extent;
+                    Vector2 sMax = center + extent;
+
+                    // Quick rejection test
+                    if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                    {
+                        continue;
+                    }
+
+                    // Overlap detected
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
+                    // Compute penetration amounts
+                    float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                    float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+
+                    if (overlapX < 0f || overlapY < 0f)
+                    {
+                        // Numerical edge-case: treat as no collision
+                        continue;
+                    }
+
+                    // Resolve along the smallest penetration axis
+                    if (overlapX < overlapY)
+                    {
+                        // Resolve horizontally
+                        if (position.x < center.x)
+                        {
+                            // Player is left of solid -> push left
+                            //position.x -= overlapX;
+                            position.x = sMin.x - halfW;
+                        }
+                        else
+                        {
+                            // Player is right of solid -> push right
+                            //position.x += overlapX;
+                            position.x = sMax.x + halfW;
+                        }
+                        hSpd = 0f;
+                    }
+                    else
+                    {
+                        // Resolve vertically
+                        if (position.y < center.y)
+                        {
+                            // Player is below solid -> push down
+                            //position.y -= overlapY;
+                            position.y = sMin.y - playerHeight;
+                            // If hitting underside, zero vertical speed
+                            vSpd = 0f;
+                        }
+                        else
+                        {
+                            // Player is above solid -> land on top
+                            //position.y += overlapY;
+                            position.y = sMax.y;
+                            vSpd = 0f;
+                            isGrounded = true;
+                        }
+                    }
+
+                    returnVal = true;
+                }
+            }
+        }
+
         return returnVal;
     }
 

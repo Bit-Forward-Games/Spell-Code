@@ -50,8 +50,8 @@ MonoBehaviour:
   activatableSolidCenter:
   - {x: -90, y: 45.75, z: 0}
   - {x: 90, y: 45.75, z: 0}
-  - {x: -90, y: -113, z: 0}
-  - {x: 90, y: -113, z: 0}
+  - {x: -90, y: -111, z: 0}
+  - {x: 90, y: -111, z: 0}
   activatableSolidExtent:
   - {x: 12.5, y: 32, z: 0.5}
   - {x: 12.5, y: 32, z: 0.5}

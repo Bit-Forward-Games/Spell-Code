@@ -152,6 +152,8 @@ public class PlayerController : MonoBehaviour
     public int roundsWon;
 
     public bool chosenSpell = false;
+    public bool chosenStartingSpell = false;
+    public bool isSpawned;
 
     private void Awake()
     {
@@ -200,15 +202,15 @@ public class PlayerController : MonoBehaviour
         playerHeight = charData.playerHeight;
 
         //fill the spell list with the character's initial spells
-        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
-        {
+        //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        //{
             //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
             //spellList.Add = Instantiate(targetSpell);
             //spellList[i].owner = this;
             //spellCount++;
 
-            AddSpellToSpellList(charData.startingInventory[i]);
-        }
+            //AddSpellToSpellList(charData.startingInventory[i]);
+        //}
 
         //temp palette assignment based on player index
         switch (Array.IndexOf(GameManager.Instance.players, this))

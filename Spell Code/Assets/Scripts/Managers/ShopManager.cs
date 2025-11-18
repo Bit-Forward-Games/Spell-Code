@@ -14,7 +14,6 @@ public class ShopManager : MonoBehaviour
 {
     public Canvas shop;
     private GameManager gameManager;
-    public TextMeshProUGUI spellText;
 
     public System.Random myRandom;
 
@@ -43,6 +42,11 @@ public class ShopManager : MonoBehaviour
     private int p2_index = 0;
     private int p3_index = 0;
     private int p4_index = 0;
+
+    public TextMeshProUGUI p1_spellText;
+    public TextMeshProUGUI p2_spellText;
+    public TextMeshProUGUI p3_spellText;
+    public TextMeshProUGUI p4_spellText;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -129,6 +133,7 @@ public class ShopManager : MonoBehaviour
                 GivePlayerSpell(1, p2_choices[p2_index]);
                 gameManager.players[1].chosenSpell = true;
                 p2_spellCard.enabled = false;
+                inputSnapshots[1].SetNull();
             }
         }
 
@@ -161,6 +166,7 @@ public class ShopManager : MonoBehaviour
                     GivePlayerSpell(2, p3_choices[p3_index]);
                     gameManager.players[2].chosenSpell = true;
                     p3_spellCard.enabled = false;
+                    inputSnapshots[2].SetNull();
                 }
             }
         }
@@ -194,6 +200,7 @@ public class ShopManager : MonoBehaviour
                     GivePlayerSpell(3, p4_choices[p4_index]);
                     gameManager.players[3].chosenSpell = true;
                     p4_spellCard.enabled = false;
+                    inputSnapshots[3].SetNull();
                 }
             }
         }
@@ -236,7 +243,6 @@ public class ShopManager : MonoBehaviour
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(1);
         GameManager.Instance.isRunning = true;
-        spellText.text = " ";
 
         //make the next stage random but different from the last stage
         gameManager.LoadRandomGameplayStage();
@@ -291,7 +297,22 @@ public class ShopManager : MonoBehaviour
         Debug.Log("Giving player " + (index + 1) + " " + spell);
         gameManager.players[index].AddSpellToSpellList(spell);
 
-        //spellText.text += "player " + (index + 1) + " acquired: " + spell + "\n";
+        if (index == 0)
+        {
+            p1_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
+        }
+        if (index == 1)
+        {
+            p2_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
+        }
+        if (index == 2)
+        {
+            p3_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
+        }
+        if (index == 3)
+        {
+            p4_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
+        }
 
     }
 

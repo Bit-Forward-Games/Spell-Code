@@ -43,7 +43,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     //game timers
     public float roundEndTimer = 0f;
     public int roundEndTransitionTime = 2;
-    public TextMeshPro playerWinText;
+    public TextMeshProUGUI playerWinText;
+
+    //main menu stuff
+    public bool playersChosenSpell;
 
     private void Awake()
     {
@@ -65,6 +68,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         isRunning = true;
         isSaved = false;
+
+        playerWinText.enabled = false;
 
         dataManager = DataManager.Instance;
 
@@ -205,8 +210,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     if (players[i].isAlive)
                     {
+                        playerWinText.enabled = true;
                         Debug.Log("Player " + (i + 1) + " wins the match!");
-                        //playerWinText.text = "Player " + (i + 1) + " wins the match!";
+                        playerWinText.text = "Player " + (i + 1) + " wins the match!";
                         players[i].isAlive = false; //reset for next round
                         players[i].roundsWon++;
 
@@ -226,12 +232,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     ClearStages();
                     if (gameOver)
                     {
+                        playerWinText.enabled = false;
                         GameEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else
                     {
+                        playerWinText.enabled = false;
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;

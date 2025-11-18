@@ -42,4 +42,12 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(true);
         Time.timeScale = 0f;
     }
+
+    public void ReturnToLobby()
+    {
+        paused = false;
+        pausemenu.SetActive(false);
+        Time.timeScale = 1f;   
+        SceneManager.LoadScene("Lobby_Arena");
+    }
 }

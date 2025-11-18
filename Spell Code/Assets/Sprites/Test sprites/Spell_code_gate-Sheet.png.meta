@@ -1,0 +1,557 @@
+fileFormatVersion: 2
+guid: 236aff130d2f92949b65fee4ba5acec9
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2546224074936369291
+    second: Spell_code_gate-Sheet_0
+  - first:
+      213: 9195961511334860176
+    second: Spell_code_gate-Sheet_1
+  - first:
+      213: -1616517777424365000
+    second: Spell_code_gate-Sheet_2
+  - first:
+      213: -4798857252589674728
+    second: Spell_code_gate-Sheet_3
+  - first:
+      213: -7271720464933896554
+    second: Spell_code_gate-Sheet_4
+  - first:
+      213: 2780205380589594340
+    second: Spell_code_gate-Sheet_5
+  - first:
+      213: 2342383869000695579
+    second: Spell_code_gate-Sheet_6
+  - first:
+      213: 5177994256819786561
+    second: Spell_code_gate-Sheet_7
+  - first:
+      213: -8103318788025348349
+    second: Spell_code_gate-Sheet_8
+  - first:
+      213: -5487868389145172000
+    second: Spell_code_gate-Sheet_9
+  - first:
+      213: 4963990619484167678
+    second: Spell_code_gate-Sheet_10
+  - first:
+      213: 3692930879395238178
+    second: Spell_code_gate-Sheet_11
+  - first:
+      213: -7351571105102379383
+    second: Spell_code_gate-Sheet_12
+  - first:
+      213: 7856238630893964917
+    second: Spell_code_gate-Sheet_13
+  - first:
+      213: -4995041437042082449
+    second: Spell_code_gate-Sheet_14
+  - first:
+      213: -4980060401491442459
+    second: Spell_code_gate-Sheet_15
+  - first:
+      213: 2431292788529136152
+    second: Spell_code_gate-Sheet_16
+  - first:
+      213: -921310365299808717
+    second: Spell_code_gate-Sheet_17
+  - first:
+      213: 3404472743602200336
+    second: Spell_code_gate-Sheet_18
+  - first:
+      213: -2663499706720182576
+    second: Spell_code_gate-Sheet_19
+  - first:
+      213: -3506966703989161361
+    second: Spell_code_gate-Sheet_20
+  - first:
+      213: -7309389345894618569
+    second: Spell_code_gate-Sheet_21
+  - first:
+      213: -8791576197465287627
+    second: Spell_code_gate-Sheet_22
+  - first:
+      213: -1048574329412088901
+    second: Spell_code_gate-Sheet_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8041214e41065320800000000000000
+      internalID: 2546224074936369291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0955743b54e9e9f70800000000000000
+      internalID: 9195961511334860176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83a448765a9f099e0800000000000000
+      internalID: -1616517777424365000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 123
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81fd59311c8076db0800000000000000
+      internalID: -4798857252589674728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69e3dada3c8a51b90800000000000000
+      internalID: -7271720464933896554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e62ca04016459620800000000000000
+      internalID: 2780205380589594340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1f3467e7b1d18020800000000000000
+      internalID: 2342383869000695579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 48
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14391c6a75eebd740800000000000000
+      internalID: 5177994256819786561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30f000ade7a3b8f80800000000000000
+      internalID: -8103318788025348349
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e728eaa6cc27d3b0800000000000000
+      internalID: -5487868389145172000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efd99b60b23a3e440800000000000000
+      internalID: 4963990619484167678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 123
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2219c6e911def3330800000000000000
+      internalID: 3692930879395238178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 986c85bb709f9f990800000000000000
+      internalID: -7351571105102379383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57ec2212967f60d60800000000000000
+      internalID: 7856238630893964917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6dffb2274c0eaab0800000000000000
+      internalID: -4995041437042082449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Spell_code_gate-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 0
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e40d19437543eab0800000000000000
+      internalID: -4980060401491442459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 9ba364f2253533647982cde6bfbe49c0
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Spell_code_gate-Sheet_0: 2546224074936369291
+      Spell_code_gate-Sheet_1: 9195961511334860176
+      Spell_code_gate-Sheet_10: 4963990619484167678
+      Spell_code_gate-Sheet_11: 3692930879395238178
+      Spell_code_gate-Sheet_12: -7351571105102379383
+      Spell_code_gate-Sheet_13: 7856238630893964917
+      Spell_code_gate-Sheet_14: -4995041437042082449
+      Spell_code_gate-Sheet_15: -4980060401491442459
+      Spell_code_gate-Sheet_2: -1616517777424365000
+      Spell_code_gate-Sheet_3: -4798857252589674728
+      Spell_code_gate-Sheet_4: -7271720464933896554
+      Spell_code_gate-Sheet_5: 2780205380589594340
+      Spell_code_gate-Sheet_6: 2342383869000695579
+      Spell_code_gate-Sheet_7: 5177994256819786561
+      Spell_code_gate-Sheet_8: -8103318788025348349
+      Spell_code_gate-Sheet_9: -5487868389145172000
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

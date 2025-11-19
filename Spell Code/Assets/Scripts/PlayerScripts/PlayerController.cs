@@ -158,6 +158,9 @@ public class PlayerController : MonoBehaviour
     public int roundsWon;
 
     public bool chosenSpell = false;
+    public bool chosenStartingSpell = false;
+    public bool isSpawned;
+
 
     private void Awake()
     {
@@ -206,15 +209,15 @@ public class PlayerController : MonoBehaviour
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
         //fill the spell list with the character's initial spells
-        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
-        {
+        //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        //{
             //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
             //spellList.Add = Instantiate(targetSpell);
             //spellList[i].owner = this;
             //spellCount++;
 
-            AddSpellToSpellList(charData.startingInventory[i]);
-        }
+            //AddSpellToSpellList(charData.startingInventory[i]);
+        //}
 
         //temp palette assignment based on player index
         switch (Array.IndexOf(GameManager.Instance.players, this))
@@ -389,6 +392,7 @@ public class PlayerController : MonoBehaviour
         }
 
         roundsWon = 0;
+        
 
         //data
         spellsFired = 0;
@@ -795,6 +799,15 @@ public class PlayerController : MonoBehaviour
 
                             break;
                         }
+
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter > 0)
+                        {
+                            inputDisplay.color = Color.yellow;
+                            Debug.Log("COOLDOWN");
+                        }
+                        else { inputDisplay.color = Color.red; }
                     }
                     //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop
                     if (stateSpecificArg == 255) break;
@@ -803,11 +816,11 @@ public class PlayerController : MonoBehaviour
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
 
+
                     //basic spell is fired
                     basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
-                    inputDisplay.color = Color.red;
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -1234,6 +1247,122 @@ public class PlayerController : MonoBehaviour
                 //    isGrounded = true;
                 //    returnVal = true;
                 //}
+            }
+        }
+
+        // --- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
+        if (stageDataSO.activatableSolidCenter != null && stageDataSO.activatableSolidExtent != null)
+        {
+            int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
+            if (activatableSolidCount > 0)
+            {
+                float halfW = playerWidth * 0.5f;
+                float halfH = playerHeight * 0.5f;
+
+                // Player AABB
+                float pMinX = position.x + hSpd - halfW;
+                float pMaxX = position.x + hSpd + halfW;
+                float pMinY = position.y + vSpd;
+                float pMaxY = position.y + vSpd + playerHeight;
+
+                //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
+                GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
+
+                for (int i = 0; i < activatableSolidCount; i++)
+                {
+
+                    
+
+                    //find the activatable solid that corresponds to this index via matching the center position
+                    bool isOpen = false;
+                    foreach (GameObject obj in activatableSolidsInScene)
+                    {
+                        Vector3 objPos = obj.transform.position;
+                        if (Mathf.Approximately(objPos.x, stageDataSO.activatableSolidCenter[i].x) &&
+                            Mathf.Approximately(objPos.y, stageDataSO.activatableSolidCenter[i].y))
+                        {
+                            isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
+                            break;
+                        }
+                    }
+                    if (!isOpen)
+                    {
+                        Vector2 center = stageDataSO.activatableSolidCenter[i];
+                        Vector2 extent = stageDataSO.activatableSolidExtent[i];
+
+                        // Treat extent as half-extents: solid min/max
+                        Vector2 sMin = center - extent;
+                        Vector2 sMax = center + extent;
+
+                        // Quick rejection test
+                        if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                        {
+                            continue;
+                        }
+
+                        // Overlap detected
+                        if (checkOnly)
+                        {
+                            return true;
+                        }
+
+                        // Compute penetration amounts
+                        float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
+                        float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+
+                        if (overlapX < 0f || overlapY < 0f)
+                        {
+                            // Numerical edge-case: treat as no collision
+                            continue;
+                        }
+
+                        // Resolve along the smallest penetration axis
+                        if (overlapX < overlapY)
+                        {
+                            // Resolve horizontally
+                            if (position.x < center.x)
+                            {
+                                // Player is left of solid -> push left
+                                //position.x -= overlapX;
+                                position.x = sMin.x - halfW;
+                            }
+                            else
+                            {
+                                // Player is right of solid -> push right
+                                //position.x += overlapX;
+                                position.x = sMax.x + halfW;
+                            }
+                            hSpd = 0f;
+                        }
+                        else
+                        {
+                            // Resolve vertically
+                            if (position.y < center.y)
+                            {
+                                // Player is below solid -> push down
+                                //position.y -= overlapY;
+                                position.y = sMin.y - playerHeight;
+                                // If hitting underside, zero vertical speed
+                                vSpd = 0f;
+                            }
+                            else
+                            {
+                                // Player is above solid -> land on top
+                                //position.y += overlapY;
+                                position.y = sMax.y;
+                                vSpd = 0f;
+                                isGrounded = true;
+                            }
+                        }
+
+                        returnVal = true;
+                    }
+
+
+
+
+                    
+                }
             }
         }
 

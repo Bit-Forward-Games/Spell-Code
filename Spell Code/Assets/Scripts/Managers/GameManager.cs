@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.IO;
 using System.Linq;
+using TMPro;
+using UnityEngine.UI;
 using BestoNet.Types;
 
 
@@ -45,6 +47,33 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool prevSceneWasShop;
 
+    public SpellCode_Gate[] gates = new SpellCode_Gate[4];
+
+    //game timers
+    public float roundEndTimer = 0f;
+    public int roundEndTransitionTime = 2;
+    public TextMeshProUGUI playerWinText;
+
+    //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
+    public bool playersChosenSpell;
+    public Image p1_spellCard;
+    public Image p2_spellCard;
+    public Image p3_spellCard;
+    public Image p4_spellCard;
+
+    [SerializeField]
+    private List<string> p1_choices;
+    [SerializeField]
+    private List<string> p2_choices;
+    [SerializeField]
+    private List<string> p3_choices;
+    [SerializeField]
+    private List<string> p4_choices;
+
+    private int p1_index = 0;
+    private int p2_index = 0;
+    private int p3_index = 0;
+    private int p4_index = 0;
 
     [Header("Online UI")]
     public GameObject onlineMenuUI;

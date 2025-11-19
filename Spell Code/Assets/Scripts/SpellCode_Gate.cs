@@ -2,6 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using BestoNet.Types;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class SpellCode_Gate : MonoBehaviour
 {
@@ -59,7 +64,7 @@ public class SpellCode_Gate : MonoBehaviour
         }
     }
 
-    private bool CheckCollision(HitboxData hitbox, Vector2 hitboxOrigin, Bounds colliderBounds, bool hitboxOwnerFacingRight)
+    private bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, Bounds colliderBounds, bool hitboxOwnerFacingRight)
     {
 
         // If either box has no width or height, return false
@@ -68,10 +73,10 @@ public class SpellCode_Gate : MonoBehaviour
             return false;
         }
         // Construct Hitbox Boundaries
-        float hitboxLeft = hitboxOrigin.x + GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight);
-        float hitboxRight = hitboxOrigin.x + GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight) + hitbox.width;
-        float hitboxTop = hitboxOrigin.y + hitbox.yOffset;
-        float hitboxBottom = hitboxOrigin.y + hitbox.yOffset - hitbox.height;
+        Fixed hitboxLeft = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight));
+        Fixed hitboxRight = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight) + hitbox.width);
+        Fixed hitboxTop = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset);
+        Fixed hitboxBottom = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset - hitbox.height);
 
         //Debug.Log($"Hit: Left {hitboxLeft} Right {hitboxRight} Top {hitboxTop} Bottom {hitboxBottom}");
 
@@ -80,10 +85,10 @@ public class SpellCode_Gate : MonoBehaviour
         //Debug.Log($"Hurt: Left {hurtboxLeft} Right {hurtboxRight} Top {hurtboxTop} Bottom {hurtboxBottom}");
 
         // Check for Collision using AABB
-        if (hitboxLeft < colliderBounds.max.x &&
-            hitboxRight > colliderBounds.min.x &&
-            hitboxTop > colliderBounds.min.y &&
-            hitboxBottom < colliderBounds.max.y)
+        if (hitboxLeft < Fixed.FromFloat(colliderBounds.max.x) &&
+            hitboxRight > Fixed.FromFloat(colliderBounds.min.x) &&
+            hitboxTop > Fixed.FromFloat(colliderBounds.min.y) &&
+            hitboxBottom < Fixed.FromFloat(colliderBounds.max.y))
         {
             return true;
         }

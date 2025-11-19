@@ -1256,14 +1256,14 @@ public class PlayerController : MonoBehaviour
             int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
             if (activatableSolidCount > 0)
             {
-                float halfW = playerWidth * 0.5f;
-                float halfH = playerHeight * 0.5f;
+                Fixed halfW = playerWidth * Fixed.FromFloat(0.5f);
+                Fixed halfH = playerHeight * Fixed.FromFloat(0.5f);
 
                 // Player AABB
-                float pMinX = position.x + hSpd - halfW;
-                float pMaxX = position.x + hSpd + halfW;
-                float pMinY = position.y + vSpd;
-                float pMaxY = position.y + vSpd + playerHeight;
+                Fixed pMinX = position.X + hSpd - halfW;
+                Fixed pMaxX = position.X + hSpd + halfW;
+                Fixed pMinY = position.X + vSpd;
+                Fixed pMaxY = position.X + vSpd + playerHeight;
 
                 //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
                 GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
@@ -1287,15 +1287,16 @@ public class PlayerController : MonoBehaviour
                     }
                     if (!isOpen)
                     {
-                        Vector2 center = stageDataSO.activatableSolidCenter[i];
-                        Vector2 extent = stageDataSO.activatableSolidExtent[i];
+                        
+                        FixedVec2 center = FixedVec2.FromFloat(stageDataSO.activatableSolidCenter[i].x, stageDataSO.activatableSolidCenter[i].y);
+                        FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.activatableSolidExtent[i].x, stageDataSO.activatableSolidExtent[i].y);
 
-                        // Treat extent as half-extents: solid min/max
-                        Vector2 sMin = center - extent;
-                        Vector2 sMax = center + extent;
+                        // Treat extent as half-extents: platform min/max
+                        FixedVec2 sMin = center - extent;
+                        FixedVec2 sMax = center + extent;
 
                         // Quick rejection test
-                        if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                        if (pMaxX < sMin.X || pMinX > sMax.X || pMaxY < sMin.Y || pMinY > sMax.Y)
                         {
                             continue;
                         }
@@ -1307,10 +1308,10 @@ public class PlayerController : MonoBehaviour
                         }
 
                         // Compute penetration amounts
-                        float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
-                        float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+                        Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+                        Fixed overlapY = Fixed.Min(pMaxY, sMax.Y) - Fixed.Max(pMinY, sMin.Y);
 
-                        if (overlapX < 0f || overlapY < 0f)
+                        if (overlapX < Fixed.FromInt(0) || overlapY < Fixed.FromInt(0))
                         {
                             // Numerical edge-case: treat as no collision
                             continue;
@@ -1320,37 +1321,37 @@ public class PlayerController : MonoBehaviour
                         if (overlapX < overlapY)
                         {
                             // Resolve horizontally
-                            if (position.x < center.x)
+                            if (position.X < center.X)
                             {
                                 // Player is left of solid -> push left
                                 //position.x -= overlapX;
-                                position.x = sMin.x - halfW;
+                                position = new FixedVec2(sMin.X - halfW, position.Y);
                             }
                             else
                             {
                                 // Player is right of solid -> push right
                                 //position.x += overlapX;
-                                position.x = sMax.x + halfW;
+                                position = new FixedVec2(sMax.X + halfW, position.Y);
                             }
-                            hSpd = 0f;
+                            hSpd = Fixed.FromInt(0);
                         }
                         else
                         {
                             // Resolve vertically
-                            if (position.y < center.y)
+                            if (position.Y < center.Y)
                             {
                                 // Player is below solid -> push down
                                 //position.y -= overlapY;
-                                position.y = sMin.y - playerHeight;
+                                position = new FixedVec2(position.X, sMin.Y - playerHeight);
                                 // If hitting underside, zero vertical speed
-                                vSpd = 0f;
+                                vSpd = Fixed.FromInt(0);
                             }
                             else
                             {
                                 // Player is above solid -> land on top
                                 //position.y += overlapY;
-                                position.y = sMax.y;
-                                vSpd = 0f;
+                                position = new FixedVec2(position.X, sMax.Y);
+                                vSpd = Fixed.FromInt(0);
                                 isGrounded = true;
                             }
                         }

@@ -1297,6 +1297,26 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 2ad3005c6da7ab242b3199c4d0d7c9bb, type: 2}
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p1_spellCard
+      value: 
+      objectReference: {fileID: 968215419}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p2_spellCard
+      value: 
+      objectReference: {fileID: 235320577}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p3_spellCard
+      value: 
+      objectReference: {fileID: 1606878182}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p4_spellCard
+      value: 
+      objectReference: {fileID: 309900874}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: playerPrefab
+      value: 
+      objectReference: {fileID: 8711063744521862629, guid: 68bb933b57b1ddb459bfaae0f5b60906, type: 3}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: playerWinText
       value: 
       objectReference: {fileID: 259161525}

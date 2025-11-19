@@ -1924,9 +1924,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1600525838}
     m_Modifications:
+    - target: {fileID: 664182878183481654, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1600525839}
+    - target: {fileID: 664182878183481654, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnHostClicked
+      objectReference: {fileID: 0}
     - target: {fileID: 4130768148193642689, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
       propertyPath: m_Name
       value: Online UI
+      objectReference: {fileID: 0}
+    - target: {fileID: 7668025184069715389, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1600525839}
+    - target: {fileID: 7668025184069715389, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnJoinClicked
       objectReference: {fileID: 0}
     - target: {fileID: 8887561064514634818, guid: feeb69ca515cf3b47a6da127aeae08d7, type: 3}
       propertyPath: m_Pivot.x

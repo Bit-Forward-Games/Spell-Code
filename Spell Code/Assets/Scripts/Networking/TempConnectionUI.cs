@@ -73,7 +73,10 @@ public class TempConnectionUI : MonoBehaviour
             }
 
             GameManager.Instance.StartOnlineMatch(localPlayerIndex, remotePlayerIndex, opponentSteamId);
+            Debug.Log("About to call MatchMessageManager.Instance.StartMatch");
             MatchMessageManager.Instance.StartMatch(opponentSteamId);
+            Debug.Log("Called MatchMessageManager.Instance.StartMatch");
+
             // --- End Start Managers ---
 
 

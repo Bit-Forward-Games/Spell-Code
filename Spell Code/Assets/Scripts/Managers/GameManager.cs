@@ -79,6 +79,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
 
+    [Header("Input Management")]
+    public UnityEngine.InputSystem.PlayerInputManager playerInputManager;
+
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
     private bool isOnlineMatchActive = false;
@@ -247,13 +250,17 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
             return;
         }
+        isOnlineMatchActive = true;
+
+        // Find and disable the PlayerInputManager to prevent it from interfering
+        var inputManager = FindFirstObjectByType<UnityEngine.InputSystem.PlayerInputManager>();
+        if (inputManager != null) inputManager.DisableJoining();
 
         ResetMatchState(); // Reset frame counter, player states etc.
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
 
         ClearPlayerObjects(); // Remove old players
-        this.playerCount = 2; // Assuming 2-player online match for now
 
         if (playerPrefab == null)
         {
@@ -270,6 +277,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             // Assign default input device to null or dummy initially
             // inputs will be handled by RunOnlineFrame overrides
         }
+
+        this.playerCount = 2; // Assuming 2-player online match for now
 
         players[localPlayerIndex].CheckForInputs(true);
         players[remotePlayerIndex].CheckForInputs(false);
@@ -487,6 +496,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         //if (!isRunning)
         //    return;
+        if (playerInputManager != null)
+        {
+            playerInputManager.EnableJoining();
+        }
 
         ulong[] inputs = new ulong[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
@@ -755,6 +768,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     //gets called everytime a new player enters, recreates player array
     public void GetPlayerControllers(PlayerInput playerInput)
     {
+        if (isOnlineMatchActive)
+        {
+            return;
+        }
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);

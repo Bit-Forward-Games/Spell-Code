@@ -48,6 +48,7 @@ using BestoNet.Collections; // For CircularArray
         /// <param name="opponentId">The SteamId of the opponent.</param>
         public void StartMatch(SteamId opponentId)
         {
+            Debug.Log("StartMatch called");
             if (opponentId.IsValid)
             {
                 this.opponentSteamId = opponentId;

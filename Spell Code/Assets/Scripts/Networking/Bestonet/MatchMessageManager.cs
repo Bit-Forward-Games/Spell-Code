@@ -87,7 +87,7 @@ using BestoNet.Collections; // For CircularArray
             {
 
                 P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
-                Debug.Log($"Received Packet from {packet.Value.SteamId}");
+                //Debug.Log($"Received Packet from {packet.Value.SteamId}");
                 if (packet.HasValue && packet.Value.SteamId == opponentSteamId) // Ensure packet is from the opponent
                     {
                         try
@@ -271,7 +271,7 @@ using BestoNet.Collections; // For CircularArray
                         byte[] data = memoryStream.ToArray();
                         int dataSize = data.Length;
 
-                        Debug.Log($"Sending Input Bundle: StartFrame={firstFrameToSend}, Count={inputCount}");
+                        //Debug.Log($"Sending Input Bundle: StartFrame={firstFrameToSend}, Count={inputCount}");
                         
                         //Debug.LogWarning($"Sending Packet of size {dataSize} bytes to {opponentSteamId}");
                     // Send packet via Steam P2P

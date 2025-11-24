@@ -1790,12 +1790,15 @@ public class PlayerController : MonoBehaviour
         bw.Write(hSpd.RawValue);
         bw.Write(vSpd.RawValue);
         bw.Write(gravity.RawValue);
+        bw.Write(damageProration.RawValue);
+        bw.Write(timer.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
         bw.Write(logicFrame); // 🔹 Save current animation frame
+        bw.Write(animationFrame);
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);

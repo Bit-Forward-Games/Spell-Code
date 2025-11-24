@@ -522,7 +522,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
-                LerpHspd(0, 4);
+                LerpHspd(0, 3);
                 break;
             case PlayerState.Run:
 
@@ -582,13 +582,21 @@ public class PlayerController : MonoBehaviour
                 if (vSpd > 0 && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
                 {
                     //reapply gravity more strongly to create a variable jump height
-                    vSpd -= gravity;
+                    vSpd -= gravity*2;
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
+
+                //check for slide input:
+                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                {
+                    SetState(PlayerState.Slide);
+                    break;
+                }
+
                 if (input.Direction%3 == 0)
                 {
                     //run logic
@@ -727,7 +735,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                LerpHspd(0, 10);
+                LerpHspd(0, isGrounded?3: 15);
                 break;
             case PlayerState.CodeRelease:
                 //allow the display to be reset upon entering CodeWeave state
@@ -817,12 +825,6 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Tech);
                 }
 
-                ////bounce off the ground if we hit it
-                //if (CheckGrounded(true) && vSpd < 0)
-                //{
-                //    position.y = StageData.Instance.floorYval + 1;
-                //    vSpd = -vSpd;
-                //}
 
                 stateSpecificArg--;
                 break;
@@ -842,7 +844,18 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.Slide:
+                if (!isGrounded)
+                {
+                    vSpd = -2;
+                }
+                else if(input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
+                {
+                    vSpd = jumpForce/2;
+                    SetState(PlayerState.Jump);
+                    break;
+                }
                 LerpHspd(0, charData.slideFriction);
+                
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
                 {
 

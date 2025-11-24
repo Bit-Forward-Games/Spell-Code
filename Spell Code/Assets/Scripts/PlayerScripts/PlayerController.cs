@@ -86,7 +86,7 @@ public class PlayerController : MonoBehaviour
 
     //Character Data
     public CharacterData charData { get; private set; }
-    public float gravity = 1;
+    public float gravity = .75f;
     [HideInInspector]
     public float jumpForce = 10;
     public float runSpeed = 0f;
@@ -850,8 +850,13 @@ public class PlayerController : MonoBehaviour
                 }
                 else if(input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
                 {
-                    vSpd = jumpForce/2;
+                    vSpd = jumpForce;
                     SetState(PlayerState.Jump);
+                    break;
+                }
+                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                {
+                    SetState(PlayerState.CodeWeave);
                     break;
                 }
                 LerpHspd(0, charData.slideFriction);
@@ -1457,7 +1462,7 @@ public class PlayerController : MonoBehaviour
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
-                gravity = 1;
+                gravity = .75f;
                 break;
             case PlayerState.CodeRelease:
                 ClearInputDisplay();

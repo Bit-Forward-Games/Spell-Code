@@ -1045,7 +1045,7 @@ MonoBehaviour:
   damping: 0
   minZoom: 120
   maxZoom: 420
-  HardSetZoom: 163
+  HardSetZoom: 205
   minDistance: 120
   zoomLimiter: 480
   zoomSpeed: 5
@@ -1138,7 +1138,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 163
+  orthographic size: 205
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1252,6 +1252,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3442444827026540651, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3442444827026540651, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3442444827026540651, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5556436313567878654, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1295,7 +1311,23 @@ PrefabInstance:
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: lobbySO
       value: 
-      objectReference: {fileID: 11400000, guid: 2ad3005c6da7ab242b3199c4d0d7c9bb, type: 2}
+      objectReference: {fileID: 11400000, guid: ce174cae95a359c4ea8f955206e573ba, type: 2}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p1_spellCard
+      value: 
+      objectReference: {fileID: 968215419}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p2_spellCard
+      value: 
+      objectReference: {fileID: 235320577}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p3_spellCard
+      value: 
+      objectReference: {fileID: 1606878182}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: p4_spellCard
+      value: 
+      objectReference: {fileID: 309900874}
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: playerWinText
       value: 
@@ -1331,6 +1363,10 @@ PrefabInstance:
     - target: {fileID: 6285330833291284194, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6760653133886348903, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7677874556366302186, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Enabled

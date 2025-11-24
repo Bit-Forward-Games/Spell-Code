@@ -109,6 +109,7 @@ using BestoNet.Collections; // For CircularArray
         /// </summary>
         private void ProcessPacket(byte[] messageData)
         {
+            Debug.LogWarning($"Processing Packet of size {messageData.Length} bytes");
             // Ensure RollbackManager exists before processing
             if (RollbackManager.Instance == null) return;
 
@@ -212,7 +213,7 @@ using BestoNet.Collections; // For CircularArray
     /// </summary>
     /// <param name="targetFrame">The frame number the input corresponds to (current frame + input delay).</param>
     /// <param name="input">The input value for the target frame.</param>
-    public void SendInputs() // Simplified: Send a bundle starting from oldest unsent up to targetFrame
+    public void SendInputs() // Send a bundle starting from oldest unsent up to targetFrame
         {
             // Ensure RollbackManager and opponent ID are valid
             if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)
@@ -272,19 +273,25 @@ using BestoNet.Collections; // For CircularArray
 
                         Debug.Log($"Sending Input Bundle: StartFrame={firstFrameToSend}, Count={inputCount}");
                         
-                        // Send packet via Steam P2P
-                        bool success = SteamNetworking.SendP2PPacket( // Store return value as bool
+                        //Debug.LogWarning($"Sending Packet of size {dataSize} bytes to {opponentSteamId}");
+                    // Send packet via Steam P2P
+                    bool success = SteamNetworking.SendP2PPacket( // Store return value as bool
                                 opponentSteamId,
                                 data,
                                 dataSize,
                                 MATCH_MESSAGE_CHANNEL,
                                 SEND_TYPE
                             );
-                        if (!success)
+                        if (success)
+                        {
+                            // Packet sent successfully
+                            //Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
+                        }
+                        else
                         {
                             // Ignored result isn't directly available with bool,
                             // but false generally indicates a more serious failure.
-                            Debug.LogWarning($"Failed to send P2P packet (returned false).");
+                            Debug.LogError($"Failed to send P2P packet (returned false).");
                         }
                     }
                 }

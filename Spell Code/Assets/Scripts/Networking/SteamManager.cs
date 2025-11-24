@@ -29,6 +29,17 @@ public class SteamManager : MonoBehaviour
             // Try initializing using the App ID
             SteamClient.Init(SteamAppId, true); // true for async callbacks
 
+            SteamNetworking.OnP2PSessionRequest += (steamId) =>
+            {
+                Debug.Log($"[P2P] Incoming connection request from {steamId}");
+                SteamNetworking.AcceptP2PSessionWithUser(steamId);
+            };
+
+            SteamNetworking.OnP2PConnectionFailed += (steamId, error) =>
+            {
+                Debug.LogError($"[P2P] Connection failed with {steamId}: {error}");
+            };
+
             if (!SteamClient.IsValid)
             {
                 Debug.LogError("Steamworks initialization failed. Steam might not be running or steam_appid.txt might be missing/incorrect.");

@@ -81,9 +81,8 @@ public class TempConnectionUI : MonoBehaviour
             {
                 Debug.LogError($"Exception in StartOnlineMatch: {ex}");
             }
-            Debug.Log("About to call MatchMessageManager.Instance.StartMatch");
+
             MatchMessageManager.Instance.StartMatch(opponentSteamId);
-            Debug.Log("Called MatchMessageManager.Instance.StartMatch");
 
             // --- End Start Managers ---
 

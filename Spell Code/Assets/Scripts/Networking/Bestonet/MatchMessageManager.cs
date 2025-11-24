@@ -14,7 +14,7 @@ using BestoNet.Collections; // For CircularArray
 
         [Header("Network Settings")]
         [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0; // Steam recommends channel 0 for game data
-        [SerializeField] private P2PSend SEND_TYPE = P2PSend.UnreliableNoDelay; // Best for fast input delivery in rollback
+        [SerializeField] private P2PSend SEND_TYPE = P2PSend.Reliable; // Best for fast input delivery in rollback
 
         [Header("Ping Calculation")]
         // Stores timestamp when a packet for a specific frame was sent

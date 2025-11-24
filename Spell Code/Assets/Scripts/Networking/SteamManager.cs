@@ -29,6 +29,17 @@ public class SteamManager : MonoBehaviour
             // Try initializing using the App ID
             SteamClient.Init(SteamAppId, true); // true for async callbacks
 
+            SteamNetworking.AllowP2PPacketRelay(true);
+
+            // Set the verbosity level (Msg = normal info, Verbose = everything)
+            SteamNetworkingUtils.DebugLevel = NetDebugOutput.Msg;
+
+            // Subscribe to the debug event
+            SteamNetworkingUtils.OnDebugOutput += (type, message) =>
+            {
+                Debug.Log($"[Steam Net] {type}: {message}");
+            };
+
             SteamNetworking.OnP2PSessionRequest += (steamId) =>
             {
                 Debug.Log($"[P2P] Incoming connection request from {steamId}");

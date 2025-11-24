@@ -80,7 +80,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
 
     [Header("Input Management")]
-    public UnityEngine.InputSystem.PlayerInputManager playerInputManager;
+    public PlayerInputManager playerInputManager;
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         p4_spellCard.enabled = false;
 
         playerWinText.enabled = false;
-
+        playerInputManager = GetComponent<PlayerInputManager>();
         dataManager = DataManager.Instance;
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
@@ -253,8 +253,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isOnlineMatchActive = true;
 
         // Find and disable the PlayerInputManager to prevent it from interfering
-        var inputManager = FindFirstObjectByType<UnityEngine.InputSystem.PlayerInputManager>();
-        if (inputManager != null) inputManager.DisableJoining();
+        //var inputManager = FindFirstObjectByType<UnityEngine.InputSystem.PlayerInputManager>();
+        if (playerInputManager != null)
+        {
+            playerInputManager.DisableJoining();
+            playerInputManager.enabled = false;
+        }
 
         ResetMatchState(); // Reset frame counter, player states etc.
         localPlayerIndex = localIndex;
@@ -276,6 +280,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
             // Assign default input device to null or dummy initially
             // inputs will be handled by RunOnlineFrame overrides
+            if (i == remotePlayerIndex)
+            {
+                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (pInput != null)
+                {
+                    pInput.DeactivateInput();
+                    pInput.enabled = false;
+                }
+            }
         }
 
         this.playerCount = 2; // Assuming 2-player online match for now
@@ -336,6 +349,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (players[i] != null)
             {
+                var inputComp = players[i].GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (inputComp != null)
+                {
+                    inputComp.DeactivateInput();
+                    inputComp.enabled = false;
+                }
                 Destroy(players[i].gameObject);
                 players[i] = null;
             }
@@ -498,6 +517,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //    return;
         if (playerInputManager != null)
         {
+            playerInputManager.enabled = true;
             playerInputManager.EnableJoining();
         }
 

@@ -286,7 +286,7 @@ public class PlayerController : MonoBehaviour
 
         
 
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }
 

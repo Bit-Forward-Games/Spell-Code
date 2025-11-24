@@ -299,6 +299,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         players[localPlayerIndex].CheckForInputs(true);
         players[remotePlayerIndex].CheckForInputs(false);
 
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                players[i].InitCharacter();
+            }
+        }
+
+        ProjectileManager.Instance.InitializeAllProjectiles();
         // Ensure players are spawned/reset
         ResetPlayers();
 

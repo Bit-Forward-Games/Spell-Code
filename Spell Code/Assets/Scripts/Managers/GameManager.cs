@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool gameOver;
 
     public bool prevSceneWasShop;
+    public bool isTransitioning = false;
 
     public SpellCode_Gate[] gates = new SpellCode_Gate[4];
 
@@ -206,6 +207,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //    ResetPlayers();
         //    prevSceneWasShop = false;
         //}
+
+        if (isTransitioning) return;
 
         if (isOnlineMatchActive)
         {
@@ -894,6 +897,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
 
+        if (isOnlineMatchActive)
+        {
+            isTransitioning = true; // Stop RunOnlineFrame
+                                    
+        }
         SceneManager.LoadScene("Shop");
     }
 
@@ -910,7 +918,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         dataManager.SaveToFile();
         ProjectileManager.Instance.DeleteAllProjectiles();
-        isRunning = false;
+        if (isOnlineMatchActive)
+        {
+            isTransitioning = true;
+        }
+        else
+        {
+            isRunning = false;
+        }
         SceneManager.LoadScene("End");
     }
 

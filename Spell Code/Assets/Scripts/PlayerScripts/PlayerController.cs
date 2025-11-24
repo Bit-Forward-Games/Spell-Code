@@ -1850,6 +1850,7 @@ public class PlayerController : MonoBehaviour
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
         currentPlayerHealth = br.ReadUInt16();
+        isAlive = br.ReadBoolean();
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();

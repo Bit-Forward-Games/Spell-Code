@@ -8,11 +8,13 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.InputSystem.Users;
 using BestoNet.Types;
 
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using UnityEngine.Windows;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -181,14 +183,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //}
 
         //if ` is pressed, toggle box rendering
-        if (Input.GetKeyDown(KeyCode.BackQuote))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.BackQuote))
         {
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
         if (!isOnlineMatchActive)
         {
-            if (Input.GetKeyDown(toggleOnlineMenuKey))
+            if (UnityEngine.Input.GetKeyDown(toggleOnlineMenuKey))
             {
                 if (onlineMenuUI != null)
                 {
@@ -226,7 +228,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             AnimationManager.Instance.RenderGameState();
         }
-        if (Input.GetKeyDown(KeyCode.Backslash))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Backslash))
         {
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
@@ -267,7 +269,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
 
+        currentStageIndex = -1;
+
         ClearPlayerObjects(); // Remove old players
+        this.playerCount = 2; // Assuming 2-player online match for now
 
         if (playerPrefab == null)
         {
@@ -290,28 +295,33 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (i == remotePlayerIndex)
             {
                 var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-                if (pInput != null)
+                if (playerInputManager != null)
                 {
                     pInput.DeactivateInput();
-                    pInput.enabled = false;
+                    playerInputManager.enabled = false;
                 }
+                players[i].CheckForInputs(false);
             }
 
             if (i == localIndex)
             {
                 var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-                if (pInput != null)
+                //var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (playerInputManager != null)
                 {
-                    pInput.enabled = true;
                     pInput.ActivateInput();
+                    playerInputManager.enabled = true;
+                    if (pInput.user.valid)
+                    {
+                        UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
+                            UnityEngine.InputSystem.Keyboard.current,
+                            pInput.user
+                        );
+                    }
                 }
+                players[i].CheckForInputs(true);
             }
         }
-
-        this.playerCount = 2; // Assuming 2-player online match for now
-
-        players[localPlayerIndex].CheckForInputs(true);
-        players[remotePlayerIndex].CheckForInputs(false);
 
         for (int i = 0; i < players.Length; i++)
         {

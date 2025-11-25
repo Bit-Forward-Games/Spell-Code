@@ -462,7 +462,19 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         UpdateGameState(syncedInput);
 
-        if (activeScene.name == "Gameplay")
+        if (activeScene.name == "MainMenu")
+        {
+            goDoorPrefab.CheckOpenDoor();
+
+            if (goDoorPrefab.CheckAllPlayersReady())
+            {
+                // CRITICAL: Stop simulation before loading
+                isTransitioning = true; // Use the Transition flag
+                LoadRandomGameplayStage();
+            }
+        }
+
+        else if (activeScene.name == "Gameplay")
         {
             // Only check end conditions if NOT rolling back
             // Don't want to trigger a scene change during a resimulation
@@ -973,14 +985,44 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         //make the next stage random but different from the last stage
         int newStageIndex;
-        do
+        if (isOnlineMatchActive)
         {
-            newStageIndex = Random.Range(0, stages.Length);
+            newStageIndex = 0;
+        }
+        else 
+        {
+            do
+            {
+                newStageIndex = Random.Range(0, stages.Length);
 
-        } while (currentStageIndex == newStageIndex);
+            } while (currentStageIndex == newStageIndex);
+        }
+            
         SetStage(newStageIndex);
+        if (isOnlineMatchActive)
+        {
+            isTransitioning = true; // Stop RunOnlineFrame
+        }
         SceneManager.LoadScene("Gameplay");
         ResetPlayers();
+    }
+
+    private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
+    private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (isOnlineMatchActive && scene.name == "Gameplay")
+        {
+            Debug.Log("Gameplay Scene Loaded. Resuming Online Match...");
+            isTransitioning = false; // Resume RunOnlineFrame
+
+            // Ensure players are reset/spawned correctly for the new stage
+            ResetPlayers();
+
+            // Force a state save so we have a valid checkpoint for Frame 0 of gameplay
+            RollbackManager.Instance.SaveState();
+        }
     }
 
     public void ClearStages()

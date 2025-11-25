@@ -87,7 +87,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
-    public bool isOnlineMatchActive = false;
+    private bool isOnlineMatchActive = false;
     private ulong localPlayerInput = 0; // Stores local input for the current frame
     private ulong[] syncedInput = new ulong[2] { 0, 0 }; // Inputs for both players this frame
     public int localPlayerIndex = 0; // Set this before starting online match
@@ -245,14 +245,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
         Debug.Log("Starting Online Match...");
-        for (int i = 0; i < players.Length; i++)
-        {
-            if (players[i] != null)
-            {
-                Destroy(players[i].gameObject);
-                players[i] = null;
-            }
-        }
         if (RollbackManager.Instance == null)
         {
             Debug.LogError("Cannot start online match: RollbackManager not found!");
@@ -314,6 +306,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (i == localIndex)
             {
                 var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                //var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
                 if (playerInputManager != null)
                 {
                     pInput.ActivateInput();
@@ -330,13 +323,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
 
-        //for (int i = 0; i < players.Length; i++)
-        //{
-        //    if (players[i] != null)
-        //    {
-        //        players[i].InitCharacter();
-        //    }
-        //}
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                players[i].InitCharacter();
+            }
+        }
 
         ProjectileManager.Instance.InitializeAllProjectiles();
         // Ensure players are spawned/reset
@@ -457,10 +450,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
-
-        Debug.Log($"[Frame {frameNumber}] LocalPlayerIndex={localPlayerIndex}, " +
-          $"LocalInput={localPlayerInput}, " +
-          $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
 
         // Stall check
         if (!rbManager.AllowUpdate())

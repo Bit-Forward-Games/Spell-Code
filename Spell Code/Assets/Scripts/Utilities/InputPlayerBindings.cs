@@ -353,7 +353,6 @@ public class InputPlayerBindings : MonoBehaviour
 
     public void CheckForInputs(bool enable)
     {
-        IsActive = enable;
         if (enable)
         {
             upAction.Enable();

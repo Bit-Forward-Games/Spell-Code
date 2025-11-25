@@ -1,8 +1,9 @@
 Patrick notes for thinking
 
 * implement jump out of slide at 1/2 jump strength to allow for super short hop and for chaining movements and make jump out of slide not put you super high in the air
-* &nbsp;	decided that 1/2 jump strength may allow for too degenerate movement tech, will have to AB playtest
+*  	decided that 1/2 jump strength may allow for too degenerate movement tech, will have to AB playtest
 * to deal with people having trouble with slipping and sliding while trying to use their spellcodes, I am making the friction while spellcoding on the ground larger
 *  	similarly, halting from movement will have greater friction
 *  	in order to allow for that fun move forward movement while spellcoding, I'm keeping the momentum in the air codeweave state
-* since this new technique allows the player to effectively code out of slide, I am expressly allowing the transition from slide to codeweave, as to not "dexterity check" players with a movement tech to do something that is so useful
+* since this new technique allows the player to effectively code out of slide, I am expressly allowing the transition from slide to codeweave, as to not "dexterity check" players with a movement tech to do something that is so useful\\
+* I am purposefully making it so that you can not cancel the codeweave animation with jump (or any other action for that matter), as allowing the cancelation of this state enables skilled players to become invulnerable and/or armored for 90 percent of the game, leading to VERY degenerate play at higher levels of play

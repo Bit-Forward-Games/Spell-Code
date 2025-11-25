@@ -157,7 +157,7 @@ using BestoNet.Collections; // Use BestoNet collections
             remoteFrame = 0;
             syncFrame = 0;
             predictedRemoteFrame = 0;
-            opponentLastAppliedInput = 0;
+            opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
 
@@ -172,7 +172,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // Pre-fill input buffers for the input delay period with neutral input
             for (int i = 0; i <= InputDelay; i++)
             {
-                var neutralFrame = new FrameMetadata() { frame = i, input = 0 }; // Assuming 0 is neutral
+                var neutralFrame = new FrameMetadata() { frame = i, input = 5 };
                 clientInputs.Insert(i, neutralFrame);
                 opponentInputs.Insert(i, neutralFrame);
                 receivedInputs.Insert(i, neutralFrame); // Can also be empty, prediction handles missing keys

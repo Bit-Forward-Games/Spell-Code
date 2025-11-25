@@ -85,7 +85,7 @@ using BestoNet.Collections; // For CircularArray
             // Process all available packets on the channel
             while (SteamNetworking.IsP2PPacketAvailable(MATCH_MESSAGE_CHANNEL))
             {
-
+                Debug.Log("Packet received");
                 P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
                 //Debug.Log($"Received Packet from {packet.Value.SteamId}");
                 if (packet.HasValue && packet.Value.SteamId == opponentSteamId) // Ensure packet is from the opponent
@@ -285,7 +285,7 @@ using BestoNet.Collections; // For CircularArray
                         if (success)
                         {
                             // Packet sent successfully
-                            //Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
+                            Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
                         }
                         else
                         {

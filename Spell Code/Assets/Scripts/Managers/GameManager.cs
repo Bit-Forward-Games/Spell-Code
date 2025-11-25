@@ -87,7 +87,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
-    private bool isOnlineMatchActive = false;
+    public bool isOnlineMatchActive = false;
     private ulong localPlayerInput = 0; // Stores local input for the current frame
     private ulong[] syncedInput = new ulong[2] { 0, 0 }; // Inputs for both players this frame
     public int localPlayerIndex = 0; // Set this before starting online match
@@ -450,6 +450,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
+
+        Debug.Log($"[Frame {frameNumber}] LocalPlayerIndex={localPlayerIndex}, " +
+          $"LocalInput={localPlayerInput}, " +
+          $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
 
         // Stall check
         if (!rbManager.AllowUpdate())

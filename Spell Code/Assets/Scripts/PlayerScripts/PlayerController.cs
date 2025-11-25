@@ -418,6 +418,14 @@ public class PlayerController : MonoBehaviour
     /// MOVEMENT CODE
     public ulong GetInputs()
     {
+        if (GameManager.Instance.isOnlineMatchActive)
+        {
+            int myIndex = Array.IndexOf(GameManager.Instance.players, this);
+            if (myIndex != GameManager.Instance.localPlayerIndex)
+            {
+                return 0; // Remote player, don't gather input
+            }
+        }
         ulong input = 0;
         if (inputs.IsActive)
         {

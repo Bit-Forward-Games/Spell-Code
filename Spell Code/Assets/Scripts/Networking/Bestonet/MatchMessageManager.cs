@@ -285,7 +285,7 @@ using BestoNet.Collections; // For CircularArray
                         if (success)
                         {
                             // Packet sent successfully
-                            Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
+                            //Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
                         }
                         else
                         {

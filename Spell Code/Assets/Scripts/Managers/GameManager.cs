@@ -318,7 +318,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                             pInput.user
                         );
                     }
-                    pInput.SwitchCurrentActionMap("MainMenu");
                 }
                 players[i].CheckForInputs(true);
             }

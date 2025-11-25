@@ -7,3 +7,14 @@ Patrick notes for thinking
 *  	in order to allow for that fun move forward movement while spellcoding, I'm keeping the momentum in the air codeweave state
 * since this new technique allows the player to effectively code out of slide, I am expressly allowing the transition from slide to codeweave, as to not "dexterity check" players with a movement tech to do something that is so useful\\
 * I am purposefully making it so that you can not cancel the codeweave animation with jump (or any other action for that matter), as allowing the cancelation of this state enables skilled players to become invulnerable and/or armored for 90 percent of the game, leading to VERY degenerate play at higher levels of play
+
+
+
+
+
+Spell reworks and balance
+
+* add double jump to base kit because gating double jump behind a power (or any other fun core movement for that matter) kinda feels bad
+* &nbsp;	instead of boots of Hermes giving you a double jump, make boots of Hermes give you another air jump for every 4 reps
+* &nbsp;		builds into the fantasy of Hermes flight and meshes well with the reps system, also isn't egregious in our game assuming we make the game map such that you can always reach every point in the stage with just a double jump and a basic attack
+* ninja\_build\_blast rework to make it self encapsulated (at start of move have a skillshot hitbox)

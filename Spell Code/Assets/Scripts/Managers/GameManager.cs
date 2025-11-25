@@ -281,6 +281,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             GameObject p = Instantiate(playerPrefab);
             players[i] = p.GetComponent<PlayerController>();
             AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
+            if (players[i].playerNum != null)
+            {
+                players[i].playerNum.text = "P" + (i + 1);
+            }
             // Assign default input device to null or dummy initially
             // inputs will be handled by RunOnlineFrame overrides
             if (i == remotePlayerIndex)
@@ -290,6 +294,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     pInput.DeactivateInput();
                     pInput.enabled = false;
+                }
+            }
+
+            if (i == localIndex)
+            {
+                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (pInput != null)
+                {
+                    pInput.enabled = true;
+                    pInput.ActivateInput();
                 }
             }
         }

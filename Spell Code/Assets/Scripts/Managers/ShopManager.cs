@@ -67,6 +67,18 @@ public class ShopManager : MonoBehaviour
 
         GenerateSpellChoices();
 
+        p1_index = 0;
+        p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_choices[p1_index]].shopSprite;
+
+        p2_index = 0;
+        p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
+
+        p3_index = 0;
+        p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_choices[p3_index]].shopSprite;
+
+        p4_index = 0;
+        p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
+
         //StartCoroutine(Shop());
     }
 
@@ -84,7 +96,7 @@ public class ShopManager : MonoBehaviour
             if (inputSnapshots[0].ButtonStates[0] == ButtonState.Pressed)
             {
                 Debug.Log("p1 pressed cycle spell");
-                if (p1_index == 3)
+                if (p1_index == 2)
                 {
                     p1_index = 0;
                 }
@@ -114,7 +126,7 @@ public class ShopManager : MonoBehaviour
             if (inputSnapshots[1].ButtonStates[0] == ButtonState.Pressed)
             {
                 Debug.Log("p2 pressed cycle spell");
-                if (p2_index == 3)
+                if (p2_index == 2)
                 {
                     p2_index = 0;
                 }
@@ -147,7 +159,7 @@ public class ShopManager : MonoBehaviour
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log("p3 pressed cycle spell");
-                    if (p3_index == 3)
+                    if (p3_index == 2)
                     {
                         p3_index = 0;
                     }
@@ -181,7 +193,7 @@ public class ShopManager : MonoBehaviour
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log("p4 pressed cycle spell");
-                    if (p4_index == 3)
+                    if (p4_index == 2)
                     {
                         p4_index = 0;
                     }
@@ -277,7 +289,24 @@ public class ShopManager : MonoBehaviour
         string spellToAdd = spells[randomInt];
 
         //if the player doesn't have the spell, return it
-        if (!playerSpells.Contains(spellToAdd))
+        //if (!playerSpells.Contains(spellToAdd))
+        //{
+            //return spellToAdd;
+        //}
+
+        if (index == 0 && !p1_choices.Contains(spellToAdd))
+        {
+            return spellToAdd;
+        }
+        if (index == 1 && !p2_choices.Contains(spellToAdd))
+        {
+            return spellToAdd;
+        }
+        if (index == 2 && !p3_choices.Contains(spellToAdd))
+        {
+            return spellToAdd;
+        }
+        if (index == 3 && !p4_choices.Contains(spellToAdd))
         {
             return spellToAdd;
         }
@@ -324,30 +353,27 @@ public class ShopManager : MonoBehaviour
         p3_choices = new List<string>();
         p4_choices = new List<string>();
 
-        p1_choices.Add("BootsOfHermes");
-        p1_choices.Add("Overclock");
-        p1_choices.Add("GiftOfPrometheus");
-        p1_choices.Add("Ninja_Build_Blast");
+        
+        p1_choices.Add(RandomizeSpell(0));
+        p1_choices.Add(RandomizeSpell(0));
+        p1_choices.Add(RandomizeSpell(0));
 
-        p2_choices.Add("BootsOfHermes");
-        p2_choices.Add("Overclock");
-        p2_choices.Add("GiftOfPrometheus");
-        p2_choices.Add("Ninja_Build_Blast");
+        p2_choices.Add(RandomizeSpell(1));
+        p2_choices.Add(RandomizeSpell(1));
+        p2_choices.Add(RandomizeSpell(1));
 
         if (gameManager.players[2] != null)
         {
-            p3_choices.Add("BootsOfHermes");
-            p3_choices.Add("Overclock");
-            p3_choices.Add("GiftOfPrometheus");
-            p3_choices.Add("Ninja_Build_Blast");
+            p3_choices.Add(RandomizeSpell(2));
+            p3_choices.Add(RandomizeSpell(2));
+            p3_choices.Add(RandomizeSpell(2));
         }
 
         if (gameManager.players[3] != null)
         {
-            p4_choices.Add("BootsOfHermes");
-            p4_choices.Add("Overclock");
-            p4_choices.Add("GiftOfPrometheus");
-            p4_choices.Add("Ninja_Build_Blast");
+            p4_choices.Add(RandomizeSpell(3));
+            p4_choices.Add(RandomizeSpell(3));
+            p4_choices.Add(RandomizeSpell(3));
         }
     }
 }

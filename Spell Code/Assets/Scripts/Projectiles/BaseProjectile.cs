@@ -41,7 +41,7 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         //this.owner = owner;
         this.facingRight = facingRight;
-        this.position = owner.position + (new Vector2(spawnOffset.x * (owner.facingRight ? 1 : -1), spawnOffset.y));
+        this.position = owner.position + (new Vector2(spawnOffset.x * (facingRight ? 1 : -1), spawnOffset.y));
         //this.hSpeed = hSpeed;
         //this.vSpeed = vSpeed;
         //this.hitboxDatas = hitboxDatas;

@@ -128,7 +128,7 @@ public class ProjectileManager : MonoBehaviour
             for (int j = 0; j < GameManager.Instance.players[i].spellList.Count; j++)
             {
                 //if (GameManager.Instance.players[i].spellList[j] == null) break;
-
+                GameManager.Instance.players[i].spellList[j].projectileInstances.Clear();
                 //all projectiles in each spelldata
                 for (int k = 0; k < GameManager.Instance.players[i].spellList[j].projectilePrefabs.Length; k++)
                 {
@@ -137,6 +137,8 @@ public class ProjectileManager : MonoBehaviour
                     projectilePrefabs.Add(spawnedProjectile.GetComponent<BaseProjectile>());
                     spawnedProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.players[i];
                     spawnedProjectile.GetComponent<BaseProjectile>().ownerSpell = GameManager.Instance.players[i].spellList[j];
+                    GameManager.Instance.players[i].spellList[j].projectileInstances.Add(spawnedProjectile);
+
                     spawnedProjectile.SetActive(false);
                 }
             }
@@ -175,6 +177,23 @@ public class ProjectileManager : MonoBehaviour
             longestLiving.SpawnProjectile(facingRight, spawnOffset);
         }
 
+    }
+
+    public void SpawnProjectile(BaseProjectile projectilePrefab, bool facingRight, Vector2 spawnOffset)
+    {
+        if (!projectilePrefab.gameObject.activeSelf)
+        {
+            projectilePrefab.gameObject.SetActive(true);
+            projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+            return;
+        }
+        else
+        {
+            // Respawn the projectile
+            projectilePrefab.ResetValues();
+            projectilePrefab.gameObject.SetActive(true);
+            projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+        }
     }
 
     public void DeleteProjectile(BaseProjectile targetProjectile)

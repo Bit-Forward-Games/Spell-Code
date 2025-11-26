@@ -79,6 +79,10 @@ public abstract class SpellData : MonoBehaviour
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;
 
+    //this array holds the actual instances of the projectiles spawned from the prefabs during runtime
+    [HideInInspector]
+    public List<GameObject> projectileInstances;
+
     public Sprite shopSprite;
 
 
@@ -91,6 +95,7 @@ public abstract class SpellData : MonoBehaviour
     /// </summary>
     public virtual void SpellUpdate()
     {
+        if (projectileInstances.Count < 1) return;
         if (cooldownCounter > 0)
         {
             cooldownCounter--;
@@ -107,7 +112,7 @@ public abstract class SpellData : MonoBehaviour
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(spellName, owner, owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
             }
             cooldownCounter = cooldown;
         }

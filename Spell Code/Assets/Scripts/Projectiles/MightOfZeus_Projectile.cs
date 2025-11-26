@@ -31,13 +31,13 @@ public class MightOfZeus_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -12,
+                    xOffset = -10,
                     yOffset = 180,
-                    width = 30,
+                    width = 20,
                     height = 180,
                     xKnockback = 0,
                     yKnockback = 1,
-                    damage = 8,
+                    damage = 5,
                     hitstun = 30,
                     attackLvl = 2,
                     //cancelOptions = new List<int> { } // No cancel options

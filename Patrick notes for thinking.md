@@ -15,6 +15,12 @@ Patrick notes for thinking
 Spell reworks and balance
 
 * add double jump to base kit because gating double jump behind a power (or any other fun core movement for that matter) kinda feels bad
-* &nbsp;	instead of boots of Hermes giving you a double jump, make boots of Hermes give you another air jump for every 4 reps
-* &nbsp;		builds into the fantasy of Hermes flight and meshes well with the reps system, also isn't egregious in our game assuming we make the game map such that you can always reach every point in the stage with just a double jump and a basic attack
-* ninja\_build\_blast rework to make it self encapsulated (at start of move have a skillshot hitbox)
+*  	instead of boots of Hermes giving you a double jump, make boots of Hermes give you another air jump for every 4 reps
+*  		builds into the fantasy of Hermes flight and meshes well with the reps system, also isn't egregious in our game assuming we make the game map such that you can always reach every point in the stage with just a double jump and a basic attack
+* skillshot slash I simply added an extra 10 damage if you hit it while in flowstate so its self sufficient)
+* ninja\_build\_blast rework to make it self sufficient (at start of move have a skillshot hitbox)
+* &nbsp;	adjust flowstate passive on this spell to instead refund all cooldowns based on how much flowstate is consumed
+* re-sprite Gift of promethius to be twice the size for more "oomph" factor and to really sell it as a big cash out move that deserves a 4 input code
+* &nbsp;	to balance this, give it an 8 second cooldown
+* Might of zeus will now spawn 3 lightning bolts instead of 1, staggered in timing and position
+* &nbsp;	to balance this, each bolt will only do 5 damage down from 10

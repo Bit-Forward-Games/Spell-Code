@@ -48,7 +48,7 @@ MonoBehaviour:
   brands: 
   procConditions: 
   description: 
-  cooldown: 180
+  cooldown: 600
   cooldownCounter: 0
   spellInput: 11524
   activateFlag: 0
@@ -58,4 +58,5 @@ MonoBehaviour:
   spawnOffsetY: 15
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}
+  projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 6c7404072339e1345bad8bf061549062, type: 3}

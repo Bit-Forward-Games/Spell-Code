@@ -374,8 +374,10 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             int frame = frameToGet ?? localFrame; // Use specified frame or current local frame
 
-            // Get local input (already stored for this frame or future frames)
-            ulong localInput = clientInputs.ContainsKey(frame) ? clientInputs.GetInput(frame) : 0UL; // Default to neutral if missing
+            int localInputFrame = frame + InputDelay;
+            ulong localInput = clientInputs.ContainsKey(localInputFrame)
+                ? clientInputs.GetInput(localInputFrame)
+                : 5UL; // Default to neutral (5) if missing
 
             // Get remote input (predict if necessary)
             ulong remoteInput = PredictOpponentInput(frame);

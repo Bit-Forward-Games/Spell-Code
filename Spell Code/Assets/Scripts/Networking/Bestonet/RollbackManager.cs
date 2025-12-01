@@ -154,9 +154,11 @@ using BestoNet.Collections; // Use BestoNet collections
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
-            remoteFrame = 0;
             syncFrame = 0;
             predictedRemoteFrame = 0;
+            remoteFrame = 0;
+            // Initialize to avoid timeout on first frames
+            localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
@@ -563,6 +565,12 @@ using BestoNet.Collections; // Use BestoNet collections
     /// <returns>True if simulation timing is acceptable, false if a frame drop is recommended.</returns>
     public bool CheckTimeSync(out float frameAdvantageDifference)
         {
+            // Safety: if we haven't received any remote frames yet, assume we're in sync
+            if (remoteFrame == 0 && localFrame < 60)
+            {
+                frameAdvantageDifference = 0;
+                return true;
+            }
             localFrameAdvantage = localFrame - predictedRemoteFrame; // Calculate current advantage
             SetLocalFrameAdvantage(localFrameAdvantage); // Store it in history
 

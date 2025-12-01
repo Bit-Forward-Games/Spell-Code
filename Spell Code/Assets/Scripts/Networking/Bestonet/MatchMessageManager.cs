@@ -105,7 +105,7 @@ using BestoNet.Collections; // For CircularArray
         // Process all available packets on the channel
         while (SteamNetworking.IsP2PPacketAvailable(MATCH_MESSAGE_CHANNEL))
         {
-            Debug.Log("Packet received");
+            //Debug.Log("Packet received");
             P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
             //Debug.Log($"Received Packet from {packet.Value.SteamId}");
             if (packet.HasValue && packet.Value.SteamId == opponentSteamId) // Ensure packet is from the opponent
@@ -179,7 +179,7 @@ using BestoNet.Collections; // For CircularArray
                             P2PSend.Reliable
                         );
 
-                        Debug.Log($"Sent handshake packet: {success}");
+                        //Debug.Log($"Sent handshake packet: {success}");
                     }
                 }
             }
@@ -205,7 +205,7 @@ using BestoNet.Collections; // For CircularArray
         /// </summary>
         private void ProcessPacket(byte[] messageData)
         {
-            Debug.Log($"Processing Packet of size {messageData.Length} bytes");
+            //Debug.Log($"Processing Packet of size {messageData.Length} bytes");
 
             if (RollbackManager.Instance == null)
             {
@@ -225,7 +225,7 @@ using BestoNet.Collections; // For CircularArray
                         if (packetType == 0xFF)
                         {
                             string message = reader.ReadString();
-                            Debug.Log($"Received handshake: {message}");
+                            //Debug.Log($"Received handshake: {message}");
                             // Send handshake back
                             SendHandshake();
                             return;
@@ -243,6 +243,8 @@ using BestoNet.Collections; // For CircularArray
                             {
                                 int frame = startFrame + i;
                                 ulong input = reader.ReadUInt64();
+
+                                Debug.Log($"[ProcessPacket] Frame={frame}, Input={input}");
 
                                 if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                                 {
@@ -315,6 +317,8 @@ using BestoNet.Collections; // For CircularArray
                 // Ensure RollbackManager and opponent ID are valid
                 if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)
                 {
+                    Debug.LogError($"SendInputs BLOCKED: RBM={RollbackManager.Instance != null}, " +
+                              $"OpponentValid={opponentSteamId.IsValid}, isRunning={isRunning}");
                     return;
                 }
 
@@ -337,6 +341,8 @@ using BestoNet.Collections; // For CircularArray
                     inputCount = MaxInputsPerPacket;
                 }
 
+                Debug.Log($"[SendInputs] CurrentFrame={currentLocalFrame}, " +
+                $"LatestTarget={latestTargetFrame}, OpponentID={opponentSteamId}");
 
                 try
                 {

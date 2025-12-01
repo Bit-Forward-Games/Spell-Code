@@ -88,8 +88,8 @@ public abstract class BaseProjectile : MonoBehaviour
     }
     public virtual void ProjectileUpdate()
     {
-        position.X += hSpeed;
-        position.Y += vSpeed;
+        //position.X += hSpeed;
+        //position.Y += vSpeed;
         position += new FixedVec2(hSpeed, vSpeed);
         logicFrame++;
 

@@ -52,8 +52,8 @@ public class SkillshotSlash_Projectile : BaseProjectile
                     height = 19*2,
                     xKnockback = 1,
                     yKnockback = 5,
-                    damage = 15,
-                    hitstun = 25,
+                    damage = 10,
+                    hitstun = 30,
                     attackLvl = 3,
                     sweetSpot = true
                 }

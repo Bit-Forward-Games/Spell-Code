@@ -9,7 +9,7 @@ public class Ninja_Build_Blast : SpellData
         cooldown = 600;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
-        description = "Project forth a massive orb which consumes all of your \"Flow State\" and deals massively increased damage based on the amount consumed";
+        description = "Project forth a massive orb which consumes all of your \"Flow State\" and reduces all cooldowns based on the amount consumed. Hit this SpellCode early to enter \"Flow State\"";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 10;
         spawnOffsetY = 20;
@@ -19,10 +19,26 @@ public class Ninja_Build_Blast : SpellData
     public override void ActiveOnHitProc(PlayerController defender)
     {
         int consumedFlow = owner.flowState;
-        float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
-        int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
-        owner.flowState = 0;
-        defender.TakeEffectDamage(damageToDeal);
+        if (consumedFlow > 0)
+        {
+            //float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
+            //int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
+            //defender.TakeEffectDamage(damageToDeal);
+            float percentCooldownReduced = (float)consumedFlow / (float)PlayerController.maxFlowState; // 100% cooldown reduction at full flow
+            for (int i = 0; i < owner.spellList.Count; i++)
+            {
+                owner.spellList[i].cooldownCounter = (int)((float)owner.spellList[i].cooldownCounter * percentCooldownReduced);
+            }
+            owner.flowState = 0;
+        }
+
+        //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+        if (defender.hitboxData.sweetSpot)
+        {
+            owner.flowState = PlayerController.maxFlowState;
+            cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
+            Debug.Log("Sweet Spot Hit! Flow State set to 300.");
+        }
     }
 
     public override void CheckCondition()

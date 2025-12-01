@@ -38,6 +38,7 @@ public class SceneUiManager : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.LoadRandomGameplayStage();
             DataManager.Instance.ResetData();
             GameManager.Instance.RestartGame();
 
@@ -47,6 +48,22 @@ public class SceneUiManager : MonoBehaviour
         }
 
         SceneManager.LoadScene("Gameplay");
+    }
+
+    public void MainMenu()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetStage(-1);
+            DataManager.Instance.ResetData();
+            GameManager.Instance.RestartGame();
+
+            GameManager.Instance.isRunning = true;
+
+            SceneManager.LoadScene("MainMenu");
+        }
+
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void QuitGame()

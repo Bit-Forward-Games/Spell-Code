@@ -306,6 +306,13 @@ public class InputPlayerBindings : MonoBehaviour
 
     public long UpdateInputs()
     {
+        Debug.Log($"[UpdateInputs] IsActive={IsActive}, " +
+              $"Up={upAction.ReadValue<float>()}, " +
+              $"Down={downAction.ReadValue<float>()}, " +
+              $"Left={leftAction.ReadValue<float>()}, " +
+              $"Right={rightAction.ReadValue<float>()}, " +
+              $"Code={codeAction.inProgress}, " +
+              $"Jump={jumpAction.inProgress}");
         direction[0] = upAction.ReadValue<float>() > 0.33f;
         direction[1] = downAction.ReadValue<float>() > 0.33f;
         direction[2] = leftAction.ReadValue<float>() > 0.33f;

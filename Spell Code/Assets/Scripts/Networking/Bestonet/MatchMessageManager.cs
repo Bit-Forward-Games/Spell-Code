@@ -244,7 +244,7 @@ using BestoNet.Collections; // For CircularArray
                                 int frame = startFrame + i;
                                 ulong input = reader.ReadUInt64();
 
-                                Debug.Log($"[ProcessPacket] Frame={frame}, Input={input}");
+                                //Debug.Log($"[ProcessPacket] Frame={frame}, Input={input}");
 
                                 if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                                 {
@@ -341,8 +341,8 @@ using BestoNet.Collections; // For CircularArray
                     inputCount = MaxInputsPerPacket;
                 }
 
-                Debug.Log($"[SendInputs] CurrentFrame={currentLocalFrame}, " +
-                $"LatestTarget={latestTargetFrame}, OpponentID={opponentSteamId}");
+                //Debug.Log($"[SendInputs] CurrentFrame={currentLocalFrame}, " +
+                //$"LatestTarget={latestTargetFrame}, OpponentID={opponentSteamId}");
 
                 try
                 {

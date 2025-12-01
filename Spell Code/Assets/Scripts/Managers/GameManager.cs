@@ -389,7 +389,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerInput = 0;
         if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
         {
+            Debug.Log($"Gathering input from player index {localPlayerIndex}, " +
+              $"IsActive={players[localPlayerIndex].inputs.IsActive}");
             localPlayerInput = players[localPlayerIndex].GetInputs();
+            Debug.Log($"Got input: {localPlayerInput}");
         }
 
         bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);

@@ -98,7 +98,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
         //this basically checks if the projectile hit something
         if (playerIgnoreArr.Any(ignore => ignore))
         {
-            hSpeed = 0;
+            hSpeed = Fixed.FromInt(0);
             activeHitboxGroupIndex = 2;
 
             playerIgnoreArr = new bool[4] { false, false, false, false };

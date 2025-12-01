@@ -183,7 +183,7 @@ public class ProjectileManager : MonoBehaviour
 
     }
 
-    public void SpawnProjectile(BaseProjectile projectilePrefab, bool facingRight, Vector2 spawnOffset)
+    public void SpawnProjectile(BaseProjectile projectilePrefab, bool facingRight, FixedVec2 spawnOffset)
     {
         if (!projectilePrefab.gameObject.activeSelf)
         {

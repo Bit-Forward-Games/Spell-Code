@@ -118,7 +118,7 @@ public abstract class SpellData : MonoBehaviour
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
             cooldownCounter = cooldown;
         }

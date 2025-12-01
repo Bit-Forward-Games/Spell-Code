@@ -92,7 +92,7 @@ public class PlayerController : MonoBehaviour
 
     //Character Data
     public CharacterData charData { get; private set; }
-    public float gravity = .75f;
+    public Fixed gravity = Fixed.FromFloat(0.75f);
     [HideInInspector]
     public Fixed jumpForce = Fixed.FromInt(10);
     public Fixed runSpeed = Fixed.FromInt(0);
@@ -554,7 +554,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
-                LerpHspd(0, 3);
+                LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
 
@@ -614,7 +614,7 @@ public class PlayerController : MonoBehaviour
                 if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
                 {
                     //reapply gravity more strongly to create a variable jump height
-                    vSpd -= gravity*2;
+                    vSpd -= gravity * Fixed.FromInt(2);
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
@@ -767,7 +767,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                LerpHspd(0, isGrounded?3: 15);
+                LerpHspd(Fixed.FromInt(0), isGrounded?3: 15);
                 break;
             case PlayerState.CodeRelease:
                 //allow the display to be reset upon entering CodeWeave state
@@ -878,7 +878,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Slide:
                 if (!isGrounded)
                 {
-                    vSpd = -2;
+                    vSpd = Fixed.FromInt(-2);
                 }
                 else if(input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
                 {
@@ -891,7 +891,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                LerpHspd(0, charData.slideFriction);
+                LerpHspd(Fixed.FromInt(0), charData.slideFriction);
                 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
                 {
@@ -1501,7 +1501,7 @@ public class PlayerController : MonoBehaviour
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
-                gravity = .75f;
+                gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
                 ClearInputDisplay();

@@ -50,7 +50,7 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         //this.owner = owner;
         this.facingRight = facingRight;
-        this.position = owner.position + (new FixedVec2(spawnOffset.X * (owner.facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), spawnOffset.Y));
+        this.position = owner.position + (new Vector2(spawnOffset.x * (facingRight ? 1 : -1), spawnOffset.y));
         //this.hSpeed = hSpeed;
         //this.vSpeed = vSpeed;
         //this.hitboxDatas = hitboxDatas;

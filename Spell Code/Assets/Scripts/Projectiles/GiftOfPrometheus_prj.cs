@@ -42,10 +42,10 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -30,
-                    yOffset = 30,
-                    width = 60,
-                    height = 60,
+                    xOffset = -64,
+                    yOffset = 64,
+                    width = 128,
+                    height = 128,
                     xKnockback = 5,
                     yKnockback = 15,
                     damage = 20,
@@ -67,11 +67,11 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
+        if (logicFrame == animFrames.frameLengths.Take(16).Sum() + 1)
         {
             hSpeed = Fixed.FromInt(0);
         }
-        if (logicFrame >= animFrames.frameLengths.Take(11).Sum() + 1)
+        if (logicFrame >= animFrames.frameLengths.Take(19).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(23).Sum())
         {
             activeHitboxGroupIndex = 1;
         }

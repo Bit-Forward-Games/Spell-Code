@@ -137,50 +137,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Update is called once per frame
     void Update()
     {
-        //// If current scene isn't the gameplay scene, ensure players are marked dead and the temp UI is disabled.
-        //Scene activeScene = SceneManager.GetActiveScene();
-        //if (activeScene.name != "DEMO" && activeScene.name != "Gameplay")
-        //{
-        //    // Set all known players to not alive
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null)
-        //            {
-        //                //players[i].isAlive = false;
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = false;
-        //            }
-        //        }
-        //    }
+        //disable the player input manager when not in main menu
+        gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
 
-        //    // Attempt to find and disable a child named "tempUI" (case-insensitive common variants)
-        //    //TempUIScript tempUI = transform.Find("tempUI") ?? transform.Find("TempUI") ?? transform.Find("TempSpellUI") ?? transform.Find("TempSpellDisplay");
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(false);
-        //    }
-
-        //}
-        //else
-        //{
-        //    // Ensure temp UI is enabled during gameplay
-        //    if (tempUI != null)
-        //    {
-        //        tempUI.gameObject.SetActive(true);
-        //    }
-        //    // Also ensure all players' sprites are enabled
-        //    if (players != null)
-        //    {
-        //        for (int i = 0; i < players.Length; i++)
-        //        {
-        //            if (players[i] != null && players[i].isAlive)
-        //            {
-        //                players[i].gameObject.GetComponent<SpriteRenderer>().enabled = true;
-        //            }
-        //        }
-        //    }
-        //}
 
         //if ` is pressed, toggle box rendering
         if (UnityEngine.Input.GetKeyDown(KeyCode.BackQuote))
@@ -600,11 +559,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (!isRunning)
             return;
 
-       
+
 
         UpdateGameState(inputs);
 
-        if(activeScene.name == "MainMenu")
+        if (activeScene.name == "MainMenu")
         {
             //player 1 stuff
             if (players[0] != null)
@@ -759,8 +718,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
             goDoorPrefab.CheckOpenDoor();
-            
-            if(goDoorPrefab.CheckAllPlayersReady())
+
+            if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
             }
@@ -784,8 +743,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                 }
 
-                if (roundEndTransitionTime >= roundEndTimer) 
-                { 
+                if (roundEndTransitionTime >= roundEndTimer)
+                {
                     roundEndTimer += Time.deltaTime;
                 }
 

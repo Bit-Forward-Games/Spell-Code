@@ -418,6 +418,8 @@ public class PlayerController : MonoBehaviour
     /// MOVEMENT CODE
     public ulong GetInputs()
     {
+        Debug.Log($"[GetInputs] Called on player at index {System.Array.IndexOf(GameManager.Instance.players, this)}, " +
+              $"IsActive={inputs.IsActive}");
         if (GameManager.Instance.isOnlineMatchActive)
         {
             int myIndex = Array.IndexOf(GameManager.Instance.players, this);

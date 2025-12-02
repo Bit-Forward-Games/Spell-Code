@@ -381,6 +381,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
 
+        Debug.Log($"[RunOnlineFrame] Frame={frameNumber}, " +
+              $"LocalPlayerIndex={localPlayerIndex}, " +
+              $"Player[{localPlayerIndex}] exists={players[localPlayerIndex] != null}, " +
+              $"isAlive={players[localPlayerIndex]?.isAlive}");
+
         if (frameNumber <= rbManager.InputDelay)
         {
             rbManager.SaveState();

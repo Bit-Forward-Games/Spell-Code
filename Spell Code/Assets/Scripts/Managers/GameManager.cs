@@ -171,6 +171,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isTransitioning) return;
 
+        Debug.Log($"[FixedUpdate] isOnlineMatchActive={isOnlineMatchActive}");
+
         if (isOnlineMatchActive)
         {
             // Execute the online frame logic using RollbackManager
@@ -315,6 +317,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isOnlineMatchActive = true;
         isRunning = true;
         Debug.Log("Online Match Started.");
+
+        Debug.Log($"[StartOnlineMatch] COMPLETE! isOnlineMatchActive={isOnlineMatchActive}, " +
+              $"localPlayerIndex={localPlayerIndex}, remotePlayerIndex={remotePlayerIndex}");
     }
 
     /// <summary>
@@ -418,9 +423,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
 
-        Debug.Log($"[Frame {frameNumber}] LocalPlayerIndex={localPlayerIndex}, " +
-          $"LocalInput={localPlayerInput}, " +
-          $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
+        //Debug.Log($"[Frame {frameNumber}] LocalPlayerIndex={localPlayerIndex}, " +
+        //  $"LocalInput={localPlayerInput}, " +
+        //  $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
 
         // Stall check
         if (!rbManager.AllowUpdate())

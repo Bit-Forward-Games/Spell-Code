@@ -363,21 +363,52 @@ public class InputPlayerBindings : MonoBehaviour
         IsActive = enable;
         if (enable)
         {
-            upAction.Enable();
-            downAction.Enable();
-            leftAction.Enable();
-            rightAction.Enable();
-            codeAction.Enable();
-            jumpAction.Enable();
+            // Ensure keyboard is assigned to the input action asset
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard != null && inputActionAsset != null)
+            {
+                // Assign keyboard to the action asset
+                inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { keyboard });
+                Debug.Log($"[CheckForInputs] Assigned keyboard '{keyboard.name}' to inputActionAsset");
+
+                // Also check if actions have bindings
+                Debug.Log($"[CheckForInputs] Up action bindings: {upAction?.bindings.Count ?? 0}");
+                if (upAction != null && upAction.bindings.Count > 0)
+                {
+                    foreach (var binding in upAction.bindings)
+                    {
+                        Debug.Log($"  Binding: {binding.effectivePath}");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogError("[CheckForInputs] Keyboard or inputActionAsset is null!");
+            }
+
+            // Enable all actions
+            playerActionMap?.Enable();
+            upAction?.Enable();
+            downAction?.Enable();
+            leftAction?.Enable();
+            rightAction?.Enable();
+            codeAction?.Enable();
+            jumpAction?.Enable();
+
+            Debug.Log($"[CheckForInputs] Enabled - Actions enabled: " +
+                     $"Up={upAction?.enabled}, Down={downAction?.enabled}, " +
+                     $"Left={leftAction?.enabled}, Right={rightAction?.enabled}");
         }
         else
         {
-            upAction.Disable();
-            downAction.Disable();
-            leftAction.Disable();
-            rightAction.Disable();
-            codeAction.Disable();
-            jumpAction.Disable();
+            upAction?.Disable();
+            downAction?.Disable();
+            leftAction?.Disable();
+            rightAction?.Disable();
+            codeAction?.Disable();
+            jumpAction?.Disable();
+
+            Debug.Log($"[CheckForInputs] Disabled");
         }
     }
 }

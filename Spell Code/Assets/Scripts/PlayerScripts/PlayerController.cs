@@ -419,25 +419,110 @@ public class PlayerController : MonoBehaviour
     public ulong GetInputs()
     {
         Debug.Log($"[GetInputs] Called on player at index {System.Array.IndexOf(GameManager.Instance.players, this)}, " +
-              $"IsActive={inputs.IsActive}");
+              $"IsActive={inputs.IsActive}, " +
+              $"IsOnlineMatch={GameManager.Instance.isOnlineMatchActive}");
+
+        ulong input = 0;
+
+        // For online matches, use raw Unity Input as fallback
         if (GameManager.Instance.isOnlineMatchActive)
         {
-            int myIndex = Array.IndexOf(GameManager.Instance.players, this);
-            if (myIndex != GameManager.Instance.localPlayerIndex)
+            int myIndex = System.Array.IndexOf(GameManager.Instance.players, this);
+
+            // Only the LOCAL player should gather input
+            if (myIndex == GameManager.Instance.localPlayerIndex)
             {
-                return 0; // Remote player, don't gather input
+                Debug.Log("[GetInputs] Using RAW INPUT for local player");
+                input = GetRawKeyboardInput();
+                Debug.Log($"[GetInputs] Raw input gathered: {input}");
+                return input;
+            }
+            else
+            {
+                Debug.Log("[GetInputs] Remote player, returning 0");
+                return 0; // Remote player doesn't gather input
             }
         }
-        ulong input = 0;
+
+        // Original logic for offline mode
         if (inputs.IsActive)
         {
             long longInput = inputs.UpdateInputs();
             input = (ulong)longInput;
+            Debug.Log($"[GetInputs] Using InputSystem, returning: {input}");
         }
+        else
+        {
+            Debug.Log($"[GetInputs] IsActive=false, returning 0");
+        }
+
         return input;
     }
 
+    /// <summary>
+    /// Gets keyboard input directly using Unity's old Input API.
+    /// This bypasses the Input System entirely.
+    /// </summary>
+    private ulong GetRawKeyboardInput()
+    {
+        // Direction input (using numpad notation: 5 = neutral)
+        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
+        // Button states (need to track previous state for Pressed/Released detection)
+        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+
+        // Store previous button states (you might need to add these as class fields)
+        bool codePrev = codePrevFrame;
+        bool jumpPrev = jumpPrevFrame;
+
+        // Update for next frame
+        codePrevFrame = codeNow;
+        jumpPrevFrame = jumpNow;
+
+        // Calculate direction (numpad notation)
+        byte direction = 5; // neutral
+
+        if (up && right) direction = 9;
+        else if (up && left) direction = 7;
+        else if (down && right) direction = 3;
+        else if (down && left) direction = 1;
+        else if (up) direction = 8;
+        else if (down) direction = 2;
+        else if (left) direction = 4;
+        else if (right) direction = 6;
+
+        // Calculate button states
+        ButtonState codeState = GetButtonState(codePrev, codeNow);
+        ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
+
+        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+        bool[] dirs = new bool[4] { up, down, left, right };
+
+        Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+
+        // Convert to ulong using your existing converter
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    }
+
+    // Add these fields to PlayerController class
+    private bool codePrevFrame = false;
+    private bool jumpPrevFrame = false;
+
+    private ButtonState GetButtonState(bool previous, bool current)
+    {
+        if (!previous && !current)
+            return ButtonState.None;
+        else if (current && !previous)
+            return ButtonState.Pressed;
+        else if (current && previous)
+            return ButtonState.Held;
+        else
+            return ButtonState.Released;
+    }
 
     public void PlayerUpdate(ulong rawInput)
     {

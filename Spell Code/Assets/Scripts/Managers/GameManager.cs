@@ -89,6 +89,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private ulong cachedLocalInput = 5; // Stores input gathered in Update()
     private bool codePrevFrame = false;
     private bool jumpPrevFrame = false;
+    private bool codeCurrentFrame = false;
+    private bool jumpCurrentFrame = false;
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
@@ -226,15 +228,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
         bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Button states
-        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+        // Button states - use GetKey for current state
+        codeCurrentFrame = UnityEngine.Input.GetKey(KeyCode.R);
+        jumpCurrentFrame = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Track button state changes
-        bool codePrev = codePrevFrame;
-        bool jumpPrev = jumpPrevFrame;
-        codePrevFrame = codeNow;
-        jumpPrevFrame = jumpNow;
+        // Calculate button states based on previous and current
+        ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeCurrentFrame);
+        ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpCurrentFrame);
 
         // Calculate direction (numpad notation)
         byte direction = 5; // neutral
@@ -246,10 +246,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         else if (down) direction = 2;
         else if (left) direction = 4;
         else if (right) direction = 6;
-
-        // Calculate button states
-        ButtonState codeState = GetButtonStateHelper(codePrev, codeNow);
-        ButtonState jumpState = GetButtonStateHelper(jumpPrev, jumpNow);
 
         ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
         bool[] dirs = new bool[4] { up, down, left, right };
@@ -472,6 +468,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         localPlayerInput = cachedLocalInput;
+        codePrevFrame = codeCurrentFrame;
+        jumpPrevFrame = jumpCurrentFrame;
         Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
 
         //if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)

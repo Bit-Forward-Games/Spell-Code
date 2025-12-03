@@ -564,13 +564,19 @@ using BestoNet.Collections; // Use BestoNet collections
     /// <param name="frameAdvantageDifference">Output: Calculated average frame advantage difference.</param>
     /// <returns>True if simulation timing is acceptable, false if a frame drop is recommended.</returns>
     public bool CheckTimeSync(out float frameAdvantageDifference)
-        {
-            // Safety: if we haven't received any remote frames yet, assume we're in sync
-            if (remoteFrame == 0 && localFrame < 60)
+    {
+            if (localFrame < 600)
             {
                 frameAdvantageDifference = 0;
+                localFrameAdvantage = 0;
                 return true;
             }
+            // Safety: if we haven't received any remote frames yet, assume we're in sync
+            //if (remoteFrame == 0 && localFrame < 60)
+            //{
+            //    frameAdvantageDifference = 0;
+            //    return true;
+            //}
             localFrameAdvantage = localFrame - predictedRemoteFrame; // Calculate current advantage
             SetLocalFrameAdvantage(localFrameAdvantage); // Store it in history
 

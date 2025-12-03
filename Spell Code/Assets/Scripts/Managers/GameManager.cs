@@ -85,6 +85,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
 
+    // Add these fields to GameManager class
+    private ulong cachedLocalInput = 5; // Stores input gathered in Update()
+    private bool codePrevFrame = false;
+    private bool jumpPrevFrame = false;
+
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
     public bool isOnlineMatchActive = false;
@@ -137,6 +142,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Update is called once per frame
     void Update()
     {
+        // Cache input for online matches
+        if (isOnlineMatchActive)
+        {
+            cachedLocalInput = GatherRawKeyboardInput();
+            Debug.Log($"[Update] Cached input: {cachedLocalInput}");
+        }
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -204,6 +216,62 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
+    }
+
+    private ulong GatherRawKeyboardInput()
+    {
+        // Direction input
+        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+
+        // Button states
+        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+
+        // Track button state changes
+        bool codePrev = codePrevFrame;
+        bool jumpPrev = jumpPrevFrame;
+        codePrevFrame = codeNow;
+        jumpPrevFrame = jumpNow;
+
+        // Calculate direction (numpad notation)
+        byte direction = 5; // neutral
+        if (up && right) direction = 9;
+        else if (up && left) direction = 7;
+        else if (down && right) direction = 3;
+        else if (down && left) direction = 1;
+        else if (up) direction = 8;
+        else if (down) direction = 2;
+        else if (left) direction = 4;
+        else if (right) direction = 6;
+
+        // Calculate button states
+        ButtonState codeState = GetButtonStateHelper(codePrev, codeNow);
+        ButtonState jumpState = GetButtonStateHelper(jumpPrev, jumpNow);
+
+        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+        bool[] dirs = new bool[4] { up, down, left, right };
+
+        if (UnityEngine.Input.anyKey)
+        {
+            Debug.Log($"[GatherRawKeyboardInput] Direction={direction}, Up={up}, Down={down}, Left={left}, Right={right}, Code={codeState}, Jump={jumpState}");
+        }
+
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    }
+
+    private ButtonState GetButtonStateHelper(bool previous, bool current)
+    {
+        if (!previous && !current)
+            return ButtonState.None;
+        else if (current && !previous)
+            return ButtonState.Pressed;
+        else if (current && previous)
+            return ButtonState.Held;
+        else
+            return ButtonState.Released;
     }
 
     // Match Control Methods
@@ -397,24 +465,22 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
 
-        Debug.Log($"[RunOnlineFrame] Frame={frameNumber}, " +
-              $"LocalPlayerIndex={localPlayerIndex}, " +
-              $"Player[{localPlayerIndex}] exists={players[localPlayerIndex] != null}, " +
-              $"isAlive={players[localPlayerIndex]?.isAlive}");
 
         if (frameNumber <= rbManager.InputDelay)
         {
             rbManager.SaveState();
         }
 
-        localPlayerInput = 0;
-        if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
-        {
-            Debug.Log($"Gathering input from player index {localPlayerIndex}, " +
-              $"IsActive={players[localPlayerIndex].inputs.IsActive}");
-            localPlayerInput = players[localPlayerIndex].GetInputs();
-            Debug.Log($"Got input: {localPlayerInput}");
-        }
+        localPlayerInput = cachedLocalInput;
+        Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
+
+        //if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
+        //{
+        //    Debug.Log($"Gathering input from player index {localPlayerIndex}, " +
+        //      $"IsActive={players[localPlayerIndex].inputs.IsActive}");
+        //    localPlayerInput = players[localPlayerIndex].GetInputs();
+        //    Debug.Log($"Got input: {localPlayerInput}");
+        //}
 
         bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
         if (!timeSynced)

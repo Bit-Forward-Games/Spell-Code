@@ -465,6 +465,17 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private ulong GetRawKeyboardInput()
     {
+        // DEBUG: Check if ANY key is being pressed
+        if (UnityEngine.Input.anyKey)
+        {
+            Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+            // Log specific keys
+            Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+                            $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+                            $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+                            $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+        }
+
         // Direction input (using numpad notation: 5 = neutral)
         bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
         bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);

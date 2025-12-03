@@ -137,8 +137,19 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Update is called once per frame
     void Update()
     {
-        //disable the player input manager when not in main menu
-        gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+        // Don't touch PlayerInputManager during online matches
+        if (!isOnlineMatchActive)
+        {
+            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+        }
+        else
+        {
+            // Keep it disabled during online matches
+            if (playerInputManager != null)
+            {
+                playerInputManager.enabled = false;
+            }
+        }
 
 
         //if ` is pressed, toggle box rendering
@@ -171,7 +182,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isTransitioning) return;
 
-        Debug.Log($"[FixedUpdate] isOnlineMatchActive={isOnlineMatchActive}");
+        //Debug.Log($"[FixedUpdate] isOnlineMatchActive={isOnlineMatchActive}");
 
         if (isOnlineMatchActive)
         {

@@ -148,3 +148,25 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}
   - {fileID: 8300000, guid: 2f2a0b079c18a574d80400cf67160bda, type: 3}
   - {fileID: 8300000, guid: ce05b6b00f283a64d9af3daa3c58ee1e, type: 3}
+  lobbyScene:
+    m_Handle: 0
+  lobbySongs: []
+  gameplayScene:
+    m_Handle: 0
+  gameplaySongs: []
+  shopScene:
+    m_Handle: 0
+  shopSongs: []
+  sceneAudioObjects:
+  - sceneName: MainMenu
+    availableSongs:
+    - {fileID: 8300000, guid: c07ddf251391f6345b0df8210ef0a1a6, type: 3}
+    - {fileID: 8300000, guid: 93477cbee5686aa41939f37c686e1e7b, type: 3}
+  - sceneName: Gameplay
+    availableSongs:
+    - {fileID: 8300000, guid: 014cf47e3584d2b478778707bd959d62, type: 3}
+    - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}
+    - {fileID: 8300000, guid: ce05b6b00f283a64d9af3daa3c58ee1e, type: 3}
+    - {fileID: 8300000, guid: 2f2a0b079c18a574d80400cf67160bda, type: 3}
+  - sceneName: Shop
+    availableSongs: []

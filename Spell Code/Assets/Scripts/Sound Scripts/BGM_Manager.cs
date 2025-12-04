@@ -179,8 +179,8 @@ public class BGM_Manager : MonoBehaviour
         //        break;
         //}
 
-    //start playing the new song
-    PlaySong();
+        //start playing the new song
+        PlaySong();
     }
 
     /// <summary>

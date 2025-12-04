@@ -147,8 +147,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // Cache input for online matches
         if (isOnlineMatchActive)
         {
-            cachedLocalInput = GetRawKeyboardInput(); // Old input API
-            //cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
+            //cachedLocalInput = GetRawKeyboardInput(); // Old input API
+            cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
             Debug.Log($"[Update] Cached input from input system: {cachedLocalInput}");
         }
 

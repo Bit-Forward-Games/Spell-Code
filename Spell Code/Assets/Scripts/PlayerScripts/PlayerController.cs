@@ -433,8 +433,9 @@ public class PlayerController : MonoBehaviour
             // Only gather input if this is the local player
             if (myIndex == GameManager.Instance.localPlayerIndex)
             {
-                input = GetRawKeyboardInput(); // Old Input API method
-                //input = (ulong)inputs.UpdateInputs(); // Input System method
+                //input = GetRawKeyboardInput(); // Old Input API method
+                long longInput = inputs.UpdateInputs();
+                input = (ulong)longInput; // Input System method
                 return input;
             }
             else

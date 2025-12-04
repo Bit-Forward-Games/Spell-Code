@@ -418,42 +418,29 @@ public class PlayerController : MonoBehaviour
     /// MOVEMENT CODE
     public ulong GetInputs()
     {
-        Debug.Log($"[GetInputs] Called on player at index {System.Array.IndexOf(GameManager.Instance.players, this)}, " +
-              $"IsActive={inputs.IsActive}, " +
-              $"IsOnlineMatch={GameManager.Instance.isOnlineMatchActive}");
+        //Debug.Log($"[GetInputs] Called on player at index {System.Array.IndexOf(GameManager.Instance.players, this)}, " +
+        //      $"IsActive={inputs.IsActive}, " +
+        //      $"IsOnlineMatch={GameManager.Instance.isOnlineMatchActive}");
 
-        ulong input = 0;
-
-        // For online matches, use raw Unity Input as fallback
+        // In online mode, only the local player gathers input
         if (GameManager.Instance.isOnlineMatchActive)
         {
             int myIndex = System.Array.IndexOf(GameManager.Instance.players, this);
 
-            // Only the LOCAL player should gather input
-            if (myIndex == GameManager.Instance.localPlayerIndex)
+            // Only gather input if this is the local player
+            if (myIndex != GameManager.Instance.localPlayerIndex)
             {
-                Debug.Log("[GetInputs] Using RAW INPUT for local player");
-                input = GetRawKeyboardInput();
-                Debug.Log($"[GetInputs] Raw input gathered: {input}");
-                return input;
-            }
-            else
-            {
-                Debug.Log("[GetInputs] Remote player, returning 0");
-                return 0; // Remote player doesn't gather input
+                return 0; // Remote player, return neutral
             }
         }
 
-        // Original logic for offline mode
+        ulong input = 0;
+
+        // Use Input System for both online and offline
         if (inputs.IsActive)
         {
             long longInput = inputs.UpdateInputs();
             input = (ulong)longInput;
-            Debug.Log($"[GetInputs] Using InputSystem, returning: {input}");
-        }
-        else
-        {
-            Debug.Log($"[GetInputs] IsActive=false, returning 0");
         }
 
         return input;

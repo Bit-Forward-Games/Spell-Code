@@ -422,19 +422,26 @@ public class PlayerController : MonoBehaviour
         //      $"IsActive={inputs.IsActive}, " +
         //      $"IsOnlineMatch={GameManager.Instance.isOnlineMatchActive}");
 
+
+        ulong input = 0;
+
         // In online mode, only the local player gathers input
         if (GameManager.Instance.isOnlineMatchActive)
         {
             int myIndex = System.Array.IndexOf(GameManager.Instance.players, this);
 
             // Only gather input if this is the local player
-            if (myIndex != GameManager.Instance.localPlayerIndex)
+            if (myIndex == GameManager.Instance.localPlayerIndex)
+            {
+                input = GetRawKeyboardInput(); // Old Input API method
+                //input = (ulong)inputs.UpdateInputs(); // Input System method
+                return input;
+            }
+            else
             {
                 return 0; // Remote player, return neutral
             }
         }
-
-        ulong input = 0;
 
         // Use Input System for both online and offline
         if (inputs.IsActive)
@@ -506,7 +513,6 @@ public class PlayerController : MonoBehaviour
         return (ulong)InputConverter.ConvertToLong(buttons, dirs);
     }
 
-    // Add these fields to PlayerController class
     private bool codePrevFrame = false;
     private bool jumpPrevFrame = false;
 

@@ -87,10 +87,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     // Add these fields to GameManager class
     private ulong cachedLocalInput = 5; // Stores input gathered in Update()
-    //private bool codePrevFrame = false;
-    //private bool jumpPrevFrame = false;
-    //private bool codeCurrentFrame = false;
-    //private bool jumpCurrentFrame = false;
+    private bool codePrevFrame = false;
+    private bool jumpPrevFrame = false;
+    private bool codeCurrentFrame = false;
+    private bool jumpCurrentFrame = false;
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
@@ -147,7 +147,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // Cache input for online matches
         if (isOnlineMatchActive)
         {
-            cachedLocalInput = players[localPlayerIndex].GetInputs(); ;
+            cachedLocalInput = GetRawKeyboardInput(); // Old input API
+            //cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
             Debug.Log($"[Update] Cached input from input system: {cachedLocalInput}");
         }
 
@@ -220,7 +221,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
     }
 
-    /*private ulong GatherRawKeyboardInput()
+    private ulong GetRawKeyboardInput()
     {
         // Direction input
         bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
@@ -268,7 +269,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             return ButtonState.Held;
         else
             return ButtonState.Released;
-    }*/
+    }
 
     // Match Control Methods
 
@@ -468,8 +469,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         localPlayerInput = cachedLocalInput;
-        //codePrevFrame = codeCurrentFrame;
-        //jumpPrevFrame = jumpCurrentFrame;
+        codePrevFrame = codeCurrentFrame;
+        jumpPrevFrame = jumpCurrentFrame;
         Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
 
         //if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)

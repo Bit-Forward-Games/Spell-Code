@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +8,7 @@ public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerHpVals;
     public Image[] playerHpBar;
+    public Image[] playerDamageBar;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;
@@ -30,7 +32,9 @@ public class TempUIScript : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerHpVals[i].text = "P" + (i + 1);
+            if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
             playerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
+
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;
@@ -83,5 +87,45 @@ public class TempUIScript : MonoBehaviour
                 slimedVals[i].enabled = true;
             else slimedVals[i].enabled = false;
         }
+    }
+
+    public IEnumerator DamageBar(int playerIndex)
+    {
+        PlayerController player = GameManager.Instance.players[playerIndex];
+        
+        if (!player.isHit) yield break;
+        
+        // Store the current health bar amount (before damage)
+        float previousHealthAmount = playerHpBar[playerIndex].fillAmount;
+        
+        // Immediately update the main health bar to show new health
+        float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
+        playerHpBar[playerIndex].fillAmount = newHealthAmount;
+        
+        // Set the damage bar (red bar) to show the previous health
+        playerDamageBar[playerIndex].fillAmount = previousHealthAmount;
+        playerDamageBar[playerIndex].enabled = true;
+        
+        // Wait for 1 second
+        yield return new WaitForSeconds(1f);
+        
+        // Smoothly animate the red bar catching up to the new health
+        float elapsedTime = 0f;
+        float animationDuration = 0.3f; // How long the catch-up animation takes
+        
+        while (elapsedTime < animationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / animationDuration;
+            playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
+            yield return null;
+        }
+        
+        // Ensure it's exactly at the new health
+        playerDamageBar[playerIndex].fillAmount = newHealthAmount;
+        playerDamageBar[playerIndex].enabled = false;
+        
+        // Reset the isHit flag
+        player.isHit = false;
     }
 }

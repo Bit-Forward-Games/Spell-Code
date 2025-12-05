@@ -93,25 +93,19 @@ public class TempUIScript : MonoBehaviour
     {
         PlayerController player = GameManager.Instance.players[playerIndex];
         
-        if (!player.isHit) yield break;
+        player.isHit = false;
         
-        // Store the current health bar amount (before damage)
         float previousHealthAmount = playerHpBar[playerIndex].fillAmount;
         
-        // Immediately update the main health bar to show new health
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
         playerHpBar[playerIndex].fillAmount = newHealthAmount;
         
-        // Set the damage bar (red bar) to show the previous health
         playerDamageBar[playerIndex].fillAmount = previousHealthAmount;
-        playerDamageBar[playerIndex].enabled = true;
         
-        // Wait for 1 second
         yield return new WaitForSeconds(1f);
         
-        // Smoothly animate the red bar catching up to the new health
         float elapsedTime = 0f;
-        float animationDuration = 0.3f; // How long the catch-up animation takes
+        float animationDuration = 1f; 
         
         while (elapsedTime < animationDuration)
         {
@@ -120,12 +114,7 @@ public class TempUIScript : MonoBehaviour
             playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             yield return null;
         }
-        
-        // Ensure it's exactly at the new health
+
         playerDamageBar[playerIndex].fillAmount = newHealthAmount;
-        playerDamageBar[playerIndex].enabled = false;
-        
-        // Reset the isHit flag
-        player.isHit = false;
     }
 }

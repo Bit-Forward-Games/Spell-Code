@@ -1538,7 +1538,7 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            isHit = false;
+            // isHit = false;
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
             if (state == PlayerState.CodeWeave && hitboxData.attackLvl < 2)

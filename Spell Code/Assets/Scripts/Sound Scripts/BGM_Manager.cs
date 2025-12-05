@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,9 +14,7 @@ public class BGM_Manager : MonoBehaviour
     //AudioSource that will play songs
     private AudioSource musicAudioSource;
 
-    //[Header("Default song (leave as null to play a random song)")]
-    //[SerializeField] private AudioClip defaultSong = null;
-
+    //
     [Serializable]
     private class SceneAudioObject
     {
@@ -97,21 +96,18 @@ public class BGM_Manager : MonoBehaviour
             Instance = this;
         }
 
-        ////
-        //DontDestroyOnLoad(this.gameObject);
-
-        //
+        //assign the a custom callback method OnSceneLoaded to the sceneLoaded event so that BGM_Manager receives the notification when a new scene is loaded
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    /// <summary>
+    /// Custom callback method that gets called every time a new scene is loaded
+    /// </summary>
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         //sanity check for musicAudioSource
         if (musicAudioSource == null)
             return;
-
-        ////
-        //DontDestroyOnLoad(this.gameObject);
 
         //assign musicAudioSource
         musicAudioSource = gameObject.GetComponent<AudioSource>();
@@ -119,12 +115,6 @@ public class BGM_Manager : MonoBehaviour
         //play a song appropriate for the current scene
         StartAndPlaySong();
     }
-
-    //void Start()
-    //{
-    //    //start the default song
-    //    StartAndPlaySong(defaultSong);
-    //}
 
     /// <summary>
     /// Begin playing a random song from a list of available songs
@@ -144,31 +134,34 @@ public class BGM_Manager : MonoBehaviour
         //stop playing the current song
         StopSong();
 
+        //
+
+
         //traverse through sceneAudioObjects until the correct scene is found,...
         int sceneAudioIndex;
+        bool isSceneFound = false;
         for(sceneAudioIndex = 0; sceneAudioIndex < sceneAudioObjects.Count; sceneAudioIndex++)
         {
             //if the active scene is found in sceneAudioObjects,...
             if (sceneAudioObjects[sceneAudioIndex].sceneName == SceneManager.GetActiveScene().name)
             {
+                //set isSceneFound to true
+                isSceneFound = true;
+
                 //break out of the enclosing for loop since we have found the correct
                 break;
             }
         }
-        
-        ////sanity check
-        //if()
-        //{
 
-        //}
+        //sanity check to make sure that the current scene is in sceneAudioObjects
+        if(!isSceneFound)
+        {
+            //log a warning
+            Debug.Log(BGM_Manager.Instance.name + ": If you intend to play music in this scene, then please add an element to sceneAudioObjects for the current scene = " + SceneManager.GetActiveScene().name);
 
-        //
-        //switch (SceneManager.GetActiveScene())
-        //{
-        //    case var _value when _value == lobbyScene:
-        //        break;
-        //    case var _value when _value == gameplayScene:
-
+            //return
+            return;
+        }
 
         //sanity check to make sure that there are songs available to play
         if (sceneAudioObjects[sceneAudioIndex].availableSongs.Count <= 0)
@@ -201,23 +194,17 @@ public class BGM_Manager : MonoBehaviour
         {
             //create a list of songs to play that does not include the previously played song in the scene
             List<AudioClip> nonRepeatedSongs = new List<AudioClip>(sceneAudioObjects[sceneAudioIndex].availableSongs);
-            if(nonRepeatedSongs.Contains(sceneAudioObjects[sceneAudioIndex].previousSong))
+            if(nonRepeatedSongs.Contains(sceneAudioObjects[sceneAudioIndex].previousSong) && nonRepeatedSongs.Count >= 2)
             {
                 nonRepeatedSongs.Remove(sceneAudioObjects[sceneAudioIndex].previousSong);
             }
 
-            //choose a random song from availableSongs
+            //choose a random song from nonRepeatedSongs
             int choosenSongIndex = UnityEngine.Random.Range(0, nonRepeatedSongs.Count);
 
             //assign the clip of the audio source to the randomly choosen song
             musicAudioSource.clip = nonRepeatedSongs[choosenSongIndex];
         }
-        //        break;
-        //    case var _value when _value == shopScene:
-        //        break;
-        //    default:
-        //        break;
-        //}
 
         //assign previousSong of current scene to the song that is currently playing
         sceneAudioObjects[sceneAudioIndex].previousSong = musicAudioSource.clip;
@@ -268,6 +255,10 @@ public class BGM_Manager : MonoBehaviour
     /// </summary>
     public void PauseSong()
     {
+        //sanity check for musicAudioSource
+        if (musicAudioSource == null)
+            return;
+
         //if a song is NOT playing, then return
         if (!musicAudioSource.isPlaying)
             return;

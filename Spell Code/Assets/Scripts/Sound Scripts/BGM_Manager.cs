@@ -13,8 +13,8 @@ public class BGM_Manager : MonoBehaviour
     //AudioSource that will play songs
     private AudioSource musicAudioSource;
 
-    [Header("Default song (leave as null to play a random song)")]
-    [SerializeField] private AudioClip defaultSong = null;
+    //[Header("Default song (leave as null to play a random song)")]
+    //[SerializeField] private AudioClip defaultSong = null;
 
     [Serializable]
     private class SceneAudioObject
@@ -96,6 +96,28 @@ public class BGM_Manager : MonoBehaviour
             //set instance to this instance of BGM_Manager
             Instance = this;
         }
+
+        ////
+        //DontDestroyOnLoad(this.gameObject);
+
+        //
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        //sanity check for musicAudioSource
+        if (musicAudioSource == null)
+            return;
+
+        ////
+        //DontDestroyOnLoad(this.gameObject);
+
+        //assign musicAudioSource
+        musicAudioSource = gameObject.GetComponent<AudioSource>();
+
+        //play a song appropriate for the current scene
+        StartAndPlaySong();
     }
 
     //void Start()
@@ -152,7 +174,7 @@ public class BGM_Manager : MonoBehaviour
         if (sceneAudioObjects[sceneAudioIndex].availableSongs.Count <= 0)
         {
             //log a warning
-            Debug.LogWarning(gameObject.name + ": Please specify at least 1 song to play in availableSongs of the BGM_Manager script");
+            Debug.LogWarning(BGM_Manager.Instance.name + ": Please specify at least 1 song to play in availableSongs of the BGM_Manager script");
 
             //return
             return;
@@ -162,7 +184,7 @@ public class BGM_Manager : MonoBehaviour
         if (nameOfSongToPlay != null && sceneAudioObjects[sceneAudioIndex].availableSongs.Find(x => x.name == nameOfSongToPlay) == null)
         {
             //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified song of name = \"" + nameOfSongToPlay + "\" does not exist within availableSongs of the BGM_Manager script. Playing a random song");
+            Debug.LogWarning(BGM_Manager.Instance.name + ": Specified song of name = \"" + nameOfSongToPlay + "\" does not exist within availableSongs of the BGM_Manager script. Playing a random song");
 
             //set nameOfSongToPlay to null so that a random song is player
             nameOfSongToPlay = null;
@@ -229,6 +251,10 @@ public class BGM_Manager : MonoBehaviour
     /// </summary>
     public void StopSong()
     {
+        //sanity check for musicAudioSource
+        if (musicAudioSource == null)
+            return;
+
         //if a song is NOT playing, then return
         if (!musicAudioSource.isPlaying)
             return;

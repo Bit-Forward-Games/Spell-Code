@@ -103,7 +103,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //StartCoroutine(End());
 
         //play a new main menu song
-        BGM_Manager.Instance.StartAndPlaySong();
+        //BGM_Manager.Instance.StartAndPlaySong();
     }
 
     // Update is called once per frame
@@ -519,7 +519,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         SceneManager.LoadScene("Shop");
 
          //play a new shop song
-         BGM_Manager.Instance.StartAndPlaySong();
+         //BGM_Manager.Instance.StartAndPlaySong();
     }
 
     /// <summary>
@@ -539,7 +539,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         SceneManager.LoadScene("End");
 
         //play a new end song
-        BGM_Manager.Instance.StartAndPlaySong();
+        //BGM_Manager.Instance.StartAndPlaySong();
     }
 
     public PlayerController[] GetActivePlayerControllers()
@@ -586,7 +586,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         SceneManager.LoadScene("Gameplay");
 
         //play a new gameplay song
-        BGM_Manager.Instance.StartAndPlaySong();
+        //BGM_Manager.Instance.StartAndPlaySong();
 
         ResetPlayers();
     }

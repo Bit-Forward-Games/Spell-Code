@@ -17,27 +17,29 @@ public class BGM_Manager : MonoBehaviour
     [SerializeField] private AudioClip defaultSong = null;
 
     [Serializable]
-    private struct SceneAudioObject
+    private class SceneAudioObject
     {
-        public string sceneName;
-        public List<AudioClip> availableSongs;
+        public string sceneName; //name of the scene
+        public List<AudioClip> availableSongs; //list of songs that can play in the scene with name = sceneName
+        public AudioClip previousSong; //the last played song within the scene with name = sceneName
     }
 
     //[Header("List of songs that have a chance to play in this scene")]
-    [SerializeField] private List<AudioClip> availableSongs;
+    //[SerializeField] private List<AudioClip> availableSongs;
 
-    [Header("List of songs that can play in lobby phase")]
-    [SerializeField] private Scene lobbyScene;
-    [SerializeField] private List<AudioClip> lobbySongs;
+    //[Header("List of songs that can play in lobby phase")]
+    //[SerializeField] private Scene lobbyScene;
+    //[SerializeField] private List<AudioClip> lobbySongs;
 
-    [Header("List of songs that can play during a match")]
-    [SerializeField] private Scene gameplayScene;
-    [SerializeField] private List<AudioClip> gameplaySongs;
+    //[Header("List of songs that can play during a match")]
+    //[SerializeField] private Scene gameplayScene;
+    //[SerializeField] private List<AudioClip> gameplaySongs;
 
-    [Header("List of songs that can play in lobby phase")]
-    [SerializeField] private Scene shopScene;
-    [SerializeField] private List<AudioClip> shopSongs;
+    //[Header("List of songs that can play in lobby phase")]
+    //[SerializeField] private Scene shopScene;
+    //[SerializeField] private List<AudioClip> shopSongs;
 
+    [Header("List of songs that have a chance to play in each listed scene")]
     [SerializeField] private List<SceneAudioObject> sceneAudioObjects;
 
     //TESTBENCH FUNCTIONS
@@ -96,11 +98,11 @@ public class BGM_Manager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        //start the default song
-        StartAndPlaySong(defaultSong);
-    }
+    //void Start()
+    //{
+    //    //start the default song
+    //    StartAndPlaySong(defaultSong);
+    //}
 
     /// <summary>
     /// Begin playing a random song from a list of available songs
@@ -127,9 +129,16 @@ public class BGM_Manager : MonoBehaviour
             //if the active scene is found in sceneAudioObjects,...
             if (sceneAudioObjects[sceneAudioIndex].sceneName == SceneManager.GetActiveScene().name)
             {
+                //break out of the enclosing for loop since we have found the correct
                 break;
             }
-        }        
+        }
+        
+        ////sanity check
+        //if()
+        //{
+
+        //}
 
         //
         //switch (SceneManager.GetActiveScene())
@@ -137,7 +146,9 @@ public class BGM_Manager : MonoBehaviour
         //    case var _value when _value == lobbyScene:
         //        break;
         //    case var _value when _value == gameplayScene:
-                //sanity check to make sure that there are songs available to play
+
+
+        //sanity check to make sure that there are songs available to play
         if (sceneAudioObjects[sceneAudioIndex].availableSongs.Count <= 0)
         {
             //log a warning
@@ -166,11 +177,18 @@ public class BGM_Manager : MonoBehaviour
         //else no song name is specified,...
         else
         {
+            //create a list of songs to play that does not include the previously played song in the scene
+            List<AudioClip> nonRepeatedSongs = new List<AudioClip>(sceneAudioObjects[sceneAudioIndex].availableSongs);
+            if(nonRepeatedSongs.Contains(sceneAudioObjects[sceneAudioIndex].previousSong))
+            {
+                nonRepeatedSongs.Remove(sceneAudioObjects[sceneAudioIndex].previousSong);
+            }
+
             //choose a random song from availableSongs
-            int choosenSongIndex = UnityEngine.Random.Range(0, sceneAudioObjects[sceneAudioIndex].availableSongs.Count);
+            int choosenSongIndex = UnityEngine.Random.Range(0, nonRepeatedSongs.Count);
 
             //assign the clip of the audio source to the randomly choosen song
-            musicAudioSource.clip = sceneAudioObjects[sceneAudioIndex].availableSongs[choosenSongIndex];
+            musicAudioSource.clip = nonRepeatedSongs[choosenSongIndex];
         }
         //        break;
         //    case var _value when _value == shopScene:
@@ -178,6 +196,9 @@ public class BGM_Manager : MonoBehaviour
         //    default:
         //        break;
         //}
+
+        //assign previousSong of current scene to the song that is currently playing
+        sceneAudioObjects[sceneAudioIndex].previousSong = musicAudioSource.clip;
 
         //start playing the new song
         PlaySong();

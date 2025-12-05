@@ -101,6 +101,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         SetStage(-1);
         //StartCoroutine(End());
+
+        //play a new main menu song
+        BGM_Manager.Instance.StartAndPlaySong();
     }
 
     // Update is called once per frame
@@ -514,6 +517,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isRunning = false;
 
         SceneManager.LoadScene("Shop");
+
+         //play a new shop song
+         BGM_Manager.Instance.StartAndPlaySong();
     }
 
     /// <summary>
@@ -531,6 +537,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
         SceneManager.LoadScene("End");
+
+        //play a new end song
+        BGM_Manager.Instance.StartAndPlaySong();
     }
 
     public PlayerController[] GetActivePlayerControllers()
@@ -575,6 +584,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         } while (currentStageIndex == newStageIndex);
         SetStage(newStageIndex);
         SceneManager.LoadScene("Gameplay");
+
+        //play a new gameplay song
+        BGM_Manager.Instance.StartAndPlaySong();
+
         ResetPlayers();
     }
 

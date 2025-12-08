@@ -559,16 +559,16 @@ using BestoNet.Collections; // Use BestoNet collections
     /// <returns>True if simulation timing is acceptable, false if a frame drop is recommended.</returns>
     public bool CheckTimeSync(out float frameAdvantageDifference)
     {
-        if (localFrame < 120)
-        {
-            frameAdvantageDifference = 0;
-            return true;
-        }
-        // Safety: if we haven't received any remote frames yet, assume we're in sync
-        if (remoteFrame == 0)
+            //if (localFrame < 600)
+            //{
+            //    frameAdvantageDifference = 0;
+            //    localFrameAdvantage = 0;
+            //    return true;
+            //}
+            // Safety: if we haven't received any remote frames yet, assume we're in sync
+            if (remoteFrame == 0 && localFrame < 60)
             {
                 frameAdvantageDifference = 0;
-                Debug.LogWarning($"Frame {localFrame}: Still no remote frames received!");
                 return true;
             }
         localFrameAdvantage = localFrame - predictedRemoteFrame; // Calculate current advantage

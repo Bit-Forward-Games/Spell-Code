@@ -15,7 +15,6 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
-using UnityEngine.U2D;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -152,27 +151,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             //cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
             cachedLocalInput = GatherInputForOnline();
             Debug.Log($"[Update] Cached input from input system: {cachedLocalInput}");
-
-            //Keep PlayerInputManager disabled during online play
-            if (playerInputManager != null && playerInputManager.enabled)
-            {
-                Debug.LogWarning("PlayerInputManager was re-enabled! Disabling it again.");
-                playerInputManager.DisableJoining();
-                playerInputManager.enabled = false;
-            }
         }
 
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
-            if (playerInputManager != null)
-            {
-                bool shouldBeEnabled = (SceneManager.GetActiveScene().name == "Gameplay");
-                if (playerInputManager.enabled != shouldBeEnabled)
-                {
-                    playerInputManager.enabled = shouldBeEnabled;
-                }
-            }
+            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
         }
         else
         {
@@ -320,15 +304,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
             return;
         }
+        isOnlineMatchActive = true;
 
         // Find and disable the PlayerInputManager to prevent it from interfering
+        //var inputManager = FindFirstObjectByType<UnityEngine.InputSystem.PlayerInputManager>();
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("PlayerInputManager disabled");
         }
-        isOnlineMatchActive = true;
 
         ResetMatchState(); // Reset frame counter, player states etc.
         localPlayerIndex = localIndex;
@@ -355,30 +339,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 players[i].playerNum.text = "P" + (i + 1);
             }
-
-            var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
             // Assign default input device to null or dummy initially
             // inputs will be handled by RunOnlineFrame overrides
             if (i == remotePlayerIndex)
             {
-                // Remote player - disable their input completely
-                if (pInput != null)
+                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (playerInputManager != null)
                 {
                     pInput.DeactivateInput();
-                    pInput.enabled = false;
+                    playerInputManager.enabled = false;
                 }
                 players[i].CheckForInputs(false);
-                Debug.Log($"Player {i} (REMOTE) created with input disabled");
             }
-            else if (i == localIndex)
+
+            if (i == localIndex)
             {
-                // Local player - enable their input
-                if (pInput != null)
+                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                //var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+                if (playerInputManager != null)
                 {
                     pInput.ActivateInput();
-
-                    // Try to pair with keyboard if user is valid
-                    if (pInput.user.valid && UnityEngine.InputSystem.Keyboard.current != null)
+                    //playerInputManager.enabled = false;
+                    if (pInput.user.valid)
                     {
                         UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
                             UnityEngine.InputSystem.Keyboard.current,
@@ -387,7 +369,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                 }
                 players[i].CheckForInputs(true);
-                Debug.Log($"Player {i} (LOCAL) created with input enabled");
             }
         }
 
@@ -516,16 +497,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (!timeSynced)
         {
             timeoutFrames++;
-            if (timeoutFrames % 30 == 0) // Every 30 failed frames
-            {
-                Debug.LogWarning($"TimeSync Failed! TimeoutFrames: {timeoutFrames}/{rbManager.TimeoutFrames}, " +
-                               $"LocalFrame: {frameNumber}, RemoteFrame: {rbManager.remoteFrame}");
-            }
-
             if (timeoutFrames > rbManager.TimeoutFrames)
             {
-                Debug.LogError($" TIMEOUT DISCONNECT! LocalFrame: {frameNumber}, " +
-                              $"RemoteFrame: {rbManager.remoteFrame}, TimeoutFrames: {timeoutFrames}");
                 rbManager.TriggerMatchTimeout();
             }
             return; // Skip frame

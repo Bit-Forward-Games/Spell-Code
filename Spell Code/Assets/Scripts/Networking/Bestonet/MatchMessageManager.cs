@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Steamworks; 
 using Steamworks.Data;
@@ -237,8 +237,7 @@ using BestoNet.Collections; // For CircularArray
                             int startFrame = reader.ReadInt32();
                             int inputCount = reader.ReadByte();
 
-                            Debug.Log($"✓ Received Input Packet: StartFrame={startFrame}, Count={inputCount}, " +
-                              $"RemoteAdvantage={remoteFrameAdvantage}");
+                            Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
 
                             for (int i = 0; i < inputCount; i++)
                             {
@@ -257,9 +256,6 @@ using BestoNet.Collections; // For CircularArray
                                 {
                                     RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
                                     RollbackManager.Instance.SetRemoteFrame(frame);
-
-                                    // Confirm remote frame was updated
-                                    Debug.Log($"✓ Updated remoteFrame to {frame}");
                                 }
                             }
                         }
@@ -345,11 +341,8 @@ using BestoNet.Collections; // For CircularArray
                     inputCount = MaxInputsPerPacket;
                 }
 
-                if (currentLocalFrame % 60 == 0)
-                {
-                    Debug.Log($"[SendInputs] Frame {currentLocalFrame}: Sending {inputCount} inputs " +
-                              $"(frames {firstFrameToSend}-{latestTargetFrame}) to {opponentSteamId}");
-                }
+                //Debug.Log($"[SendInputs] CurrentFrame={currentLocalFrame}, " +
+                //$"LatestTarget={latestTargetFrame}, OpponentID={opponentSteamId}");
 
                 try
                 {
@@ -392,12 +385,13 @@ using BestoNet.Collections; // For CircularArray
                                     MATCH_MESSAGE_CHANNEL,
                                     INPUT_SEND_TYPE
                                 );
-                            if (!success)
+                            if (success)
                             {
-                                Debug.LogError($"Failed to send P2P packet to {opponentSteamId}!");
-                    }
-                            else if (currentLocalFrame % 60 == 0)
-                    {
+                                // Packet sent successfully
+                                //Debug.LogError($"P2P packet sent successfully to {opponentSteamId}.");
+                            }
+                            else
+                            {
                                 // Ignored result isn't directly available with bool,
                                 // but false generally indicates a more serious failure.
                                 Debug.LogError($"Failed to send P2P packet (returned false).");

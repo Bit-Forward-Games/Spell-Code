@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -81,6 +81,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     [Header("Online UI")]
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
+
+    [Header("Online Match State")]
+    public bool isWaitingForOpponent = false;
+    public bool opponentIsReady = false;
+    private float lobbyWaitStartTime = 0f;
+    private float LOBBY_TIMEOUT = 30f;
 
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
@@ -198,7 +204,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isTransitioning) return;
 
-        //Debug.Log($"[FixedUpdate] isOnlineMatchActive={isOnlineMatchActive}");
+        if (isOnlineMatchActive && isWaitingForOpponent)
+        {
+            // Check for lobby timeout
+            float waitTime = 0f;
+            if (waitTime > LOBBY_TIMEOUT)
+            {
+                Debug.LogError("Lobby timeout - opponent didn't join in time");
+                StopMatch("Opponent failed to connect");
+                // Return to menu or show error UI
+                return;
+            }
+
+            return; // Don't run simulation yet
+        }
 
         if (isOnlineMatchActive)
         {
@@ -299,29 +318,33 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("Cannot start online match: RollbackManager not found!");
             return;
         }
-        if (!opponentId.IsValid) // Add check for valid opponent ID
+        if (!opponentId.IsValid)
         {
             Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
             return;
         }
-        isOnlineMatchActive = true;
 
-        // Find and disable the PlayerInputManager to prevent it from interfering
-        //var inputManager = FindFirstObjectByType<UnityEngine.InputSystem.PlayerInputManager>();
+        // Disable PlayerInputManager
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
+            Debug.Log("✓ PlayerInputManager disabled");
         }
 
-        ResetMatchState(); // Reset frame counter, player states etc.
+        // Set up online state but DON'T start simulation yet
+        isOnlineMatchActive = true;
+        isWaitingForOpponent = true; // NEW: Enter lobby wait state
+        opponentIsReady = false;
+        lobbyWaitStartTime = Time.unscaledTime;
+
+        ResetMatchState();
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
-
         currentStageIndex = 0;
 
-        ClearPlayerObjects(); // Remove old players
-        this.playerCount = 2; // Assuming 2-player online match for now
+        ClearPlayerObjects();
+        this.playerCount = 2;
 
         if (playerPrefab == null)
         {
@@ -329,38 +352,35 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             return;
         }
 
-        // Force Instantiate 2 Players
+        // Create players but don't start simulation
         for (int i = 0; i < 2; i++)
         {
             GameObject p = Instantiate(playerPrefab);
             players[i] = p.GetComponent<PlayerController>();
             AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
+
             if (players[i].playerNum != null)
             {
                 players[i].playerNum.text = "P" + (i + 1);
             }
-            // Assign default input device to null or dummy initially
-            // inputs will be handled by RunOnlineFrame overrides
+
+            var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+
             if (i == remotePlayerIndex)
             {
-                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-                if (playerInputManager != null)
+                if (pInput != null)
                 {
                     pInput.DeactivateInput();
-                    playerInputManager.enabled = false;
+                    pInput.enabled = false;
                 }
                 players[i].CheckForInputs(false);
             }
-
-            if (i == localIndex)
+            else if (i == localIndex)
             {
-                var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-                //var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-                if (playerInputManager != null)
+                if (pInput != null)
                 {
                     pInput.ActivateInput();
-                    //playerInputManager.enabled = false;
-                    if (pInput.user.valid)
+                    if (pInput.user.valid && UnityEngine.InputSystem.Keyboard.current != null)
                     {
                         UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
                             UnityEngine.InputSystem.Keyboard.current,
@@ -381,33 +401,50 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         ProjectileManager.Instance.InitializeAllProjectiles();
-        // Ensure players are spawned/reset
         ResetPlayers();
 
-
-        // Pass opponent ID to RollbackManager.Init 
-        // Get the ulong value from the SteamId struct
+        // Initialize managers
         RollbackManager.Instance.Init(opponentId.Value);
 
-        // Initialize local player input device (example)
-        // players[localPlayerIndex]?.inputs.AssignInputDevice(...); // Needs your specific input setup
-
-        // Also initialize MatchMessageManager
         if (MatchMessageManager.Instance != null)
         {
             MatchMessageManager.Instance.StartMatch(opponentId);
+            // Send ready signal to opponent
+            MatchMessageManager.Instance.SendReadySignal();
         }
         else
         {
             Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
 
-        isOnlineMatchActive = true;
-        isRunning = true;
-        Debug.Log("Online Match Started.");
+        // DON'T set isRunning yet - wait for opponent
+        Debug.Log($"Entered Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
+    }
 
-        Debug.Log($"[StartOnlineMatch] COMPLETE! isOnlineMatchActive={isOnlineMatchActive}, " +
-              $"localPlayerIndex={localPlayerIndex}, remotePlayerIndex={remotePlayerIndex}");
+    public void OnOpponentReady()
+    {
+        Debug.Log("Opponent is ready!");
+        opponentIsReady = true;
+
+        // If both players are ready, start the match
+        if (isWaitingForOpponent && opponentIsReady)
+        {
+            StartMatchSimulation();
+        }
+    }
+
+    private void StartMatchSimulation()
+    {
+        Debug.Log("Both players ready - Starting match simulation!");
+        isWaitingForOpponent = false;
+        isRunning = true;
+        frameNumber = 0; // Reset frame counter
+
+        // Send a sync packet to confirm start
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.SendMatchStartConfirm();
+        }
     }
 
     /// <summary>

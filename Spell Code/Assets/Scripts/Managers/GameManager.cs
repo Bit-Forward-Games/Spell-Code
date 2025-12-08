@@ -245,41 +245,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         return GatherRawInput();
     }
 
-    // Add this new method to GameManager
     private ulong GatherRawInput()
     {
-        // Direction input
+        // Direction
         bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
         bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
         bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
         bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Button states - use GetKey for current state
-        codeCurrentFrame = UnityEngine.Input.GetKey(KeyCode.R);
-        jumpCurrentFrame = UnityEngine.Input.GetKey(KeyCode.T);
+        // Buttons - sample current state
+        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Calculate button states based on previous and current
-        ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeCurrentFrame);
-        ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpCurrentFrame);
+        // Detect state transitions
+        ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeNow);
+        ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpNow);
 
-        // Calculate direction (numpad notation)
-        byte direction = 5; // neutral
-        if (up && right) direction = 9;
-        else if (up && left) direction = 7;
-        else if (down && right) direction = 3;
-        else if (down && left) direction = 1;
-        else if (up) direction = 8;
-        else if (down) direction = 2;
-        else if (left) direction = 4;
-        else if (right) direction = 6;
+        // Update for next frame - do this AFTER getting states
+        codePrevFrame = codeNow;
+        jumpPrevFrame = jumpNow;
 
         ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
         bool[] dirs = new bool[4] { up, down, left, right };
-
-        if (UnityEngine.Input.anyKey)
-        {
-            Debug.Log($"[GatherRawKeyboardInput] Direction={direction}, Up={up}, Down={down}, Left={left}, Right={right}, Code={codeState}, Jump={jumpState}");
-        }
 
         return (ulong)InputConverter.ConvertToLong(buttons, dirs);
     }

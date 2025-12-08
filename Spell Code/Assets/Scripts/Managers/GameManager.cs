@@ -831,6 +831,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 for (int i = 0; i < playerCount; i++)
                 {
+                    players[i].playerNum.enabled = false;
+                    players[i].inputDisplay.enabled = false;
                     if (players[i].isAlive)
                     {
                         playerWinText.enabled = true;

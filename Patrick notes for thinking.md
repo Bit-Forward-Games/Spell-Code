@@ -19,8 +19,16 @@ Spell reworks and balance
 *  		builds into the fantasy of Hermes flight and meshes well with the reps system, also isn't egregious in our game assuming we make the game map such that you can always reach every point in the stage with just a double jump and a basic attack
 * skillshot slash I simply added an extra 10 damage if you hit it while in flowstate so its self sufficient)
 * ninja\_build\_blast rework to make it self sufficient (at start of move have a skillshot hitbox)
-* &nbsp;	adjust flowstate passive on this spell to instead refund all cooldowns based on how much flowstate is consumed
+*  	adjust flowstate passive on this spell to instead refund all cooldowns based on how much flowstate is consumed
 * re-sprite Gift of promethius to be twice the size for more "oomph" factor and to really sell it as a big cash out move that deserves a 4 input code
-* &nbsp;	to balance this, give it an 8 second cooldown
+*  	to balance this, give it an 8 second cooldown
 * Might of zeus will now spawn 3 lightning bolts instead of 1, staggered in timing and position
-* &nbsp;	to balance this, each bolt will only do 5 damage down from 10
+*  	to balance this, each bolt will only do 5 damage down from 10
+
+
+
+
+
+Potential comeback mechanic for RNG:
+having the curated RNG to help with runs (making sure u get at least 1 spell in ur brand, no repeats, no passives for brands you dont own, etc.), which goes away as you win, creating more chaotic builds
+

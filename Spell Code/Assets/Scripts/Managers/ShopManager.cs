@@ -73,11 +73,17 @@ public class ShopManager : MonoBehaviour
         p2_index = 0;
         p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
 
-        p3_index = 0;
-        p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_choices[p3_index]].shopSprite;
+        if (gameManager.players[2] != null)
+        {
+            p3_index = 0;
+            p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_choices[p3_index]].shopSprite;
+        }
 
-        p4_index = 0;
-        p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
+        if (gameManager.players[3] != null)
+        {
+            p4_index = 0;
+            p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
+        }
 
         //StartCoroutine(Shop());
     }
@@ -240,6 +246,14 @@ public class ShopManager : MonoBehaviour
         }
         if (allPlayersChosen && !backToGameplay)
         {
+            foreach (PlayerController player in gameManager.players)
+            {
+                if (player != null)
+                {
+                    player.playerNum.enabled = true;
+                    player.inputDisplay.enabled = true;
+                }
+            }
             backToGameplay = true;
             StartCoroutine(Shop());
         }

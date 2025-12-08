@@ -268,16 +268,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
         bool[] dirs = new bool[4] { up, down, left, right };
 
-        ulong result = (ulong)InputConverter.ConvertToLong(buttons, dirs);
-
-        // CRITICAL FIX: If the result is 0 and no buttons/directions are pressed,
-        // ensure we return the neutral value (5) instead
-        if (result == 0 && !up && !down && !left && !right && !codeNow && !jumpNow)
-        {
-            return 5UL; // Return neutral input explicitly
-        }
-
-        return result;
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
     }
 
     private ButtonState GetButtonStateHelper(bool previous, bool current)
@@ -492,12 +483,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerInput = cachedLocalInput;
         codePrevFrame = codeCurrentFrame;
         jumpPrevFrame = jumpCurrentFrame;
-        //Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
-        if (frameNumber % 60 == 0) // Log every 60 frames
-        {
-            Debug.Log($"Frame {frameNumber}: LocalInput={localPlayerInput}, " +
-                      $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
-        }
+        Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
 
         //if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
         //{

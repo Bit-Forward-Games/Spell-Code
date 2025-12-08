@@ -3,11 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using BestoNet.Collections; // Use BestoNet collections
 
-// Note: Removed IdolShowdown namespaces
-
-// Using alias for FrameMetadataArray if defined in your project, otherwise use full name
-// using FrameMetadataArray = YourProject.FrameMetadataArray; // Example if you defined it elsewhere
-
     public class RollbackManager : MonoBehaviour
     {
         // --- Singleton Instance ---
@@ -27,8 +22,8 @@ using BestoNet.Collections; // Use BestoNet collections
             public int frame;
             public ulong input;
         }
-        // Use FrameMetadataArray from BestoNet or your definition
-        // Assuming FrameMetadataArray inherits from BestoNet.Collections.CircularArray<FrameMetadata>
+
+        // FrameMetadataArray inherits from BestoNet.Collections.CircularArray<FrameMetadata>
         // Adjust namespace if needed.
         public FrameMetadataArray receivedInputs { get; private set; }
         public FrameMetadataArray opponentInputs { get; private set; }
@@ -75,8 +70,7 @@ using BestoNet.Collections; // Use BestoNet collections
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
-        // Removed LobbyManager, MatchRunner references
-        private MatchMessageManager matchManager; // Reference to your message manager
+        private MatchMessageManager matchManager; // Reference to the message manager
         // Store opponent's network ID (e.g., SteamID ulong) - Must be provided during Init!
         private ulong opponentNetworkId;
         // --- End External References ---

@@ -318,7 +318,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
 
-        currentStageIndex = -1;
+        currentStageIndex = 0;
 
         ClearPlayerObjects(); // Remove old players
         this.playerCount = 2; // Assuming 2-player online match for now
@@ -552,12 +552,18 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (activeScene.name == "MainMenu")
         {
-            goDoorPrefab.CheckOpenDoor();
+            //goDoorPrefab.CheckOpenDoor();
 
-            if (goDoorPrefab.CheckAllPlayersReady())
+            //if (goDoorPrefab.CheckAllPlayersReady())
+            //{
+            //    // CRITICAL: Stop simulation before loading
+            //    isTransitioning = true; // Use the Transition flag
+            //    LoadRandomGameplayStage();
+            //}
+            // Immediately transition if we are somehow in MainMenu
+            if (!isTransitioning)
             {
-                // CRITICAL: Stop simulation before loading
-                isTransitioning = true; // Use the Transition flag
+                isTransitioning = true;
                 LoadRandomGameplayStage();
             }
         }

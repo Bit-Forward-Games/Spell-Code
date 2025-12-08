@@ -98,14 +98,14 @@ public class TempConnectionUI : MonoBehaviour
             }
 
             // Load the gameplay scene
-            //if (!string.IsNullOrEmpty(gameplaySceneName))
-            //{
-            //    SceneManager.LoadScene(gameplaySceneName);
-            //}
-            //else
-            //{
-            //    Debug.LogError("Gameplay Scene Name is not set in the Inspector.");
-            //}
+            if (!string.IsNullOrEmpty(gameplaySceneName))
+            {
+                SceneManager.LoadScene(gameplaySceneName);
+            }
+            else
+            {
+                Debug.LogError("Gameplay Scene Name is not set in the Inspector.");
+            }
             // --- End Hide UI & Load Scene ---
 
         }

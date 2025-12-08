@@ -347,7 +347,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 if (playerInputManager != null)
                 {
                     pInput.ActivateInput();
-                    playerInputManager.enabled = true;
+                    //playerInputManager.enabled = false;
                     if (pInput.user.valid)
                     {
                         UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(

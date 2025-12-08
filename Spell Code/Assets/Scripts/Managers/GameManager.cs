@@ -15,7 +15,6 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
-using BestoNet.Random;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -1082,45 +1081,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         //make the next stage random but different from the last stage
         int newStageIndex;
-
         if (isOnlineMatchActive)
         {
-            // ONLINE: Deterministic Selection
-
-            // Create a seed. Ideally, this seed should be shared/agreed upon.
-            // For a simple solution without sending a new packet, use the current frame number
-            // or a hash of the players' SteamIDs.
-            // A simple shared value available to both is frameNumber (if synced) or just a hardcoded test seed.
-
-            // BETTER OPTION: Use a seed based on something both clients know is identical.
-            // Example: Sum of both players' Steam IDs (if available) or just frame count if it's synced.
-            // For now, use a fixed seed + round number to ensure it changes per match but is same for both.
-            long seed = 12345 + dataManager.totalRoundsPlayed;
-
-            // Initialize DeterministicRandom
-            var rng = new DeterministicRandom(seed);
-
-            // Generate random index
-            // We use a loop to ensure we don't pick the same stage, just like offline
-            do
-            {
-                // NextInt is exclusive on the upper bound (stages.Length)
-                newStageIndex = rng.NextInt(0, stages.Length);
-            } while (currentStageIndex == newStageIndex && stages.Length > 1);
-
-            Debug.Log($"[Online] Deterministic Stage Selected: {newStageIndex} (Seed: {seed})");
+            newStageIndex = 0;
         }
-        else
+        else 
         {
-            // OFFLINE
             do
             {
-                newStageIndex = UnityEngine.Random.Range(0, stages.Length);
-            } while (currentStageIndex == newStageIndex && stages.Length > 1);
+                newStageIndex = Random.Range(0, stages.Length);
+
+            } while (currentStageIndex == newStageIndex);
         }
-
+            
         SetStage(newStageIndex);
-
         if (isOnlineMatchActive)
         {
             isTransitioning = true; // Stop RunOnlineFrame

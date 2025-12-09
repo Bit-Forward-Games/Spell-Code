@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.IO;
 using BestoNet.Types;
 
 
@@ -22,7 +23,10 @@ public class SpellCode_Gate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        CheckGateBroken();
+        if (!isOpen)
+        {
+            CheckGateBroken();
+        }
     }
 
     public void CheckGateBroken()
@@ -55,12 +59,22 @@ public class SpellCode_Gate : MonoBehaviour
                     if (CheckCollision(hitbox, projectile.position, gateBounds,
                                 projectile.facingRight))
                     {
-                        isOpen = true;
-                        gateAnimator.SetBool("live", false);
+                        SetOpen(true);
+                        return;
                     }
                 }
 
             }
+        }
+    }
+
+    // Helper to set state and update visuals
+    public void SetOpen(bool open)
+    {
+        isOpen = open;
+        if (gateAnimator != null)
+        {
+            gateAnimator.SetBool("live", !isOpen);
         }
     }
 
@@ -106,5 +120,16 @@ public class SpellCode_Gate : MonoBehaviour
     {
         //return isRight ? hitData.xOffset : -hitData.xOffset;
         return isRight ? hitData.xOffset : -(hitData.xOffset + hitData.width);
+    }
+
+    public void Serialize(BinaryWriter bw)
+    {
+        bw.Write(isOpen);
+    }
+
+    public void Deserialize(BinaryReader br)
+    {
+        bool wasOpen = br.ReadBoolean();
+        SetOpen(wasOpen);
     }
 }

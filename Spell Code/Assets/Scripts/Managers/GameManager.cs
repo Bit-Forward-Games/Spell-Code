@@ -1271,6 +1271,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                 }
 
+                bw.Write(gates.Length);
+                foreach (var gate in gates)
+                {
+                    if (gate != null) gate.Serialize(bw);
+                }
+
                 return memoryStream.ToArray();
             }
         }
@@ -1408,6 +1414,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     else
                     {
                         Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
+                    }
+                }
+
+                int gateCount = br.ReadInt32();
+                for (int i = 0; i < gateCount; i++)
+                {
+                    if (i < gates.Length && gates[i] != null)
+                    {
+                        gates[i].Deserialize(br);
                     }
                 }
 

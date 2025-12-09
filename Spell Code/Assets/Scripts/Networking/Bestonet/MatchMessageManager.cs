@@ -162,7 +162,7 @@ using BestoNet.Collections; // For CircularArray
 
                     if (success)
                     {
-                        Debug.Log($"✓ Sent READY signal to {opponentSteamId}");
+                        Debug.Log($"Sent READY signal to {opponentSteamId}");
                     }
                     else
                     {
@@ -203,7 +203,7 @@ using BestoNet.Collections; // For CircularArray
                         P2PSend.Reliable
                     );
 
-                    Debug.Log("✓ Sent MATCH START confirmation");
+                    Debug.Log("Sent MATCH START confirmation");
                 }
             }
         }
@@ -296,6 +296,12 @@ using BestoNet.Collections; // For CircularArray
             return;
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPacketReceived();
+        }
+
+
         try
         {
             using (MemoryStream memoryStream = new MemoryStream(messageData))
@@ -308,7 +314,7 @@ using BestoNet.Collections; // For CircularArray
                     if (packetType == 0xFF)
                     {
                         string message = reader.ReadString();
-                        Debug.Log($"✓ Received handshake: {message}");
+                        Debug.Log($"Received handshake: {message}");
                         SendHandshake();
                         return;
                     }
@@ -317,7 +323,7 @@ using BestoNet.Collections; // For CircularArray
                     if (packetType == PACKET_TYPE_READY)
                     {
                         ulong senderSteamId = reader.ReadUInt64();
-                        Debug.Log($"✓ Received READY signal from {senderSteamId}");
+                        Debug.Log($"Received READY signal from {senderSteamId}");
 
                         // Notify GameManager that opponent is ready
                         if (GameManager.Instance != null)
@@ -333,7 +339,7 @@ using BestoNet.Collections; // For CircularArray
                     // Handle match start confirmation
                     if (packetType == PACKET_TYPE_MATCH_START)
                     {
-                        Debug.Log("✓ Received MATCH START confirmation");
+                        Debug.Log("Received MATCH START confirmation");
                         // Both sides confirmed, we're good to go
                         return;
                     }
@@ -352,7 +358,7 @@ using BestoNet.Collections; // For CircularArray
                         int startFrame = reader.ReadInt32();
                         int inputCount = reader.ReadByte();
 
-                        Debug.Log($"✓ Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
+                        Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
 
                         for (int i = 0; i < inputCount; i++)
                         {
@@ -369,7 +375,7 @@ using BestoNet.Collections; // For CircularArray
                             {
                                 RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
                                 RollbackManager.Instance.SetRemoteFrame(frame);
-                                Debug.Log($"✓ Updated remoteFrame to {frame}");
+                                Debug.Log($"Updated remoteFrame to {frame}");
                             }
                         }
                     }

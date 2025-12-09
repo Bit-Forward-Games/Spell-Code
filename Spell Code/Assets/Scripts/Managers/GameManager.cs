@@ -87,6 +87,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;
     private float LOBBY_TIMEOUT = 30f;
+    // Network health tracking (uses real time, not frames)
+    private float lastPacketReceivedTime = 0f;
+    private const float NETWORK_TIMEOUT = 10f;
 
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
@@ -207,7 +210,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (isOnlineMatchActive && isWaitingForOpponent)
         {
             // Check for lobby timeout
-            float waitTime = 0f;
+            float waitTime = UnityEngine.Time.unscaledTime - lobbyWaitStartTime;
             if (waitTime > LOBBY_TIMEOUT)
             {
                 Debug.LogError("Lobby timeout - opponent didn't join in time");
@@ -217,6 +220,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
 
             return; // Don't run simulation yet
+        }
+
+        if (isOnlineMatchActive && isRunning)
+        {
+            if (!CheckNetworkHealth())
+            {
+                StopMatch("Network timeout - connection lost");
+                return;
+            }
         }
 
         if (isOnlineMatchActive)
@@ -329,12 +341,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("✓ PlayerInputManager disabled");
+            Debug.Log("PlayerInputManager disabled");
         }
 
         // Set up online state but DON'T start simulation yet
         isOnlineMatchActive = true;
-        isWaitingForOpponent = true; // NEW: Enter lobby wait state
+        isWaitingForOpponent = true; // Enter lobby wait state
         opponentIsReady = false;
         lobbyWaitStartTime = Time.unscaledTime;
 
@@ -421,6 +433,46 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         Debug.Log($"Entered Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
     }
 
+    public void OnPacketReceived()
+    {
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+    }
+
+    private bool CheckNetworkHealth()
+    {
+        // Don't check during lobby phase
+        if (isWaitingForOpponent)
+            return true;
+
+        // If we haven't received ANY packets yet, give it more time
+        if (lastPacketReceivedTime == 0f)
+        {
+            // Give 15 seconds for initial connection
+            if (UnityEngine.Time.unscaledTime - lobbyWaitStartTime > 15f)
+            {
+                Debug.LogError("Network timeout - no packets received after 15 seconds");
+                return false;
+            }
+            return true;
+        }
+
+        // Check time since last packet
+        float timeSinceLastPacket = UnityEngine.Time.unscaledTime - lastPacketReceivedTime;
+
+        if (timeSinceLastPacket > NETWORK_TIMEOUT)
+        {
+            Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
+            return false;
+        }
+
+        // Warn if connection is getting laggy
+        if (timeSinceLastPacket > 3f && Mathf.FloorToInt(timeSinceLastPacket) % 1 == 0)
+        {
+            Debug.LogWarning($"Network lag - no packets for {timeSinceLastPacket:F1} seconds");
+        }
+
+        return true;
+    }
     public void OnOpponentReady()
     {
         Debug.Log("Opponent is ready!");
@@ -432,13 +484,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             StartMatchSimulation();
         }
     }
-
     private void StartMatchSimulation()
     {
         Debug.Log("Both players ready - Starting match simulation!");
         isWaitingForOpponent = false;
         isRunning = true;
         frameNumber = 0; // Reset frame counter
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime; // Initialize packet timer
 
         // Send a sync packet to confirm start
         if (MatchMessageManager.Instance != null)

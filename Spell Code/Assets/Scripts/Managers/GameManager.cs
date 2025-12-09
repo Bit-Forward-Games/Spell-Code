@@ -159,17 +159,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             //cachedLocalInput = GetRawKeyboardInput(); // Old input API
             //cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
             cachedLocalInput = GatherInputForOnline();
-
-            if (playerInputManager != null)
-            {
-                if (playerInputManager.enabled)
-                {
-                    Debug.LogWarning("PlayerInputManager was enabled during online match! Force disabling.");
-                    playerInputManager.DisableJoining();
-                    playerInputManager.enabled = false;
-                }
-            }
-            return;
+            Debug.Log($"[Update] Cached input from input system: {cachedLocalInput}");
         }
 
         // Don't touch PlayerInputManager during online matches
@@ -177,6 +167,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
         }
+        else
+        {
+            // Keep it disabled during online matches
+            if (playerInputManager != null)
+            {
+                playerInputManager.enabled = false;
+            }
+        }
+
 
         //if ` is pressed, toggle box rendering
         if (UnityEngine.Input.GetKeyDown(KeyCode.BackQuote))
@@ -234,14 +233,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isOnlineMatchActive)
         {
-            // Double-check PlayerInputManager is disabled
-            if (playerInputManager != null && playerInputManager.enabled)
-            {
-                Debug.LogError("PlayerInputManager was enabled during RunOnlineFrame! Force disabling.");
-                playerInputManager.DisableJoining();
-                playerInputManager.enabled = false;
-            }
-
+            // Execute the online frame logic using RollbackManager
             RunOnlineFrame();
         }
         else
@@ -519,31 +511,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isRunning = false;
         if (isOnlineMatchActive)
         {
+            RollbackManager.Instance?.Disconnect(); // Clean up rollback state
             isOnlineMatchActive = false;
-            isWaitingForOpponent = false;
-            opponentIsReady = false;
-
-            if (RollbackManager.Instance != null)
-            {
-                RollbackManager.Instance.Disconnect();
-            }
-
-            if (MatchMessageManager.Instance != null)
-            {
-                MatchMessageManager.Instance.StopMatch();
-            }
-
-            Debug.Log("Online match state cleaned up");
         }
 
+        // General cleanup
         ProjectileManager.Instance.DeleteAllProjectiles();
-
-        // Re-enable PlayerInputManager for offline play
-        if (playerInputManager != null)
-        {
-            playerInputManager.enabled = true;
-            playerInputManager.EnableJoining();
-        }
+        // Maybe reset player states or positions
     }
 
     private void ClearPlayerObjects()
@@ -748,7 +722,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         //if (!isRunning)
         //    return;
-        if (!isOnlineMatchActive && playerInputManager != null)
+        if (playerInputManager != null)
         {
             playerInputManager.enabled = true;
             playerInputManager.EnableJoining();
@@ -1025,39 +999,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         if (isOnlineMatchActive)
         {
-            Debug.LogError("GetPlayerControllers called during online match! Destroying rogue player.");
-            if (playerInput != null && playerInput.gameObject != null)
-            {
-                Destroy(playerInput.gameObject);
-            }
             return;
         }
-
-        if (playerCount >= players.Length)
-        {
-            Debug.LogError($"Cannot add player - array full! PlayerCount={playerCount}, Max={players.Length}");
-            if (playerInput != null && playerInput.gameObject != null)
-            {
-                Destroy(playerInput.gameObject);
-            }
-            return;
-        }
-
-        // Verify playerInput is valid
-        if (playerInput == null)
-        {
-            Debug.LogError("GetPlayerControllers received null PlayerInput!");
-            return;
-        }
-
-        PlayerController controller = playerInput.GetComponent<PlayerController>();
-        if (controller == null)
-        {
-            Debug.LogError("PlayerInput has no PlayerController component!");
-            Destroy(playerInput.gameObject);
-            return;
-        }
-
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);

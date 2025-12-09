@@ -1071,18 +1071,40 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         if (isOnlineMatchActive)
         {
+            Debug.Log("GetPlayerControllers called but online match active - ignoring");
             return;
         }
-        players[playerCount] = playerInput.GetComponent<PlayerController>();
+
+        // Check if this player is already registered
+        PlayerController existingPlayer = playerInput.GetComponent<PlayerController>();
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] == existingPlayer)
+            {
+                Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
+                return; // Already registered, don't add again!
+            }
+        }
+
+        Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
+
+        players[playerCount] = existingPlayer;
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
 
-        for (int i = 0; i < playerCount; i++)
-        {
-            players[i].playerNum.text = "P" + (i + 1);
-        }
+        // INCREMENT FIRST
         playerCount++;
 
+        // Update ALL player numbers
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null && players[i].playerNum != null)
+            {
+                players[i].playerNum.text = "P" + (i + 1);
+            }
+        }
+
+        Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
     }
 
     public bool CheckGameEnd(PlayerController[] playerControllers)
@@ -1240,28 +1262,35 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public void LoadRandomGameplayStage()
     {
-        //make the next stage random but different from the last stage
+        // Disable PlayerInputManager BEFORE loading scene to prevent duplicate player registration
+        if (playerInputManager != null)
+        {
+            playerInputManager.DisableJoining();
+            playerInputManager.enabled = false;
+            Debug.Log("Disabled PlayerInputManager before scene load");
+        }
+
         int newStageIndex;
         if (isOnlineMatchActive)
         {
             newStageIndex = 1;
         }
-        else 
+        else
         {
             do
             {
                 newStageIndex = Random.Range(0, stages.Length);
-
             } while (currentStageIndex == newStageIndex);
         }
-            
+
         SetStage(newStageIndex);
         if (isOnlineMatchActive)
         {
-            isTransitioning = true; // Stop RunOnlineFrame
+            isTransitioning = true;
         }
+
         SceneManager.LoadScene("Gameplay");
-        ResetPlayers();
+        // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
@@ -1269,23 +1298,35 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"Scene loaded: {scene.name}, isOnlineMatchActive={isOnlineMatchActive}, isTransitioning={isTransitioning}");
+        Debug.Log($"Scene loaded: {scene.name}");
 
+        // For OFFLINE gameplay
+        if (!isOnlineMatchActive && scene.name == "Gameplay")
+        {
+            Debug.Log("Gameplay loaded (offline) - resetting players");
+
+            // Keep PlayerInputManager disabled to prevent duplicate joins
+            if (playerInputManager != null)
+            {
+                playerInputManager.enabled = false;
+            }
+
+            ResetPlayers();
+        }
+
+        // For ONLINE gameplay
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
             Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             isTransitioning = false;
 
-            // Ensure stage is set
             if (currentStageIndex != 0 && currentStageIndex != 1)
             {
-                SetStage(1); // Default to stage 1 for online
+                SetStage(1);
             }
 
-            // Reset players for new round
             ResetPlayers();
 
-            // Save initial state
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();

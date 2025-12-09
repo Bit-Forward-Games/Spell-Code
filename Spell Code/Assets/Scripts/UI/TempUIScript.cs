@@ -8,7 +8,9 @@ public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerHpVals;
     public Image[] playerHpBar;
+    public Image[] followPlayerHpBar;
     public Image[] playerDamageBar;
+    public Image[] followPlayerDamageBar;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;
@@ -18,7 +20,8 @@ public class TempUIScript : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        Image[] followPlayerHpBar = new Image[4];
+        Image[] followPlayerDamageBar = new Image[4];
     }
 
     // Update is called once per frame
@@ -31,10 +34,13 @@ public class TempUIScript : MonoBehaviour
     {
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            // Transform childTransform = GameManager.Instance.players[i].transform.Find("Health Bar");
+            // followPlayerHpBar[i] = childTransform.gameObject.GetComponent<Image>();
+            followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerHpVals[i].text = "P" + (i + 1);
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
             playerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
-
+            followPlayerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;
@@ -91,6 +97,8 @@ public class TempUIScript : MonoBehaviour
 
     public IEnumerator DamageBar(int playerIndex)
     {
+        // Transform childTransform = GameManager.Instance.players[playerIndex].transform.Find("Damage Bar");
+        followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
         PlayerController player = GameManager.Instance.players[playerIndex];
         
         player.isHit = false;
@@ -101,6 +109,7 @@ public class TempUIScript : MonoBehaviour
         playerHpBar[playerIndex].fillAmount = newHealthAmount;
         
         playerDamageBar[playerIndex].fillAmount = previousHealthAmount;
+        followPlayerDamageBar[playerIndex].fillAmount = previousHealthAmount;
         
         yield return new WaitForSeconds(1f);
         
@@ -112,9 +121,33 @@ public class TempUIScript : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / animationDuration;
             playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
+            followPlayerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             yield return null;
         }
 
         playerDamageBar[playerIndex].fillAmount = newHealthAmount;
+        followPlayerDamageBar[playerIndex].fillAmount = newHealthAmount;
+    }
+
+    GameObject FindChildContainingName(GameObject parent, string namePart)
+    {
+        // Get all child transforms (including grandchildren, etc.)
+        Transform[] children = parent.GetComponentsInChildren<Transform>(true); 
+
+        // Iterate through the children to find one whose name contains the specified part
+        foreach (Transform childTransform in children)
+        {
+            // Exclude the parent itself from the search
+            if (childTransform.gameObject == parent)
+            {
+                continue;
+            }
+
+            if (childTransform.name.Contains(namePart))
+            {
+                return childTransform.gameObject;
+            }
+        }
+        return null; // No child found
     }
 }

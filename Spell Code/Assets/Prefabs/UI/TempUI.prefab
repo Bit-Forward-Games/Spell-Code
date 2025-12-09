@@ -1977,11 +1977,21 @@ MonoBehaviour:
   - {fileID: 5382557400617946897}
   - {fileID: 5418478744217466541}
   - {fileID: 8284682867801326246}
+  followPlayerHpBar:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   playerDamageBar:
   - {fileID: 574511080187355387}
   - {fileID: 4547667648276668483}
   - {fileID: 3460699354182879715}
   - {fileID: 8457374072011116484}
+  followPlayerDamageBar:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   flowStateVals:
   - {fileID: 39829403576241328}
   - {fileID: 3656820984641768887}

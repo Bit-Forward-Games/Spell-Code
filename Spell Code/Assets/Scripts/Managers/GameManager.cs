@@ -353,7 +353,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ResetMatchState();
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
-        currentStageIndex = 1;
+        SetStage(0); // Load lobby stage
 
         ClearPlayerObjects();
         this.playerCount = 2;

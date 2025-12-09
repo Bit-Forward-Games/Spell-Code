@@ -1380,8 +1380,8 @@ public class PlayerController : MonoBehaviour
                 // Player AABB
                 Fixed pMinX = position.X + hSpd - halfW;
                 Fixed pMaxX = position.X + hSpd + halfW;
-                Fixed pMinY = position.X + vSpd;
-                Fixed pMaxY = position.X + vSpd + playerHeight;
+                Fixed pMinY = position.Y + vSpd;
+                Fixed pMaxY = position.Y + vSpd + playerHeight;
 
                 //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
                 GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");

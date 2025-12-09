@@ -30,7 +30,10 @@ using BestoNet.Collections; // For CircularArray
         // Keep track if the manager is active
         private bool isRunning = false;
 
-        private void Awake()
+        private bool localReadySent = false;
+        private bool remoteReadyReceived = false;
+
+    private void Awake()
         {
             // --- Singleton Setup ---
             if (Instance != null && Instance != this)
@@ -141,6 +144,12 @@ using BestoNet.Collections; // For CircularArray
             return;
         }
 
+        if (localReadySent)
+        {
+            Debug.Log("Ready signal already sent - skipping");
+            return;
+        }
+
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
@@ -148,7 +157,7 @@ using BestoNet.Collections; // For CircularArray
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write(PACKET_TYPE_READY);
-                    writer.Write(SteamClient.SteamId.Value); // Send our Steam ID as confirmation
+                    writer.Write(SteamClient.SteamId.Value);
 
                     byte[] data = memoryStream.ToArray();
 
@@ -157,11 +166,12 @@ using BestoNet.Collections; // For CircularArray
                         data,
                         data.Length,
                         MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable // Use reliable for ready signals
+                        P2PSend.Reliable
                     );
 
                     if (success)
                     {
+                        localReadySent = true;
                         Debug.Log($"Sent READY signal to {opponentSteamId}");
                     }
                     else
@@ -228,6 +238,7 @@ using BestoNet.Collections; // For CircularArray
                 Ping = 100;
                 sentFrameTimes.Clear();
 
+                ResetReadyFlags();
                 // Allow P2P relay to increase connection success rate
                 SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -290,112 +301,131 @@ using BestoNet.Collections; // For CircularArray
         /// </summary>
         private void ProcessPacket(byte[] messageData)
         {
-        if (RollbackManager.Instance == null)
-        {
-            Debug.LogWarning("RollbackManager is null, cannot process packet");
-            return;
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnPacketReceived();
-        }
-
-
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream(messageData))
+            if (RollbackManager.Instance == null)
             {
-                using (BinaryReader reader = new BinaryReader(memoryStream))
+                Debug.LogWarning("RollbackManager is null, cannot process packet");
+                return;
+            }
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.OnPacketReceived();
+            }
+
+
+            try
+            {
+                using (MemoryStream memoryStream = new MemoryStream(messageData))
                 {
-                    byte packetType = reader.ReadByte();
-
-                    // Handle handshake
-                    if (packetType == 0xFF)
+                    using (BinaryReader reader = new BinaryReader(memoryStream))
                     {
-                        string message = reader.ReadString();
-                        Debug.Log($"Received handshake: {message}");
-                        SendHandshake();
-                        return;
-                    }
+                        byte packetType = reader.ReadByte();
 
-                    // Handle ready signal
-                    if (packetType == PACKET_TYPE_READY)
-                    {
-                        ulong senderSteamId = reader.ReadUInt64();
-                        Debug.Log($"Received READY signal from {senderSteamId}");
-
-                        // Notify GameManager that opponent is ready
-                        if (GameManager.Instance != null)
+                        // Handle handshake
+                        if (packetType == 0xFF)
                         {
-                            GameManager.Instance.OnOpponentReady();
-                        }
-
-                        // Send ready signal back if we haven't already
-                        SendReadySignal();
-                        return;
-                    }
-
-                    // Handle match start confirmation
-                    if (packetType == PACKET_TYPE_MATCH_START)
-                    {
-                        Debug.Log("Received MATCH START confirmation");
-                        // Both sides confirmed, we're good to go
-                        return;
-                    }
-
-                    // Handle input packets (only process if match has started)
-                    if (packetType == 0)
-                    {
-                        // Only process inputs if we're past the lobby phase
-                        if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
-                        {
-                            Debug.LogWarning("Received input packet while still in lobby - ignoring");
+                            string message = reader.ReadString();
+                            Debug.Log($"Received handshake: {message}");
+                            SendHandshake();
                             return;
                         }
 
-                        int remoteFrameAdvantage = reader.ReadInt32();
-                        int startFrame = reader.ReadInt32();
-                        int inputCount = reader.ReadByte();
-
-                        Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
-
-                        for (int i = 0; i < inputCount; i++)
+                        // Handle ready signal
+                        if (packetType == PACKET_TYPE_READY)
                         {
-                            int frame = startFrame + i;
-                            ulong input = reader.ReadUInt64();
+                            ulong senderSteamId = reader.ReadUInt64();
+                            Debug.Log($"Received READY signal from {senderSteamId}");
 
-                            if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
+                            if (remoteReadyReceived)
                             {
-                                RollbackManager.Instance.SetOpponentInput(frame, input);
-                                SendMessageACK(frame);
+                                Debug.Log("Remote ready already processed - skipping");
+                                return;
                             }
 
-                            if (i == inputCount - 1)
+                            remoteReadyReceived = true;
+
+                            // Notify GameManager
+                            if (GameManager.Instance != null)
                             {
-                                RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
-                                RollbackManager.Instance.SetRemoteFrame(frame);
-                                Debug.Log($"Updated remoteFrame to {frame}");
+                                GameManager.Instance.OnOpponentReady();
+                            }
+
+                            // Send our ready signal if we haven't already
+                            if (!localReadySent)
+                            {
+                                SendReadySignal();
+                            }
+
+                            return;
+                        }
+
+                        // Handle match start confirmation
+                        if (packetType == PACKET_TYPE_MATCH_START)
+                        {
+                            Debug.Log("Received MATCH START confirmation");
+                            // Both sides confirmed, we're good to go
+                            return;
+                        }
+
+                        // Handle input packets (only process if match has started)
+                        if (packetType == 0)
+                        {
+                            // Only process inputs if we're past the lobby phase
+                            if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
+                            {
+                                Debug.LogWarning("Received input packet while still in lobby - ignoring");
+                                return;
+                            }
+
+                            int remoteFrameAdvantage = reader.ReadInt32();
+                            int startFrame = reader.ReadInt32();
+                            int inputCount = reader.ReadByte();
+
+                            Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
+
+                            for (int i = 0; i < inputCount; i++)
+                            {
+                                int frame = startFrame + i;
+                                ulong input = reader.ReadUInt64();
+
+                                if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
+                                {
+                                    RollbackManager.Instance.SetOpponentInput(frame, input);
+                                    SendMessageACK(frame);
+                                }
+
+                                if (i == inputCount - 1)
+                                {
+                                    RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
+                                    RollbackManager.Instance.SetRemoteFrame(frame);
+                                    Debug.Log($"Updated remoteFrame to {frame}");
+                                }
                             }
                         }
-                    }
-                    else if (packetType == 1) // ACK
-                    {
-                        int ackFrame = reader.ReadInt32();
-                        ProcessACK(ackFrame);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Received unknown packet type: {packetType}");
+                        else if (packetType == 1) // ACK
+                        {
+                            int ackFrame = reader.ReadInt32();
+                            ProcessACK(ackFrame);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Received unknown packet type: {packetType}");
+                        }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Debug.LogError($"Packet processing error: {e}");
+            }
         }
-        catch (Exception e)
+
+        public void ResetReadyFlags()
         {
-            Debug.LogError($"Packet processing error: {e}");
+            localReadySent = false;
+            remoteReadyReceived = false;
         }
-    }
+
 
         /// <summary>
         /// Processes an ACK message to calculate ping.
@@ -433,7 +463,7 @@ using BestoNet.Collections; // For CircularArray
         /// <param name="targetFrame">The frame number the input corresponds to (current frame + input delay).</param>
         /// <param name="input">The input value for the target frame.</param>
         public void SendInputs() // Send a bundle starting from oldest unsent up to targetFrame
-            {
+        {
                 // Ensure RollbackManager and opponent ID are valid
                 if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)
                 {
@@ -523,7 +553,7 @@ using BestoNet.Collections; // For CircularArray
                 {
                     Debug.LogError($"Error sending inputs: {e}");
                 }
-            }
+        }
 
 
         /// <summary>

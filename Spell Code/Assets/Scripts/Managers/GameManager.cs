@@ -336,6 +336,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             return;
         }
 
+        // Reset online match state first
+        isOnlineMatchActive = false; // Set false first to prevent Update() from interfering
+        isWaitingForOpponent = false;
+        opponentIsReady = false;
+        isRunning = false;
+        isTransitioning = false;
+
         // Disable PlayerInputManager
         if (playerInputManager != null)
         {
@@ -344,17 +351,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.Log("PlayerInputManager disabled");
         }
 
-        // Set up online state but DON'T start simulation yet
-        isOnlineMatchActive = true;
-        isWaitingForOpponent = true; // Enter lobby wait state
-        opponentIsReady = false;
-        lobbyWaitStartTime = Time.unscaledTime;
+        lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
+        lastPacketReceivedTime = 0f;
 
-        ResetMatchState();
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
-        SetStage(0); // Load lobby stage
-        p1_spellCard.enabled = false;
+        ResetMatchState();
 
         ClearPlayerObjects();
         this.playerCount = 2;
@@ -413,9 +415,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
 
-        ProjectileManager.Instance.InitializeAllProjectiles();
-        ResetPlayers();
-
         // Initialize managers
         RollbackManager.Instance.Init(opponentId.Value);
 
@@ -430,6 +429,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
 
+        // Set up online state but DON'T start simulation yet
+        isOnlineMatchActive = true;
+        isWaitingForOpponent = true; // Enter lobby wait state
+
+        ProjectileManager.Instance.InitializeAllProjectiles();
+        ResetPlayers();
         // DON'T set isRunning yet - wait for opponent
         Debug.Log($"Entered Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
     }
@@ -476,28 +481,64 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     }
     public void OnOpponentReady()
     {
-        Debug.Log("Opponent is ready!");
+        Debug.Log("Received opponent ready signal");
+
+        if (!isOnlineMatchActive)
+        {
+            Debug.LogWarning("Received ready signal but not in online match state - ignoring");
+            return;
+        }
+
+        if (!isWaitingForOpponent)
+        {
+            Debug.LogWarning("Received ready signal but already started - ignoring");
+            return;
+        }
+
         opponentIsReady = true;
 
-        // If both players are ready, start the match
-        if (isWaitingForOpponent && opponentIsReady)
-        {
-            StartMatchSimulation();
-        }
+        // Start match immediately when opponent is ready
+        StartMatchSimulation();
     }
+
     private void StartMatchSimulation()
     {
-        Debug.Log("Both players ready - Starting match simulation!");
-        isWaitingForOpponent = false;
-        isRunning = true;
-        frameNumber = 0; // Reset frame counter
-        lastPacketReceivedTime = UnityEngine.Time.unscaledTime; // Initialize packet timer
+        Debug.Log("Starting Match Simulation!");
 
-        // Send a sync packet to confirm start
+        // Double-check we're in the right state
+        if (!isWaitingForOpponent)
+        {
+            Debug.LogWarning("StartMatchSimulation called but not waiting - aborting");
+            return;
+        }
+
+        isWaitingForOpponent = false;
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+
+        // Send match start confirmation
         if (MatchMessageManager.Instance != null)
         {
             MatchMessageManager.Instance.SendMatchStartConfirm();
         }
+
+        ProjectileManager.Instance.InitializeAllProjectiles();
+
+        // Set up the game stage
+        SetStage(0); // Load alley arena
+        p1_spellCard.enabled = false;
+        ResetPlayers();
+
+        // Reset frame counter
+        frameNumber = 0;
+
+        // NOW start running
+        isRunning = true;
+
+        // Transition to gameplay scene
+        isTransitioning = true;
+        SceneManager.LoadScene("Gameplay");
+
+        Debug.Log("Match simulation started - Loading Gameplay scene");
     }
 
     /// <summary>
@@ -575,24 +616,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         jumpPrevFrame = jumpCurrentFrame;
         Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
 
-        //if (players[localPlayerIndex] != null && players[localPlayerIndex].isAlive)
+        //bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
+        //if (!timeSynced)
         //{
-        //    Debug.Log($"Gathering input from player index {localPlayerIndex}, " +
-        //      $"IsActive={players[localPlayerIndex].inputs.IsActive}");
-        //    localPlayerInput = players[localPlayerIndex].GetInputs();
-        //    Debug.Log($"Got input: {localPlayerInput}");
+        //    timeoutFrames++;
+        //    if (timeoutFrames > rbManager.TimeoutFrames)
+        //    {                                                 frame timeout thingy
+        //        rbManager.TriggerMatchTimeout();
+        //    }
+        //    return; // Skip frame
         //}
-
-        bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
-        if (!timeSynced)
-        {
-            timeoutFrames++;
-            if (timeoutFrames > rbManager.TimeoutFrames)
-            {
-                rbManager.TriggerMatchTimeout();
-            }
-            return; // Skip frame
-        }
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();
@@ -1198,16 +1231,27 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (isOnlineMatchActive && scene.name == "Gameplay")
-        {
-            Debug.Log("Gameplay Scene Loaded. Resuming Online Match...");
-            isTransitioning = false; // Resume RunOnlineFrame
+        Debug.Log($"Scene loaded: {scene.name}, isOnlineMatchActive={isOnlineMatchActive}, isTransitioning={isTransitioning}");
 
-            // Ensure players are reset/spawned correctly for the new stage
+        if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
+        {
+            Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
+            isTransitioning = false;
+
+            // Ensure stage is set
+            if (currentStageIndex != 0 && currentStageIndex != 1)
+            {
+                SetStage(1); // Default to stage 1 for online
+            }
+
+            // Reset players for new round
             ResetPlayers();
 
-            // Force a state save so we have a valid checkpoint for Frame 0 of gameplay
-            RollbackManager.Instance.SaveState();
+            // Save initial state
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.SaveState();
+            }
         }
     }
 

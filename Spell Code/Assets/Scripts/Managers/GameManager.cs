@@ -128,6 +128,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        isOnlineMatchActive = false;
+        isWaitingForOpponent = false;
+        opponentIsReady = false;
+        isTransitioning = false;
+        frameNumber = 0;
+
         isRunning = true;
         isSaved = false;
 
@@ -170,7 +176,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         else
         {
             // Keep it disabled during online matches
-            if (playerInputManager != null)
+            if (playerInputManager != null && playerInputManager.enabled)
             {
                 playerInputManager.enabled = false;
             }
@@ -547,19 +553,51 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// <param name="reason">Reason for stopping.</param>
     public void StopMatch(string reason = "Match Ended")
     {
-        if (!isRunning) return;
         Debug.Log($"Stopping Match: {reason}");
 
         isRunning = false;
+
         if (isOnlineMatchActive)
         {
-            RollbackManager.Instance?.Disconnect(); // Clean up rollback state
+            Debug.Log("Cleaning up online match state...");
+
+            // Clean up rollback manager
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.Disconnect();
+            }
+
+            // Clean up match message manager
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.StopMatch();
+            }
+
+            // Clear online flags
             isOnlineMatchActive = false;
+            isWaitingForOpponent = false;
+            opponentIsReady = false;
+            isTransitioning = false;
+
+            // Reset frame counter
+            frameNumber = 0;
+
+            // Clear online player objects
+            ClearPlayerObjects();
+
+            // Re-enable PlayerInputManager for offline play
+            if (playerInputManager != null)
+            {
+                playerInputManager.enabled = true;
+                playerInputManager.EnableJoining();
+                Debug.Log("PlayerInputManager re-enabled for offline play");
+            }
         }
 
         // General cleanup
         ProjectileManager.Instance.DeleteAllProjectiles();
-        // Maybe reset player states or positions
+
+        Debug.Log("Match stopped and state reset");
     }
 
     private void ClearPlayerObjects()
@@ -1038,12 +1076,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         players[playerCount] = playerInput.GetComponent<PlayerController>();
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
-        playerCount++;
 
         for (int i = 0; i < playerCount; i++)
         {
             players[i].playerNum.text = "P" + (i + 1);
         }
+        playerCount++;
 
     }
 

@@ -299,16 +299,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
         bool[] dirs = new bool[4] { up, down, left, right };
 
-        // Convert to ulong
-        ulong result = (ulong)InputConverter.ConvertToLong(buttons, dirs);
-
-        // Debug logging
-        if (jumpState == ButtonState.Pressed)
-        {
-            Debug.Log($"[GatherRawInput] JUMP PRESSED! Result={result}");
-        }
-
-        return result;
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
     }
 
     private ButtonState GetButtonStateHelper(bool previous, bool current)

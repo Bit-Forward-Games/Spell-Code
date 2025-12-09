@@ -353,7 +353,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         ResetMatchState();
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
-        currentStageIndex = 0;
+        currentStageIndex = 1;
 
         ClearPlayerObjects();
         this.playerCount = 2;
@@ -1172,7 +1172,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         int newStageIndex;
         if (isOnlineMatchActive)
         {
-            newStageIndex = 0;
+            newStageIndex = 1;
         }
         else 
         {

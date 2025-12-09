@@ -354,6 +354,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerIndex = localIndex;
         remotePlayerIndex = remoteIndex;
         SetStage(0); // Load lobby stage
+        p1_spellCard.enabled = false;
 
         ClearPlayerObjects();
         this.playerCount = 2;

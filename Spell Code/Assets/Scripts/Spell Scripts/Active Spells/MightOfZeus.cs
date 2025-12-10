@@ -25,7 +25,7 @@ public class MightOfZeus : SpellData
     {
         
 
-        if (owner.reps >= 8 && defender.state == PlayerState.Hitstun)
+        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
         {
             defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
             Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");

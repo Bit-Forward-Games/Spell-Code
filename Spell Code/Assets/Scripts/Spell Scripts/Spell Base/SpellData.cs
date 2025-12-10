@@ -1,5 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
+using BestoNet.Types;
+using System.IO;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 /*public enum SpellDirection 
 { 
@@ -112,7 +118,7 @@ public abstract class SpellData : MonoBehaviour
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
             cooldownCounter = cooldown;
         }
@@ -139,4 +145,30 @@ public abstract class SpellData : MonoBehaviour
     /// this function would check for that.
     /// </summary>
     public abstract void CheckCondition();
+
+    // Serialization Methods
+
+    /// <summary>
+    /// Saves the current dynamic state of the spell.
+    /// Base implementation saves cooldownCounter and activateFlag.
+    /// Override in derived classes to save additional state.
+    /// </summary>
+    public virtual void Serialize(BinaryWriter bw)
+    {
+        bw.Write(cooldownCounter);
+        bw.Write(activateFlag);
+        // Derived classes should call base.Serialize(bw) then write their own state.
+    }
+
+    /// <summary>
+    /// Loads the dynamic state of the spell.
+    /// Base implementation loads cooldownCounter and activateFlag.
+    /// Override in derived classes to load additional state.
+    /// </summary>
+    public virtual void Deserialize(BinaryReader br)
+    {
+        cooldownCounter = br.ReadInt32();
+        activateFlag = br.ReadBoolean();
+        // Derived classes should call base.Deserialize(br) then read their own state.
+    }
 }

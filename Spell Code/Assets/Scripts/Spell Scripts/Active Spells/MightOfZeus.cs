@@ -1,4 +1,8 @@
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class MightOfZeus : SpellData
 {
@@ -21,7 +25,7 @@ public class MightOfZeus : SpellData
     {
         
 
-        if (owner.reps >= 8 && defender.state == PlayerState.Hitstun)
+        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
         {
             defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
             Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");
@@ -36,12 +40,12 @@ public class MightOfZeus : SpellData
 
         if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 6)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new Vector2(spawnOffsetX + 30, spawnOffsetY));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 30), Fixed.FromInt(spawnOffsetY)));
         }
 
         if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 6)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new Vector2(spawnOffsetX + 60, spawnOffsetY));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 60), Fixed.FromInt(spawnOffsetY)));
         }
 
 
@@ -61,7 +65,7 @@ public class MightOfZeus : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 0)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new Vector2(spawnOffsetX, spawnOffsetY));
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
             cooldownCounter = cooldown;
         }

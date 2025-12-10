@@ -1,9 +1,13 @@
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class BootsOfHermes : SpellData
 {
-    float baseJumpForce;
-    public float jumpMultiplier = 1.5f;
+    Fixed baseJumpForce;
+    public Fixed jumpMultiplier = Fixed.FromFloat(1.5f);
     //int BootsOfHermesDuration = 180; // Duration of the speed boost in frames
     //int BootsOfHermesCounter = 0;
 

@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class MightOfZeus_Projectile : BaseProjectile
 {
@@ -17,7 +21,7 @@ public class MightOfZeus_Projectile : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
     }

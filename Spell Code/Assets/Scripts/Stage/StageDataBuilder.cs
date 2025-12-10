@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
+
 
 public class StageDataBuilder : MonoBehaviour
 {
@@ -36,6 +42,7 @@ public class StageDataBuilder : MonoBehaviour
 
     }
 
+#if UNITY_EDITOR
     void Update()
     {
         if (Input.GetKey("s") && Input.GetKeyDown("o"))
@@ -46,6 +53,8 @@ public class StageDataBuilder : MonoBehaviour
             #endif
         }
     }
+
+#endif
 
     void GetStageData()
     {
@@ -72,6 +81,7 @@ public class StageDataBuilder : MonoBehaviour
         foreach (GameObject spawn in playerSpawns)
         {
             Transform spawnTransforms = spawn.GetComponent<Transform>();
+            Vector3 floatPos = spawnTransforms.position;
             stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
             k++;
         }

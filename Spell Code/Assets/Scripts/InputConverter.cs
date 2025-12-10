@@ -158,7 +158,7 @@ public static class InputConverter
         return snapshot;
     }
 
-    public static InputSnapshot ConvertFromLong(long inputs)
+    public static InputSnapshot ConvertFromLong(ulong inputs)
     {
         byte[] byteArray = BitConverter.GetBytes(inputs);
         InputSnapshot snapshot;

@@ -88,7 +88,7 @@ public class ShopManager : MonoBehaviour
         //StartCoroutine(Shop());
     }
 
-    public void ShopUpdate(long[] playerInputs)
+    public void ShopUpdate(ulong[] playerInputs)
     {
         for (int i = 0; i < playerInputs.Length; i++)
         {

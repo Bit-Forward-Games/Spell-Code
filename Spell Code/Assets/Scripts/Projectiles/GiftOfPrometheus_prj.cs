@@ -1,6 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class GiftOfPrometheus_Projectile : BaseProjectile
 {
@@ -13,11 +17,11 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4 }, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
-        this.hSpeed = (facingRight ? 1 : -1) * 2; // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 2); // Set horizontal speed based on facing direction
     }
     public override void LoadProjectile()
     {
@@ -65,7 +69,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         //and then waits until the animation is done to delete itself.
         if (logicFrame == animFrames.frameLengths.Take(16).Sum() + 1)
         {
-            hSpeed = 0;
+            hSpeed = Fixed.FromInt(0);
         }
         if (logicFrame >= animFrames.frameLengths.Take(19).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(23).Sum())
         {

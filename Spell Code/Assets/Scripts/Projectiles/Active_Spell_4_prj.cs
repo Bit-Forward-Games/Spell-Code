@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class Active_Spell_4_prj : BaseProjectile
 {
@@ -17,11 +21,11 @@ public class Active_Spell_4_prj : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, Vector2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
-        this.hSpeed = (facingRight ? 1 : -1) * 8;
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 8);
     }
 
     public override void LoadProjectile()

@@ -10,6 +10,12 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 
+// Alias for convenience (optional, but recommended for readability)
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
+using Unity.VisualScripting;
+
 public enum PlayerState
 {
     Idle,
@@ -67,15 +73,15 @@ public class PlayerController : MonoBehaviour
 
     private ushort lerpDelay = 0;
     [NonSerialized]
-    public Vector2 position;
+    public FixedVec2 position;
 
     public bool facingRight = true;
     public bool isGrounded = false;
     public bool onPlatform = false;
 
     //leave public to get 
-    public float hSpd = 0; //horizontal speed (effectively Velocity)
-    public float vSpd = 0; //vertical speed
+    public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
+    public Fixed vSpd = Fixed.FromInt(0); //vertical speed
 
     //ANIMATION
     public int logicFrame;
@@ -86,11 +92,11 @@ public class PlayerController : MonoBehaviour
 
     //Character Data
     public CharacterData charData { get; private set; }
-    public float gravity = .75f;
+    public Fixed gravity = Fixed.FromFloat(0.75f);
     [HideInInspector]
-    public float jumpForce = 10;
-    public float runSpeed = 0f;
-    public float slideSpeed = 0f;
+    public Fixed jumpForce = Fixed.FromInt(10);
+    public Fixed runSpeed = Fixed.FromInt(0);
+    public Fixed slideSpeed = Fixed.FromInt(0);
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
@@ -110,9 +116,9 @@ public class PlayerController : MonoBehaviour
 
     // Push Box Variables
     [HideInInspector]
-    public float playerWidth;
+    public Fixed playerWidth;
     [HideInInspector]
-    public float playerHeight;
+    public Fixed playerHeight;
     //public PlayerController opponent;
 
     [HideInInspector]
@@ -123,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
     public byte hitstop = 0;
     public ushort comboCounter = 0; //this is technically for the player being hit, so if the combo counter is increasings thats on the hurt player
-    public float damageProration = 1f; //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
+    public Fixed damageProration = Fixed.FromInt(1); //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
@@ -145,9 +151,9 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
-    public float timer = 0.0f;
+    public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
-    public List<float> times = new List<float>();
+    public List<Fixed> times = new List<Fixed>();
 
     public int roundsWon;
 
@@ -196,11 +202,11 @@ public class PlayerController : MonoBehaviour
         //print(charData.projectileIds);
 
         currentPlayerHealth = charData.playerHealth;
-        runSpeed = (float)charData.runSpeed / 10;
-        slideSpeed = (float)charData.slideSpeed / 10;
-        jumpForce = charData.jumpForce;
-        playerWidth = charData.playerWidth;
-        playerHeight = charData.playerHeight;
+        runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
+        slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+        jumpForce = Fixed.FromInt(charData.jumpForce);
+        playerWidth = Fixed.FromInt(charData.playerWidth);
+        playerHeight = Fixed.FromInt(charData.playerHeight);
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -240,26 +246,34 @@ public class PlayerController : MonoBehaviour
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
+
+        FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
-        SpawnPlayer(spawnPos);
+        startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
+        SpawnPlayer(startPos);
+
+        
+        //Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
+        //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
+        //SpawnPlayer(startPos);
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
-    public void SpawnPlayer(Vector2 spawnPos)
+    public void SpawnPlayer(FixedVec2 spawnPos)
     {
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
         position = spawnPos;
-        hSpd = 0;
-        vSpd = 0;
+        hSpd = Fixed.FromInt(0); 
+        vSpd = Fixed.FromInt(0);
         stateSpecificArg = 0;
         currentPlayerHealth = charData.playerHealth;
-        runSpeed = (float)charData.runSpeed / 10;
-        slideSpeed = (float)charData.slideSpeed / 10;
-        jumpForce = charData.jumpForce;
-        playerWidth = charData.playerWidth;
-        playerHeight = charData.playerHeight;
+        runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
+        slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+        jumpForce = Fixed.FromInt(charData.jumpForce);
+        playerWidth = Fixed.FromInt(charData.playerWidth);
+        playerHeight = Fixed.FromInt(charData.playerHeight);
         SetState(PlayerState.Idle);
 
         //initialize resources
@@ -272,7 +286,7 @@ public class PlayerController : MonoBehaviour
 
         
 
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }
 
@@ -384,8 +398,8 @@ public class PlayerController : MonoBehaviour
         spellsFired = 0;
         basicsFired = 0;
         spellsHit = 0;
-        timer = 0.0f;
-        times = new List<float>();
+        timer = Fixed.FromInt(0);
+        times = new List<Fixed>();
 
         //passive resources
         flowState = 0;
@@ -402,18 +416,120 @@ public class PlayerController : MonoBehaviour
 
 
     /// MOVEMENT CODE
-    public long GetInputs()
+    public ulong GetInputs()
     {
-        long input = 0;
+        //Debug.Log($"[GetInputs] Called on player at index {System.Array.IndexOf(GameManager.Instance.players, this)}, " +
+        //      $"IsActive={inputs.IsActive}, " +
+        //      $"IsOnlineMatch={GameManager.Instance.isOnlineMatchActive}");
+
+
+        ulong input = 0;
+
+        // In online mode, only the local player gathers input
+        if (GameManager.Instance.isOnlineMatchActive)
+        {
+            int myIndex = System.Array.IndexOf(GameManager.Instance.players, this);
+
+            // Only gather input if this is the local player
+            if (myIndex == GameManager.Instance.localPlayerIndex)
+            {
+                //input = GetRawKeyboardInput(); // Old Input API method
+                long longInput = inputs.UpdateInputs();
+                input = (ulong)longInput; // Input System method
+                return input;
+            }
+            else
+            {
+                return 0; // Remote player, return neutral
+            }
+        }
+
+        // Use Input System for both online and offline
         if (inputs.IsActive)
         {
-            input = inputs.UpdateInputs();
+            long longInput = inputs.UpdateInputs();
+            input = (ulong)longInput;
         }
+
         return input;
     }
 
+    /// <summary>
+    /// Gets keyboard input directly using Unity's old Input API.
+    /// This bypasses the Input System entirely.
+    /// </summary>
+    private ulong GetRawKeyboardInput()
+    {
+        // DEBUG: Check if ANY key is being pressed
+        if (UnityEngine.Input.anyKey)
+        {
+            Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+            // Log specific keys
+            Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+                            $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+                            $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+                            $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+        }
 
-    public void PlayerUpdate(long inputs)
+        // Direction input (using numpad notation: 5 = neutral)
+        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+
+        // Button states (need to track previous state for Pressed/Released detection)
+        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+
+        // Store previous button states (you might need to add these as class fields)
+        bool codePrev = codePrevFrame;
+        bool jumpPrev = jumpPrevFrame;
+
+        // Update for next frame
+        codePrevFrame = codeNow;
+        jumpPrevFrame = jumpNow;
+
+        // Calculate direction (numpad notation)
+        byte direction = 5; // neutral
+
+        if (up && right) direction = 9;
+        else if (up && left) direction = 7;
+        else if (down && right) direction = 3;
+        else if (down && left) direction = 1;
+        else if (up) direction = 8;
+        else if (down) direction = 2;
+        else if (left) direction = 4;
+        else if (right) direction = 6;
+
+        // Calculate button states
+        ButtonState codeState = GetButtonState(codePrev, codeNow);
+        ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
+
+        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+        bool[] dirs = new bool[4] { up, down, left, right };
+
+        Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+
+        // Convert to ulong using your existing converter
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    }
+
+    private bool codePrevFrame = false;
+    private bool jumpPrevFrame = false;
+
+    private ButtonState GetButtonState(bool previous, bool current)
+    {
+        if (!previous && !current)
+            return ButtonState.None;
+        else if (current && !previous)
+            return ButtonState.Pressed;
+        else if (current && previous)
+            return ButtonState.Held;
+        else
+            return ButtonState.Released;
+    }
+
+    public void PlayerUpdate(ulong rawInput)
     {
         if (!isAlive)
         {
@@ -435,7 +551,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        input = InputConverter.ConvertFromLong(inputs);
+        input = InputConverter.ConvertFromLong((ulong)rawInput);
 
 
         CheckHit(input);
@@ -469,7 +585,15 @@ public class PlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            vSpd -= vSpd>0?gravity:gravity/2;
+            // If you had vSpd>0 check for halved gravity:
+            if (vSpd > Fixed.FromInt(0))
+            {
+                vSpd -= gravity;
+            }
+            else
+            {
+                vSpd -= gravity / Fixed.FromInt(2); // Halve gravity if falling
+            }
 
         }
 
@@ -522,7 +646,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
-                LerpHspd(0, 3);
+                LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
 
@@ -561,7 +685,7 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    LerpHspd((int)runSpeed * (facingRight ? 1 : -1), 0);
+                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 0);
                     //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
@@ -579,10 +703,10 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Idle);
                     break;
                 }
-                if (vSpd > 0 && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
                 {
                     //reapply gravity more strongly to create a variable jump height
-                    vSpd -= gravity*2;
+                    vSpd -= gravity * Fixed.FromInt(2);
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
@@ -601,16 +725,16 @@ public class PlayerController : MonoBehaviour
                 {
                     //run logic
                     facingRight = true;
-                    LerpHspd((int)runSpeed, 3);
+                    LerpHspd(runSpeed, 3);
                 }
                 else if (input.Direction%3 == 1)
                 {
                     facingRight = false;
-                    LerpHspd(-(int)runSpeed, 3);
+                    LerpHspd(-runSpeed, 3);
                 }
                 else
                 {
-                    LerpHspd(0, 2);
+                    LerpHspd(Fixed.FromInt(0), 2);
                 }
 
 
@@ -624,11 +748,11 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //keep track of how lojng player is in state for
-                timer += Time.deltaTime;
+                timer += Fixed.FromFloat(Time.fixedDeltaTime);
 
-                if (vSpd <= 0 && !isGrounded)
+                if (vSpd <= Fixed.FromInt(0) && !isGrounded)
                 {
-                    gravity = Math.Clamp(gravity + .002f, 0, 1f);
+                    gravity = Fixed.Clamp(gravity + Fixed.FromFloat(0.002f), Fixed.FromInt(0), Fixed.FromInt(1));
                 }
 
                 //jump button pressed
@@ -735,7 +859,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                LerpHspd(0, isGrounded?3: 15);
+                LerpHspd(Fixed.FromInt(0), isGrounded?3: 15);
                 break;
             case PlayerState.CodeRelease:
                 //allow the display to be reset upon entering CodeWeave state
@@ -770,7 +894,7 @@ public class PlayerController : MonoBehaviour
 
                             //keep track of how long player is in state for
                             times.Add(timer);
-                            timer = 0;
+                            timer = Fixed.FromInt(0);
 
                             //set stateSpecificArg to 255 as it is a value we can never normally set it to, to indicate that we successfully fired a spell
                             stateSpecificArg = 255;
@@ -798,7 +922,7 @@ public class PlayerController : MonoBehaviour
 
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new Vector2(15, 15));
+                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
 
 
                     //basic spell is fired
@@ -815,7 +939,7 @@ public class PlayerController : MonoBehaviour
 
                 if (isGrounded)
                 {
-                    LerpHspd(0, 5);
+                    LerpHspd(Fixed.FromInt(0), 5);
                 }
                 break;
             case PlayerState.Hitstun:
@@ -846,7 +970,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Slide:
                 if (!isGrounded)
                 {
-                    vSpd = -2;
+                    vSpd = Fixed.FromInt(-2);
                 }
                 else if(input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
                 {
@@ -859,7 +983,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                LerpHspd(0, charData.slideFriction);
+                LerpHspd(Fixed.FromInt(0), charData.slideFriction);
                 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
                 {
@@ -889,8 +1013,10 @@ public class PlayerController : MonoBehaviour
 
         //check player collisions
         PlayerWorldCollisionCheck();
-        position.x += hSpd;
-        position.y += vSpd;
+
+        position += new FixedVec2(hSpd, vSpd);
+        //position.x += hSpd;
+        //position.y += vSpd;
         
         // Check conditions of all spells with the onupdate condition
         for (int i = 0; i < spellList.Count; i++)
@@ -1074,26 +1200,28 @@ public class PlayerController : MonoBehaviour
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
             if (solidCount > 0)
             {
-                float halfW = playerWidth * 0.5f;
-                float halfH = playerHeight * 0.5f;
+                Fixed halfW = playerWidth / Fixed.FromInt(2);
+                Fixed halfH = playerHeight / Fixed.FromInt(2);
 
-                // Player AABB
-                float pMinX = position.x + hSpd - halfW;
-                float pMaxX = position.x + hSpd + halfW;
-                float pMinY = position.y + vSpd;
-                float pMaxY = position.y + vSpd + playerHeight;
+                // Player AABB for the *next* frame
+                // Calculate potential next position based on current position and velocity
+                //FixedVec2 nextPosition = position + new FixedVec2(hSpd, vSpd);
+                Fixed pMinX = position.X + hSpd - halfW;
+                Fixed pMaxX = position.X + hSpd + halfW;
+                Fixed pMinY = position.Y + vSpd;
+                Fixed pMaxY = position.Y + vSpd + playerHeight;
 
                 for (int i = 0; i < solidCount; i++)
                 {
-                    Vector2 center = stageDataSO.solidCenter[i];
-                    Vector2 extent = stageDataSO.solidExtent[i];
+                    FixedVec2 center = FixedVec2.FromFloat(stageDataSO.solidCenter[i].x, stageDataSO.solidCenter[i].y);
+                    FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.solidExtent[i].x, stageDataSO.solidExtent[i].y);
 
                     // Treat extent as half-extents: solid min/max
-                    Vector2 sMin = center - extent;
-                    Vector2 sMax = center + extent;
+                    FixedVec2 sMin = center - extent;
+                    FixedVec2 sMax = center + extent;
 
                     // Quick rejection test
-                    if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                    if (pMaxX < sMin.X || pMinX > sMax.X || pMaxY < sMin.Y || pMinY > sMax.Y)
                     {
                         continue;
                     }
@@ -1105,10 +1233,10 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // Compute penetration amounts
-                    float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
-                    float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+                    Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+                    Fixed overlapY = Fixed.Min(pMaxY, sMax.Y) - Fixed.Max(pMinY, sMin.Y);
 
-                    if (overlapX < 0f || overlapY < 0f)
+                    if (overlapX < Fixed.FromInt(0) || overlapY < Fixed.FromInt(0))
                     {
                         // Numerical edge-case: treat as no collision
                         continue;
@@ -1118,37 +1246,37 @@ public class PlayerController : MonoBehaviour
                     if (overlapX < overlapY)
                     {
                         // Resolve horizontally
-                        if (position.x < center.x)
+                        if (position.X < center.X)
                         {
                             // Player is left of solid -> push left
                             //position.x -= overlapX;
-                            position.x = sMin.x - halfW;
+                            position = new FixedVec2(sMin.X - halfW, position.Y);
                         }
                         else
                         {
                             // Player is right of solid -> push right
                             //position.x += overlapX;
-                            position.x = sMax.x + halfW;
+                            position = new FixedVec2(sMax.X + halfW, position.Y);
                         }
-                        hSpd = 0f;
+                        hSpd = Fixed.FromInt(0);
                     }
                     else
                     {
                         // Resolve vertically
-                        if (position.y < center.y)
+                        if (position.Y < center.Y)
                         {
                             // Player is below solid -> push down
                             //position.y -= overlapY;
-                            position.y = sMin.y - playerHeight;
+                            position = new FixedVec2(position.X, sMin.Y - playerHeight);
                             // If hitting underside, zero vertical speed
-                            vSpd = 0f;
+                            vSpd = Fixed.FromInt(0);
                         }
                         else
                         {
                             // Player is above solid -> land on top
                             //position.y += overlapY;
-                            position.y = sMax.y;
-                            vSpd = 0f;
+                            position = new FixedVec2(position.X, sMax.Y);
+                            vSpd = Fixed.FromInt(0);
                             isGrounded = true;
                         }
                     }
@@ -1164,26 +1292,26 @@ public class PlayerController : MonoBehaviour
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
             if (platformCount == 0) return false;
 
-            float halfW = playerWidth * 0.5f;
-            float halfH = playerHeight * 0.5f;
+            Fixed halfW = playerWidth / Fixed.FromInt(2);
+            Fixed halfH = playerHeight / Fixed.FromInt(2);
 
             // Player AABB
-            float pMinX = position.x + hSpd - halfW;
-            float pMaxX = position.x + hSpd + halfW;
-            float pMinY = position.y + vSpd;
-            float pMaxY = position.y + vSpd + playerHeight;
+            Fixed pMinX = position.X + hSpd - halfW;
+            Fixed pMaxX = position.X + hSpd + halfW;
+            Fixed pMinY = position.Y + vSpd;
+            Fixed pMaxY = position.Y + vSpd + playerHeight;
 
             for (int i = 0; i < platformCount; i++)
             {
-                Vector2 center = stageDataSO.platformCenter[i];
-                Vector2 extent = stageDataSO.platformExtent[i];
+                FixedVec2 center = FixedVec2.FromFloat(stageDataSO.platformCenter[i].x, stageDataSO.platformCenter[i].y);
+                FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.platformExtent[i].x, stageDataSO.platformExtent[i].y);
 
                 // Treat extent as half-extents: platform min/max
-                Vector2 sMin = center - extent;
-                Vector2 sMax = center + extent;
+                FixedVec2 sMin = center - extent;
+                FixedVec2 sMax = center + extent;
 
                 // Quick horizontal rejection (platforms only matter when horizontally overlapping)
-                if (pMaxX < sMin.x || pMinX > sMax.x)
+                if (pMaxX < sMin.X || pMinX > sMax.X)
                 {
                     continue;
                 }
@@ -1191,23 +1319,23 @@ public class PlayerController : MonoBehaviour
                 // Quick vertical rejection: platforms are thin surfaces; only consider collisions near the top surface.
                 // We'll only allow collision when the player is at or above the platform top and moving downward (or stationary).
                 // This implements a simple one-way platform behaviour.
-                float platformTop = sMax.y;
-                float platformBottom = sMin.y;
+                Fixed platformTop = sMax.Y;
+                Fixed platformBottom = sMin.Y;
 
                 // If player is completely below platform top, ignore.
-                if (pMaxY <= sMin.y)
+                if (pMaxY <= sMin.Y)
                     continue;
 
                 // Overlap in X direction
-                float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
-                if (overlapX <= 0f)
+                Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+                if (overlapX <= Fixed.FromInt(0))
                     continue;
 
                 // If checkOnly is requested and player's AABB intersects platform horizontally and vertically area, report true.
                 if (checkOnly)
                 {
                     // Only report true for platforms when player is above or intersecting the top surface area
-                    if (pMinY < platformTop && pMaxY > sMin.y)
+                    if (pMinY < platformTop && pMaxY > sMin.Y)
                         return true;
                     continue;
                 }
@@ -1215,7 +1343,7 @@ public class PlayerController : MonoBehaviour
                 // Only land on the platform when the player's bottom is at or above the platform top (or intersecting it)
                 // and the player is moving downward (vSpd <= 0) or already essentially resting on it.
                 // This avoids blocking the player from jumping up through the platform.
-                if (pMinY <= platformTop && position.y >= platformTop && vSpd <= 0f)
+                if (pMinY <= platformTop && position.Y >= platformTop && vSpd <= Fixed.FromInt(0))
                 {
                     if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
                     {
@@ -1223,8 +1351,8 @@ public class PlayerController : MonoBehaviour
                         return returnVal;
                     }
                     // Snap player to platform top
-                    position.y = platformTop;
-                    vSpd = 0f;
+                    position = new FixedVec2(position.X, platformTop);
+                    vSpd = Fixed.FromInt(0);
                     isGrounded = true;
                     onPlatform = true;
                     returnVal = true;
@@ -1246,14 +1374,14 @@ public class PlayerController : MonoBehaviour
             int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
             if (activatableSolidCount > 0)
             {
-                float halfW = playerWidth * 0.5f;
-                float halfH = playerHeight * 0.5f;
+                Fixed halfW = playerWidth * Fixed.FromFloat(0.5f);
+                Fixed halfH = playerHeight * Fixed.FromFloat(0.5f);
 
                 // Player AABB
-                float pMinX = position.x + hSpd - halfW;
-                float pMaxX = position.x + hSpd + halfW;
-                float pMinY = position.y + vSpd;
-                float pMaxY = position.y + vSpd + playerHeight;
+                Fixed pMinX = position.X + hSpd - halfW;
+                Fixed pMaxX = position.X + hSpd + halfW;
+                Fixed pMinY = position.Y + vSpd;
+                Fixed pMaxY = position.Y + vSpd + playerHeight;
 
                 //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
                 GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
@@ -1277,15 +1405,16 @@ public class PlayerController : MonoBehaviour
                     }
                     if (!isOpen)
                     {
-                        Vector2 center = stageDataSO.activatableSolidCenter[i];
-                        Vector2 extent = stageDataSO.activatableSolidExtent[i];
+                        
+                        FixedVec2 center = FixedVec2.FromFloat(stageDataSO.activatableSolidCenter[i].x, stageDataSO.activatableSolidCenter[i].y);
+                        FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.activatableSolidExtent[i].x, stageDataSO.activatableSolidExtent[i].y);
 
-                        // Treat extent as half-extents: solid min/max
-                        Vector2 sMin = center - extent;
-                        Vector2 sMax = center + extent;
+                        // Treat extent as half-extents: platform min/max
+                        FixedVec2 sMin = center - extent;
+                        FixedVec2 sMax = center + extent;
 
                         // Quick rejection test
-                        if (pMaxX < sMin.x || pMinX > sMax.x || pMaxY < sMin.y || pMinY > sMax.y)
+                        if (pMaxX < sMin.X || pMinX > sMax.X || pMaxY < sMin.Y || pMinY > sMax.Y)
                         {
                             continue;
                         }
@@ -1297,10 +1426,10 @@ public class PlayerController : MonoBehaviour
                         }
 
                         // Compute penetration amounts
-                        float overlapX = Mathf.Min(pMaxX, sMax.x) - Mathf.Max(pMinX, sMin.x);
-                        float overlapY = Mathf.Min(pMaxY, sMax.y) - Mathf.Max(pMinY, sMin.y);
+                        Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+                        Fixed overlapY = Fixed.Min(pMaxY, sMax.Y) - Fixed.Max(pMinY, sMin.Y);
 
-                        if (overlapX < 0f || overlapY < 0f)
+                        if (overlapX < Fixed.FromInt(0) || overlapY < Fixed.FromInt(0))
                         {
                             // Numerical edge-case: treat as no collision
                             continue;
@@ -1310,37 +1439,37 @@ public class PlayerController : MonoBehaviour
                         if (overlapX < overlapY)
                         {
                             // Resolve horizontally
-                            if (position.x < center.x)
+                            if (position.X < center.X)
                             {
                                 // Player is left of solid -> push left
                                 //position.x -= overlapX;
-                                position.x = sMin.x - halfW;
+                                position = new FixedVec2(sMin.X - halfW, position.Y);
                             }
                             else
                             {
                                 // Player is right of solid -> push right
                                 //position.x += overlapX;
-                                position.x = sMax.x + halfW;
+                                position = new FixedVec2(sMax.X + halfW, position.Y);
                             }
-                            hSpd = 0f;
+                            hSpd = Fixed.FromInt(0);
                         }
                         else
                         {
                             // Resolve vertically
-                            if (position.y < center.y)
+                            if (position.Y < center.Y)
                             {
                                 // Player is below solid -> push down
                                 //position.y -= overlapY;
-                                position.y = sMin.y - playerHeight;
+                                position = new FixedVec2(position.X, sMin.Y - playerHeight);
                                 // If hitting underside, zero vertical speed
-                                vSpd = 0f;
+                                vSpd = Fixed.FromInt(0);
                             }
                             else
                             {
                                 // Player is above solid -> land on top
                                 //position.y += overlapY;
-                                position.y = sMax.y;
-                                vSpd = 0f;
+                                position = new FixedVec2(position.X, sMax.Y);
+                                vSpd = Fixed.FromInt(0);
                                 isGrounded = true;
                             }
                         }
@@ -1384,7 +1513,7 @@ public class PlayerController : MonoBehaviour
         if (wasInHitstun && !isNowHitstun)
         {
             comboCounter = 0;
-            damageProration = 1f;
+            damageProration = Fixed.FromInt(1);
         }
         logicFrame = 0;
         animationFrame = 0;
@@ -1404,8 +1533,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Hitstun:
                 ClearInputDisplay();
                 stateSpecificArg = hitboxData.hitstun;
-                hSpd = hitboxData.xKnockback * (facingRight ? -1 : 1);
-                vSpd = hitboxData.yKnockback;
+                Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
+                Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);
+                hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
+                vSpd = yKnockback;
 
                 //if (isGrounded)
                 //{
@@ -1416,22 +1547,22 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Tech:
-                hSpd = facingRight ? -1 : 1;
-                vSpd = 5;
+                hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
+                vSpd = Fixed.FromInt(5);
                 //if (isGrounded)
                 //{
                 //    position.y = StageData.Instance.floorYval + 1;
                 //    isGrounded = false;
                 //}
                 comboCounter = 0;
-                damageProration = 1f;
+                damageProration = Fixed.FromInt(1);
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
                 if (/*vSpd < 0 && */!isGrounded)
                 {
-                    vSpd = 0;
-                    gravity = 0;
+                    vSpd = Fixed.FromInt(0);
+                    gravity = Fixed.FromInt(0);
                 }
 
                 //update the player's spell display to show the spell inputs
@@ -1462,7 +1593,7 @@ public class PlayerController : MonoBehaviour
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
-                gravity = .75f;
+                gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
                 ClearInputDisplay();
@@ -1473,16 +1604,16 @@ public class PlayerController : MonoBehaviour
 
     private bool CheckGrounded(bool checkOnly = false)
     {
-        float floorYval = StageData.Instance.floorYval;
+        Fixed floorYval = Fixed.FromInt(StageData.Instance.floorYval);
 
-        if (position.y + vSpd <= floorYval)
+        if (position.Y + vSpd <= floorYval)
         {
             if (checkOnly)
             {
                 return true;
             }
-            position.y = floorYval;
-            vSpd = 0;
+            position = new FixedVec2(position.X, floorYval);
+            vSpd = Fixed.FromInt(0);
             return true;
         }
         return false;
@@ -1608,19 +1739,19 @@ public class PlayerController : MonoBehaviour
     /// <returns></returns>
     public bool CheckWall(bool rightWall, bool checkOnly = false)
     {
-        float wallXval = rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval;
-        float offset = rightWall ? playerWidth / 2 : -playerWidth / 2;
+        Fixed wallXval = Fixed.FromInt(rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval);
+        Fixed offset = rightWall ? playerWidth / Fixed.FromInt(2) : -playerWidth / Fixed.FromInt(2);
 
         // Check if the player has hit the wall and adjust position and speed
-        if ((rightWall && position.x + hSpd + playerWidth / 2 >= wallXval) ||
-            (!rightWall && position.x + hSpd - playerWidth / 2 <= wallXval))
+        if ((rightWall && position.X + hSpd + playerWidth / Fixed.FromInt(2) >= wallXval) ||
+            (!rightWall && position.X + hSpd - playerWidth / Fixed.FromInt(2) <= wallXval))
         {
             if (checkOnly)
             {
                 return true;
             }
-            position.x = wallXval - offset;
-            hSpd = 0;
+            position = new FixedVec2(wallXval - offset, position.Y);
+            hSpd = Fixed.FromInt(0);
             return true;
         }
 
@@ -1679,17 +1810,17 @@ public class PlayerController : MonoBehaviour
     public bool IsCloserToStageCenter()
     {
         // 1) compute the absolute center of the stage
-        float leftWall = StageData.Instance.leftWallXval;
-        float rightWall = StageData.Instance.rightWallXval;
-        float stageCenter = (leftWall + rightWall) * 0.5f;
+        Fixed leftWall = Fixed.FromInt(StageData.Instance.leftWallXval);
+        Fixed rightWall = Fixed.FromInt(StageData.Instance.rightWallXval);
+        Fixed stageCenter = (leftWall + rightWall) / Fixed.FromInt(2);
 
         // 2) distance from player to center
-        float distToCenter = Mathf.Abs(position.x - stageCenter);
+        Fixed distToCenter = Fixed.Abs(position.X - stageCenter);
 
         // 3) distance to the nearest wall
-        float distToLeft = Mathf.Abs(position.x - leftWall);
-        float distToRight = Mathf.Abs(position.x - rightWall);
-        float distToWall = Mathf.Min(distToLeft, distToRight);
+        Fixed distToLeft = Fixed.Abs(position.X - leftWall); 
+        Fixed distToRight = Fixed.Abs(position.X - rightWall); 
+        Fixed distToWall = Fixed.Min(distToLeft, distToRight);
 
         // 4) are we closer to center than to the wall?
         return distToCenter < distToWall;
@@ -1702,7 +1833,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     /// <param name="targetHspd"></param>
     /// <param name="lerpval"></param>
-    public void LerpHspd(int targetHspd, int lerpval)
+    public void LerpHspd(Fixed targetHspd, int lerpval)
     {
         if (lerpDelay >= lerpval)
         {
@@ -1711,17 +1842,17 @@ public class PlayerController : MonoBehaviour
             // Adjust horizontal speed towards target
             if (hSpd < targetHspd)
             {
-                hSpd++;
+                hSpd += Fixed.FromInt(1);
             }
             else if (hSpd > targetHspd)
             {
-                hSpd--;
+                hSpd -= Fixed.FromInt(1);
             }
 
             // If hSpd is between -1 and 1, set it to 0
-            if (Math.Abs(hSpd) < 1)
+            if (Fixed.Abs(hSpd) < Fixed.FromInt(1))
             {
-                hSpd = 0;
+                hSpd = Fixed.FromInt(0);
             }
         }
         else
@@ -1772,17 +1903,20 @@ public class PlayerController : MonoBehaviour
     /// NETWORK CODE:
     public void Serialize(BinaryWriter bw)
     {
-        bw.Write(position.x);
-        bw.Write(position.y);
-        bw.Write(hSpd);
-        bw.Write(vSpd);
-        bw.Write(gravity);
+        bw.Write(position.X.RawValue);
+        bw.Write(position.Y.RawValue);
+        bw.Write(hSpd.RawValue);
+        bw.Write(vSpd.RawValue);
+        bw.Write(gravity.RawValue);
+        bw.Write(damageProration.RawValue);
+        bw.Write(timer.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
         bw.Write(logicFrame); // 🔹 Save current animation frame
+        bw.Write(animationFrame);
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
@@ -1790,6 +1924,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(comboCounter);
+        bw.Write(currentPlayerHealth); 
+        bw.Write(isAlive); 
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
@@ -1797,23 +1933,36 @@ public class PlayerController : MonoBehaviour
         bw.Write(momentum);
         bw.Write(slimed);
 
+        // Spell List Serialization
+        bw.Write(spellList.Count); // Write how many spells are in the list
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            // Write the spell's unique name/ID to identify which spell it is
+            bw.Write(spellList[i].spellName); // Assuming spellName is unique and constant
+
+            // Call the spell's own Serialize method (needs to be implemented in SpellData)
+            spellList[i].Serialize(bw); // Assumes SpellData has Serialize(BinaryWriter bw)
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
 
     public void Deserialize(BinaryReader br)
     {
-        position.x = br.ReadSingle();
-        position.y = br.ReadSingle();
-        hSpd = br.ReadSingle();
-        vSpd = br.ReadSingle();
-        gravity = br.ReadSingle();
+        position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
+        hSpd = new Fixed(br.ReadInt32());
+        vSpd = new Fixed(br.ReadInt32());
+        gravity = new Fixed(br.ReadInt32());
+        damageProration = new Fixed(br.ReadInt32());
+        timer = new Fixed(br.ReadInt32());
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         onPlatform = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();
+        animationFrame = br.ReadInt32();
         lerpDelay = br.ReadUInt16();
         stateSpecificArg = br.ReadUInt32();
         hitstop = br.ReadByte();
@@ -1821,6 +1970,8 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         comboCounter = br.ReadUInt16();
+        currentPlayerHealth = br.ReadUInt16();
+        isAlive = br.ReadBoolean();
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
@@ -1828,6 +1979,38 @@ public class PlayerController : MonoBehaviour
         momentum = br.ReadUInt16();
         slimed = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
+
+        // Spell List Deserialization
+        int spellCount = br.ReadInt32();
+        // Important: Ensure the spellList is the correct size and has the correct spells
+        // This is complex. A simple approach if the list order/contents don't change dynamically mid-match:
+        if (spellList.Count != spellCount)
+        {
+            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
+            // Potentially try to rebuild the list based on saved names? Very risky.
+            // For simplicity, assuming the list composition is stable during rollback frames.
+        }
+
+        for (int i = 0; i < spellCount; i++)
+        {
+            string spellName = br.ReadString(); // Read the identifier
+
+            // Find the corresponding spell instance in the current list
+            SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
+
+            if (spellInstance != null)
+            {
+                // Call the spell's Deserialize method
+                spellInstance.Deserialize(br); // Assumes SpellData has Deserialize(BinaryReader br)
+            }
+            else
+            {
+                Debug.LogError($"Spell '{spellName}' not found in list during Deserialize. Skipping spell state.");
+                // Need a robust way to handle this, perhaps by skipping the correct number of bytes
+                // based on how SpellData.Deserialize is implemented, or failing entirely.
+                // For now, this will likely cause complete desync if a spell is missing.
+            }
+        }
     }
 
 
@@ -1859,35 +2042,41 @@ public class PlayerController : MonoBehaviour
 
     public void UpdateInputDisplay(int direction)
     {
-        //down
-        if (direction == 2)
+        if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
-            inputDisplay.text += "DOWN, ";
-        }
+            //down
+            if (direction == 2)
+            {
+                inputDisplay.text += "DOWN, ";
+            }
 
-        //left
-        if (direction == 4)
-        {
-            inputDisplay.text += "LEFT,  ";
-        }
+            //left
+            if (direction == 4)
+            {
+                inputDisplay.text += "LEFT,  ";
+            }
 
-        //right
-        if (direction == 6)
-        {
-            inputDisplay.text += "RIGHT, ";
-        }
+            //right
+            if (direction == 6)
+            {
+                inputDisplay.text += "RIGHT, ";
+            }
 
-        //up
-        if (direction == 8)
-        {
-            inputDisplay.text += "UP, "; 
-        }
+            //up
+            if (direction == 8)
+            {
+                inputDisplay.text += "UP, ";
+            }
+        } 
     }
 
     public void ClearInputDisplay()
     {
-        inputDisplay.text = "";
-        inputDisplay.color = Color.white;
+        if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
+        {
+            inputDisplay.text = "";
+            inputDisplay.color = Color.white;
+        }    
     }
 
     public static string ConvertCodeToString(uint code, Color ?color = null)

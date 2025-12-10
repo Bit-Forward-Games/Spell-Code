@@ -142,9 +142,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d53073cde6508a242a07b22b737f330b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultSong: {fileID: 0}
-  availableSongs:
-  - {fileID: 8300000, guid: 014cf47e3584d2b478778707bd959d62, type: 3}
-  - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}
-  - {fileID: 8300000, guid: 2f2a0b079c18a574d80400cf67160bda, type: 3}
-  - {fileID: 8300000, guid: ce05b6b00f283a64d9af3daa3c58ee1e, type: 3}
+  sceneAudioObjects:
+  - sceneName: MainMenu
+    availableSongs:
+    - {fileID: 8300000, guid: 378cccd14eb54a94f9e831be92b21908, type: 3}
+    - {fileID: 8300000, guid: 3ccded274e28bb54f85149c5b850ddcd, type: 3}
+    previousSong: {fileID: 0}
+  - sceneName: Gameplay
+    availableSongs:
+    - {fileID: 8300000, guid: d03e4d61b27dede48849752952c1887e, type: 3}
+    - {fileID: 8300000, guid: 09f7a01b7069f49469eb94ff5f458566, type: 3}
+    - {fileID: 8300000, guid: c21ef420e7687114fba8481171884716, type: 3}
+    - {fileID: 8300000, guid: ccf1805bc0ef0af4b86ef409b8a9e6cc, type: 3}
+    - {fileID: 8300000, guid: 9868b87a8065dab41838c1e9d3cb104f, type: 3}
+    previousSong: {fileID: 0}
+  - sceneName: Shop
+    availableSongs:
+    - {fileID: 8300000, guid: 014cf47e3584d2b478778707bd959d62, type: 3}
+    - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}
+    - {fileID: 8300000, guid: ce05b6b00f283a64d9af3daa3c58ee1e, type: 3}
+    - {fileID: 8300000, guid: 2f2a0b079c18a574d80400cf67160bda, type: 3}
+    previousSong: {fileID: 8300000, guid: faaa7926c7336f540b4eb6c6238c2237, type: 3}

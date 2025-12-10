@@ -2,6 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.IO;
+using BestoNet.Types;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class SpellCode_Gate : MonoBehaviour
 {
@@ -17,7 +23,10 @@ public class SpellCode_Gate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        CheckGateBroken();
+        if (!isOpen)
+        {
+            CheckGateBroken();
+        }
     }
 
     public void CheckGateBroken()
@@ -50,8 +59,8 @@ public class SpellCode_Gate : MonoBehaviour
                     if (CheckCollision(hitbox, projectile.position, gateBounds,
                                 projectile.facingRight))
                     {
-                        isOpen = true;
-                        gateAnimator.SetBool("live", false);
+                        SetOpen(true);
+                        return;
                     }
                 }
 
@@ -59,7 +68,17 @@ public class SpellCode_Gate : MonoBehaviour
         }
     }
 
-    private bool CheckCollision(HitboxData hitbox, Vector2 hitboxOrigin, Bounds colliderBounds, bool hitboxOwnerFacingRight)
+    // Helper to set state and update visuals
+    public void SetOpen(bool open)
+    {
+        isOpen = open;
+        if (gateAnimator != null)
+        {
+            gateAnimator.SetBool("live", !isOpen);
+        }
+    }
+
+    private bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, Bounds colliderBounds, bool hitboxOwnerFacingRight)
     {
 
         // If either box has no width or height, return false
@@ -68,10 +87,10 @@ public class SpellCode_Gate : MonoBehaviour
             return false;
         }
         // Construct Hitbox Boundaries
-        float hitboxLeft = hitboxOrigin.x + GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight);
-        float hitboxRight = hitboxOrigin.x + GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight) + hitbox.width;
-        float hitboxTop = hitboxOrigin.y + hitbox.yOffset;
-        float hitboxBottom = hitboxOrigin.y + hitbox.yOffset - hitbox.height;
+        Fixed hitboxLeft = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight));
+        Fixed hitboxRight = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight) + hitbox.width);
+        Fixed hitboxTop = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset);
+        Fixed hitboxBottom = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset - hitbox.height);
 
         //Debug.Log($"Hit: Left {hitboxLeft} Right {hitboxRight} Top {hitboxTop} Bottom {hitboxBottom}");
 
@@ -80,10 +99,10 @@ public class SpellCode_Gate : MonoBehaviour
         //Debug.Log($"Hurt: Left {hurtboxLeft} Right {hurtboxRight} Top {hurtboxTop} Bottom {hurtboxBottom}");
 
         // Check for Collision using AABB
-        if (hitboxLeft < colliderBounds.max.x &&
-            hitboxRight > colliderBounds.min.x &&
-            hitboxTop > colliderBounds.min.y &&
-            hitboxBottom < colliderBounds.max.y)
+        if (hitboxLeft < Fixed.FromFloat(colliderBounds.max.x) &&
+            hitboxRight > Fixed.FromFloat(colliderBounds.min.x) &&
+            hitboxTop > Fixed.FromFloat(colliderBounds.min.y) &&
+            hitboxBottom < Fixed.FromFloat(colliderBounds.max.y))
         {
             return true;
         }
@@ -101,5 +120,16 @@ public class SpellCode_Gate : MonoBehaviour
     {
         //return isRight ? hitData.xOffset : -hitData.xOffset;
         return isRight ? hitData.xOffset : -(hitData.xOffset + hitData.width);
+    }
+
+    public void Serialize(BinaryWriter bw)
+    {
+        bw.Write(isOpen);
+    }
+
+    public void Deserialize(BinaryReader br)
+    {
+        bool wasOpen = br.ReadBoolean();
+        SetOpen(wasOpen);
     }
 }

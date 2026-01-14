@@ -875,11 +875,6 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                //float if holding the jump button
-                //if(input.ButtonStates[1] == ButtonState.Pressed && vSpd <=0)
-                //{
-                //    vSpd = jumpForce;
-                //}
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
                 {
@@ -917,7 +912,18 @@ public class PlayerController : MonoBehaviour
                         }
                         else { inputDisplay.color = Color.red; }
                     }
-                    //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop
+
+                    // Check conditions of all spells with the onCast condition
+                    for (int i = 0; i < spellList.Count; i++)
+                    {
+                        if (spellList[i].procConditions.Contains(ProcCondition.OnCast))
+                        {
+                            spellList[i].CheckCondition();
+                        }
+                    }
+
+
+                    //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop, meaning we successfully fired a spell
                     if (stateSpecificArg == 255) break;
 
                     //create an instance of your basic spell here
@@ -1004,11 +1010,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            spellList[i].SpellUpdate();
-        }
-
         UpdateResources();
 
         //check player collisions
@@ -1017,20 +1018,7 @@ public class PlayerController : MonoBehaviour
         position += new FixedVec2(hSpd, vSpd);
         //position.x += hSpd;
         //position.y += vSpd;
-        
-        // Check conditions of all spells with the onupdate condition
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
-            {
-                spellList[i].CheckCondition();
-            }
-        }
 
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            spellList[i].SpellUpdate();
-        }
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
@@ -2025,7 +2013,7 @@ public class PlayerController : MonoBehaviour
         //go through the player's spell list and update any proc effects
         for (int i = 0; i < spellList.Count; i++)
         {
-            spellList[i].CheckCondition();
+            spellList[i].SpellUpdate();
         }
     }
     //private bool IsSpecialStateActive() =>

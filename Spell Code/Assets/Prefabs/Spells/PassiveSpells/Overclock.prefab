@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7745486899729457613}
-  - component: {fileID: -5896991823923336134}
+  - component: {fileID: 8791147183177087036}
   m_Layer: 0
   m_Name: Overclock
   m_TagString: Untagged
@@ -26,13 +26,13 @@ Transform:
   m_GameObject: {fileID: 3884774707739521384}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.800417, y: 51.22846, z: -1.1045535}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-5896991823923336134
+--- !u!114 &8791147183177087036
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -45,10 +45,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: Overclock
-  brands: 03000000
-  procConditions: 08000000
-  description: 
-  cooldown: 1
+  brands: 01000000
+  procConditions: 05000000
+  description: While in Flow State, you overclock your movement, increasing your
+    run speed.
+  cooldown: 0
   cooldownCounter: 0
   spellInput: 0
   activateFlag: 0
@@ -56,6 +57,7 @@ MonoBehaviour:
   spellType: 0
   spawnOffsetX: 10
   spawnOffsetY: 15
-  projectilePrefabs: []
+  projectilePrefabs:
+  - {fileID: 7323394407539773554, guid: 5e9de9e76cf85b040848816e9523b15c, type: 3}
+  projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 166b203bcef96644fb823c8a1be59b2b, type: 3}
-  speedMultiplier: 2

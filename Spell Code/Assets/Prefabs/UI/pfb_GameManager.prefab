@@ -1205,6 +1205,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: eb4de387b01300640b7237653fe11611, type: 2}
   - {fileID: 11400000, guid: 601758ab3909c664d9228ce42d4097dd, type: 2}
   - {fileID: 11400000, guid: 67bcf0371fe616e4aac02f11be7b845b, type: 2}
+  - {fileID: 11400000, guid: 2717b9d814a0bbc49a2d94d7576a8e95, type: 2}
   lobbySO: {fileID: 11400000, guid: aa9d46f33b2cdd34b864eede092eb100, type: 2}
   currentStageIndex: -1
   tempMapGOs:

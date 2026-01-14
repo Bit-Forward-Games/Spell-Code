@@ -6,10 +6,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class BootsOfHermes : SpellData
 {
-    Fixed baseJumpForce;
-    public Fixed jumpMultiplier = Fixed.FromFloat(1.5f);
-    //int BootsOfHermesDuration = 180; // Duration of the speed boost in frames
-    //int BootsOfHermesCounter = 0;
+    public int hermesJumps = 0;
 
     public BootsOfHermes()
     {
@@ -18,52 +15,33 @@ public class BootsOfHermes : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.Killeez };
-        description = "While you have 3 or more \"Reps\", your jump height is massively increased.";
+        description = "Gain 1 Jump for every 3 \"Reps\" you have.";
     }
 
     public override void SpellUpdate()
     {
-        if (activateFlag)
+        if(hermesJumps > 0)
         {
-            //activateFlag = false;
-            Debug.Log("Jump Boost Activated!");
-            if (owner.jumpForce == baseJumpForce)
+            if (owner.vSpd < owner.jumpForce && owner.state == PlayerState.Jump && owner.input.ButtonStates[1] == ButtonState.Pressed)
             {
-                owner.jumpForce *= jumpMultiplier;
-                Debug.Log($"{owner.jumpForce}");
-                //BootsOfHermesCounter = BootsOfHermesDuration; // Reset counter
+                owner.vSpd = owner.jumpForce;
+                hermesJumps--;
             }
         }
-        else
-        {
-            if (owner.jumpForce != baseJumpForce)
-            {
-                owner.jumpForce = baseJumpForce; // Reset to base jump force
-                Debug.Log("Jump Boost Deactivated, reset jump force.");
-            }
-        }
-        //if (BootsOfHermesCounter > 0)
-        //{
-        //    BootsOfHermesCounter--;
-        //    if (BootsOfHermesCounter == 0)
-        //    {
-        //        owner.jumpForce = baseJumpForce; // Reset to base jump foce when counter ends
-        //    }
-        //}
     }
 
     public override void LoadSpell()
     {
-        baseJumpForce = owner.jumpForce; // Initialize base jump force
     }
 
     public override void CheckCondition()
     {
 
-        if (owner.reps >= 3)
+        if (owner.isGrounded)
         {
-            activateFlag = true;
+            //activateFlag = true;
+            hermesJumps = Mathf.FloorToInt(owner.reps / 3);
         }
-        else { activateFlag = false; }
+        //else { activateFlag = false; }
     }
 }

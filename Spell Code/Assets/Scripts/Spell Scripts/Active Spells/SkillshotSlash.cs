@@ -22,7 +22,7 @@ public class SkillshotSlash : SpellData
     {
         if(owner.flowState > 0)
         {
-            defender.TakeEffectDamage(10);
+            defender.TakeEffectDamage(15);
         }
         //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
         if (defender.hitboxData.sweetSpot)

@@ -37,7 +37,7 @@ public class Overclock_prj : BaseProjectile
                 new HitboxData
                 {
                     xOffset = -64,
-                    yOffset = -64,
+                    yOffset = 64,
                     width = 128,
                     height = 128,
                     xKnockback = 2,

@@ -7,16 +7,16 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class Active_Spell_4_prj : BaseProjectile
+public class Overclock_prj : BaseProjectile
 {
-    public Active_Spell_4_prj()
+    public Overclock_prj()
     {
-        projName = "Active_Spell_4";
+        projName = "Overclock";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2, 2 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2}, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -25,7 +25,6 @@ public class Active_Spell_4_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 8);
     }
 
     public override void LoadProjectile()
@@ -37,12 +36,12 @@ public class Active_Spell_4_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 0,
-                    yOffset = 3,
-                    width = 40,
-                    height = 6,
-                    xKnockback = 0,
-                    yKnockback = 1,
+                    xOffset = -64,
+                    yOffset = -64,
+                    width = 128,
+                    height = 128,
+                    xKnockback = 2,
+                    yKnockback = 2,
                     damage = 10,
                     hitstun = 20,
                     attackLvl = 2,
@@ -66,9 +65,6 @@ public class Active_Spell_4_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
-        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
-        //and then waits until the animation is done to delete itself.
         if (logicFrame >= animFrames.frameLengths.Take(1).Sum() + 1)
         {
             activeHitboxGroupIndex = 1;
@@ -77,7 +73,6 @@ public class Active_Spell_4_prj : BaseProjectile
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
-        //this basically checks if the projectile hit something
 
     }
 }

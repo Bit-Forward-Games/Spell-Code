@@ -1150,6 +1150,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: projectileList.Array.size
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[4]'
+      value: 
+      objectReference: {fileID: 4063394636849562880, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[5]'
+      value: 
+      objectReference: {fileID: 4947808463959733500, guid: 5e9de9e76cf85b040848816e9523b15c, type: 3}
     - target: {fileID: 3241195127634162658, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0

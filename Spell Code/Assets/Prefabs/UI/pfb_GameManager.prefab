@@ -816,7 +816,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -400.0001, y: -224.91273}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 210.8363, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &503128618466278906
@@ -1183,6 +1183,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainMenuScreen: {fileID: 5556436313567878654}
+  playerPrefab: {fileID: 8711063744521862629, guid: 68bb933b57b1ddb459bfaae0f5b60906, type: 3}
   players:
   - {fileID: 0}
   - {fileID: 0}
@@ -1213,6 +1214,7 @@ MonoBehaviour:
   roundOver: 0
   gameOver: 0
   prevSceneWasShop: 0
+  isTransitioning: 0
   gates:
   - {fileID: 0}
   - {fileID: 0}
@@ -1230,6 +1232,14 @@ MonoBehaviour:
   p2_choices: []
   p3_choices: []
   p4_choices: []
+  onlineMenuUI: {fileID: 0}
+  toggleOnlineMenuKey: 286
+  isWaitingForOpponent: 0
+  opponentIsReady: 0
+  playerInputManager: {fileID: 0}
+  isOnlineMatchActive: 0
+  localPlayerIndex: 0
+  remotePlayerIndex: 1
 --- !u!114 &640447128905950754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1374,6 +1384,8 @@ MonoBehaviour:
   - {fileID: 8219806438660890640, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
   - {fileID: -4885699391038279724, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
   - {fileID: -9124946400819393822, guid: e3392c449e53ba74fab6383512e8f0d9, type: 3}
+  - {fileID: 4063394636849562880, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}
+  - {fileID: 4947808463959733500, guid: 5e9de9e76cf85b040848816e9523b15c, type: 3}
 --- !u!114 &7022982774474964000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1392,7 +1404,7 @@ MonoBehaviour:
   - {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
   - {fileID: 6018045562301869049, guid: 4d04079dedaa5194a941eefff3452143, type: 3}
   - {fileID: 3228513247226345638, guid: fc3b2debc8d4a174d8974734fc504041, type: 3}
-  - {fileID: -5896991823923336134, guid: e1333e686a899b14f8f7389907262737, type: 3}
+  - {fileID: 8791147183177087036, guid: e1333e686a899b14f8f7389907262737, type: 3}
 --- !u!114 &699450530840418385
 MonoBehaviour:
   m_ObjectHideFlags: 0

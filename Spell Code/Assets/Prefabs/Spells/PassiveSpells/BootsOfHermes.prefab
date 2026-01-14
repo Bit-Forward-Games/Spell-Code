@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 3884774707739521384}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.800417, y: 51.22846, z: -1.1045535}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -57,5 +57,6 @@ MonoBehaviour:
   spawnOffsetX: 10
   spawnOffsetY: 15
   projectilePrefabs: []
+  projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
-  jumpMultiplier: 1.5
+  hermesJumps: 0

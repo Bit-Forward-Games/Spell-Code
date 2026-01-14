@@ -39,8 +39,10 @@ public class TempUIScript : MonoBehaviour
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerHpVals[i].text = "P" + (i + 1);
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
-            playerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
-            followPlayerHpBar[i].fillAmount = (float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth;
+
+            float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
+            playerHpBar[i].fillAmount = fillAmountVal;
+            followPlayerHpBar[i].fillAmount = fillAmountVal;
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;

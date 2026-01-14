@@ -737,26 +737,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1711776676}
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: stages.Array.size
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'stages.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: e8be85b126db08044b28b3265384f744, type: 2}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'stages.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 991e2ea107ccb05409dda59f343b8551, type: 2}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'stages.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 385968a43d989bc4c987cd9f57d167d3, type: 2}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'stages.Array.data[3]'
-      value: 
-      objectReference: {fileID: 11400000, guid: eb4de387b01300640b7237653fe11611, type: 2}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: tempMapGOs.Array.size
       value: 3
       objectReference: {fileID: 0}

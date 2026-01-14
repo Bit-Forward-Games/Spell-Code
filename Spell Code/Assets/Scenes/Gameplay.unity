@@ -534,11 +534,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4617032858409249235, guid: e9e57ab39a1e5e147abcdce034a91dc5, type: 3}
   m_PrefabInstance: {fileID: 2071646414}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &444985263 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5358450154172372681, guid: 46963e3384e2c90408c73a966b5d9512, type: 3}
-  m_PrefabInstance: {fileID: 1911113908}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &444985265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3591493126098768925, guid: 46963e3384e2c90408c73a966b5d9512, type: 3}
@@ -736,22 +731,6 @@ PrefabInstance:
       propertyPath: playerWinText
       value: 
       objectReference: {fileID: 1711776676}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: tempMapGOs.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'tempMapGOs.Array.data[0]'
-      value: 
-      objectReference: {fileID: 1014337930}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'tempMapGOs.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1974839705}
-    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'tempMapGOs.Array.data[2]'
-      value: 
-      objectReference: {fileID: 444985263}
     - target: {fileID: 5677330542442070519, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -19.099976
@@ -1466,11 +1445,6 @@ MonoBehaviour:
   zoomSpeed: 5
   shakeMagnitude: 1
   target: {x: 0, y: 0}
---- !u!1 &1014337930 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6473675299048387441, guid: e90a6a32ed23f2646b34596b48ba0501, type: 3}
-  m_PrefabInstance: {fileID: 1001092801}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1014337932 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5621602568436360190, guid: e90a6a32ed23f2646b34596b48ba0501, type: 3}
@@ -2606,11 +2580,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1915123772}
   m_CullTransparentMesh: 1
---- !u!1 &1974839705 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 660610975967777689, guid: 5e9830755e439644c8991e7ad3dd367d, type: 3}
-  m_PrefabInstance: {fileID: 141607335}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1974839707 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7350075412557514443, guid: 5e9830755e439644c8991e7ad3dd367d, type: 3}

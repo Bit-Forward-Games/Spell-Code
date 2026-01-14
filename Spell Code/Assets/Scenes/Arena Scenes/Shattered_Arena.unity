@@ -323,6 +323,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: pfb_GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -497,7 +501,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 88
+  orthographic size: 91.666664
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

@@ -296,7 +296,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // ISSUE 1 FIX: Hide online menu immediately
+        // Hide online menu immediately
         if (onlineMenuUI != null)
         {
             onlineMenuUI.SetActive(false);
@@ -702,7 +702,7 @@ public class GameManager : MonoBehaviour
     // Handle spell selection for online players
     private void HandleOnlineSpellSelection()
     {
-        // ISSUE 2 FIX: Use SYNCED inputs to make spell selection deterministic
+        // Use SYNCED inputs to make spell selection deterministic
         // Both players will see the same spell selections because they're using
         // synchronized inputs from the rollback system
 
@@ -763,6 +763,10 @@ public class GameManager : MonoBehaviour
 
                     // Only hide UI for local player
                     if (i == localPlayerIndex && spellCard != null)
+                    {
+                        spellCard.enabled = false;
+                    }
+                    if (i == remotePlayerIndex && spellCard != null)
                     {
                         spellCard.enabled = false;
                     }
@@ -1353,7 +1357,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // ISSUE 2 FIX: Serialize spell selection indices for lobby state
+                // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
                 bw.Write(p2_index);
                 bw.Write(p3_index);
@@ -1411,7 +1415,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // ISSUE 2 FIX: Deserialize spell selection indices
+                // Deserialize spell selection indices
                 p1_index = br.ReadInt32();
                 p2_index = br.ReadInt32();
                 p3_index = br.ReadInt32();

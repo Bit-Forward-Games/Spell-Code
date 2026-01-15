@@ -296,6 +296,13 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // ISSUE 1 FIX: Hide online menu immediately
+        if (onlineMenuUI != null)
+        {
+            onlineMenuUI.SetActive(false);
+            Debug.Log("Online menu UI hidden");
+        }
+
         isOnlineMatchActive = false;
         isWaitingForOpponent = false;
         opponentIsReady = false;
@@ -391,12 +398,9 @@ public class GameManager : MonoBehaviour
 
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        // DON'T load MainMenu scene - we're already in it
-        // Just set the stage to lobby and start the lobby phase
         SetStage(-1); // Lobby stage
         ResetPlayers();
 
-        // NOW we can start running the lobby simulation
         isRunning = true;
 
         Debug.Log($"Entered Online Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
@@ -698,48 +702,70 @@ public class GameManager : MonoBehaviour
     // Handle spell selection for online players
     private void HandleOnlineSpellSelection()
     {
-        // Only handle the 2 online players
+        // ISSUE 2 FIX: Use SYNCED inputs to make spell selection deterministic
+        // Both players will see the same spell selections because they're using
+        // synchronized inputs from the rollback system
+
         for (int i = 0; i < 2; i++)
         {
             if (players[i] == null) continue;
 
-            // Only handle local player's spawning and spell generation
-            if (i == localPlayerIndex && !players[i].isSpawned)
+            // Generate starting spells if not spawned yet
+            if (!players[i].isSpawned)
             {
                 GenerateStartingSpells(i);
 
-                if (i == 0) p1_spellCard.enabled = true;
-                else if (i == 1) p2_spellCard.enabled = true;
+                // Only show spell card UI for local player
+                if (i == localPlayerIndex)
+                {
+                    if (i == 0) p1_spellCard.enabled = true;
+                    else if (i == 1) p2_spellCard.enabled = true;
+                }
 
                 players[i].isSpawned = true;
             }
 
-            // Handle spell selection for local player only
-            if (i == localPlayerIndex && !players[i].chosenStartingSpell && players[i].isSpawned)
+            // Handle spell cycling and selection using the player's INPUT
+            // This input is already synchronized from syncedInput[]
+            if (!players[i].chosenStartingSpell && players[i].isSpawned)
             {
                 List<string> choices = i == 0 ? p1_choices : p2_choices;
                 int currentIndex = i == 0 ? p1_index : p2_index;
                 Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
 
+                // Use the synchronized input for THIS player
+                // The input comes from syncedInput[] which is already synchronized
+                ButtonState cycleButton = players[i].input.ButtonStates[0];
+                ButtonState selectButton = players[i].input.ButtonStates[1];
+
                 // Cycle spells
-                if (players[i].input.ButtonStates[0] == ButtonState.Pressed)
+                if (cycleButton == ButtonState.Pressed)
                 {
-                    Debug.Log($"p{i + 1} pressed cycle spell");
+                    Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell");
                     currentIndex = (currentIndex == 1) ? 0 : 1;
 
                     if (i == 0) p1_index = currentIndex;
                     else p2_index = currentIndex;
 
-                    spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
+                    // Only update UI for local player
+                    if (i == localPlayerIndex && spellCard != null)
+                    {
+                        spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
+                    }
                 }
 
                 // Choose spell
-                if (players[i].input.ButtonStates[1] == ButtonState.Pressed)
+                if (selectButton == ButtonState.Pressed)
                 {
-                    Debug.Log($"p{i + 1} chose a spell");
+                    Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
                     players[i].AddSpellToSpellList(choices[currentIndex]);
                     players[i].chosenStartingSpell = true;
-                    spellCard.enabled = false;
+
+                    // Only hide UI for local player
+                    if (i == localPlayerIndex && spellCard != null)
+                    {
+                        spellCard.enabled = false;
+                    }
                 }
             }
         }
@@ -1327,6 +1353,12 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
+                // ISSUE 2 FIX: Serialize spell selection indices for lobby state
+                bw.Write(p1_index);
+                bw.Write(p2_index);
+                bw.Write(p3_index);
+                bw.Write(p4_index);
+
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
                 bw.Write(activeProjectiles.Count);
 
@@ -1378,6 +1410,12 @@ public class GameManager : MonoBehaviour
                         Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
                     }
                 }
+
+                // ISSUE 2 FIX: Deserialize spell selection indices
+                p1_index = br.ReadInt32();
+                p2_index = br.ReadInt32();
+                p3_index = br.ReadInt32();
+                p4_index = br.ReadInt32();
 
                 int savedProjectileCount = br.ReadInt32();
                 List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;

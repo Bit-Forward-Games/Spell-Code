@@ -1920,6 +1920,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(reps);
         bw.Write(momentum);
         bw.Write(slimed);
+        bw.Write(isSpawned);
+        bw.Write(chosenStartingSpell);
 
         // Spell List Serialization
         bw.Write(spellList.Count); // Write how many spells are in the list
@@ -1966,6 +1968,8 @@ public class PlayerController : MonoBehaviour
         reps = br.ReadUInt16();
         momentum = br.ReadUInt16();
         slimed = br.ReadBoolean();
+        isSpawned = br.ReadBoolean();
+        chosenStartingSpell = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
 
         // Spell List Deserialization

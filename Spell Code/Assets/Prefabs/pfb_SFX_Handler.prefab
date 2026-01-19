@@ -142,5 +142,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5980e625ff0bbb1419f95e51abe9c86a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sfxAudioSource: {fileID: 7108996257177461571}
-  availableSounds: []
+  availableSounds:
+  - {fileID: 8300000, guid: 06b1785dfe20cb94eb8959bfe38d4f4f, type: 3}
+  - {fileID: 8300000, guid: a3424783fb325ce4ea9d325e063a3ff9, type: 3}
+  - {fileID: 8300000, guid: 5fa0df73e54a7c8419e73e9ca4cf1de2, type: 3}
+  - {fileID: 8300000, guid: c64460d57aa6d494bbbbab0757b65406, type: 3}
+  - {fileID: 8300000, guid: 4a88ef86df25e054e869552c2c2afe35, type: 3}
+  - {fileID: 8300000, guid: 298c8eb5e8b723a4f812cef480853cc8, type: 3}
+  - {fileID: 8300000, guid: 926ba81d41aca1e4a8d2ca32fff4e0f1, type: 3}

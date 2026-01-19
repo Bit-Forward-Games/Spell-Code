@@ -22,15 +22,15 @@ public class SFX_Handler : MonoBehaviour
     }
 
     /// <summary>
-    /// Play a sound defined by "soundTypeToPlay"
+    /// Play a sound with the name defined by "_nameOfSoundToPlay"
     /// </summary>
-    /// <param name="soundTypeToPlay"> Sound to be played by the SFX Handler</param>
-    /// <param name="minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
-    /// <param name="maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
-    public void PlaySound(string nameOfSoundToPlay, float minPitchShift = 0.8f, float maxPitchShift = 1.2f)
+    /// <param name="_nameOfSoundToPlay"> Sound to be played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
+    public void PlaySound(string _nameOfSoundToPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
         //sanity check to make sure that nameOfSoundToPlay is specified
-        if (nameOfSoundToPlay == null)
+        if (_nameOfSoundToPlay == null)
         {
             //log a warning
             Debug.LogWarning(gameObject.name + ": Please specify a sound to play");
@@ -40,19 +40,34 @@ public class SFX_Handler : MonoBehaviour
         }
 
         //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
-        if (availableSounds.Find(x => x.name == nameOfSoundToPlay) == null)
+        if (availableSounds.Find(x => x.name == _nameOfSoundToPlay) == null)
         {
             //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + nameOfSoundToPlay + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds");
+            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _nameOfSoundToPlay + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds");
 
             //return
             return;
         }
 
         //Randomize pitch between minPitchShift and maxPitchShift
-        sfxAudioSource.pitch = UnityEngine.Random.Range(minPitchShift, maxPitchShift);
+        sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
         //load and play the sound with name equal to nameOfSoundToPlay
-        sfxAudioSource.PlayOneShot(availableSounds.Find(y => y.name == nameOfSoundToPlay), sfxAudioSource.volume);
+        sfxAudioSource.PlayOneShot(availableSounds.Find(y => y.name == _nameOfSoundToPlay), sfxAudioSource.volume);
+    }
+
+    /// <summary>
+    /// Play a sound from a List of sound names with the names defined by "_namesOfSoundsThatCanPlay"
+    /// </summary>
+    /// <param name="_namesOfSoundsThatCanPlay"> List of sounds to be randomly chosen from and played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
+    public void PlayRandomSound(List<string> _namesOfSoundsThatCanPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
+    {
+        //choose a random name of a sound from namesOfSoundsThatCanPlay
+        string randomSoundName = _namesOfSoundsThatCanPlay[UnityEngine.Random.Range(0, _namesOfSoundsThatCanPlay.Count)];
+
+        //play the sound with randomSoundName 
+        PlaySound(randomSoundName, _minPitchShift, _maxPitchShift);
     }
 }

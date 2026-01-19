@@ -161,6 +161,13 @@ public class PlayerController : MonoBehaviour
     public bool chosenStartingSpell = false;
     public bool isSpawned;
 
+    //these variables are to track what collectives the player has. Passives for each collective
+    //will only show up if the boolean is true
+    public bool vWave = false;
+    public bool killeez = false;
+    public bool rawrDX = false;
+    public bool bigStox = false;
+
 
     private void Awake()
     {
@@ -305,6 +312,12 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+
+        //trigger bools depending on brand
+        if (targetSpell.brands[0] == Brand.VWave)
+        {
+
+        }
     }
 
 

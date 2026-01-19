@@ -643,6 +643,10 @@ public class PlayerController : MonoBehaviour
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     vSpd = jumpForce;
+
+                    //play the jump sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("jump_v2");
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -674,6 +678,10 @@ public class PlayerController : MonoBehaviour
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     vSpd = jumpForce;
+
+                    //play the jump sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("jump_v2");
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -1686,9 +1694,12 @@ public class PlayerController : MonoBehaviour
                 comboCounter++;
             }
 
-            
+
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+
+            //play the damaged sound
+            GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("hit_v1");
 
             SetState(PlayerState.Hitstun);
 

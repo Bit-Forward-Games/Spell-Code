@@ -637,6 +637,9 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("enterCode_v1");
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -672,6 +675,9 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("enterCode_v1");
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -718,6 +724,9 @@ public class PlayerController : MonoBehaviour
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("enterCode_v1");
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -861,6 +870,9 @@ public class PlayerController : MonoBehaviour
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
+                    //play the exit weave sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("exitCode_v1");
+
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
                     break;
@@ -994,6 +1006,9 @@ public class PlayerController : MonoBehaviour
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("enterCode_v1");
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -1679,6 +1694,9 @@ public class PlayerController : MonoBehaviour
             //checking for death
             if (hitboxData.damage > currentPlayerHealth)
             {
+                //play the death sound
+                GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>().PlaySound("death_v1");
+
                 currentPlayerHealth = 0;
             }
             else

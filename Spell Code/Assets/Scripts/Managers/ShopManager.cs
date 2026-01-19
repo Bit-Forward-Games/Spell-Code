@@ -275,6 +275,8 @@ public class ShopManager : MonoBehaviour
 
     }
 
+    //generate a random spell from the entire spell dictionary,
+    //excluding passives for which a player has no associated active
     public string RandomizeSpell(int index)
     {
         //list of all spells in dictionary
@@ -307,6 +309,14 @@ public class ShopManager : MonoBehaviour
         {
             spells.Remove("BootsOfHermes");
         }
+        //if (!gameManager.players[index].rawrDX)
+        //{
+        //    spells.Remove("BootsOfHermes");
+        //}
+        //if (!gameManager.players[index].bigStox)
+        //{
+        //    spells.Remove("BootsOfHermes");
+        //}
 
 
         //get a random spell

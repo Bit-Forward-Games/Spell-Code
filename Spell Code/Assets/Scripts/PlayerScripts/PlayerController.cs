@@ -314,9 +314,28 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
 
         //trigger bools depending on brand
-        if (targetSpell.brands[0] == Brand.VWave)
+        for (int i = 0; i < targetSpell.brands.Length; i++)
         {
-
+            if (targetSpell.brands[i] == Brand.VWave && vWave == false)
+            {
+                vWave = true;
+                Debug.Log("Player has unlocked VWave passives");
+            }
+            if (targetSpell.brands[i] == Brand.Killeez && killeez == false)
+            {
+                killeez = true;
+                Debug.Log("Player has unlocked Killeez passives");
+            }
+            if (targetSpell.brands[i] == Brand.RawrDX && rawrDX == false)
+            {
+                rawrDX = true;
+                Debug.Log("Player has unlocked RawrDX passives");
+            }
+            if (targetSpell.brands[i] == Brand.BigStox && bigStox == false)
+            {
+                bigStox = true;
+                Debug.Log("Player has unlocked BigStox passives");
+            }
         }
     }
 

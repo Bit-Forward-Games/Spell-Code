@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7108996257177461571}
   - component: {fileID: 8921497308674347015}
   m_Layer: 0
-  m_Name: pfb_SFX_Handler
+  m_Name: pfb_SFX_Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -142,11 +142,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5980e625ff0bbb1419f95e51abe9c86a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  availableSounds:
-  - {fileID: 8300000, guid: 06b1785dfe20cb94eb8959bfe38d4f4f, type: 3}
-  - {fileID: 8300000, guid: a3424783fb325ce4ea9d325e063a3ff9, type: 3}
-  - {fileID: 8300000, guid: 5fa0df73e54a7c8419e73e9ca4cf1de2, type: 3}
-  - {fileID: 8300000, guid: c64460d57aa6d494bbbbab0757b65406, type: 3}
-  - {fileID: 8300000, guid: 4a88ef86df25e054e869552c2c2afe35, type: 3}
-  - {fileID: 8300000, guid: 298c8eb5e8b723a4f812cef480853cc8, type: 3}
-  - {fileID: 8300000, guid: 926ba81d41aca1e4a8d2ca32fff4e0f1, type: 3}
+  soundObjects:
+  - soundName: Jump
+    possibleSounds:
+    - {fileID: 8300000, guid: 29d0e490ae70a124486d4cbb566bf632, type: 3}
+  - soundName: Run
+    possibleSounds:
+    - {fileID: 8300000, guid: 2895bc51b06e31c48bdb48b1da84cd08, type: 3}
+    - {fileID: 8300000, guid: fe12d7f7227a06e4faeb00a51fc807b8, type: 3}
+  - soundName: Hit
+    possibleSounds:
+    - {fileID: 8300000, guid: 2fb09d9ede8f3cf469cdf6069a324db3, type: 3}
+  - soundName: Death
+    possibleSounds:
+    - {fileID: 8300000, guid: ece4c26789322634aa4c709f0b79e113, type: 3}
+  - soundName: Enter Code Weave
+    possibleSounds:
+    - {fileID: 8300000, guid: dbde8fb6eabe76d44a23aebe9010e390, type: 3}
+  - soundName: Exit Code Weave
+    possibleSounds:
+    - {fileID: 8300000, guid: 2ae7952a13521e046b1477225f835976, type: 3}

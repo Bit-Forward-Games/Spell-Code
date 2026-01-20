@@ -2203,7 +2203,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4707198319043590537, guid: ab56fc10ffc2b8d4d99a47c0b71efe38, type: 3}
       propertyPath: m_Name
-      value: pfb_SFX_Handler
+      value: pfb_SFX_Manager
       objectReference: {fileID: 0}
     - target: {fileID: 7938718223334097556, guid: ab56fc10ffc2b8d4d99a47c0b71efe38, type: 3}
       propertyPath: m_LocalPosition.x

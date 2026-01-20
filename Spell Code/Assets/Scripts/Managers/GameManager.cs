@@ -766,10 +766,6 @@ public class GameManager : MonoBehaviour
                     {
                         spellCard.enabled = false;
                     }
-                    if (i == remotePlayerIndex && spellCard != null)
-                    {
-                        spellCard.enabled = false;
-                    }
                 }
             }
         }
@@ -1157,6 +1153,9 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             isTransitioning = true;
+            // Reset ready flags for next shop phase
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
         }
         SceneManager.LoadScene("Shop");
     }
@@ -1279,6 +1278,14 @@ public class GameManager : MonoBehaviour
             {
                 RollbackManager.Instance.SaveState();
             }
+        }
+
+        // Handle shop scene loading for online
+        if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
+        {
+            Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            isTransitioning = false;
+            // Ready flags are already reset in RoundEnd()
         }
     }
 

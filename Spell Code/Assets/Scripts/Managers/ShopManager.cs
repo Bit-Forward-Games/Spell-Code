@@ -48,13 +48,23 @@ public class ShopManager : MonoBehaviour
     public TextMeshProUGUI p3_spellText;
     public TextMeshProUGUI p4_spellText;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Online shop state tracking
+    private bool localPlayerReadyForGameplay = false;
+    private bool remotePlayerReadyForGameplay = false;
+
     void Start()
     {
         gameManager = GameManager.Instance;
 
         myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
         Debug.Log("SHOP ENTERED");
+
+        // Reset online shop ready flags
+        if (gameManager.isOnlineMatchActive)
+        {
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+        }
 
         if (gameManager.players[2] == null)
         {
@@ -84,8 +94,6 @@ public class ShopManager : MonoBehaviour
             p4_index = 0;
             p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
         }
-
-        //StartCoroutine(Shop());
     }
 
     public void ShopUpdate(ulong[] playerInputs)
@@ -94,7 +102,125 @@ public class ShopManager : MonoBehaviour
         {
             inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
         }
-        
+
+        // ONLINE MODE: Process both players deterministically
+        if (gameManager.isOnlineMatchActive)
+        {
+            HandleOnlineShopSelection();
+        }
+        else
+        {
+            // OFFLINE MODE: Keep existing logic
+            HandleOfflineShopSelection();
+        }
+
+        // Check if all players have chosen (works for both online and offline)
+        int playersChosen = 0;
+        if (!allPlayersChosen)
+        {
+            foreach (PlayerController player in gameManager.players)
+            {
+                if (player != null)
+                {
+                    if (player.chosenSpell) { playersChosen++; }
+                }
+            }
+
+            if (playersChosen == gameManager.playerCount)
+            {
+                allPlayersChosen = true;
+
+                // ONLINE: Send ready signal instead of immediately transitioning
+                if (gameManager.isOnlineMatchActive)
+                {
+                    SendShopReadyForGameplay();
+                }
+            }
+            else
+            {
+                playersChosen = 0;
+            }
+        }
+
+        // OFFLINE: Transition when all chosen
+        if (allPlayersChosen && !backToGameplay && !gameManager.isOnlineMatchActive)
+        {
+            foreach (PlayerController player in gameManager.players)
+            {
+                if (player != null)
+                {
+                    player.playerNum.enabled = true;
+                    player.inputDisplay.enabled = true;
+                }
+            }
+            backToGameplay = true;
+            StartCoroutine(Shop());
+        }
+    }
+
+    // Handle shop selection for online matches (deterministic)
+    private void HandleOnlineShopSelection()
+    {
+        // Process BOTH players using synced inputs (only 2 players in online)
+        for (int i = 0; i < 2; i++)
+        {
+            if (gameManager.players[i] == null) continue;
+
+            if (!gameManager.players[i].chosenSpell)
+            {
+                List<string> choices = i == 0 ? p1_choices : p2_choices;
+                int currentIndex = i == 0 ? p1_index : p2_index;
+                Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
+                TextMeshProUGUI spellText = i == 0 ? p1_spellText : p2_spellText;
+
+                // Cycle spells using SYNCED input
+                if (inputSnapshots[i].ButtonStates[0] == ButtonState.Pressed)
+                {
+                    Debug.Log($"[SHOP SYNCED] p{i + 1} pressed cycle spell");
+
+                    if (currentIndex == 2)
+                    {
+                        currentIndex = 0;
+                    }
+                    else
+                    {
+                        currentIndex++;
+                    }
+
+                    // Update index
+                    if (i == 0) p1_index = currentIndex;
+                    else p2_index = currentIndex;
+
+                    // Only update UI for local player
+                    if (i == gameManager.localPlayerIndex && spellCard != null)
+                    {
+                        spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
+                    }
+                }
+
+                // Choose spell using SYNCED input
+                if (inputSnapshots[i].ButtonStates[1] == ButtonState.Pressed)
+                {
+                    Debug.Log($"[SHOP SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
+
+                    GivePlayerSpell(i, choices[currentIndex]);
+                    gameManager.players[i].chosenSpell = true;
+
+                    // Only update UI for local player
+                    if (i == gameManager.localPlayerIndex && spellCard != null)
+                    {
+                        spellCard.enabled = false;
+                    }
+
+                    inputSnapshots[i].SetNull();
+                }
+            }
+        }
+    }
+
+    // Existing offline logic extracted into separate method
+    private void HandleOfflineShopSelection()
+    {
         //player 1 stuff
         if (gameManager.players[0].chosenSpell == false)
         {
@@ -222,30 +348,42 @@ public class ShopManager : MonoBehaviour
                 }
             }
         }
+    }
 
-        //escape logic
-        int playersChosen = 0;
-        if (!allPlayersChosen)
+    // Send shop ready signal
+    private void SendShopReadyForGameplay()
+    {
+        if (!gameManager.isOnlineMatchActive || MatchMessageManager.Instance == null)
+            return;
+
+        if (localPlayerReadyForGameplay)
         {
-            foreach (PlayerController player in gameManager.players)
-            {
-                if (player != null)
-                {
-                    if (player.chosenSpell) { playersChosen++; }
-                }
-            }
-
-            if (playersChosen == gameManager.playerCount)
-            {
-                allPlayersChosen = true;
-            }
-            else
-            {
-                playersChosen = 0;
-            }
+            Debug.Log("Shop ready signal already sent - skipping");
+            return;
         }
-        if (allPlayersChosen && !backToGameplay)
+
+        localPlayerReadyForGameplay = true;
+        Debug.Log("Local player ready for gameplay transition from shop - sending signal");
+
+        MatchMessageManager.Instance.SendShopReadySignal();
+        CheckBothPlayersReadyForGameplay();
+    }
+
+    // Called by GameManager when opponent ready signal received
+    public void OnOpponentReadyForGameplay()
+    {
+        Debug.Log("Opponent is ready for gameplay transition from shop");
+        remotePlayerReadyForGameplay = true;
+        CheckBothPlayersReadyForGameplay();
+    }
+
+    // Check if both players ready to transition
+    private void CheckBothPlayersReadyForGameplay()
+    {
+        if (localPlayerReadyForGameplay && remotePlayerReadyForGameplay && !backToGameplay)
         {
+            Debug.Log("Both players ready - transitioning from shop to gameplay");
+
             foreach (PlayerController player in gameManager.players)
             {
                 if (player != null)
@@ -254,11 +392,11 @@ public class ShopManager : MonoBehaviour
                     player.inputDisplay.enabled = true;
                 }
             }
+
             backToGameplay = true;
             StartCoroutine(Shop());
         }
     }
-
 
     public IEnumerator Shop()
     {
@@ -272,7 +410,6 @@ public class ShopManager : MonoBehaviour
 
         //make the next stage random but different from the last stage
         gameManager.LoadRandomGameplayStage();
-
     }
 
     public string RandomizeSpell(int index)
@@ -302,12 +439,6 @@ public class ShopManager : MonoBehaviour
         int randomInt = myRandom.Next(0, spells.Count);
         string spellToAdd = spells[randomInt];
 
-        //if the player doesn't have the spell, return it
-        //if (!playerSpells.Contains(spellToAdd))
-        //{
-            //return spellToAdd;
-        //}
-
         if (index == 0 && !p1_choices.Contains(spellToAdd))
         {
             return spellToAdd;
@@ -335,8 +466,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     /// <param name="index">Player to give the spell to</param>
     public void GivePlayerSpell(int index, string spell)
-    {        
-        
+    {
         Debug.Log("Giving player " + (index + 1) + " " + spell);
         gameManager.players[index].AddSpellToSpellList(spell);
 
@@ -356,7 +486,6 @@ public class ShopManager : MonoBehaviour
         {
             p4_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
         }
-
     }
 
     //generates the spell choices for all players, in the future it will be randomized
@@ -367,7 +496,7 @@ public class ShopManager : MonoBehaviour
         p3_choices = new List<string>();
         p4_choices = new List<string>();
 
-        
+
         p1_choices.Add(RandomizeSpell(0));
         p1_choices.Add(RandomizeSpell(0));
         p1_choices.Add(RandomizeSpell(0));

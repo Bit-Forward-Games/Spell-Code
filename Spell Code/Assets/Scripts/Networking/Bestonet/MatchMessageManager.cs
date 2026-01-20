@@ -16,7 +16,8 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
-    private const byte PACKET_TYPE_LOBBY_READY = 10; // NEW: For lobby->gameplay transition
+    private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
+    private const byte PACKET_TYPE_SHOP_READY = 11;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -199,7 +200,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    // NEW: Send lobby ready for gameplay signal
+    // Send lobby ready for gameplay signal
     public void SendLobbyReadySignal()
     {
         if (!opponentSteamId.IsValid || !isRunning)
@@ -240,6 +241,50 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending lobby ready signal: {e}");
+        }
+    }
+
+    // Send shop ready for gameplay signal
+    public void SendShopReadySignal()
+    {
+        if (!opponentSteamId.IsValid || !isRunning)
+        {
+            Debug.LogWarning("Cannot send shop ready signal - not connected");
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(memoryStream))
+                {
+                    writer.Write(PACKET_TYPE_SHOP_READY);
+
+                    byte[] data = memoryStream.ToArray();
+
+                    bool success = SteamNetworking.SendP2PPacket(
+                        opponentSteamId,
+                        data,
+                        data.Length,
+                        MATCH_MESSAGE_CHANNEL,
+                        P2PSend.Reliable
+                    );
+
+                    if (success)
+                    {
+                        Debug.Log($"Sent SHOP_READY signal to {opponentSteamId}");
+                    }
+                    else
+                    {
+                        Debug.LogError("Failed to send SHOP_READY signal");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending shop ready signal: {e}");
         }
     }
 
@@ -368,13 +413,24 @@ public class MatchMessageManager : MonoBehaviour
                         return;
                     }
 
-                    // NEW: Handle lobby ready for gameplay
+                    // Handle lobby ready for gameplay
                     if (packetType == PACKET_TYPE_LOBBY_READY)
                     {
                         Debug.Log("Received LOBBY_READY signal from opponent");
                         if (GameManager.Instance != null)
                         {
                             GameManager.Instance.OnOpponentReadyForGameplay();
+                        }
+                        return;
+                    }
+
+                    // Handle shop ready for gameplay
+                    if (packetType == PACKET_TYPE_SHOP_READY)
+                    {
+                        Debug.Log("Received SHOP_READY signal from opponent");
+                        if (GameManager.Instance != null && GameManager.Instance.shopManager != null)
+                        {
+                            GameManager.Instance.shopManager.OnOpponentReadyForGameplay();
                         }
                         return;
                     }

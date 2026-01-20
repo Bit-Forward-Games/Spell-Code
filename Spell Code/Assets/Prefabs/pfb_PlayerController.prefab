@@ -288,7 +288,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.17, y: 37.34}
+  m_AnchoredPosition: {x: 2.17, y: 51.3}
   m_SizeDelta: {x: 44.3026, y: 15.8458}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4983569709763771326
@@ -667,17 +667,11 @@ MonoBehaviour:
   facingRight: 1
   isGrounded: 0
   onPlatform: 0
-  hSpd: 0
-  vSpd: 0
   logicFrame: 0
   animationFrame: 0
   state: 0
   prevState: 0
   spriteRenderer: {fileID: -1293374541561941338}
-  gravity: 1
-  jumpForce: 10
-  runSpeed: 0
-  slideSpeed: 0
   flowState: 0
   stockStability: 0
   demonAura: 0
@@ -688,8 +682,6 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   currentPlayerHealth: 0
-  playerWidth: 0
-  playerHeight: 0
   hitboxData:
     xOffset: 0
     yOffset: 0
@@ -706,7 +698,6 @@ MonoBehaviour:
   stateSpecificArg: 0
   hitstop: 0
   comboCounter: 0
-  damageProration: 1
   hitstopActive: 0
   hitstunOverride: 0
   spellList: []
@@ -717,8 +708,6 @@ MonoBehaviour:
   spellsFired: 0
   basicsFired: 0
   spellsHit: 0
-  timer: 0
-  times: []
   roundsWon: 0
   chosenSpell: 0
   chosenStartingSpell: 0

@@ -1535,6 +1535,9 @@ public class PlayerController : MonoBehaviour
                 hitboxData = null;
                 break;
             case PlayerState.Run:
+                //Begin to repeatedly play the run sound
+                SFX_Manager.Instance.StartRepeatingSound(Sounds.RUN, 0.5f);
+
                 //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
                 break;
             case PlayerState.Jump:
@@ -1608,6 +1611,11 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeRelease:
                 ClearInputDisplay();
+                break;
+            case PlayerState.Run:
+                //Stop to repeatedly play the run sound
+                SFX_Manager.Instance.StopRepeatingSound(Sounds.RUN);
+
                 break;
         }
         stateSpecificArg = 0;

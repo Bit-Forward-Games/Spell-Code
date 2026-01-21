@@ -146,19 +146,25 @@ MonoBehaviour:
   - soundName: 0
     possibleSounds:
     - {fileID: 8300000, guid: 29d0e490ae70a124486d4cbb566bf632, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 1
     possibleSounds:
-    - {fileID: 8300000, guid: 2895bc51b06e31c48bdb48b1da84cd08, type: 3}
+    - {fileID: 8300000, guid: c433c6b4fe19b4740b6009b40abf55aa, type: 3}
     - {fileID: 8300000, guid: fe12d7f7227a06e4faeb00a51fc807b8, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 2
     possibleSounds:
     - {fileID: 8300000, guid: 2fb09d9ede8f3cf469cdf6069a324db3, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 3
     possibleSounds:
     - {fileID: 8300000, guid: ece4c26789322634aa4c709f0b79e113, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 4
     possibleSounds:
     - {fileID: 8300000, guid: dbde8fb6eabe76d44a23aebe9010e390, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 5
     possibleSounds:
     - {fileID: 8300000, guid: 2ae7952a13521e046b1477225f835976, type: 3}
+    isRepeatedlyPlaying: 0

@@ -1613,7 +1613,7 @@ public class PlayerController : MonoBehaviour
                 ClearInputDisplay();
                 break;
             case PlayerState.Run:
-                //Stop to repeatedly play the run sound
+                //Stop to repeatedly playing the run sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.RUN);
 
                 break;

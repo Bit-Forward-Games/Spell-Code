@@ -161,6 +161,13 @@ public class PlayerController : MonoBehaviour
     public bool chosenStartingSpell = false;
     public bool isSpawned;
 
+    //these variables are to track what collectives the player has. Passives for each collective
+    //will only show up if the boolean is true
+    public bool vWave = false;
+    public bool killeez = false;
+    public bool rawrDX = false;
+    public bool bigStox = false;
+
 
     private void Awake()
     {
@@ -305,6 +312,31 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+
+        //trigger bools depending on brand
+        for (int i = 0; i < targetSpell.brands.Length; i++)
+        {
+            if (targetSpell.brands[i] == Brand.VWave && vWave == false)
+            {
+                vWave = true;
+                Debug.Log("Player has unlocked VWave passives");
+            }
+            if (targetSpell.brands[i] == Brand.Killeez && killeez == false)
+            {
+                killeez = true;
+                Debug.Log("Player has unlocked Killeez passives");
+            }
+            if (targetSpell.brands[i] == Brand.RawrDX && rawrDX == false)
+            {
+                rawrDX = true;
+                Debug.Log("Player has unlocked RawrDX passives");
+            }
+            if (targetSpell.brands[i] == Brand.BigStox && bigStox == false)
+            {
+                bigStox = true;
+                Debug.Log("Player has unlocked BigStox passives");
+            }
+        }
     }
 
 

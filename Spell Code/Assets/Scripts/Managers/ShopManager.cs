@@ -275,6 +275,8 @@ public class ShopManager : MonoBehaviour
 
     }
 
+    //generate a random spell from the entire spell dictionary,
+    //excluding passives for which a player has no associated active
     public string RandomizeSpell(int index)
     {
         //list of all spells in dictionary
@@ -297,6 +299,25 @@ public class ShopManager : MonoBehaviour
 
         //remove spell since it doesn't actually really exist
         spells.Remove("Active_Spell_4");
+
+        //Remove all passives for which the player has no actives for
+        if (!gameManager.players[index].vWave)
+        {
+            spells.Remove("Overclock");
+        }
+        if (!gameManager.players[index].killeez)
+        {
+            spells.Remove("BootsOfHermes");
+        }
+        //if (!gameManager.players[index].rawrDX)
+        //{
+        //    spells.Remove("BootsOfHermes");
+        //}
+        //if (!gameManager.players[index].bigStox)
+        //{
+        //    spells.Remove("BootsOfHermes");
+        //}
+
 
         //get a random spell
         int randomInt = myRandom.Next(0, spells.Count);

@@ -735,11 +735,11 @@ public class GameManager : MonoBehaviour
 
                 // Use the synchronized input for THIS player
                 // The input comes from syncedInput[] which is already synchronized
-                ButtonState cycleButton = players[i].input.ButtonStates[0];
-                ButtonState selectButton = players[i].input.ButtonStates[1];
+                InputSnapshot cycleButton = InputConverter.ConvertFromLong(syncedInput[i]);
+                InputSnapshot selectButton = InputConverter.ConvertFromLong(syncedInput[i]);
 
                 // Cycle spells
-                if (cycleButton == ButtonState.Pressed)
+                if (cycleButton.ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell");
                     currentIndex = (currentIndex == 1) ? 0 : 1;
@@ -755,7 +755,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 // Choose spell
-                if (selectButton == ButtonState.Pressed)
+                if (selectButton.ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
                     players[i].AddSpellToSpellList(choices[currentIndex]);

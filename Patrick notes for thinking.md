@@ -24,6 +24,12 @@ Spell reworks and balance
 *  	to balance this, give it an 8 second cooldown
 * Might of zeus will now spawn 3 lightning bolts instead of 1, staggered in timing and position
 *  	to balance this, each bolt will only do 5 damage down from 10
+* Amon Slash is the fantasy of BIG BLEED, being able to kill a character at full demon aura, though notably a goal with it was to encourage not using a basic attack after every spell, and as such I used the formula of extra damage = (demon aura/10)^2, with each hit of amon slash granting 20 demon aura. this leads to the following damage calculations:
+* &nbsp;	1 slash = 4 effect damage
+* &nbsp;	2 slash = 16 effect damage
+* &nbsp;	3 slash = 36 effect damage
+* &nbsp;	4 slash = 64 effect damage
+* &nbsp;	5 slash = 100 effect damage (a full health target)
 
 
 

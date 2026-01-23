@@ -845,7 +845,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[0].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p1 pressed cycle spell");
-                        if (p1_index == 1)
+                        if (p1_index == p1_choices.Count-1)
                         {
                             p1_index = 0;
                         }
@@ -883,7 +883,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[1].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p2 pressed cycle spell");
-                        if (p2_index == 1)
+                        if (p2_index == p2_choices.Count-1)
                         {
                             p2_index = 0;
                         }
@@ -921,7 +921,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[2].input.ButtonStates[2] == ButtonState.Pressed)
                     {
                         Debug.Log("p3 pressed cycle spell");
-                        if (p3_index == 1)
+                        if (p3_index == p3_choices.Count-1)
                         {
                             p3_index = 0;
                         }
@@ -959,7 +959,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p4 pressed cycle spell");
-                        if (p4_index == 1)
+                        if (p4_index == p4_choices.Count-1)
                         {
                             p4_index = 0;
                         }
@@ -1369,24 +1369,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p1_choices = new List<string>();
             p1_choices.Add("SkillshotSlash");
             p1_choices.Add("MightOfZeus");
+            p1_choices.Add("AmonSlash");
         }
         if (index == 1)
         {
             p2_choices = new List<string>();
             p2_choices.Add("SkillshotSlash");
             p2_choices.Add("MightOfZeus");
+            p2_choices.Add("AmonSlash");
         }
         if (index == 2)
         {
             p3_choices = new List<string>();
             p3_choices.Add("SkillshotSlash");
             p3_choices.Add("MightOfZeus");
+            p3_choices.Add("AmonSlash");
         }
         if (index == 3)
         {
             p4_choices = new List<string>();
             p4_choices.Add("SkillshotSlash");
             p4_choices.Add("MightOfZeus");
+            p4_choices.Add("AmonSlash");
         }
 
     }

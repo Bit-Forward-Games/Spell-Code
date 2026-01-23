@@ -23,7 +23,7 @@ public class Ninja_Build_Blast_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 3); // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 5); // Set horizontal speed based on facing direction
     }
     public override void LoadProjectile()
     {

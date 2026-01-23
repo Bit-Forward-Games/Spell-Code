@@ -309,7 +309,7 @@ public class ShopManager : MonoBehaviour
         {
             spells.Remove("BootsOfHermes");
         }
-        //if (!gameManager.players[index].rawrDX)
+        //if (!gameManager.players[index].DemonX)
         //{
         //    spells.Remove("BootsOfHermes");
         //}

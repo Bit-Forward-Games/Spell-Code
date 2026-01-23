@@ -13,25 +13,13 @@ public class MightOfZeus : SpellData
         cooldown = 300;
         spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
         spellType = SpellType.Active;
+        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[3];
 
         description = "Summon down 3 lightning strikes, each granting 1 \"Rep\" if it hits. If you have 8 or more \"Reps\", this Spell-Code stuns!";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;
-    }
-
-    public override void ActiveOnHitProc(PlayerController defender)
-    {
-        
-
-        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
-        {
-            defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
-            Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");
-        }
-
-        owner.reps++;
     }
 
     public override void SpellUpdate()
@@ -73,8 +61,15 @@ public class MightOfZeus : SpellData
         
     }
 
-    public override void CheckCondition()
+    public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
+        // ActiveOnHit proc: Grant "Reps" and apply stun if conditions are met
+        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
+        {
+            defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
+            Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");
+        }
+
+        owner.reps++;
     }
 }

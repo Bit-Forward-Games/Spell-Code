@@ -61,7 +61,7 @@ public class TempUIScript : MonoBehaviour
                 {
                     stockStabilityVals[i].enabled = true;
                 }
-                if (spell.brands.Contains(Brand.RawrDX))
+                if (spell.brands.Contains(Brand.DemonX))
                 {
                     demonAuraVals[i].enabled = true;
                 }

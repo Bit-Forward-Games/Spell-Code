@@ -6,17 +6,17 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class MightOfZeus_Projectile : BaseProjectile
+public class AmonSlash_Projectile : BaseProjectile
 {
 
-    public MightOfZeus_Projectile()
+    public AmonSlash_Projectile()
     {
-        projName = "MightOfZeus";
+        projName = "AmonSlash";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2, 2, 2 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,16 +35,15 @@ public class MightOfZeus_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -10,
-                    yOffset = 160,
-                    width = 20,
-                    height = 160,
-                    xKnockback = 0,
+                    xOffset = 0,
+                    yOffset = 12*2,
+                    width = 31*2,
+                    height = 24*2,
+                    xKnockback = 4,
                     yKnockback = 1,
-                    damage = 10,
-                    hitstun = 30,
+                    damage = 5,
+                    hitstun = 15,
                     attackLvl = 2,
-                    //cancelOptions = new List<int> { } // No cancel options
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -63,11 +62,19 @@ public class MightOfZeus_Projectile : BaseProjectile
 
     public override void ProjectileUpdate()
     {
-        base.ProjectileUpdate();
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
-        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
-        //and then waits until the animation is done to delete itself.
-        if (logicFrame >= animFrames.frameLengths.Take(1).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
+        logicFrame++;
+        // Update animation frame
+        animationFrame = GetCurrentFrameIndex(animFrames.frameLengths, animFrames.loopAnim);
+
+        Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
+        Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
+        Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
+        Fixed newX = owner.position.X + (xOffset * direction);
+        Fixed newY = owner.position.Y + yOffset;
+
+        position = new FixedVec2(newX, newY);
+
+        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(5).Sum())
         {
             activeHitboxGroupIndex = 1;
         }

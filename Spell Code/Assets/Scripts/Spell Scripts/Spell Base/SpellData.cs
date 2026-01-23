@@ -26,7 +26,7 @@ public enum Brand
 {
     None,
     VWave,
-    RawrDX,
+    DemonX,
     Killeez,
     BigStox,
     SLUG,
@@ -35,12 +35,20 @@ public enum Brand
 
 public enum ProcCondition
 {
+    Null,
     OnHit,
+    OnHitBasic,
+    OnHitSpell,
+    ActiveOnHit,
     OnHurt,
+    OnHurtBasic,
+    OnHurtSpell,
     OnDodge,
     OnDodged,
     OnBlock,
     OnCast,
+    OnCastBasic,
+    OnCastSpell,
     OnKill,
     OnDeath,
     OnUpdate
@@ -67,7 +75,7 @@ public abstract class SpellData : MonoBehaviour
     //public SpellDirection[] inputSequence;
     //[HideInInspector]
     public int cooldown;
-    [HideInInspector]
+    //[HideInInspector]
     public int cooldownCounter = 0;
     [HideInInspector]
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
@@ -130,21 +138,11 @@ public abstract class SpellData : MonoBehaviour
     }
 
     /// <summary>
-    /// this function is called when a SPECIFIC spell need its own unique proc behavior on hit
-    /// e.g. an active spell that does something special when you hit it, but wouldn't apply to all spell's on hit
-    /// </summary>
-    public virtual void ActiveOnHitProc( PlayerController defender)
-    {
-
-    }
-
-
-    /// <summary>
     /// This function checks if the conditions for setting the given spell's activateFlag is met after its procCondition is triggered
     /// e.g. if the spell's procCondition is OnHit and requires the player to have a certain number of some resource to activate,
     /// this function would check for that.
     /// </summary>
-    public abstract void CheckCondition();
+    public abstract void CheckCondition(PlayerController defender = null, ProcCondition targetProcCon = ProcCondition.Null);
 
     // Serialization Methods
 

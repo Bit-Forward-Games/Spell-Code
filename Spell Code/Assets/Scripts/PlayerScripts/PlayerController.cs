@@ -4,17 +4,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
-
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
-using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
     //will only show up if the boolean is true
     public bool vWave = false;
     public bool killeez = false;
-    public bool rawrDX = false;
+    public bool DemonX = false;
     public bool bigStox = false;
 
 
@@ -326,10 +326,10 @@ public class PlayerController : MonoBehaviour
                 killeez = true;
                 Debug.Log("Player has unlocked Killeez passives");
             }
-            if (targetSpell.brands[i] == Brand.RawrDX && rawrDX == false)
+            if (targetSpell.brands[i] == Brand.DemonX && DemonX == false)
             {
-                rawrDX = true;
-                Debug.Log("Player has unlocked RawrDX passives");
+                DemonX = true;
+                Debug.Log("Player has unlocked DemonX passives");
             }
             if (targetSpell.brands[i] == Brand.BigStox && bigStox == false)
             {
@@ -973,18 +973,17 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // Check conditions of all spells with the onCast condition
-                    for (int i = 0; i < spellList.Count; i++)
-                    {
-                        if (spellList[i].procConditions.Contains(ProcCondition.OnCast))
-                        {
-                            spellList[i].CheckCondition();
-                        }
-                    }
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCast);
 
 
                     //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop, meaning we successfully fired a spell
-                    if (stateSpecificArg == 255) break;
-
+                    if (stateSpecificArg == 255)
+                    {
+                        //so check all spells with OnCastSpell condition
+                        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastSpell);
+                        break;
+                    }
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
@@ -1064,13 +1063,7 @@ public class PlayerController : MonoBehaviour
 
 
         //Check conditions of all spells with the onupdate condition
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
-            {
-                spellList[i].CheckCondition();
-            }
-        }
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
         UpdateResources();
 
@@ -1763,29 +1756,48 @@ public class PlayerController : MonoBehaviour
             //call the active on hit proc of the spell that created the projectile that hit us
             if (hitboxData.parentProjectile.ownerSpell != null)
             {
-                hitboxData.parentProjectile.ownerSpell.ActiveOnHitProc(this);
+                hitboxData.parentProjectile.ownerSpell.CheckCondition(this,ProcCondition.ActiveOnHit);
             }
+
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
-            for (int i = 0; i < attacker.spellList.Count; i++)
-            {
-                if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
-                {
-                    attacker.spellList[i].CheckCondition();
-                }
-            }
+            CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
-            for (int i = 0; i < spellList.Count; i++)
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt);
+
+            //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
+            if (hitboxData.basicAttackHitbox)
             {
-                if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
-                {
-                    spellList[i].CheckCondition();
-                }
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic);
             }
+            else
+            {
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
+            }
+
+            
         }
     }
 
+
+    /// <summary>
+    /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
+    /// </summary>
+    /// <param name="targetPlayer"></param>
+    /// <param name="targetProcCon"></param>
+    public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
+    {
+        for (int i = 0; i < targetPlayer.spellList.Count; i++)
+        {
+            if (targetPlayer.spellList[i].procConditions.Contains(targetProcCon))
+            {
+                targetPlayer.spellList[i].CheckCondition(this, targetProcCon);
+            }
+        }
+    }
 
     /// <summary>
     /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.

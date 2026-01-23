@@ -34,7 +34,7 @@ public class AmonSlash : SpellData
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(2); // Launch the player upwards slightly
-            owner.hSpd = owner.facingRight ? Fixed.FromInt(8) : Fixed.FromInt(-8); // Propel the player forward
+            owner.hSpd = owner.facingRight ? Fixed.FromInt(6) : Fixed.FromInt(-6); // Propel the player forward
 
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject

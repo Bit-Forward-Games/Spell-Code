@@ -46,7 +46,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: c433c6b4fe19b4740b6009b40abf55aa, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -145,7 +145,7 @@ MonoBehaviour:
   soundObjects:
   - soundName: 0
     possibleSounds:
-    - {fileID: 8300000, guid: 29d0e490ae70a124486d4cbb566bf632, type: 3}
+    - {fileID: 8300000, guid: f4a1e83d39d29834d94a6f34ab3023e7, type: 3}
     isRepeatedlyPlaying: 0
   - soundName: 1
     possibleSounds:
@@ -166,5 +166,6 @@ MonoBehaviour:
     isRepeatedlyPlaying: 0
   - soundName: 5
     possibleSounds:
-    - {fileID: 8300000, guid: 2ae7952a13521e046b1477225f835976, type: 3}
+    - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
+    - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
     isRepeatedlyPlaying: 0

@@ -1,97 +1,16 @@
 fileFormatVersion: 2
-guid: ab70070d0978ffb4a82fa344e28feb72
+guid: 87e900fd1e45896458ef1bad359975fb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4075040102356489044
-    second: Code-E_basic_spell-Sheet_0
+      213: -6801205320499964230
+    second: Asuran Blades Slide projectile-Sheet_0
   - first:
-      213: -933896092384903014
-    second: Code-E_basic_spell-Sheet_1
+      213: 5051752532787065996
+    second: Asuran Blades Slide projectile-Sheet_1
   - first:
-      213: 8016144204863943927
-    second: Code-E_basic_spell-Sheet_2
-  - first:
-      213: 1149168466151085081
-    second: Code-E_basic_spell-Sheet_3
-  - first:
-      213: -1917874427035591182
-    second: Code-E_basic_spell-Sheet_4
-  - first:
-      213: 2706043497986536593
-    second: Code-E_basic_spell-Sheet_5
-  - first:
-      213: -9193710641610620364
-    second: Code-E_basic_spell-Sheet_6
-  - first:
-      213: -1033197544163993243
-    second: Code-E_basic_spell-Sheet_7
-  - first:
-      213: 3424430653778766247
-    second: Code-E_basic_spell-Sheet_8
-  - first:
-      213: 6982061727342174911
-    second: Code-E_basic_spell-Sheet_9
-  - first:
-      213: -2991358649417157624
-    second: Code-E_basic_spell-Sheet_10
-  - first:
-      213: 6897849726478298059
-    second: Code-E_basic_spell-Sheet_11
-  - first:
-      213: 2115542106430427737
-    second: Code-E_basic_spell-Sheet_12
-  - first:
-      213: -8063831449059908925
-    second: Code-E_basic_spell-Sheet_13
-  - first:
-      213: 3925537034534107876
-    second: Code-E_basic_spell-Sheet_14
-  - first:
-      213: 3833268201015907227
-    second: Code-E_basic_spell-Sheet_15
-  - first:
-      213: 3378524165007974982
-    second: Code-E_basic_spell-Sheet_16
-  - first:
-      213: -4360592595778751993
-    second: Code-E_basic_spell-Sheet_17
-  - first:
-      213: 5972231761188096502
-    second: Code-E_basic_spell-Sheet_18
-  - first:
-      213: 1188266876647520293
-    second: Code-E_basic_spell-Sheet_19
-  - first:
-      213: 7530659906147612612
-    second: Code-E_basic_spell-Sheet_20
-  - first:
-      213: -8770972819756835940
-    second: Code-E_basic_spell-Sheet_21
-  - first:
-      213: -8961202940920243597
-    second: Code-E_basic_spell-Sheet_22
-  - first:
-      213: 1686374870294728417
-    second: Code-E_basic_spell-Sheet_23
-  - first:
-      213: 3360955778164974036
-    second: Code-E_basic_spell-Sheet_24
-  - first:
-      213: -248129272131274327
-    second: Code-E_basic_spell-Sheet_25
-  - first:
-      213: -7702871650915289851
-    second: Code-E_basic_spell-Sheet_26
-  - first:
-      213: -6484552099757641873
-    second: Code-E_basic_spell-Sheet_27
-  - first:
-      213: -5929864281282773612
-    second: Code-E_basic_spell-Sheet_28
-  - first:
-      213: -8339268819174197386
-    second: Code-E_basic_spell-Sheet_29
+      213: -3341605398538894058
+    second: Asuran Blades Slide projectile-Sheet_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -138,7 +57,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 4
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -171,7 +90,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Standalone
+    buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -197,6 +116,19 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -210,24 +142,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: WindowsStoreApps
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -239,133 +158,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_0
+      name: Asuran Blades Slide projectile-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4531e62f1637d8830800000000000000
-      internalID: 4075040102356489044
+      spriteID: ab65a1b9bc34d91a0800000000000000
+      internalID: -6801205320499964230
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_1
+      name: Asuran Blades Slide projectile-Sheet_1
       rect:
         serializedVersion: 2
-        x: 256
+        x: 48
         y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a90c544b3722a03f0800000000000000
-      internalID: -933896092384903014
+      spriteID: c84f3f9c92e6b1640800000000000000
+      internalID: 5051752532787065996
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_2
+      name: Asuran Blades Slide projectile-Sheet_2
       rect:
         serializedVersion: 2
-        x: 512
+        x: 96
         y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7f4b837dea01f3f60800000000000000
-      internalID: 8016144204863943927
+      spriteID: 615cf88389b30a1d0800000000000000
+      internalID: -3341605398538894058
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_3
+      name: Asuran Blades Slide projectile-Sheet_3
       rect:
         serializedVersion: 2
-        x: 768
+        x: 144
         y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 9141404a1aaa2ff00800000000000000
-      internalID: 1149168466151085081
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_4
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2fddcb4be575265e0800000000000000
-      internalID: -1917874427035591182
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Code-E_basic_spell-Sheet_5
-      rect:
-        serializedVersion: 2
-        x: 1280
-        y: 0
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1943e34693ccd8520800000000000000
-      internalID: 2706043497986536593
+      spriteID: bcad9f8778b59724fbc90244e7546d39
+      internalID: 679130325
       vertices: []
       indices: 
       edges: []
@@ -374,7 +249,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: c172df3962c440843b5584bdedcce9c6
+    spriteID: 90cd1a87d60026b468c0d349252c09d1
     internalID: 0
     vertices: []
     indices: 
@@ -384,12 +259,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Code-E_basic_spell-Sheet_0: 4075040102356489044
-      Code-E_basic_spell-Sheet_1: -933896092384903014
-      Code-E_basic_spell-Sheet_2: 8016144204863943927
-      Code-E_basic_spell-Sheet_3: 1149168466151085081
-      Code-E_basic_spell-Sheet_4: -1917874427035591182
-      Code-E_basic_spell-Sheet_5: 2706043497986536593
+      Asuran Blades Slide projectile-Sheet_0: -6801205320499964230
+      Asuran Blades Slide projectile-Sheet_1: 5051752532787065996
+      Asuran Blades Slide projectile-Sheet_2: -3341605398538894058
+      Asuran Blades Slide projectile-Sheet_3: 679130325
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -43,6 +43,7 @@ public enum ProcCondition
     OnHurt,
     OnHurtBasic,
     OnHurtSpell,
+    OnSlide,
     OnDodge,
     OnDodged,
     OnBlock,

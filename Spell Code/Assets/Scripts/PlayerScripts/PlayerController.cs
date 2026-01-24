@@ -853,15 +853,6 @@ public class PlayerController : MonoBehaviour
                 byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
-                //Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
-                //Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
-
-                //Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
-                //Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                //if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
-                //{
-                //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                //}
 
                 if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
@@ -1042,6 +1033,15 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
+
+                //check for slide end frame to trigger onSlide spell conditions
+                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(2).Sum() + 1)
+                {
+                    // Check conditions of all spells with the onSlide condition
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnSlide);
+                }
+
+
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     //play the enter weave sound
@@ -1778,7 +1778,10 @@ public class PlayerController : MonoBehaviour
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
             }
 
-            
+            //subtract demon aura based on the hitbox's damage
+            demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
+
+
         }
     }
 

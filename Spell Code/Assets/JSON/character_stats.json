@@ -4,7 +4,6 @@
       "character": "Code-E",
       "basicAttackProjId": "CodeE_Basic_Projectile",
       "startingInventory": [
-        "MightOfZeus",
         "SkillshotSlash"
       ],
       "runSpeed": 30,

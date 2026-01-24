@@ -9,6 +9,7 @@ public class SkillshotSlash : SpellData
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence
         spellType = SpellType.Active;
+        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[1];
         description = "Slash through reality in an area in front of you, dealing increased damage if you are in \"Flow State\". If you hit the tip of Skillshot Slash, you enter \"Flow State\". ";
 
@@ -17,10 +18,11 @@ public class SkillshotSlash : SpellData
     }
 
    
-
-    public override void ActiveOnHitProc(PlayerController defender)
+  
+    public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        if(owner.flowState > 0)
+        //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State
+        if (owner.flowState > 0)
         {
             defender.TakeEffectDamage(15);
         }
@@ -30,11 +32,5 @@ public class SkillshotSlash : SpellData
             owner.flowState = PlayerController.maxFlowState;
             Debug.Log("Sweet Spot Hit! Flow State set to 300.");
         }
-    }
-
-
-    public override void CheckCondition()
-    {
-        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }
 }

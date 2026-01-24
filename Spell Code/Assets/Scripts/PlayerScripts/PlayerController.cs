@@ -4,17 +4,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
-
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
-using Unity.VisualScripting;
 
 public enum PlayerState
 {
@@ -161,6 +161,13 @@ public class PlayerController : MonoBehaviour
     public bool chosenStartingSpell = false;
     public bool isSpawned;
 
+    //these variables are to track what collectives the player has. Passives for each collective
+    //will only show up if the boolean is true
+    public bool vWave = false;
+    public bool killeez = false;
+    public bool DemonX = false;
+    public bool bigStox = false;
+
 
     private void Awake()
     {
@@ -305,6 +312,31 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+
+        //trigger bools depending on brand
+        for (int i = 0; i < targetSpell.brands.Length; i++)
+        {
+            if (targetSpell.brands[i] == Brand.VWave && vWave == false)
+            {
+                vWave = true;
+                Debug.Log("Player has unlocked VWave passives");
+            }
+            if (targetSpell.brands[i] == Brand.Killeez && killeez == false)
+            {
+                killeez = true;
+                Debug.Log("Player has unlocked Killeez passives");
+            }
+            if (targetSpell.brands[i] == Brand.DemonX && DemonX == false)
+            {
+                DemonX = true;
+                Debug.Log("Player has unlocked DemonX passives");
+            }
+            if (targetSpell.brands[i] == Brand.BigStox && bigStox == false)
+            {
+                bigStox = true;
+                Debug.Log("Player has unlocked BigStox passives");
+            }
+        }
     }
 
 
@@ -637,18 +669,32 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     vSpd = jumpForce;
+
+                    //play the jump sound
+                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
                 LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
+
+                //...
+                if (logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == 0 || logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run).frameLengths.Take(3).Sum() + 1)
+                {
+                    //play the run sound
+                    SFX_Manager.Instance.PlaySound(Sounds.RUN);
+                }
 
                 if (!isGrounded)
                 {
@@ -668,12 +714,19 @@ public class PlayerController : MonoBehaviour
 
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
                 else if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     vSpd = jumpForce;
+
+                    //play the jump sound
+                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -710,6 +763,9 @@ public class PlayerController : MonoBehaviour
                 }
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -797,15 +853,6 @@ public class PlayerController : MonoBehaviour
                 byte codeCount = (byte)(stateSpecificArg & 0xF); //get the last 4 bits of stateSpecificArg
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
-                //Debug.Log($"currentInput: {Convert.ToString(currentInput, toBase: 2)}");
-                //Debug.Log($"stateSpecificArg: {Convert.ToString(stateSpecificArg, toBase: 2)}");
-
-                //Debug.Log($"codeCount: {Convert.ToString(codeCount, toBase: 2)}");
-                //Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                //if(stateSpecificArg == 0b0000_0000_0000_0000_0000_1100_0000_0010)
-                //{
-                //                       Debug.Log($"LastInputInQueue: {Convert.ToString(lastInputInQueue, toBase: 2)}");
-                //}
 
                 if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
@@ -852,6 +899,9 @@ public class PlayerController : MonoBehaviour
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+
+                    //play the exit weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -914,18 +964,17 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // Check conditions of all spells with the onCast condition
-                    for (int i = 0; i < spellList.Count; i++)
-                    {
-                        if (spellList[i].procConditions.Contains(ProcCondition.OnCast))
-                        {
-                            spellList[i].CheckCondition();
-                        }
-                    }
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCast);
 
 
                     //check if we set stateSpecificArg to 255, which is otherwise impossible to achieve, in the spell loop, meaning we successfully fired a spell
-                    if (stateSpecificArg == 255) break;
-
+                    if (stateSpecificArg == 255)
+                    {
+                        //so check all spells with OnCastSpell condition
+                        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastSpell);
+                        break;
+                    }
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
                     ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
@@ -984,8 +1033,20 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
+
+                //check for slide end frame to trigger onSlide spell conditions
+                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(2).Sum() + 1)
+                {
+                    // Check conditions of all spells with the onSlide condition
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnSlide);
+                }
+
+
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
+                    //play the enter weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
@@ -1002,13 +1063,7 @@ public class PlayerController : MonoBehaviour
 
 
         //Check conditions of all spells with the onupdate condition
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            if (spellList[i].procConditions.Contains(ProcCondition.OnUpdate))
-            {
-                spellList[i].CheckCondition();
-            }
-        }
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
         UpdateResources();
 
@@ -1671,6 +1726,9 @@ public class PlayerController : MonoBehaviour
             //checking for death
             if (hitboxData.damage > currentPlayerHealth)
             {
+                //play the death sound
+                SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+
                 currentPlayerHealth = 0;
             }
             else
@@ -1686,38 +1744,63 @@ public class PlayerController : MonoBehaviour
                 comboCounter++;
             }
 
-            
+
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+
+            //play the damaged sound
+            SFX_Manager.Instance.PlaySound(Sounds.HIT);
 
             SetState(PlayerState.Hitstun);
 
             //call the active on hit proc of the spell that created the projectile that hit us
             if (hitboxData.parentProjectile.ownerSpell != null)
             {
-                hitboxData.parentProjectile.ownerSpell.ActiveOnHitProc(this);
+                hitboxData.parentProjectile.ownerSpell.CheckCondition(this,ProcCondition.ActiveOnHit);
             }
+
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
-            for (int i = 0; i < attacker.spellList.Count; i++)
-            {
-                if (attacker.spellList[i].procConditions.Contains(ProcCondition.OnHit))
-                {
-                    attacker.spellList[i].CheckCondition();
-                }
-            }
+            CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
-            for (int i = 0; i < spellList.Count; i++)
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt);
+
+            //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
+            if (hitboxData.basicAttackHitbox)
             {
-                if (spellList[i].procConditions.Contains(ProcCondition.OnHurt))
-                {
-                    spellList[i].CheckCondition();
-                }
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic);
             }
+            else
+            {
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
+            }
+
+            //subtract demon aura based on the hitbox's damage
+            demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
+
+
         }
     }
 
+
+    /// <summary>
+    /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
+    /// </summary>
+    /// <param name="targetPlayer"></param>
+    /// <param name="targetProcCon"></param>
+    public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
+    {
+        for (int i = 0; i < targetPlayer.spellList.Count; i++)
+        {
+            if (targetPlayer.spellList[i].procConditions.Contains(targetProcCon))
+            {
+                targetPlayer.spellList[i].CheckCondition(this, targetProcCon);
+            }
+        }
+    }
 
     /// <summary>
     /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.

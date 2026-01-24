@@ -9,15 +9,16 @@ public class Ninja_Build_Blast : SpellData
         cooldown = 600;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
+        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         description = "Project forth a massive orb which consumes all of your \"Flow State\" and reduces all cooldowns based on the amount consumed. Hit this SpellCode early to enter \"Flow State\"";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 10;
         spawnOffsetY = 20;
     }
-    
 
-    public override void ActiveOnHitProc(PlayerController defender)
+    public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
+        //ActiveOnHit proc: when this spell hits an enemy, consume all Flow State to reduce cooldowns
         int consumedFlow = owner.flowState;
         if (consumedFlow > 0)
         {
@@ -39,10 +40,5 @@ public class Ninja_Build_Blast : SpellData
             cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
             Debug.Log("Sweet Spot Hit! Flow State set to 300.");
         }
-    }
-
-    public override void CheckCondition()
-    {
-        // Implement the effect that occurs when the condition is met within the spell or any other spell that procs this effect
     }
 }

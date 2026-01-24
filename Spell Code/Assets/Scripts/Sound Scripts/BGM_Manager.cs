@@ -8,13 +8,13 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(AudioSource))]
 public class BGM_Manager : MonoBehaviour
 {
-    /// <value>Property <c>Instance</c> is the single instance of the BGM_Manager.</value>
+    // <value>Property <c>Instance</c> is the single instance of the BGM_Manager.</value>
     public static BGM_Manager Instance { get; private set; }
 
     //AudioSource that will play songs
     private AudioSource musicAudioSource;
 
-    //
+    //Object to hold the data for the songs that can play in each scene
     [Serializable]
     private class SceneAudioObject
     {
@@ -42,7 +42,7 @@ public class BGM_Manager : MonoBehaviour
     [SerializeField] private List<SceneAudioObject> sceneAudioObjects;
 
     //TESTBENCH FUNCTIONS
-    //private SFX_Handler sFX_Manager;
+    //private SFX_Manager sFX_Manager;
     //private void Update()
     //{
     //    if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -78,7 +78,7 @@ public class BGM_Manager : MonoBehaviour
     private void Awake()
     {
         //MORE TESTBENCH STUFF
-        //sFX_Manager = GameObject.Find("pfb_SFX_Handler").GetComponent<SFX_Handler>();
+        //sFX_Manager = GameObject.Find("pfb_SFX_Manager").GetComponent<SFX_Manager>();
 
         //assign musicAudioSource
         musicAudioSource = gameObject.GetComponent<AudioSource>();

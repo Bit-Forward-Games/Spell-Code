@@ -45,11 +45,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellName: BootsOfHermes
-  brands: 
-  procConditions: 
-  description: 
-  cooldown: 1
-  cooldownCounter: 180
+  brands: 03000000
+  procConditions: 08000000
+  description: Gain 1 Jump for every 3 "Reps" you have.
+  cooldown: 0
+  cooldownCounter: 0
   spellInput: 0
   activateFlag: 0
   owner: {fileID: 0}
@@ -58,5 +58,5 @@ MonoBehaviour:
   spawnOffsetY: 15
   projectilePrefabs: []
   projectileInstances: []
-  shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
+  shopSprite: {fileID: 0}
   hermesJumps: 0

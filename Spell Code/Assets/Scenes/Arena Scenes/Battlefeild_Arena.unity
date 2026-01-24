@@ -432,7 +432,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 88
+  orthographic size: 116
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -547,10 +547,10 @@ MonoBehaviour:
   damping: 0
   minZoom: 90
   maxZoom: 420
+  HardSetZoom: 180
   minDistance: 120
   zoomLimiter: 480
   zoomSpeed: 5
-  shakeDuration: 0.5
   shakeMagnitude: 1
   target: {x: 0, y: 0}
 --- !u!1 &1087714001
@@ -971,7 +971,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -68
   m_Sprite: {fileID: 8134256411904724372, guid: 3b640551bd8425c4692aa8baa1201c73, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

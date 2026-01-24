@@ -44,7 +44,7 @@ public class CodeE_BasicProjectile : BaseProjectile
                     damage = 10,
                     hitstun = 15,
                     attackLvl = 1,
-                    //cancelOptions = new List<int> { } // No cancel options
+                    basicAttackHitbox = true,
                 }
             },
             hitbox2 = new List<HitboxData>(),

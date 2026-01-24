@@ -36,9 +36,9 @@ public class MightOfZeus_Projectile : BaseProjectile
                 new HitboxData
                 {
                     xOffset = -10,
-                    yOffset = 180,
+                    yOffset = 160,
                     width = 20,
-                    height = 180,
+                    height = 160,
                     xKnockback = 0,
                     yKnockback = 1,
                     damage = 10,
@@ -67,9 +67,13 @@ public class MightOfZeus_Projectile : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame >= animFrames.frameLengths.Take(1).Sum()+1)
+        if (logicFrame >= animFrames.frameLengths.Take(1).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
         {
             activeHitboxGroupIndex = 1;
+        }
+        else
+        {
+            activeHitboxGroupIndex = 0;
         }
         if (logicFrame >= animFrames.frameLengths.Sum())
         {

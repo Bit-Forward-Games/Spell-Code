@@ -36,13 +36,13 @@ public class AsuranBladesSlide_Projectile : BaseProjectile
                 new HitboxData
                 {
                     xOffset = 0,
-                    yOffset = 12,
-                    width = 32,
-                    height = 12,
-                    xKnockback = 3,
+                    yOffset = 16,
+                    width = 38,
+                    height = 16,
+                    xKnockback = 5,
                     yKnockback = 1,
                     damage = 5,
-                    hitstun = 15,
+                    hitstun = 30,
                     attackLvl = 1,
                 }
             },

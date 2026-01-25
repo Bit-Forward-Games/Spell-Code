@@ -111,7 +111,7 @@ MonoBehaviour:
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 10
+  lifeSpan: 20
   owner: {fileID: 0}
   ownerSpell: {fileID: 0}
   playerIgnoreArr: 00000000

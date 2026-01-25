@@ -13,7 +13,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         projName = "AsuranBlades";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 10; // lasts for 10 logic frames
+        lifeSpan = 20; // lasts for 20 logic frames
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
 
@@ -25,7 +25,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset);
 
         //this is the base speed for the projectile before applying angle factors
-        int fixedSpeed = 6;
+        int fixedSpeed = 4;
 
         //the base spawn offset is 10,15 - so in order to get the same projectile to have 3 different trajectories, we base the trajectory on the spawn offset y value relative to 15
         this.vSpeed = Fixed.FromInt(-fixedSpeed); // all projectiles will go downwards at the same speed
@@ -36,12 +36,12 @@ public class AsuranBlades_Projectile : BaseProjectile
         if (spawnOffset.Y - new Fixed(15) > Fixed.FromInt(1))
         {
             //top projectile - -30 degree angle
-            this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * fixedSpeed) * angleFactor30Degrees;
+            this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * (fixedSpeed+3));
         }
         else if(spawnOffset.Y - new Fixed(15) < -Fixed.FromInt(1))
         {
             //bottom projectile - -60 degree angle
-            this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * fixedSpeed) / angleFactor30Degrees;
+            this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * (fixedSpeed-3));
         }
         else
         {

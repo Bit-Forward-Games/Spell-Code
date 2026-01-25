@@ -1369,7 +1369,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p1_choices = new List<string>();
             p1_choices.Add("SkillshotSlash");
             p1_choices.Add("MightOfZeus");
-            p1_choices.Add("AmonSlash");
+            p1_choices.Add("AsuranBlades");
         }
         if (index == 1)
         {

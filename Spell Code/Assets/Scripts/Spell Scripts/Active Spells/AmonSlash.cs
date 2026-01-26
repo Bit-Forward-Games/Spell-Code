@@ -60,7 +60,7 @@ public class AmonSlash : SpellData
             case ProcCondition.OnHitBasic:
                 if (owner.demonAura > 0)
                 {
-                    int damageToDeal = (int)Mathf.Pow(owner.demonAura/10,2);
+                    int damageToDeal = (int)(Mathf.Pow(owner.demonAura/10,2)/2);
                     defender.TakeEffectDamage(damageToDeal);
                     owner.demonAura = 0;
                 }

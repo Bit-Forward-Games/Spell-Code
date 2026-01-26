@@ -1151,12 +1151,16 @@ PrefabInstance:
       objectReference: {fileID: 1101021164}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
-      value: 8
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[7]'
       value: 
       objectReference: {fileID: 5816283378747392984, guid: e60c67891c09e3c489074294d36cbc52, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[8]'
+      value: 
+      objectReference: {fileID: -764328101641788283, guid: 35f892d8493915041b6d65a1d99473e2, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

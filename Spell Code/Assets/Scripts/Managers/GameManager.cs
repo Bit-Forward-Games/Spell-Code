@@ -836,8 +836,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         UpdateGameState(inputs);
 
-        if (activeScene.name == "MainMenu" && lastSceneName != "End")
+        if (activeScene.name == "MainMenu")
         {
+            //if (lastSceneName == "End")
+            //{
+                //for (int i = 0; i < gates.Length; i++)
+                //{
+                //    gates[i].SetOpen(true);
+                //}
+
+                //if (onlineMenuUI != null)
+                //{
+                //    onlineMenuUI.SetActive(false);
+                //}
+            //}
+
             //player 1 stuff
             if (players[0] != null)
             {
@@ -999,19 +1012,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
-            }
-        }
-
-        else if (activeScene.name == "MainMenu" && lastSceneName == "End")
-        {
-            for (int i = 0; i < gates.Length; i++)
-            {
-                gates[i].SetOpen(true);
-            }
-
-            if (onlineMenuUI != null)
-            {
-                onlineMenuUI.SetActive(false);
             }
         }
 

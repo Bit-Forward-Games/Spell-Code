@@ -1149,6 +1149,22 @@ PrefabInstance:
       propertyPath: onlineMenuUI
       value: 
       objectReference: {fileID: 1101021164}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'gates.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1049873778127873678}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'gates.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8724005506562463916}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'gates.Array.data[2]'
+      value: 
+      objectReference: {fileID: 9210901321950255041}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'gates.Array.data[3]'
+      value: 
+      objectReference: {fileID: 5566621690326733090}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
       value: 9
@@ -16202,6 +16218,7 @@ MonoBehaviour:
   isWaitingForOpponent: 0
   opponentIsReady: 0
   playerInputManager: {fileID: 0}
+  lastSceneName: 
   isOnlineMatchActive: 0
   localPlayerIndex: 0
   remotePlayerIndex: 1

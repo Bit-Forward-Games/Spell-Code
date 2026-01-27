@@ -862,6 +862,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("p1 chose a spell");
                         players[0].AddSpellToSpellList(p1_choices[p1_index]);
+                        players[0].startingSpell = p1_choices[p1_index];
                         players[0].chosenStartingSpell = true;
                         p1_spellCard.enabled = false;
                     }
@@ -900,6 +901,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("p2 chose a spell");
                         players[1].AddSpellToSpellList(p2_choices[p2_index]);
+                        players[1].startingSpell = p2_choices[p2_index];
                         players[1].chosenStartingSpell = true;
                         p2_spellCard.enabled = false;
                     }
@@ -938,6 +940,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("p3 chose a spell");
                         players[2].AddSpellToSpellList(p3_choices[p3_index]);
+                        players[2].startingSpell = p3_choices[p3_index];
                         players[2].chosenStartingSpell = true;
                         p3_spellCard.enabled = false;
                     }
@@ -976,6 +979,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("p4 chose a spell");
                         players[3].AddSpellToSpellList(p4_choices[p4_index]);
+                        players[3].startingSpell = p3_choices[p3_index];
                         players[3].chosenStartingSpell = true;
                         p4_spellCard.enabled = false;
                     }

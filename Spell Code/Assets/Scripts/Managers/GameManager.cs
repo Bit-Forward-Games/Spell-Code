@@ -94,6 +94,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
 
+    public string lastSceneName;
+
     // Add these fields to GameManager class
     private ulong cachedLocalInput = 5; // Stores input gathered in Update()
     private bool codePrevFrame = false;
@@ -834,7 +836,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         UpdateGameState(inputs);
 
-        if (activeScene.name == "MainMenu")
+        if (activeScene.name == "MainMenu" && lastSceneName != "End")
         {
             //player 1 stuff
             if (players[0] != null)
@@ -999,6 +1001,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 LoadRandomGameplayStage();
             }
         }
+
+        else if (activeScene.name == "MainMenu" && lastSceneName == "End")
+        {
+            for (int i = 0; i < gates.Length; i++)
+            {
+                gates[i].SetOpen(true);
+            }
+
+            if (onlineMenuUI != null)
+            {
+                onlineMenuUI.SetActive(false);
+            }
+        }
+
         else if (activeScene.name == "Gameplay")
         {
             if (CheckGameEnd(GetActivePlayerControllers()))
@@ -1154,6 +1170,29 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// Restart gamestate when "play" or "rematch" is pressed
     /// </summary>
     public void RestartGame()
+    {
+        gameOver = false;
+        Vector2[] spawnPositions = GetSpawnPositions();
+        // Convert spawn positions to FixedVec2
+        FixedVec2[] fixedSpawnPositions = spawnPositions
+            .Select(v => FixedVec2.FromFloat(v.x, v.y))
+            .ToArray();
+        //reset each player to their starting values
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                //this is different from ResetPlayers()
+                players[i].ResetPlayer();
+                players[i].SpawnPlayer(fixedSpawnPositions[i]);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restarts the game from the lobby, not just a rematch
+    /// </summary>
+    public void RestartLobby()
     {
         gameOver = false;
         Vector2[] spawnPositions = GetSpawnPositions();

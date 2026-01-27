@@ -41,7 +41,7 @@ public class AsuranBladesSlide_Projectile : BaseProjectile
                     height = 16,
                     xKnockback = 5,
                     yKnockback = 1,
-                    damage = 5,
+                    damage = 10,
                     hitstun = 30,
                     attackLvl = 1,
                 }

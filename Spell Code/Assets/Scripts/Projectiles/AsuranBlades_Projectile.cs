@@ -13,7 +13,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         projName = "AsuranBlades";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 20; // lasts for 20 logic frames
+        lifeSpan = 30; // lasts for 20 logic frames
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
 
@@ -67,9 +67,9 @@ public class AsuranBlades_Projectile : BaseProjectile
                     height = 20,
                     xKnockback = 1,
                     yKnockback = 5,
-                    damage = 5,
+                    damage = 10,
                     hitstun = 30,
-                    attackLvl = 1,
+                    attackLvl = 2,
                 }
             },
             hitbox2 = new List<HitboxData>(),

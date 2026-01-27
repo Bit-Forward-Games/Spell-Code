@@ -136,7 +136,7 @@ public class PlayerController : MonoBehaviour
     //public int spellCount = 0;
 
     //SFX VARIABLES
-    //public //SFX_Manager mySFXHandler;
+    //public SFX_Manager mySFXHandler;
 
     //TMPro
     public TextMeshPro inputDisplay;
@@ -672,7 +672,7 @@ public class PlayerController : MonoBehaviour
                 else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     //play the enter weave sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -682,7 +682,7 @@ public class PlayerController : MonoBehaviour
                     vSpd = jumpForce;
 
                     //play the jump sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
                     SetState(PlayerState.Jump);
                     break;
@@ -695,7 +695,7 @@ public class PlayerController : MonoBehaviour
                 if (logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == 0 || logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run).frameLengths.Take(3).Sum() + 1)
                 {
                     //play the run sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.RUN);
+                    SFX_Manager.Instance.PlaySound(Sounds.RUN);
                 }
 
                 if (!isGrounded)
@@ -717,7 +717,7 @@ public class PlayerController : MonoBehaviour
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     //play the enter weave sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -727,7 +727,7 @@ public class PlayerController : MonoBehaviour
                     vSpd = jumpForce;
 
                     //play the jump sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
                     SetState(PlayerState.Jump);
                     break;
@@ -766,7 +766,7 @@ public class PlayerController : MonoBehaviour
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     //play the enter weave sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -903,7 +903,7 @@ public class PlayerController : MonoBehaviour
                     Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
                     //play the exit weave sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                    SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -1047,7 +1047,7 @@ public class PlayerController : MonoBehaviour
                 if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                 {
                     //play the enter weave sound
-                    //SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+                    SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
                     SetState(PlayerState.CodeWeave);
                     break;
@@ -1729,7 +1729,7 @@ public class PlayerController : MonoBehaviour
             if (hitboxData.damage > currentPlayerHealth)
             {
                 //play the death sound
-                //SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+                SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
                 currentPlayerHealth = 0;
             }
@@ -1751,7 +1751,7 @@ public class PlayerController : MonoBehaviour
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             //play the damaged sound
-            //SFX_Manager.Instance.PlaySound(Sounds.HIT);
+            SFX_Manager.Instance.PlaySound(Sounds.HIT);
 
             SetState(PlayerState.Hitstun);
 

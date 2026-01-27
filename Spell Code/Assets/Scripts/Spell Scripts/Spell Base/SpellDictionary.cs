@@ -25,6 +25,11 @@ public class SpellDictionary : NonPersistantSingleton<SpellDictionary>
                 Debug.LogWarning("SpellDictionary: Duplicate spell name found: " + spellList[i].spellName);
             }
         }
+        Debug.Log("SpellDictionary: Loaded " + spellDict.Count + " spells into the dictionary.");
+        for(int i = 0; i < spellDict.Count; i++)
+        {
+            Debug.Log("SpellDictionary: Spell " + i + ": " + spellDict[spellList[i].spellName].spellName);
+        }
     }
 
     // Update is called once per frame

@@ -1062,6 +1062,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
         }
+        else if (activeScene.name == "End")
+        {
+            InputSnapshot[] inputSnapshots = new InputSnapshot[inputs.Length];
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                inputSnapshots[i] = InputConverter.ConvertFromLong(inputs[i]);
+            }
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (inputSnapshots[i].ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                {
+                    SceneUiManager.Instance.Restart();
+                }
+            }
+        }
     }
 
     /// <summary>

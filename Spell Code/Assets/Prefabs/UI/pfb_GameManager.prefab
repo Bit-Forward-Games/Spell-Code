@@ -1745,7 +1745,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projectileList:
-  - {fileID: -6894877409213945372, guid: 2edd52bb117036f488fac2fe2e350579, type: 3}
   - {fileID: 6904739195990429952, guid: 1ad302f9b5e81414a83092e11b61afda, type: 3}
   - {fileID: 7924217191926585167, guid: ba7ec9812e6647744a921655caa734f9, type: 3}
   - {fileID: -5188561821393254161, guid: fd7cfb4a2d1f6ba4eb90f628a4ae724d, type: 3}

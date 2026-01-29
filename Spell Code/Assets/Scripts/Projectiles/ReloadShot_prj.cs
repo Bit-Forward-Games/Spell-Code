@@ -6,12 +6,12 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class Ninja_Build_Blast_prj : BaseProjectile
+public class ReloadShot_prj : BaseProjectile
 {
     
-    public Ninja_Build_Blast_prj()
+    public ReloadShot_prj()
     {
-        projName = "Ninja_Build_Blast";
+        projName = "ReloadShot";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
         lifeSpan = 600; // lasts for 120 logic frames

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 514574674840361984}
   - component: {fileID: 3932680449162567156}
   m_Layer: 0
-  m_Name: Ninja_Build_Blast
+  m_Name: ReloadShot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
   brands: 
   procConditions: 
   description: 
-  cooldown: 600
+  cooldown: 480
   cooldownCounter: 0
   spellInput: 53764
   activateFlag: 0
@@ -58,4 +58,5 @@ MonoBehaviour:
   spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
+  projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 003ebf56b1674414c95a440b55d5cd51, type: 3}

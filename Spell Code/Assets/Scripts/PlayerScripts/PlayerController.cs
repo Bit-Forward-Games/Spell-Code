@@ -99,7 +99,7 @@ public class PlayerController : MonoBehaviour
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
-    public const ushort maxFlowState = 300;
+    public const ushort maxFlowState = 600;
     public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
     public ushort demonAura = 0;
     public const ushort maxDemonAura = 100;

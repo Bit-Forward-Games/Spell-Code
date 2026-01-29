@@ -203,7 +203,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_0
+      name: ReloadShot-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
@@ -216,16 +216,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 99295b17120c6aa30800000000000000
-      internalID: 4226276550207967897
+      spriteID: c9146c9454c5dfc499c1f16ef0ae2b6f
+      internalID: 927346451
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_1
+      name: ReloadShot-Sheet_1
       rect:
         serializedVersion: 2
         x: 64
@@ -238,16 +238,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: f1c0321680659d730800000000000000
-      internalID: 4024342336021662751
+      spriteID: c32033e393f6e2c42b67c465a035e82c
+      internalID: 340182061
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_2
+      name: ReloadShot-Sheet_2
       rect:
         serializedVersion: 2
         x: 0
@@ -260,16 +260,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: eaf5f2a26fa4ac440800000000000000
-      internalID: 4956856761004810158
+      spriteID: 74e7c3526ef822045967f7b4433bdaab
+      internalID: 555805288
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_3
+      name: ReloadShot-Sheet_3
       rect:
         serializedVersion: 2
         x: 64
@@ -282,16 +282,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 9c99bc25eabde2ec0800000000000000
-      internalID: -3589690311207839287
+      spriteID: a3326343de4f0ef419944ca44e304d3f
+      internalID: 208494974
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_4
+      name: ReloadShot-Sheet_4
       rect:
         serializedVersion: 2
         x: 128
@@ -304,16 +304,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: c6b3cc37604fde0d0800000000000000
-      internalID: -3391786635790369940
+      spriteID: eabbe3e0e0bc8054f891a402140e44c9
+      internalID: -44562230
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_5
+      name: ReloadShot-Sheet_5
       rect:
         serializedVersion: 2
         x: 192
@@ -326,16 +326,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b1fe529413c879e00800000000000000
-      internalID: 1051463181322809115
+      spriteID: e5ee89bd0eca50f4786112f4985cce9f
+      internalID: -974966692
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_6
+      name: ReloadShot-Sheet_6
       rect:
         serializedVersion: 2
         x: 256
@@ -348,16 +348,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ae518f5e22a7924e0800000000000000
-      internalID: -2005937868711127574
+      spriteID: 9eae6845299c4c4448f2556f3e3031b0
+      internalID: -1972560144
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_7
+      name: ReloadShot-Sheet_7
       rect:
         serializedVersion: 2
         x: 320
@@ -370,16 +370,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ceb0ea003b7655fe0800000000000000
-      internalID: -1200939707116155924
+      spriteID: e58104ede2e14f645875430eec2fc2bb
+      internalID: 1791838887
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_8
+      name: ReloadShot-Sheet_8
       rect:
         serializedVersion: 2
         x: 384
@@ -392,16 +392,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: dc48c09e42ed6ebd0800000000000000
-      internalID: -2601147484649782067
+      spriteID: fe4c826bef8bb8949a6b5e1ba4e24d3f
+      internalID: -903573222
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_9
+      name: ReloadShot-Sheet_9
       rect:
         serializedVersion: 2
         x: 448
@@ -414,16 +414,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 63b44f3129bddf390800000000000000
-      internalID: -7782823160579863754
+      spriteID: c06d8f65b44782545b42aa65105346fb
+      internalID: -874410937
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_10
+      name: ReloadShot-Sheet_10
       rect:
         serializedVersion: 2
         x: 0
@@ -436,16 +436,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: acd83819bd87347f0800000000000000
-      internalID: -629526638467248694
+      spriteID: 6337b289435f10344a327639b1f1e0a3
+      internalID: -1182163851
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_11
+      name: ReloadShot-Sheet_11
       rect:
         serializedVersion: 2
         x: 64
@@ -458,16 +458,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6c6fdfcd9736798f0800000000000000
-      internalID: -533848655770290490
+      spriteID: 755e7c1845fbedc42adcb7709397638d
+      internalID: 1578127588
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_12
+      name: ReloadShot-Sheet_12
       rect:
         serializedVersion: 2
         x: 128
@@ -482,14 +482,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fa530fd20be620743b437c920c095d45
-      internalID: 1319465332
+      spriteID: a3290b29cc3e0f743adfb827ff8b8c91
+      internalID: 848076734
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Ninja_build_blast-Sheet_13
+      name: ReloadShot-Sheet_13
       rect:
         serializedVersion: 2
         x: 192
@@ -504,8 +504,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b6e6c5a377ae2b84aa9411b4c8d2ddeb
-      internalID: 1546831206
+      spriteID: 1a6de753c46e2a548874088209a06fb9
+      internalID: -1151457231
       vertices: []
       indices: 
       edges: []
@@ -524,20 +524,20 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Ninja_build_blast-Sheet_0: 4226276550207967897
-      Ninja_build_blast-Sheet_1: 4024342336021662751
-      Ninja_build_blast-Sheet_10: -629526638467248694
-      Ninja_build_blast-Sheet_11: -533848655770290490
-      Ninja_build_blast-Sheet_12: 1319465332
-      Ninja_build_blast-Sheet_13: 1546831206
-      Ninja_build_blast-Sheet_2: 4956856761004810158
-      Ninja_build_blast-Sheet_3: -3589690311207839287
-      Ninja_build_blast-Sheet_4: -3391786635790369940
-      Ninja_build_blast-Sheet_5: 1051463181322809115
-      Ninja_build_blast-Sheet_6: -2005937868711127574
-      Ninja_build_blast-Sheet_7: -1200939707116155924
-      Ninja_build_blast-Sheet_8: -2601147484649782067
-      Ninja_build_blast-Sheet_9: -7782823160579863754
+      ReloadShot-Sheet_0: 927346451
+      ReloadShot-Sheet_1: 340182061
+      ReloadShot-Sheet_10: -1182163851
+      ReloadShot-Sheet_11: 1578127588
+      ReloadShot-Sheet_12: 848076734
+      ReloadShot-Sheet_13: -1151457231
+      ReloadShot-Sheet_2: 555805288
+      ReloadShot-Sheet_3: 208494974
+      ReloadShot-Sheet_4: -44562230
+      ReloadShot-Sheet_5: -974966692
+      ReloadShot-Sheet_6: -1972560144
+      ReloadShot-Sheet_7: 1791838887
+      ReloadShot-Sheet_8: -903573222
+      ReloadShot-Sheet_9: -874410937
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

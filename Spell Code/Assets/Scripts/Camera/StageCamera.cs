@@ -20,8 +20,11 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float zoomSpeed = 1f;
     //[SerializeField] private float shakeDuration = 0.5f;
     [SerializeField] private float shakeMagnitude = 1f;
+    // Buffer (world units) to keep between the players and the screen edge
+    [SerializeField] private float screenEdgeBuffer = 50f;
 
     public Vector2 target;
+    public bool lockCamera = false;
     private Vector3 vel = Vector3.one;
     private Camera cam;
 
@@ -38,7 +41,17 @@ public class StageCamera : MonoBehaviour
     private void FixedUpdate()
     {
         //if the current scene is main menu, don't do anything
-        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            lockCamera = true;
+        }
+        else
+        {
+            lockCamera = false;
+        }
+
+        // If camera is locked, set to hard zoom and return
+        if (lockCamera)
         {
             cam.orthographicSize = HardSetZoom;
             return;
@@ -46,7 +59,8 @@ public class StageCamera : MonoBehaviour
 
         if (GameManager.Instance.playerCount > 0)
         {
-            Vector2 averagePosition = Vector3.up;
+            // compute average position
+            Vector2 averagePosition = Vector2.zero;
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
                 FixedVec2 fixedPos = GameManager.Instance.players[i].position;
@@ -56,33 +70,23 @@ public class StageCamera : MonoBehaviour
             averagePosition /= GameManager.Instance.playerCount;
             target = averagePosition + offset;
 
+            // get players bounding box
             Bounds greatestDistance = GetGreatestDistance();
-            float newZoom = minZoom;
 
-            if (greatestDistance.size.x > minDistance || greatestDistance.size.y > (minDistance / 16 * 9))
-            {
-                //newZoom = Mathf.Lerp(minZoom, maxZoom, (greatestDistance.size.magnitude - minDistance) / zoomLimiter);
-                if (greatestDistance.size.x >= greatestDistance.size.y)
-                {
-                    newZoom = Mathf.Lerp(minZoom, maxZoom, ((greatestDistance.size.x / 16 * 9) - (minDistance / 16 * 9)) / zoomLimiter);
-                }
-                else
-                {
-                    newZoom = Mathf.Lerp(minZoom, maxZoom, (greatestDistance.size.y - (minDistance / 16 * 9)) / zoomLimiter);
-                }
-            }
+            // --- NEW: compute required orthographic size based on both width and height ---
+            // orthographicSize is half the vertical size. Horizontal half-size = orthographicSize * aspect.
+            float aspect = cam.aspect;
+            // required size to fit height (half)
+            float requiredFromHeight = greatestDistance.size.y * 0.5f + screenEdgeBuffer;
+            // required size to fit width (convert half-width to half-vertical by dividing by aspect)
+            float requiredFromWidth = (greatestDistance.size.x * 0.5f) / Mathf.Max(0.0001f, aspect) + screenEdgeBuffer;
+            // choose the stricter requirement and clamp to min/max zoom
+            float requiredSize = Mathf.Max(requiredFromHeight, requiredFromWidth, minZoom);
+            float newZoom = Mathf.Clamp(requiredSize, minZoom, maxZoom);
 
+            // smooth the zoom
             cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, zoomSpeed * Time.deltaTime);
 
-            //if (cam.orthographicSize <= minZoom)
-            //{
-            //    cam.orthographicSize = minZoom;
-            //    pixelPerfectCamera.enabled = true;
-            //}
-            //else
-            //{
-            //    pixelPerfectCamera.enabled = false;
-            //}
 
             Vector3 targetPosition = new Vector3(target.x, target.y, -10);
             transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref vel, damping);

@@ -25,6 +25,18 @@ public class AsuranBlades : SpellData
     public override void SpellUpdate()
     {
         if (projectileInstances.Count < 1) return;
+
+        if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 3)
+        {
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+        }
+
+        if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 3)
+        {
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY + 2)));
+        }
+
+
         if (cooldownCounter > 0)
         {
             cooldownCounter--;
@@ -42,9 +54,8 @@ public class AsuranBlades : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 2)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY+2)));
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY-2)));
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY-2)));
 
             }
             cooldownCounter = cooldown;
@@ -59,7 +70,7 @@ public class AsuranBlades : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 10, 0, PlayerController.maxDemonAura);
+                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                 break;
             //OnHitBasic: Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
             case ProcCondition.OnSlide:

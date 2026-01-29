@@ -21,7 +21,7 @@ public class GiftOfPrometheus : SpellData
     {
         // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
         owner.reps += 2;
-        defender.TakeEffectDamage(owner.reps * 4);
+        defender.TakeEffectDamage(owner.reps * 5);
         Debug.Log($"Gift of Prometheus proc: Dealt {owner.reps * 3} damage to defender. Owner reps: {owner.reps}");
     }
 }

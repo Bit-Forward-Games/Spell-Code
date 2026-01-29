@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7745486899729457613}
-  - component: {fileID: 8791147183177087036}
+  - component: {fileID: -764328101641788283}
   m_Layer: 0
-  m_Name: Overclock
+  m_Name: DemonicDescent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8791147183177087036
+--- !u!114 &-764328101641788283
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,14 +41,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3884774707739521384}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8135508f9f549040bb41f0c3b6ecfcf, type: 3}
+  m_Script: {fileID: 11500000, guid: aa6cd5f2a9da1ef4b96dbfb35d74503f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: Overclock
-  brands: 01000000
-  procConditions: 0c000000
-  description: While in Flow State, you overclock your spell-codes, creating an explosion
-    on spell-cast.
+  spellName: DemonicDescent
+  brands: 02000000
+  procConditions: 1100000003000000
+  description: While at 100% "Demon Aura", you gain mobility, and your Spells deal
+    increased damage
   cooldown: 0
   cooldownCounter: 0
   spellInput: 0
@@ -57,7 +57,6 @@ MonoBehaviour:
   spellType: 0
   spawnOffsetX: 10
   spawnOffsetY: 15
-  projectilePrefabs:
-  - {fileID: 7323394407539773554, guid: 5e9de9e76cf85b040848816e9523b15c, type: 3}
+  projectilePrefabs: []
   projectileInstances: []
-  shopSprite: {fileID: 21300000, guid: 166b203bcef96644fb823c8a1be59b2b, type: 3}
+  shopSprite: {fileID: 21300000, guid: d58c709f2170f9248a6ca3ceccfa147d, type: 3}

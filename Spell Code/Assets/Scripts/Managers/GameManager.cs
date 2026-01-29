@@ -92,8 +92,10 @@ public class GameManager : MonoBehaviour
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
 
-    // Input caching for online
-    private ulong cachedLocalInput = 5;
+    public string lastSceneName;
+
+    // Add these fields to GameManager class
+    private ulong cachedLocalInput = 5; // Stores input gathered in Update()
     private bool codePrevFrame = false;
     private bool jumpPrevFrame = false;
     private bool codeCurrentFrame = false;
@@ -812,7 +814,20 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
-            // OFFLINE LOBBY LOGIC - KEEP AS IS
+            //if (lastSceneName == "End")
+            //{
+                //for (int i = 0; i < gates.Length; i++)
+                //{
+                //    gates[i].SetOpen(true);
+                //}
+
+                //if (onlineMenuUI != null)
+                //{
+                //    onlineMenuUI.SetActive(false);
+                //}
+            //}
+
+            //player 1 stuff
             if (players[0] != null)
             {
                 if (players[0].chosenStartingSpell == false && players[0].isSpawned)
@@ -836,6 +851,7 @@ public class GameManager : MonoBehaviour
                     {
                         Debug.Log("p1 chose a spell");
                         players[0].AddSpellToSpellList(p1_choices[p1_index]);
+                        players[0].startingSpell = p1_choices[p1_index];
                         players[0].chosenStartingSpell = true;
                         p1_spellCard.enabled = false;
                     }
@@ -872,6 +888,7 @@ public class GameManager : MonoBehaviour
                     {
                         Debug.Log("p2 chose a spell");
                         players[1].AddSpellToSpellList(p2_choices[p2_index]);
+                        players[1].startingSpell = p2_choices[p2_index];
                         players[1].chosenStartingSpell = true;
                         p2_spellCard.enabled = false;
                     }
@@ -908,6 +925,7 @@ public class GameManager : MonoBehaviour
                     {
                         Debug.Log("p3 chose a spell");
                         players[2].AddSpellToSpellList(p3_choices[p3_index]);
+                        players[2].startingSpell = p3_choices[p3_index];
                         players[2].chosenStartingSpell = true;
                         p3_spellCard.enabled = false;
                     }
@@ -944,6 +962,7 @@ public class GameManager : MonoBehaviour
                     {
                         Debug.Log("p4 chose a spell");
                         players[3].AddSpellToSpellList(p4_choices[p4_index]);
+                        players[3].startingSpell = p3_choices[p3_index];
                         players[3].chosenStartingSpell = true;
                         p4_spellCard.enabled = false;
                     }
@@ -964,6 +983,7 @@ public class GameManager : MonoBehaviour
                 LoadRandomGameplayStage();
             }
         }
+
         else if (activeScene.name == "Gameplay")
         {
             if (CheckGameEnd(GetActivePlayerControllers()))
@@ -1114,6 +1134,29 @@ public class GameManager : MonoBehaviour
         {
             if (players[i] != null)
             {
+                players[i].ResetPlayer();
+                players[i].SpawnPlayer(fixedSpawnPositions[i]);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restarts the game from the lobby, not just a rematch
+    /// </summary>
+    public void RestartLobby()
+    {
+        gameOver = false;
+        Vector2[] spawnPositions = GetSpawnPositions();
+        // Convert spawn positions to FixedVec2
+        FixedVec2[] fixedSpawnPositions = spawnPositions
+            .Select(v => FixedVec2.FromFloat(v.x, v.y))
+            .ToArray();
+        //reset each player to their starting values
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                //this is different from ResetPlayers()
                 players[i].ResetPlayer();
                 players[i].SpawnPlayer(fixedSpawnPositions[i]);
             }

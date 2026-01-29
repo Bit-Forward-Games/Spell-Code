@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -160,6 +159,7 @@ public class PlayerController : MonoBehaviour
     public bool chosenSpell = false;
     public bool chosenStartingSpell = false;
     public bool isSpawned;
+    public string startingSpell;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
@@ -413,15 +413,17 @@ public class PlayerController : MonoBehaviour
         ClearSpellList();
 
         //fill the spell list with the character's initial spells
-        for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
-        {
-            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
-            //spellList.Add = Instantiate(targetSpell);
-            //spellList[i].owner = this;
-            //spellCount++;
+        //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
+        //{
+        //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+        //spellList.Add = Instantiate(targetSpell);
+        //spellList[i].owner = this;
+        //spellCount++;
 
-            AddSpellToSpellList(charData.startingInventory[i]);
-        }
+        // AddSpellToSpellList(charData.startingInventory[i]);
+        //}
+
+        AddSpellToSpellList(startingSpell);
 
         roundsWon = 0;
         

@@ -14,7 +14,7 @@ public class Overclock : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnCast };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in Flow State, you overclock your Spell-Codes, Creating an Explosion on spell-cast.";
+        description = "While in Flow State, you overclock your spell-codes, creating an explosion on spell-cast.";
     }
 
 

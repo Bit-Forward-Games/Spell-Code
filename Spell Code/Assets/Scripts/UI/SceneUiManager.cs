@@ -43,6 +43,7 @@ public class SceneUiManager : MonoBehaviour
             GameManager.Instance.RestartGame();
 
             GameManager.Instance.isRunning = true;
+            GameManager.Instance.lastSceneName = SceneManager.GetActiveScene().name;
 
             SceneManager.LoadScene("Gameplay");
         }
@@ -59,6 +60,7 @@ public class SceneUiManager : MonoBehaviour
             GameManager.Instance.RestartGame();
 
             GameManager.Instance.isRunning = true;
+            GameManager.Instance.lastSceneName = SceneManager.GetActiveScene().name;
 
             SceneManager.LoadScene("MainMenu");
         }

@@ -446,10 +446,10 @@ public class ShopManager : MonoBehaviour
         {
             spells.Remove("BootsOfHermes");
         }
-        //if (!gameManager.players[index].DemonX)
-        //{
-        //    spells.Remove("BootsOfHermes");
-        //}
+        if (!gameManager.players[index].DemonX)
+        {
+            spells.Remove("DemonicDescent");
+        }
         //if (!gameManager.players[index].bigStox)
         //{
         //    spells.Remove("BootsOfHermes");

@@ -58,5 +58,5 @@ MonoBehaviour:
   spawnOffsetY: 15
   projectilePrefabs: []
   projectileInstances: []
-  shopSprite: {fileID: 0}
+  shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
   hermesJumps: 0

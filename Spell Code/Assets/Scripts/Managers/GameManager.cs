@@ -113,6 +113,10 @@ public class GameManager : MonoBehaviour
     // Online lobby state tracking
     private bool localPlayerReadyForGameplay = false;
     private bool remotePlayerReadyForGameplay = false;
+    [HideInInspector]
+    public int p1_shopIndex = 0;
+    [HideInInspector]
+    public int p2_shopIndex = 0;
 
     private void Awake()
     {
@@ -1420,6 +1424,14 @@ public class GameManager : MonoBehaviour
                 bw.Write(p3_index);
                 bw.Write(p4_index);
 
+                bw.Write(p1_shopIndex);
+                bw.Write(p2_shopIndex);
+
+                // Also serialize if players have chosen their shop spell
+                for (int i = 0; i < playerCount; i++)
+                {
+                    bw.Write(players[i].chosenSpell);
+                }
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
                 bw.Write(activeProjectiles.Count);
 
@@ -1477,6 +1489,13 @@ public class GameManager : MonoBehaviour
                 p2_index = br.ReadInt32();
                 p3_index = br.ReadInt32();
                 p4_index = br.ReadInt32();
+                p1_shopIndex = br.ReadInt32();
+                p2_shopIndex = br.ReadInt32();
+
+                for (int i = 0; i < playerCount; i++)
+                {
+                    players[i].chosenSpell = br.ReadBoolean();
+                }
 
                 int savedProjectileCount = br.ReadInt32();
                 List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;

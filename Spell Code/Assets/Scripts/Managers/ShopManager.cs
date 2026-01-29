@@ -38,8 +38,18 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     private List<string> p4_choices;
 
-    private int p1_index = 0;
-    private int p2_index = 0;
+    private int p1_index
+    {
+        get => gameManager.p1_shopIndex;
+        set => gameManager.p1_shopIndex = value;
+    }
+
+    private int p2_index
+    {
+        get => gameManager.p2_shopIndex;
+        set => gameManager.p2_shopIndex = value;
+    }
+
     private int p3_index = 0;
     private int p4_index = 0;
 
@@ -56,8 +66,11 @@ public class ShopManager : MonoBehaviour
     {
         gameManager = GameManager.Instance;
 
-        myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
-        Debug.Log("SHOP ENTERED");
+        // DETERMINISTIC SEED: Use frame number or round count so both clients generate same choices
+        int seed = gameManager.frameNumber + (gameManager.players[0].roundsWon * 10000);
+        myRandom = new System.Random(seed);
+
+        Debug.Log($"SHOP ENTERED with deterministic seed: {seed}");
 
         // Reset online shop ready flags
         if (gameManager.isOnlineMatchActive)
@@ -176,7 +189,7 @@ public class ShopManager : MonoBehaviour
                 // Cycle spells using SYNCED input
                 if (inputSnapshots[i].ButtonStates[0] == ButtonState.Pressed)
                 {
-                    Debug.Log($"[SHOP SYNCED] p{i + 1} pressed cycle spell");
+                    Debug.Log($"[SHOP SYNCED] p{i + 1} pressed cycle spell (current: {currentIndex})");
 
                     if (currentIndex == 2)
                     {
@@ -191,8 +204,10 @@ public class ShopManager : MonoBehaviour
                     if (i == 0) p1_index = currentIndex;
                     else p2_index = currentIndex;
 
-                    // Only update UI for local player
-                    if (i == gameManager.localPlayerIndex && spellCard != null)
+                    Debug.Log($"[SHOP SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
+
+                    // UPDATE UI FOR BOTH PLAYERS (remove the local player check)
+                    if (spellCard != null)
                     {
                         spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
                     }
@@ -206,8 +221,8 @@ public class ShopManager : MonoBehaviour
                     GivePlayerSpell(i, choices[currentIndex]);
                     gameManager.players[i].chosenSpell = true;
 
-                    // Only update UI for local player
-                    if (i == gameManager.localPlayerIndex && spellCard != null)
+                    // HIDE UI FOR THIS PLAYER (both clients hide it)
+                    if (spellCard != null)
                     {
                         spellCard.enabled = false;
                     }

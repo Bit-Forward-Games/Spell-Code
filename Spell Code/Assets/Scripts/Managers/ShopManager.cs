@@ -38,6 +38,9 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     private List<string> p4_choices;
 
+    public List<string> GetP1Choices() => p1_choices;
+    public List<string> GetP2Choices() => p2_choices;
+
     private int p1_index
     {
         get => gameManager.p1_shopIndex;
@@ -66,11 +69,25 @@ public class ShopManager : MonoBehaviour
     {
         gameManager = GameManager.Instance;
 
-        // DETERMINISTIC SEED: Use frame number or round count so both clients generate same choices
-        int seed = gameManager.frameNumber + (gameManager.players[0].roundsWon * 10000);
-        myRandom = new System.Random(seed);
+        int seed;
 
-        Debug.Log($"SHOP ENTERED with deterministic seed: {seed}");
+        if (gameManager.isOnlineMatchActive)
+        {
+            // Use ONLY values that are guaranteed to be synced via rollback
+            // Frame number might differ when scene loads
+            seed = (gameManager.players[0].roundsWon * 10000) +
+                   (gameManager.players[1].roundsWon * 1000) +
+                   777; // Constant offset to make it different from lobby seed
+
+            Debug.Log($"[SHOP ONLINE] Using deterministic seed: {seed} (P1 rounds={gameManager.players[0].roundsWon}, P2 rounds={gameManager.players[1].roundsWon})");
+        }
+        else
+        {
+            seed = UnityEngine.Random.Range(0, 10000);
+        }
+
+        myRandom = new System.Random(seed);
+        Debug.Log($"SHOP ENTERED with seed: {seed}");
 
         // Reset online shop ready flags
         if (gameManager.isOnlineMatchActive)
@@ -109,6 +126,23 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    public void SetP1Choices(List<string> choices)
+    {
+        p1_choices = choices;
+        if (p1_spellCard != null && p1_choices.Count > p1_index)
+        {
+            p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_choices[p1_index]].shopSprite;
+        }
+    }
+
+    public void SetP2Choices(List<string> choices)
+    {
+        p2_choices = choices;
+        if (p2_spellCard != null && p2_choices.Count > p2_index)
+        {
+            p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
+        }
+    }
     public void ShopUpdate(ulong[] playerInputs)
     {
         for (int i = 0; i < playerInputs.Length; i++)

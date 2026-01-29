@@ -823,15 +823,15 @@ public class GameManager : MonoBehaviour
         {
             //if (lastSceneName == "End")
             //{
-                //for (int i = 0; i < gates.Length; i++)
-                //{
-                //    gates[i].SetOpen(true);
-                //}
+            //for (int i = 0; i < gates.Length; i++)
+            //{
+            //    gates[i].SetOpen(true);
+            //}
 
-                //if (onlineMenuUI != null)
-                //{
-                //    onlineMenuUI.SetActive(false);
-                //}
+            //if (onlineMenuUI != null)
+            //{
+            //    onlineMenuUI.SetActive(false);
+            //}
             //}
 
             //player 1 stuff
@@ -842,7 +842,7 @@ public class GameManager : MonoBehaviour
                     if (players[0].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p1 pressed cycle spell");
-                        if (p1_index == p1_choices.Count-1)
+                        if (p1_index == p1_choices.Count - 1)
                         {
                             p1_index = 0;
                         }
@@ -879,7 +879,7 @@ public class GameManager : MonoBehaviour
                     if (players[1].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p2 pressed cycle spell");
-                        if (p2_index == p2_choices.Count-1)
+                        if (p2_index == p2_choices.Count - 1)
                         {
                             p2_index = 0;
                         }
@@ -916,7 +916,7 @@ public class GameManager : MonoBehaviour
                     if (players[2].input.ButtonStates[2] == ButtonState.Pressed)
                     {
                         Debug.Log("p3 pressed cycle spell");
-                        if (p3_index == p3_choices.Count-1)
+                        if (p3_index == p3_choices.Count - 1)
                         {
                             p3_index = 0;
                         }
@@ -953,7 +953,7 @@ public class GameManager : MonoBehaviour
                     if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p4 pressed cycle spell");
-                        if (p4_index == p4_choices.Count-1)
+                        if (p4_index == p4_choices.Count - 1)
                         {
                             p4_index = 0;
                         }
@@ -1427,11 +1427,25 @@ public class GameManager : MonoBehaviour
                 bw.Write(p1_shopIndex);
                 bw.Write(p2_shopIndex);
 
+                // Serialize shop spell choices themselves
+                if (shopManager != null)
+                {
+                    SerializeStringList(bw, shopManager.GetP1Choices());
+                    SerializeStringList(bw, shopManager.GetP2Choices());
+                }
+                else
+                {
+                    // No shop active, write empty lists
+                    bw.Write(0); // p1_choices count
+                    bw.Write(0); // p2_choices count
+                }
+
                 // Also serialize if players have chosen their shop spell
                 for (int i = 0; i < playerCount; i++)
                 {
                     bw.Write(players[i].chosenSpell);
                 }
+
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
                 bw.Write(activeProjectiles.Count);
 
@@ -1491,6 +1505,17 @@ public class GameManager : MonoBehaviour
                 p4_index = br.ReadInt32();
                 p1_shopIndex = br.ReadInt32();
                 p2_shopIndex = br.ReadInt32();
+
+                // Deserialize shop spell choices
+                List<string> savedP1Choices = DeserializeStringList(br);
+                List<string> savedP2Choices = DeserializeStringList(br);
+
+                // If shop manager exists, verify or restore choices
+                if (shopManager != null)
+                {
+                    shopManager.SetP1Choices(savedP1Choices);
+                    shopManager.SetP2Choices(savedP2Choices);
+                }
 
                 for (int i = 0; i < playerCount; i++)
                 {
@@ -1589,5 +1614,29 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Helper methods for string list serialization
+    private void SerializeStringList(BinaryWriter bw, List<string> list)
+    {
+        bw.Write(list?.Count ?? 0);
+        if (list != null)
+        {
+            foreach (string s in list)
+            {
+                bw.Write(s ?? "");
+            }
+        }
+    }
+
+    private List<string> DeserializeStringList(BinaryReader br)
+    {
+        int count = br.ReadInt32();
+        List<string> list = new List<string>();
+        for (int i = 0; i < count; i++)
+        {
+            list.Add(br.ReadString());
+        }
+        return list;
     }
 }

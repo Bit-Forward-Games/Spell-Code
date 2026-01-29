@@ -46,9 +46,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellName: Overclock
   brands: 01000000
-  procConditions: 05000000
-  description: While in Flow State, you overclock your movement, increasing your
-    run speed.
+  procConditions: 0c000000
+  description: While in Flow State, you overclock your spell-codes, creating an explosion
+    on spell-cast.
   cooldown: 0
   cooldownCounter: 0
   spellInput: 0

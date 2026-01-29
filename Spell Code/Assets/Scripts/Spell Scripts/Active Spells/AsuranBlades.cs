@@ -70,7 +70,7 @@ public class AsuranBlades : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 10, 0, PlayerController.maxDemonAura);
+                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                 break;
             //OnHitBasic: Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
             case ProcCondition.OnSlide:

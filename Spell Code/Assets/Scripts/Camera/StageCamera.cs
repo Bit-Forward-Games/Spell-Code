@@ -40,8 +40,9 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         //if the current scene is main menu, don't do anything
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        if ( sceneName is "MainMenu" or "Gameplay")
         {
             lockCamera = true;
         }
@@ -53,6 +54,17 @@ public class StageCamera : MonoBehaviour
         // If camera is locked, set to hard zoom and return
         if (lockCamera)
         {
+            switch(sceneName)
+            {
+                case "MainMenu":
+                    HardSetZoom = 205f;
+                    break;
+                case "Gameplay":
+                    HardSetZoom = 205;
+                    break;
+                default:
+                    break;
+            }
             cam.orthographicSize = HardSetZoom;
             return;
         }

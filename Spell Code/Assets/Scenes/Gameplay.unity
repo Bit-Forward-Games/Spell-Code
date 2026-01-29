@@ -1379,7 +1379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 36}
-  damping: 0.25
+  damping: 0.2
   minZoom: 180
   maxZoom: 420
   HardSetZoom: 180
@@ -1387,6 +1387,7 @@ MonoBehaviour:
   zoomLimiter: 480
   zoomSpeed: 5
   shakeMagnitude: 1
+  screenEdgeBuffer: 50
   target: {x: 0, y: 0}
   lockCamera: 0
 --- !u!4 &1014337932 stripped

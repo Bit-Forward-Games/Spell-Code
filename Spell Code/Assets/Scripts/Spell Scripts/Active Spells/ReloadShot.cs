@@ -10,7 +10,7 @@ public class ReloadShot : SpellData
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
-        description = "Project forth a massive orb which consumes all of your \"Flow State\" and reduces all cooldowns based on the amount consumed. Hit this SpellCode early to enter \"Flow State\"";
+        description = "Project forth a massive orb which consumes all of your \"Flow State\" and resets all spell-code cooldowns. Consumes all \"Flow State\" to reduce this cooldown. Hit this SpellCode early to instead enter \"Flow State\"";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 10;
         spawnOffsetY = 20;

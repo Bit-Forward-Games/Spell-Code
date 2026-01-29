@@ -865,17 +865,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6814927c10c0a174aa00cdc5c7ae4c7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 36}
-  damping: 0.25
+  offset: {x: 0, y: 0}
+  damping: 0
   minZoom: 180
-  maxZoom: 420
+  maxZoom: 1280
   HardSetZoom: 205
-  minDistance: 120
-  zoomLimiter: 480
-  zoomSpeed: 5
+  minDistance: 360
+  zoomLimiter: 960
+  zoomSpeed: 1
   shakeMagnitude: 1
+  screenEdgeBuffer: 50
   target: {x: 0, y: 0}
-  lockCamera: 0
+  lockCamera: 1
 --- !u!114 &1452465065
 MonoBehaviour:
   m_ObjectHideFlags: 0

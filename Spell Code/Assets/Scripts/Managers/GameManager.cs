@@ -935,10 +935,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 if (players[2].chosenStartingSpell == false && players[2].isSpawned)
                 {
                     //cycle spells (spellWeave button)
-                    if (players[2].input.ButtonStates[2] == ButtonState.Pressed)
+                    if (players[2].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p3 pressed cycle spell");
-                        if (p3_index == p3_choices.Count-1)
+                        if (p3_index >= p3_choices.Count-1)
                         {
                             p3_index = 0;
                         }
@@ -977,7 +977,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p4 pressed cycle spell");
-                        if (p4_index == p4_choices.Count-1)
+                        if (p4_index >= p4_choices.Count-1)
                         {
                             p4_index = 0;
                         }
@@ -994,7 +994,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     {
                         Debug.Log("p4 chose a spell");
                         players[3].AddSpellToSpellList(p4_choices[p4_index]);
-                        players[3].startingSpell = p3_choices[p3_index];
+                        players[3].startingSpell = p4_choices[p4_index];
                         players[3].chosenStartingSpell = true;
                         p4_spellCard.enabled = false;
                     }
@@ -1002,7 +1002,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
                 if (players[3].isSpawned == false)
                 {
-                    GenerateStartingSpells(0);
+                    GenerateStartingSpells(3);
                     p4_spellCard.enabled = true;
                     players[3].isSpawned = true;
                 }

@@ -1387,7 +1387,7 @@ MonoBehaviour:
   zoomLimiter: 480
   zoomSpeed: 5
   shakeMagnitude: 1
-  screenEdgeBuffer: 50
+  screenEdgeBuffer: 128
   target: {x: 0, y: 0}
   lockCamera: 0
 --- !u!4 &1014337932 stripped

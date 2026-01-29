@@ -130,11 +130,11 @@ public class StageCamera : MonoBehaviour
 
     private void ApplyShake()
     {
-        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
-        {
-            shakeOffset = Vector3.zero; // Ensure no residual shake during rollback
-            return;
-        }
+        //if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        //{
+        //    shakeOffset = Vector3.zero; // Ensure no residual shake during rollback
+        //    return;
+        //}
         if (shakeTimeRemaining > 0)
         {
             shakeOffset = Random.insideUnitCircle * shakeMagnitude;
@@ -143,6 +143,11 @@ public class StageCamera : MonoBehaviour
         else
         {
             shakeOffset = Vector3.zero;
+
+            if (lockCamera)
+            {
+                transform.position = new Vector3(0, 0, -10);
+            }
         }
 
         transform.position += shakeOffset;

@@ -1364,6 +1364,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
 
             ResetPlayers();
+            HitboxManager.Instance.GetActiveCamera();
         }
 
         // For ONLINE gameplay

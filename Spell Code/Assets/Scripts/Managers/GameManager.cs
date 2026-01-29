@@ -736,18 +736,20 @@ public class GameManager : MonoBehaviour
                 Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
 
                 // Use the synchronized input for THIS player
-                // The input comes from syncedInput[] which is already synchronized
-                InputSnapshot cycleButton = InputConverter.ConvertFromLong(syncedInput[i]);
-                InputSnapshot selectButton = InputConverter.ConvertFromLong(syncedInput[i]);
+                InputSnapshot snapshot = InputConverter.ConvertFromLong(syncedInput[i]);
 
-                // Cycle spells
-                if (cycleButton.ButtonStates[0] == ButtonState.Pressed)
+                // Cycle spells - check button 0 for PRESSED state
+                if (snapshot.ButtonStates[0] == ButtonState.Pressed)
                 {
-                    Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell");
-                    currentIndex = (currentIndex == 1) ? 0 : 1;
+                    Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
+
+                    // Cycle through all 3 choices properly
+                    currentIndex = (currentIndex + 1) % choices.Count;
 
                     if (i == 0) p1_index = currentIndex;
                     else p2_index = currentIndex;
+
+                    Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
 
                     // Only update UI for local player
                     if (i == localPlayerIndex && spellCard != null)
@@ -756,11 +758,12 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Choose spell
-                if (selectButton.ButtonStates[1] == ButtonState.Pressed)
+                // Choose spell - check button 1 for PRESSED state
+                if (snapshot.ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
                     players[i].AddSpellToSpellList(choices[currentIndex]);
+                    players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
 
                     // Only hide UI for local player

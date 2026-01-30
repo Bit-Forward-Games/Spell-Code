@@ -12,24 +12,33 @@ public class TempSpellDisplay : MonoBehaviour
     //public CodeList[] arrowLists;
     //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
     public List<Image> cooldownFills = new List<Image>();
+    public List<GameObject> cooldownBars = new List<GameObject>();
 
     public void Start()
     {
+        
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
     {   
+        PlayerController player = GameManager.Instance.players[playerIndex];
+
+        for (int i = 0; i < player.spellList.Count; i++)
+        {
+            cooldownBars[i].SetActive(true);
+        }
+
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;
-        
 
         for (int i = 0; i < spellSlots.Count; i++)
         {
+            
             GameObject parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
 
             if (parent == null)
             {
-                Debug.LogWarning($"CooldownBar parent not found for cooldownFills[{i}] ({cooldownFills[i].name})");
-                continue; // Skip this iteration
+                // cooldownBars[i].SetActive(true);
+                continue;
             }
             
             if (i < playerSpells.Count)

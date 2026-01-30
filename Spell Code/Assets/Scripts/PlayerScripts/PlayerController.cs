@@ -1264,7 +1264,7 @@ public class PlayerController : MonoBehaviour
             if (stageDataSO == null) return false;
         }
 
-        // --- SOLIDS (unchanged behavior) ---
+#region  --- SOLIDS (unchanged behavior) ---
         if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
         {
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
@@ -1355,8 +1355,8 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-
-        // --- PLATFORMS (one-way: only collide from above while falling/standing) ---
+        #endregion
+#region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
@@ -1437,8 +1437,8 @@ public class PlayerController : MonoBehaviour
                 //}
             }
         }
-
-        // --- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
+        #endregion
+#region--- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
         if (stageDataSO.activatableSolidCenter != null && stageDataSO.activatableSolidExtent != null)
         {
             int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
@@ -1554,9 +1554,11 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-
+        #endregion
         return returnVal;
     }
+
+    
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
     {

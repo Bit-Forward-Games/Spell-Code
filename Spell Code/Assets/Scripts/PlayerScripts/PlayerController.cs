@@ -1626,6 +1626,11 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
+                SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.5f, Array.IndexOf(GameManager.Instance.players, this));
+
                 if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
@@ -1669,6 +1674,9 @@ public class PlayerController : MonoBehaviour
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
+
                 ClearInputDisplay();
                 break;
         }

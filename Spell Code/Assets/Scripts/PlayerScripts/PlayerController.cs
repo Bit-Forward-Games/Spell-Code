@@ -104,8 +104,8 @@ public class PlayerController : MonoBehaviour
     public ushort demonAura = 0;
     public const ushort maxDemonAura = 100;
     public ushort reps = 0;
-    public ushort momentum = 0;
-    public bool slimed = false;
+    //public ushort momentum = 0;
+    //public bool slimed = false;
 
 
 
@@ -126,9 +126,10 @@ public class PlayerController : MonoBehaviour
     //public bool hitboxActive = false;
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
+    public uint storedCode = 0; //the code that is stored up for release
+    public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
+
     public byte hitstop = 0;
-    public ushort comboCounter = 0; //this is technically for the player being hit, so if the combo counter is increasings thats on the hurt player
-    public Fixed damageProration = Fixed.FromInt(1); //this is a multiplier for the damage of the next hit which slowly decreases as the combo goes on
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
 
@@ -218,12 +219,12 @@ public class PlayerController : MonoBehaviour
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         //{
-            //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
-            //spellList.Add = Instantiate(targetSpell);
-            //spellList[i].owner = this;
-            //spellCount++;
+        //SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[charData.startingInventory[i]];
+        //spellList.Add = Instantiate(targetSpell);
+        //spellList[i].owner = this;
+        //spellCount++;
 
-            //AddSpellToSpellList(charData.startingInventory[i]);
+        //AddSpellToSpellList(charData.startingInventory[i]);
         //}
 
         //temp palette assignment based on player index
@@ -259,7 +260,7 @@ public class PlayerController : MonoBehaviour
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
 
-        
+
         //Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
         //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
         //SpawnPlayer(startPos);
@@ -272,7 +273,7 @@ public class PlayerController : MonoBehaviour
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
         position = spawnPos;
-        hSpd = Fixed.FromInt(0); 
+        hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
         stateSpecificArg = 0;
         currentPlayerHealth = charData.playerHealth;
@@ -288,10 +289,10 @@ public class PlayerController : MonoBehaviour
         stockStability = 0;
         demonAura = 0;
         reps = 0;
-        momentum = 0;
-        slimed = false;
+        //momentum = 0;
+        //slimed = false;
 
-        
+
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -299,14 +300,14 @@ public class PlayerController : MonoBehaviour
 
     public void AddSpellToSpellList(string spellToAdd)
     {
-        if(spellList.Count >= 6)
+        if (spellList.Count >= 6)
         {
             Debug.LogWarning("Spell List Full, cannot add more spells!");
             return;
         }
         SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
         spellList.Add(Instantiate(targetSpell));
-        spellList[spellList.Count-1].owner = this;
+        spellList[spellList.Count - 1].owner = this;
         spellList[spellList.Count - 1].LoadSpell();
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -363,9 +364,9 @@ public class PlayerController : MonoBehaviour
 
     public void RemoveSpellFromSpellList(string spellToRemove)
     {
-        for(int i = 0; i < spellList.Count; i++)
+        for (int i = 0; i < spellList.Count; i++)
         {
-            if(spellList[i] != null && spellList[i].spellName == spellToRemove)
+            if (spellList[i] != null && spellList[i].spellName == spellToRemove)
             {
                 Destroy(spellList[i]);
                 spellList.RemoveAt(i);
@@ -426,7 +427,7 @@ public class PlayerController : MonoBehaviour
         AddSpellToSpellList(startingSpell);
 
         roundsWon = 0;
-        
+
 
         //data
         spellsFired = 0;
@@ -440,9 +441,9 @@ public class PlayerController : MonoBehaviour
         stockStability = 0;
         demonAura = 0;
         reps = 0;
-        momentum = 0;
-        slimed = false;
-        comboCounter = 0;
+        //momentum = 0;
+        //slimed = false;
+        storedCode = 0;
 
         currentPlayerHealth = 100;
         isAlive = true;
@@ -631,8 +632,8 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        PlayerState tempState = state;
-
+        //check for releasing a stored code
+        CheckReleaseCode(input);
 
 
 
@@ -647,9 +648,9 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //check for slide input:
-                if ( input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
-                { 
-                    if(input.Direction == 2 && onPlatform)
+                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                {
+                    if (input.Direction == 2 && onPlatform)
                     {
                         break;
                     }
@@ -657,19 +658,19 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //Check Direction Inputs
-                if (input.Direction%3 == 0) //3 6 or 9
+                if (input.Direction % 3 == 0) //3 6 or 9
                 {
                     facingRight = true;
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.Direction%3 == 1)// 1 4 or 7
+                else if (input.Direction % 3 == 1)// 1 4 or 7
                 {
                     facingRight = false;
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                else if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -714,7 +715,7 @@ public class PlayerController : MonoBehaviour
                 //Check Direction Inputs
 
 
-                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -732,7 +733,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Jump);
                     break;
                 }
-                else if (input.Direction%3 == (facingRight ? 1 : 0))
+                else if (input.Direction % 3 == (facingRight ? 1 : 0))
                 {
                     facingRight = !facingRight;
                     break;
@@ -763,7 +764,7 @@ public class PlayerController : MonoBehaviour
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);
                 }
-                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -779,13 +780,13 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                if (input.Direction%3 == 0)
+                if (input.Direction % 3 == 0)
                 {
                     //run logic
                     facingRight = true;
                     LerpHspd(runSpeed, 3);
                 }
-                else if (input.Direction%3 == 1)
+                else if (input.Direction % 3 == 1)
                 {
                     facingRight = false;
                     LerpHspd(-runSpeed, 3);
@@ -813,12 +814,7 @@ public class PlayerController : MonoBehaviour
                     gravity = Fixed.Clamp(gravity + Fixed.FromFloat(0.002f), Fixed.FromInt(0), Fixed.FromInt(1));
                 }
 
-                //jump button pressed
-                if (input.ButtonStates[1] == ButtonState.Pressed)
-                {
-                    ClearInputDisplay();
-                    stateSpecificArg = 0;
-                }
+
 
                 if (input.Direction is 5 or 7 or 1 or 3 or 9)
                 {
@@ -856,7 +852,7 @@ public class PlayerController : MonoBehaviour
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
 
-                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0|| (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     switch (input.Direction)
                     {
@@ -888,7 +884,7 @@ public class PlayerController : MonoBehaviour
                             break;
                     }
                     // Increment the last 4 bits of stateSpecificArg by 1
-                    if((stateSpecificArg & (1u << 4)) == 0)
+                    if ((stateSpecificArg & (1u << 4)) == 0)
                     {
                         stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
                     }
@@ -900,28 +896,57 @@ public class PlayerController : MonoBehaviour
                 {
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
-                    Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                    //Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-                    //play the exit weave sound
-                    SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+
 
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
                     break;
                 }
 
+                //jump button pressed
+                if (input.ButtonStates[1] == ButtonState.Pressed)
+                {
+                    //set the 5th bit to 0 to indicate we are no longer primed
+                    stateSpecificArg &= ~(1u << 4);
+                    //if the current code is a valid spell code, store it for later use
+                    for (int i = 0; i < spellList.Count; i++)
+                    {
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter <= 0)
+                        {
 
-                LerpHspd(Fixed.FromInt(0), isGrounded?3: 15);
+                            storedCode = stateSpecificArg;
+
+                            uint spellCodeLength = (storedCode & 0xFu);
+                            storedCodeDuration = Math.Clamp(5 - spellCodeLength, 0, 5) * 60; //stored code lasts for 5 seconds (300 logic frames) minus 1 second (60 logic frames) per input in the code
+                            SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
+                            break;
+                        }
+                    }
+                    //If the code is not valid, clear the input display and reset the stored code
+                    if (storedCode == 0)
+                    {
+
+                        ClearInputDisplay();
+                        stateSpecificArg = 0;
+                    }
+                }
+
+
+                LerpHspd(Fixed.FromInt(0), isGrounded ? 3 : 15);
                 break;
             case PlayerState.CodeRelease:
                 //allow the display to be reset upon entering CodeWeave state
                 removeInputDisplay = true;
 
-                if(input.Direction == 6)
+                if (input.Direction == 6)
                 {
                     facingRight = true;
                 }
-                else if(input.Direction == 4)
+                else if (input.Direction == 4)
                 {
                     facingRight = false;
                 }
@@ -935,7 +960,7 @@ public class PlayerController : MonoBehaviour
                         if (spellList[i].spellInput == stateSpecificArg &&
                             spellList[i].spellType == SpellType.Active &&
                             spellList[i].cooldownCounter <= 0)
-                            {
+                        {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
 
@@ -1012,7 +1037,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-                    SetState(PlayerState.Idle);
+                    SetState(input.ButtonStates[0] == ButtonState.Held ? PlayerState.CodeWeave : PlayerState.Idle);
                     break;
                 }
 
@@ -1029,7 +1054,7 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                else if(input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
+                else if (input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
                 {
                     vSpd = jumpForce;
                     SetState(PlayerState.Jump);
@@ -1044,7 +1069,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                if (input.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1053,7 +1078,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 LerpHspd(Fixed.FromInt(0), charData.slideFriction);
-                
+
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Slide))
                 {
 
@@ -1113,7 +1138,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            switch(Array.IndexOf(GameManager.Instance.players, this))
+            switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
                     playerSpriteRenderer.color = Color.white;
@@ -1232,14 +1257,14 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         onPlatform = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex<0?GameManager.Instance.lobbySO: GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
             if (stageDataSO == null) return false;
         }
 
-        // --- SOLIDS (unchanged behavior) ---
+#region  --- SOLIDS (unchanged behavior) ---
         if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
         {
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
@@ -1330,8 +1355,8 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-
-        // --- PLATFORMS (one-way: only collide from above while falling/standing) ---
+        #endregion
+#region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
@@ -1412,8 +1437,8 @@ public class PlayerController : MonoBehaviour
                 //}
             }
         }
-
-        // --- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
+        #endregion
+#region--- ACTIVATABLE SOLIDS (solids that have a bool on whether you check for their collision) ---
         if (stageDataSO.activatableSolidCenter != null && stageDataSO.activatableSolidExtent != null)
         {
             int activatableSolidCount = Mathf.Min(stageDataSO.activatableSolidCenter.Length, stageDataSO.activatableSolidExtent.Length);
@@ -1434,7 +1459,7 @@ public class PlayerController : MonoBehaviour
                 for (int i = 0; i < activatableSolidCount; i++)
                 {
 
-                    
+
 
                     //find the activatable solid that corresponds to this index via matching the center position
                     bool isOpen = false;
@@ -1450,7 +1475,7 @@ public class PlayerController : MonoBehaviour
                     }
                     if (!isOpen)
                     {
-                        
+
                         FixedVec2 center = FixedVec2.FromFloat(stageDataSO.activatableSolidCenter[i].x, stageDataSO.activatableSolidCenter[i].y);
                         FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.activatableSolidExtent[i].x, stageDataSO.activatableSolidExtent[i].y);
 
@@ -1525,13 +1550,15 @@ public class PlayerController : MonoBehaviour
 
 
 
-                    
+
                 }
             }
         }
-
+        #endregion
         return returnVal;
     }
+
+    
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
     {
@@ -1552,14 +1579,6 @@ public class PlayerController : MonoBehaviour
     {
 
 
-        bool wasInHitstun = prevState is PlayerState.Hitstun;
-        bool isNowHitstun = curstate is PlayerState.Hitstun;
-
-        if (wasInHitstun && !isNowHitstun)
-        {
-            comboCounter = 0;
-            damageProration = Fixed.FromInt(1);
-        }
         logicFrame = 0;
         animationFrame = 0;
         //float knockbackMultiplier = 0;
@@ -1577,6 +1596,11 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Hitstun:
                 ClearInputDisplay();
+
+                //reset storedCode if you get hit
+                storedCode = 0;
+                storedCodeDuration = 0;
+
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
                 Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);
@@ -1599,12 +1623,10 @@ public class PlayerController : MonoBehaviour
                 //    position.y = StageData.Instance.floorYval + 1;
                 //    isGrounded = false;
                 //}
-                comboCounter = 0;
-                damageProration = Fixed.FromInt(1);
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
-                if (/*vSpd < 0 && */!isGrounded)
+                if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
                     gravity = Fixed.FromInt(0);
@@ -1614,11 +1636,17 @@ public class PlayerController : MonoBehaviour
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
 
-                //mySFXHandler.PlaySound(SoundType.HEAVY_PUNCH);
                 break;
             case PlayerState.CodeRelease:
-                stateSpecificArg = inputSpellArg;
-                //mySFXHandler.PlaySound(SoundType.HEAVY_KICK);
+
+                //play the exit weave sound
+                SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+
+                stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
+
+                //reset stored code after using it
+                storedCode = 0;
+                storedCodeDuration = 0;
                 break;
 
             case PlayerState.Slide:
@@ -1687,7 +1715,7 @@ public class PlayerController : MonoBehaviour
         if (damageAmount > currentPlayerHealth)
         {
             currentPlayerHealth = 0;
-            
+
         }
         else
         {
@@ -1740,10 +1768,6 @@ public class PlayerController : MonoBehaviour
                 // Reduce health 
                 currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
-
-
-                // Increment combo counter
-                comboCounter++;
             }
 
 
@@ -1758,7 +1782,7 @@ public class PlayerController : MonoBehaviour
             //call the active on hit proc of the spell that created the projectile that hit us
             if (hitboxData.parentProjectile.ownerSpell != null)
             {
-                hitboxData.parentProjectile.ownerSpell.CheckCondition(this,ProcCondition.ActiveOnHit);
+                hitboxData.parentProjectile.ownerSpell.CheckCondition(this, ProcCondition.ActiveOnHit);
             }
 
 
@@ -1891,8 +1915,8 @@ public class PlayerController : MonoBehaviour
         Fixed distToCenter = Fixed.Abs(position.X - stageCenter);
 
         // 3) distance to the nearest wall
-        Fixed distToLeft = Fixed.Abs(position.X - leftWall); 
-        Fixed distToRight = Fixed.Abs(position.X - rightWall); 
+        Fixed distToLeft = Fixed.Abs(position.X - leftWall);
+        Fixed distToRight = Fixed.Abs(position.X - rightWall);
         Fixed distToWall = Fixed.Min(distToLeft, distToRight);
 
         // 4) are we closer to center than to the wall?
@@ -1981,7 +2005,6 @@ public class PlayerController : MonoBehaviour
         bw.Write(hSpd.RawValue);
         bw.Write(vSpd.RawValue);
         bw.Write(gravity.RawValue);
-        bw.Write(damageProration.RawValue);
         bw.Write(timer.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
@@ -1996,15 +2019,16 @@ public class PlayerController : MonoBehaviour
         //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
-        bw.Write(comboCounter);
-        bw.Write(currentPlayerHealth); 
-        bw.Write(isAlive); 
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
+        bw.Write(currentPlayerHealth);
+        bw.Write(isAlive);
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
         bw.Write(reps);
-        bw.Write(momentum);
-        bw.Write(slimed);
+        //bw.Write(momentum);
+        //bw.Write(slimed);
 
         // Spell List Serialization
         bw.Write(spellList.Count); // Write how many spells are in the list
@@ -2027,7 +2051,6 @@ public class PlayerController : MonoBehaviour
         hSpd = new Fixed(br.ReadInt32());
         vSpd = new Fixed(br.ReadInt32());
         gravity = new Fixed(br.ReadInt32());
-        damageProration = new Fixed(br.ReadInt32());
         timer = new Fixed(br.ReadInt32());
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
@@ -2042,15 +2065,16 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
-        comboCounter = br.ReadUInt16();
+        storedCode = br.ReadUInt32();
+        storedCodeDuration = br.ReadUInt16();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
         reps = br.ReadUInt16();
-        momentum = br.ReadUInt16();
-        slimed = br.ReadBoolean();
+        //momentum = br.ReadUInt16();
+        //slimed = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
 
         // Spell List Deserialization
@@ -2101,10 +2125,36 @@ public class PlayerController : MonoBehaviour
             spellList[i].SpellUpdate();
         }
     }
-    //private bool IsSpecialStateActive() =>
-    //    state == PlayerState.Special1 ||
-    //    state == PlayerState.Special2 ||
-    //    state == PlayerState.Special3;
+    public bool IsStorableState() =>
+        state == PlayerState.Idle ||
+        state == PlayerState.Run ||
+        state == PlayerState.Jump ||
+        state == PlayerState.Slide ||
+        state == PlayerState.CodeWeave;
+
+
+    public void CheckReleaseCode(InputSnapshot targetInput)
+    {
+        if (storedCode == 0)
+        {
+            return;
+        }
+
+        if (storedCodeDuration > 0)
+        {
+            storedCodeDuration--;
+            Debug.Log($"Stored code duration: {storedCodeDuration}");
+        }
+
+        if (targetInput.ButtonStates[0] == ButtonState.Released || storedCodeDuration <= 0)
+        {
+
+            if (IsStorableState())
+            {
+                SetState(PlayerState.CodeRelease);
+            }
+        }
+    }
 
     //private int GetPlayerIndex() =>
     //    Array.IndexOf(GameSessionManager.Instance.playerControllers, this);
@@ -2113,35 +2163,35 @@ public class PlayerController : MonoBehaviour
         inputs.CheckForInputs(enable);
     }
 
-    public void UpdateInputDisplay(int direction)
-    {
-        if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
-        {
-            //down
-            if (direction == 2)
-            {
-                inputDisplay.text += "DOWN, ";
-            }
+    //public void UpdateInputDisplay(int direction)
+    //{
+    //    if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
+    //    {
+    //        //down
+    //        if (direction == 2)
+    //        {
+    //            inputDisplay.text += "DOWN, ";
+    //        }
 
-            //left
-            if (direction == 4)
-            {
-                inputDisplay.text += "LEFT,  ";
-            }
+    //        //left
+    //        if (direction == 4)
+    //        {
+    //            inputDisplay.text += "LEFT,  ";
+    //        }
 
-            //right
-            if (direction == 6)
-            {
-                inputDisplay.text += "RIGHT, ";
-            }
+    //        //right
+    //        if (direction == 6)
+    //        {
+    //            inputDisplay.text += "RIGHT, ";
+    //        }
 
-            //up
-            if (direction == 8)
-            {
-                inputDisplay.text += "UP, ";
-            }
-        } 
-    }
+    //        //up
+    //        if (direction == 8)
+    //        {
+    //            inputDisplay.text += "UP, ";
+    //        }
+    //    } 
+    //}
 
     public void ClearInputDisplay()
     {
@@ -2149,10 +2199,10 @@ public class PlayerController : MonoBehaviour
         {
             inputDisplay.text = "";
             inputDisplay.color = Color.white;
-        }    
+        }
     }
 
-    public static string ConvertCodeToString(uint code, Color ?color = null)
+    public static string ConvertCodeToString(uint code, Color? color = null)
     {
         if (color == null) { color = Color.white; }
 

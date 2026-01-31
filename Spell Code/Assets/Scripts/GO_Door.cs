@@ -1,13 +1,13 @@
-using UnityEngine;
 using BestoNet.Types;
-
-
+using UnityEngine;
+using UnityEngine.UIElements;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class GO_Door : MonoBehaviour
 {
     Animator animator;
     bool isOpen = false;
+    float colliderRadius = 32;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -33,16 +33,21 @@ public class GO_Door : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             player = GameManager.Instance.players[i];
-            // Convert transform.position.x (float) to Fixed32 before subtraction
-            Fixed doorPosX = Fixed.FromFloat(this.transform.position.x);
-            Fixed distanceX = doorPosX - player.position.X;
 
-            Fixed absDistanceX = Fixed.Abs(distanceX);
+            FixedVec2 doorPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
+            // Compute squared distance (avoid square root):
+            Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(10);
+            Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(10);
+            Fixed distSq = (dx * dx) + (dy * dy);
 
-            Fixed playerHalfWidth = player.playerWidth / Fixed.FromInt(2);
+            // Convert collider radius to Fixed and square it
+            Fixed radius = Fixed.FromFloat(colliderRadius/10);
+            Fixed radiusSq = radius * radius;
 
-            if (absDistanceX > playerHalfWidth)
+            // Determine overlap using squared values
+            if (distSq > radiusSq)
             {
+                //player is out of range
                 return false;
             }
         }

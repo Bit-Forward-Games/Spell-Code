@@ -135,7 +135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &10260023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1122,6 +1122,14 @@ PrefabInstance:
       propertyPath: onlineMenuUI
       value: 
       objectReference: {fileID: 1101021164}
+    - target: {fileID: 6760653133886348903, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7344256570238086088, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8005170076705936154, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -16162,6 +16170,7 @@ MonoBehaviour:
   p2_spellCard: {fileID: 3517964147537111678}
   p3_spellCard: {fileID: 3777119449007749407}
   p4_spellCard: {fileID: 3572659430453592930}
+  floppyObjects: []
   p1_choices: []
   p2_choices: []
   p3_choices: []

@@ -23,7 +23,7 @@ public class SFX_Manager : MonoBehaviour
     private AudioSource sfxAudioSource;
 
     //list of player AudioSources that will play continous sounds for each player
-    [SerializeField] private List<AudioSource> playerAudioSources;
+    //[SerializeField] private List<AudioSource> playerAudioSources;
 
     //Object to hold the data for each sound
     [Serializable]
@@ -31,7 +31,7 @@ public class SFX_Manager : MonoBehaviour
     {
         public Sounds soundName; //name of the sound
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
-        [HideInInspector] public bool isRepeatedlyPlaying = false; //boolean to record whether or not this sound is repeatedly playing
+        [HideInInspector] public bool[] playersWhoAreRepeatedlyPlaying = new bool[4]; //boolean to record whether or not this sound is repeatedly playing
         //[HideInInspector] public int playerWhoIsRepeatedlyPlayingSound = 0; //integer to record the number of the player who is repeatedly playing the sound
     }
 
@@ -96,7 +96,7 @@ public class SFX_Manager : MonoBehaviour
     public void StartRepeatingSound(Sounds _nameOfSoundToStartPlaying, float _timeBetweenPlays, int _playerWhoIsRepeatedlyPlayingSound, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
         //sanity check to make sure that StartRepeatingSound was not already called for _nameOfSoundToStartPlaying
-        if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).isRepeatedlyPlaying == true)
+        if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).playersWhoAreRepeatedlyPlaying[_playerWhoIsRepeatedlyPlayingSound] == true)
         {
             //return
             return;
@@ -106,7 +106,7 @@ public class SFX_Manager : MonoBehaviour
         //    sfxAudioSource.resource = soundObjects.Find(z => z.soundName == _nameOfSoundToStartPlaying).possibleSounds[0];
 
         //set isRepeatedlyPlaying of _nameOfSoundToStartPlaying to true
-        soundObjects.Find(y => y.soundName == _nameOfSoundToStartPlaying).isRepeatedlyPlaying = true;
+        soundObjects.Find(y => y.soundName == _nameOfSoundToStartPlaying).playersWhoAreRepeatedlyPlaying[_playerWhoIsRepeatedlyPlayingSound] = true;
 
         //Repeatedly play _nameOfSoundToStartPlaying so long as isRepeatedlyPlaying is true
         StartCoroutine(RepeatedlyPlay(_nameOfSoundToStartPlaying, _timeBetweenPlays, _playerWhoIsRepeatedlyPlayingSound, _minPitchShift, _maxPitchShift));
@@ -120,57 +120,57 @@ public class SFX_Manager : MonoBehaviour
     public void StopRepeatingSound(Sounds _nameOfSoundToStartPlaying, int _playerWhoIsRepeatedlyPlayingSound)
     {
         //set isRepeatedlyPlaying of _nameOfSoundToStartPlaying to false
-        soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).isRepeatedlyPlaying = false;
+        soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).playersWhoAreRepeatedlyPlaying[_playerWhoIsRepeatedlyPlayingSound] = false;
     }
 
     //Coroutine to repeatedly play a sound then wait for a time
     private IEnumerator RepeatedlyPlay(Sounds _nameOfSoundToStartPlaying, float _timeBetweenPlays, int _playerWhoIsRepeatedlyPlayingSound, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
         //play _nameOfSoundToStartPlaying
-        SFX_Manager.Instance.PlayPlayerSound(_nameOfSoundToStartPlaying, _playerWhoIsRepeatedlyPlayingSound, _minPitchShift, _maxPitchShift);
+        SFX_Manager.Instance.PlaySound(_nameOfSoundToStartPlaying, _minPitchShift, _maxPitchShift);
 
         //wait for _timeBetweenPlays seconds
         yield return new WaitForSeconds(_timeBetweenPlays);
 
         //is this song should still repeat,...
-        if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).isRepeatedlyPlaying == true)
+        if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying).playersWhoAreRepeatedlyPlaying[_playerWhoIsRepeatedlyPlayingSound] == true)
         {
             //Repeatedly play _nameOfSoundToStartPlaying 
             StartCoroutine(RepeatedlyPlay(_nameOfSoundToStartPlaying, _timeBetweenPlays, _playerWhoIsRepeatedlyPlayingSound, _minPitchShift, _maxPitchShift));
         }
     }
 
-    /// <summary>
-    /// Play a sound with the name defined by "_nameOfSoundToStartPlaying"
-    /// </summary>
-    /// <param name="_nameOfSoundToStartPlaying"> Sound to start playing</param>
-    /// <param name="_playerWhoIsRepeatedlyPlayingSound"> player number of player that is playing this sound</param>
-    /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
-    /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
-    private void PlayPlayerSound(Sounds _nameOfSoundToStartPlaying, int _playerWhoIsRepeatedlyPlayingSound, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
-    {
-        //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
-        if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying) == null)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _nameOfSoundToStartPlaying + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds");
+    ///// <summary>
+    ///// Play a sound with the name defined by "_nameOfSoundToStartPlaying"
+    ///// </summary>
+    ///// <param name="_nameOfSoundToStartPlaying"> Sound to start playing</param>
+    ///// <param name="_playerWhoIsRepeatedlyPlayingSound"> player number of player that is playing this sound</param>
+    ///// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
+    ///// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
+    //private void PlayPlayerSound(Sounds _nameOfSoundToStartPlaying, int _playerWhoIsRepeatedlyPlayingSound, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
+    //{
+    //    //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
+    //    if (soundObjects.Find(x => x.soundName == _nameOfSoundToStartPlaying) == null)
+    //    {
+    //        //log a warning
+    //        Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _nameOfSoundToStartPlaying + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds");
 
-            //return
-            return;
-        }
+    //        //return
+    //        return;
+    //    }
 
-        //find appropriate audio source given _playerWhoIsRepeatedlyPlayingSound
-        AudioSource audioSource = playerAudioSources[_playerWhoIsRepeatedlyPlayingSound];
+    //    //find appropriate audio source given _playerWhoIsRepeatedlyPlayingSound
+    //    AudioSource audioSource = playerAudioSources[_playerWhoIsRepeatedlyPlayingSound];
 
-        //Randomize pitch between minPitchShift and maxPitchShift
-        audioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
+    //    //Randomize pitch between minPitchShift and maxPitchShift
+    //    audioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
-        //pick a random sound from _possibleSounds to play
-        int randomSoundIndex = UnityEngine.Random.Range(0, soundObjects.Find(y => y.soundName == _nameOfSoundToStartPlaying).possibleSounds.Count - 1);
+    //    //pick a random sound from _possibleSounds to play
+    //    int randomSoundIndex = UnityEngine.Random.Range(0, soundObjects.Find(y => y.soundName == _nameOfSoundToStartPlaying).possibleSounds.Count - 1);
 
-        //load and play the sound with name equal to nameOfSoundToPlay
-        audioSource.PlayOneShot(soundObjects.Find(z => z.soundName == _nameOfSoundToStartPlaying).possibleSounds[randomSoundIndex], sfxAudioSource.volume);
-    }
+    //    //load and play the sound with name equal to nameOfSoundToPlay
+    //    audioSource.PlayOneShot(soundObjects.Find(z => z.soundName == _nameOfSoundToStartPlaying).possibleSounds[randomSoundIndex], sfxAudioSource.volume);
+    //}
 
     //private void PlaySoundNotOneShot(Sounds _nameOfSoundToPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     //{

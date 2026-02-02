@@ -69,13 +69,23 @@ public class SFX_Manager : MonoBehaviour
         }
 
         //save the appropriate SoundObject since we know it exists
-        SoundObject soundObject = soundObjects.Find(x => x.soundName == _nameOfSoundToPlay);
+        SoundObject _soundObject = soundObjects.Find(x => x.soundName == _nameOfSoundToPlay);
 
         //sanity check to make sure that _nameOfSoundToPlay has an AudioClip associated with it
-        if(soundObject.possibleSounds != null)
+        if(_soundObject.possibleSounds.Count <= 0)
         {
             //log a warning
-            Debug.LogWarning("");
+            Debug.LogWarning(gameObject.name + ": The SoundObject for \"" + _nameOfSoundToPlay + "\" does not contain an AudioClip to play. Please add an AudioClip to the SoundObject for \"" + _nameOfSoundToPlay + "\" in availableSounds");
+
+            //return
+            return;
+        }
+
+        //another sanity check to make sure that _nameOfSoundToPlay has an AudioClip associated with it
+        if (_soundObject.possibleSounds[0] == null)
+        {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": The SoundObject for \"" + _nameOfSoundToPlay + "\" does not contain an AudioClip to play. Please add an AudioClip to the SoundObject for \"" + _nameOfSoundToPlay + "\" in availableSounds");
 
             //return
             return;
@@ -85,10 +95,10 @@ public class SFX_Manager : MonoBehaviour
         sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
         //pick a random sound from _possibleSounds to play
-        int randomSoundIndex = UnityEngine.Random.Range(0, soundObjects.Find(x => x.soundName == _nameOfSoundToPlay).possibleSounds.Count - 1);
+        int _randomSoundIndex = UnityEngine.Random.Range(0, _soundObject.possibleSounds.Count - 1);
 
         //load and play the sound with name equal to nameOfSoundToPlay
-        sfxAudioSource.PlayOneShot(soundObjects.Find(x => x.soundName == _nameOfSoundToPlay).possibleSounds[randomSoundIndex], sfxAudioSource.volume);
+        sfxAudioSource.PlayOneShot(_soundObject.possibleSounds[_randomSoundIndex], sfxAudioSource.volume);
     }
 
     /// <summary>

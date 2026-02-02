@@ -445,7 +445,12 @@ public class PlayerController : MonoBehaviour
         //slimed = false;
         storedCode = 0;
 
-        currentPlayerHealth = 100;
+        vWave = false;
+        killeez = false;
+        DemonX = false;
+        bigStox = false;
+
+    currentPlayerHealth = 100;
         isAlive = true;
     }
 

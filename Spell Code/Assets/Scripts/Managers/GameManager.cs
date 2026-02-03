@@ -722,12 +722,9 @@ public class GameManager : MonoBehaviour
             {
                 GenerateStartingSpells(i);
 
-                // Only show spell card UI for local player
-                if (i == localPlayerIndex)
-                {
-                    if (i == 0) p1_spellCard.enabled = true;
-                    else if (i == 1) p2_spellCard.enabled = true;
-                }
+                // SHOW SPELL CARDS FOR BOTH PLAYERS (not just local)
+                if (i == 0) p1_spellCard.enabled = true;
+                else if (i == 1) p2_spellCard.enabled = true;
 
                 players[i].isSpawned = true;
             }
@@ -756,8 +753,7 @@ public class GameManager : MonoBehaviour
 
                     Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
 
-                    // Only update UI for local player
-                    if (i == localPlayerIndex && spellCard != null)
+                    if (spellCard != null)
                     {
                         spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
                     }
@@ -771,8 +767,7 @@ public class GameManager : MonoBehaviour
                     players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
 
-                    // Only hide UI for local player
-                    if (i == localPlayerIndex && spellCard != null)
+                    if (spellCard != null)
                     {
                         spellCard.enabled = false;
                     }

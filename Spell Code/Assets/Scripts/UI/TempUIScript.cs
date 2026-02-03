@@ -88,12 +88,12 @@ public class TempUIScript : MonoBehaviour
             repsVals[i].enabled = true;
             repsVals[i].text = "REPS: " + GameManager.Instance.players[i].reps;
 
-            momentumVals[i].enabled = true;
-            momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;
+            //momentumVals[i].enabled = true;
+            //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;
 
-            if (GameManager.Instance.players[i].slimed)
-                slimedVals[i].enabled = true;
-            else slimedVals[i].enabled = false;
+            //if (GameManager.Instance.players[i].slimed)
+            //    slimedVals[i].enabled = true;
+            //else slimedVals[i].enabled = false;
         }
     }
 

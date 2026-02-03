@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8219806438660890640}
   - component: {fileID: -4727238776019900093}
   m_Layer: 0
-  m_Name: prj_Ninja_Build_Blast
+  m_Name: prj_ReloadShot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48,32 +48,29 @@ MonoBehaviour:
   projName: Ninja_Build_Blast
   projectileHitboxes: []
   sprites:
-  - {fileID: 4226276550207967897, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 4024342336021662751, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 4956856761004810158, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -3589690311207839287, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -3391786635790369940, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 1051463181322809115, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -2005937868711127574, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -1200939707116155924, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -2601147484649782067, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -7782823160579863754, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 4956856761004810158, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -3589690311207839287, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -3391786635790369940, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 1051463181322809115, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -2005937868711127574, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -1200939707116155924, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -2601147484649782067, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -7782823160579863754, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -629526638467248694, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: -533848655770290490, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 1319465332, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  - {fileID: 1546831206, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 927346451, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 340182061, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 208494974, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -44562230, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -974966692, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -1972560144, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 1791838887, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -903573222, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -874410937, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 208494974, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -44562230, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -974966692, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -1972560144, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 1791838887, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -903573222, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -874410937, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -1182163851, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 1578127588, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: 848076734, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  - {fileID: -1151457231, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   activeHitboxGroupIndex: 0
-  hSpeed: 0
-  vSpeed: 0
-  position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
@@ -130,7 +127,7 @@ SpriteRenderer:
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
   m_SortingOrder: 0
-  m_Sprite: {fileID: 4226276550207967897, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+  m_Sprite: {fileID: 340182061, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

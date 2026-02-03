@@ -9,7 +9,7 @@ public class AmonSlash : SpellData
     {
         spellName = "AmonSlash";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 180;
+        cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic };

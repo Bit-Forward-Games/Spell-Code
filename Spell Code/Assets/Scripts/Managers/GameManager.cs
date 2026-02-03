@@ -62,6 +62,7 @@ public class GameManager : MonoBehaviour
     public Image p2_spellCard;
     public Image p3_spellCard;
     public Image p4_spellCard;
+    public GameObject[] floppyObjects;
 
     [SerializeField]
     private List<string> p1_choices;
@@ -913,10 +914,11 @@ public class GameManager : MonoBehaviour
             {
                 if (players[2].chosenStartingSpell == false && players[2].isSpawned)
                 {
-                    if (players[2].input.ButtonStates[2] == ButtonState.Pressed)
+                    //cycle spells (spellWeave button)
+                    if (players[2].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p3 pressed cycle spell");
-                        if (p3_index == p3_choices.Count - 1)
+                        if (p3_index >= p3_choices.Count-1)
                         {
                             p3_index = 0;
                         }
@@ -953,7 +955,7 @@ public class GameManager : MonoBehaviour
                     if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p4 pressed cycle spell");
-                        if (p4_index == p4_choices.Count - 1)
+                        if (p4_index >= p4_choices.Count-1)
                         {
                             p4_index = 0;
                         }
@@ -969,7 +971,7 @@ public class GameManager : MonoBehaviour
                     {
                         Debug.Log("p4 chose a spell");
                         players[3].AddSpellToSpellList(p4_choices[p4_index]);
-                        players[3].startingSpell = p3_choices[p3_index];
+                        players[3].startingSpell = p4_choices[p4_index];
                         players[3].chosenStartingSpell = true;
                         p4_spellCard.enabled = false;
                     }
@@ -977,7 +979,7 @@ public class GameManager : MonoBehaviour
 
                 if (players[3].isSpawned == false)
                 {
-                    GenerateStartingSpells(0);
+                    GenerateStartingSpells(3);
                     p4_spellCard.enabled = true;
                     players[3].isSpawned = true;
                 }
@@ -1308,6 +1310,8 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
+            HitboxManager.Instance.GetActiveCamera();
+            FindAllFloppyDisks();
         }
 
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
@@ -1399,6 +1403,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void FindAllFloppyDisks()
+    {
+        floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk");
+    }
+
+    // ---------------------------------------------------------Central State Serialization Methods-----------------------------------------
+
+    /// <summary>
+    /// Serializes the entire deterministic game state managed by GameManager.
+    /// Includes players and active projectiles.
+    /// </summary>
+    /// <returns>A byte array representing the game state snapshot.</returns>
     public byte[] SerializeManagedState()
     {
         using (MemoryStream memoryStream = new MemoryStream())

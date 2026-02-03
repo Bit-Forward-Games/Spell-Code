@@ -135,7 +135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &10260023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -865,17 +865,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6814927c10c0a174aa00cdc5c7ae4c7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 36}
-  damping: 0.25
+  offset: {x: 0, y: 0}
+  damping: 0
   minZoom: 180
-  maxZoom: 420
+  maxZoom: 1280
   HardSetZoom: 205
-  minDistance: 120
-  zoomLimiter: 480
-  zoomSpeed: 5
+  minDistance: 360
+  zoomLimiter: 960
+  zoomSpeed: 1
   shakeMagnitude: 1
+  screenEdgeBuffer: 50
   target: {x: 0, y: 0}
-  lockCamera: 0
+  lockCamera: 1
 --- !u!114 &1452465065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1069,6 +1070,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1963116937250864711, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+    - target: {fileID: 2766436075993732214, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1113,6 +1122,22 @@ PrefabInstance:
       propertyPath: onlineMenuUI
       value: 
       objectReference: {fileID: 1101021164}
+    - target: {fileID: 6760653133886348903, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7344256570238086088, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8005170076705936154, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
+    - target: {fileID: 8013756742722848313, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 555805288, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -16166,6 +16191,7 @@ MonoBehaviour:
   p2_spellCard: {fileID: 3517964147537111678}
   p3_spellCard: {fileID: 3777119449007749407}
   p4_spellCard: {fileID: 3572659430453592930}
+  floppyObjects: []
   p1_choices: []
   p2_choices: []
   p3_choices: []

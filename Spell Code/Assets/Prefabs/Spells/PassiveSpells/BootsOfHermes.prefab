@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellName: BootsOfHermes
   brands: 03000000
-  procConditions: 08000000
+  procConditions: 11000000
   description: Gain 1 Jump for every 3 "Reps" you have.
   cooldown: 0
   cooldownCounter: 0

@@ -2073,7 +2073,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
-        storedCodeDuration = br.ReadUInt16();
+        storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         flowState = br.ReadUInt16();

@@ -868,26 +868,35 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 0.95f, 0.95f);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.05f, 1.05f);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.1f, 1.1f);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
                             break;
                     }
+
                     // Increment the last 4 bits of stateSpecificArg by 1
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {

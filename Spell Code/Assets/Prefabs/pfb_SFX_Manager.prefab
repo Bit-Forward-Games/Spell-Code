@@ -169,11 +169,11 @@ MonoBehaviour:
     - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
     - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 7
+  - soundName: 8
     possibleSounds:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 06d296bd2b4bf794283c6dd512f52831, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 6
+  - soundName: 7
     possibleSounds:
     - {fileID: 0}
     playersWhoAreRepeatedlyPlaying: 00000000

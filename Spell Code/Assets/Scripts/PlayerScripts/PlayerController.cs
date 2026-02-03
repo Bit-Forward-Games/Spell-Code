@@ -2032,8 +2032,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(stockStability);
         bw.Write(demonAura);
         bw.Write(reps);
-        bw.Write(momentum);
-        bw.Write(slimed);
+        //bw.Write(momentum);
+        //bw.Write(slimed);
         bw.Write(isSpawned);
         bw.Write(chosenStartingSpell);
 
@@ -2080,8 +2080,8 @@ public class PlayerController : MonoBehaviour
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
         reps = br.ReadUInt16();
-        momentum = br.ReadUInt16();
-        slimed = br.ReadBoolean();
+        //momentum = br.ReadUInt16();
+        //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();
         chosenStartingSpell = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());

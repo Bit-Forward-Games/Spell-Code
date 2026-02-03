@@ -709,6 +709,10 @@ public class GameManager : MonoBehaviour
     // Handle spell selection for online players
     private void HandleOnlineSpellSelection()
     {
+        // Use SYNCED inputs to make spell selection deterministic
+        // Both players will see the same spell selections because they're using
+        // synchronized inputs from the rollback system
+
         for (int i = 0; i < 2; i++)
         {
             if (players[i] == null) continue;
@@ -726,19 +730,22 @@ public class GameManager : MonoBehaviour
             }
 
             // Handle spell cycling and selection using the player's INPUT
+            // This input is already synchronized from syncedInput[]
             if (!players[i].chosenStartingSpell && players[i].isSpawned)
             {
                 List<string> choices = i == 0 ? p1_choices : p2_choices;
                 int currentIndex = i == 0 ? p1_index : p2_index;
                 Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
 
+                // Use the synchronized input for THIS player
                 InputSnapshot snapshot = InputConverter.ConvertFromLong(syncedInput[i]);
 
-                // Cycle spells
+                // Cycle spells - check button 0 for PRESSED state
                 if (snapshot.ButtonStates[0] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
 
+                    // Cycle through all 3 choices properly
                     currentIndex = (currentIndex + 1) % choices.Count;
 
                     if (i == 0) p1_index = currentIndex;
@@ -752,12 +759,11 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Choose spell - ONLY STORE THE SELECTION, DON'T ADD YET
+                // Choose spell - check button 1 for PRESSED state
                 if (snapshot.ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
-
-                    // STORE the spell name without adding it to the list yet
+                    players[i].AddSpellToSpellList(choices[currentIndex]);
                     players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
 
@@ -1315,21 +1321,6 @@ public class GameManager : MonoBehaviour
                 SetStage(1);
             }
 
-            // ADD STARTING SPELLS HERE (after scene load, before rollback starts)
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (players[i] != null && !string.IsNullOrEmpty(players[i].startingSpell))
-                {
-                    // Only add if not already in the list
-                    bool alreadyHasSpell = players[i].spellList.Any(s => s.spellName == players[i].startingSpell);
-                    if (!alreadyHasSpell)
-                    {
-                        Debug.Log($"Adding starting spell {players[i].startingSpell} to player {i}");
-                        players[i].AddSpellToSpellList(players[i].startingSpell);
-                    }
-                }
-            }
-
             ResetPlayers();
 
             if (RollbackManager.Instance != null)
@@ -1343,6 +1334,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             isTransitioning = false;
+            // Ready flags are already reset in RoundEnd()
         }
     }
 

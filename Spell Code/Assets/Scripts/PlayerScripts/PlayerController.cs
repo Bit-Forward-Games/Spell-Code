@@ -991,6 +991,9 @@ public class PlayerController : MonoBehaviour
                             //make input display flash green to indicate correct input sequence
                             inputDisplay.color = Color.green;
 
+                            //play successful code cast sound
+                            SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+
                             break;
                         }
 
@@ -1026,8 +1029,16 @@ public class PlayerController : MonoBehaviour
 
                     //make input display flash red to indicate incorrect sequence
 
-                    //Play failed code weave sound
-                    SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+                    if (stateSpecificArg != 0)
+                    {
+                        //Play failed code weave sound
+                        SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+                    }
+                    else if(stateSpecificArg == 0)
+                    {
+                        //play successful code cast sound
+                        SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                    }
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -1662,7 +1673,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
 
                 //play the exit weave sound
-                SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 

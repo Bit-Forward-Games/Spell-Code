@@ -171,11 +171,11 @@ MonoBehaviour:
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 8
     possibleSounds:
-    - {fileID: 8300000, guid: 06d296bd2b4bf794283c6dd512f52831, type: 3}
+    - {fileID: 8300000, guid: ed7fd9856d0962e43ac3a40f804deb7f, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 7
     possibleSounds:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 457b7b3fd6e8ddb48ad6a1a6bab03d94, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 6
     possibleSounds:

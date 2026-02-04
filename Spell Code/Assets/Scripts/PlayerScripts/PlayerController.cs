@@ -1025,6 +1025,9 @@ public class PlayerController : MonoBehaviour
                     basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
+
+                    //Play failed code weave sound
+                    SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))

@@ -868,26 +868,35 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 0.95f, 0.95f);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.05f, 1.05f);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.1f, 1.1f);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
                             break;
                     }
+
                     // Increment the last 4 bits of stateSpecificArg by 1
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
@@ -982,6 +991,9 @@ public class PlayerController : MonoBehaviour
                             //make input display flash green to indicate correct input sequence
                             inputDisplay.color = Color.green;
 
+                            //play successful code cast sound
+                            SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+
                             break;
                         }
 
@@ -1016,6 +1028,17 @@ public class PlayerController : MonoBehaviour
                     basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
+
+                    if (stateSpecificArg != 0)
+                    {
+                        //Play failed code weave sound
+                        SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+                    }
+                    else if(stateSpecificArg == 0)
+                    {
+                        //play successful code cast sound
+                        SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                    }
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -1631,6 +1654,11 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
+                SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 1f, 1f);
+
                 if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
@@ -1645,7 +1673,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
 
                 //play the exit weave sound
-                SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 
@@ -1674,6 +1702,9 @@ public class PlayerController : MonoBehaviour
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
+
                 ClearInputDisplay();
                 break;
         }

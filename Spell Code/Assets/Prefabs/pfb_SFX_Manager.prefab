@@ -179,5 +179,5 @@ MonoBehaviour:
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 6
     possibleSounds:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 8cd3a1bf4d388a842bb2193a89023d5f, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000

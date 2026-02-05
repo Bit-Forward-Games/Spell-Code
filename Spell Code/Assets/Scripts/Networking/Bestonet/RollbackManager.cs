@@ -207,8 +207,16 @@ using BestoNet.Collections; // Use BestoNet collections
                 bool haveReceived = receivedInputs.ContainsKey(i);
                 bool haveUsed = opponentInputs.ContainsKey(i); // This stores what was actually simulated
 
+                ulong[] inputsForResim = SynchronizeInput(i);
+
+                // Call unified update method that includes scene logic
+                GameManager.Instance.UpdateGameState(inputsForResim);
+                GameManager.Instance.UpdateSceneLogic(inputsForResim);
+
+                GameManager.Instance.ForceSetFrame(i);
+                ClearState(i);
                 if (haveReceived && haveUsed)
-                {
+                    {
                     ulong received = receivedInputs.GetInput(i);
                     ulong used = opponentInputs.GetInput(i);
 

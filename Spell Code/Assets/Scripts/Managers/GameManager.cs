@@ -653,6 +653,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void UpdateSceneLogic(ulong[] inputs)
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+
+        if (activeScene.name == "Shop")
+        {
+            if (shopManager == null)
+            {
+                shopManager = FindAnyObjectByType<ShopManager>();
+            }
+            if (shopManager != null)
+            {
+                shopManager.ShopUpdate(inputs);
+            }
+        }
+        else if (activeScene.name == "MainMenu")
+        {
+            HandleOnlineSpellSelection();
+            goDoorPrefab?.CheckOpenDoor();
+        }
+    }
+
     private void RunOnlineFrame()
     {
         RollbackManager rbManager = RollbackManager.Instance;
@@ -702,6 +724,8 @@ public class GameManager : MonoBehaviour
         }
 
         UpdateGameState(syncedInput);
+
+        UpdateSceneLogic(syncedInput);
 
         // ONLINE LOBBY LOGIC (MainMenu scene)
         if (activeScene.name == "MainMenu")
@@ -764,7 +788,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Handle spell selection for online players (GAME STATE ONLY)
-    private void HandleOnlineSpellSelection()
+    public void HandleOnlineSpellSelection()
     {
         for (int i = 0; i < 2; i++)
         {

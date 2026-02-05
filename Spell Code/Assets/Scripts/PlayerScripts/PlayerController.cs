@@ -1855,7 +1855,7 @@ public class PlayerController : MonoBehaviour
 
                 if(attacker.demonAura > 0)
                 {
-                    attacker.demonAuraLifeSpanTimer = 300; //refresh demon aura lifespan timer on spell hit to 5 seconds (300 frames)
+                    attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
                 }
             }
 

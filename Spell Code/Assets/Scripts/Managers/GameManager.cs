@@ -237,9 +237,16 @@ public class GameManager : MonoBehaviour
             RunFrame();
         }
 
+        // RENDER/UPDATE UI ONLY ON NON-ROLLBACK FRAMES
         if (!isOnlineMatchActive || (RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame))
         {
             AnimationManager.Instance.RenderGameState();
+
+            // Refresh lobby UI alongside animation rendering
+            if (isOnlineMatchActive)
+            {
+                RefreshLobbyUI();
+            }
         }
     }
 
@@ -604,12 +611,9 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
     }
 
-    // Call this EVERY frame (but only on non-rollback frames) to sync UI with game state
+    // Call this to sync UI with game state (only called on non-rollback frames from FixedUpdate)
     public void RefreshLobbyUI()
     {
-        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
-            return; // Don't refresh during rollback
-
         if (!isOnlineMatchActive) return;
 
         Scene activeScene = SceneManager.GetActiveScene();
@@ -756,7 +760,7 @@ public class GameManager : MonoBehaviour
         }
 
         // ALWAYS refresh UI on non-rollback frames to sync with game state
-        RefreshLobbyUI();
+        // RefreshLobbyUI();
     }
 
     // Handle spell selection for online players (GAME STATE ONLY)

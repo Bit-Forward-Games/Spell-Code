@@ -144,13 +144,10 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // Refresh shop UI to match game state (call every non-rollback frame)
     private void RefreshShopUI()
     {
-        if (gameManager.isOnlineMatchActive &&
-            RollbackManager.Instance != null &&
-            RollbackManager.Instance.isRollbackFrame)
-            return;
+        // Removed rollback check - this is only called from main loop on non-rollback frames
+        if (!gameManager.isOnlineMatchActive) return;
 
         for (int i = 0; i < 2; i++)
         {
@@ -159,7 +156,6 @@ public class ShopManager : MonoBehaviour
             List<string> choices = i == 0 ? p1_choices : p2_choices;
             int currentIndex = i == 0 ? p1_index : p2_index;
             Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
-            TextMeshProUGUI spellText = i == 0 ? p1_spellText : p2_spellText;
 
             if (spellCard == null) continue;
 
@@ -240,8 +236,9 @@ public class ShopManager : MonoBehaviour
             StartCoroutine(Shop());
         }
 
-        // Refresh UI at the end to sync with game state
-        if (gameManager.isOnlineMatchActive)
+        // Only refresh UI on non-rollback frames
+        if (gameManager.isOnlineMatchActive &&
+            (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame))
         {
             RefreshShopUI();
         }

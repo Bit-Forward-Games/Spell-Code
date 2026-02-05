@@ -161,6 +161,7 @@ public class PlayerController : MonoBehaviour
     public bool chosenStartingSpell = false;
     public bool isSpawned;
     public string startingSpell;
+    public bool startingSpellAdded = false;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
@@ -413,6 +414,7 @@ public class PlayerController : MonoBehaviour
     {
         ClearSpellList();
 
+        startingSpellAdded = false;
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         //{
@@ -2036,6 +2038,7 @@ public class PlayerController : MonoBehaviour
         //bw.Write(slimed);
         bw.Write(isSpawned);
         bw.Write(chosenStartingSpell);
+        bw.Write(startingSpellAdded);
 
         // Spell List Serialization
         bw.Write(spellList.Count); // Write how many spells are in the list
@@ -2084,17 +2087,40 @@ public class PlayerController : MonoBehaviour
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();
         chosenStartingSpell = br.ReadBoolean();
+        bool savedStartingSpellAdded = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
 
         // Spell List Deserialization
         int spellCount = br.ReadInt32();
-        // Important: Ensure the spellList is the correct size and has the correct spells
-        // This is complex. A simple approach if the list order/contents don't change dynamically mid-match:
+
+        // HANDLE SPELL LIST SYNC BASED ON FLAG
+        if (savedStartingSpellAdded && !startingSpellAdded)
+        {
+            // Saved state had the spell, but we don't - need to add it
+            if (!string.IsNullOrEmpty(startingSpell))
+            {
+                Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
+                AddSpellToSpellList(startingSpell);
+                startingSpellAdded = true;
+            }
+        }
+        else if (!savedStartingSpellAdded && startingSpellAdded)
+        {
+            // Saved state didn't have the spell, but we do - need to remove it
+            if (!string.IsNullOrEmpty(startingSpell))
+            {
+                Debug.Log($"[ROLLBACK] Removing starting spell: {startingSpell}");
+                RemoveSpellFromSpellList(startingSpell);
+                startingSpellAdded = false;
+            }
+        }
+
+        startingSpellAdded = savedStartingSpellAdded;
+
+        // NOW deserialize spell list as normal
         if (spellList.Count != spellCount)
         {
             Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
-            // Potentially try to rebuild the list based on saved names? Very risky.
-            // For simplicity, assuming the list composition is stable during rollback frames.
         }
 
         for (int i = 0; i < spellCount; i++)

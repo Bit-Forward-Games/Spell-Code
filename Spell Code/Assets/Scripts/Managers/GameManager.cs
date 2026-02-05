@@ -763,9 +763,17 @@ public class GameManager : MonoBehaviour
                 if (snapshot.ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
-                    players[i].AddSpellToSpellList(choices[currentIndex]);
+
                     players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
+
+                    // Only add if not already added
+                    if (!players[i].startingSpellAdded)
+                    {
+                        players[i].AddSpellToSpellList(choices[currentIndex]);
+                        players[i].startingSpellAdded = true;
+                        Debug.Log($"[SYNCED] Added starting spell to player {i}: {choices[currentIndex]}");
+                    }
 
                     if (spellCard != null)
                     {

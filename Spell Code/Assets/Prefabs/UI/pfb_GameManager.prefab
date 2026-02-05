@@ -1561,7 +1561,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0ef8bdd2ca380d24fb3e617ec547d1be, type: 2}
   - {fileID: 11400000, guid: 3cb93d278e6314e459bbd0f8e75dd02f, type: 2}
   - {fileID: 11400000, guid: 6003391bb399ad64083e42427fb315ec, type: 2}
-  lobbySO: {fileID: 11400000, guid: aa9d46f33b2cdd34b864eede092eb100, type: 2}
+  lobbySO: {fileID: 11400000, guid: 3d726ae1702f885428e0ce0981983d41, type: 2}
   currentStageIndex: -1
   tempMapGOs:
   - {fileID: 6905907321120938197}
@@ -1592,6 +1592,7 @@ MonoBehaviour:
   p2_spellCard: {fileID: 3515640928645104075}
   p3_spellCard: {fileID: 630245634410597839}
   p4_spellCard: {fileID: 288789991111066132}
+  floppyObjects: []
   p1_choices: []
   p2_choices: []
   p3_choices: []
@@ -2319,6 +2320,26 @@ PrefabInstance:
     - target: {fileID: 660610975967777689, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1989541241571844642, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
+      propertyPath: m_TileSpriteArray.Array.data[0].m_Data
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1989541241571844642, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
+      propertyPath: m_TileSpriteArray.Array.data[2].m_Data
+      value: 
+      objectReference: {fileID: 1092472202, guid: c0f2634353fd7fd40a90f7e8fa9b4bc7, type: 3}
+    - target: {fileID: 1989541241571844642, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
+      propertyPath: m_TileSpriteArray.Array.data[0].m_RefCount
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1989541241571844642, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
+      propertyPath: m_TileSpriteArray.Array.data[2].m_RefCount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1989541241571844642, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
+      propertyPath: m_Tiles.Array.data[169].second.m_TileSpriteIndex
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: 9fb55f4a7ace8684a8a8e93887c21388, type: 3}
       propertyPath: m_LocalPosition.x

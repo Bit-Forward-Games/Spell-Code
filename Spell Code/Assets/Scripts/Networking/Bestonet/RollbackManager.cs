@@ -185,112 +185,87 @@ using BestoNet.Collections; // Use BestoNet collections
             Debug.Log("Rollback variables cleared.");
         }
 
-        /// <summary>
-        /// Checks for input mismatches and triggers a rollback if necessary.
-        /// Should be called once per frame before simulation.
-        /// </summary>
-        public void RollbackEvent()
+    /// <summary>
+    /// Checks for input mismatches and triggers a rollback if necessary.
+    /// Should be called once per frame before simulation.
+    /// </summary>
+    public void RollbackEvent()
+    {
+        if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning)
         {
-            if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning) // Check if match is running
+            return;
+        }
+
+        int framesBeforeRollback = localFrame;
+        bool foundDesyncedFrame = false;
+
+        // --- Check for Mismatched Inputs ---
+        for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
+        {
+            bool haveReceived = receivedInputs.ContainsKey(i);
+            bool haveUsed = opponentInputs.ContainsKey(i);
+
+            // ONLY CHECK - DON'T RESIMULATE HERE
+            if (haveReceived && haveUsed)
             {
-                return;
-            }
+                ulong received = receivedInputs.GetInput(i);
+                ulong used = opponentInputs.GetInput(i);
 
-            int framesBeforeRollback = localFrame; // Cache frame before potential load
-            bool foundDesyncedFrame = false;
-
-            // --- Check for Mismatched Inputs ---
-            // Iterate from the frame *after* the last known sync point up to the current frame
-            for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
-            {
-                // We need both the received input and the input we *used* (predicted or received) for this frame
-                bool haveReceived = receivedInputs.ContainsKey(i);
-                bool haveUsed = opponentInputs.ContainsKey(i); // This stores what was actually simulated
-
-                ulong[] inputsForResim = SynchronizeInput(i);
-
-                // Call unified update method that includes scene logic
-                GameManager.Instance.UpdateGameState(inputsForResim);
-                GameManager.Instance.UpdateSceneLogic(inputsForResim);
-
-                GameManager.Instance.ForceSetFrame(i);
-                ClearState(i);
-                if (haveReceived && haveUsed)
-                    {
-                    ulong received = receivedInputs.GetInput(i);
-                    ulong used = opponentInputs.GetInput(i);
-
-                    // If they match AND we have a saved state for this frame, this frame is now confirmed synced
-                    if (received == used && states[i % StateArraySize].frame == i)
-                    {
-                        syncFrame = i; // Advance the sync point
-                    }
-                    // If they don't match, we found a desync!
-                    else if (received != used)
-                    {
-                        foundDesyncedFrame = true;
-                        // Don't advance syncFrame, rollback needed from the *previous* sync point (syncFrame)
-                        break; // Exit loop, no need to check further frames
-                    }
-                    // If received == used but state is missing, we might have issues saving state? Log warning?
-                }
-                else if (haveReceived && !haveUsed)
+                if (received == used && states[i % StateArraySize].frame == i)
                 {
-                    // Received input for a frame we simulated predictively. This is a potential desync.
-                    // (Unless prediction was perfect, but we check that above)
+                    syncFrame = i;
+                }
+                else if (received != used)
+                {
                     foundDesyncedFrame = true;
                     break;
                 }
-                // If !haveReceived, we can't confirm sync yet, just continue assuming prediction was ok for now.
             }
-            // --- End Mismatch Check ---
-
-
-            if (!foundDesyncedFrame)
+            else if (haveReceived && !haveUsed)
             {
-                // No mismatch found up to the current frame, no rollback needed this tick.
-                return; // Exit rollback logic
+                foundDesyncedFrame = true;
+                break;
             }
+        }
+        // --- End Mismatch Check ---
 
-            // --- Perform Rollback ---
-            // Rollback to the last known fully synchronized frame 'syncFrame'
-            Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
-            SetRollbackStatus(true); // Signal that we are now resimulating
-            RollbackFrames = framesBeforeRollback - syncFrame;
-
-            LoadState(syncFrame); // Load state from the last sync point (calls GameManager.Deserialize...)
-
-            // Resimulate frames from syncFrame + 1 up to the original frame number
-            for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
-            {
-                // Get the correct inputs for the resimulation frame 'i'
-                ulong[] inputsForResim = SynchronizeInput(i); // Use version that takes frame number
-
-                // Run the simulation step using GameManager
-                GameManager.Instance.UpdateGameState(inputsForResim);
-                GameManager.Instance.ForceSetFrame(i); // Ensure GameManager frame number matches simulation
-
-                // Save state during resimulation (optional, GGPO does speculative saving)
-                // SaveState(); // Save state for every resimulated frame? Or only specific ones?
-                // Simple approach: Only save the *final* frame state outside this loop.
-                // Complex/GGPO approach: Save state at intervals or based on remote frame.
-                // Let's stick to saving outside the loop for simplicity for now.
-                ClearState(i); // Clear potentially incorrect states saved earlier predictively
-            }
-
-            SetRollbackStatus(false); // Finished resimulating
-            Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
-            // The main loop will now continue from 'framesBeforeRollback', running the simulation
-            // for the current frame again with (hopefully) corrected opponent input.
-            // The SaveState call in the main loop will save the final corrected state.
+        if (!foundDesyncedFrame)
+        {
+            return; // No rollback needed
         }
 
-        /// <summary>
-        /// Sends the local player's input for the current frame (plus delay) to the opponent.
-        /// </summary>
-        /// <param name="input">The local player's input for the current frame.</param>
-        public bool SendLocalInput(ulong input)
+        // --- Perform Rollback ---
+        Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
+        SetRollbackStatus(true);
+        RollbackFrames = framesBeforeRollback - syncFrame;
+
+        LoadState(syncFrame);
+
+        // RESIMULATE HERE - ONLY WHEN ROLLBACK IS ACTUALLY NEEDED
+        for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
+            ulong[] inputsForResim = SynchronizeInput(i);
+
+            // Run base game state update
+            GameManager.Instance.UpdateGameState(inputsForResim);
+
+            // Run scene-specific logic (lobby spell selection, shop, etc.)
+            GameManager.Instance.UpdateSceneLogic(inputsForResim);
+
+            GameManager.Instance.ForceSetFrame(i);
+            ClearState(i);
+        }
+
+        SetRollbackStatus(false);
+        Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
+    }
+
+    /// <summary>
+    /// Sends the local player's input for the current frame (plus delay) to the opponent.
+    /// </summary>
+    /// <param name="input">The local player's input for the current frame.</param>
+    public bool SendLocalInput(ulong input)
+    {
             // Check if opponent ID is set and we have a match manager
             if (opponentNetworkId == 0 || matchManager == null || GameManager.Instance == null) return false;
 
@@ -304,7 +279,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // Send input packet via MatchMessageManager
             matchManager.SendInputs(); // Send target frame and input
             return true;
-        }
+    }
 
 
         /// <summary>

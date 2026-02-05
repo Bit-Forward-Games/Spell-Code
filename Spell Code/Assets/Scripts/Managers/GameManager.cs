@@ -167,10 +167,10 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (isOnlineMatchActive)
-        {
-            cachedLocalInput = GatherInputForOnline();
-        }
+        //if (isOnlineMatchActive)
+        //{
+        //    cachedLocalInput = GatherInputForOnline();
+        //}
 
         if (!isOnlineMatchActive)
         {
@@ -259,10 +259,11 @@ public class GameManager : MonoBehaviour
             var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
             var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
 
-            if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
-            {
-                return players[localPlayerIndex].GetInputs();
-            }
+            return players[localPlayerIndex].GetInputs();
+            //if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
+            //{
+            //    return players[localPlayerIndex].GetInputs();
+            //}
         }
         return GatherRawInput();
     }
@@ -685,9 +686,9 @@ public class GameManager : MonoBehaviour
             rbManager.SaveState();
         }
 
-        localPlayerInput = cachedLocalInput;
-        codePrevFrame = codeCurrentFrame;
-        jumpPrevFrame = jumpCurrentFrame;
+        localPlayerInput = GatherInputForOnline();
+        //codePrevFrame = codeCurrentFrame;
+        //jumpPrevFrame = jumpCurrentFrame;
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();

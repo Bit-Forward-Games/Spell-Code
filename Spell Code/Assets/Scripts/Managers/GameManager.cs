@@ -604,7 +604,7 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
     }
 
-    // Call this after rollback completes to sync UI with game state
+    // Call this EVERY frame (but only on non-rollback frames) to sync UI with game state
     public void RefreshLobbyUI()
     {
         if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
@@ -626,16 +626,23 @@ public class GameManager : MonoBehaviour
 
             if (spellCard == null) continue;
 
-            // Update sprite to match current index
+            // If player spawned but hasn't chosen yet - show current selection
             if (players[i].isSpawned && !players[i].chosenStartingSpell)
             {
-                if (choices != null && currentIndex < choices.Count)
+                if (choices != null && choices.Count > 0 && currentIndex >= 0 && currentIndex < choices.Count)
                 {
+                    // Update sprite to match current synced index
                     spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
                     spellCard.enabled = true;
                 }
             }
+            // If player has chosen - hide the card
             else if (players[i].chosenStartingSpell)
+            {
+                spellCard.enabled = false;
+            }
+            // If player not spawned yet - ensure card is disabled
+            else
             {
                 spellCard.enabled = false;
             }
@@ -746,12 +753,13 @@ public class GameManager : MonoBehaviour
         if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
         {
             rbManager.SaveState();
-
-            RefreshLobbyUI();
         }
+
+        // ALWAYS refresh UI on non-rollback frames to sync with game state
+        RefreshLobbyUI();
     }
 
-    // Handle spell selection for online players
+    // Handle spell selection for online players (GAME STATE ONLY)
     private void HandleOnlineSpellSelection()
     {
         for (int i = 0; i < 2; i++)
@@ -761,12 +769,6 @@ public class GameManager : MonoBehaviour
             if (!players[i].isSpawned)
             {
                 GenerateStartingSpells(i);
-                // Only update UI on non-rollback frames
-                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                {
-                    if (i == 0) p1_spellCard.enabled = true;
-                    else if (i == 1) p2_spellCard.enabled = true;
-                }
                 players[i].isSpawned = true;
             }
 
@@ -774,9 +776,7 @@ public class GameManager : MonoBehaviour
             {
                 List<string> choices = i == 0 ? p1_choices : p2_choices;
                 int currentIndex = i == 0 ? p1_index : p2_index;
-                Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
 
-                // Get last cycle frame for this player
                 int lastCycleFrame = i == 0 ? p1_lastCycleFrame : p2_lastCycleFrame;
 
                 InputSnapshot snapshot = InputConverter.ConvertFromLong(syncedInput[i]);
@@ -801,15 +801,6 @@ public class GameManager : MonoBehaviour
                     }
 
                     Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
-
-                    // ONLY UPDATE UI ON NON-ROLLBACK FRAMES
-                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                    {
-                        if (spellCard != null)
-                        {
-                            spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
-                        }
-                    }
                 }
 
                 // Choose spell
@@ -825,15 +816,6 @@ public class GameManager : MonoBehaviour
                         players[i].AddSpellToSpellList(choices[currentIndex]);
                         players[i].startingSpellAdded = true;
                         Debug.Log($"[SYNCED] Added starting spell to player {i}: {choices[currentIndex]}");
-                    }
-
-                    // ONLY UPDATE UI ON NON-ROLLBACK FRAMES
-                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                    {
-                        if (spellCard != null)
-                        {
-                            spellCard.enabled = false;
-                        }
                     }
                 }
             }

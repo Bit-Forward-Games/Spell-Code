@@ -143,6 +143,42 @@ public class ShopManager : MonoBehaviour
             p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
         }
     }
+
+    // Refresh shop UI to match game state (call every non-rollback frame)
+    private void RefreshShopUI()
+    {
+        if (gameManager.isOnlineMatchActive &&
+            RollbackManager.Instance != null &&
+            RollbackManager.Instance.isRollbackFrame)
+            return;
+
+        for (int i = 0; i < 2; i++)
+        {
+            if (gameManager.players[i] == null) continue;
+
+            List<string> choices = i == 0 ? p1_choices : p2_choices;
+            int currentIndex = i == 0 ? p1_index : p2_index;
+            Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
+            TextMeshProUGUI spellText = i == 0 ? p1_spellText : p2_spellText;
+
+            if (spellCard == null) continue;
+
+            // Update UI to match current game state
+            if (!gameManager.players[i].chosenSpell)
+            {
+                if (choices != null && choices.Count > 0 && currentIndex >= 0 && currentIndex < choices.Count)
+                {
+                    spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
+                    spellCard.enabled = true;
+                }
+            }
+            else
+            {
+                spellCard.enabled = false;
+            }
+        }
+    }
+
     public void ShopUpdate(ulong[] playerInputs)
     {
         for (int i = 0; i < playerInputs.Length; i++)
@@ -203,6 +239,12 @@ public class ShopManager : MonoBehaviour
             backToGameplay = true;
             StartCoroutine(Shop());
         }
+
+        // Refresh UI at the end to sync with game state
+        if (gameManager.isOnlineMatchActive)
+        {
+            RefreshShopUI();
+        }
     }
 
     // Handle shop selection for online matches (deterministic)
@@ -217,8 +259,6 @@ public class ShopManager : MonoBehaviour
             {
                 List<string> choices = i == 0 ? p1_choices : p2_choices;
                 int currentIndex = i == 0 ? p1_index : p2_index;
-                Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
-                TextMeshProUGUI spellText = i == 0 ? p1_spellText : p2_spellText;
 
                 // Cycle spells using SYNCED input
                 if (inputSnapshots[i].ButtonStates[0] == ButtonState.Pressed)
@@ -234,17 +274,11 @@ public class ShopManager : MonoBehaviour
                         currentIndex++;
                     }
 
-                    // Update index
+                    // Update index in GAME STATE
                     if (i == 0) p1_index = currentIndex;
                     else p2_index = currentIndex;
 
                     Debug.Log($"[SHOP SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
-
-                    // UPDATE UI FOR BOTH PLAYERS (remove the local player check)
-                    if (spellCard != null)
-                    {
-                        spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
-                    }
                 }
 
                 // Choose spell using SYNCED input
@@ -254,12 +288,6 @@ public class ShopManager : MonoBehaviour
 
                     GivePlayerSpell(i, choices[currentIndex]);
                     gameManager.players[i].chosenSpell = true;
-
-                    // HIDE UI FOR THIS PLAYER (both clients hide it)
-                    if (spellCard != null)
-                    {
-                        spellCard.enabled = false;
-                    }
 
                     inputSnapshots[i].SetNull();
                 }

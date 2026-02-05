@@ -15,6 +15,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
+using UnityEngine.InputSystem.Composites;
 
 public class GameManager : MonoBehaviour
 {
@@ -118,6 +119,10 @@ public class GameManager : MonoBehaviour
     public int p1_shopIndex = 0;
     [HideInInspector]
     public int p2_shopIndex = 0;
+
+    private int p1_lastCycleFrame = -999;
+    private int p2_lastCycleFrame = -999;
+    private const int CYCLE_COOLDOWN_FRAMES = 15; // Prevent cycling for 15 frames (~0.25 seconds)
 
     private void Awake()
     {
@@ -709,47 +714,47 @@ public class GameManager : MonoBehaviour
     // Handle spell selection for online players
     private void HandleOnlineSpellSelection()
     {
-        // Use SYNCED inputs to make spell selection deterministic
-        // Both players will see the same spell selections because they're using
-        // synchronized inputs from the rollback system
-
         for (int i = 0; i < 2; i++)
         {
             if (players[i] == null) continue;
 
-            // Generate starting spells if not spawned yet
             if (!players[i].isSpawned)
             {
                 GenerateStartingSpells(i);
-
-                // SHOW SPELL CARDS FOR BOTH PLAYERS (not just local)
                 if (i == 0) p1_spellCard.enabled = true;
                 else if (i == 1) p2_spellCard.enabled = true;
-
                 players[i].isSpawned = true;
             }
 
-            // Handle spell cycling and selection using the player's INPUT
-            // This input is already synchronized from syncedInput[]
             if (!players[i].chosenStartingSpell && players[i].isSpawned)
             {
                 List<string> choices = i == 0 ? p1_choices : p2_choices;
                 int currentIndex = i == 0 ? p1_index : p2_index;
                 Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
 
-                // Use the synchronized input for THIS player
+                // Get last cycle frame for this player
+                int lastCycleFrame = i == 0 ? p1_lastCycleFrame : p2_lastCycleFrame;
+
                 InputSnapshot snapshot = InputConverter.ConvertFromLong(syncedInput[i]);
 
-                // Cycle spells - check button 0 for PRESSED state
-                if (snapshot.ButtonStates[0] == ButtonState.Pressed)
+                // Cycle spells - ONLY if button is PRESSED and cooldown has passed
+                if (snapshot.ButtonStates[0] == ButtonState.Pressed &&
+                    (frameNumber - lastCycleFrame) >= CYCLE_COOLDOWN_FRAMES)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
 
-                    // Cycle through all 3 choices properly
                     currentIndex = (currentIndex + 1) % choices.Count;
 
-                    if (i == 0) p1_index = currentIndex;
-                    else p2_index = currentIndex;
+                    if (i == 0)
+                    {
+                        p1_index = currentIndex;
+                        p1_lastCycleFrame = frameNumber;
+                    }
+                    else
+                    {
+                        p2_index = currentIndex;
+                        p2_lastCycleFrame = frameNumber;
+                    }
 
                     Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
 
@@ -759,7 +764,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Choose spell - check button 1 for PRESSED state
+                // Choose spell
                 if (snapshot.ButtonStates[1] == ButtonState.Pressed)
                 {
                     Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
@@ -767,7 +772,6 @@ public class GameManager : MonoBehaviour
                     players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
 
-                    // Only add if not already added
                     if (!players[i].startingSpellAdded)
                     {
                         players[i].AddSpellToSpellList(choices[currentIndex]);
@@ -1446,6 +1450,9 @@ public class GameManager : MonoBehaviour
                 bw.Write(p1_shopIndex);
                 bw.Write(p2_shopIndex);
 
+                bw.Write(p1_lastCycleFrame);
+                bw.Write(p2_lastCycleFrame);
+
                 // Serialize shop spell choices themselves
                 if (shopManager != null)
                 {
@@ -1524,6 +1531,8 @@ public class GameManager : MonoBehaviour
                 p4_index = br.ReadInt32();
                 p1_shopIndex = br.ReadInt32();
                 p2_shopIndex = br.ReadInt32();
+                p1_lastCycleFrame = br.ReadInt32();
+                p2_lastCycleFrame = br.ReadInt32();
 
                 // Deserialize shop spell choices
                 List<string> savedP1Choices = DeserializeStringList(br);

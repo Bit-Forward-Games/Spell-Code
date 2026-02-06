@@ -52,6 +52,12 @@ public class HitboxManager : MonoBehaviour
     private void Start()
     {
         BoxRenderer.RenderBoxes = false;
+        GetActiveCamera();
+    }
+
+    public void GetActiveCamera()
+    {
+
         cachedForScreenShakeCamera = Camera.main.GetComponent<StageCamera>();
     }
 
@@ -111,10 +117,11 @@ public class HitboxManager : MonoBehaviour
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
-                            if (!RollbackManager.Instance.isRollbackFrame)
-                            {
-                                cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            }
+                            //if (!RollbackManager.Instance.isRollbackFrame)
+                            //{
+                            //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                            //}
+                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
                             projectile.owner.spellsHit++;
                         }

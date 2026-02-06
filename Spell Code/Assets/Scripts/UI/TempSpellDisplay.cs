@@ -45,35 +45,35 @@ public class TempSpellDisplay : MonoBehaviour
             if (i < playerSpells.Count)
             {
                 parent.gameObject.SetActive(true);
-                if (playerSpells[i].spellName == "MightOfZeus")
+                if (playerSpells[i].spellName == "AsuranBlades")
                 {
-                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
-                }
-                else if (playerSpells[i].spellName == "GiftOfPromethius")
-                {
-                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
-                }
-                else if (playerSpells[i].spellName == "SkillshotSlash")
-                {
-                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[5];
-                }
-                else if (playerSpells[i].spellName == "Ninja_Build_Blast")
-                {
-                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];
+                    cooldownFills[i].color = new Color32(255, 62, 117, 255);
+                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[0];
                 }
                 else if (playerSpells[i].spellName == "AmonSlash")
                 {
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[1];
                 }
-                else if (playerSpells[i].spellName == "AsuranBlades")
+                else if (playerSpells[i].spellName == "GiftOfPromethius")
                 {
-                    cooldownFills[i].color = new Color32(255, 62, 117, 255);
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[0];
+                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
+                }
+                else if (playerSpells[i].spellName == "MightOfZeus")
+                {
+                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
+                }
+                else if (playerSpells[i].spellName == "Ninja_Build_Blast")
+                {
+                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];
+                }
+                else if (playerSpells[i].spellName == "SkillshotSlash")
+                {
+                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[5];
                 }
                 
                 if (showInputs)

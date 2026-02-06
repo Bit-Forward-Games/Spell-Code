@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Familiar_ArenaStageDataSO
   m_EditorClassIdentifier: 
   platformCenter:
+  - {x: 232, y: -148}
+  - {x: -232, y: -148}
+  - {x: 232, y: 12}
+  - {x: -232, y: 12}
+  - {x: 232, y: -68}
+  - {x: -232, y: -68}
   - {x: 88, y: -100}
   - {x: -88, y: -100}
-  - {x: 232, y: -148}
-  - {x: 232, y: 12}
-  - {x: 232, y: -68}
-  - {x: -232, y: -148}
-  - {x: -232, y: 12}
   - {x: 0, y: -20}
-  - {x: -232, y: -68}
   platformExtent:
   - {x: 24, y: 4}
   - {x: 24, y: 4}
@@ -30,8 +30,8 @@ MonoBehaviour:
   - {x: 24, y: 4}
   - {x: 24, y: 4}
   - {x: 24, y: 4}
-  - {x: 64, y: 4}
   - {x: 24, y: 4}
+  - {x: 64, y: 4}
   solidCenter:
   - {x: 160, y: 0}
   - {x: 128, y: -72}
@@ -56,8 +56,8 @@ MonoBehaviour:
   - {x: 16, y: 224}
   playerSpawnTransform:
   - {x: 176, y: -192, z: 0}
-  - {x: 176, y: 16, z: 0}
   - {x: -176, y: -192, z: 0}
+  - {x: 176, y: 16, z: 0}
   - {x: -176, y: 16, z: 0}
   activatableSolidCenter: []
   activatableSolidExtent: []

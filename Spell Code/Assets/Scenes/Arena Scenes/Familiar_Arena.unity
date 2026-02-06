@@ -188,6 +188,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Familiar_Arena
       objectReference: {fileID: 0}
+    - target: {fileID: 660610975967777689, guid: 6c8c9a51f84974c48af99e191e0cebd7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: 6c8c9a51f84974c48af99e191e0cebd7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -493,7 +497,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 70.5
+  orthographic size: 131
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

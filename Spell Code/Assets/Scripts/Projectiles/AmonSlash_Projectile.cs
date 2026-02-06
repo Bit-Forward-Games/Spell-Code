@@ -35,9 +35,9 @@ public class AmonSlash_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 0,
+                    xOffset = -16,
                     yOffset = 12*2,
-                    width = 31*2,
+                    width = 40*2,
                     height = 24*2,
                     xKnockback = 4,
                     yKnockback = 1,

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f647396f1e68a4f70ba8c231b370aa62
+guid: f3233700d07424c75944de529e5142a7
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6731436239738065677
-    second: Spell_Recharging__Icon-4_0
+      213: 5389410133799498690
+    second: Spell_Recharging__Icon-2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_Recharging__Icon-4_0
+      name: Spell_Recharging__Icon-2_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3fca83697622592a0800000000000000
-      internalID: -6731436239738065677
+      spriteID: 2c3720e56f70bca40800000000000000
+      internalID: 5389410133799498690
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_Recharging__Icon-4_0: -6731436239738065677
+      Spell_Recharging__Icon-2_0: 5389410133799498690
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

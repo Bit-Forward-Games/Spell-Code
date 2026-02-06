@@ -67,8 +67,8 @@ public abstract class SpellData : MonoBehaviour
     public string spellName;
     [HideInInspector]
     public Brand[] brands;
-
-    public ProcCondition[] procConditions;
+    [HideInInspector]
+    public ProcCondition[]procConditions;
 
     public string description;
 

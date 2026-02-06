@@ -44,7 +44,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: c433c6b4fe19b4740b6009b40abf55aa, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.5
   m_Pitch: 1
@@ -145,44 +145,27 @@ MonoBehaviour:
   soundObjects:
   - soundName: 0
     possibleSounds:
-    - {fileID: 8300000, guid: 8471bc2185ed6c5439a84f7f3e01dfed, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    - {fileID: 8300000, guid: f4a1e83d39d29834d94a6f34ab3023e7, type: 3}
+    isRepeatedlyPlaying: 0
   - soundName: 1
     possibleSounds:
     - {fileID: 8300000, guid: c433c6b4fe19b4740b6009b40abf55aa, type: 3}
     - {fileID: 8300000, guid: fe12d7f7227a06e4faeb00a51fc807b8, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    isRepeatedlyPlaying: 0
   - soundName: 2
     possibleSounds:
     - {fileID: 8300000, guid: 2fb09d9ede8f3cf469cdf6069a324db3, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    isRepeatedlyPlaying: 0
   - soundName: 3
     possibleSounds:
     - {fileID: 8300000, guid: ece4c26789322634aa4c709f0b79e113, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    isRepeatedlyPlaying: 0
   - soundName: 4
     possibleSounds:
     - {fileID: 8300000, guid: dbde8fb6eabe76d44a23aebe9010e390, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    isRepeatedlyPlaying: 0
   - soundName: 5
     possibleSounds:
     - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
     - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 8
-    possibleSounds:
-    - {fileID: 8300000, guid: ed7fd9856d0962e43ac3a40f804deb7f, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 7
-    possibleSounds:
-    - {fileID: 8300000, guid: 457b7b3fd6e8ddb48ad6a1a6bab03d94, type: 3}
-    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
-    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
-    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
-    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
-    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 6
-    possibleSounds:
-    - {fileID: 8300000, guid: 8cd3a1bf4d388a842bb2193a89023d5f, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    isRepeatedlyPlaying: 0

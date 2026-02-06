@@ -49,7 +49,7 @@ MonoBehaviour:
   procConditions: 0400000008000000
   description: Leap back throwing 3 shurikens downward, each granting "Demon Aura"
     on hit. If you have 50% or more "Demon Aura", your slide summons a blade
-  cooldown: 120
+  cooldown: 180
   cooldownCounter: 0
   spellInput: 514
   activateFlag: 0

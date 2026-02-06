@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Birdcage_ArenaStageDataSO
   m_EditorClassIdentifier: 
   platformCenter:
-  - {x: 0, y: 108}
-  - {x: 0, y: 28}
-  - {x: 0, y: -52}
-  - {x: 0, y: -132}
+  - {x: 0, y: 116}
+  - {x: 0, y: 36}
+  - {x: 0, y: -44}
+  - {x: 0, y: -124}
   platformExtent:
   - {x: 256, y: 4}
   - {x: 256, y: 4}
@@ -33,9 +33,9 @@ MonoBehaviour:
   - {x: 286, y: 16}
   - {x: 16, y: 224}
   playerSpawnTransform:
+  - {x: 192, y: 120, z: 0}
   - {x: 192, y: -192, z: 0}
   - {x: -192, y: -192, z: 0}
-  - {x: 192, y: 112, z: 0}
-  - {x: -192, y: 112, z: 0}
+  - {x: -192, y: 120, z: 0}
   activatableSolidCenter: []
   activatableSolidExtent: []

@@ -63,7 +63,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public Image p2_spellCard;
     public Image p3_spellCard;
     public Image p4_spellCard;
-    public GameObject[] floppyObjects;
 
     [SerializeField]
     private List<string> p1_choices;
@@ -1365,8 +1364,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
 
             ResetPlayers();
-            HitboxManager.Instance.GetActiveCamera();
-            FindAllFloppyDisks();
         }
 
         // For ONLINE gameplay
@@ -1454,12 +1451,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
     }
 
-    public void FindAllFloppyDisks()
-    {
-        floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk");
-    }
-
-    // ---------------------------------------------------------Central State Serialization Methods-----------------------------------------
+    // Central State Serialization Methods
 
     /// <summary>
     /// Serializes the entire deterministic game state managed by GameManager.

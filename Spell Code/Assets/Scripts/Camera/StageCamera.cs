@@ -10,11 +10,11 @@ using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
 public class StageCamera : MonoBehaviour
 {
     // ===== | Variables | =====
-    [SerializeField] private Vector2 offset = new Vector2(0, 36f);
+    [SerializeField] private Vector2 offset;
     [SerializeField] private float damping;
     [SerializeField] private float minZoom = 180f;
     [SerializeField] private float maxZoom = 1280F;
-    [SerializeField] private float HardSetZoom = 205f;
+    [SerializeField] private float HardSetZoom = 180f;
     [SerializeField] private float minDistance = 360f;
     [SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
@@ -24,7 +24,7 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float screenEdgeBuffer = 50f;
 
     public Vector2 target;
-    public bool lockCamera = true;
+    public bool lockCamera = false;
     private Vector3 vel = Vector3.one;
     private Camera cam;
 
@@ -41,20 +41,19 @@ public class StageCamera : MonoBehaviour
     private void FixedUpdate()
     {
         //if the current scene is main menu, don't do anything
-        //if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
-        //{
-        //    lockCamera = true;
-        //}
-        //else
-        //{
-        //    lockCamera = false;
-        //}
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            lockCamera = true;
+        }
+        else
+        {
+            lockCamera = false;
+        }
 
         // If camera is locked, set to hard zoom and return
         if (lockCamera)
         {
             cam.orthographicSize = HardSetZoom;
-            ApplyShake();
             return;
         }
 
@@ -130,11 +129,11 @@ public class StageCamera : MonoBehaviour
 
     private void ApplyShake()
     {
-        //if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
-        //{
-        //    shakeOffset = Vector3.zero; // Ensure no residual shake during rollback
-        //    return;
-        //}
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            shakeOffset = Vector3.zero; // Ensure no residual shake during rollback
+            return;
+        }
         if (shakeTimeRemaining > 0)
         {
             shakeOffset = Random.insideUnitCircle * shakeMagnitude;
@@ -143,11 +142,6 @@ public class StageCamera : MonoBehaviour
         else
         {
             shakeOffset = Vector3.zero;
-
-            if (lockCamera)
-            {
-                transform.position = new Vector3(0, 0, -10);
-            }
         }
 
         transform.position += shakeOffset;

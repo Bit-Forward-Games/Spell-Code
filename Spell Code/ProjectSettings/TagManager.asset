@@ -51,8 +51,5 @@ TagManager:
   - name: GameplayEffects
     uniqueID: 3204368189
     locked: 0
-  - name: UI
-    uniqueID: 1388315005
-    locked: 0
   m_RenderingLayers:
   - Default

@@ -10,7 +10,7 @@ public class MightOfZeus : SpellData
     {
         spellName = "MightOfZeus";
         brands = new Brand[]{ Brand.Killeez };
-        cooldown = 240;
+        cooldown = 300;
         spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };

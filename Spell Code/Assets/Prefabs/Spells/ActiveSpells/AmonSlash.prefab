@@ -50,7 +50,7 @@ MonoBehaviour:
   description: Lunge forward slashing in front of you, granting "Demon Aura" on hit.
     Your next basic attack consumes all "Demon Aura" and deals increased damage based
     on how much is consumed.
-  cooldown: 120
+  cooldown: 180
   cooldownCounter: 0
   spellInput: 3074
   activateFlag: 0

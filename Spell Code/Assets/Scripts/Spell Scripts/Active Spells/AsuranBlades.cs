@@ -10,7 +10,7 @@ public class AsuranBlades : SpellData
     {
         spellName = "AsuranBlades";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 120;
+        cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };

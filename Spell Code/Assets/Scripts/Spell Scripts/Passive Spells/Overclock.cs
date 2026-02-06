@@ -21,17 +21,10 @@ public class Overclock : SpellData
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
         //OnCast proc: Check if in flow state, if so, spawn an Overclock Explosion
-        switch(targetProcCon)
+        if (owner.flowState > 0)
         {
-            case ProcCondition.OnCast:
-                if (owner.flowState > 0)
-                {
-                    activateFlag = true;
-                }
-                else { activateFlag = false; }
-                break;
-            default:
-                break;
+            activateFlag = true;
         }
+        else { activateFlag = false; }
     }
 }

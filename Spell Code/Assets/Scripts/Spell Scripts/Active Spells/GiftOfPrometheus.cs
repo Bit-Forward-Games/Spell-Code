@@ -5,7 +5,7 @@ public class GiftOfPrometheus : SpellData
     public GiftOfPrometheus()
     {
         spellName = "GiftOfPromethius";
-        cooldown = 480;
+        cooldown = 600;
         brands = new Brand[] { Brand.Killeez };
         spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
         spellType = SpellType.Active;

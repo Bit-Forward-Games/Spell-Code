@@ -48,7 +48,7 @@ MonoBehaviour:
   brands: 03000000
   procConditions: 
   description: 
-  cooldown: 240
+  cooldown: 300
   cooldownCounter: 0
   spellInput: 2
   activateFlag: 0
@@ -60,5 +60,4 @@ MonoBehaviour:
   - {fileID: 3459829395073810853, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
   - {fileID: 3459829395073810853, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
   - {fileID: 3459829395073810853, guid: 0db03aee83d745f4a8b3fef80c25e12b, type: 3}
-  projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 7d78ba47b3ef5b74caea129a298fda6b, type: 3}

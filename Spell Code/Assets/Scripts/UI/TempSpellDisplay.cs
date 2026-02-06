@@ -44,6 +44,19 @@ public class TempSpellDisplay : MonoBehaviour
             if (i < playerSpells.Count)
             {
                 parent.gameObject.SetActive(true);
+                if (playerSpells[i].spellName == "MightOfZeus" || playerSpells[i].spellName == "GiftOfPromethius")
+                {
+                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                }
+                else if (playerSpells[i].spellName == "SkillshotSlash" || playerSpells[i].spellName == "Ninja_Build_Blast")
+                {
+                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                }
+                else if (playerSpells[i].spellName == "AmonSlash" || playerSpells[i].spellName == "AsuranBlades")
+                {
+                    cooldownFills[i].color = new Color32(255, 62, 117, 255);
+                }
+                
                 if (showInputs)
                 {
                     spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);

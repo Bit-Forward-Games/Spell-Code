@@ -48,7 +48,7 @@ MonoBehaviour:
   brands: 
   procConditions: 
   description: 
-  cooldown: 600
+  cooldown: 480
   cooldownCounter: 0
   spellInput: 11524
   activateFlag: 0

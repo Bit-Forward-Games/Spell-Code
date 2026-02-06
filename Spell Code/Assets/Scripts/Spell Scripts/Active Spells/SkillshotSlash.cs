@@ -6,7 +6,7 @@ public class SkillshotSlash : SpellData
     {
         spellName = "SkillshotSlash";
         brands = new Brand[]{ Brand.VWave };
-        cooldown = 240;
+        cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
@@ -24,13 +24,12 @@ public class SkillshotSlash : SpellData
         //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State
         if (owner.flowState > 0)
         {
-            defender.TakeEffectDamage(15);
+            defender.TakeEffectDamage(10);
         }
         //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
         if (defender.hitboxData.sweetSpot)
         {
             owner.flowState = PlayerController.maxFlowState;
-            Debug.Log("Sweet Spot Hit! Flow State set to 300.");
         }
     }
 }

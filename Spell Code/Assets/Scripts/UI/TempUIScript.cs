@@ -77,23 +77,23 @@ public class TempUIScript : MonoBehaviour
             }
 
             flowStateVals[i].enabled = true;
-            flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / 300;
+            flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / PlayerController.maxFlowState;
 
             stockStabilityVals[i].enabled = true;
             stockStabilityVals[i].text = "Crit: " + GameManager.Instance.players[i].stockStability;
             
             demonAuraVals[i].enabled = true;
-            demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / 100;
+            demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
             
             repsVals[i].enabled = true;
             repsVals[i].text = "REPS: " + GameManager.Instance.players[i].reps;
 
-            momentumVals[i].enabled = true;
-            momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;
+            //momentumVals[i].enabled = true;
+            //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;
 
-            if (GameManager.Instance.players[i].slimed)
-                slimedVals[i].enabled = true;
-            else slimedVals[i].enabled = false;
+            //if (GameManager.Instance.players[i].slimed)
+            //    slimedVals[i].enabled = true;
+            //else slimedVals[i].enabled = false;
         }
     }
 

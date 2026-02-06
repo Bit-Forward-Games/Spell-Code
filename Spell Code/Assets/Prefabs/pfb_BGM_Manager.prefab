@@ -150,8 +150,6 @@ MonoBehaviour:
     previousSong: {fileID: 0}
   - sceneName: Gameplay
     availableSongs:
-    - {fileID: 8300000, guid: d03e4d61b27dede48849752952c1887e, type: 3}
-    - {fileID: 8300000, guid: 09f7a01b7069f49469eb94ff5f458566, type: 3}
     - {fileID: 8300000, guid: c21ef420e7687114fba8481171884716, type: 3}
     - {fileID: 8300000, guid: ccf1805bc0ef0af4b86ef409b8a9e6cc, type: 3}
     - {fileID: 8300000, guid: 9868b87a8065dab41838c1e9d3cb104f, type: 3}

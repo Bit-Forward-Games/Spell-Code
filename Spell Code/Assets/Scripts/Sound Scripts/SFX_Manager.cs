@@ -95,7 +95,7 @@ public class SFX_Manager : MonoBehaviour
         sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
         //pick a random sound from _possibleSounds to play
-        int _randomSoundIndex = UnityEngine.Random.Range(0, _soundObject.possibleSounds.Count - 1);
+        int _randomSoundIndex = UnityEngine.Random.Range(0, _soundObject.possibleSounds.Count);
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_soundObject.possibleSounds[_randomSoundIndex], sfxAudioSource.volume);

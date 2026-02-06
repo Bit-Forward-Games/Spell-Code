@@ -145,7 +145,7 @@ MonoBehaviour:
   soundObjects:
   - soundName: 0
     possibleSounds:
-    - {fileID: 8300000, guid: f4a1e83d39d29834d94a6f34ab3023e7, type: 3}
+    - {fileID: 8300000, guid: 8471bc2185ed6c5439a84f7f3e01dfed, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 1
     possibleSounds:
@@ -176,6 +176,11 @@ MonoBehaviour:
   - soundName: 7
     possibleSounds:
     - {fileID: 8300000, guid: 457b7b3fd6e8ddb48ad6a1a6bab03d94, type: 3}
+    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
+    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
+    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
+    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
+    - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 6
     possibleSounds:

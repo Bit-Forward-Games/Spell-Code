@@ -1056,6 +1056,7 @@ PrefabInstance:
     - target: {fileID: 94458021383639769, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_text
       value: 
+<<<<<<< HEAD
       objectReference: {fileID: 0}
     - target: {fileID: 194663539538574216, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
@@ -1261,6 +1262,13 @@ PrefabInstance:
       propertyPath: 'cooldownBars.Array.data[5]'
       value: 
       objectReference: {fileID: 508683554}
+=======
+      objectReference: {fileID: 1452465067}
+    - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 1452465067}
+>>>>>>> Dev
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1305,6 +1313,7 @@ PrefabInstance:
       propertyPath: onlineMenuUI
       value: 
       objectReference: {fileID: 1101021164}
+<<<<<<< HEAD
     - target: {fileID: 5663138334492900675, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1393,6 +1402,8 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+=======
+>>>>>>> Dev
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

@@ -5,25 +5,25 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class CodeE_BasicProjectile : BaseProjectile
+public class QuarterReportCrit_prj : BaseProjectile
 {
 
-    public CodeE_BasicProjectile()
+    public QuarterReportCrit_prj()
     {
-        projName = "CodeE_Basic_Projectile";
+        projName = "QuarterReportCrit";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 20; // lasts for 300 logic frames
+        lifeSpan = 180; 
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, true);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6 }, true);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-
+     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 6); // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromFloat((facingRight ? 1 : -1) * 5.33f); // Set horizontal speed based on facing direction
     }
 
     public override void LoadProjectile()
@@ -35,16 +35,15 @@ public class CodeE_BasicProjectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -5,
-                    yOffset = 5,
-                    width = 20,
-                    height = 10,
-                    xKnockback = 3,
-                    yKnockback = 7,
-                    damage = 10,
-                    hitstun = 15,
-                    attackLvl = 1,
-                    basicAttackHitbox = true,
+                    xOffset = -48,
+                    yOffset = 48,
+                    width = 48*2,
+                    height = 48*2,
+                    xKnockback = 6,
+                    yKnockback = 8,
+                    damage = 20,
+                    hitstun = 45,
+                    attackLvl = 3,
                 }
             },
             hitbox2 = new List<HitboxData>(),

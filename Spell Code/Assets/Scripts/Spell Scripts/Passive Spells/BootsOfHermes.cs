@@ -36,12 +36,17 @@ public class BootsOfHermes : SpellData
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        //OnUpdate proc: Check if grounded, if so, set extra jumps based on reps
-        if (owner.isGrounded)
+        switch(targetProcCon)
         {
-            //activateFlag = true;
-            hermesJumps = Mathf.FloorToInt(owner.reps / 3);
+            case ProcCondition.OnUpdate:
+                //OnUpdate proc: Check if grounded, if so, set extra jumps based on reps
+                if (owner.isGrounded)
+                {
+                    hermesJumps = Mathf.FloorToInt(owner.reps / 3);
+                }
+                break;
+            default:
+                break;
         }
-        //else { activateFlag = false; }
     }
 }

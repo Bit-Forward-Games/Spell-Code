@@ -16,7 +16,7 @@ public class QuarterReport : SpellData
         procConditions = new ProcCondition[0] {};
         description = "Send forth your quarterly projections materialized. This spell has a chance equal to your \"Stock Stability\" to gain increased size and damage. Gain 15% \"Stock Stability\".";
         projectilePrefabs = new GameObject[2];
-        spawnOffsetX = 10;
+        spawnOffsetX = 15;
         spawnOffsetY = 20;
     }
 
@@ -39,7 +39,8 @@ public class QuarterReport : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 1)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[(GameManager.Instance.seededRandom.Next(0,100) < owner.stockStability?1:0)].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                bool doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[(doesCrit?1:0)].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
             cooldownCounter = cooldown;
         }

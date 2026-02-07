@@ -29,6 +29,9 @@ public class GameManager : MonoBehaviour
 
     public bool isRunning;
     public bool isSaved;
+
+    public System.Random seededRandom;
+
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
@@ -161,6 +164,9 @@ public class GameManager : MonoBehaviour
         {
             onlineMenuUI.SetActive(false);
         }
+
+        seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
+
 
         SetStage(-1);
     }
@@ -1350,7 +1356,7 @@ public class GameManager : MonoBehaviour
         {
             do
             {
-                newStageIndex = Random.Range(0, stages.Length);
+                newStageIndex = seededRandom.Next(0, stages.Length);
             } while (currentStageIndex == newStageIndex);
         }
 

@@ -15,7 +15,7 @@ public class ShopManager : MonoBehaviour
     public Canvas shop;
     private GameManager gameManager;
 
-    public System.Random myRandom;
+    
 
     private bool allPlayersChosen = false;
     private bool backToGameplay = false;
@@ -531,7 +531,7 @@ public class ShopManager : MonoBehaviour
 
 
         //get a random spell
-        int randomInt = myRandom.Next(0, spells.Count);
+        int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
         string spellToAdd = spells[randomInt];
 
         if (index == 0 && !p1_choices.Contains(spellToAdd))

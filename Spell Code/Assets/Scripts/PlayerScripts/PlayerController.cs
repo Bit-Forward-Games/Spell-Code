@@ -103,6 +103,7 @@ public class PlayerController : MonoBehaviour
     public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
     public ushort demonAura = 0;
     public const ushort maxDemonAura = 100;
+    public ushort demonAuraLifeSpanTimer = 0;
     public ushort reps = 0;
     //public ushort momentum = 0;
     //public bool slimed = false;
@@ -870,26 +871,35 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 0.95f, 0.95f);
                             break;
                         case 4:
                             stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.05f, 1.05f);
                             break;
                         case 6:
                             stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
+                            //play the input code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.1f, 1.1f);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
                             break;
                     }
+
                     // Increment the last 4 bits of stateSpecificArg by 1
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
@@ -984,6 +994,9 @@ public class PlayerController : MonoBehaviour
                             //make input display flash green to indicate correct input sequence
                             inputDisplay.color = Color.green;
 
+                            //play successful code cast sound
+                            SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+
                             break;
                         }
 
@@ -1018,6 +1031,17 @@ public class PlayerController : MonoBehaviour
                     basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
+
+                    if (stateSpecificArg != 0)
+                    {
+                        //Play failed code weave sound
+                        SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+                    }
+                    else if(stateSpecificArg == 0)
+                    {
+                        //play successful code cast sound
+                        SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                    }
                 }
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
@@ -1099,6 +1123,18 @@ public class PlayerController : MonoBehaviour
         //Check conditions of all spells with the onupdate condition
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
+        if (demonAura > 0)
+        {
+            if (demonAuraLifeSpanTimer > 0)
+            {
+                demonAuraLifeSpanTimer--;
+            }
+            else
+            {
+                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
+            }
+
+        }
         UpdateResources();
 
         //check player collisions
@@ -1633,6 +1669,11 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //play codeweave sound
+                SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
+
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 1f, 1f);
+
                 if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
@@ -1647,7 +1688,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
 
                 //play the exit weave sound
-                SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
+                //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 
@@ -1676,6 +1717,9 @@ public class PlayerController : MonoBehaviour
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
+                //begin to continuously play the code weave sound
+                SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
+
                 ClearInputDisplay();
                 break;
         }
@@ -1795,6 +1839,7 @@ public class PlayerController : MonoBehaviour
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
             CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+            
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt);
@@ -1809,10 +1854,15 @@ public class PlayerController : MonoBehaviour
             {
                 CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
+
+                if(attacker.demonAura > 0)
+                {
+                    attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
+                }
             }
 
             //subtract demon aura based on the hitbox's damage
-            demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
+            //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
 
         }
@@ -2033,6 +2083,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
+        bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
         //bw.Write(momentum);
         //bw.Write(slimed);
@@ -2082,6 +2133,7 @@ public class PlayerController : MonoBehaviour
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
+        demonAuraLifeSpanTimer = br.ReadUInt16();
         reps = br.ReadUInt16();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();

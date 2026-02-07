@@ -44,10 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f69e7e51f513d3f438aee268f066873b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: Ninja_Build_Blast
-  brands: 
-  procConditions: 
-  description: 
+  spellName: ReloadShot
+  brands: 01000000
+  procConditions: 04000000
+  description: Project forth a massive orb which consumes all of your "Flow State"
+    and resets all spell-code cooldowns. Consumes all "Flow State" to reduce this
+    cooldown. Hit this SpellCode early to instead enter "Flow State"
   cooldown: 480
   cooldownCounter: 0
   spellInput: 53764

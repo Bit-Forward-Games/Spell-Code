@@ -1,0 +1,767 @@
+fileFormatVersion: 2
+guid: 515ca3be24600754b913a28a9bd732a4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3021475791273506554
+    second: QuarterReport-Sheet_0
+  - first:
+      213: 3914623749673647215
+    second: QuarterReport-Sheet_1
+  - first:
+      213: -6845580802214855568
+    second: QuarterReport-Sheet_2
+  - first:
+      213: -3402824546413383870
+    second: QuarterReport-Sheet_3
+  - first:
+      213: -3681260488527687265
+    second: QuarterReport-Sheet_4
+  - first:
+      213: 8621772378033671102
+    second: QuarterReport-Sheet_5
+  - first:
+      213: -3646935436710165520
+    second: QuarterReport-Sheet_6
+  - first:
+      213: 2081041687081072901
+    second: QuarterReport-Sheet_7
+  - first:
+      213: -3752810063373811809
+    second: QuarterReport-Sheet_8
+  - first:
+      213: 2543574042281786817
+    second: QuarterReport-Sheet_9
+  - first:
+      213: 6842189355734244897
+    second: QuarterReport-Sheet_10
+  - first:
+      213: -6352312413836609909
+    second: QuarterReport-Sheet_11
+  - first:
+      213: -8558303810103822275
+    second: QuarterReport-Sheet_12
+  - first:
+      213: 4818329225651467769
+    second: QuarterReport-Sheet_13
+  - first:
+      213: -4230571983824343844
+    second: QuarterReport-Sheet_14
+  - first:
+      213: 6811065520131828505
+    second: QuarterReport-Sheet_15
+  - first:
+      213: -7259417856176059153
+    second: QuarterReport-Sheet_16
+  - first:
+      213: -1729772704252704160
+    second: QuarterReport-Sheet_17
+  - first:
+      213: 3668236613720534417
+    second: QuarterReport-Sheet_18
+  - first:
+      213: -1422606023813877799
+    second: QuarterReport-Sheet_19
+  - first:
+      213: -3789382501119425741
+    second: QuarterReport-Sheet_20
+  - first:
+      213: 5948104133981020578
+    second: QuarterReport-Sheet_21
+  - first:
+      213: 7733628346970298460
+    second: QuarterReport-Sheet_22
+  - first:
+      213: -972783795684840964
+    second: QuarterReport-Sheet_23
+  - first:
+      213: -8701541865102676029
+    second: QuarterReport-Sheet_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 64
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60943bbb6cf8116d0800000000000000
+      internalID: -3021475791273506554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 64
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6cfa9c4f89835630800000000000000
+      internalID: 3914623749673647215
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 64
+        width: 25
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07cffb2a78c9ff0a0800000000000000
+      internalID: -6845580802214855568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 76
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24fec0e9a1db6c0d0800000000000000
+      internalID: -3402824546413383870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 64
+        width: 25
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9150aff61989ecc0800000000000000
+      internalID: -3681260488527687265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 60
+        width: 25
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebbc8f63c40b6a770800000000000000
+      internalID: 8621772378033671102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 61
+        width: 25
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f34b18ea8b736dc0800000000000000
+      internalID: -3646935436710165520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 64
+        width: 25
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5093f39736851ec10800000000000000
+      internalID: 2081041687081072901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 64
+        width: 25
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9fb71f61275bebc0800000000000000
+      internalID: -3752810063373811809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 64
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cd3c127d179c4320800000000000000
+      internalID: 2543574042281786817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 64
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12e9f72b7f654fe50800000000000000
+      internalID: 6842189355734244897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 64
+        width: 25
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b86f6fef38d08d7a0800000000000000
+      internalID: -6352312413836609909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 64
+        width: 25
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d38b3ee470cca3980800000000000000
+      internalID: -8558303810103822275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f5b6d1f6e42ed240800000000000000
+      internalID: 4818329225651467769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdc2e6bf13df945c0800000000000000
+      internalID: -4230571983824343844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 7
+        width: 25
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91b6e550104c58e50800000000000000
+      internalID: 6811065520131828505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fec8f7efbed514b90800000000000000
+      internalID: -7259417856176059153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 2
+        width: 25
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06ac9d4e3ec9ef7e0800000000000000
+      internalID: -1729772704252704160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 3
+        width: 25
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19de4e8d3c138e230800000000000000
+      internalID: 3668236613720534417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 7
+        width: 25
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9df2e3fcb53e14ce0800000000000000
+      internalID: -1422606023813877799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 228
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33302b631b8696bc0800000000000000
+      internalID: -3789382501119425741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a1a8f80239eb8250800000000000000
+      internalID: 5948104133981020578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 7
+        width: 25
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c585e0ec10e535b60800000000000000
+      internalID: 7733628346970298460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 7
+        width: 27
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf9e2f6ba4aff72f0800000000000000
+      internalID: -972783795684840964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: QuarterReport-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 7
+        width: 26
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3cf6d54c6c9ed3780800000000000000
+      internalID: -8701541865102676029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      QuarterReport-Sheet_0: -3021475791273506554
+      QuarterReport-Sheet_1: 3914623749673647215
+      QuarterReport-Sheet_10: 6842189355734244897
+      QuarterReport-Sheet_11: -6352312413836609909
+      QuarterReport-Sheet_12: -8558303810103822275
+      QuarterReport-Sheet_13: 4818329225651467769
+      QuarterReport-Sheet_14: -4230571983824343844
+      QuarterReport-Sheet_15: 6811065520131828505
+      QuarterReport-Sheet_16: -7259417856176059153
+      QuarterReport-Sheet_17: -1729772704252704160
+      QuarterReport-Sheet_18: 3668236613720534417
+      QuarterReport-Sheet_19: -1422606023813877799
+      QuarterReport-Sheet_2: -6845580802214855568
+      QuarterReport-Sheet_20: -3789382501119425741
+      QuarterReport-Sheet_21: 5948104133981020578
+      QuarterReport-Sheet_22: 7733628346970298460
+      QuarterReport-Sheet_23: -972783795684840964
+      QuarterReport-Sheet_24: -8701541865102676029
+      QuarterReport-Sheet_3: -3402824546413383870
+      QuarterReport-Sheet_4: -3681260488527687265
+      QuarterReport-Sheet_5: 8621772378033671102
+      QuarterReport-Sheet_6: -3646935436710165520
+      QuarterReport-Sheet_7: 2081041687081072901
+      QuarterReport-Sheet_8: -3752810063373811809
+      QuarterReport-Sheet_9: 2543574042281786817
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

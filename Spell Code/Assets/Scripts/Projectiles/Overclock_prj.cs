@@ -42,7 +42,7 @@ public class Overclock_prj : BaseProjectile
                     height = 128,
                     xKnockback = 2,
                     yKnockback = 2,
-                    damage = 15,
+                    damage = 10,
                     hitstun = 20,
                     attackLvl = 2,
                     //cancelOptions = new List<int> { } // No cancel options

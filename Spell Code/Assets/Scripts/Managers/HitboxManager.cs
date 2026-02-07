@@ -356,7 +356,7 @@ public class HitboxManager : MonoBehaviour
                 FixedVec2 projOrigin = projectile.position;
                 //i defintely need patrick to fix this
                 Fixed drawX = projectile.position.X + fixedOffsetX;
-                Fixed drawY = projectile.position.Y + fixedOffsetY /*- Fixed.FromInt(hitbox.height)*/; // Bottom edge
+                Fixed drawY = projectile.position.Y + fixedOffsetY - Fixed.FromInt(hitbox.height); // Bottom edge
 
                 // Convert the calculated FixedVec2 position to UnityEngine.Vector2 for BoxRenderer
                 Vector2 drawPos = new Vector2(drawX.ToFloat(), drawY.ToFloat());

@@ -15,7 +15,7 @@ public class ShopManager : MonoBehaviour
     public Canvas shop;
     private GameManager gameManager;
 
-    
+    public System.Random myRandom;
 
     private bool allPlayersChosen = false;
     private bool backToGameplay = false;
@@ -53,7 +53,7 @@ public class ShopManager : MonoBehaviour
     {
         gameManager = GameManager.Instance;
 
-        //myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
+        myRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
         Debug.Log("SHOP ENTERED");
 
         if (gameManager.players[2] == null)
@@ -297,6 +297,9 @@ public class ShopManager : MonoBehaviour
             playerSpells.Add(gameManager.players[index].spellList[i].spellName);
         }
 
+        //remove spell since it doesn't actually really exist
+        spells.Remove("Active_Spell_4");
+
         //Remove all passives for which the player has no actives for
         if (!gameManager.players[index].vWave)
         {
@@ -310,14 +313,14 @@ public class ShopManager : MonoBehaviour
         {
             spells.Remove("DemonicDescent");
         }
-        if (!gameManager.players[index].bigStox)
-        {
-            spells.Remove("BlueChipTrader");
-        }
+        //if (!gameManager.players[index].bigStox)
+        //{
+        //    spells.Remove("BootsOfHermes");
+        //}
 
 
         //get a random spell
-        int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
+        int randomInt = myRandom.Next(0, spells.Count);
         string spellToAdd = spells[randomInt];
 
         //if the player doesn't have the spell, return it

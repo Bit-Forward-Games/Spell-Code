@@ -293,15 +293,6 @@ public class PlayerController : MonoBehaviour
         //momentum = 0;
         //slimed = false;
 
-        //call the load spell function for the starting spell to initialize the spell's variables and projectile data
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            if (spellList[i] != null)
-            {
-                spellList[i].owner = this;
-                spellList[i].LoadSpell();
-            }
-        }
 
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -987,7 +978,6 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
-                            spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
                             times.Add(timer);
@@ -1069,10 +1059,7 @@ public class PlayerController : MonoBehaviour
 
                     SetState(PlayerState.Tech);
                 }
-                if (isGrounded)
-                {
-                    LerpHspd(Fixed.FromInt(0), 3);
-                }
+
 
                 stateSpecificArg--;
                 break;

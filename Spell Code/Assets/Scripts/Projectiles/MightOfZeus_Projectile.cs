@@ -14,7 +14,7 @@ public class MightOfZeus_Projectile : BaseProjectile
         projName = "MightOfZeus";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 60; // lasts for 300 logic frames
+        lifeSpan = 30; // lasts for 300 logic frames
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
 
@@ -36,10 +36,10 @@ public class MightOfZeus_Projectile : BaseProjectile
                 new HitboxData
                 {
                     xOffset = -10,
-                    yOffset = 130,
+                    yOffset = 160,
                     width = 20,
                     height = 160,
-                    xKnockback = 2,
+                    xKnockback = 0,
                     yKnockback = 1,
                     damage = 10,
                     hitstun = 30,

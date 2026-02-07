@@ -28,9 +28,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool isRunning;
     public bool isSaved;
-
-    public System.Random seededRandom;
-
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
@@ -157,9 +154,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             onlineMenuUI.SetActive(false);
         }
-
-        seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
-
 
         SetStage(-1);
         //StartCoroutine(End());
@@ -1338,7 +1332,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             do
             {
-                newStageIndex = seededRandom.Next(0, stages.Length);
+                newStageIndex = Random.Range(0, stages.Length);
             } while (currentStageIndex == newStageIndex);
         }
 
@@ -1422,7 +1416,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p1_choices.Add("SkillshotSlash");
             p1_choices.Add("MightOfZeus");
             p1_choices.Add("AmonSlash");
-            p1_choices.Add("QuarterReport");
         }
         if (index == 1)
         {
@@ -1430,7 +1423,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p2_choices.Add("SkillshotSlash");
             p2_choices.Add("MightOfZeus");
             p2_choices.Add("AmonSlash");
-            p2_choices.Add("QuarterReport");
         }
         if (index == 2)
         {
@@ -1438,7 +1430,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p3_choices.Add("SkillshotSlash");
             p3_choices.Add("MightOfZeus");
             p3_choices.Add("AmonSlash");
-            p3_choices.Add("QuarterReport");
         }
         if (index == 3)
         {
@@ -1446,7 +1437,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p4_choices.Add("SkillshotSlash");
             p4_choices.Add("MightOfZeus");
             p4_choices.Add("AmonSlash");
-            p4_choices.Add("QuarterReport");
         }
 
     }

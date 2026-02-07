@@ -6,16 +6,16 @@ using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
-using System;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
-    [NonSerialized]
+
+    [HideInInspector]
     public string projName;
-    [NonSerialized]
+    [HideInInspector]
     public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
-    [NonSerialized]
+    [HideInInspector]
     public byte activeHitboxGroupIndex = 0;
     public Fixed hSpeed;
     public Fixed vSpeed;
@@ -23,15 +23,10 @@ public abstract class BaseProjectile : MonoBehaviour
     public bool facingRight;
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on
-    [NonSerialized]
     public ushort lifeSpan = 60; //in logic frames
-    [NonSerialized]
     public PlayerController owner;
-    [NonSerialized]
     public SpellData ownerSpell;
-    [NonSerialized]
     public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
-    [NonSerialized]
     public AnimFrames animFrames;
     public bool deleteOnHit = true;
 

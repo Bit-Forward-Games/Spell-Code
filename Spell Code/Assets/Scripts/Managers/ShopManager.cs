@@ -310,10 +310,10 @@ public class ShopManager : MonoBehaviour
         {
             spells.Remove("DemonicDescent");
         }
-        //if (!gameManager.players[index].bigStox)
-        //{
-        //    spells.Remove("BootsOfHermes");
-        //}
+        if (!gameManager.players[index].bigStox)
+        {
+            spells.Remove("BlueChipTrader");
+        }
 
 
         //get a random spell

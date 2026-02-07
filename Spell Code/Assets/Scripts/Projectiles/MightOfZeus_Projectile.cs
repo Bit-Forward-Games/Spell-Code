@@ -16,7 +16,7 @@ public class MightOfZeus_Projectile : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 60; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -36,7 +36,7 @@ public class MightOfZeus_Projectile : BaseProjectile
                 new HitboxData
                 {
                     xOffset = -10,
-                    yOffset = 160,
+                    yOffset = 130,
                     width = 20,
                     height = 160,
                     xKnockback = 2,

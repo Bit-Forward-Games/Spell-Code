@@ -69,7 +69,7 @@ public abstract class SpellData : MonoBehaviour
     public string spellName;
     [NonSerialized]
     public Brand[] brands;
-
+    [NonSerialized]
     public ProcCondition[] procConditions;
 
     [NonSerialized]

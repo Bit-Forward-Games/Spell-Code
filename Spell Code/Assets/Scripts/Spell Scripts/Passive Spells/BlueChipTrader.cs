@@ -18,6 +18,10 @@ public class BlueChipTrader : SpellData
         description = "Gain 5% \"Stock Stability\" upon hitting your basic spell, consumed upon Using your next spell-code, ";
     }
 
+    public override void LoadSpell()
+    {
+        storedStockStability = 0;
+    }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
         switch(targetProcCon)
@@ -29,6 +33,8 @@ public class BlueChipTrader : SpellData
             case ProcCondition.OnCastSpell:
                 owner.stockStability -= storedStockStability;
                 storedStockStability = 0;
+                break;
+            default:
                 break;
         }
     }

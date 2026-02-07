@@ -49,5 +49,5 @@ MonoBehaviour:
     upon Using your next spell-code, '
   projectilePrefabs: []
   projectileInstances: []
-  shopSprite: {fileID: -7595080950297548490, guid: 6b7c0970382d32845a70158744ba8b78, type: 3}
+  shopSprite: {fileID: 21300000, guid: 6b7c0970382d32845a70158744ba8b78, type: 3}
   storedStockStability: 0

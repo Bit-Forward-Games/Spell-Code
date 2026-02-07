@@ -987,6 +987,7 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
+                            spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
                             times.Add(timer);

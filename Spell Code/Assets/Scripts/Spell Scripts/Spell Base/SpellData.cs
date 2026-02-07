@@ -51,6 +51,7 @@ public enum ProcCondition
     OnCast,
     OnCastBasic,
     OnCastSpell,
+    ActiveOnCast,
     OnKill,
     OnDeath,
     OnUpdate
@@ -71,6 +72,7 @@ public abstract class SpellData : MonoBehaviour
 
     public ProcCondition[] procConditions;
 
+    [NonSerialized]
     public string description;
 
     //[Header("Casting Requirements")]

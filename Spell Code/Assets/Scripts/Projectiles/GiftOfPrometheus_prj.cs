@@ -12,7 +12,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
     public GiftOfPrometheus_Projectile()
     {
         projName = "GiftOfPrometheus";
-        lifeSpan = 120; // lasts for 120 logic frames
+        lifeSpan = 300; // lasts for 120 logic frames
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4 }, false);
     }

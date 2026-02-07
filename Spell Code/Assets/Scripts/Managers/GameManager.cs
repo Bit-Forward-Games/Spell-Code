@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool isRunning;
     public bool isSaved;
+
+    public System.Random seededRandom;
+
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
@@ -154,6 +157,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             onlineMenuUI.SetActive(false);
         }
+
+        seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
+
 
         SetStage(-1);
         //StartCoroutine(End());
@@ -1332,7 +1338,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             do
             {
-                newStageIndex = Random.Range(0, stages.Length);
+                newStageIndex = seededRandom.Next(0, stages.Length);
             } while (currentStageIndex == newStageIndex);
         }
 

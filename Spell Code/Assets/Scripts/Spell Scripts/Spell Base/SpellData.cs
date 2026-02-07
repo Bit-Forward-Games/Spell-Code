@@ -6,6 +6,7 @@ using System.IO;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using System;
 
 /*public enum SpellDirection 
 { 
@@ -63,9 +64,9 @@ public abstract class SpellData : MonoBehaviour
 {
     
     //[Header("Identification & Network")]
-    [HideInInspector]
+    [NonSerialized]
     public string spellName;
-    [HideInInspector]
+    [NonSerialized]
     public Brand[] brands;
 
     public ProcCondition[] procConditions;
@@ -74,21 +75,21 @@ public abstract class SpellData : MonoBehaviour
 
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;
-    //[HideInInspector]
+    [NonSerialized]
     public int cooldown;
-    //[HideInInspector]
+    [NonSerialized]
     public int cooldownCounter = 0;
-    [HideInInspector]
+    [NonSerialized]
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
-    [HideInInspector]
+    [NonSerialized]
     public bool activateFlag = false;
-    [HideInInspector]
+    [NonSerialized]
     public PlayerController owner;
-    [HideInInspector]
+    [NonSerialized]
     public SpellType spellType;
-    [HideInInspector]
+    [NonSerialized]
     public int spawnOffsetX = 10;
-    [HideInInspector]
+    [NonSerialized]
     public int spawnOffsetY = 15;
 
     //[Header("Prefab")]

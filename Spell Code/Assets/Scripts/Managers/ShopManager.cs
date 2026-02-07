@@ -297,9 +297,6 @@ public class ShopManager : MonoBehaviour
             playerSpells.Add(gameManager.players[index].spellList[i].spellName);
         }
 
-        //remove spell since it doesn't actually really exist
-        spells.Remove("Active_Spell_4");
-
         //Remove all passives for which the player has no actives for
         if (!gameManager.players[index].vWave)
         {

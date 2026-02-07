@@ -77,12 +77,12 @@ SpriteRenderer:
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
   m_SortingOrder: 0
-  m_Sprite: {fileID: 6811065520131828505, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
+  m_Sprite: {fileID: 8970635114363979675, guid: bd57759d504041842a3692beb51cc424, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 64, y: 64}
+  m_Size: {x: 192, y: 192}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -100,31 +100,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e581b915043ae7f4690c7f595be7e45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: QuarterReport
-  projectileHitboxes: []
   sprites:
-  - {fileID: -8558303810103822275, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: 4818329225651467769, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -4230571983824343844, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: 6811065520131828505, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -7259417856176059153, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -1729772704252704160, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: 3668236613720534417, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -1422606023813877799, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -3789382501119425741, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: 5948104133981020578, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: 7733628346970298460, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  - {fileID: -972783795684840964, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  activeHitboxGroupIndex: 0
+  - {fileID: -4436652590211591170, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: -7083273865226165024, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: 9162392592085978537, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: -3909535105559639021, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: -7528721309258654649, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: 8970635114363979675, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: -4220970608821274060, guid: bd57759d504041842a3692beb51cc424, type: 3}
+  - {fileID: 3818321675728674902, guid: bd57759d504041842a3692beb51cc424, type: 3}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 45
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000
-    loopAnim: 1
   deleteOnHit: 1

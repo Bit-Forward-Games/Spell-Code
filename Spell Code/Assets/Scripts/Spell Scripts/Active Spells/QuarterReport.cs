@@ -10,11 +10,11 @@ public class QuarterReport : SpellData
     {
         spellName = "QuarterReport";
         brands = new Brand[] { Brand.BigStox };
-        cooldown = 180;
+        cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
-        description = "TEMP_TEXT";
+        procConditions = new ProcCondition[0] {};
+        description = "Send forth your quarterly projections materialized. This spell has a chance equal to your \"Stock Stability\" to gain increased size and damage. Gain 15% \"Stock Stability\".";
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 10;
         spawnOffsetY = 20;
@@ -45,9 +45,13 @@ public class QuarterReport : SpellData
         }
     }
 
+    public override void LoadSpell()
+    {
+        owner.stockStability += 15;
+    }
+
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        
 
     }
 

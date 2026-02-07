@@ -39,10 +39,10 @@ public class AmonSlash_Projectile : BaseProjectile
                     yOffset = 12*2,
                     width = 40*2,
                     height = 24*2,
-                    xKnockback = 8,
+                    xKnockback = 6,
                     yKnockback = 2,
                     damage = 10,
-                    hitstun = 20,
+                    hitstun = 30,
                     attackLvl = 2,
                 }
             },

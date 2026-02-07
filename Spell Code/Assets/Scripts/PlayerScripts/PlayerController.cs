@@ -1069,7 +1069,10 @@ public class PlayerController : MonoBehaviour
 
                     SetState(PlayerState.Tech);
                 }
-
+                if (isGrounded)
+                {
+                    LerpHspd(Fixed.FromInt(0), 3);
+                }
 
                 stateSpecificArg--;
                 break;

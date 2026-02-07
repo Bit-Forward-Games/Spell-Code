@@ -12,7 +12,6 @@ public class TempUIScript : MonoBehaviour
     public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
     public Sprite[] spellOnCooldownIcon;
-    public Sprite[] spellReadyIcon;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;

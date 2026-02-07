@@ -55,7 +55,7 @@ public class TempSpellDisplay : MonoBehaviour
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[1];
                 }
-                else if (playerSpells[i].spellName == "GiftOfPrometheus")
+                else if (playerSpells[i].spellName == "GiftOfPromethius")
                 {
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
@@ -65,7 +65,7 @@ public class TempSpellDisplay : MonoBehaviour
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
                 }
-                else if (playerSpells[i].spellName == "ReloadShot")
+                else if (playerSpells[i].spellName == "Ninja_Build_Blast")
                 {
                     cooldownFills[i].color = new Color32(107, 255, 116, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];

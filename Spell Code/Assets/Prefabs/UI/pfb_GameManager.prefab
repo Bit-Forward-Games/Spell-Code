@@ -7267,13 +7267,7 @@ MonoBehaviour:
   - {fileID: 7715884583416725422}
   - {fileID: 5061965820059806458}
   - {fileID: 5146684460161906114}
-  spellRechargingIcons:
-  - {fileID: 7706768502669812175}
-  - {fileID: 1768441991307500724}
-  - {fileID: 8460831525913086144}
-  - {fileID: 3449905774095211624}
-  - {fileID: 5962860123407365327}
-  - {fileID: 358690766965166341}
+  spellRechargingIcons: []
   cooldownBars: []
 --- !u!1 &2248455404362818459
 GameObject:
@@ -8317,7 +8311,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 36, y: -35}
+  m_AnchoredPosition: {x: 36, y: -3}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1533999913481366801
@@ -10980,13 +10974,7 @@ MonoBehaviour:
   - {fileID: 5061221390554650538}
   - {fileID: 7716620234001236734}
   - {fileID: 7657795092732714438}
-  spellRechargingIcons:
-  - {fileID: 4346613885417258381}
-  - {fileID: 8913378597168104483}
-  - {fileID: 5693382756416572279}
-  - {fileID: 8189896099205081882}
-  - {fileID: 5033223042387639482}
-  - {fileID: 967801007032371704}
+  spellRechargingIcons: []
   cooldownBars: []
 --- !u!1 &3611139683774581663
 GameObject:
@@ -26619,13 +26607,7 @@ MonoBehaviour:
   - {fileID: 189436865675161827}
   - {fileID: 3425797782568199607}
   - {fileID: 3375982048171801231}
-  spellRechargingIcons:
-  - {fileID: 551556465988131891}
-  - {fileID: 6138001680598470242}
-  - {fileID: 7489967001006486325}
-  - {fileID: 8743798033560936182}
-  - {fileID: 4171449853454950573}
-  - {fileID: 3001436507189657139}
+  spellRechargingIcons: []
   cooldownBars: []
 --- !u!1 &8564066578872509692
 GameObject:

@@ -15,6 +15,7 @@ public class TempSpellDisplay : MonoBehaviour
     public List<Image> cooldownFills = new List<Image>();
     public List<Image> spellRechargingIcons = new List<Image>();
     public List<Image> spellReadyIcons = new List<Image>();
+    public List<ParticleSystem> spellReadyEffect = new List<ParticleSystem>();
     public List<GameObject> cooldownBars = new List<GameObject>();
 
     public void Start()

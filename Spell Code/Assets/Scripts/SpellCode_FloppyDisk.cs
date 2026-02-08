@@ -61,7 +61,8 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             Fixed radiusSq = radius * radius;
 
             // Determine overlap using squared values
-            if (distSq < radiusSq) {
+            if (distSq < radiusSq)
+            {
                 return player;
             }
         }

@@ -65,10 +65,9 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[2];
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
-    public string characterName = "Code-E";
+    public string characterName = "R-Cade";
 
-    [HideInInspector]
-    public List<int> cancelOptions = new();
+
 
     private ushort lerpDelay = 0;
     [NonSerialized]
@@ -135,10 +134,7 @@ public class PlayerController : MonoBehaviour
     public bool hitstunOverride = false;
 
     public List<SpellData> spellList = new List<SpellData>();
-    //public int spellCount = 0;
-
-    //SFX VARIABLES
-    //public SFX_Manager mySFXHandler;
+    public GameObject basicProjectileInstance;
 
     //TMPro
     public TextMeshPro inputDisplay;
@@ -1622,7 +1618,6 @@ public class PlayerController : MonoBehaviour
         HandleExitLogic(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        cancelOptions.Clear();
         hitstunOverride = false;
     }
 

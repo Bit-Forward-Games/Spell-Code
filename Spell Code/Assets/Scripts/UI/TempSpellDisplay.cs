@@ -9,10 +9,12 @@ public class TempSpellDisplay : MonoBehaviour
     public TempUIScript uiScript;
     public List<TextMeshProUGUI> spellSlots = new List<TextMeshProUGUI>();
     public bool invertAlign = false;
+    private bool spellListUpdated = false;
     //public CodeList[] arrowLists;
     //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
     public List<Image> cooldownFills = new List<Image>();
     public List<Image> spellRechargingIcons = new List<Image>();
+    public List<Image> spellReadyIcons = new List<Image>();
     public List<GameObject> cooldownBars = new List<GameObject>();
 
     public void Start()
@@ -49,31 +51,37 @@ public class TempSpellDisplay : MonoBehaviour
                 {
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[0];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[0];
                 }
                 else if (playerSpells[i].spellName == "AmonSlash")
                 {
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[1];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[1];
                 }
                 else if (playerSpells[i].spellName == "GiftOfPromethius")
                 {
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[2];
                 }
                 else if (playerSpells[i].spellName == "MightOfZeus")
                 {
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[3];
                 }
-                else if (playerSpells[i].spellName == "Ninja_Build_Blast")
+                else if (playerSpells[i].spellName == "ReloadShot")
                 {
                     cooldownFills[i].color = new Color32(107, 255, 116, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[4];
                 }
                 else if (playerSpells[i].spellName == "SkillshotSlash")
                 {
                     cooldownFills[i].color = new Color32(107, 255, 116, 255);
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[5];
+                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[5];
                 }
                 
                 if (showInputs)
@@ -106,6 +114,11 @@ public class TempSpellDisplay : MonoBehaviour
                 cooldownFills[i].fillAmount = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
 
                 cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
+
+                if (cooldownFills[i].fillAmount < 1)
+                    spellReadyIcons[i].enabled = false;
+                else if (cooldownFills[i].fillAmount >= 1)
+                    spellReadyIcons[i].enabled = true;
             }
             else
             {

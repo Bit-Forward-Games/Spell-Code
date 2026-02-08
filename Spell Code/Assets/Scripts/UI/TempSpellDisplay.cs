@@ -47,40 +47,47 @@ public class TempSpellDisplay : MonoBehaviour
             
             if (i < playerSpells.Count)
             {
+                var main = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
                 if (playerSpells[i].spellName == "AsuranBlades")
                 {
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[0];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[0];
                 }
                 else if (playerSpells[i].spellName == "AmonSlash")
                 {
                     cooldownFills[i].color = new Color32(255, 62, 117, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[1];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[1];
                 }
                 else if (playerSpells[i].spellName == "GiftOfPromethius")
                 {
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[2];
                 }
                 else if (playerSpells[i].spellName == "MightOfZeus")
                 {
                     cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[3];
                 }
                 else if (playerSpells[i].spellName == "ReloadShot")
                 {
                     cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[4];
                 }
                 else if (playerSpells[i].spellName == "SkillshotSlash")
                 {
                     cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
                     spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[5];
                     spellReadyIcons[i].sprite = uiScript.spellReadyIcon[5];
                 }
@@ -117,9 +124,15 @@ public class TempSpellDisplay : MonoBehaviour
                 cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
 
                 if (cooldownFills[i].fillAmount < 1)
+                {
                     spellReadyIcons[i].enabled = false;
+                    spellReadyEffect[i].Stop();
+                }
                 else if (cooldownFills[i].fillAmount >= 1)
+                {
                     spellReadyIcons[i].enabled = true;
+                    spellReadyEffect[i].Play();
+                }
             }
             else
             {

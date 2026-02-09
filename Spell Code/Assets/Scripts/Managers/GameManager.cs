@@ -258,19 +258,19 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
-        if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs.IsActive)
-        {
-            var upVal = players[localPlayerIndex].inputs.UpAction?.ReadValue<float>() ?? 0f;
-            var downVal = players[localPlayerIndex].inputs.DownAction?.ReadValue<float>() ?? 0f;
-            var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
-            var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
+        //if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs.IsActive)
+        //{
+        //    var upVal = players[localPlayerIndex].inputs.UpAction?.ReadValue<float>() ?? 0f;
+        //    var downVal = players[localPlayerIndex].inputs.DownAction?.ReadValue<float>() ?? 0f;
+        //    var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
+        //    var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
 
-            return players[localPlayerIndex].GetInputs();
-            //if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
-            //{
-            //    return players[localPlayerIndex].GetInputs();
-            //}
-        }
+        //    return players[localPlayerIndex].GetInputs();
+        //    //if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
+        //    //{
+        //    //    return players[localPlayerIndex].GetInputs();
+        //    //}
+        //}
         return GatherRawInput();
     }
 

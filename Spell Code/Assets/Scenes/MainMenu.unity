@@ -3676,7 +3676,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-<<<<<<< Updated upstream
     - target: {fileID: 1213094580993145183, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -3684,7 +3683,6 @@ PrefabInstance:
     - target: {fileID: 2815469897489223445, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
       value: 0
-=======
     - target: {fileID: 4193809055378962876, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_ChunkCullingBounds.x
       value: 7.9375
@@ -3692,7 +3690,6 @@ PrefabInstance:
     - target: {fileID: 4193809055378962876, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_ChunkCullingBounds.y
       value: 7.9375
->>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
@@ -3750,7 +3747,6 @@ PrefabInstance:
       propertyPath: onlineMenuUI
       value: 
       objectReference: {fileID: 1101021164}
-<<<<<<< Updated upstream
     - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: onboardManager
       value: 
@@ -3758,7 +3754,6 @@ PrefabInstance:
     - target: {fileID: 5856653995001140170, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
       value: 1
-=======
     - target: {fileID: 8306666561940515347, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_TileSpriteArray.Array.data[1].m_Data
       value: 
@@ -4770,7 +4765,6 @@ PrefabInstance:
     - target: {fileID: 8306666561940515347, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Tiles.Array.data[359].second.m_TileSpriteIndex
       value: 4294967295
->>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name

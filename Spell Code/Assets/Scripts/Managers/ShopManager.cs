@@ -86,7 +86,7 @@ public class ShopManager : MonoBehaviour
             seed = UnityEngine.Random.Range(0, 10000);
         }
 
-        myRandom = new System.Random(seed);
+        //myRandom = new System.Random(seed);
         Debug.Log($"SHOP ENTERED with seed: {seed}");
 
         // Reset online shop ready flags

@@ -1422,7 +1422,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p1_choices.Add("SkillshotSlash");
             p1_choices.Add("MightOfZeus");
             p1_choices.Add("AmonSlash");
-            p1_choices.Add("QuarterReport");
+            p1_choices.Add("CoinToss");
         }
         if (index == 1)
         {
@@ -1430,7 +1430,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p2_choices.Add("SkillshotSlash");
             p2_choices.Add("MightOfZeus");
             p2_choices.Add("AmonSlash");
-            p2_choices.Add("QuarterReport");
+            p2_choices.Add("CoinToss");
         }
         if (index == 2)
         {
@@ -1438,7 +1438,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p3_choices.Add("SkillshotSlash");
             p3_choices.Add("MightOfZeus");
             p3_choices.Add("AmonSlash");
-            p3_choices.Add("QuarterReport");
+            p3_choices.Add("CoinToss");
         }
         if (index == 3)
         {
@@ -1446,7 +1446,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             p4_choices.Add("SkillshotSlash");
             p4_choices.Add("MightOfZeus");
             p4_choices.Add("AmonSlash");
-            p4_choices.Add("QuarterReport");
+            p4_choices.Add("CoinToss");
         }
 
     }

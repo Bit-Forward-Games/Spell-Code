@@ -23,6 +23,8 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     public Image shopSprite;
     public PlayerController overlappingPlayer = null;
 
+    public bool colliding;
+
     public float colliderRadius = 16f;
 
 
@@ -39,7 +41,9 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             //Do yo thing Billay
             Debug.Log("Player overlapping floppy disk: " + diskName);
+            colliding = true;
         }
+        else { colliding = false; }
     }
 
     public PlayerController CheckPlayerCollision()
@@ -63,6 +67,8 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             // Determine overlap using squared values
             if (distSq < radiusSq)
             {
+                overlappingPlayer = player;
+                Debug.Log("Overlapping player ID: " + overlappingPlayer.pID);
                 return player;
             }
         }

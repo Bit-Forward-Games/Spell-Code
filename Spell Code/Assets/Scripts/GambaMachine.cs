@@ -44,7 +44,8 @@ public class GambaMachine : MonoBehaviour
 
     public bool CheckHitboxCollision()
     {
-        if(ownerPlayer == null || ownerPlayer.basicProjectileInstance == null)
+        if(ownerPlayer == null || ownerPlayer.basicProjectileInstance == null ||
+            !ProjectileManager.Instance.activeProjectiles.Contains(ownerPlayer.basicProjectileInstance.GetComponent<BaseProjectile>()))
         {
             return false;
         }

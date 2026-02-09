@@ -159,6 +159,8 @@ public class PlayerController : MonoBehaviour
     public bool isSpawned;
     public string startingSpell;
 
+    public int pID;
+
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
     public bool vWave = false;
@@ -213,6 +215,8 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
+        startingSpell = charData.startingInventory[0];
+
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         //{
@@ -230,23 +234,27 @@ public class PlayerController : MonoBehaviour
             case 0:
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
+                pID = 1;
                 playerNum.color = Color.magenta;
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
+                pID = 2;
                 playerNum.color = Color.cyan;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
                 break;
             case 2:
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P3";
+                pID = 3;
                 playerNum.color = Color.yellow;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.yellow;
                 break;
             case 3:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P4";
+                pID = 4;
                 playerNum.color = Color.green;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;

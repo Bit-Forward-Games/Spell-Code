@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 22
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -109,6 +109,45 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -117,9 +156,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 1074
-        width: 358
-        height: 358
+        y: 810
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -138,10 +177,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_1
       rect:
         serializedVersion: 2
-        x: 358
-        y: 1074
-        width: 358
-        height: 358
+        x: 270
+        y: 810
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -160,10 +199,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_2
       rect:
         serializedVersion: 2
-        x: 716
-        y: 1074
-        width: 358
-        height: 358
+        x: 540
+        y: 810
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -182,10 +221,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_3
       rect:
         serializedVersion: 2
-        x: 1074
-        y: 1074
-        width: 358
-        height: 358
+        x: 810
+        y: 810
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -205,9 +244,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 716
-        width: 358
-        height: 358
+        y: 540
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -226,10 +265,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_5
       rect:
         serializedVersion: 2
-        x: 358
-        y: 716
-        width: 358
-        height: 358
+        x: 270
+        y: 540
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -248,10 +287,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_6
       rect:
         serializedVersion: 2
-        x: 716
-        y: 716
-        width: 358
-        height: 358
+        x: 540
+        y: 540
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -270,10 +309,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_7
       rect:
         serializedVersion: 2
-        x: 1074
-        y: 716
-        width: 358
-        height: 358
+        x: 810
+        y: 540
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -293,9 +332,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 358
-        width: 358
-        height: 358
+        y: 270
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -314,10 +353,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_9
       rect:
         serializedVersion: 2
-        x: 358
-        y: 358
-        width: 358
-        height: 358
+        x: 270
+        y: 270
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -336,10 +375,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_10
       rect:
         serializedVersion: 2
-        x: 716
-        y: 358
-        width: 358
-        height: 358
+        x: 540
+        y: 270
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -358,10 +397,10 @@ TextureImporter:
       name: SpellCodeSlingerZ_tempTileset-Sheet_11
       rect:
         serializedVersion: 2
-        x: 1074
-        y: 358
-        width: 358
-        height: 358
+        x: 810
+        y: 270
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -382,8 +421,8 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 358
-        height: 358
+        width: 270
+        height: 270
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

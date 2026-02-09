@@ -80,10 +80,12 @@ public class ShopManager : MonoBehaviour
                    777; // Constant offset to make it different from lobby seed
 
             Debug.Log($"[SHOP ONLINE] Using deterministic seed: {seed} (P1 rounds={gameManager.players[0].roundsWon}, P2 rounds={gameManager.players[1].roundsWon})");
+            gameManager.seededRandom = new System.Random(seed); // Set the shared random
         }
         else
         {
             seed = UnityEngine.Random.Range(0, 10000);
+            gameManager.seededRandom = new System.Random(seed); // Still set for offline
         }
 
         //myRandom = new System.Random(seed);
@@ -531,7 +533,7 @@ public class ShopManager : MonoBehaviour
 
 
         //get a random spell
-        int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
+        int randomInt = gameManager.seededRandom.Next(0, spells.Count);
         string spellToAdd = spells[randomInt];
 
         if (index == 0 && !p1_choices.Contains(spellToAdd))

@@ -126,6 +126,7 @@ public class ProjectileManager : MonoBehaviour
             spawnedBaseProjectile.GetComponent<BaseProjectile>().LoadProjectile();
             projectilePrefabs.Add(spawnedBaseProjectile.GetComponent<BaseProjectile>());
             spawnedBaseProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.players[i];
+            GameManager.Instance.players[i].basicProjectileInstance = spawnedBaseProjectile;
             spawnedBaseProjectile.SetActive(false);
 
             //all spells in the player's inventory for their spells

@@ -12,7 +12,7 @@ public class Overclock : SpellData
         spellName = "Overclock";
         cooldown = 0;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[1] { ProcCondition.OnCast };
+        procConditions = new ProcCondition[1] { ProcCondition.OnCastSpell };
         brands = new Brand[1] { Brand.VWave };
         description = "While in Flow State, you overclock your spell-codes, creating an explosion on spell-cast.";
     }
@@ -23,7 +23,7 @@ public class Overclock : SpellData
         //OnCast proc: Check if in flow state, if so, spawn an Overclock Explosion
         switch(targetProcCon)
         {
-            case ProcCondition.OnCast:
+            case ProcCondition.OnCastSpell:
                 if (owner.flowState > 0)
                 {
                     activateFlag = true;

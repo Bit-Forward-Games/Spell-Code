@@ -65,16 +65,14 @@ public class HitboxManager : MonoBehaviour
     {
         
 
-
-
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        {
-            playerStates[i] = GameManager.Instance.players[i].state;
-            playerCharacters[i] = GameManager.Instance.players[i].characterName;
-            playerFrames[i] = GameManager.Instance.players[i].logicFrame;
-            playerOrigins[i] = GameManager.Instance.players[i].position;
-            playerIsRight[i] = GameManager.Instance.players[i].facingRight;
-        }
+        //for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        //{
+        //    playerStates[i] = GameManager.Instance.players[i].state;
+        //    playerCharacters[i] = GameManager.Instance.players[i].characterName;
+        //    playerFrames[i] = GameManager.Instance.players[i].logicFrame;
+        //    playerOrigins[i] = GameManager.Instance.players[i].position;
+        //    playerIsRight[i] = GameManager.Instance.players[i].facingRight;
+        //}
 
 
         //List<HitboxData> activeHitboxes;
@@ -127,8 +125,38 @@ public class HitboxManager : MonoBehaviour
                         }
                     }
                 }
-            }  
+            }
         }
+    }
+
+    public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, bool defenderFacingRight = true)
+    {
+        if (projectile.projectileHitboxes.Length == 0) return false;
+        HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
+        // Combine all hitbox lists into one sequence
+        var activeProjHit = activeGroup.hitbox1
+            .Concat(activeGroup.hitbox2)
+            .Concat(activeGroup.hitbox3)
+            .Concat(activeGroup.hitbox4);
+
+
+        foreach (HitboxData hitbox in activeProjHit)
+        {
+            if (CheckCollision(hitbox, projectile.position, hurtboxData, defenderPos,
+                        projectile.facingRight, defenderFacingRight))
+            {
+                //defendingPlayer.facingRight = !projectile.facingRight;
+                //byte hitstopVal = 5;
+                //defendingPlayer.hitstop = hitstopVal;
+                //defendingPlayer.hitboxData = hitbox;
+                //defendingPlayer.isHit = true;
+                //cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                //projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
+                //projectile.owner.spellsHit++;
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -265,8 +293,8 @@ public class HitboxManager : MonoBehaviour
     /// <param name="hurtbox">The hurtbox checking collision</param>
     /// <param name="hurtboxOrigin">The center of the player who the hurtbox belongs too</param>
     /// <returns></returns>
-    private bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, HurtboxData hurtbox,
-        FixedVec2 hurtboxOrigin, bool playerOneFacingRight, bool playerTwoFacingRight)
+    public bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, HurtboxData hurtbox,
+        FixedVec2 hurtboxOrigin, bool attackerFacingRight, bool defenderFacingRight)
     {
 
         Fixed hitWidth = Fixed.FromInt(hitbox.width);
@@ -283,7 +311,7 @@ public class HitboxManager : MonoBehaviour
             return false;
         }
         // Construct Hitbox Boundaries
-        Fixed hitOffsetX = Fixed.FromInt(GetOffsetX(hitbox, playerOneFacingRight));
+        Fixed hitOffsetX = Fixed.FromInt(GetOffsetX(hitbox, attackerFacingRight));
         Fixed hitboxLeft = hitboxOrigin.X + hitOffsetX;
         Fixed hitboxRight = hitboxLeft + hitWidth;
         Fixed hitboxTop = hitboxOrigin.Y + hitYOffset;
@@ -292,7 +320,7 @@ public class HitboxManager : MonoBehaviour
         //Debug.Log($"Hit: Left {hitboxLeft} Right {hitboxRight} Top {hitboxTop} Bottom {hitboxBottom}");
 
         // Construct Hurtbox Boundaries
-        Fixed hurtOffsetX = Fixed.FromInt(GetOffsetX(hurtbox, playerTwoFacingRight));
+        Fixed hurtOffsetX = Fixed.FromInt(GetOffsetX(hurtbox, defenderFacingRight));
         Fixed hurtboxLeft = hurtboxOrigin.X + hurtOffsetX;
         Fixed hurtboxRight = hurtboxLeft + hurtWidth;
         Fixed hurtboxTop = hurtboxOrigin.Y + hurtYOffset;
@@ -356,7 +384,7 @@ public class HitboxManager : MonoBehaviour
                 FixedVec2 projOrigin = projectile.position;
                 //i defintely need patrick to fix this
                 Fixed drawX = projectile.position.X + fixedOffsetX;
-                Fixed drawY = projectile.position.Y + fixedOffsetY - Fixed.FromInt(hitbox.height); // Bottom edge
+                Fixed drawY = projectile.position.Y + fixedOffsetY /*- Fixed.FromInt(hitbox.height)*/; // Bottom edge
 
                 // Convert the calculated FixedVec2 position to UnityEngine.Vector2 for BoxRenderer
                 Vector2 drawPos = new Vector2(drawX.ToFloat(), drawY.ToFloat());

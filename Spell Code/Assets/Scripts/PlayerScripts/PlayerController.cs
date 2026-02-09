@@ -65,10 +65,9 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[2];
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
-    public string characterName = "Code-E";
+    public string characterName = "R-Cade";
 
-    [HideInInspector]
-    public List<int> cancelOptions = new();
+
 
     private ushort lerpDelay = 0;
     [NonSerialized]
@@ -135,10 +134,7 @@ public class PlayerController : MonoBehaviour
     public bool hitstunOverride = false;
 
     public List<SpellData> spellList = new List<SpellData>();
-    //public int spellCount = 0;
-
-    //SFX VARIABLES
-    //public SFX_Manager mySFXHandler;
+    public GameObject basicProjectileInstance;
 
     //TMPro
     public TextMeshPro inputDisplay;
@@ -163,6 +159,8 @@ public class PlayerController : MonoBehaviour
     public bool isSpawned;
     public string startingSpell;
     public bool startingSpellAdded = false;
+
+    public int pID;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
@@ -218,6 +216,8 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
+        startingSpell = charData.startingInventory[0];
+
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         //{
@@ -235,23 +235,27 @@ public class PlayerController : MonoBehaviour
             case 0:
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
+                pID = 1;
                 playerNum.color = Color.magenta;
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
+                pID = 2;
                 playerNum.color = Color.cyan;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
                 break;
             case 2:
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P3";
+                pID = 3;
                 playerNum.color = Color.yellow;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.yellow;
                 break;
             case 3:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P4";
+                pID = 4;
                 playerNum.color = Color.green;
                 gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
@@ -294,6 +298,15 @@ public class PlayerController : MonoBehaviour
         //momentum = 0;
         //slimed = false;
 
+        //call the load spell function for the starting spell to initialize the spell's variables and projectile data
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null)
+            {
+                spellList[i].owner = this;
+                spellList[i].LoadSpell();
+            }
+        }
 
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -980,6 +993,7 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
+                            spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
                             times.Add(timer);
@@ -1061,7 +1075,10 @@ public class PlayerController : MonoBehaviour
 
                     SetState(PlayerState.Tech);
                 }
-
+                if (isGrounded)
+                {
+                    LerpHspd(Fixed.FromInt(0), 3);
+                }
 
                 stateSpecificArg--;
                 break;
@@ -1611,7 +1628,6 @@ public class PlayerController : MonoBehaviour
         HandleExitLogic(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        cancelOptions.Clear();
         hitstunOverride = false;
     }
 

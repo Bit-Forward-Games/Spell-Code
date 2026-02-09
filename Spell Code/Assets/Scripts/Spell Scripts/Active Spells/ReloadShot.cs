@@ -18,30 +18,37 @@ public class ReloadShot : SpellData
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        //ActiveOnHit proc: when this spell hits an enemy, consume all Flow State to reduce cooldowns
-        int currentFlow = owner.flowState;
-        if (currentFlow > 0)
+        switch (targetProcCon)
         {
-            //float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
-            //int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
-            //defender.TakeEffectDamage(damageToDeal);
-            float percentCooldownReduced = (float)currentFlow / (float)PlayerController.maxFlowState; // 100% cooldown reduction at full flow
-            
-            cooldownCounter = (int)(cooldownCounter * percentCooldownReduced);
-            //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
-            if (!defender.hitboxData.sweetSpot)
-            {
-                owner.flowState = 0;
-            }
-        }
-        for (int i = 0; i < owner.spellList.Count; i++)
-        {
-            owner.spellList[i].cooldownCounter = 0;
-        }
-        if (defender.hitboxData.sweetSpot)
-        {
-            owner.flowState = PlayerController.maxFlowState;
-            cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
+            case ProcCondition.ActiveOnHit:
+                //ActiveOnHit proc: when this spell hits an enemy, consume all Flow State to reduce cooldowns
+                int currentFlow = owner.flowState;
+                if (currentFlow > 0)
+                {
+                    //float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
+                    //int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
+                    //defender.TakeEffectDamage(damageToDeal);
+                    float percentCooldownReduced = (float)currentFlow / (float)PlayerController.maxFlowState; // 100% cooldown reduction at full flow
+
+                    cooldownCounter = (int)(cooldownCounter * percentCooldownReduced);
+                    //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+                    if (!defender.hitboxData.sweetSpot)
+                    {
+                        owner.flowState = 0;
+                    }
+                }
+                for (int i = 0; i < owner.spellList.Count; i++)
+                {
+                    owner.spellList[i].cooldownCounter = 0;
+                }
+                if (defender.hitboxData.sweetSpot)
+                {
+                    owner.flowState = PlayerController.maxFlowState;
+                    cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
+                }
+                break;
+            default:
+                break;
         }
 
     }

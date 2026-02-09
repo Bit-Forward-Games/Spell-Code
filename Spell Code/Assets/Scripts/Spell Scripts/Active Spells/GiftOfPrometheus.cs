@@ -19,9 +19,15 @@ public class GiftOfPrometheus : SpellData
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
-        owner.reps += 2;
-        defender.TakeEffectDamage(owner.reps * 5);
-        Debug.Log($"Gift of Prometheus proc: Dealt {owner.reps * 3} damage to defender. Owner reps: {owner.reps}");
+        switch(targetProcCon)
+        {
+            case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
+                owner.reps += 2;
+                defender.TakeEffectDamage(owner.reps * 5);
+                break;
+            default:
+                break;
+        }
+        ;
     }
 }

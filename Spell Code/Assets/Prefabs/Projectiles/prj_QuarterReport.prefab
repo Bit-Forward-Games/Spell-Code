@@ -82,7 +82,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 64, y: 64}
+  m_Size: {x: 128, y: 128}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -100,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78eaf8686043be14883ecf17ce94e4b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: QuarterReport
-  projectileHitboxes: []
   sprites:
   - {fileID: -3021475791273506554, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
   - {fileID: 3914623749673647215, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
@@ -115,16 +113,7 @@ MonoBehaviour:
   - {fileID: 2543574042281786817, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
   - {fileID: 6842189355734244897, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
   - {fileID: -6352312413836609909, guid: 515ca3be24600754b913a28a9bd732a4, type: 3}
-  activeHitboxGroupIndex: 0
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000
-    loopAnim: 1
   deleteOnHit: 1

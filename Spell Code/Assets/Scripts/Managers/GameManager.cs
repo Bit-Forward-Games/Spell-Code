@@ -258,19 +258,31 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
-        if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs.IsActive)
+        // Always try the Input System first for the local player
+        if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs != null)
         {
-            var upVal = players[localPlayerIndex].inputs.UpAction?.ReadValue<float>() ?? 0f;
-            var downVal = players[localPlayerIndex].inputs.DownAction?.ReadValue<float>() ?? 0f;
-            var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
-            var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
+            if (players[localPlayerIndex].inputs.IsActive)
+            {
+                // Input System is active - use it
+                long inputFromSystem = players[localPlayerIndex].inputs.UpdateInputs();
+                ulong result = (ulong)inputFromSystem;
 
-            return players[localPlayerIndex].GetInputs();
-            //if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
-            //{
-            //    return players[localPlayerIndex].GetInputs();
-            //}
+                // Debug log to verify inputs are being gathered
+                if (result != 5) // 5 is neutral input
+                {
+                    Debug.Log($"[HOST INPUT] Got input from Input System: {result}");
+                }
+
+                return result;
+            }
+            else
+            {
+                Debug.LogWarning($"[HOST INPUT] Input System not active for local player {localPlayerIndex}");
+            }
         }
+
+        // Fallback to raw keyboard input
+        Debug.Log($"[HOST INPUT] Using raw keyboard input for local player {localPlayerIndex}");
         return GatherRawInput();
     }
 
@@ -394,8 +406,18 @@ public class GameManager : MonoBehaviour
                             pInput.user
                         );
                     }
+
+                    // VERIFY activation worked
+                    Debug.Log($"[SETUP] Player {i} (LOCAL/HOST) Input activated: {pInput.inputIsActive}");
                 }
+
                 players[i].CheckForInputs(true);
+
+                // VERIFY inputs component is active
+                if (players[i].inputs != null)
+                {
+                    Debug.Log($"[SETUP] Player {i} inputs.IsActive: {players[i].inputs.IsActive}");
+                }
             }
         }
 

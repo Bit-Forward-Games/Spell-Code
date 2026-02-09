@@ -73,23 +73,29 @@ public class ShopManager : MonoBehaviour
 
         if (gameManager.isOnlineMatchActive)
         {
-            // Use ONLY values that are guaranteed to be synced via rollback
-            // Frame number might differ when scene loads
             seed = (gameManager.players[0].roundsWon * 10000) +
                    (gameManager.players[1].roundsWon * 1000) +
-                   777; // Constant offset to make it different from lobby seed
+                   777;
 
             Debug.Log($"[SHOP ONLINE] Using deterministic seed: {seed} (P1 rounds={gameManager.players[0].roundsWon}, P2 rounds={gameManager.players[1].roundsWon})");
-            gameManager.seededRandom = new System.Random(seed); // Set the shared random
+            gameManager.seededRandom = new System.Random(seed);
         }
         else
         {
             seed = UnityEngine.Random.Range(0, 10000);
-            gameManager.seededRandom = new System.Random(seed); // Still set for offline
+            gameManager.seededRandom = new System.Random(seed);
         }
 
-        //myRandom = new System.Random(seed);
         Debug.Log($"SHOP ENTERED with seed: {seed}");
+
+        // RESET chosenSpell flags for all players when entering shop
+        for (int i = 0; i < gameManager.playerCount; i++)
+        {
+            if (gameManager.players[i] != null)
+            {
+                gameManager.players[i].chosenSpell = false;
+            }
+        }
 
         // Reset online shop ready flags
         if (gameManager.isOnlineMatchActive)
@@ -111,21 +117,29 @@ public class ShopManager : MonoBehaviour
 
         p1_index = 0;
         p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_choices[p1_index]].shopSprite;
+        p1_spellCard.enabled = true; // Explicitly enable
 
         p2_index = 0;
         p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
+        p2_spellCard.enabled = true; // Explicitly enable
 
         if (gameManager.players[2] != null)
         {
             p3_index = 0;
             p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_choices[p3_index]].shopSprite;
+            p3_spellCard.enabled = true; // Explicitly enable
         }
 
         if (gameManager.players[3] != null)
         {
             p4_index = 0;
             p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
+            p4_spellCard.enabled = true; // Explicitly enable
         }
+
+        // Reset allPlayersChosen flag
+        allPlayersChosen = false;
+        backToGameplay = false;
     }
 
     public void SetP1Choices(List<string> choices)

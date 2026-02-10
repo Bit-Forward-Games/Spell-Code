@@ -228,7 +228,7 @@ public class OnboardManager : MonoBehaviour
             {
                 if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed) { p2_jumpComplete = true; p2_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
             }
-
+            
             //if move is done and player has not yet attacked
             if (p2_moveComplete && p2_jumpComplete && !p2_atkComplete)
             {
@@ -337,7 +337,7 @@ public class OnboardManager : MonoBehaviour
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
-                p3_floppyInfo.diskName = gM.players[1].startingSpell;
+                p3_floppyInfo.diskName = gM.players[2].startingSpell;
                 gM.p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_floppyInfo.diskName].shopSprite;
                 p3_floppy.SetActive(true);
 
@@ -425,7 +425,7 @@ public class OnboardManager : MonoBehaviour
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
 
-                p4_floppyInfo.diskName = gM.players[1].startingSpell;
+                p4_floppyInfo.diskName = gM.players[3].startingSpell;
                 gM.p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_floppyInfo.diskName].shopSprite;
                 p4_floppy.SetActive(true);
 

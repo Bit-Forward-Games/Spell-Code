@@ -306,7 +306,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
-
+        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
 

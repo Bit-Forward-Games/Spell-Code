@@ -90,9 +90,9 @@ public abstract class SpellData : MonoBehaviour
     [NonSerialized]
     public SpellType spellType;
     [NonSerialized]
-    public int spawnOffsetX = 10;
+    public int spawnOffsetX = 16;
     [NonSerialized]
-    public int spawnOffsetY = 15;
+    public int spawnOffsetY = 36;
 
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;

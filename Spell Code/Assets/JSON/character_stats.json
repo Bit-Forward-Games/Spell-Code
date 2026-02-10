@@ -12,8 +12,8 @@
       "jumpForce": 13,
       "jumpCounter": 1,
       "playerHealth": 100,
-      "playerWidth": 18,
-      "playerHeight": 30,
+      "playerWidth": 24,
+      "playerHeight": 64,
       "animFrames": {
         "idleAnimFrames": {
           "frameIndexes": [

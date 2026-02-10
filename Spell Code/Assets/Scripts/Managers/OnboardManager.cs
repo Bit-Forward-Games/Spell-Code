@@ -161,7 +161,7 @@ public class OnboardManager : MonoBehaviour
                 p1_atkGraphic.enabled = false;
                 p1_atkTxt.enabled = false;
 
-                p1_floppyInfo.diskName = "AmonSlash"; //gM.players[0].startingSpell;
+                p1_floppyInfo.diskName = gM.players[0].startingSpell;
                 gM.p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_floppyInfo.diskName].shopSprite;
                 p1_floppy.SetActive(true);
 
@@ -249,7 +249,7 @@ public class OnboardManager : MonoBehaviour
                 p2_atkGraphic.enabled = false;
                 p2_atkTxt.enabled = false;
 
-                p2_floppyInfo.diskName = "QuarterReport"; //gM.players[1].startingSpell;
+                p2_floppyInfo.diskName = gM.players[1].startingSpell;
                 gM.p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_floppyInfo.diskName].shopSprite;
                 p2_floppy.SetActive(true);
 
@@ -337,7 +337,7 @@ public class OnboardManager : MonoBehaviour
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
-                p3_floppyInfo.diskName = "MightOfZeus"; //gM.players[1].startingSpell;
+                p3_floppyInfo.diskName = gM.players[1].startingSpell;
                 gM.p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_floppyInfo.diskName].shopSprite;
                 p3_floppy.SetActive(true);
 
@@ -425,7 +425,7 @@ public class OnboardManager : MonoBehaviour
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
 
-                p4_floppyInfo.diskName = "SkillshotSlash"; //gM.players[1].startingSpell;
+                p4_floppyInfo.diskName = gM.players[1].startingSpell;
                 gM.p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_floppyInfo.diskName].shopSprite;
                 p4_floppy.SetActive(true);
 

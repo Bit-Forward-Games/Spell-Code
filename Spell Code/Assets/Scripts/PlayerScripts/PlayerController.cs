@@ -215,7 +215,7 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
-        startingSpell = charData.startingInventory[0];
+        //startingSpell = charData.startingInventory[0];
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -260,7 +260,13 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        FixedVec2 startPos;
+        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
+        if (pID == 1) { startingSpell = "AmonSlash"; }
+        else if (pID == 2) { startingSpell = "QuarterReport"; }
+        else if (pID == 3) { startingSpell = "MightOfZeus"; }
+        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+
+            FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);

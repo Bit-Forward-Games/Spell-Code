@@ -929,13 +929,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     if (gameOver)
                     {
                         playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
                         GameEnd();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                    }
+                    else if (players[0].spellList.Count >= 6)
+                    {
+                        playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
+                        LoadRandomGameplayStage();
+                        foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else
                     {
                         playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
@@ -1066,6 +1077,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //this is different from ResetPlayers()
                 players[i].ResetPlayer();
                 players[i].SpawnPlayer(fixedSpawnPositions[i]);
+                players[i].inputDisplay.enabled = true;
             }
         }
     }

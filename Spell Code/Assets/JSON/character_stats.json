@@ -13,7 +13,7 @@
       "jumpCounter": 1,
       "playerHealth": 100,
       "playerWidth": 24,
-      "playerHeight": 64,
+      "playerHeight": 48,
       "animFrames": {
         "idleAnimFrames": {
           "frameIndexes": [
@@ -123,8 +123,8 @@
             4,
             4,
             4,
-            3,
-            3
+            4,
+            4
           ],
           "loopAnim": false
         },
@@ -179,10 +179,10 @@
         "idleHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -10,
-              "yOffset": 34,
-              "width": 22,
-              "height": 33
+              "xOffset": -12,
+              "yOffset": 53,
+              "width": 24,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -192,10 +192,10 @@
         "runHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -10,
-              "yOffset": 30,
-              "width": 27,
-              "height": 31
+              "xOffset": -16,
+              "yOffset": 53,
+              "width": 32,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -205,10 +205,10 @@
         "jumpHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -8,
-              "yOffset": 39,
-              "width": 22,
-              "height": 22
+              "xOffset": -12,
+              "yOffset": 53,
+              "width": 24,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -218,10 +218,10 @@
         "hitstunHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -13,
-              "yOffset": 36,
-              "width": 26,
-              "height": 32
+              "xOffset": -14,
+              "yOffset": 53,
+              "width": 28,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -244,10 +244,10 @@
         "codeWeaveHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -9,
-              "yOffset": 33,
-              "width": 21,
-              "height": 33
+              "xOffset": -14,
+              "yOffset": 53,
+              "width": 28,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -257,10 +257,10 @@
         "codeReleaseHurtbox": {
           "hurtbox1": [
             {
-              "xOffset": -9,
-              "yOffset": 33,
-              "width": 21,
-              "height": 33
+              "xOffset": -14,
+              "yOffset": 53,
+              "width": 28,
+              "height": 53
             }
           ],
           "hurtbox2": [],
@@ -276,10 +276,10 @@
               "height": 0
             },
             {
-              "xOffset": -10,
+              "xOffset": -28,
               "yOffset": 30,
-              "width": 27,
-              "height": 31
+              "width": 48,
+              "height": 28
             }
           ],
           "hurtbox2": [],

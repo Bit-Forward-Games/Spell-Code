@@ -17,8 +17,6 @@ public class QuarterReport : SpellData
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
         description = "Send forth your quarterly projections materialized. This spell has a chance equal to your \"Stock Stability\" to gain increased size and damage. Gain 15% \"Stock Stability\".";
         projectilePrefabs = new GameObject[2];
-        spawnOffsetX = 15;
-        spawnOffsetY = 20;
     }
 
     public override void SpellUpdate()

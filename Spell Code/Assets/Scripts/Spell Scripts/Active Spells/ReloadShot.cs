@@ -12,8 +12,6 @@ public class ReloadShot : SpellData
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         description = "Project forth a massive orb which consumes all of your \"Flow State\" and resets all spell-code cooldowns. Consumes all \"Flow State\" to reduce this cooldown. Hit this SpellCode early to instead enter \"Flow State\"";
         projectilePrefabs = new GameObject[1];
-        spawnOffsetX = 10;
-        spawnOffsetY = 20;
     }
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)

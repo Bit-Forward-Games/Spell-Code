@@ -760,7 +760,7 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 0);
+                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 1);
                     //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
@@ -1036,7 +1036,7 @@ public class PlayerController : MonoBehaviour
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
+                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
 
 
                     //basic spell is fired

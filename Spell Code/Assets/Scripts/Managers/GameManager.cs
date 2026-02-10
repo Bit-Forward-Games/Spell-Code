@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public StageDataSO lobbySO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
+    public SceneUiManager sceneManager;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
@@ -821,6 +822,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         Scene activeScene = SceneManager.GetActiveScene();
 
+        if (activeScene.name == "End")
+        {
+            for (int i = 0; i < inputs.Length; ++i)
+            {
+                InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
+                if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
+                {
+                    sceneManager.Restart();
+                    //RestartGame();
+                    return;
+                }
+            }
+        }
         ///shop specific update
         if (activeScene.name == "Shop")
         {

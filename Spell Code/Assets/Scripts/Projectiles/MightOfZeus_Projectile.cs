@@ -36,9 +36,9 @@ public class MightOfZeus_Projectile : BaseProjectile
                 new HitboxData
                 {
                     xOffset = -10,
-                    yOffset = 130,
+                    yOffset = 120,
                     width = 20,
-                    height = 160,
+                    height = 120,
                     xKnockback = 2,
                     yKnockback = 1,
                     damage = 10,

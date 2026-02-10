@@ -1793,6 +1793,7 @@ GameObject:
   - component: {fileID: 7022982774474964000}
   - component: {fileID: 699450530840418385}
   - component: {fileID: 282400343946288658}
+  - component: {fileID: 3482084119599465952}
   m_Layer: 0
   m_Name: pfb_GameManager
   m_TagString: Untagged
@@ -1869,6 +1870,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c9c7f617d1fac0d4cb89d224a4414840, type: 2}
   lobbySO: {fileID: 11400000, guid: aa9d46f33b2cdd34b864eede092eb100, type: 2}
   currentStageIndex: -1
+  sceneManager: {fileID: 3482084119599465952}
   tempMapGOs:
   - {fileID: 6905907321120938197}
   - {fileID: 3875961227978543573}
@@ -2121,6 +2123,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stageDataSO: {fileID: 11400000, guid: c55e1ee148a606144b86a60fe2d4432a, type: 2}
+--- !u!114 &3482084119599465952
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f4327bf9fef54092b1e369d0d44dc2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneName: 
 --- !u!1001 &136054040977940693
 PrefabInstance:
   m_ObjectHideFlags: 0

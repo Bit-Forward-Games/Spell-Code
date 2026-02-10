@@ -6526,7 +6526,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1483967116554412276, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -96
+      value: -85
       objectReference: {fileID: 0}
     - target: {fileID: 1577865304506825695, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: cooldownBars.Array.size
@@ -6658,7 +6658,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2708582025916616294, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 8
+      value: -39
       objectReference: {fileID: 0}
     - target: {fileID: 2728167885537082572, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_IsActive
@@ -6866,7 +6866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3907149470079651249, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 32
+      value: -16
       objectReference: {fileID: 0}
     - target: {fileID: 4024770835284035581, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalPosition.y
@@ -6914,7 +6914,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4288299096337970675, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 56
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4378045350137357063, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -6922,7 +6922,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4378045350137357063, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -16
+      value: -62
       objectReference: {fileID: 0}
     - target: {fileID: 4390440667015741339, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalScale.y

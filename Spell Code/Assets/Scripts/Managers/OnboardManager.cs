@@ -88,13 +88,6 @@ public class OnboardManager : MonoBehaviour
     {
         gM = GameManager.Instance;
 
-        // Disable onboard if online match is active
-        if (gM != null && gM.isOnlineMatchActive)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
-
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;
@@ -128,12 +121,6 @@ public class OnboardManager : MonoBehaviour
 
     public void OnboardUpdate(ulong[] playerInputs)
     {
-        // Never run onboarding during online match
-        if (gM == null || gM.isOnlineMatchActive)
-        {
-            return;
-        }
-
         for (int i = 0; i < playerInputs.Length; i++)
         {
             inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
@@ -179,7 +166,7 @@ public class OnboardManager : MonoBehaviour
                 p1_floppy.SetActive(true);
 
                 //if colliding and is player 1
-                if (p1_floppyInfo.colliding) 
+                if (p1_floppyInfo.colliding)
                 {
                     if (p1_floppyInfo.CheckPlayerCollision().pID == 1)
                     {
@@ -241,7 +228,7 @@ public class OnboardManager : MonoBehaviour
             {
                 if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed) { p2_jumpComplete = true; p2_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
             }
-            
+
             //if move is done and player has not yet attacked
             if (p2_moveComplete && p2_jumpComplete && !p2_atkComplete)
             {

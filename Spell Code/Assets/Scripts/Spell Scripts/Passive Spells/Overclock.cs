@@ -10,7 +10,7 @@ public class Overclock : SpellData
     public Overclock()
     {
         spellName = "Overclock";
-        cooldown = 0;
+        cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnCastSpell };
         brands = new Brand[1] { Brand.VWave };

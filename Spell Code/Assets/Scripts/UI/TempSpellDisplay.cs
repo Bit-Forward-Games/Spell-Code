@@ -86,15 +86,14 @@ public class TempSpellDisplay : MonoBehaviour
                 spellRechargingIcons[i].sprite = playerSpells[i].notReadyIcon;
                 spellReadyIcons[i].sprite = playerSpells[i].readyIcon;
 
-                spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-                //if (showInputs)
-                //{
-                //    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-                //}
-                //else
-                //{
-                //    spellSlots[i].text = playerSpells[i].spellName;
-                //}
+                if (playerSpells[i].spellType == SpellType.Active)
+                {
+                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                }
+                else
+                {
+                    spellSlots[i].text = playerSpells[i].spellName;
+                }
             }
             else
             {

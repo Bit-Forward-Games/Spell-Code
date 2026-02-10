@@ -1064,6 +1064,11 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
                 {
+                    if (input.ButtonStates[0] == ButtonState.Held)
+                    {
+                        SetState(PlayerState.CodeWeave);
+                        break;
+                    }
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
@@ -1095,7 +1100,11 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
                 {
-
+                    if(input.ButtonStates[0] == ButtonState.Held)
+                    {
+                        SetState(PlayerState.CodeWeave);
+                        break;
+                    }
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }

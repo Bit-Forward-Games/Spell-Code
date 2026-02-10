@@ -312,6 +312,13 @@ public class GameManager : MonoBehaviour
 
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
+        if (onboardManager != null)
+        {
+            onboardManager.gameObject.SetActive(false);
+            onboardManager = null;
+            Debug.Log("Onboarding disabled for online match");
+        }
+
         Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
         {
@@ -329,6 +336,14 @@ public class GameManager : MonoBehaviour
         {
             onlineMenuUI.SetActive(false);
             Debug.Log("Online menu UI hidden");
+        }
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        if (currentScene.name != "MainMenu")
+        {
+            Debug.LogWarning($"StartOnlineMatch called from scene '{currentScene.name}' - loading MainMenu first");
+            SceneManager.LoadScene("MainMenu");
+            return;
         }
 
         isOnlineMatchActive = false;
@@ -427,7 +442,24 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         SetStage(-1); // Lobby stage
+
+        // Reset spell selection indices
+        p1_index = 0;
+        p2_index = 0;
+        p1_lastCycleFrame = -999;
+        p2_lastCycleFrame = -999;
+
+        // Generate starting spell choices for both players
+        GenerateStartingSpells(0);
+        GenerateStartingSpells(1);
+
+        // Initialize spell cards as disabled
+        p1_spellCard.enabled = false;
+        p2_spellCard.enabled = false;
+
         ResetPlayers();
+
+        isRunning = true;
 
         isRunning = true;
 

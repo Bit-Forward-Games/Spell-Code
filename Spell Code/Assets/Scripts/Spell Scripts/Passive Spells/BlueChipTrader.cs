@@ -11,7 +11,7 @@ public class BlueChipTrader : SpellData
     public BlueChipTrader()
     {
         spellName = "BlueChipTrader";
-        cooldown = 0;
+        cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell};
         brands = new Brand[1] { Brand.BigStox };

@@ -44,19 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90aa26c96a3ff3946b144903232582c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: SkillshotSlash
-  brands: 01000000
-  procConditions: 
-  description: 
-  cooldown: 180
-  cooldownCounter: 0
-  spellInput: 770
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 1
-  spawnOffsetX: 15
-  spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: e3392c449e53ba74fab6383512e8f0d9, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 980d153f29bc2f440b27a5ec451f7a1a, type: 3}
+  readyIcon: {fileID: -3531084534877730364, guid: dbe64d18f047edf44b203c2ebf530172, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: f3233700d07424c75944de529e5142a7, type: 3}

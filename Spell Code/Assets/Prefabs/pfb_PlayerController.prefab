@@ -138,7 +138,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 2.845108, y: -120.59919}
+  m_AnchoredPosition: {x: 2.845108, y: -113.28919}
   m_SizeDelta: {x: 142.8978, y: 30.0107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &955357419388895381
@@ -213,7 +213,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 2.89, y: -120.6}
+  m_AnchoredPosition: {x: 2.89, y: -113.29}
   m_SizeDelta: {x: 142.8978, y: 30.010696}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9019437868265370223
@@ -288,7 +288,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.17, y: 37.2}
+  m_AnchoredPosition: {x: 2.17, y: 64.7}
   m_SizeDelta: {x: 44.3026, y: 15.8458}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4983569709763771326
@@ -464,7 +464,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -25.1, y: 47.4}
+  m_AnchoredPosition: {x: -25.1, y: 74.5}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &742603392473583563
@@ -663,7 +663,6 @@ MonoBehaviour:
   inputs: {fileID: 8219335073837037833}
   playerInputs: {fileID: -944628639613478452, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   characterName: Code-E
-  cancelOptions: 
   facingRight: 1
   isGrounded: 0
   onPlatform: 0
@@ -675,9 +674,8 @@ MonoBehaviour:
   flowState: 0
   stockStability: 0
   demonAura: 0
+  demonAuraLifeSpanTimer: 0
   reps: 0
-  momentum: 0
-  slimed: 0
   matchPalette:
   - {fileID: 0}
   - {fileID: 0}
@@ -694,13 +692,16 @@ MonoBehaviour:
     attackLvl: 0
     parentProjectile: {fileID: 0}
     sweetSpot: 0
+    basicAttackHitbox: 0
   isHit: 0
   stateSpecificArg: 0
+  storedCode: 0
+  storedCodeDuration: 0
   hitstop: 0
-  comboCounter: 0
   hitstopActive: 0
   hitstunOverride: 0
   spellList: []
+  basicProjectileInstance: {fileID: 0}
   inputDisplay: {fileID: 8759932525811072817}
   removeInputDisplay: 0
   playerNum: {fileID: 3800171966472687191}
@@ -712,9 +713,10 @@ MonoBehaviour:
   chosenSpell: 0
   chosenStartingSpell: 0
   isSpawned: 0
+  startingSpell: 
   vWave: 0
   killeez: 0
-  rawrDX: 0
+  DemonX: 0
   bigStox: 0
 --- !u!212 &-1293374541561941338
 SpriteRenderer:
@@ -907,7 +909,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 2.845108, y: -120.59919}
+  m_AnchoredPosition: {x: 2.845108, y: -113.28919}
   m_SizeDelta: {x: 142.8978, y: 30.0107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3008107365364911587

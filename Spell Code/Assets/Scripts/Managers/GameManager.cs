@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
     public StageDataSO[] stages;
     public StageDataSO lobbySO;
     public int currentStageIndex = 0;
+    public SceneUiManager sceneManager;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
@@ -879,6 +880,21 @@ public class GameManager : MonoBehaviour
 
         Scene activeScene = SceneManager.GetActiveScene();
 
+        if (activeScene.name == "End")
+        {
+            for (int i = 0; i < inputs.Length; ++i)
+            {
+                InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
+                if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
+                {
+                    sceneManager.Restart();
+                    //RestartGame();
+                    return;
+                }
+            }
+        }
+        ///shop specific update
         if (activeScene.name == "Shop")
         {
             if (shopManager == null)
@@ -1118,13 +1134,24 @@ public class GameManager : MonoBehaviour
                     if (gameOver)
                     {
                         playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
                         GameEnd();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                    }
+                    else if (players[0].spellList.Count >= 6)
+                    {
+                        playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
+                        LoadRandomGameplayStage();
+                        foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else
                     {
                         playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
@@ -1238,6 +1265,7 @@ public class GameManager : MonoBehaviour
             {
                 players[i].ResetPlayer();
                 players[i].SpawnPlayer(fixedSpawnPositions[i]);
+                players[i].inputDisplay.enabled = true;
             }
         }
     }

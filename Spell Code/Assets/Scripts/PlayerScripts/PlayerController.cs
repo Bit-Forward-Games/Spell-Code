@@ -216,7 +216,7 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
-        startingSpell = charData.startingInventory[0];
+        //startingSpell = charData.startingInventory[0];
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -261,7 +261,13 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        FixedVec2 startPos;
+        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
+        if (pID == 1) { startingSpell = "AmonSlash"; }
+        else if (pID == 2) { startingSpell = "QuarterReport"; }
+        else if (pID == 3) { startingSpell = "MightOfZeus"; }
+        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+
+            FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
@@ -307,7 +313,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
-
+        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -762,7 +768,7 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 0);
+                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 1);
                     //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
@@ -1038,7 +1044,7 @@ public class PlayerController : MonoBehaviour
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
+                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
 
 
                     //basic spell is fired
@@ -1176,7 +1182,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    tempColor = Color.white;
+                    tempColor = Color.magenta;
                     break;
                 case 1:
                     tempColor = Color.cyan;
@@ -1201,7 +1207,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    playerSpriteRenderer.color = Color.white;
+                    playerSpriteRenderer.color = Color.magenta;
                     break;
                 case 1:
                     playerSpriteRenderer.color = Color.cyan;

@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62e6143c6dc4cd247bf42c48d40c5bdc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  procConditions: 
-  description: TEMP_TEXT
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 8df1346d1d3cae645aa7d68187351aaa, type: 3}
   - {fileID: 3459829395073810853, guid: 22af8c36a9e4a9948a9c91c14cea1058, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: ce4f5e92308c30b449f0145986afa5e5, type: 3}
+  readyIcon: {fileID: 1530213172065066045, guid: ea4bf52bc77a987468cacdc79ec8f3af, type: 3}
+  notReadyIcon: {fileID: 3682915068996214972, guid: 53e538c3130c48f45988ad0998aa4eaa, type: 3}
+  doesCrit: 0

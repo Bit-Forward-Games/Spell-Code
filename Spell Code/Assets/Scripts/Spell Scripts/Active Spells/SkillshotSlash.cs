@@ -21,22 +21,15 @@ public class SkillshotSlash : SpellData
   
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        switch(targetProcCon)
+        //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State
+        if (owner.flowState > 0)
         {
-            case ProcCondition.ActiveOnHit:
-                //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State
-                if (owner.flowState > 0)
-                {
-                    defender.TakeEffectDamage(10);
-                }
-                //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
-                if (defender.hitboxData.sweetSpot)
-                {
-                    owner.flowState = PlayerController.maxFlowState;
-                }
-                break;
-            default:
-                break;
+            defender.TakeEffectDamage(10);
+        }
+        //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+        if (defender.hitboxData.sweetSpot)
+        {
+            owner.flowState = PlayerController.maxFlowState;
         }
     }
 }

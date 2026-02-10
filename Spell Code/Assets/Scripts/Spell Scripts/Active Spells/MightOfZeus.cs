@@ -26,14 +26,14 @@ public class MightOfZeus : SpellData
     {
         if (projectileInstances.Count < 1) return;
 
-        if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 3)
+        if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 6)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 25), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 30), Fixed.FromInt(spawnOffsetY)));
         }
 
-        if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 3)
+        if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 6)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 50), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 60), Fixed.FromInt(spawnOffsetY)));
         }
 
 
@@ -63,21 +63,13 @@ public class MightOfZeus : SpellData
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        switch(targetProcCon)
+        // ActiveOnHit proc: Grant "Reps" and apply stun if conditions are met
+        if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
         {
-            case ProcCondition.ActiveOnHit: // ActiveOnHit proc: Grant "Reps" and apply stun if conditions are met
-                if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
-                {
-                    defender.stateSpecificArg += 45; // Stun duration in frames (.75 seconds)
-                    defender.hSpd = Fixed.FromInt(0); // Stop horizontal movement
-                    defender.vSpd = Fixed.FromInt(0); // Stop vertical movement
-
-                }
-
-                owner.reps++;
-                break;
-            default:
-                break;
+            defender.stateSpecificArg += 60; // Stun duration in frames (1 second)
+            Debug.Log($"Might of Zeus proc: Owner reps: {owner.reps}, Defender stun duration: {defender.stateSpecificArg} frames");
         }
+
+        owner.reps++;
     }
 }

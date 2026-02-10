@@ -13,7 +13,7 @@ public class CodeE_BasicProjectile : BaseProjectile
         projName = "CodeE_Basic_Projectile";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 20; // lasts for 300 logic frames
+        lifeSpan = 15; // lasts for 300 logic frames
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, true);
 

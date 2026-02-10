@@ -44,10 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16e499c2ab956ad4f918269adaf980c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  procConditions: 020000000e000000
-  description: 'Gain 5% "Stock Stability" upon hitting your basic spell, consumed
-    upon Using your next spell-code, '
   projectilePrefabs: []
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 6b7c0970382d32845a70158744ba8b78, type: 3}
+  readyIcon: {fileID: 8618120170163339053, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
+  notReadyIcon: {fileID: 1867592112603371345, guid: dbc078bde85e8634382c4c4f1be9f179, type: 3}
   storedStockStability: 0

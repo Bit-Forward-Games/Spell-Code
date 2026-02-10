@@ -60,57 +60,41 @@ public class TempSpellDisplay : MonoBehaviour
             {
                 var main = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
-                if (playerSpells[i].spellName == "AsuranBlades")
+
+
+                //handle cooldown fill color and particle effect color based on spell brand
+                switch (playerSpells[i].brands[0])
                 {
-                    cooldownFills[i].color = new Color32(255, 62, 117, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[0];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[0];
+                    case Brand.VWave:
+                        cooldownFills[i].color = new Color32(107, 255, 116, 255);
+                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
+                        break;
+                    case Brand.BigStox:
+                        cooldownFills[i].color = new Color32(67, 122, 252, 255);
+                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
+                        break;
+                    case Brand.Killeez:
+                        cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
+                        break;
+                    case Brand.DemonX:
+                        cooldownFills[i].color = new Color32(255, 62, 117, 255);
+                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
+                        break;
                 }
-                else if (playerSpells[i].spellName == "AmonSlash")
-                {
-                    cooldownFills[i].color = new Color32(255, 62, 117, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[1];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[1];
-                }
-                else if (playerSpells[i].spellName == "GiftOfPromethius")
-                {
-                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[2];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[2];
-                }
-                else if (playerSpells[i].spellName == "MightOfZeus")
-                {
-                    cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[3];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[3];
-                }
-                else if (playerSpells[i].spellName == "ReloadShot")
-                {
-                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[4];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[4];
-                }
-                else if (playerSpells[i].spellName == "SkillshotSlash")
-                {
-                    cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                    main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                    spellRechargingIcons[i].sprite = uiScript.spellOnCooldownIcon[5];
-                    spellReadyIcons[i].sprite = uiScript.spellReadyIcon[5];
-                }
-                
-                if (showInputs)
-                {
-                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-                }
-                else
-                {
-                    spellSlots[i].text = playerSpells[i].spellName;
-                }
+
+                spellRechargingIcons[i].sprite = playerSpells[i].notReadyIcon;
+                spellReadyIcons[i].sprite = playerSpells[i].readyIcon;
+
+                spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                //if (showInputs)
+                //{
+                //    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                //}
+                //else
+                //{
+                //    spellSlots[i].text = playerSpells[i].spellName;
+                //}
             }
             else
             {

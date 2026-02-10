@@ -44,21 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f69e7e51f513d3f438aee268f066873b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: ReloadShot
-  brands: 01000000
-  procConditions: 04000000
-  description: Project forth a massive orb which consumes all of your "Flow State"
-    and resets all spell-code cooldowns. Consumes all "Flow State" to reduce this
-    cooldown. Hit this SpellCode early to instead enter "Flow State"
-  cooldown: 480
-  cooldownCounter: 0
-  spellInput: 53764
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 1
-  spawnOffsetX: 10
-  spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 6d1119af53a324e4394e17f70c579d6d, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 003ebf56b1674414c95a440b55d5cd51, type: 3}
+  readyIcon: {fileID: -7945187025359328830, guid: bb2860bc76abf8c4d95d8724990f9f5c, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: f647396f1e68a4f70ba8c231b370aa62, type: 3}

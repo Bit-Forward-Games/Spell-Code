@@ -44,19 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e4e8f965593ff14ba5e32958bb75a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: BootsOfHermes
-  brands: 03000000
-  procConditions: 11000000
-  description: Gain 1 Jump for every 3 "Reps" you have.
-  cooldown: 0
-  cooldownCounter: 0
-  spellInput: 0
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 0
-  spawnOffsetX: 10
-  spawnOffsetY: 15
   projectilePrefabs: []
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
+  readyIcon: {fileID: 8618120170163339053, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
+  notReadyIcon: {fileID: 1867592112603371345, guid: dbc078bde85e8634382c4c4f1be9f179, type: 3}
   hermesJumps: 0

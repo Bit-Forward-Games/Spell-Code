@@ -44,19 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cea9fed3007b754b924b25ba79f2abc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: AsuranBlades
-  brands: 02000000
-  procConditions: 0400000008000000
-  description: Leap back throwing 3 shurikens downward, each granting "Demon Aura"
-    on hit. If you have 50% or more "Demon Aura", your slide summons a blade
-  cooldown: 120
-  cooldownCounter: 0
-  spellInput: 514
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 1
-  spawnOffsetX: 15
-  spawnOffsetY: 0
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: ba7ec9812e6647744a921655caa734f9, type: 3}
   - {fileID: 3459829395073810853, guid: ba7ec9812e6647744a921655caa734f9, type: 3}
@@ -64,3 +51,5 @@ MonoBehaviour:
   - {fileID: 3459829395073810853, guid: fd7cfb4a2d1f6ba4eb90f628a4ae724d, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: a31941eabb85a0741b580a5b035ee6d3, type: 3}
+  readyIcon: {fileID: -3767877950221520959, guid: fb4206feec11fe740912363865a1d06d, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: e39b5b9c615424d43ae2ea209e4eb9c4, type: 3}

@@ -44,19 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa6cd5f2a9da1ef4b96dbfb35d74503f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: DemonicDescent
-  brands: 02000000
-  procConditions: 1100000003000000
-  description: While at 100% "Demon Aura", you gain mobility, and your Spells deal
-    increased damage
-  cooldown: 0
-  cooldownCounter: 0
-  spellInput: 0
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 0
-  spawnOffsetX: 10
-  spawnOffsetY: 15
   projectilePrefabs: []
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: d58c709f2170f9248a6ca3ceccfa147d, type: 3}
+  readyIcon: {fileID: 8618120170163339053, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
+  notReadyIcon: {fileID: 1867592112603371345, guid: dbc078bde85e8634382c4c4f1be9f179, type: 3}

@@ -102,6 +102,8 @@ public abstract class SpellData : MonoBehaviour
     public List<GameObject> projectileInstances;
 
     public Sprite shopSprite;
+    public Sprite readyIcon;
+    public Sprite notReadyIcon;
 
 
     private void Awake()

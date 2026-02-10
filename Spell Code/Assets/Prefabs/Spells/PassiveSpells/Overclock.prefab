@@ -44,20 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8135508f9f549040bb41f0c3b6ecfcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: Overclock
-  brands: 01000000
-  procConditions: 0c000000
-  description: While in Flow State, you overclock your spell-codes, creating an explosion
-    on spell-cast.
-  cooldown: 0
-  cooldownCounter: 0
-  spellInput: 0
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 0
-  spawnOffsetX: 10
-  spawnOffsetY: 15
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 5e9de9e76cf85b040848816e9523b15c, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 166b203bcef96644fb823c8a1be59b2b, type: 3}
+  readyIcon: {fileID: 8618120170163339053, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
+  notReadyIcon: {fileID: 1867592112603371345, guid: dbc078bde85e8634382c4c4f1be9f179, type: 3}

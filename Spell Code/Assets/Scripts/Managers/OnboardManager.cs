@@ -88,6 +88,13 @@ public class OnboardManager : MonoBehaviour
     {
         gM = GameManager.Instance;
 
+        // Disable onboard if online match is active
+        if (gM != null && gM.isOnlineMatchActive)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;
@@ -121,6 +128,12 @@ public class OnboardManager : MonoBehaviour
 
     public void OnboardUpdate(ulong[] playerInputs)
     {
+        // Never run onboarding during online match
+        if (gM == null || gM.isOnlineMatchActive)
+        {
+            return;
+        }
+
         for (int i = 0; i < playerInputs.Length; i++)
         {
             inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);

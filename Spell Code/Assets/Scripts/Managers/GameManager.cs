@@ -38,14 +38,12 @@ public class GameManager : MonoBehaviour
     public StageDataSO[] stages;
     public StageDataSO lobbySO;
     public int currentStageIndex = 0;
-    public SceneUiManager sceneManager;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
 
     [HideInInspector]
     public ShopManager shopManager;
-    public OnboardManager onboardManager;
 
     public GO_Door goDoorPrefab;
 
@@ -312,13 +310,6 @@ public class GameManager : MonoBehaviour
 
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
-        if (onboardManager != null)
-        {
-            onboardManager.gameObject.SetActive(false);
-            onboardManager = null;
-            Debug.Log("Onboarding disabled for online match");
-        }
-
         Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
         {
@@ -336,14 +327,6 @@ public class GameManager : MonoBehaviour
         {
             onlineMenuUI.SetActive(false);
             Debug.Log("Online menu UI hidden");
-        }
-
-        Scene currentScene = SceneManager.GetActiveScene();
-        if (currentScene.name != "MainMenu")
-        {
-            Debug.LogWarning($"StartOnlineMatch called from scene '{currentScene.name}' - loading MainMenu first");
-            SceneManager.LoadScene("MainMenu");
-            return;
         }
 
         isOnlineMatchActive = false;
@@ -442,24 +425,7 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         SetStage(-1); // Lobby stage
-
-        // Reset spell selection indices
-        p1_index = 0;
-        p2_index = 0;
-        p1_lastCycleFrame = -999;
-        p2_lastCycleFrame = -999;
-
-        // Generate starting spell choices for both players
-        GenerateStartingSpells(0);
-        GenerateStartingSpells(1);
-
-        // Initialize spell cards as disabled
-        p1_spellCard.enabled = false;
-        p2_spellCard.enabled = false;
-
         ResetPlayers();
-
-        isRunning = true;
 
         isRunning = true;
 
@@ -912,21 +878,6 @@ public class GameManager : MonoBehaviour
 
         Scene activeScene = SceneManager.GetActiveScene();
 
-        if (activeScene.name == "End")
-        {
-            for (int i = 0; i < inputs.Length; ++i)
-            {
-                InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
-                if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
-                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
-                {
-                    sceneManager.Restart();
-                    //RestartGame();
-                    return;
-                }
-            }
-        }
-        ///shop specific update
         if (activeScene.name == "Shop")
         {
             if (shopManager == null)
@@ -940,22 +891,6 @@ public class GameManager : MonoBehaviour
             shopManager = null;
         }
 
-        ///shop specific update
-        if (activeScene.name == "MainMenu")
-        {
-            if (onboardManager == null)
-            {
-                onboardManager = FindAnyObjectByType<OnboardManager>();
-            }
-            onboardManager.OnboardUpdate(inputs);
-        }
-        else
-        {
-            onboardManager = null;
-        }
-
-
-        //if the game is not running, skip the update (everything after this uses player controller updates)
         if (!isRunning)
             return;
 
@@ -1059,7 +994,7 @@ public class GameManager : MonoBehaviour
                     if (players[2].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p3 pressed cycle spell");
-                        if (p3_index >= p3_choices.Count-1)
+                        if (p3_index >= p3_choices.Count - 1)
                         {
                             p3_index = 0;
                         }
@@ -1096,7 +1031,7 @@ public class GameManager : MonoBehaviour
                     if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
                     {
                         Debug.Log("p4 pressed cycle spell");
-                        if (p4_index >= p4_choices.Count-1)
+                        if (p4_index >= p4_choices.Count - 1)
                         {
                             p4_index = 0;
                         }
@@ -1166,24 +1101,13 @@ public class GameManager : MonoBehaviour
                     if (gameOver)
                     {
                         playerWinText.enabled = false;
-                        dataManager.totalRoundsPlayed += 1;
                         GameEnd();
-                        Debug.Log(roundEndTimer);
-                        roundEndTimer = 0;
-                    }
-                    else if (players[0].spellList.Count >= 6)
-                    {
-                        playerWinText.enabled = false;
-                        dataManager.totalRoundsPlayed += 1;
-                        LoadRandomGameplayStage();
-                        foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else
                     {
                         playerWinText.enabled = false;
-                        dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
@@ -1297,7 +1221,6 @@ public class GameManager : MonoBehaviour
             {
                 players[i].ResetPlayer();
                 players[i].SpawnPlayer(fixedSpawnPositions[i]);
-                players[i].inputDisplay.enabled = true;
             }
         }
     }
@@ -1521,7 +1444,6 @@ public class GameManager : MonoBehaviour
             p1_choices.Add("SkillshotSlash");
             p1_choices.Add("MightOfZeus");
             p1_choices.Add("AmonSlash");
-            p1_choices.Add("CoinToss");
         }
         if (index == 1)
         {
@@ -1529,7 +1451,6 @@ public class GameManager : MonoBehaviour
             p2_choices.Add("SkillshotSlash");
             p2_choices.Add("MightOfZeus");
             p2_choices.Add("AmonSlash");
-            p2_choices.Add("CoinToss");
         }
         if (index == 2)
         {
@@ -1537,7 +1458,6 @@ public class GameManager : MonoBehaviour
             p3_choices.Add("SkillshotSlash");
             p3_choices.Add("MightOfZeus");
             p3_choices.Add("AmonSlash");
-            p3_choices.Add("CoinToss");
         }
         if (index == 3)
         {
@@ -1545,7 +1465,6 @@ public class GameManager : MonoBehaviour
             p4_choices.Add("SkillshotSlash");
             p4_choices.Add("MightOfZeus");
             p4_choices.Add("AmonSlash");
-            p4_choices.Add("CoinToss");
         }
     }
 

@@ -28,7 +28,7 @@ public class StageDataBuilder : MonoBehaviour
 
         playerSpawns = new GameObject[4];
         playerSpawns[0] = GameObject.FindGameObjectWithTag("Player Spawn");
-        playerSpawns[1] = GameObject.FindGameObjectWithTag("Player 2 Spawn");
+        playerSpawns[1] = GameObject.FindGameObjectWithTag("Player 2 Spawn ");
         playerSpawns[2] = GameObject.FindGameObjectWithTag("Player 3 Spawn");
         playerSpawns[3] = GameObject.FindGameObjectWithTag("Player 4 Spawn");
         //playerSpawns = GameObject.FindGameObjectsWithTag("Player Spawn");
@@ -142,6 +142,9 @@ public class StageDataBuilder : MonoBehaviour
         // Save changes
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+
+        //log a message
+        Debug.Log(sceneName + "StageDataSO.asset has been saved to: " + directory);
     }
     #endif
 }

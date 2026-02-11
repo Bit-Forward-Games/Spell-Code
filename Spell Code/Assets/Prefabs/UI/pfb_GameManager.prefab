@@ -1859,14 +1859,14 @@ MonoBehaviour:
   - {fileID: 9067869494774831627}
   tempUI: {fileID: 6336463642458857690}
   stages:
-  - {fileID: 11400000, guid: 1b7e551841938834d97b7ba27d8647da, type: 2}
+  - {fileID: 11400000, guid: 1222afce2ed666746aa9b117ac702c64, type: 2}
   - {fileID: 11400000, guid: 70e6c6f393b293e44ad701793bec6a42, type: 2}
   - {fileID: 11400000, guid: c0b19bec313ddc348b7137bc886dee1c, type: 2}
   - {fileID: 11400000, guid: 720af866b5116394e8f2cb39267e54e5, type: 2}
-  - {fileID: 11400000, guid: ae2580889ef19d9439cf86cf3369d128, type: 2}
+  - {fileID: 11400000, guid: fef19ca6d5b5954429cabc6abd00b8dc, type: 2}
   - {fileID: 11400000, guid: 8d727b24553492244b252891c3801881, type: 2}
   - {fileID: 11400000, guid: 25db1c35f6dc7564fa996f91129404e5, type: 2}
-  - {fileID: 11400000, guid: 3bf6b4927b8c32d48bd5231f0f67bd77, type: 2}
+  - {fileID: 11400000, guid: e2e1836036575f041b055441cf2032d5, type: 2}
   - {fileID: 11400000, guid: 50d4aff065ec55849956fb6be3e1a3a0, type: 2}
   lobbySO: {fileID: 11400000, guid: 7f1c439665daf0f4c9b5f39029799c75, type: 2}
   currentStageIndex: -1

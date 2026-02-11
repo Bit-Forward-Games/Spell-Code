@@ -340,6 +340,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player Spawn Point (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 7698486489962999249, guid: cbe8a1b4fd40f4f4e8cd76bccff4891b, type: 3}
+      propertyPath: m_TagString
+      value: Player 4 Spawn
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -479,6 +483,10 @@ PrefabInstance:
     - target: {fileID: 7698486489962999249, guid: cbe8a1b4fd40f4f4e8cd76bccff4891b, type: 3}
       propertyPath: m_Name
       value: Player Spawn Point (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7698486489962999249, guid: cbe8a1b4fd40f4f4e8cd76bccff4891b, type: 3}
+      propertyPath: m_TagString
+      value: Player 3 Spawn
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18613,6 +18621,10 @@ PrefabInstance:
     - target: {fileID: 7698486489962999249, guid: cbe8a1b4fd40f4f4e8cd76bccff4891b, type: 3}
       propertyPath: m_Name
       value: Player Spawn Point (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7698486489962999249, guid: cbe8a1b4fd40f4f4e8cd76bccff4891b, type: 3}
+      propertyPath: m_TagString
+      value: 'Player 2 Spawn '
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

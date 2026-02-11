@@ -8,6 +8,8 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
+using Unity.VisualScripting;
+using System.Linq;
 
 
 public class StageDataBuilder : MonoBehaviour
@@ -23,7 +25,13 @@ public class StageDataBuilder : MonoBehaviour
     {
         platforms = GameObject.FindGameObjectsWithTag("Platform");
         solids = GameObject.FindGameObjectsWithTag("Solid");
-        playerSpawns = GameObject.FindGameObjectsWithTag("Player Spawn");
+
+        playerSpawns = new GameObject[4];
+        playerSpawns[0] = GameObject.FindGameObjectWithTag("Player Spawn");
+        playerSpawns[1] = GameObject.FindGameObjectWithTag("Player 2 Spawn");
+        playerSpawns[2] = GameObject.FindGameObjectWithTag("Player 3 Spawn");
+        playerSpawns[3] = GameObject.FindGameObjectWithTag("Player 4 Spawn");
+        //playerSpawns = GameObject.FindGameObjectsWithTag("Player Spawn");
         activatableSolids = GameObject.FindGameObjectsWithTag("activatableSolid");
 
 
@@ -60,7 +68,7 @@ public class StageDataBuilder : MonoBehaviour
     {
         int i = 0;
         int j = 0; 
-        int k = 0;
+        //int k = 0;
         int l = 0;
         foreach (GameObject platform in platforms)
         {
@@ -78,13 +86,28 @@ public class StageDataBuilder : MonoBehaviour
             j++;
         }
 
-        foreach (GameObject spawn in playerSpawns)
-        {
-            Transform spawnTransforms = spawn.GetComponent<Transform>();
-            Vector3 floatPos = spawnTransforms.position;
-            stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
-            k++;
-        }
+        //foreach (GameObject spawn in playerSpawns)
+        //{
+        //    Transform spawnTransforms = spawn.GetComponent<Transform>();
+        //    stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
+        //    k++;
+        //}
+
+        //if there are not exactly 4 player spawn points,...
+        //if(playerSpawns.Length != 4)
+        //{
+        //    //log a warning
+        //    Debug.LogWarning(gameObject.name + " tried to create a Stage Data Scriptable Object with a scene that does not contain exactly 4 player spawn points!. Add exactly 4 objects with the \"Player Spawn\" tag.");
+
+        //    //return
+        //    return;
+        //}
+
+        //add each player spawn point to playerSpawnTransform based on their tags
+        stageDataSO.playerSpawnTransform[0] = playerSpawns[0].transform.position;
+        stageDataSO.playerSpawnTransform[1] = playerSpawns[1].transform.position;
+        stageDataSO.playerSpawnTransform[2] = playerSpawns[2].transform.position;
+        stageDataSO.playerSpawnTransform[3] = playerSpawns[3].transform.position;
 
         foreach (GameObject activatableSolid in activatableSolids)
         {

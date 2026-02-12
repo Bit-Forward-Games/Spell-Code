@@ -2345,7 +2345,7 @@ MonoBehaviour:
   opponentIdField: {fileID: 1015212266}
   myIdText: {fileID: 1417159160}
   onlineUI: {fileID: 1505144232}
-  gameplaySceneName: Gameplay
+  gameplaySceneName: MainMenu
 --- !u!114 &1101021166
 MonoBehaviour:
   m_ObjectHideFlags: 0

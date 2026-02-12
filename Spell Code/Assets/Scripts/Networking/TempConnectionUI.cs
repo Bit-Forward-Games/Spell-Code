@@ -10,8 +10,8 @@ public class TempConnectionUI : MonoBehaviour
     public TextMeshProUGUI myIdText;
     public GameObject onlineUI;
 
-    [Header("Scene Setup")]
-    public string gameplaySceneName = "MainMenu";
+    //[Header("Scene Setup")]
+    //public string gameplaySceneName = "MainMenu";
 
     void Start()
     {
@@ -98,9 +98,9 @@ public class TempConnectionUI : MonoBehaviour
             }
 
             // Load the gameplay scene
-            if (!string.IsNullOrEmpty(gameplaySceneName))
+            if (!string.IsNullOrEmpty("MainMenu"))
             {
-                SceneManager.LoadScene(gameplaySceneName);
+                SceneManager.LoadScene("MainMenu");
             }
             else
             {

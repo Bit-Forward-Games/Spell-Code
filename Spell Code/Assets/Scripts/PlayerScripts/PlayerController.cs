@@ -2255,6 +2255,8 @@ public class PlayerController : MonoBehaviour
 
             if (IsStorableState())
             {
+                //this is to keep the physics interactions between releasing a stored code and a normal code consistent, improving player experience
+                vSpd = Fixed.FromInt(0);
                 SetState(PlayerState.CodeRelease);
             }
         }

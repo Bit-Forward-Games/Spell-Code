@@ -11,7 +11,7 @@ public class QuarterReport : SpellData
     {
         spellName = "QuarterReport";
         brands = new Brand[] { Brand.BigStox };
-        cooldown = 240;
+        cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};

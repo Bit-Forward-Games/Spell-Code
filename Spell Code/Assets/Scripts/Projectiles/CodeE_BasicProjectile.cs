@@ -40,7 +40,7 @@ public class CodeE_BasicProjectile : BaseProjectile
                     width = 20,
                     height = 10,
                     xKnockback = 2,
-                    yKnockback = 4,
+                    yKnockback = 1,
                     damage = 10,
                     hitstun = 5,
                     attackLvl = 1,

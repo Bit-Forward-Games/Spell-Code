@@ -18,7 +18,7 @@ public class MightOfZeus : SpellData
 
         description = "Summon down 3 lightning strikes, each granting 1 \"Rep\" if it hits. If you have 8 or more \"Reps\", this Spell-Code stuns!";
 
-        spawnOffsetX = 16;
+        spawnOffsetX = 25;
         spawnOffsetY = 0;
     }
 

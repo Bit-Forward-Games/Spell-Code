@@ -15,7 +15,7 @@ public class QuarterReportCrit_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 180; 
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6 }, true);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, true);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -23,7 +23,7 @@ public class QuarterReportCrit_prj : BaseProjectile
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = Fixed.FromFloat((facingRight ? 1 : -1) * 5.33f); // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4); // Set horizontal speed based on facing direction
     }
 
     public override void LoadProjectile()
@@ -35,15 +35,15 @@ public class QuarterReportCrit_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -48,
-                    yOffset = 48,
-                    width = 48*2,
-                    height = 48*2,
+                    xOffset = -22,
+                    yOffset = 18,
+                    width = 23*2,
+                    height = 18*2,
                     xKnockback = 6,
                     yKnockback = 8,
-                    damage = 20,
+                    damage = 25,
                     hitstun = 45,
-                    attackLvl = 3,
+                    attackLvl = 2,
                 }
             },
             hitbox2 = new List<HitboxData>(),

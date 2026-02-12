@@ -39,9 +39,9 @@ public class MightOfZeus_Projectile : BaseProjectile
                     yOffset = 120,
                     width = 20,
                     height = 120,
-                    xKnockback = 2,
+                    xKnockback = 3,
                     yKnockback = 1,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
                     //cancelOptions = new List<int> { } // No cancel options

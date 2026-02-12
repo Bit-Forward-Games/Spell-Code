@@ -132,6 +132,7 @@ public class PlayerController : MonoBehaviour
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
+    public bool lightArmor = false;
 
     public List<SpellData> spellList = new List<SpellData>();
     public GameObject basicProjectileInstance;
@@ -236,7 +237,7 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
                 pID = 1;
-                playerNum.color = Color.magenta;
+                playerNum.color = Color.red;
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
@@ -935,7 +936,18 @@ public class PlayerController : MonoBehaviour
                     stateSpecificArg &= ~(1u << 4);
                     //Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-
+                    lightArmor = false;
+                    for (int i = i = 0; i < spellList.Count; i++)
+                    {
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter <= 0)
+                        {
+                            Debug.Log($"You Released {spellList[i].spellName}!");
+                            lightArmor = true;
+                            break;
+                        }
+                    }
 
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -945,6 +957,7 @@ public class PlayerController : MonoBehaviour
                 //jump button pressed
                 if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    lightArmor = false;
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     //if the current code is a valid spell code, store it for later use
@@ -1039,6 +1052,7 @@ public class PlayerController : MonoBehaviour
                     if (stateSpecificArg == 255)
                     {
                         //so check all spells with OnCastSpell condition
+
                         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastSpell);
                         break;
                     }
@@ -1700,6 +1714,7 @@ public class PlayerController : MonoBehaviour
                 //}
                 break;
             case PlayerState.CodeWeave:
+                lightArmor = true;
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -1718,9 +1733,6 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeRelease:
-
-                //play the exit weave sound
-                //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 
@@ -1752,6 +1764,8 @@ public class PlayerController : MonoBehaviour
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
 
+                //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
+                lightArmor = false;
                 ClearInputDisplay();
                 break;
         }
@@ -1828,7 +1842,7 @@ public class PlayerController : MonoBehaviour
             // isHit = false;
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (state == PlayerState.CodeWeave && hitboxData.attackLvl < 2)
+            if (lightArmor && hitboxData.attackLvl < 2)
             {
                 return;
             }
@@ -2108,6 +2122,7 @@ public class PlayerController : MonoBehaviour
         //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
+        bw.Write(lightArmor);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -2158,6 +2173,7 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
+        lightArmor = br.ReadBoolean();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
@@ -2272,6 +2288,8 @@ public class PlayerController : MonoBehaviour
 
             if (IsStorableState())
             {
+                //this is to keep the physics interactions between releasing a stored code and a normal code consistent, improving player experience
+                vSpd = Fixed.FromInt(0);
                 SetState(PlayerState.CodeRelease);
             }
         }

@@ -116,9 +116,9 @@ public class PlayerController : MonoBehaviour
     //money things
     public ushort totalRam = 0;
     public ushort roundRam = 0;
-    public Fixed ramBounty = Fixed.FromFloat(1);
-    public const ushort baseRamKillbonus = 50;
-    public const ushort baseRamLifeWorth = 100;
+    public short ramBounty = 0;
+    public const ushort baseRamKillBonus = 100;
+    public const ushort baseRamLifeWorth = 200;
 
     // Push Box Variables
     [HideInInspector]
@@ -305,7 +305,7 @@ public class PlayerController : MonoBehaviour
 
         //reset money values between respawns
 
-        ramBounty = Fixed.FromFloat(1);
+        ramBounty = 0;
 
 
         //initialize resources
@@ -1870,13 +1870,21 @@ public class PlayerController : MonoBehaviour
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
 
+            //update the damage matrix the attacker attacking this player
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
+
             //checking for death
             if (hitboxData.damage > currentPlayerHealth)
             {
                 //play the death sound
                 SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
+                
                 currentPlayerHealth = 0;
+
+                //award the killer with the extra bonus ram
+                hitboxData.parentProjectile.owner.roundRam += baseRamKillBonus;
+                hitboxData.parentProjectile.owner.totalRam += baseRamKillBonus;
             }
             else
             {
@@ -1886,7 +1894,6 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
             }
-            GameManager.Instance.damageMatrix[pID-1, attacker.pID-1] += (byte)hitboxData.damage;
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));

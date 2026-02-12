@@ -762,20 +762,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             // Don't want to trigger a scene change during a resimulation
             if (!rbManager.isRollbackFrame)
             {
-                if (CheckGameEnd(GetActivePlayerControllers()))
+                if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
                 {
                     // Tally wins
                     for (int i = 0; i < playerCount; i++)
                     {
-                        if (players[i].isAlive)
-                        {
-                            Debug.Log("Player " + (i + 1) + " wins the match!");
-                            players[i].isAlive = false;
-                            players[i].roundsWon++;
+                        if (players[i].roundsWon >= 3) { gameOver = true; }
+                        //if (players[i].isAlive)
+                        //{
+                        //    Debug.Log("Player " + (i + 1) + " wins the match!");
+                        //    players[i].isAlive = false;
+                        //    players[i].roundsWon++;
 
-                            if (players[i].roundsWon >= 3) { gameOver = true; }
-                            break;
-                        }
+                        //    if (players[i].roundsWon >= 3) { gameOver = true; }
+                        //    break;
+                        //}
                     }
 
                     ClearStages();
@@ -911,23 +912,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         else if (activeScene.name == "Gameplay")
         {
-            if (CheckGameEnd(GetActivePlayerControllers()))
+            if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
                 for (int i = 0; i < playerCount; i++)
                 {
                     players[i].playerNum.enabled = false;
                     players[i].inputDisplay.enabled = false;
-                    if (players[i].isAlive)
-                    {
-                        playerWinText.enabled = true;
-                        Debug.Log("Player " + (i + 1) + " wins the match!");
-                        playerWinText.text = "Player " + (i + 1) + " wins the match!";
-                        players[i].isAlive = false; //reset for next round
-                        players[i].roundsWon++;
+                    if (players[i].roundsWon >= 3) { gameOver = true; }
+                    //if (players[i].isAlive)
+                    //{
+                    //    playerWinText.enabled = true;
+                    //    Debug.Log("Player " + (i + 1) + " wins the match!");
+                    //    playerWinText.text = "Player " + (i + 1) + " wins the match!";
+                    //    players[i].isAlive = false; //reset for next round
+                    //    players[i].roundsWon++;
 
-                        if (players[i].roundsWon >= 3) { gameOver = true; }
-                        break;
-                    }
+                    //    if (players[i].roundsWon >= 3) { gameOver = true; }
+                    //    break;
+                    //}
                 }
 
                 if (roundEndTransitionTime >= roundEndTimer)
@@ -1035,18 +1037,76 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
     }
 
-    public bool CheckGameEnd(PlayerController[] playerControllers)
+    public void UpdatePlayerBounties()
     {
-        int alivePlayers = 0;
+        ushort averageTotalRam = 0;
+        for (int i = 0; i < playerCount; i++)
+        {
+            averageTotalRam += players[i].totalRam;
+        }
+        averageTotalRam = (ushort)(averageTotalRam / playerCount);
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].ramBounty = (short)((float)(players[i].totalRam - averageTotalRam)/2);
+        }
+    }
+
+    public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
+    {
+        //int alivePlayers = 0;
+        //foreach (PlayerController player in playerControllers)
+        //{
+        //    if (player.isAlive) alivePlayers++;
+        //}
+        //if (alivePlayers <= 1 && playerCount > 1)
+        //{
+        //    return true;
+        //}
+
+
+
+
+        ushort highestRam = 0;
+        PlayerController winner = null;
         foreach (PlayerController player in playerControllers)
         {
-            if (player.isAlive) alivePlayers++;
+            //check for player deaths
+            if(!player.isAlive)
+            {
+
+                //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
+                foreach (PlayerController p in playerControllers)
+                {
+                    ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
+                    p.roundRam += (ushort)(damageMatrix[player.pID-1, p.pID-1] + bountyCut);
+                    p.totalRam += (ushort)(damageMatrix[player.pID - 1, p.pID - 1] + bountyCut);
+
+                    damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
+                }
+
+                UpdatePlayerBounties();
+
+                //respawn the dead player
+                player.SpawnPlayer(GetRandomSpawnVec2());
+            }
+
+
+            //check for winner con
+            if (player.roundRam >= ramNeededToWinRound)
+            {
+                if(player.roundRam > highestRam)
+                {
+                    winner = player;
+                    highestRam = player.roundRam;
+                }
+            }
         }
-        if (alivePlayers <= 1 && playerCount > 1)
-        {
-            return true;
-        }
-        return false;
+
+
+        if (winner == null) return false;
+        winner.roundsWon++;
+        return true;
     }
 
     //reset players after each round

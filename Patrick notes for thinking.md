@@ -39,3 +39,12 @@ Spell reworks and balance
 Potential comeback mechanic for RNG:
 having the curated RNG to help with runs (making sure u get at least 1 spell in ur brand, no repeats, no passives for brands you dont own, etc.), which goes away as you win, creating more chaotic builds
 
+
+
+bounty system explained (current iteration):
+ - players are worth 200 ram at a base value, split between players based on damage participation
+
+&nbsp;- a bonus of a flat 50 ram is awarded to the person who gets the kill (total 150 ram for a solo kill)
+
+&nbsp;- each player's bounty is based on how much total ram they have relative to the 
+

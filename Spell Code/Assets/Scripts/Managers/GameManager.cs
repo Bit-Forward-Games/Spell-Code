@@ -25,6 +25,19 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
+    public ushort ramNeededToWinRound = 300;
+
+
+    /// <summary>
+    /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
+    /// </summary>
+    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    {
+        { 0, 0, 0, 0 }, // player 1 dies
+        { 0, 0, 0, 0 }, // player 2 dies
+        { 0, 0, 0, 0 }, // player 3 dies
+        { 0, 0, 0, 0 }  // player 4 dies
+    };
 
     public bool isRunning;
     public bool isSaved;
@@ -1123,6 +1136,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 stages[currentStageIndex].playerSpawnTransform[2],
                 stages[currentStageIndex].playerSpawnTransform[3]};
         }
+    }
+
+    public FixedVec2 GetRandomSpawnVec2()
+    {
+        FixedVec2[] spawnPointList = new FixedVec2[GetSpawnPositions().Length];
+        return spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+
     }
 
     //A round is 1 match + spell acquisition phase

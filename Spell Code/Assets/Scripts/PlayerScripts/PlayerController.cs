@@ -113,6 +113,13 @@ public class PlayerController : MonoBehaviour
     public Texture2D[] matchPalette = new Texture2D[2];
     public ushort currentPlayerHealth = 0;
 
+    //money things
+    public ushort totalRam = 0;
+    public ushort roundRam = 0;
+    public Fixed ramBounty = Fixed.FromFloat(1);
+    public const ushort baseRamKillbonus = 50;
+    public const ushort baseRamLifeWorth = 100;
+
     // Push Box Variables
     [HideInInspector]
     public Fixed playerWidth;
@@ -296,6 +303,11 @@ public class PlayerController : MonoBehaviour
         playerHeight = Fixed.FromInt(charData.playerHeight);
         SetState(PlayerState.Idle);
 
+        //reset money values between respawns
+
+        ramBounty = Fixed.FromFloat(1);
+
+
         //initialize resources
         flowState = 0;
         stockStability = 0;
@@ -318,6 +330,9 @@ public class PlayerController : MonoBehaviour
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }
+
+
+    
 
     public void AddSpellToSpellList(string spellToAdd)
     {
@@ -608,6 +623,14 @@ public class PlayerController : MonoBehaviour
 
         if (currentPlayerHealth <= 0)
         {
+            //reset cooldowns of all spells in spell list so that they are ready to be used when the player respawns
+            foreach (SpellData spell in spellList)
+            {
+                if (spell != null)
+                {
+                    spell.cooldownCounter = 0;
+                }
+            }
             isAlive = false;
             return;
         }
@@ -1863,7 +1886,7 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
             }
-
+            GameManager.Instance.damageMatrix[pID-1, attacker.pID-1] += (byte)hitboxData.damage;
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));

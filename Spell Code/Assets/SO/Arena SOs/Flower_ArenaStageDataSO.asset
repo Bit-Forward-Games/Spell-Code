@@ -45,9 +45,9 @@ MonoBehaviour:
   - {x: 286, y: 16}
   - {x: 16, y: 224}
   playerSpawnTransform:
-  - {x: 144, y: -96, z: 0}
-  - {x: -144, y: -96, z: 0}
-  - {x: 144, y: 48, z: 0}
   - {x: -144, y: 48, z: 0}
+  - {x: 144, y: 48, z: 0}
+  - {x: -144, y: -96, z: 0}
+  - {x: 144, y: -96, z: 0}
   activatableSolidCenter: []
   activatableSolidExtent: []

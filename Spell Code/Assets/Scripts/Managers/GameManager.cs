@@ -1021,172 +1021,24 @@ public class GameManager : MonoBehaviour
         if (!isRunning)
             return;
 
+
+
         UpdateGameState(inputs);
 
         if (activeScene.name == "MainMenu")
         {
             //if (lastSceneName == "End")
             //{
-                //for (int i = 0; i < gates.Length; i++)
-                //{
-                //    gates[i].SetOpen(true);
-                //}
-
-                //if (onlineMenuUI != null)
-                //{
-                //    onlineMenuUI.SetActive(false);
-                //}
+            //for (int i = 0; i < gates.Length; i++)
+            //{
+            //    gates[i].SetOpen(true);
             //}
 
-            //player 1 stuff
-            if (players[0] != null)
-            {
-                if (players[0].chosenStartingSpell == false && players[0].isSpawned)
-                {
-                    if (players[0].input.ButtonStates[0] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p1 pressed cycle spell");
-                        if (p1_index == p1_choices.Count - 1)
-                        {
-                            p1_index = 0;
-                        }
-                        else
-                        {
-                            p1_index++;
-                        }
-
-                        p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_choices[p1_index]].shopSprite;
-                    }
-
-                    if (players[0].input.ButtonStates[1] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p1 chose a spell");
-                        players[0].AddSpellToSpellList(p1_choices[p1_index]);
-                        players[0].startingSpell = p1_choices[p1_index];
-                        players[0].chosenStartingSpell = true;
-                        p1_spellCard.enabled = false;
-                    }
-                }
-
-                if (players[0].isSpawned == false)
-                {
-                    GenerateStartingSpells(0);
-                    p1_spellCard.enabled = true;
-                    players[0].isSpawned = true;
-                }
-            }
-
-            if (players[1] != null)
-            {
-                if (players[1].chosenStartingSpell == false && players[1].isSpawned)
-                {
-                    if (players[1].input.ButtonStates[0] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p2 pressed cycle spell");
-                        if (p2_index == p2_choices.Count - 1)
-                        {
-                            p2_index = 0;
-                        }
-                        else
-                        {
-                            p2_index++;
-                        }
-
-                        p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_choices[p2_index]].shopSprite;
-                    }
-
-                    if (players[1].input.ButtonStates[1] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p2 chose a spell");
-                        players[1].AddSpellToSpellList(p2_choices[p2_index]);
-                        players[1].startingSpell = p2_choices[p2_index];
-                        players[1].chosenStartingSpell = true;
-                        p2_spellCard.enabled = false;
-                    }
-                }
-
-                if (players[1].isSpawned == false)
-                {
-                    GenerateStartingSpells(1);
-                    p2_spellCard.enabled = true;
-                    players[1].isSpawned = true;
-                }
-            }
-
-            if (players[2] != null)
-            {
-                if (players[2].chosenStartingSpell == false && players[2].isSpawned)
-                {
-                    //cycle spells (spellWeave button)
-                    if (players[2].input.ButtonStates[0] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p3 pressed cycle spell");
-                        if (p3_index >= p3_choices.Count-1)
-                        {
-                            p3_index = 0;
-                        }
-                        else
-                        {
-                            p3_index++;
-                        }
-
-                        p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_choices[p3_index]].shopSprite;
-                    }
-
-                    if (players[2].input.ButtonStates[1] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p3 chose a spell");
-                        players[2].AddSpellToSpellList(p3_choices[p3_index]);
-                        players[2].startingSpell = p3_choices[p3_index];
-                        players[2].chosenStartingSpell = true;
-                        p3_spellCard.enabled = false;
-                    }
-                }
-
-                if (players[2].isSpawned == false)
-                {
-                    GenerateStartingSpells(2);
-                    p3_spellCard.enabled = true;
-                    players[2].isSpawned = true;
-                }
-            }
-
-            if (players[3] != null)
-            {
-                if (players[3].chosenStartingSpell == false && players[3].isSpawned)
-                {
-                    if (players[3].input.ButtonStates[0] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p4 pressed cycle spell");
-                        if (p4_index >= p4_choices.Count-1)
-                        {
-                            p4_index = 0;
-                        }
-                        else
-                        {
-                            p4_index++;
-                        }
-
-                        p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_choices[p4_index]].shopSprite;
-                    }
-
-                    if (players[3].input.ButtonStates[1] == ButtonState.Pressed)
-                    {
-                        Debug.Log("p4 chose a spell");
-                        players[3].AddSpellToSpellList(p4_choices[p4_index]);
-                        players[3].startingSpell = p4_choices[p4_index];
-                        players[3].chosenStartingSpell = true;
-                        p4_spellCard.enabled = false;
-                    }
-                }
-
-                if (players[3].isSpawned == false)
-                {
-                    GenerateStartingSpells(3);
-                    p4_spellCard.enabled = true;
-                    players[3].isSpawned = true;
-                }
-            }
+            //if (onlineMenuUI != null)
+            //{
+            //    onlineMenuUI.SetActive(false);
+            //}
+            //}
 
             goDoorPrefab.CheckOpenDoor();
 

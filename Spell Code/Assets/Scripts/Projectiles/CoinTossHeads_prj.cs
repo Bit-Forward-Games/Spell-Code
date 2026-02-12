@@ -43,7 +43,7 @@ public class CoinTossHeads_prj : BaseProjectile
                     height = 32,
                     xKnockback = 3,
                     yKnockback = 10,
-                    damage = 30,
+                    damage = 25,
                     hitstun = 45,
                     attackLvl = 4,
                 }

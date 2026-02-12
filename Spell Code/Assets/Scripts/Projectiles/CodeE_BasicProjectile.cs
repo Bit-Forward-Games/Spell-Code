@@ -39,10 +39,10 @@ public class CodeE_BasicProjectile : BaseProjectile
                     yOffset = 5,
                     width = 20,
                     height = 10,
-                    xKnockback = 3,
-                    yKnockback = 7,
+                    xKnockback = 2,
+                    yKnockback = 4,
                     damage = 10,
-                    hitstun = 15,
+                    hitstun = 5,
                     attackLvl = 1,
                     basicAttackHitbox = true,
                 }

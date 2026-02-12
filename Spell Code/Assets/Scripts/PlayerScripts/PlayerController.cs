@@ -1189,7 +1189,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    tempColor = Color.magenta;
+                    tempColor = Color.red;
                     break;
                 case 1:
                     tempColor = Color.cyan;
@@ -1214,7 +1214,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    playerSpriteRenderer.color = Color.magenta;
+                    playerSpriteRenderer.color = Color.red;
                     break;
                 case 1:
                     playerSpriteRenderer.color = Color.cyan;

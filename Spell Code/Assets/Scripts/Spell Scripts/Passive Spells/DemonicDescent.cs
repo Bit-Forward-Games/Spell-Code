@@ -10,7 +10,7 @@ public class DemonicDescent : SpellData
     public DemonicDescent()
     {
         spellName = "DemonicDescent";
-        cooldown = 0;
+        cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.DemonX };

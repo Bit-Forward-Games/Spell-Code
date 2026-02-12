@@ -44,21 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6abc16047ff98741a9066562c7abd00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellName: AmonSlash
-  brands: 02000000
-  procConditions: 0400000002000000
-  description: Lunge forward slashing in front of you, granting "Demon Aura" on hit.
-    Your next basic attack consumes all "Demon Aura" and deals increased damage based
-    on how much is consumed.
-  cooldown: 120
-  cooldownCounter: 0
-  spellInput: 3074
-  activateFlag: 0
-  owner: {fileID: 0}
-  spellType: 1
-  spawnOffsetX: 10
-  spawnOffsetY: 20
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 1ad302f9b5e81414a83092e11b61afda, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 85373f70ebe3d004a9bd5abf4008a7fa, type: 3}
+  readyIcon: {fileID: -3999534691365058911, guid: c83b099bbfbca8c4bb929a042863919a, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 7664e7dc7dc8e4d0198674b3098438ae, type: 3}

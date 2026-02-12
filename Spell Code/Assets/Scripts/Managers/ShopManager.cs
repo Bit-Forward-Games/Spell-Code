@@ -333,11 +333,10 @@ public class ShopManager : MonoBehaviour
             //choose spell (jump button)
             if (inputSnapshots[0].ButtonStates[1] == ButtonState.Pressed)
             {
+                inputSnapshots[0].SetNull();
+                p1_spellCard.enabled = false;
                 Debug.Log("p1 chose a spell");
                 GivePlayerSpell(0, p1_choices[p1_index]);
-                gameManager.players[0].chosenSpell = true;
-                p1_spellCard.enabled = false;
-                inputSnapshots[0].SetNull();
             }
         }
 
@@ -363,11 +362,10 @@ public class ShopManager : MonoBehaviour
             //choose spell (jump button)
             if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed)
             {
+                inputSnapshots[1].SetNull();
+                p2_spellCard.enabled = false;
                 Debug.Log("p2 chose a spell");
                 GivePlayerSpell(1, p2_choices[p2_index]);
-                gameManager.players[1].chosenSpell = true;
-                p2_spellCard.enabled = false;
-                inputSnapshots[1].SetNull();
             }
         }
 
@@ -396,11 +394,10 @@ public class ShopManager : MonoBehaviour
                 //choose spell (jump button)
                 if (inputSnapshots[2].ButtonStates[1] == ButtonState.Pressed)
                 {
+                    inputSnapshots[2].SetNull();
+                    p3_spellCard.enabled = false;
                     Debug.Log("p3 chose a spell");
                     GivePlayerSpell(2, p3_choices[p3_index]);
-                    gameManager.players[2].chosenSpell = true;
-                    p3_spellCard.enabled = false;
-                    inputSnapshots[2].SetNull();
                 }
             }
         }
@@ -430,11 +427,10 @@ public class ShopManager : MonoBehaviour
                 //choose spell (jump button)
                 if (inputSnapshots[3].ButtonStates[1] == ButtonState.Pressed)
                 {
+                    inputSnapshots[3].SetNull();
+                    p4_spellCard.enabled = false;
                     Debug.Log("p4 chose a spell");
                     GivePlayerSpell(3, p4_choices[p4_index]);
-                    gameManager.players[3].chosenSpell = true;
-                    p4_spellCard.enabled = false;
-                    inputSnapshots[3].SetNull();
                 }
             }
         }
@@ -500,6 +496,7 @@ public class ShopManager : MonoBehaviour
 
         //make the next stage random but different from the last stage
         gameManager.LoadRandomGameplayStage();
+
     }
 
     //generate a random spell from the entire spell dictionary,
@@ -524,27 +521,27 @@ public class ShopManager : MonoBehaviour
             playerSpells.Add(gameManager.players[index].spellList[i].spellName);
         }
 
-        //Remove all passives for which the player has no actives for
-        if (!gameManager.players[index].vWave)
+        //Remove all passives for which the player has no actives for, or already has
+        if (!gameManager.players[index].vWave || playerSpells.Contains("Overclock"))
         {
             spells.Remove("Overclock");
         }
-        if (!gameManager.players[index].killeez)
+        if (!gameManager.players[index].killeez || playerSpells.Contains("BootsOfHermes"))
         {
             spells.Remove("BootsOfHermes");
         }
-        if (!gameManager.players[index].DemonX)
+        if (!gameManager.players[index].DemonX || playerSpells.Contains("DemonicDescent"))
         {
             spells.Remove("DemonicDescent");
         }
-        if (!gameManager.players[index].bigStox)
+        if (!gameManager.players[index].bigStox || playerSpells.Contains("BlueChipTrader"))
         {
             spells.Remove("BlueChipTrader");
         }
 
 
         //get a random spell
-        int randomInt = gameManager.seededRandom.Next(0, spells.Count);
+        int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
         string spellToAdd = spells[randomInt];
 
         if (index == 0 && !p1_choices.Contains(spellToAdd))
@@ -575,8 +572,19 @@ public class ShopManager : MonoBehaviour
     /// <param name="index">Player to give the spell to</param>
     public void GivePlayerSpell(int index, string spell)
     {
-        Debug.Log("Giving player " + (index + 1) + " " + spell);
-        gameManager.players[index].AddSpellToSpellList(spell);
+        int maxSpellCount = DataManager.Instance.totalRoundsPlayed + 1;
+        
+        if (gameManager.players[index].spellList.Count() >= maxSpellCount)
+        {
+            Debug.Log("Player Has Already has " + gameManager.players[index].spellList.Count() + " spells");
+            return;
+        }
+        else
+        {
+            gameManager.players[index].chosenSpell = true;
+            gameManager.players[index].AddSpellToSpellList(spell);
+            Debug.Log("Giving player " + (index + 1) + " " + spell);
+        }
 
         if (index == 0)
         {
@@ -594,6 +602,7 @@ public class ShopManager : MonoBehaviour
         {
             p4_spellText.text = "player " + (index + 1) + " acquired: " + spell + "\n";
         }
+
     }
 
     //generates the spell choices for all players, in the future it will be randomized
@@ -604,7 +613,7 @@ public class ShopManager : MonoBehaviour
         p3_choices = new List<string>();
         p4_choices = new List<string>();
 
-
+        
         p1_choices.Add(RandomizeSpell(0));
         p1_choices.Add(RandomizeSpell(0));
         p1_choices.Add(RandomizeSpell(0));

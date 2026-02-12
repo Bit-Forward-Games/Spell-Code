@@ -261,7 +261,13 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        FixedVec2 startPos;
+        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
+        if (pID == 1) { startingSpell = "AmonSlash"; }
+        else if (pID == 2) { startingSpell = "QuarterReport"; }
+        else if (pID == 3) { startingSpell = "MightOfZeus"; }
+        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+
+            FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
@@ -307,6 +313,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
+        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -762,7 +769,7 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
                 {
                     //run logic
-                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 0);
+                    LerpHspd(runSpeed * (facingRight ? Fixed.FromInt(1) : Fixed.FromInt(-1)), 1);
                     //hSpd = runSpeed * (facingRight ? 1 : -1);
                 }
                 else
@@ -1038,7 +1045,7 @@ public class PlayerController : MonoBehaviour
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
                     //create an instance of your basic spell here
                     BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(15), Fixed.FromInt(15)));
+                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
 
 
                     //basic spell is fired
@@ -1060,6 +1067,11 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
                 {
+                    if (input.ButtonStates[0] == ButtonState.Held)
+                    {
+                        SetState(PlayerState.CodeWeave);
+                        break;
+                    }
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
@@ -1091,7 +1103,11 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
                 {
-
+                    if(input.ButtonStates[0] == ButtonState.Held)
+                    {
+                        SetState(PlayerState.CodeWeave);
+                        break;
+                    }
                     SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                     break;
                 }
@@ -1176,7 +1192,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    tempColor = Color.white;
+                    tempColor = Color.red;
                     break;
                 case 1:
                     tempColor = Color.cyan;
@@ -1201,7 +1217,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    playerSpriteRenderer.color = Color.white;
+                    playerSpriteRenderer.color = Color.red;
                     break;
                 case 1:
                     playerSpriteRenderer.color = Color.cyan;
@@ -2189,6 +2205,8 @@ public class PlayerController : MonoBehaviour
         if (spellList.Count != spellCount)
         {
             Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
+            // Potentially try to rebuild the list based on saved names? Very risky.
+            // For simplicity, assuming the list composition is stable during rollback frames.
         }
 
         for (int i = 0; i < spellCount; i++)

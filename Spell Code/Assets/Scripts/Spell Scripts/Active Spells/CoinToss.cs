@@ -17,8 +17,6 @@ public class CoinToss : SpellData
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
         description = "Toss a coin, dealing massive damage if it lands on heads. There is a chance equal to your \"Stock Stability\" that you throw ad Loaded coin. You gain 15% \"Stock Stability\".";
         projectilePrefabs = new GameObject[3];
-        spawnOffsetX = 10;
-        spawnOffsetY = 20;
     }
 
     public override void SpellUpdate()

@@ -13,8 +13,6 @@ public class SkillshotSlash : SpellData
         projectilePrefabs = new GameObject[1];
         description = "Slash through reality in an area in front of you, dealing increased damage if you are in \"Flow State\". If you hit the tip of Skillshot Slash, you enter \"Flow State\". ";
 
-        spawnOffsetX = 10;
-        spawnOffsetY = 20;
     }
 
    

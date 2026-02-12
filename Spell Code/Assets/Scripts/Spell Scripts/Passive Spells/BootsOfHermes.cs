@@ -11,7 +11,7 @@ public class BootsOfHermes : SpellData
     public BootsOfHermes()
     {
         spellName = "BootsOfHermes";
-        cooldown = 0;
+        cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.Killeez };

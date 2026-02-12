@@ -63,16 +63,16 @@ public class HitboxManager : MonoBehaviour
 
     public void ProcessCollisions()
     {
-        
 
-        //for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        //{
-        //    playerStates[i] = GameManager.Instance.players[i].state;
-        //    playerCharacters[i] = GameManager.Instance.players[i].characterName;
-        //    playerFrames[i] = GameManager.Instance.players[i].logicFrame;
-        //    playerOrigins[i] = GameManager.Instance.players[i].position;
-        //    playerIsRight[i] = GameManager.Instance.players[i].facingRight;
-        //}
+
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            playerStates[i] = GameManager.Instance.players[i].state;
+            playerCharacters[i] = GameManager.Instance.players[i].characterName;
+            playerFrames[i] = GameManager.Instance.players[i].logicFrame;
+            playerOrigins[i] = GameManager.Instance.players[i].position;
+            playerIsRight[i] = GameManager.Instance.players[i].facingRight;
+        }
 
 
         //List<HitboxData> activeHitboxes;

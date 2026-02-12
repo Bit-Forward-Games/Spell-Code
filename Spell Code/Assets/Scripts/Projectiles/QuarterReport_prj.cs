@@ -13,7 +13,7 @@ public class QuarterReport_prj : BaseProjectile
         projName = "QuarterReport";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 45;
+        lifeSpan = 30;
 
         animFrames = new AnimFrames(new List<int>(), new List<int>() {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, true);
 

@@ -12,7 +12,7 @@ public class AmonSlash : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic };
+        procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
         description = "Lunge forward slashing in front of you, granting \"Demon Aura\" on hit. Your next basic attack consumes all \"Demon Aura\" and deals increased damage based on how much is consumed.";
 
@@ -62,6 +62,9 @@ public class AmonSlash : SpellData
                     defender.TakeEffectDamage(damageToDeal);
                     owner.demonAura = 0;
                 }
+                break;
+            case ProcCondition.ActiveOnCast:
+                owner.lightArmor = true;
                 break;
             default:
                 break;

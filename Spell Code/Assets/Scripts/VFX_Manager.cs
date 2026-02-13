@@ -42,9 +42,9 @@ public class VFX_Manager : MonoBehaviour
     //DEBUGGING:
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            PlayVisualEffect(VisualEffects.DASH_DUST);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST);
         }
     }
 
@@ -64,6 +64,7 @@ public class VFX_Manager : MonoBehaviour
         VisualEffectObject _visualEffectObject = visualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
         //play the visual effect
+        Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
         _visualEffectObject.particleSystem.Play();
     }
 }

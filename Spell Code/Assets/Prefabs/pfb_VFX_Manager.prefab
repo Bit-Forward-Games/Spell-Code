@@ -45,6 +45,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 932b66dae9f23ac44bf17e3f8d67302f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  visualEffectObjects:
+  - visualEffectName: 0
+    particleSystem: {fileID: 2832924875591981925}
 --- !u!1 &8789371937529966845
 GameObject:
   m_ObjectHideFlags: 0
@@ -649,7 +652,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 1
+    maxNumParticles: 256
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0

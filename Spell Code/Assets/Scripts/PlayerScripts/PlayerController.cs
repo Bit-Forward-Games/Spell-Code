@@ -1026,7 +1026,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
+                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
                     for (int i = 0; i < spellList.Count; i++)
                     {

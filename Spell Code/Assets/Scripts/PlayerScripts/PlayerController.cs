@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -114,10 +116,15 @@ public class PlayerController : MonoBehaviour
     public ushort currentPlayerHealth = 0;
 
     //money things
+    [NonSerialized]
     public ushort totalRam = 0;
+    [NonSerialized]
     public ushort roundRam = 0;
+    [NonSerialized]
     public short ramBounty = 0;
+    [NonSerialized]
     public const ushort baseRamKillBonus = 100;
+    [NonSerialized]
     public const ushort baseRamLifeWorth = 200;
 
     // Push Box Variables
@@ -302,10 +309,6 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
         SetState(PlayerState.Idle);
-
-        //reset money values between respawns
-
-        ramBounty = 0;
 
 
         //initialize resources
@@ -1826,8 +1829,9 @@ public class PlayerController : MonoBehaviour
     /// this function makes the player take damage outside of hitstun, notably from spell effect damage
     /// </summary>
     /// <param name="damageAmount"></param>
-    public void TakeEffectDamage(int damageAmount)
+    public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
+
         //checking for death
         if (damageAmount > currentPlayerHealth)
         {
@@ -1840,6 +1844,7 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -1874,7 +1879,7 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
 
             //checking for death
-            if (hitboxData.damage > currentPlayerHealth)
+            if (hitboxData.damage >= currentPlayerHealth)
             {
                 //play the death sound
                 SFX_Manager.Instance.PlaySound(Sounds.DEATH);
@@ -1883,8 +1888,8 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = 0;
 
                 //award the killer with the extra bonus ram
-                hitboxData.parentProjectile.owner.roundRam += baseRamKillBonus;
-                hitboxData.parentProjectile.owner.totalRam += baseRamKillBonus;
+                attacker.roundRam += baseRamKillBonus;
+                attacker.totalRam += baseRamKillBonus;
             }
             else
             {

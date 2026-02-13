@@ -32,7 +32,7 @@ public class DemonicDescent : SpellData
             case ProcCondition.OnHitSpell:
                 if (owner.demonAura >= 100)
                 {
-                    defender.TakeEffectDamage(15);
+                    defender.TakeEffectDamage(20, owner);
                 }
                 break;
             default:

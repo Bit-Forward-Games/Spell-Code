@@ -15,6 +15,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
+using System;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -25,9 +26,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
-    public ushort ramNeededToWinRound = 300;
+    [NonSerialized]
+    public ushort ramNeededToWinRound = 600;
 
 
+    [NonSerialized]
     /// <summary>
     /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
     /// </summary>
@@ -768,15 +771,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     for (int i = 0; i < playerCount; i++)
                     {
                         if (players[i].roundsWon >= 3) { gameOver = true; }
-                        //if (players[i].isAlive)
-                        //{
-                        //    Debug.Log("Player " + (i + 1) + " wins the match!");
-                        //    players[i].isAlive = false;
-                        //    players[i].roundsWon++;
-
-                        //    if (players[i].roundsWon >= 3) { gameOver = true; }
-                        //    break;
-                        //}
                     }
 
                     ClearStages();
@@ -1044,7 +1038,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             averageTotalRam += players[i].totalRam;
         }
-        averageTotalRam = (ushort)(averageTotalRam / playerCount);
+        averageTotalRam = (ushort)((float)averageTotalRam / (float)playerCount);
 
         for (int i = 0; i < playerCount; i++)
         {
@@ -1054,18 +1048,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
     {
-        //int alivePlayers = 0;
-        //foreach (PlayerController player in playerControllers)
-        //{
-        //    if (player.isAlive) alivePlayers++;
-        //}
-        //if (alivePlayers <= 1 && playerCount > 1)
-        //{
-        //    return true;
-        //}
-
-
-
 
         ushort highestRam = 0;
         PlayerController winner = null;
@@ -1091,6 +1073,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 player.SpawnPlayer(GetRandomSpawnVec2());
             }
 
+            if(player.roundsWon > 0)
+            {
+                Debug.Log("Player " + player.pID + " has won " + player.roundsWon + " rounds and has " + player.roundRam + " ram this round.");
+            }
 
             //check for winner con
             if (player.roundRam >= ramNeededToWinRound)
@@ -1200,8 +1186,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public FixedVec2 GetRandomSpawnVec2()
     {
-        FixedVec2[] spawnPointList = new FixedVec2[GetSpawnPositions().Length];
-        return spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+
+        Vector2[] spawnPointList = GetSpawnPositions();
+        Vector2 spawnPoint = spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+        return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
 
     }
 
@@ -1324,6 +1312,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"Scene loaded: {scene.name}");
+
+        damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")

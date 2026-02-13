@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -113,6 +115,18 @@ public class PlayerController : MonoBehaviour
     public Texture2D[] matchPalette = new Texture2D[2];
     public ushort currentPlayerHealth = 0;
 
+    //money things
+    [NonSerialized]
+    public ushort totalRam = 0;
+    [NonSerialized]
+    public ushort roundRam = 0;
+    [NonSerialized]
+    public short ramBounty = 0;
+    [NonSerialized]
+    public const ushort baseRamKillBonus = 100;
+    [NonSerialized]
+    public const ushort baseRamLifeWorth = 200;
+
     // Push Box Variables
     [HideInInspector]
     public Fixed playerWidth;
@@ -132,6 +146,7 @@ public class PlayerController : MonoBehaviour
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
+    public bool lightArmor = false;
 
     public List<SpellData> spellList = new List<SpellData>();
     public GameObject basicProjectileInstance;
@@ -235,7 +250,7 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
                 pID = 1;
-                playerNum.color = Color.magenta;
+                playerNum.color = Color.red;
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
@@ -295,6 +310,7 @@ public class PlayerController : MonoBehaviour
         playerHeight = Fixed.FromInt(charData.playerHeight);
         SetState(PlayerState.Idle);
 
+
         //initialize resources
         flowState = 0;
         stockStability = 0;
@@ -317,6 +333,9 @@ public class PlayerController : MonoBehaviour
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }
+
+
+    
 
     public void AddSpellToSpellList(string spellToAdd)
     {
@@ -607,6 +626,14 @@ public class PlayerController : MonoBehaviour
 
         if (currentPlayerHealth <= 0)
         {
+            //reset cooldowns of all spells in spell list so that they are ready to be used when the player respawns
+            foreach (SpellData spell in spellList)
+            {
+                if (spell != null)
+                {
+                    spell.cooldownCounter = 0;
+                }
+            }
             isAlive = false;
             return;
         }
@@ -932,7 +959,18 @@ public class PlayerController : MonoBehaviour
                     stateSpecificArg &= ~(1u << 4);
                     //Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-
+                    lightArmor = false;
+                    for (int i = i = 0; i < spellList.Count; i++)
+                    {
+                        if (spellList[i].spellInput == stateSpecificArg &&
+                            spellList[i].spellType == SpellType.Active &&
+                            spellList[i].cooldownCounter <= 0)
+                        {
+                            Debug.Log($"You Released {spellList[i].spellName}!");
+                            lightArmor = true;
+                            break;
+                        }
+                    }
 
                     SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -942,6 +980,7 @@ public class PlayerController : MonoBehaviour
                 //jump button pressed
                 if (input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    lightArmor = false;
                     //set the 5th bit to 0 to indicate we are no longer primed
                     stateSpecificArg &= ~(1u << 4);
                     //if the current code is a valid spell code, store it for later use
@@ -987,7 +1026,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(2).Sum())
+                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
                     for (int i = 0; i < spellList.Count; i++)
                     {
@@ -1036,6 +1075,7 @@ public class PlayerController : MonoBehaviour
                     if (stateSpecificArg == 255)
                     {
                         //so check all spells with OnCastSpell condition
+
                         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastSpell);
                         break;
                     }
@@ -1189,7 +1229,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    tempColor = Color.magenta;
+                    tempColor = Color.red;
                     break;
                 case 1:
                     tempColor = Color.cyan;
@@ -1214,7 +1254,7 @@ public class PlayerController : MonoBehaviour
             switch (Array.IndexOf(GameManager.Instance.players, this))
             {
                 case 0:
-                    playerSpriteRenderer.color = Color.magenta;
+                    playerSpriteRenderer.color = Color.red;
                     break;
                 case 1:
                     playerSpriteRenderer.color = Color.cyan;
@@ -1697,6 +1737,7 @@ public class PlayerController : MonoBehaviour
                 //}
                 break;
             case PlayerState.CodeWeave:
+                lightArmor = true;
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -1715,9 +1756,6 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeRelease:
-
-                //play the exit weave sound
-                //SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 
@@ -1749,6 +1787,8 @@ public class PlayerController : MonoBehaviour
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
 
+                //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
+                lightArmor = false;
                 ClearInputDisplay();
                 break;
         }
@@ -1789,8 +1829,9 @@ public class PlayerController : MonoBehaviour
     /// this function makes the player take damage outside of hitstun, notably from spell effect damage
     /// </summary>
     /// <param name="damageAmount"></param>
-    public void TakeEffectDamage(int damageAmount)
+    public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
+
         //checking for death
         if (damageAmount > currentPlayerHealth)
         {
@@ -1803,6 +1844,7 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -1825,7 +1867,7 @@ public class PlayerController : MonoBehaviour
             // isHit = false;
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (state == PlayerState.CodeWeave && hitboxData.attackLvl < 2)
+            if (lightArmor && hitboxData.attackLvl < 2)
             {
                 return;
             }
@@ -1833,13 +1875,21 @@ public class PlayerController : MonoBehaviour
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
 
+            //update the damage matrix the attacker attacking this player
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
+
             //checking for death
-            if (hitboxData.damage > currentPlayerHealth)
+            if (hitboxData.damage >= currentPlayerHealth)
             {
                 //play the death sound
                 SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
+                
                 currentPlayerHealth = 0;
+
+                //award the killer with the extra bonus ram
+                attacker.roundRam += baseRamKillBonus;
+                attacker.totalRam += baseRamKillBonus;
             }
             else
             {
@@ -1849,7 +1899,6 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
             }
-
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
@@ -2105,6 +2154,7 @@ public class PlayerController : MonoBehaviour
         //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
+        bw.Write(lightArmor);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -2152,6 +2202,7 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
+        lightArmor = br.ReadBoolean();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt16();
         currentPlayerHealth = br.ReadUInt16();
@@ -2239,6 +2290,8 @@ public class PlayerController : MonoBehaviour
 
             if (IsStorableState())
             {
+                //this is to keep the physics interactions between releasing a stored code and a normal code consistent, improving player experience
+                vSpd = Fixed.FromInt(0);
                 SetState(PlayerState.CodeRelease);
             }
         }

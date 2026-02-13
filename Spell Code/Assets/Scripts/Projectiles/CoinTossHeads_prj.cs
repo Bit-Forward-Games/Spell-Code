@@ -37,13 +37,13 @@ public class CoinTossHeads_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -20,
-                    yOffset = 20,
-                    width = 40,
-                    height = 40,
+                    xOffset = -16,
+                    yOffset = 16,
+                    width = 32,
+                    height = 32,
                     xKnockback = 3,
                     yKnockback = 10,
-                    damage = 30,
+                    damage = 25,
                     hitstun = 45,
                     attackLvl = 4,
                 }

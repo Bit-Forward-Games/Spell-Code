@@ -11,6 +11,9 @@ TagManager:
   - GO Door
   - activatableSolid
   - FloppyDisk
+  - 'Player 2 Spawn '
+  - Player 3 Spawn
+  - Player 4 Spawn
   layers:
   - Default
   - TransparentFX

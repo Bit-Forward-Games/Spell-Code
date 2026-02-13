@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class TempUIScript : MonoBehaviour
 {
-    public TextMeshProUGUI[] playerHpVals;
+    public TextMeshProUGUI[] playerRamVals;
     public Image[] playerHpBar;
     public Image[] followPlayerHpBar;
     public Image[] playerDamageBar;
@@ -17,8 +17,8 @@ public class TempUIScript : MonoBehaviour
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;
     public TextMeshProUGUI[] repsVals;
-    public Image[] momentumVals;
-    public Image[] slimedVals;
+    //public Image[] momentumVals;
+    //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -39,7 +39,7 @@ public class TempUIScript : MonoBehaviour
             // Transform childTransform = GameManager.Instance.players[i].transform.Find("Health Bar");
             // followPlayerHpBar[i] = childTransform.gameObject.GetComponent<Image>();
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
-            playerHpVals[i].text = "P" + (i + 1);
+            playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
 
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
@@ -50,7 +50,7 @@ public class TempUIScript : MonoBehaviour
             stockStabilityVals[i].enabled = false;
             demonAuraVals[i].enabled = false;
             repsVals[i].enabled = false;
-            momentumVals[i].enabled = false;
+            //momentumVals[i].enabled = false;
             //slimedVals[i].enabled = false;
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
@@ -71,10 +71,10 @@ public class TempUIScript : MonoBehaviour
                 {
                     repsVals[i].enabled = true;
                 }
-                if (spell.brands.Contains(Brand.Halk))
-                {
-                    momentumVals[i].enabled = true;
-                }
+                //if (spell.brands.Contains(Brand.Halk))
+                //{
+                //    momentumVals[i].enabled = true;
+                //}
 
             }
 

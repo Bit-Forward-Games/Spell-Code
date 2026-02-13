@@ -908,23 +908,36 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                for (int i = 0; i < playerCount; i++)
+                
+                if (!roundOver)
                 {
-                    players[i].playerNum.enabled = false;
-                    players[i].inputDisplay.enabled = false;
-                    if (players[i].roundsWon >= 3) { gameOver = true; }
-                    //if (players[i].isAlive)
-                    //{
-                    //    playerWinText.enabled = true;
-                    //    Debug.Log("Player " + (i + 1) + " wins the match!");
-                    //    playerWinText.text = "Player " + (i + 1) + " wins the match!";
-                    //    players[i].isAlive = false; //reset for next round
-                    //    players[i].roundsWon++;
+                    ushort highestRam = 0;
+                    PlayerController winner = null;
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        if (players[i].roundRam >= ramNeededToWinRound)
+                        {
+                            if (players[i].roundRam > highestRam)
+                            {
+                                winner = players[i];
+                                highestRam = players[i].roundRam;
+                            }
+                        }
+                    }
 
-                    //    if (players[i].roundsWon >= 3) { gameOver = true; }
-                    //    break;
-                    //}
+                    winner.roundsWon += 1;
+                    roundOver = true;
+
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        players[i].roundRam = 0;
+                        players[i].playerNum.enabled = false;
+                        players[i].inputDisplay.enabled = false;
+                        if (players[i].roundsWon >= 3) { gameOver = true; }
+                    }
                 }
+
+                
 
                 if (roundEndTransitionTime >= roundEndTimer)
                 {
@@ -959,6 +972,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundOver = false;
                     }
                 }
             }
@@ -1049,8 +1063,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
     {
 
-        ushort highestRam = 0;
-        PlayerController winner = null;
+        if(roundOver) { return true; }
+
         foreach (PlayerController player in playerControllers)
         {
             //check for player deaths
@@ -1061,8 +1075,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 foreach (PlayerController p in playerControllers)
                 {
                     ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
-                    p.roundRam += (ushort)(damageMatrix[player.pID-1, p.pID-1] + bountyCut);
-                    p.totalRam += (ushort)(damageMatrix[player.pID - 1, p.pID - 1] + bountyCut);
+                    float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
+                    p.roundRam += (ushort)totalRamEarned;
+                    p.totalRam += (ushort)totalRamEarned;
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
@@ -1072,27 +1087,19 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //respawn the dead player
                 player.SpawnPlayer(GetRandomSpawnVec2());
             }
+        }
 
-            if(player.roundsWon > 0)
-            {
-                Debug.Log("Player " + player.pID + " has won " + player.roundsWon + " rounds and has " + player.roundRam + " ram this round.");
-            }
-
-            //check for winner con
+        //then check winner conditions (most ram at the end of the round)
+        foreach (PlayerController player in playerControllers)
+        {
             if (player.roundRam >= ramNeededToWinRound)
             {
-                if(player.roundRam > highestRam)
-                {
-                    winner = player;
-                    highestRam = player.roundRam;
-                }
+                return true;
             }
         }
 
 
-        if (winner == null) return false;
-        winner.roundsWon++;
-        return true;
+        return false;
     }
 
     //reset players after each round

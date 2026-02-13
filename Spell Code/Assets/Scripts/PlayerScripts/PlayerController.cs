@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -112,6 +114,18 @@ public class PlayerController : MonoBehaviour
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[2];
     public ushort currentPlayerHealth = 0;
+
+    //money things
+    [NonSerialized]
+    public ushort totalRam = 0;
+    [NonSerialized]
+    public ushort roundRam = 0;
+    [NonSerialized]
+    public short ramBounty = 0;
+    [NonSerialized]
+    public const ushort baseRamKillBonus = 100;
+    [NonSerialized]
+    public const ushort baseRamLifeWorth = 200;
 
     // Push Box Variables
     [HideInInspector]
@@ -296,6 +310,7 @@ public class PlayerController : MonoBehaviour
         playerHeight = Fixed.FromInt(charData.playerHeight);
         SetState(PlayerState.Idle);
 
+
         //initialize resources
         flowState = 0;
         stockStability = 0;
@@ -318,6 +333,9 @@ public class PlayerController : MonoBehaviour
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }
+
+
+    
 
     public void AddSpellToSpellList(string spellToAdd)
     {
@@ -608,6 +626,14 @@ public class PlayerController : MonoBehaviour
 
         if (currentPlayerHealth <= 0)
         {
+            //reset cooldowns of all spells in spell list so that they are ready to be used when the player respawns
+            foreach (SpellData spell in spellList)
+            {
+                if (spell != null)
+                {
+                    spell.cooldownCounter = 0;
+                }
+            }
             isAlive = false;
             return;
         }
@@ -1803,8 +1829,9 @@ public class PlayerController : MonoBehaviour
     /// this function makes the player take damage outside of hitstun, notably from spell effect damage
     /// </summary>
     /// <param name="damageAmount"></param>
-    public void TakeEffectDamage(int damageAmount)
+    public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
+
         //checking for death
         if (damageAmount > currentPlayerHealth)
         {
@@ -1817,6 +1844,7 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -1847,13 +1875,21 @@ public class PlayerController : MonoBehaviour
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
 
+            //update the damage matrix the attacker attacking this player
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
+
             //checking for death
-            if (hitboxData.damage > currentPlayerHealth)
+            if (hitboxData.damage >= currentPlayerHealth)
             {
                 //play the death sound
                 SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
+                
                 currentPlayerHealth = 0;
+
+                //award the killer with the extra bonus ram
+                attacker.roundRam += baseRamKillBonus;
+                attacker.totalRam += baseRamKillBonus;
             }
             else
             {
@@ -1863,7 +1899,6 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
 
             }
-
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));

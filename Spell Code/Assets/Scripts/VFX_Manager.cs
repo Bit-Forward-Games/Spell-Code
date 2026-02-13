@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using Unity.VisualScripting.Antlr3.Runtime;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using BestoNet.Types;
 
 public enum VisualEffects
 {
@@ -40,15 +42,24 @@ public class VFX_Manager : MonoBehaviour
     }
 
     //DEBUGGING:
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST);
-        }
-    }
+    //private void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Space))
+    //    {
+    //        FixedVec2 player1pos = GameManager.Instance.players[0].position;
+    //        bool isFacingRight = GameManager.Instance.players[0].facingRight;
+    //        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, player1pos, isFacingRight);
+    //    }
+    //}
 
-    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay)
+    /// <summary>
+    /// Play a visual effect with the name defined by "_nameOfSoundToPlay" at the position defined by "_spawnPos"
+    /// </summary>
+    /// <param name="_nameOfVisualEffectToPlay"> Name of the visual effect to be played</param>
+    /// <param name="_spawnPos"> Position of the visual effect to be played</param>
+    /// <param name="_spawnDirection"> Direction of the visual effect to be played</param>
+    // = FixedVec2(Fixed32.FromInt(0), Fixed32.FromInt(0))
+    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, bool _spawnFacingRight = true)
     {
         //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within visualEffectObjects
         if (visualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
@@ -62,6 +73,22 @@ public class VFX_Manager : MonoBehaviour
 
         //get visual effect object
         VisualEffectObject _visualEffectObject = visualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
+
+        //convert _spawnPos to a Vector3
+        Vector3 _spawnPosVector3 = new Vector3(_spawnPos.X.ToFloat(), _spawnPos.Y.ToFloat(), 0f);
+
+        //set position of particle system to Vector2 version of _spawnPos
+        _visualEffectObject.particleSystem.gameObject.transform.position = _spawnPosVector3;
+
+        //change particle system direction based on _spawnFacingRight
+        if(_spawnFacingRight == true)
+        {
+            _visualEffectObject.particleSystem.gameObject.transform.localScale = new Vector3(1f, _visualEffectObject.particleSystem.gameObject.transform.localScale.y, _visualEffectObject.particleSystem.gameObject.transform.localScale.z);
+        }
+        else
+        {
+            _visualEffectObject.particleSystem.gameObject.transform.localScale = new Vector3(-1f, _visualEffectObject.particleSystem.gameObject.transform.localScale.y, _visualEffectObject.particleSystem.gameObject.transform.localScale.z);
+        }
 
         //play the visual effect
         Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");

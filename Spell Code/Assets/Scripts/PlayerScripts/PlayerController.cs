@@ -305,18 +305,6 @@ public class PlayerController : MonoBehaviour
         //momentum = 0;
         //slimed = false;
 
-        //call the load spell function for the starting spell to initialize the spell's variables and projectile data
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            if (spellList[i] != null)
-            {
-                spellList[i].owner = this;
-                spellList[i].LoadSpell();
-            }
-        }
-        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
-
-
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
     }

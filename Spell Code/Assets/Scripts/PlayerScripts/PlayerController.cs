@@ -751,7 +751,7 @@ public class PlayerController : MonoBehaviour
                     SFX_Manager.Instance.PlaySound(Sounds.RUN);
 
                     //play the dash dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, facingRight);
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, pID, facingRight);
                 }
 
                 if (!isGrounded)

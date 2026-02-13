@@ -11,6 +11,7 @@ public class TempUIScript : MonoBehaviour
     public Image[] followPlayerHpBar;
     public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
+    public Image[] playerGoldBar;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
     public Image[] flowStateVals;
@@ -39,12 +40,15 @@ public class TempUIScript : MonoBehaviour
             // Transform childTransform = GameManager.Instance.players[i].transform.Find("Health Bar");
             // followPlayerHpBar[i] = childTransform.gameObject.GetComponent<Image>();
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
-            playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
+            // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
+            playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
 
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
+            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
             playerHpBar[i].fillAmount = fillAmountVal;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
+            playerGoldBar[i].fillAmount = fillGoldAmountVal;
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;

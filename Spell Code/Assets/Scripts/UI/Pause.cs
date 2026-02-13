@@ -45,9 +45,16 @@ public class Pause : MonoBehaviour
 
     public void ReturnToLobby()
     {
-        paused = false;
-        pausemenu.SetActive(false);
-        Time.timeScale = 1f;   
-        SceneManager.LoadScene("Lobby_Arena");
+        //paused = false;
+        //pausemenu.SetActive(false);
+        //Time.timeScale = 1f;
+        //SceneManager.LoadScene("Lobby_Arena");
+
+        //Resume game
+        Resume();
+
+        //Restart the game back at the lobby
+        GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>().Restart();
+        //GameManager.Instance.RestartGame();
     }
 }

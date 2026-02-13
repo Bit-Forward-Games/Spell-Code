@@ -57,4 +57,14 @@ public class Pause : MonoBehaviour
         GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>().Restart();
         //GameManager.Instance.RestartGame();
     }
+
+    public void QuitGame()
+    {
+        //save data
+        DataManager.Instance.SaveToFile();
+
+        //quit the game
+        Debug.Log("Quitting Spell Code SlingerZ");
+        Application.Quit();
+    }
 }

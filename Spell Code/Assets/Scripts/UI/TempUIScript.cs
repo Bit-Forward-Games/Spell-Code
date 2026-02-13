@@ -39,7 +39,7 @@ public class TempUIScript : MonoBehaviour
             // Transform childTransform = GameManager.Instance.players[i].transform.Find("Health Bar");
             // followPlayerHpBar[i] = childTransform.gameObject.GetComponent<Image>();
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
-            playerRamVals[i].text = $"P{i + 1}  RAM: {GameManager.Instance.players[i].totalRam} - {GameManager.Instance.players[i].roundRam}";
+            playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
 
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;

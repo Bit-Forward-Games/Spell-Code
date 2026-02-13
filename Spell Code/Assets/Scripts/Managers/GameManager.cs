@@ -927,6 +927,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
                     winner.roundsWon += 1;
                     roundOver = true;
+                    playerWinText.enabled = true;
+                    playerWinText.text = "Player " + (winner.pID) + " wins the match!";
 
                     for (int i = 0; i < playerCount; i++)
                     {
@@ -1232,6 +1234,17 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             dataManager.SaveMatch();
             isSaved = true;
         }
+
+        //reset all ram values for players so they don't carry over to the end screen or next match
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].totalRam = 0;
+            players[i].roundRam = 0;
+
+        }
+
+        gameOver = false;
+        roundOver = false;
 
         dataManager.SaveToFile();
         ProjectileManager.Instance.DeleteAllProjectiles();

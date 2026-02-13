@@ -8,7 +8,7 @@
       ],
       "runSpeed": 30,
       "slideSpeed": 40,
-      "slideFriction": 10,
+      "slideFriction": 12,
       "jumpForce": 13,
       "jumpCounter": 1,
       "playerHealth": 100,
@@ -123,8 +123,8 @@
             4,
             4,
             4,
-            4,
-            4
+            6,
+            6
           ],
           "loopAnim": false
         },
@@ -138,12 +138,12 @@
             38
           ],
           "frameLengths": [
-            4,
-            4,
-            4,
-            4,
-            4,
-            4
+            5,
+            5,
+            6,
+            6,
+            5,
+            5
           ],
           "loopAnim": false
         }
@@ -172,7 +172,7 @@
         ],
         "slideHurtboxFrames": [
           0,
-          13
+          18
         ]
       },
       "hurtboxData": {

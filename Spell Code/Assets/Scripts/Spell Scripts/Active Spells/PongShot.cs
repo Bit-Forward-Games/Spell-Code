@@ -1,25 +1,24 @@
 using UnityEngine;
 
-public class SkillshotSlash : SpellData
+public class PongShot : SpellData
 {
-    public SkillshotSlash()
+    public PongShot()
     {
-        spellName = "SkillshotSlash";
-        brands = new Brand[]{ Brand.VWave };
+        spellName = "PongShot";
+        brands = new Brand[] { Brand.VWave };
         cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0000_1011_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
+        description = "Shoot a Pong ball diagonally downwards which ricochets off surfaces. If this spell hits after ricocheting twice, enter \"Flow State\". Speeds up in \"Flow State\"";
         projectilePrefabs = new GameObject[1];
-        description = "Slash through reality in an area in front of you, dealing increased damage if you are in \"Flow State\". If you hit the tip of Skillshot Slash, you enter \"Flow State\". ";
-
+        spawnOffsetX = 20;
+        spawnOffsetY = 45;
     }
 
-   
-  
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        switch(targetProcCon)
+        switch (targetProcCon)
         {
             case ProcCondition.ActiveOnHit:
                 //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State

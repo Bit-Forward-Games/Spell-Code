@@ -211,7 +211,7 @@ public class AnimationManager : MonoBehaviour
                 {
                     proj.gameObject.GetComponent<SpriteRenderer>().sprite = proj.sprites[proj.animationFrame];
                     proj.gameObject.GetComponent<SpriteRenderer>().flipX = !proj.facingRight;
-                    proj.transform.position = new Vector3(proj.position.X.ToFloat(), proj.position.Y.ToFloat(), 0/*zindex*/);
+                    proj.transform.position = new Vector3(proj.position.X.ToFloat(), proj.position.Y.ToFloat(), -1/*zindex*/);
                 }
             }
         }

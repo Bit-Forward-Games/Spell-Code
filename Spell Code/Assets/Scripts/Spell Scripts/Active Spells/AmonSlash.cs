@@ -59,7 +59,7 @@ public class AmonSlash : SpellData
                 if (owner.demonAura > 0)
                 {
                     int damageToDeal = (int)(Mathf.Pow(owner.demonAura/10,2)/2);
-                    defender.TakeEffectDamage(damageToDeal);
+                    defender.TakeEffectDamage(damageToDeal, owner);
                     owner.demonAura = 0;
                 }
                 break;

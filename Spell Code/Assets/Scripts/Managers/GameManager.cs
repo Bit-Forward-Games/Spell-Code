@@ -15,6 +15,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
+using System;
 using UnityEngine.InputSystem.Composites;
 
 public class GameManager : MonoBehaviour
@@ -26,6 +27,21 @@ public class GameManager : MonoBehaviour
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
+    [NonSerialized]
+    public ushort ramNeededToWinRound = 600;
+
+
+    [NonSerialized]
+    /// <summary>
+    /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
+    /// </summary>
+    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    {
+        { 0, 0, 0, 0 }, // player 1 dies
+        { 0, 0, 0, 0 }, // player 2 dies
+        { 0, 0, 0, 0 }, // player 3 dies
+        { 0, 0, 0, 0 }  // player 4 dies
+    };
 
     public bool isRunning;
     public bool isSaved;
@@ -841,20 +857,12 @@ public class GameManager : MonoBehaviour
             // Don't want to trigger a scene change during a resimulation
             if (!rbManager.isRollbackFrame)
             {
-                if (CheckGameEnd(GetActivePlayerControllers()))
+                if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
                 {
                     // Tally wins
                     for (int i = 0; i < playerCount; i++)
                     {
-                        if (players[i].isAlive)
-                        {
-                            Debug.Log("Player " + (i + 1) + " wins the match!");
-                            players[i].isAlive = false;
-                            players[i].roundsWon++;
-
-                            if (players[i].roundsWon >= 3) { gameOver = true; }
-                            break;
-                        }
+                        if (players[i].roundsWon >= 3) { gameOver = true; }
                     }
 
                     ClearStages();
@@ -1050,24 +1058,40 @@ public class GameManager : MonoBehaviour
 
         else if (activeScene.name == "Gameplay")
         {
-            if (CheckGameEnd(GetActivePlayerControllers()))
+            if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                for (int i = 0; i < playerCount; i++)
+                
+                if (!roundOver)
                 {
-                    players[i].playerNum.enabled = false;
-                    players[i].inputDisplay.enabled = false;
-                    if (players[i].isAlive)
+                    ushort highestRam = 0;
+                    PlayerController winner = null;
+                    for (int i = 0; i < playerCount; i++)
                     {
-                        playerWinText.enabled = true;
-                        Debug.Log("Player " + (i + 1) + " wins the match!");
-                        playerWinText.text = "Player " + (i + 1) + " wins the match!";
-                        players[i].isAlive = false; //reset for next round
-                        players[i].roundsWon++;
+                        if (players[i].roundRam >= ramNeededToWinRound)
+                        {
+                            if (players[i].roundRam > highestRam)
+                            {
+                                winner = players[i];
+                                highestRam = players[i].roundRam;
+                            }
+                        }
+                    }
 
+                    winner.roundsWon += 1;
+                    roundOver = true;
+                    playerWinText.enabled = true;
+                    playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        players[i].roundRam = 0;
+                        players[i].playerNum.enabled = false;
+                        players[i].inputDisplay.enabled = false;
                         if (players[i].roundsWon >= 3) { gameOver = true; }
-                        break;
                     }
                 }
+
+                
 
                 if (roundEndTransitionTime >= roundEndTimer)
                 {
@@ -1102,6 +1126,7 @@ public class GameManager : MonoBehaviour
                         RoundEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundOver = false;
                     }
                 }
             }
@@ -1173,17 +1198,60 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
     }
 
-    public bool CheckGameEnd(PlayerController[] playerControllers)
+    public void UpdatePlayerBounties()
     {
-        int alivePlayers = 0;
+        ushort averageTotalRam = 0;
+        for (int i = 0; i < playerCount; i++)
+        {
+            averageTotalRam += players[i].totalRam;
+        }
+        averageTotalRam = (ushort)((float)averageTotalRam / (float)playerCount);
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].ramBounty = (short)((float)(players[i].totalRam - averageTotalRam)/2);
+        }
+    }
+
+    public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
+    {
+
+        if(roundOver) { return true; }
+
         foreach (PlayerController player in playerControllers)
         {
-            if (player.isAlive) alivePlayers++;
+            //check for player deaths
+            if(!player.isAlive)
+            {
+
+                //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
+                foreach (PlayerController p in playerControllers)
+                {
+                    ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
+                    float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
+                    p.roundRam += (ushort)totalRamEarned;
+                    p.totalRam += (ushort)totalRamEarned;
+
+                    damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
+                }
+
+                UpdatePlayerBounties();
+
+                //respawn the dead player
+                player.SpawnPlayer(GetRandomSpawnVec2());
+            }
         }
-        if (alivePlayers <= 1 && playerCount > 1)
+
+        //then check winner conditions (most ram at the end of the round)
+        foreach (PlayerController player in playerControllers)
         {
-            return true;
+            if (player.roundRam >= ramNeededToWinRound)
+            {
+                return true;
+            }
         }
+
+
         return false;
     }
 
@@ -1276,6 +1344,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public FixedVec2 GetRandomSpawnVec2()
+    {
+
+        Vector2[] spawnPointList = GetSpawnPositions();
+        Vector2 spawnPoint = spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+        return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
+
+    }
+
     //A round is 1 match + spell acquisition phase
     public void RoundEnd()
     {
@@ -1310,6 +1387,17 @@ public class GameManager : MonoBehaviour
             dataManager.SaveMatch();
             isSaved = true;
         }
+
+        //reset all ram values for players so they don't carry over to the end screen or next match
+        for (int i = 0; i < playerCount; i++)
+        {
+            players[i].totalRam = 0;
+            players[i].roundRam = 0;
+
+        }
+
+        gameOver = false;
+        roundOver = false;
 
         dataManager.SaveToFile();
         ProjectileManager.Instance.DeleteAllProjectiles();
@@ -1396,6 +1484,8 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         Debug.Log($"Scene loaded: {scene.name}");
+
+        damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")

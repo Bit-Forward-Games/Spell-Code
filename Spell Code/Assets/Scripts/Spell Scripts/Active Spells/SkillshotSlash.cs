@@ -25,9 +25,9 @@ public class SkillshotSlash : SpellData
                 //ActiveOnHit proc: when this spell hits an enemy, deal extra damage if in Flow State
                 if (owner.flowState > 0)
                 {
-                    defender.TakeEffectDamage(10);
+                    defender.TakeEffectDamage(10, owner);
                 }
-                //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+                //if we hit the sweet spot, set flow state to 600 (10 seconds worth)
                 if (defender.hitboxData.sweetSpot)
                 {
                     owner.flowState = PlayerController.maxFlowState;

@@ -48,5 +48,5 @@ MonoBehaviour:
   - {fileID: 7323394407539773554, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}
   projectileInstances: []
   shopSprite: {fileID: 21300000, guid: 6c7404072339e1345bad8bf061549062, type: 3}
-  readyIcon: {fileID: -1414192208863726581, guid: e9027930849068e41afcaf67f0d808dc, type: 3}
+  readyIcon: {fileID: 21300000, guid: e9027930849068e41afcaf67f0d808dc, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 6746945f3489840658f72a478fef8ab5, type: 3}

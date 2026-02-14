@@ -3271,6 +3271,14 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 34f93c7fcc4a148d383db73a79201cab, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: projectileList.Array.size
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[14]'
+      value: 
+      objectReference: {fileID: 7044304149346443677, guid: f4cd86b6768320c498ecd9ff5c04a761, type: 3}
     - target: {fileID: 940491606846688129, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3459,6 +3467,30 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -17.100006
       objectReference: {fileID: 0}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellList.Array.size
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[9]'
+      value: 
+      objectReference: {fileID: -3969159087852126958, guid: fba9adf08a7477541b0fe5409906df9a, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[10]'
+      value: 
+      objectReference: {fileID: 6900761627890387506, guid: 5d3d47814f0b3cf42a27913c2762752c, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[11]'
+      value: 
+      objectReference: {fileID: -4505625144646423502, guid: d6bea4b6433c99247a2b15dc4770ff05, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[12]'
+      value: 
+      objectReference: {fileID: -6130499417200948843, guid: a6e6d6fbd777fff41a13b08a0af6ab6a, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[13]'
+      value: 
+      objectReference: {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

@@ -276,9 +276,9 @@ public class PlayerController : MonoBehaviour
         }
 
         //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
+        if (pID == 1) { startingSpell = "BladeOfAres"; }
         else if (pID == 2) { startingSpell = "QuarterReport"; }
-        else if (pID == 3) { startingSpell = "MightOfZeus"; }
+        else if (pID == 3) { startingSpell = "BladeOfAres"; }
         else if (pID == 4) { startingSpell = "SkillshotSlash"; }
 
             FixedVec2 startPos;
@@ -749,9 +749,6 @@ public class PlayerController : MonoBehaviour
                 {
                     //play the run sound
                     SFX_Manager.Instance.PlaySound(Sounds.RUN);
-
-                    //play the dash dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, pID, facingRight);
                 }
 
                 if (!isGrounded)
@@ -1703,7 +1700,8 @@ public class PlayerController : MonoBehaviour
                 hitboxData = null;
                 break;
             case PlayerState.Run:
-                //ProjectileManager.Instance.SpawnVFX(this, 3, -3);
+                //play the dash dust VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, pID, facingRight);
                 break;
             case PlayerState.Jump:
                 //playerHeight = charData.playerHeight / 2;

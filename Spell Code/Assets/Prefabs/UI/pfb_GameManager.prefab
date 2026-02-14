@@ -2071,6 +2071,7 @@ MonoBehaviour:
   - {fileID: -935830711900372419, guid: 3c17e1415e2cb7148af8764e1d307018, type: 3}
   - {fileID: -935830711900372419, guid: 437f80e07015f7f47bde0470cd16cebc, type: 3}
   - {fileID: 894770395105857176, guid: 0313600240a42e54184617cf8275501f, type: 3}
+  - {fileID: 7044304149346443677, guid: f4cd86b6768320c498ecd9ff5c04a761, type: 3}
 --- !u!114 &7022982774474964000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2093,10 +2094,10 @@ MonoBehaviour:
   - {fileID: 3228513247226345638, guid: fc3b2debc8d4a174d8974734fc504041, type: 3}
   - {fileID: -764328101641788283, guid: 35f892d8493915041b6d65a1d99473e2, type: 3}
   - {fileID: 8791147183177087036, guid: e1333e686a899b14f8f7389907262737, type: 3}
-  - {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
   - {fileID: -3969159087852126958, guid: fba9adf08a7477541b0fe5409906df9a, type: 3}
   - {fileID: 6900761627890387506, guid: 5d3d47814f0b3cf42a27913c2762752c, type: 3}
   - {fileID: -4505625144646423502, guid: d6bea4b6433c99247a2b15dc4770ff05, type: 3}
+  - {fileID: -6130499417200948843, guid: a6e6d6fbd777fff41a13b08a0af6ab6a, type: 3}
 --- !u!114 &699450530840418385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12240,6 +12241,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2692400334766776254, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 23.399963
+      objectReference: {fileID: 0}
     - target: {fileID: 2708582025916616294, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
@@ -12668,6 +12673,14 @@ PrefabInstance:
       propertyPath: m_text
       value: 'P1 RAM:'
       objectReference: {fileID: 0}
+    - target: {fileID: 6150970964789159288, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSize
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 6150970964789159288, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 6157730184920689738, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
@@ -12679,6 +12692,14 @@ PrefabInstance:
     - target: {fileID: 6194068694660875551, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_text
       value: 'P3 RAM: '
+      objectReference: {fileID: 0}
+    - target: {fileID: 6194068694660875551, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSize
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 6194068694660875551, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 6219344825520268830, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_text
@@ -12810,7 +12831,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7534120170094054067, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -101.66
+      value: -101.660034
       objectReference: {fileID: 0}
     - target: {fileID: 7536617233677742776, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -12976,9 +12997,25 @@ PrefabInstance:
       propertyPath: m_text
       value: 'P4 RAM:'
       objectReference: {fileID: 0}
+    - target: {fileID: 8854329105776836193, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSize
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8854329105776836193, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 8959108643432188804, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_text
       value: 'P2 RAM:'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8959108643432188804, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSize
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8959108643432188804, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 8979438841798725861, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_IsActive

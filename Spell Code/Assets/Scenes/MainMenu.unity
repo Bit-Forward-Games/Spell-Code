@@ -3279,6 +3279,14 @@ PrefabInstance:
       propertyPath: 'projectileList.Array.data[14]'
       value: 
       objectReference: {fileID: 7044304149346443677, guid: f4cd86b6768320c498ecd9ff5c04a761, type: 3}
+    - target: {fileID: 917386819144739197, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 917386819144739197, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1090599107
+      objectReference: {fileID: 0}
     - target: {fileID: 940491606846688129, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3309,11 +3317,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2681202021317024657, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -8.9
+      value: -8.900024
       objectReference: {fileID: 0}
     - target: {fileID: 2681202021317024657, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -16.7
+      value: -16.700012
       objectReference: {fileID: 0}
     - target: {fileID: 2696957987427843326, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -3351,6 +3359,14 @@ PrefabInstance:
       propertyPath: m_fontSizeBase
       value: 18
       objectReference: {fileID: 0}
+    - target: {fileID: 4628738741851133386, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4628738741851133386, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1090599107
+      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3361,11 +3377,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4929813730496797648, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -8.9
+      value: -8.900024
       objectReference: {fileID: 0}
     - target: {fileID: 4929813730496797648, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 9.899994
+      objectReference: {fileID: 0}
+    - target: {fileID: 5158771842789994592, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5158771842789994592, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1090599107
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212670697669992042, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212670697669992042, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1090599107
       objectReference: {fileID: 0}
     - target: {fileID: 5579797999015951978, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -3459,14 +3491,6 @@ PrefabInstance:
       propertyPath: 'playerRamVals.Array.data[7]'
       value: 
       objectReference: {fileID: 1655133743}
-    - target: {fileID: 7248365544465720508, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 113.100006
-      objectReference: {fileID: 0}
-    - target: {fileID: 7248365544465720508, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -17.100006
-      objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
       value: 13
@@ -3491,6 +3515,22 @@ PrefabInstance:
       propertyPath: 'spellList.Array.data[13]'
       value: 
       objectReference: {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
+    - target: {fileID: 7087315253608045230, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7087315253608045230, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1090599107
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248365544465720508, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 113.099976
+      objectReference: {fileID: 0}
+    - target: {fileID: 7248365544465720508, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -17.100006
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

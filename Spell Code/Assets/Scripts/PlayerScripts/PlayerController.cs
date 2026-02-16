@@ -804,6 +804,8 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
 
+                //this is an update for whether the jump animation should be rising or falling.
+                AnimationManager.Instance.SetJumpAnimation(this);
                 //Check Direction Inputs
                 if (isGrounded)
                 {
@@ -1678,8 +1680,6 @@ public class PlayerController : MonoBehaviour
         return returnVal;
     }
 
-    
-
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
     {
 
@@ -1712,7 +1712,6 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
                 //playerHeight = charData.playerHeight / 2;
-
                 break;
             case PlayerState.Hitstun:
                 ClearInputDisplay();

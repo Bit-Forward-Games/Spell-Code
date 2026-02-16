@@ -854,30 +854,94 @@ public class GameManager : MonoBehaviour
         else if (activeScene.name == "Gameplay")
         {
             // Only check end conditions if NOT rolling back
-            // Don't want to trigger a scene change during a resimulation
             if (!rbManager.isRollbackFrame)
             {
                 if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
                 {
-                    // Tally wins
-                    for (int i = 0; i < playerCount; i++)
+                    if (!roundOver)
                     {
-                        if (players[i].roundsWon >= 3) { gameOver = true; }
+                        // Determine winner
+                        ushort highestRam = 0;
+                        PlayerController winner = null;
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            if (players[i].roundRam >= ramNeededToWinRound)
+                            {
+                                if (players[i].roundRam > highestRam)
+                                {
+                                    winner = players[i];
+                                    highestRam = players[i].roundRam;
+                                }
+                            }
+                        }
+
+                        if (winner != null)
+                        {
+                            winner.roundsWon += 1;
+                            roundOver = true;
+
+                            // Show win text (optional - might look weird in online with lag)
+                            // playerWinText.enabled = true;
+                            // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+
+                            // Reset roundRam for all players
+                            for (int i = 0; i < playerCount; i++)
+                            {
+                                players[i].roundRam = 0;
+                                players[i].playerNum.enabled = false;
+                                players[i].inputDisplay.enabled = false;
+                                if (players[i].roundsWon >= 3) { gameOver = true; }
+                            }
+                        }
                     }
 
-                    ClearStages();
-
-                    // Handle Transitions
-                    // Scene changes in Online Play can be risky if not synced. 
-                    // Should send a "Ready" packet before loading ideally.
-                    // For now, mirror offline logic:
-                    if (gameOver)
+                    // Handle round end timer (deterministic)
+                    if (roundEndTransitionTime >= roundEndTimer)
                     {
-                        GameEnd();
+                        roundEndTimer += Time.fixedDeltaTime; // Use fixedDeltaTime for determinism
                     }
-                    else
+
+                    // Transition after timer
+                    if (roundEndTransitionTime <= roundEndTimer)
                     {
-                        RoundEnd();
+                        ClearStages();
+
+                        if (gameOver)
+                        {
+                            // playerWinText.enabled = false;
+                            dataManager.totalRoundsPlayed += 1;
+                            GameEnd();
+                            roundEndTimer = 0;
+                        }
+                        else if (players[0].spellList.Count >= 6)
+                        {
+                            // Max spells reached - skip shop, go to next gameplay
+                            // playerWinText.enabled = false;
+                            dataManager.totalRoundsPlayed += 1;
+
+                            // Need to reset ready flags and set transitioning
+                            localPlayerReadyForGameplay = false;
+                            remotePlayerReadyForGameplay = false;
+                            isTransitioning = true;
+
+                            LoadRandomGameplayStage();
+                            foreach (PlayerController player in players)
+                            {
+                                if (player != null)
+                                    player.inputDisplay.enabled = true;
+                            }
+                            roundEndTimer = 0;
+                            roundOver = false;
+                        }
+                        else
+                        {
+                            // Normal round end - go to shop
+                            // playerWinText.enabled = false;
+                            dataManager.totalRoundsPlayed += 1;
+                            RoundEnd();
+                            roundEndTimer = 0;
+                            roundOver = false;
+                        }
                     }
                 }
             }
@@ -1632,6 +1696,19 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
+                bw.Write(roundOver);
+                bw.Write(gameOver);
+                bw.Write(roundEndTimer);
+
+                // Serialize damage matrix
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        bw.Write(damageMatrix[i, j]);
+                    }
+                }
+
                 // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
                 bw.Write(p2_index);
@@ -1719,6 +1796,19 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
+                    }
+                }
+
+                roundOver = br.ReadBoolean();
+                gameOver = br.ReadBoolean();
+                roundEndTimer = br.ReadSingle();
+
+                // Deserialize damage matrix
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        damageMatrix[i, j] = br.ReadByte();
                     }
                 }
 

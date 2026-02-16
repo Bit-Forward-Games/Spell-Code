@@ -1516,6 +1516,7 @@ public class GameManager : MonoBehaviour
                 SetStage(1);
             }
 
+            ProjectileManager.Instance.InitializeAllProjectiles();
             ResetPlayers();
 
             if (RollbackManager.Instance != null)
@@ -1529,6 +1530,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             isTransitioning = false;
+            ProjectileManager.Instance.InitializeAllProjectiles();
             // Ready flags are already reset in RoundEnd()
         }
     }

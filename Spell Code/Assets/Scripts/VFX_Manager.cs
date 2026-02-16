@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.VisualScripting.Antlr3.Runtime;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using BestoNet.Types;
+using UnityEngine.VFX;
 
 public enum VisualEffects
 {
@@ -27,7 +28,8 @@ public class VFX_Manager : MonoBehaviour
     }
 
     [Header("Visual effects that VFX Manager can play")]
-    [SerializeField] private List<VisualEffectObject> visualEffectObjects; //list of visual effects that the VFX Manager can play
+    [SerializeField] private List<VisualEffectObject> playerVisualEffectObjects; //list of visual effects for players that the VFX Manager can play
+    [SerializeField] private List<VisualEffectObject> spellVisualEffectObjects; //list of visual effects for spells that the VFX Manager can play
 
     void Awake()
     {
@@ -66,20 +68,20 @@ public class VFX_Manager : MonoBehaviour
         InstantiatePlayerParticleSystems();
 
         //instantiate spell particle systems
-        //InstantiateSpellParticleSystems();
+        InstantiateSpellParticleSystems();
     }
 
     //Function to instantiate all particle systems relating to players
     private void InstantiatePlayerParticleSystems()
     {
-        //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems per VisualEffectObject in visualEffectObjects
-        foreach (VisualEffectObject visualEffectObject in visualEffectObjects)
+        //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems per VisualEffectObject in playerVisualEffectObjects
+        foreach (VisualEffectObject visualEffectObject in playerVisualEffectObjects)
         {
             //sanity check to make sure that particleSystemPrefab has been assigned for this visualEffectObject
             if (visualEffectObject.particleSystemPrefab == null)
             {
                 //log an error
-                Debug.LogError(gameObject.name + ": The particle system prefab for \"" + visualEffectObject.visualEffectName + "\" has not been assigned within visualEffectObjects. Assign a particle system prefab to \"" + visualEffectObject.visualEffectName + "\"");
+                Debug.LogError(gameObject.name + ": The particle system prefab for \"" + visualEffectObject.visualEffectName + "\" has not been assigned within playerVisualEffectObjects. Assign a particle system prefab to \"" + visualEffectObject.visualEffectName + "\"");
 
                 //skip the rest of this foreach loop iteration
                 continue;
@@ -92,7 +94,7 @@ public class VFX_Manager : MonoBehaviour
             //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems
             for (int i = 0; i < NUM_PARTICLESYSTEMS_PER_VFXOBJECT; i++)
             {
-                //create a particle system that is a child of the VFX_Manager 
+                //instantiate a particle system that is a child of the _headingGameobject 
                 GameObject _createdParticleSystem = Instantiate(visualEffectObject.particleSystemPrefab, _headingGameobject.transform);
 
                 //give the newly created particle system a unique name
@@ -107,15 +109,26 @@ public class VFX_Manager : MonoBehaviour
     //Function to instantiate all particle systems relating to spells
     private void InstantiateSpellParticleSystems()
     {
-        ////loop through each player
-        //for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        //{
-        //    //loop through all spells in a player's inventory
-        //    for (int j = 0; j < GameManager.Instance.players[i].spellList.Count; j++)
-        //    {
-        //        //CONTINUE HERE
-        //    }
-        //}
+        //loop through each player
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            //define and instantiate an empty gameobject to help organize the particle systems
+            GameObject _headingGameobject = Instantiate(new GameObject(), this.gameObject.transform);
+            _headingGameobject.name = "Spell Particle Systems for player #" + (i + 1).ToString();
+
+            //loop through all the spells in a player's inventory
+            foreach (SpellData _spell in GameManager.Instance.players[i].spellList)
+            {
+                ////instantiate a particle system that is a child of the ... 
+                //GameObject _createdParticleSystem = Instantiate(_spell.projectileInstances[], _headingGameobject.transform);
+
+                ////give the newly created particle system a unique name
+                //_createdParticleSystem.name = visualEffectObject.particleSystemPrefab.name + " #" + i.ToString();
+
+                ////add the newly created particle system to the particleSystems array for this VisualEffectObject
+                //visualEffectObject.particleSystems[i] = _createdParticleSystem.GetComponent<ParticleSystem>();
+            }
+        }
     }
 
     //Function to destroy all particle systems
@@ -141,11 +154,11 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_spawnFacingRight"> Whether or not the visual effect will spawn facing right. By default, set to true (facing right)</param>
     public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true)
     {
-        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within visualEffectObjects
-        if (visualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
+        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
+        if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
         {
             //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within visualEffectObjects of the VFX_Manager script. Please specify a song that exists with visualEffectObjects");
+            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script. Please specify a song that exists with playerVisualEffectObjects");
 
             //return
             return;
@@ -162,7 +175,7 @@ public class VFX_Manager : MonoBehaviour
         }
 
         //get visual effect object
-        VisualEffectObject _visualEffectObject = visualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
+        VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
         //convert _spawnPos to a Vector3
         Vector3 _spawnPosVector3 = new Vector3(_spawnPos.X.ToFloat(), _spawnPos.Y.ToFloat(), 0f);

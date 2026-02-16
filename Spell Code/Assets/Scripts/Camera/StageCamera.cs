@@ -15,13 +15,13 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float minZoom = 180f;
     [SerializeField] private float maxZoom = 1280F;
     [SerializeField] private float HardSetZoom = 205f;
-    [SerializeField] private float minDistance = 360f;
-    [SerializeField] private float zoomLimiter = 960f;
+    //[SerializeField] private float minDistance = 360f;
+    //[SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
     //[SerializeField] private float shakeDuration = 0.5f;
     [SerializeField] private float shakeMagnitude = 1f;
     // Buffer (world units) to keep between the players and the screen edge
-    [SerializeField] private float screenEdgeBuffer = 50f;
+    [SerializeField] private float screenEdgeBuffer = 128f;
 
     public Vector2 target;
     public bool lockCamera = true;
@@ -40,15 +40,6 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //if the current scene is main menu, don't do anything
-        //if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
-        //{
-        //    lockCamera = true;
-        //}
-        //else
-        //{
-        //    lockCamera = false;
-        //}
 
         // If camera is locked, set to hard zoom and return
         if (lockCamera)
@@ -61,18 +52,19 @@ public class StageCamera : MonoBehaviour
         if (GameManager.Instance.playerCount > 0)
         {
             // compute average position
-            Vector2 averagePosition = Vector2.zero;
-            for (int i = 0; i < GameManager.Instance.playerCount; i++)
-            {
-                FixedVec2 fixedPos = GameManager.Instance.players[i].position;
-                Vector2 floatPos = new Vector2(fixedPos.X.ToFloat(), fixedPos.Y.ToFloat());
-                averagePosition += floatPos;
-            }
-            averagePosition /= GameManager.Instance.playerCount;
-            target = averagePosition + offset;
+            //Vector2 averagePosition = Vector2.zero;
+            //for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            //{
+            //    FixedVec2 fixedPos = GameManager.Instance.players[i].position;
+            //    Vector2 floatPos = new Vector2(fixedPos.X.ToFloat(), fixedPos.Y.ToFloat());
+            //    averagePosition += floatPos;
+            //}
+            //averagePosition /= GameManager.Instance.playerCount;
+            //target = averagePosition + offset;
 
             // get players bounding box
             Bounds greatestDistance = GetGreatestDistance();
+            target = (Vector2)greatestDistance.center + offset;
 
             // --- NEW: compute required orthographic size based on both width and height ---
             // orthographicSize is half the vertical size. Horizontal half-size = orthographicSize * aspect.
@@ -94,11 +86,6 @@ public class StageCamera : MonoBehaviour
 
             ApplyShake();
 
-            //transform.position = new Vector3(
-            //    Mathf.Clamp(transform.position.x, StageData.Instance.leftWallXval + cam.orthographicSize * 16 / 9,
-            //    StageData.Instance.rightWallXval - cam.orthographicSize * 16 / 9),
-            //    Mathf.Clamp(transform.position.y, 0, StageData.Instance.ceilingYval - cam.orthographicSize),
-            //    -10);
         }
     }
 

@@ -15,11 +15,14 @@ public class BifronsBlade : SpellData
         procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
         description = "Slash upwards with a two-faced blade, granting \"Demon Aura\" on hit. your basic attack then slashes downward, dealing damage based on your \"Demon Aura\".";
+        spawnOffsetX = 25;
+        spawnOffsetY = 40;
 
     }
 
-   
-  
+
+
+
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
         switch (targetProcCon)

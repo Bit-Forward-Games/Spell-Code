@@ -16,7 +16,7 @@ public class BifronsBladeSpell_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 45; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 4, 4, 4, 4 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,9 +35,9 @@ public class BifronsBladeSpell_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -7*2,
+                    xOffset = -6*2,
                     yOffset = 15*2,
-                    width = 57*2,
+                    width = 60*2,
                     height = 33*2,
                     xKnockback = 7,
                     yKnockback = 4,

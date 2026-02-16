@@ -45,7 +45,7 @@ public class VFX_Manager : MonoBehaviour
         }
 
         //instantiate all particle systems
-        InstantiateParticleSystems();
+        InstantiateAllParticleSystems();
     }
 
     //DEBUGGING:
@@ -60,7 +60,17 @@ public class VFX_Manager : MonoBehaviour
     //}
 
     //Function to instantiate all particle systems
-    private void InstantiateParticleSystems()
+    private void InstantiateAllParticleSystems()
+    {
+        //instantiate player/general particle systems
+        InstantiatePlayerParticleSystems();
+
+        //instantiate spell particle systems
+        //InstantiateSpellParticleSystems();
+    }
+
+    //Function to instantiate all particle systems relating to players
+    private void InstantiatePlayerParticleSystems()
     {
         //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems per VisualEffectObject in visualEffectObjects
         foreach (VisualEffectObject visualEffectObject in visualEffectObjects)
@@ -72,7 +82,7 @@ public class VFX_Manager : MonoBehaviour
                 Debug.LogError(gameObject.name + ": The particle system prefab for \"" + visualEffectObject.visualEffectName + "\" has not been assigned within visualEffectObjects. Assign a particle system prefab to \"" + visualEffectObject.visualEffectName + "\"");
 
                 //skip the rest of this foreach loop iteration
-                continue;   
+                continue;
             }
 
             //define and instantiate an empty gameobject to help organize the particle systems
@@ -94,6 +104,34 @@ public class VFX_Manager : MonoBehaviour
         }
     }
 
+    //Function to instantiate all particle systems relating to spells
+    private void InstantiateSpellParticleSystems()
+    {
+        ////loop through each player
+        //for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        //{
+        //    //loop through all spells in a player's inventory
+        //    for (int j = 0; j < GameManager.Instance.players[i].spellList.Count; j++)
+        //    {
+        //        //CONTINUE HERE
+        //    }
+        //}
+    }
+
+    //Function to destroy all particle systems
+    private void DestroyAllParticleSystems()
+    {
+        ////loop through each player
+        //for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        //{
+        //    //loop through all spells in a player's inventory
+        //    for (int j = 0; j < GameManager.Instance.players[i].spellList.Count; j++)
+        //    {
+        //        //CONTINUE HERE
+        //    }
+        //}
+    }
+
     /// <summary>
     /// Play a visual effect with the name defined by "_nameOfSoundToPlay" at the position defined by "_spawnPos"
     /// </summary>
@@ -101,7 +139,6 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_spawnPos"> Position of the visual effect to be played</param>
     /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player)</param>
     /// <param name="_spawnFacingRight"> Whether or not the visual effect will spawn facing right. By default, set to true (facing right)</param>
-    // = FixedVec2(Fixed32.FromInt(0), Fixed32.FromInt(0))
     public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true)
     {
         //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within visualEffectObjects

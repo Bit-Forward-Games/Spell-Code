@@ -573,7 +573,10 @@ public class ShopManager : MonoBehaviour
     public void GivePlayerSpell(int index, string spell)
     {
         int maxSpellCount = DataManager.Instance.totalRoundsPlayed + 1;
-        
+
+        // ALWAYS mark as chosen, regardless of whether spell is added
+        gameManager.players[index].chosenSpell = true;
+
         if (gameManager.players[index].spellList.Count() >= maxSpellCount)
         {
             Debug.Log("Player Has Already has " + gameManager.players[index].spellList.Count() + " spells");

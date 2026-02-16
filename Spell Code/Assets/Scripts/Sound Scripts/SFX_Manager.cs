@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 using UnityEngine;
 using UnityEngine.Audio;
 
-public enum Sounds
+public enum Sounds //enum to store the names of the sounds that can play
 { 
     JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE
 }
@@ -14,7 +14,7 @@ public enum Sounds
 [RequireComponent(typeof(AudioSource))]
 public class SFX_Manager : MonoBehaviour
 {
-    //<value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
+    /// <value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
     public static SFX_Manager Instance { get; private set; }
 
     //AudioSource that will play sounds
@@ -29,7 +29,7 @@ public class SFX_Manager : MonoBehaviour
     }
 
     [Header("Sounds that SFX Manager can play")]
-    [SerializeField] private List<SoundObject> soundObjects;
+    [SerializeField] private List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
 
     void Awake()
     {
@@ -54,15 +54,15 @@ public class SFX_Manager : MonoBehaviour
     /// Play a sound with the name defined by "_nameOfSoundToPlay"
     /// </summary>
     /// <param name="_nameOfSoundToPlay"> Sound to be played by the SFX Handler</param>
-    /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
-    /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySound(Sounds _nameOfSoundToPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
         //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
         if (soundObjects.Find(x => x.soundName == _nameOfSoundToPlay) == null)
         {
             //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _nameOfSoundToPlay + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a song that exists with availableSounds");
+            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _nameOfSoundToPlay + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a sound that exists with availableSounds");
 
             //return
             return;
@@ -72,17 +72,7 @@ public class SFX_Manager : MonoBehaviour
         SoundObject _soundObject = soundObjects.Find(x => x.soundName == _nameOfSoundToPlay);
 
         //sanity check to make sure that _nameOfSoundToPlay has an AudioClip associated with it
-        if(_soundObject.possibleSounds.Count <= 0)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": The SoundObject for \"" + _nameOfSoundToPlay + "\" does not contain an AudioClip to play. Please add an AudioClip to the SoundObject for \"" + _nameOfSoundToPlay + "\" in availableSounds");
-
-            //return
-            return;
-        }
-
-        //another sanity check to make sure that _nameOfSoundToPlay has an AudioClip associated with it
-        if (_soundObject.possibleSounds[0] == null)
+        if(_soundObject.possibleSounds.Count <= 0 || _soundObject.possibleSounds[0] == null)
         {
             //log a warning
             Debug.LogWarning(gameObject.name + ": The SoundObject for \"" + _nameOfSoundToPlay + "\" does not contain an AudioClip to play. Please add an AudioClip to the SoundObject for \"" + _nameOfSoundToPlay + "\" in availableSounds");
@@ -119,7 +109,7 @@ public class SFX_Manager : MonoBehaviour
         }
 
         //set isRepeatedlyPlaying of _soundName to true
-        soundObjects.Find(y => y.soundName == _soundName).playersWhoAreRepeatedlyPlaying[_playerIndex] = true;
+        soundObjects.Find(x => x.soundName == _soundName).playersWhoAreRepeatedlyPlaying[_playerIndex] = true;
 
         //Repeatedly play _soundName so long as isRepeatedlyPlaying is true
         StartCoroutine(RepeatedlyPlay(_soundName, _playRate, _playerIndex, _minPitchShift, _maxPitchShift));
@@ -145,7 +135,7 @@ public class SFX_Manager : MonoBehaviour
         //wait for _playRate seconds
         yield return new WaitForSeconds(_playRate);
 
-        //is this song should still repeat,...
+        //if this song should still repeat,...
         if (soundObjects.Find(x => x.soundName == _soundName).playersWhoAreRepeatedlyPlaying[_playerIndex] == true)
         {
             //Repeatedly play _soundName 

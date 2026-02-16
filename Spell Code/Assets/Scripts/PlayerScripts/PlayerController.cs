@@ -132,12 +132,10 @@ public class PlayerController : MonoBehaviour
     public Fixed playerWidth;
     [HideInInspector]
     public Fixed playerHeight;
-    //public PlayerController opponent;
 
     [HideInInspector]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
-    //public bool hitboxActive = false;
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public uint storedCode = 0; //the code that is stored up for release
@@ -163,6 +161,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
+    public bool basicSpawnOverride = false; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -277,7 +276,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "PongShot"; }
+        if (pID == 1) { startingSpell = "AmonSlash"; }
         else if (pID == 2) { startingSpell = "QuarterReport"; }
         else if (pID == 3) { startingSpell = "BladeOfAres"; }
         else if (pID == 4) { startingSpell = "SkillshotSlash"; }
@@ -319,6 +318,17 @@ public class PlayerController : MonoBehaviour
         reps = 0;
         //momentum = 0;
         //slimed = false;
+
+        //call the load spell function for the starting spell to initialize the spell's variables and projectile data
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null)
+            {
+                spellList[i].owner = this;
+                spellList[i].LoadSpell();
+            }
+        }
+        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -796,6 +806,8 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
 
+                //this is an update for whether the jump animation should be rising or falling.
+                AnimationManager.Instance.SetJumpAnimation(this);
                 //Check Direction Inputs
                 if (isGrounded)
                 {
@@ -1071,13 +1083,21 @@ public class PlayerController : MonoBehaviour
                         break;
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
-                    //create an instance of your basic spell here
-                    BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
 
+                    if (!basicSpawnOverride)
+                    {
+                        //create an instance of your basic spell here
+                        BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
+                        ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
+                        
+                    }
+                    else
+                    {
+                        basicSpawnOverride = false;
+                    }
 
-                    //basic spell is fired
-                    basicsFired++;
+                        //basic spell is fired
+                        basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
 
@@ -1662,8 +1682,6 @@ public class PlayerController : MonoBehaviour
         return returnVal;
     }
 
-    
-
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
     {
 
@@ -1696,10 +1714,12 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Jump:
                 //playerHeight = charData.playerHeight / 2;
-
                 break;
             case PlayerState.Hitstun:
                 ClearInputDisplay();
+
+
+                lightArmor = false;
 
                 //reset storedCode if you get hit
                 storedCode = 0;
@@ -2143,10 +2163,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
-        //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(lightArmor);
+        bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -2198,6 +2218,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         lightArmor = br.ReadBoolean();
+        basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
@@ -2313,7 +2334,10 @@ public class PlayerController : MonoBehaviour
             if (IsStorableState())
             {
                 //this is to keep the physics interactions between releasing a stored code and a normal code consistent, improving player experience
-                vSpd = Fixed.FromInt(0);
+                if(vSpd < Fixed.FromInt(0))
+                {
+                    vSpd = Fixed.FromInt(0);
+                }
                 SetState(PlayerState.CodeRelease);
             }
         }

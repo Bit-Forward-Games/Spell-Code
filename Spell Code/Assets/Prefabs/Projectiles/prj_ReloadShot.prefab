@@ -45,8 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58b77ad1f5430984da1047b5420a9b7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: Ninja_Build_Blast
-  projectileHitboxes: []
   sprites:
   - {fileID: 927346451, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: 340182061, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
@@ -70,18 +68,9 @@ MonoBehaviour:
   - {fileID: 1578127588, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: 848076734, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   - {fileID: -1151457231, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
-  activeHitboxGroupIndex: 0
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 600
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 02000000020000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000
-    loopAnim: 1
   deleteOnHit: 0
 --- !u!212 &-4727238776019900093
 SpriteRenderer:
@@ -126,7 +115,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 340182061, guid: 12e9502e20e234647a4cbdfde59b39f2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

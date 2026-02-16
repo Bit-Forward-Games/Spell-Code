@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 9148300206640947954, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb509f52fe77dc140a1705d9bc7e4358, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: AmonSlash
-  projectileHitboxes: []
   sprites:
   - {fileID: -1773843909396603476, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
   - {fileID: 5396592071860938991, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
@@ -110,16 +108,7 @@ MonoBehaviour:
   - {fileID: 4397720471289620667, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
   - {fileID: 8401888619674179391, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
   - {fileID: -1436171669422589127, guid: e2b3fc3468df46f40aac209023e71f77, type: 3}
-  activeHitboxGroupIndex: 0
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 03000000030000000300000003000000030000000300000003000000
-    loopAnim: 0
   deleteOnHit: 0

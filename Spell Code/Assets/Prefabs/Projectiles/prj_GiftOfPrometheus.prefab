@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 1870768965708268731, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b730826e0549525468634d95a47f40a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: GiftOfPrometheus
-  projectileHitboxes: []
   sprites:
   - {fileID: -201807648554350201, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
   - {fileID: 5877301698871383775, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
@@ -129,19 +127,7 @@ MonoBehaviour:
   - {fileID: 4448128728712592331, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
   - {fileID: 3164038090613922718, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
   - {fileID: 3599115312141433367, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  activeHitboxGroupIndex: 0
-  hSpeed: 1
-  vSpeed: 0
-  position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 120
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 0300000003000000030000000300000003000000030000000300000003000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000040000000400000004000000
-    loopAnim: 0
   deleteOnHit: 0

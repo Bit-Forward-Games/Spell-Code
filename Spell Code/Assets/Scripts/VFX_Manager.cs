@@ -11,20 +11,23 @@ public enum VisualEffects
 }
 public class VFX_Manager : MonoBehaviour
 {
-    //<value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
+    //constant integer to store the number of particle systems per VisualEffectObject
+    private const int NUM_PARTICLESYSTEMS_PER_VFXOBJECT = 5;
+
+    /// <value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
     public static VFX_Manager Instance { get; private set; }
 
     //Object to hold the data for each visual effect
-    //TODO: Maybe have a particle system per player???
     [Serializable]
     private class VisualEffectObject
     {
         public VisualEffects visualEffectName; //name of the visual effect
-        public ParticleSystem[] particleSystems = new ParticleSystem[5]; //List of 5 particle systems that plays the visual effect. Each particle system in the array is associated with a unique player as well as a non player specific particle system
+        public GameObject particleSystemPrefab; //prefab of the particle system for this visual effect
+        [HideInInspector] public ParticleSystem[] particleSystems = new ParticleSystem[NUM_PARTICLESYSTEMS_PER_VFXOBJECT]; //List of 5 particle systems that each play the visual effect. Each particle system in the array is associated with a unique player as well as a non player specific particle system
     }
 
     [Header("Visual effects that VFX Manager can play")]
-    [SerializeField] private List<VisualEffectObject> visualEffectObjects;
+    [SerializeField] private List<VisualEffectObject> visualEffectObjects; //list of visual effects that the VFX Manager can play
 
     void Awake()
     {
@@ -41,21 +44,8 @@ public class VFX_Manager : MonoBehaviour
             Instance = this;
         }
 
-        //ensure that there are 5 valid particle systems per VisualEffectObject
-        foreach (VisualEffectObject visualEffectObject in visualEffectObjects)
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                if(visualEffectObject.particleSystems[i] == null)
-                {
-                    //log a warning
-                    Debug.LogWarning(gameObject.name + ": All the particle systems of VFX_Manager have not been assigend! Make sure that each element of every particleSystems array is filled with a ParticleSystem");
-
-                    //return
-                    return;
-                }
-            }
-        }
+        //instantiate all particle systems
+        InstantiateParticleSystems();
     }
 
     //DEBUGGING:
@@ -68,6 +58,41 @@ public class VFX_Manager : MonoBehaviour
     //        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, player1pos, isFacingRight);
     //    }
     //}
+
+    //Function to instantiate all particle systems
+    private void InstantiateParticleSystems()
+    {
+        //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems per VisualEffectObject in visualEffectObjects
+        foreach (VisualEffectObject visualEffectObject in visualEffectObjects)
+        {
+            //sanity check to make sure that particleSystemPrefab has been assigned for this visualEffectObject
+            if (visualEffectObject.particleSystemPrefab == null)
+            {
+                //log an error
+                Debug.LogError(gameObject.name + ": The particle system prefab for \"" + visualEffectObject.visualEffectName + "\" has not been assigned within visualEffectObjects. Assign a particle system prefab to \"" + visualEffectObject.visualEffectName + "\"");
+
+                //skip the rest of this foreach loop iteration
+                continue;   
+            }
+
+            //define and instantiate an empty gameobject to help organize the particle systems
+            GameObject _headingGameobject = Instantiate(new GameObject(), this.gameObject.transform);
+            _headingGameobject.name = visualEffectObject.particleSystemPrefab.name + "s";
+
+            //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems
+            for (int i = 0; i < NUM_PARTICLESYSTEMS_PER_VFXOBJECT; i++)
+            {
+                //create a particle system that is a child of the VFX_Manager 
+                GameObject _createdParticleSystem = Instantiate(visualEffectObject.particleSystemPrefab, _headingGameobject.transform);
+
+                //give the newly created particle system a unique name
+                _createdParticleSystem.name = visualEffectObject.particleSystemPrefab.name + " #" + i.ToString();
+
+                //add the newly created particle system to the particleSystems array for this VisualEffectObject
+                visualEffectObject.particleSystems[i] = _createdParticleSystem.GetComponent<ParticleSystem>();
+            }
+        }
+    }
 
     /// <summary>
     /// Play a visual effect with the name defined by "_nameOfSoundToPlay" at the position defined by "_spawnPos"
@@ -119,7 +144,7 @@ public class VFX_Manager : MonoBehaviour
         }
 
         //play the visual effect
-        Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
+        //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
         _visualEffectObject.particleSystems[_playerNum].Play();
     }
 }

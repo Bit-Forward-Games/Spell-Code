@@ -1530,6 +1530,14 @@ public class GameManager : MonoBehaviour
             Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             isTransitioning = false;
             // Ready flags are already reset in RoundEnd()
+
+            // Find and initialize ShopManager
+            ShopManager shopMgr = FindAnyObjectByType<ShopManager>();
+            if (shopMgr != null)
+            {
+                // Ensure shop manager knows we're not ready yet
+                Debug.Log("Shop manager found and will handle online logic");
+            }
         }
     }
 

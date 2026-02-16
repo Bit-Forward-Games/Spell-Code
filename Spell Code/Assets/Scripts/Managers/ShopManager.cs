@@ -480,6 +480,11 @@ public class ShopManager : MonoBehaviour
             }
 
             backToGameplay = true;
+
+            // Reset the flags before starting transition
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+
             StartCoroutine(Shop());
         }
     }
@@ -490,6 +495,8 @@ public class ShopManager : MonoBehaviour
         {
             gameManager.players[i].chosenSpell = false;
         }
+
+        allPlayersChosen = false;
         gameManager.prevSceneWasShop = true;
         yield return new WaitForSeconds(1);
         GameManager.Instance.isRunning = true;

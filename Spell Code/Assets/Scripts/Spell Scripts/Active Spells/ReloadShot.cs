@@ -35,9 +35,13 @@ public class ReloadShot : SpellData
                         owner.flowState = 0;
                     }
                 }
+                //and reset cooldowns of all other spells
                 for (int i = 0; i < owner.spellList.Count; i++)
                 {
-                    owner.spellList[i].cooldownCounter = 0;
+                    if (owner.spellList[i] != this)
+                    {
+                        owner.spellList[i].cooldownCounter = 0;
+                    }
                 }
                 if (defender.hitboxData.sweetSpot)
                 {

@@ -48,6 +48,6 @@ MonoBehaviour:
   - {fileID: 3459829395073810853, guid: cf52ea4fe436cdf46b1ef59b5a5ced01, type: 3}
   - {fileID: 3459829395073810853, guid: 714199f841d912a43b93ef0cc3b85904, type: 3}
   projectileInstances: []
-  shopSprite: {fileID: -2344384824174915996, guid: 61d67985116f86143b457cde22b75a94, type: 3}
+  shopSprite: {fileID: 21300000, guid: 61d67985116f86143b457cde22b75a94, type: 3}
   readyIcon: {fileID: -1294712020879067723, guid: 9b5e6afa8aa992242a8b295672f66a44, type: 3}
   notReadyIcon: {fileID: -6828613986686336201, guid: c7881b261e63015428e094f70c50dbb6, type: 3}

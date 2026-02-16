@@ -45,8 +45,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a74293e5bcb00b24cbfb581931210934, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: CodeE_Basic_Projectile
-  projectileHitboxes: []
   sprites:
   - {fileID: 4075040102356489044, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
   - {fileID: -933896092384903014, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
@@ -54,21 +52,9 @@ MonoBehaviour:
   - {fileID: 1149168466151085081, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
   - {fileID: -1917874427035591182, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
   - {fileID: 2706043497986536593, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
-  activeHitboxGroupIndex: 0
-  hSpeed: 0
-  vSpeed: 0
-  position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 040000000400000004000000040000000400000004000000
-    loopAnim: 1
   deleteOnHit: 1
 --- !u!212 &7265437768916896761
 SpriteRenderer:
@@ -113,7 +99,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 4075040102356489044, guid: ab70070d0978ffb4a82fa344e28feb72, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

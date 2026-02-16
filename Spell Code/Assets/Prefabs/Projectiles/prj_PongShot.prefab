@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 1819827261471383939, guid: 590bcf77c5d42984081a489752983c6b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -125,3 +125,4 @@ MonoBehaviour:
   animationFrame: 0
   deleteOnHit: 1
   bounceCount: 0
+  maxBounces: 8

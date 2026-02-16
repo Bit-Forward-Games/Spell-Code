@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -6586202232960028723, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ade138997ac1da43b32f7aabab1520c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: SkillshotSlash
-  projectileHitboxes: []
   sprites:
   - {fileID: 3061697633262554110, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   - {fileID: 4943429128381845468, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
@@ -109,19 +107,7 @@ MonoBehaviour:
   - {fileID: 7339876702462068351, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   - {fileID: -4802190300465818803, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
   - {fileID: 337406857512283502, guid: dc2f5316f3291f246b09af4597d2142c, type: 3}
-  activeHitboxGroupIndex: 0
-  hSpeed: 0
-  vSpeed: 0
-  position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 030000000300000003000000030000000300000003000000
-    loopAnim: 0
   deleteOnHit: 0

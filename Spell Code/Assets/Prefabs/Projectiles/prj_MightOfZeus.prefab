@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 4963263956085664282, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29446dcb5fca4b94181df6c02457c1d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: MightOfZeus
-  projectileHitboxes: []
   sprites:
   - {fileID: -3512155956769208216, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
   - {fileID: -3801212235314967772, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
@@ -109,19 +107,7 @@ MonoBehaviour:
   - {fileID: 4963263956085664282, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
   - {fileID: 3455924390111841522, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
   - {fileID: 6304311585873565860, guid: e00d99123779e7045ba7519a14db80a5, type: 3}
-  activeHitboxGroupIndex: 0
-  hSpeed: 0
-  vSpeed: 0
-  position: {x: 0, y: 0}
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 040000000400000004000000040000000400000004000000
-    loopAnim: 0
   deleteOnHit: 0

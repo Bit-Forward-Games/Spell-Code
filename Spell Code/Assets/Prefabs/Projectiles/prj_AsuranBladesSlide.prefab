@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 5051752532787065996, guid: 87e900fd1e45896458ef1bad359975fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,23 +100,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d2361de3e832c148930150cfe26011d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: AsuranBladesSlide
-  projectileHitboxes: []
   sprites:
   - {fileID: -6801205320499964230, guid: 87e900fd1e45896458ef1bad359975fb, type: 3}
   - {fileID: 5051752532787065996, guid: 87e900fd1e45896458ef1bad359975fb, type: 3}
   - {fileID: -3341605398538894058, guid: 87e900fd1e45896458ef1bad359975fb, type: 3}
   - {fileID: 679130325, guid: 87e900fd1e45896458ef1bad359975fb, type: 3}
-  activeHitboxGroupIndex: 0
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 03000000030000000300000003000000
-    loopAnim: 0
   deleteOnHit: 0

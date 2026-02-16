@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 5421320128277420564, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -100,24 +100,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c75972210c18ff441be0aa42c0ffb470, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projName: Overclock
-  projectileHitboxes: []
   sprites:
   - {fileID: 1779838602336272297, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
   - {fileID: 2479533429738868440, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
   - {fileID: 4530057721295582503, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
   - {fileID: 5421320128277420564, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
   - {fileID: 6389138093474643888, guid: 69c844b7ddddd9846aed48d36bb9e680, type: 3}
-  activeHitboxGroupIndex: 0
   facingRight: 0
   logicFrame: 0
   animationFrame: 0
-  lifeSpan: 30
-  owner: {fileID: 0}
-  ownerSpell: {fileID: 0}
-  playerIgnoreArr: 00000000
-  animFrames:
-    frameIndexes: 
-    frameLengths: 0200000002000000020000000200000002000000
-    loopAnim: 0
   deleteOnHit: 0

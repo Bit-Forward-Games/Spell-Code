@@ -6,17 +6,17 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class GetAJob_prj : BaseProjectile
+public class BifronsBladeBasic_prj : BaseProjectile
 {
 
-    public GetAJob_prj()
+    public BifronsBladeBasic_prj()
     {
-        projName = "GetAJob";
+        projName = "BifronsBladeBasic";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 45; // lasts for 300 logic frames
 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3 }, false);
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,14 +35,14 @@ public class GetAJob_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -12*2,
-                    yOffset = 16*2,
-                    width = 27*2,
-                    height = 34*2,
-                    xKnockback = 6,
-                    yKnockback = 5,
-                    damage = 15,
-                    hitstun = 35,
+                    xOffset = -6*2,
+                    yOffset = 17*2,
+                    width = 57*2,
+                    height = 33*2,
+                    xKnockback = 1,
+                    yKnockback = 7,
+                    damage = 5,
+                    hitstun = 40,
                     attackLvl = 2,
                 }
             },
@@ -74,7 +74,7 @@ public class GetAJob_prj : BaseProjectile
 
         position = new FixedVec2(newX, newY);
 
-        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(4).Sum())
+        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
         {
             activeHitboxGroupIndex = 1;
         }

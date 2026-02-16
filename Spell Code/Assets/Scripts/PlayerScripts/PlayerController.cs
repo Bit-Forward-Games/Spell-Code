@@ -132,12 +132,10 @@ public class PlayerController : MonoBehaviour
     public Fixed playerWidth;
     [HideInInspector]
     public Fixed playerHeight;
-    //public PlayerController opponent;
 
     [HideInInspector]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
-    //public bool hitboxActive = false;
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public uint storedCode = 0; //the code that is stored up for release
@@ -163,6 +161,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
+    public bool basicSpawnOverride = false; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -276,7 +275,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
+        if (pID == 1) { startingSpell = "BifronsBlade"; }
         else if (pID == 2) { startingSpell = "QuarterReport"; }
         else if (pID == 3) { startingSpell = "BladeOfAres"; }
         else if (pID == 4) { startingSpell = "SkillshotSlash"; }
@@ -1080,13 +1079,21 @@ public class PlayerController : MonoBehaviour
                         break;
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
-                    //create an instance of your basic spell here
-                    BaseProjectile newProjectile = (BaseProjectile)ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
-                    ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
 
+                    if (!basicSpawnOverride)
+                    {
+                        //create an instance of your basic spell here
+                        BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
+                        ProjectileManager.Instance.SpawnProjectile(charData.basicAttackProjId, this, facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(36)));
+                        
+                    }
+                    else
+                    {
+                        basicSpawnOverride = false;
+                    }
 
-                    //basic spell is fired
-                    basicsFired++;
+                        //basic spell is fired
+                        basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
 
@@ -2152,10 +2159,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
-        //bw.Write(hitboxActive);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
         bw.Write(lightArmor);
+        bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -2204,6 +2211,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
         lightArmor = br.ReadBoolean();
+        basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt16();
         currentPlayerHealth = br.ReadUInt16();

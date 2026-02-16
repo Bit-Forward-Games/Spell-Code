@@ -1,0 +1,526 @@
+fileFormatVersion: 2
+guid: c0c1e1679f178894aa8822d80af7e564
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8000192942989384223
+    second: BifronsBlade-Sheet_0
+  - first:
+      213: 288004401636382917
+    second: BifronsBlade-Sheet_1
+  - first:
+      213: 6761891198525725814
+    second: BifronsBlade-Sheet_2
+  - first:
+      213: 1371320413655840037
+    second: BifronsBlade-Sheet_3
+  - first:
+      213: 994005183493336733
+    second: BifronsBlade-Sheet_4
+  - first:
+      213: -351041657870530609
+    second: BifronsBlade-Sheet_5
+  - first:
+      213: 2864776947228530281
+    second: BifronsBlade-Sheet_6
+  - first:
+      213: -2495829702516478575
+    second: BifronsBlade-Sheet_7
+  - first:
+      213: -5391928038854801393
+    second: BifronsBlade-Sheet_8
+  - first:
+      213: -8913861436970862123
+    second: BifronsBlade-Sheet_9
+  - first:
+      213: -7005126258277087268
+    second: BifronsBlade-Sheet_10
+  - first:
+      213: 5115742510200670376
+    second: BifronsBlade-Sheet_11
+  - first:
+      213: -4498601578385763992
+    second: BifronsBlade-Sheet_12
+  - first:
+      213: 8278056597839707883
+    second: BifronsBlade-Sheet_13
+  - first:
+      213: -2158523652248889369
+    second: BifronsBlade-Sheet_14
+  - first:
+      213: 7161176776387378154
+    second: BifronsBlade-Sheet_15
+  - first:
+      213: 4657641272858255666
+    second: BifronsBlade-Sheet_16
+  - first:
+      213: -5093353767396731139
+    second: BifronsBlade-Sheet_17
+  - first:
+      213: -1209442191581640809
+    second: BifronsBlade-Sheet_18
+  - first:
+      213: 6972603027632856226
+    second: BifronsBlade-Sheet_19
+  - first:
+      213: 7651549972363458841
+    second: BifronsBlade-Sheet_20
+  - first:
+      213: 8741690853697297228
+    second: BifronsBlade-Sheet_21
+  - first:
+      213: -8545258601825190999
+    second: BifronsBlade-Sheet_22
+  - first:
+      213: 5212849575423845037
+    second: BifronsBlade-Sheet_23
+  - first:
+      213: 816054080662191018
+    second: BifronsBlade-Sheet_24
+  - first:
+      213: 3965879108527871728
+    second: BifronsBlade-Sheet_25
+  - first:
+      213: -4942389311405244135
+    second: BifronsBlade-Sheet_26
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e5e78ab7ea99f090800000000000000
+      internalID: -8000192942989384223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c819453a723ff300800000000000000
+      internalID: 288004401636382917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67c57f1183017dd50800000000000000
+      internalID: 6761891198525725814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 525b23196a8e70310800000000000000
+      internalID: 1371320413655840037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9e640ba27a6bcd00800000000000000
+      internalID: 994005183493336733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 46
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc74349d879d02bf0800000000000000
+      internalID: -351041657870530609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 966d84c847bb1c720800000000000000
+      internalID: 2864776947228530281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19de2a9eb180d5dd0800000000000000
+      internalID: -2495829702516478575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f08479d24060c25b0800000000000000
+      internalID: -5391928038854801393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d97c40304a9b4480800000000000000
+      internalID: -8913861436970862123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd702a868cac8ce90800000000000000
+      internalID: -7005126258277087268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BifronsBlade-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 0
+        width: 100
+        height: 46
+      alignment: 9
+      pivot: {x: 0.26, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a840ea65b4cef640800000000000000
+      internalID: 5115742510200670376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: caee462cd7fadf14592cead23a199185
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      BifronsBlade-Sheet_0: -8000192942989384223
+      BifronsBlade-Sheet_1: 288004401636382917
+      BifronsBlade-Sheet_10: -7005126258277087268
+      BifronsBlade-Sheet_11: 5115742510200670376
+      BifronsBlade-Sheet_2: 6761891198525725814
+      BifronsBlade-Sheet_3: 1371320413655840037
+      BifronsBlade-Sheet_4: 994005183493336733
+      BifronsBlade-Sheet_5: -351041657870530609
+      BifronsBlade-Sheet_6: 2864776947228530281
+      BifronsBlade-Sheet_7: -2495829702516478575
+      BifronsBlade-Sheet_8: -5391928038854801393
+      BifronsBlade-Sheet_9: -8913861436970862123
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

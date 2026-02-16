@@ -442,13 +442,13 @@ public class ShopManager : MonoBehaviour
         if (!gameManager.isOnlineMatchActive || MatchMessageManager.Instance == null)
             return;
 
-        if (localPlayerReadyForGameplay)
+        if (gameManager.localPlayerReadyForGameplay)
         {
             Debug.Log("Shop ready signal already sent - skipping");
             return;
         }
 
-        localPlayerReadyForGameplay = true;
+        gameManager.localPlayerReadyForGameplay = true;
         Debug.Log("Local player ready for gameplay transition from shop - sending signal");
 
         MatchMessageManager.Instance.SendShopReadySignal();
@@ -459,14 +459,14 @@ public class ShopManager : MonoBehaviour
     public void OnOpponentReadyForGameplay()
     {
         Debug.Log("Opponent is ready for gameplay transition from shop");
-        remotePlayerReadyForGameplay = true;
+        gameManager.remotePlayerReadyForGameplay = true;
         CheckBothPlayersReadyForGameplay();
     }
 
     // Check if both players ready to transition
     private void CheckBothPlayersReadyForGameplay()
     {
-        if (localPlayerReadyForGameplay && remotePlayerReadyForGameplay && !backToGameplay)
+        if (gameManager.localPlayerReadyForGameplay && gameManager.remotePlayerReadyForGameplay && !backToGameplay)
         {
             Debug.Log("Both players ready - transitioning from shop to gameplay");
 

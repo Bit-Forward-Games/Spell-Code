@@ -136,8 +136,8 @@ public class GameManager : MonoBehaviour
     private int timeoutFrames = 0; // Timeout counter
 
     // Online lobby state tracking
-    private bool localPlayerReadyForGameplay = false;
-    private bool remotePlayerReadyForGameplay = false;
+    public bool localPlayerReadyForGameplay = false;
+    public bool remotePlayerReadyForGameplay = false;
     [HideInInspector]
     public int p1_shopIndex = 0;
     [HideInInspector]

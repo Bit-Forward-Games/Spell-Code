@@ -219,6 +219,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
+        //if = is pressed, player 1 win
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+        {
+            players[0].roundRam = 600;
+        }
+
+        //remove player test key ","
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
+
         if (!isOnlineMatchActive)
         {
             if (UnityEngine.Input.GetKeyDown(toggleOnlineMenuKey))
@@ -819,7 +828,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         if (playerInputManager != null)
         {
             playerInputManager.enabled = true;
-            playerInputManager.EnableJoining();
         }
 
         ulong[] inputs = new ulong[playerCount];
@@ -829,6 +837,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name != "MainMenu") { playerInputManager.DisableJoining(); }
+        else { playerInputManager.EnableJoining(); }
 
         if (activeScene.name == "End")
         {
@@ -858,7 +868,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             shopManager = null;
         }
 
-        ///shop specific update
+        ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
             if (onboardManager == null)
@@ -885,15 +895,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             //if (lastSceneName == "End")
             //{
-                //for (int i = 0; i < gates.Length; i++)
-                //{
-                //    gates[i].SetOpen(true);
-                //}
+            //for (int i = 0; i < gates.Length; i++)
+            //{
+            //    gates[i].SetOpen(true);
+            //}
 
-                //if (onlineMenuUI != null)
-                //{
-                //    onlineMenuUI.SetActive(false);
-                //}
+            //if (onlineMenuUI != null)
+            //{
+            //    onlineMenuUI.SetActive(false);
+            //}
             //}
 
             goDoorPrefab.CheckOpenDoor();
@@ -901,6 +911,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
+            }
+
+            if (players[0] != null)
+            {
+                SetMenuActive(false);
             }
         }
 
@@ -1146,6 +1161,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].ResetPlayer();
                 players[i].SpawnPlayer(fixedSpawnPositions[i]);
                 players[i].inputDisplay.enabled = true;
+                players[i].playerNum.enabled = true;
             }
         }
     }
@@ -1156,19 +1172,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void RestartLobby()
     {
         gameOver = false;
-        Vector2[] spawnPositions = GetSpawnPositions();
-        // Convert spawn positions to FixedVec2
-        FixedVec2[] fixedSpawnPositions = spawnPositions
-            .Select(v => FixedVec2.FromFloat(v.x, v.y))
-            .ToArray();
-        //reset each player to their starting values
+        playerCount = 0;
+
+        SetMenuActive(true);
+
+        if (onlineMenuUI != null)
+        {
+            onlineMenuUI.SetActive(false);
+        }
+
         for (int i = 0; i < players.Length; i++)
         {
             if (players[i] != null)
             {
-                //this is different from ResetPlayers()
-                players[i].ResetPlayer();
-                players[i].SpawnPlayer(fixedSpawnPositions[i]);
+                Destroy(players[i].gameObject);
+                players[i] = null;
             }
         }
     }

@@ -134,6 +134,8 @@ public class GameManager : MonoBehaviour
     public int localPlayerIndex = 0; // Set this before starting online match
     public int remotePlayerIndex = 1; // Set this before starting online match
     private int timeoutFrames = 0; // Timeout counter
+    private int randomSeed = 0;
+    private int randomCallCount = 0;
 
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
@@ -1408,14 +1410,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int GetNextRandom(int maxValue)
+    {
+        randomCallCount++;
+        return seededRandom.Next(maxValue);
+    }
+
     public FixedVec2 GetRandomSpawnVec2()
     {
-
         Vector2[] spawnPointList = GetSpawnPositions();
-        Vector2 spawnPoint = spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+        Vector2 spawnPoint = spawnPointList[GetNextRandom(spawnPointList.Length)]; // Use wrapper
         return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
-
     }
+
 
     //A round is 1 match + spell acquisition phase
     public void RoundEnd()
@@ -1709,6 +1716,10 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
+                // Serialize random state for deterministic respawns
+                bw.Write(randomSeed);
+                bw.Write(randomCallCount);
+
                 // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
                 bw.Write(p2_index);
@@ -1811,6 +1822,18 @@ public class GameManager : MonoBehaviour
                         damageMatrix[i, j] = br.ReadByte();
                     }
                 }
+
+                // Deserialize random state
+                randomSeed = br.ReadInt32();
+                int savedCallCount = br.ReadInt32();
+
+                // Reconstruct random to exact same state as when it was saved
+                seededRandom = new System.Random(randomSeed);
+                for (int i = 0; i < savedCallCount; i++)
+                {
+                    seededRandom.Next();
+                }
+                randomCallCount = savedCallCount;
 
                 // Deserialize spell selection indices
                 p1_index = br.ReadInt32();

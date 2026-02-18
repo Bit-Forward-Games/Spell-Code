@@ -172,7 +172,7 @@ public class OnboardManager : MonoBehaviour
                     {
                         gM.p1_spellCard.enabled = true;
                         p1_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[0].ButtonStates[0] == ButtonState.Pressed)
+                        if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                         {
                             gM.players[0].AddSpellToSpellList(p1_floppyInfo.diskName); //Change this when starting spells are proper
                             p1_floppy.SetActive(false);
@@ -198,6 +198,22 @@ public class OnboardManager : MonoBehaviour
                 p1_jumpTxt.enabled = true;
                 p1_moveGraphic.enabled = true;
                 p1_jumpGraphic.enabled = true;
+
+                if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
+                {
+                    p1_moveTxt.color = Color.green;
+                }
+
+                if (gM.players[0].spellsFired > 0)
+                {
+                    p1_glassBroken = true;
+                }
+            }
+
+            if (p1_glassBroken)
+            {
+                p1_moveTxt.color = Color.green;
+                p1_jumpTxt.color = Color.green;
             }
         }
 
@@ -260,7 +276,7 @@ public class OnboardManager : MonoBehaviour
                     {
                         gM.p2_spellCard.enabled = true;
                         p2_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[1].ButtonStates[0] == ButtonState.Pressed)
+                        if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                         {
                             gM.players[1].AddSpellToSpellList(p2_floppyInfo.diskName);
                             p2_floppy.SetActive(false);
@@ -286,6 +302,22 @@ public class OnboardManager : MonoBehaviour
                 p2_jumpTxt.enabled = true;
                 p2_moveGraphic.enabled = true;
                 p2_jumpGraphic.enabled = true;
+
+                if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
+                {
+                    p2_moveTxt.color = Color.green;
+                }
+
+                if (gM.players[1].spellsFired > 0)
+                {
+                    p2_glassBroken = true;
+                }
+            }
+
+            if (p2_glassBroken)
+            {
+                p2_moveTxt.color = Color.green;
+                p2_jumpTxt.color = Color.green;
             }
         }
 
@@ -348,7 +380,7 @@ public class OnboardManager : MonoBehaviour
                     {
                         gM.p3_spellCard.enabled = true;
                         p3_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[2].ButtonStates[0] == ButtonState.Pressed)
+                        if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                         {
                             gM.players[2].AddSpellToSpellList(p3_floppyInfo.diskName);
                             p3_floppy.SetActive(false);
@@ -374,6 +406,22 @@ public class OnboardManager : MonoBehaviour
                 p3_jumpTxt.enabled = true;
                 p3_moveGraphic.enabled = true;
                 p3_jumpGraphic.enabled = true;
+
+                if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
+                {
+                    p3_moveTxt.color = Color.green;
+                }
+
+                if (gM.players[2].spellsFired > 0)
+                {
+                    p3_glassBroken = true;
+                }
+            }
+
+            if (p3_glassBroken)
+            {
+                p3_moveTxt.color = Color.green;
+                p3_jumpTxt.color = Color.green;
             }
         }
 
@@ -436,7 +484,7 @@ public class OnboardManager : MonoBehaviour
                     {
                         gM.p4_spellCard.enabled = true;
                         p4_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[3].ButtonStates[0] == ButtonState.Pressed)
+                        if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                         {
                             gM.players[3].AddSpellToSpellList(p4_floppyInfo.diskName);
                             p4_floppy.SetActive(false);
@@ -462,6 +510,22 @@ public class OnboardManager : MonoBehaviour
                 p4_jumpTxt.enabled = true;
                 p4_moveGraphic.enabled = true;
                 p4_jumpGraphic.enabled = true;
+
+                if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
+                {
+                    p4_moveTxt.color = Color.green;
+                }
+
+                if (gM.players[3].spellsFired > 0)
+                {
+                    p4_glassBroken = true;
+                }
+            }
+
+            if (p4_glassBroken)
+            {
+                p4_moveTxt.color = Color.green;
+                p4_jumpTxt.color = Color.green;
             }
         }
     }

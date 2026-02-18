@@ -1799,6 +1799,7 @@ public class PlayerController : MonoBehaviour
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 lightArmor = false;
+                hitstunOverride = false;
                 ClearInputDisplay();
                 break;
         }

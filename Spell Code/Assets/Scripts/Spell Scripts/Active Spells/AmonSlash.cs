@@ -64,7 +64,7 @@ public class AmonSlash : SpellData
                 }
                 break;
             case ProcCondition.ActiveOnCast:
-                owner.lightArmor = true;
+                owner.hitstunOverride = true;
                 break;
             default:
                 break;

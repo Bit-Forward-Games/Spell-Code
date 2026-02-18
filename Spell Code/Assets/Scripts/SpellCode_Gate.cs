@@ -13,6 +13,7 @@ public class SpellCode_Gate : MonoBehaviour
 {
     public bool isOpen = false;
     public Animator gateAnimator;
+    public int ownerPID;
     Bounds gateBounds;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -57,7 +58,7 @@ public class SpellCode_Gate : MonoBehaviour
                 foreach (HitboxData hitbox in activeProjHit)
                 {
                     if (CheckCollision(hitbox, projectile.position, gateBounds,
-                                projectile.facingRight))
+                                projectile.facingRight) && projectile.owner.pID == ownerPID)
                     {
                         SetOpen(true);
                         return;

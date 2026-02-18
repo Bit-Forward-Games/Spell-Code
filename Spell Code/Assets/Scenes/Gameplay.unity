@@ -1467,17 +1467,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 36}
-  damping: 0
+  damping: 0.2
   minZoom: 180
-  maxZoom: 1280
+  maxZoom: 100000000
   HardSetZoom: 205
   minDistance: 360
   zoomLimiter: 960
   zoomSpeed: 1
   shakeMagnitude: 1
-  screenEdgeBuffer: 50
+  screenEdgeBuffer: 128
   target: {x: 0, y: 0}
-  lockCamera: 1
+  lockCamera: 0
 --- !u!4 &1014337932 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5621602568436360190, guid: e90a6a32ed23f2646b34596b48ba0501, type: 3}

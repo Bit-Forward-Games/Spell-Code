@@ -547,18 +547,22 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentReady()
     {
-        if (!isOnlineMatchActive || !isWaitingForOpponent) return;
+        //Debug.Log("Received opponent ready signal");
+
+        if (!isOnlineMatchActive)
+        {
+            //Debug.LogWarning("Received ready signal but not in online match state - ignoring");
+            return;
+        }
+
+        if (!isWaitingForOpponent)
+        {
+            //Debug.LogWarning("Received ready signal but already started - ignoring");
+            return;
+        }
 
         opponentIsReady = true;
-
-        if (localPlayerIndex == 0) // Host generates and sends seed
-        {
-            int agreedSeed = UnityEngine.Random.Range(0, 100000);
-            InitializeWithSeed(agreedSeed);
-            MatchMessageManager.Instance.SendSeed(agreedSeed);
-            StartLobbySimulation();
-        }
-        // Client waits to receive seed via PACKET_TYPE_SEED, which then calls OnOpponentReady -> StartLobbySimulation
+        StartLobbySimulation();
     }
 
     private void StartLobbySimulation()
@@ -1428,15 +1432,7 @@ public class GameManager : MonoBehaviour
     public int GetNextRandom(int minValue, int maxValue)
     {
         randomCallCount++;
-        return seededRandom.Next(minValue, maxValue);
-    }
-
-    public void InitializeWithSeed(int seed)
-    {
-        randomSeed = seed;
-        randomCallCount = 0;
-        seededRandom = new System.Random(seed);
-        Debug.Log($"[SEED] Initialized seededRandom with seed: {seed}");
+        return seededRandom.Next(maxValue);
     }
 
     public FixedVec2 GetRandomSpawnVec2()

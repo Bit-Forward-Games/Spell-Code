@@ -69,13 +69,24 @@ public class ShopManager : MonoBehaviour
     {
         gameManager = GameManager.Instance;
 
-        if (!gameManager.isOnlineMatchActive)
+        int seed;
+
+        if (gameManager.isOnlineMatchActive)
         {
-            int seed = UnityEngine.Random.Range(0, 10000);
+            seed = (gameManager.players[0].roundsWon * 10000) +
+                   (gameManager.players[1].roundsWon * 1000) +
+                   777;
+
+            Debug.Log($"[SHOP ONLINE] Using deterministic seed: {seed} (P1 rounds={gameManager.players[0].roundsWon}, P2 rounds={gameManager.players[1].roundsWon})");
+            gameManager.seededRandom = new System.Random(seed);
+        }
+        else
+        {
+            seed = UnityEngine.Random.Range(0, 10000);
             gameManager.seededRandom = new System.Random(seed);
         }
 
-        //Debug.Log($"SHOP ENTERED with seed: {seed}");
+        Debug.Log($"SHOP ENTERED with seed: {seed}");
 
         // RESET chosenSpell flags for all players when entering shop
         for (int i = 0; i < gameManager.playerCount; i++)

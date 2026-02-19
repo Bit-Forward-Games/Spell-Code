@@ -2436,6 +2436,7 @@ MonoBehaviour:
   - {fileID: 3329645214723610197}
   - {fileID: 8637250366549117565}
   cooldownBars: []
+  spellDisplayIndex: 3
 --- !u!1 &788913475943425284
 GameObject:
   m_ObjectHideFlags: 0
@@ -2538,6 +2539,7 @@ MonoBehaviour:
   - {fileID: 5464929393132602100}
   - {fileID: 2034030025662806477}
   cooldownBars: []
+  spellDisplayIndex: 4
 --- !u!1 &835553574515021401
 GameObject:
   m_ObjectHideFlags: 0
@@ -7539,6 +7541,7 @@ MonoBehaviour:
   - {fileID: 7162989235390290358}
   - {fileID: 7035538078469954453}
   - {fileID: 6985159699058640045}
+  spellDisplayIndex: 1
 --- !u!1 &2222563335430063971
 GameObject:
   m_ObjectHideFlags: 0
@@ -15131,6 +15134,7 @@ MonoBehaviour:
   - {fileID: 4375954873533691054}
   - {fileID: 21073910835916409}
   cooldownBars: []
+  spellDisplayIndex: 2
 --- !u!1 &3984237710216899581
 GameObject:
   m_ObjectHideFlags: 0

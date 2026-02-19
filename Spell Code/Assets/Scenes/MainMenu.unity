@@ -3260,6 +3260,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 126412047307192656, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 567050152534269667, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 940491606846688129, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3268,6 +3276,14 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 4798323779899876021, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5566621690820003596, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: ownerPID
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3319,6 +3335,14 @@ PrefabInstance:
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 9067869494774831627, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 9210901320383463919, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: ownerPID
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

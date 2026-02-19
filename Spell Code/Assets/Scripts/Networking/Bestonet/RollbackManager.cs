@@ -244,7 +244,7 @@ using BestoNet.Collections; // Use BestoNet collections
             GameManager.Instance.UpdateGameState(inputsForResim);
             GameManager.Instance.UpdateSceneLogic(inputsForResim);
             GameManager.Instance.ForceSetFrame(i);
-            ClearState(i);
+            //ClearState(i);
         }
 
         SetRollbackStatus(false);

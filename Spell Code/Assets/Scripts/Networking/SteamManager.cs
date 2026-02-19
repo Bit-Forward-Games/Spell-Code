@@ -59,7 +59,7 @@ public class SteamManager : MonoBehaviour
             }
             else
             {
-                Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
+                //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
             }
 
         }

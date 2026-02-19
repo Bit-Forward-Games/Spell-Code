@@ -62,7 +62,7 @@ public class TempConnectionUI : MonoBehaviour
             }
 
 
-            Debug.Log($"Attempting connection. Local Player: {localPlayerIndex}, Opponent: {opponentSteamId.Value}");
+            //Debug.Log($"Attempting connection. Local Player: {localPlayerIndex}, Opponent: {opponentSteamId.Value}");
 
             // --- Start Managers ---
             // Ensure instances exist before calling
@@ -127,7 +127,7 @@ public class TempConnectionUI : MonoBehaviour
     /// </summary>
     public void OnHostClicked()
     {
-        Debug.Log("Host Game (P0) button clicked.");
+        //Debug.Log("Host Game (P0) button clicked.");
         AttemptConnection(localPlayerIndex: 0, remotePlayerIndex: 1);
     }
 
@@ -136,7 +136,7 @@ public class TempConnectionUI : MonoBehaviour
     /// </summary>
     public void OnJoinClicked()
     {
-        Debug.Log("Join Game (P1) button clicked.");
+        //Debug.Log("Join Game (P1) button clicked.");
         AttemptConnection(localPlayerIndex: 1, remotePlayerIndex: 0);
     }
 }

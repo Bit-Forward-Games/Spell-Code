@@ -61,11 +61,11 @@ public class MatchMessageManager : MonoBehaviour
 
     private void OnP2PSessionRequest(SteamId steamId)
     {
-        Debug.Log($"P2P Session request from {steamId}");
+        //Debug.Log($"P2P Session request from {steamId}");
 
         if (steamId == opponentSteamId || opponentSteamId == default)
         {
-            Debug.Log($"Accepting P2P session from {steamId}");
+            //Debug.Log($"Accepting P2P session from {steamId}");
 
             if (opponentSteamId == default)
             {
@@ -126,7 +126,7 @@ public class MatchMessageManager : MonoBehaviour
 
         if (localReadySent)
         {
-            Debug.Log("Ready signal already sent - skipping");
+            //Debug.Log("Ready signal already sent - skipping");
             return;
         }
 
@@ -152,7 +152,7 @@ public class MatchMessageManager : MonoBehaviour
                     if (success)
                     {
                         localReadySent = true;
-                        Debug.Log($"Sent READY signal to {opponentSteamId}");
+                        //Debug.Log($"Sent READY signal to {opponentSteamId}");
                     }
                     else
                     {
@@ -190,7 +190,7 @@ public class MatchMessageManager : MonoBehaviour
                         P2PSend.Reliable
                     );
 
-                    Debug.Log("Sent MATCH START confirmation");
+                    //Debug.Log("Sent MATCH START confirmation");
                 }
             }
         }
@@ -229,7 +229,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     if (success)
                     {
-                        Debug.Log($"Sent LOBBY_READY signal to {opponentSteamId}");
+                        //Debug.Log($"Sent LOBBY_READY signal to {opponentSteamId}");
                     }
                     else
                     {
@@ -273,7 +273,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     if (success)
                     {
-                        Debug.Log($"Sent SHOP_READY signal to {opponentSteamId}");
+                        //Debug.Log($"Sent SHOP_READY signal to {opponentSteamId}");
                     }
                     else
                     {
@@ -290,7 +290,7 @@ public class MatchMessageManager : MonoBehaviour
 
     public void StartMatch(SteamId opponentId)
     {
-        Debug.Log($"StartMatch called with opponent: {opponentId}");
+        //Debug.Log($"StartMatch called with opponent: {opponentId}");
 
         if (opponentId.IsValid)
         {
@@ -302,7 +302,7 @@ public class MatchMessageManager : MonoBehaviour
             ResetReadyFlags();
             SteamNetworking.AllowP2PPacketRelay(true);
 
-            Debug.Log($"MatchMessageManager started. Opponent: {opponentSteamId}");
+            //Debug.Log($"MatchMessageManager started. Opponent: {opponentSteamId}");
 
             SendHandshake();
         }
@@ -374,7 +374,7 @@ public class MatchMessageManager : MonoBehaviour
                     if (packetType == 0xFF)
                     {
                         string message = reader.ReadString();
-                        Debug.Log($"Received handshake: {message}");
+                        //Debug.Log($"Received handshake: {message}");
                         SendHandshake();
                         return;
                     }
@@ -383,11 +383,11 @@ public class MatchMessageManager : MonoBehaviour
                     if (packetType == PACKET_TYPE_READY)
                     {
                         ulong senderSteamId = reader.ReadUInt64();
-                        Debug.Log($"Received READY signal from {senderSteamId}");
+                        //Debug.Log($"Received READY signal from {senderSteamId}");
 
                         if (remoteReadyReceived)
                         {
-                            Debug.Log("Remote ready already processed - skipping");
+                           //Debug.Log("Remote ready already processed - skipping");
                             return;
                         }
 
@@ -409,14 +409,14 @@ public class MatchMessageManager : MonoBehaviour
                     // Handle match start confirmation
                     if (packetType == PACKET_TYPE_MATCH_START)
                     {
-                        Debug.Log("Received MATCH START confirmation");
+                        //Debug.Log("Received MATCH START confirmation");
                         return;
                     }
 
                     // Handle lobby ready for gameplay
                     if (packetType == PACKET_TYPE_LOBBY_READY)
                     {
-                        Debug.Log("Received LOBBY_READY signal from opponent");
+                        //Debug.Log("Received LOBBY_READY signal from opponent");
                         if (GameManager.Instance != null)
                         {
                             GameManager.Instance.OnOpponentReadyForGameplay();
@@ -427,7 +427,7 @@ public class MatchMessageManager : MonoBehaviour
                     // Handle shop ready for gameplay
                     if (packetType == PACKET_TYPE_SHOP_READY)
                     {
-                        Debug.Log("Received SHOP_READY signal from opponent");
+                        //Debug.Log("Received SHOP_READY signal from opponent");
                         if (GameManager.Instance != null && GameManager.Instance.shopManager != null)
                         {
                             GameManager.Instance.shopManager.OnOpponentReadyForGameplay();
@@ -448,7 +448,7 @@ public class MatchMessageManager : MonoBehaviour
                         int startFrame = reader.ReadInt32();
                         int inputCount = reader.ReadByte();
 
-                        Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
+                        //Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
 
                         for (int i = 0; i < inputCount; i++)
                         {
@@ -465,7 +465,7 @@ public class MatchMessageManager : MonoBehaviour
                             {
                                 RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
                                 RollbackManager.Instance.SetRemoteFrame(frame);
-                                Debug.Log($"Updated remoteFrame to {frame}");
+                                //Debug.Log($"Updated remoteFrame to {frame}");
                             }
                         }
                     }

@@ -32,7 +32,7 @@ public class CoinToss : SpellData
 
             // Reset the activate flag
             activateFlag = false;
-            byte projectileIndex = (byte)(doesCrit ? 0 : (GameManager.Instance.seededRandom.Next(0, 100) < 50?1:2));
+            byte projectileIndex = (byte)(doesCrit ? 0 : (GameManager.Instance.GetNextRandom(0, 100) < 50?1:2));
 
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject

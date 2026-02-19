@@ -545,12 +545,12 @@ public class PlayerController : MonoBehaviour
         // DEBUG: Check if ANY key is being pressed
         if (UnityEngine.Input.anyKey)
         {
-            Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+            //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
             // Log specific keys
-            Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
-                            $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
-                            $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
-                            $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+            //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+            //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+            //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+            //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
         }
 
         // Direction input (using numpad notation: 5 = neutral)
@@ -590,7 +590,7 @@ public class PlayerController : MonoBehaviour
         ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
         bool[] dirs = new bool[4] { up, down, left, right };
 
-        Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+        //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
 
         // Convert to ulong using your existing converter
         return (ulong)InputConverter.ConvertToLong(buttons, dirs);
@@ -2279,7 +2279,7 @@ public class PlayerController : MonoBehaviour
             // Saved state had the spell, but we don't - need to add it
             if (!string.IsNullOrEmpty(startingSpell))
             {
-                Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
+                //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
                 AddSpellToSpellList(startingSpell);
                 startingSpellAdded = true;
             }
@@ -2289,7 +2289,7 @@ public class PlayerController : MonoBehaviour
             // Saved state didn't have the spell, but we do - need to remove it
             if (!string.IsNullOrEmpty(startingSpell))
             {
-                Debug.Log($"[ROLLBACK] Removing starting spell: {startingSpell}");
+                //Debug.Log($"[ROLLBACK] Removing starting spell: {startingSpell}");
                 RemoveSpellFromSpellList(startingSpell);
                 startingSpellAdded = false;
             }

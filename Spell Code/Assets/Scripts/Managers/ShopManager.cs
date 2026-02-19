@@ -276,7 +276,7 @@ public class ShopManager : MonoBehaviour
                 // Cycle spells using SYNCED input
                 if (inputSnapshots[i].ButtonStates[0] == ButtonState.Pressed)
                 {
-                    Debug.Log($"[SHOP SYNCED] p{i + 1} pressed cycle spell (current: {currentIndex})");
+                    //Debug.Log($"[SHOP SYNCED] p{i + 1} pressed cycle spell (current: {currentIndex})");
 
                     if (currentIndex == 2)
                     {
@@ -291,13 +291,13 @@ public class ShopManager : MonoBehaviour
                     if (i == 0) p1_index = currentIndex;
                     else p2_index = currentIndex;
 
-                    Debug.Log($"[SHOP SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
+                    //Debug.Log($"[SHOP SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
                 }
 
                 // Choose spell using SYNCED input
                 if (inputSnapshots[i].ButtonStates[1] == ButtonState.Pressed)
                 {
-                    Debug.Log($"[SHOP SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
+                    //Debug.Log($"[SHOP SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
 
                     GivePlayerSpell(i, choices[currentIndex]);
                     gameManager.players[i].chosenSpell = true;
@@ -444,12 +444,12 @@ public class ShopManager : MonoBehaviour
 
         if (gameManager.localPlayerReadyForGameplay)
         {
-            Debug.Log("Shop ready signal already sent - skipping");
+            //Debug.Log("Shop ready signal already sent - skipping");
             return;
         }
 
         gameManager.localPlayerReadyForGameplay = true;
-        Debug.Log("Local player ready for gameplay transition from shop - sending signal");
+        //Debug.Log("Local player ready for gameplay transition from shop - sending signal");
 
         MatchMessageManager.Instance.SendShopReadySignal();
         CheckBothPlayersReadyForGameplay();
@@ -458,7 +458,7 @@ public class ShopManager : MonoBehaviour
     // Called by GameManager when opponent ready signal received
     public void OnOpponentReadyForGameplay()
     {
-        Debug.Log("Opponent is ready for gameplay transition from shop");
+        //Debug.Log("Opponent is ready for gameplay transition from shop");
         gameManager.remotePlayerReadyForGameplay = true;
         CheckBothPlayersReadyForGameplay();
     }
@@ -468,7 +468,7 @@ public class ShopManager : MonoBehaviour
     {
         if (gameManager.localPlayerReadyForGameplay && gameManager.remotePlayerReadyForGameplay && !backToGameplay)
         {
-            Debug.Log("Both players ready - transitioning from shop to gameplay");
+            //Debug.Log("Both players ready - transitioning from shop to gameplay");
 
             foreach (PlayerController player in gameManager.players)
             {

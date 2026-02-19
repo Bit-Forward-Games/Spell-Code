@@ -270,7 +270,7 @@ public class GameManager : MonoBehaviour
             float waitTime = UnityEngine.Time.unscaledTime - lobbyWaitStartTime;
             if (waitTime > LOBBY_TIMEOUT)
             {
-                Debug.LogError("Lobby timeout - opponent didn't join in time");
+                //Debug.LogError("Lobby timeout - opponent didn't join in time");
                 StopMatch("Opponent failed to connect");
                 // Return to menu or show error UI
                 return;
@@ -377,15 +377,15 @@ public class GameManager : MonoBehaviour
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
-        Debug.Log("Starting Online Match...");
+        //Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
         {
-            Debug.LogError("Cannot start online match: RollbackManager not found!");
+            //Debug.LogError("Cannot start online match: RollbackManager not found!");
             return;
         }
         if (!opponentId.IsValid)
         {
-            Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
+            //Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
             return;
         }
 
@@ -393,7 +393,7 @@ public class GameManager : MonoBehaviour
         if (onlineMenuUI != null)
         {
             onlineMenuUI.SetActive(false);
-            Debug.Log("Online menu UI hidden");
+            //Debug.Log("Online menu UI hidden");
         }
 
         isOnlineMatchActive = false;
@@ -409,7 +409,7 @@ public class GameManager : MonoBehaviour
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("PlayerInputManager disabled");
+            //Debug.Log("PlayerInputManager disabled");
         }
 
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
@@ -424,7 +424,7 @@ public class GameManager : MonoBehaviour
 
         if (playerPrefab == null)
         {
-            Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
+            //Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
             return;
         }
 
@@ -487,7 +487,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
+            //Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
 
         // Set up online state but DON'T start simulation yet
@@ -501,7 +501,7 @@ public class GameManager : MonoBehaviour
 
         isRunning = true;
 
-        Debug.Log($"Entered Online Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
+        //Debug.Log($"Entered Online Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
     }
 
     public void OnPacketReceived()
@@ -521,7 +521,7 @@ public class GameManager : MonoBehaviour
             // Give 15 seconds for initial connection
             if (UnityEngine.Time.unscaledTime - lobbyWaitStartTime > 15f)
             {
-                Debug.LogError("Network timeout - no packets received after 15 seconds");
+                //Debug.LogError("Network timeout - no packets received after 15 seconds");
                 return false;
             }
             return true;
@@ -532,14 +532,14 @@ public class GameManager : MonoBehaviour
 
         if (timeSinceLastPacket > NETWORK_TIMEOUT)
         {
-            Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
+            //Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
             return false;
         }
 
         // Warn if connection is getting laggy
         if (timeSinceLastPacket > 3f && Mathf.FloorToInt(timeSinceLastPacket) % 1 == 0)
         {
-            Debug.LogWarning($"Network lag - no packets for {timeSinceLastPacket:F1} seconds");
+            //Debug.LogWarning($"Network lag - no packets for {timeSinceLastPacket:F1} seconds");
         }
 
         return true;
@@ -547,17 +547,17 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentReady()
     {
-        Debug.Log("Received opponent ready signal");
+        //Debug.Log("Received opponent ready signal");
 
         if (!isOnlineMatchActive)
         {
-            Debug.LogWarning("Received ready signal but not in online match state - ignoring");
+            //Debug.LogWarning("Received ready signal but not in online match state - ignoring");
             return;
         }
 
         if (!isWaitingForOpponent)
         {
-            Debug.LogWarning("Received ready signal but already started - ignoring");
+            //Debug.LogWarning("Received ready signal but already started - ignoring");
             return;
         }
 
@@ -580,7 +580,7 @@ public class GameManager : MonoBehaviour
         // Double-check we're in the right state
         if (!isWaitingForOpponent)
         {
-            Debug.LogWarning("StartLobbySimulation called but not waiting - aborting");
+            //Debug.LogWarning("StartLobbySimulation called but not waiting - aborting");
             return;
         }
 
@@ -597,7 +597,8 @@ public class GameManager : MonoBehaviour
         frameNumber = 0;
         isRunning = true;
 
-        Debug.Log("Lobby simulation started - both players in MainMenu lobby");
+        int testValue = GetNextRandom(0,100);
+        Debug.Log($"[SYNC CHECK] seededRandom test value: {testValue} | randomCallCount: {randomCallCount}");
     }
 
     // Send lobby ready signal
@@ -607,7 +608,7 @@ public class GameManager : MonoBehaviour
             return;
 
         localPlayerReadyForGameplay = true;
-        Debug.Log("Local player ready for gameplay transition - sending signal");
+        //Debug.Log("Local player ready for gameplay transition - sending signal");
 
         // Send via MatchMessageManager
         MatchMessageManager.Instance.SendLobbyReadySignal();
@@ -618,7 +619,7 @@ public class GameManager : MonoBehaviour
     // Receive lobby ready signal
     public void OnOpponentReadyForGameplay()
     {
-        Debug.Log("Opponent is ready for gameplay transition");
+        //Debug.Log("Opponent is ready for gameplay transition");
         remotePlayerReadyForGameplay = true;
         CheckBothPlayersReadyForGameplay();
     }
@@ -628,7 +629,7 @@ public class GameManager : MonoBehaviour
     {
         if (localPlayerReadyForGameplay && remotePlayerReadyForGameplay)
         {
-            Debug.Log("Both players ready - transitioning to Gameplay");
+            //Debug.Log("Both players ready - transitioning to Gameplay");
             isTransitioning = true;
             LoadRandomGameplayStage();
         }
@@ -640,13 +641,13 @@ public class GameManager : MonoBehaviour
     /// <param name="reason">Reason for stopping.</param>
     public void StopMatch(string reason = "Match Ended")
     {
-        Debug.Log($"Stopping Match: {reason}");
+        //Debug.Log($"Stopping Match: {reason}");
 
         isRunning = false;
 
         if (isOnlineMatchActive)
         {
-            Debug.Log("Cleaning up online match state...");
+            //Debug.Log("Cleaning up online match state...");
 
             // Clean up rollback manager
             if (RollbackManager.Instance != null)
@@ -679,14 +680,14 @@ public class GameManager : MonoBehaviour
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
-                Debug.Log("PlayerInputManager re-enabled for offline play");
+                //Debug.Log("PlayerInputManager re-enabled for offline play");
             }
         }
 
         // General cleanup
         ProjectileManager.Instance.DeleteAllProjectiles();
 
-        Debug.Log("Match stopped and state reset");
+        //Debug.Log("Match stopped and state reset");
     }
 
     private void ClearPlayerObjects()
@@ -993,7 +994,7 @@ public class GameManager : MonoBehaviour
                 if (snapshot.ButtonStates[0] == ButtonState.Pressed &&
                     (frameNumber - lastCycleFrame) >= CYCLE_COOLDOWN_FRAMES)
                 {
-                    Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
+                    //Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
 
                     currentIndex = (currentIndex + 1) % choices.Count;
 
@@ -1008,13 +1009,13 @@ public class GameManager : MonoBehaviour
                         p2_lastCycleFrame = frameNumber;
                     }
 
-                    Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
+                    //Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
                 }
 
                 // Choose spell
                 if (snapshot.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
+                    //Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
 
                     players[i].startingSpell = choices[currentIndex];
                     players[i].chosenStartingSpell = true;
@@ -1023,7 +1024,7 @@ public class GameManager : MonoBehaviour
                     {
                         players[i].AddSpellToSpellList(choices[currentIndex]);
                         players[i].startingSpellAdded = true;
-                        Debug.Log($"[SYNCED] Added starting spell to player {i}: {choices[currentIndex]}");
+                        //Debug.Log($"[SYNCED] Added starting spell to player {i}: {choices[currentIndex]}");
                     }
                 }
             }
@@ -1188,7 +1189,7 @@ public class GameManager : MonoBehaviour
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         GameEnd();
-                        Debug.Log(roundEndTimer);
+                        //Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else if (players[0].spellList.Count >= 6)
@@ -1197,7 +1198,7 @@ public class GameManager : MonoBehaviour
                         dataManager.totalRoundsPlayed += 1;
                         LoadRandomGameplayStage();
                         foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
-                        Debug.Log(roundEndTimer);
+                        //Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else
@@ -1205,7 +1206,7 @@ public class GameManager : MonoBehaviour
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
-                        Debug.Log(roundEndTimer);
+                        //Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
                     }
@@ -1243,7 +1244,7 @@ public class GameManager : MonoBehaviour
     {
         if (isOnlineMatchActive)
         {
-            Debug.Log("GetPlayerControllers called but online match active - ignoring");
+            //Debug.Log("GetPlayerControllers called but online match active - ignoring");
             return;
         }
 
@@ -1253,12 +1254,12 @@ public class GameManager : MonoBehaviour
         {
             if (players[i] == existingPlayer)
             {
-                Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
+                //Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
                 return; // Already registered, don't add again!
             }
         }
 
-        Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
+        //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
 
         players[playerCount] = existingPlayer;
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
@@ -1276,7 +1277,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+        //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
     }
 
     public void UpdatePlayerBounties()
@@ -1428,7 +1429,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public int GetNextRandom(int maxValue)
+    public int GetNextRandom(int minValue, int maxValue)
     {
         randomCallCount++;
         return seededRandom.Next(maxValue);
@@ -1437,7 +1438,7 @@ public class GameManager : MonoBehaviour
     public FixedVec2 GetRandomSpawnVec2()
     {
         Vector2[] spawnPointList = GetSpawnPositions();
-        Vector2 spawnPoint = spawnPointList[GetNextRandom(spawnPointList.Length)]; // Use wrapper
+        Vector2 spawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
         return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
     }
 
@@ -1542,7 +1543,7 @@ public class GameManager : MonoBehaviour
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("Disabled PlayerInputManager before scene load");
+            //Debug.Log("Disabled PlayerInputManager before scene load");
         }
 
         int newStageIndex;
@@ -1572,14 +1573,14 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"Scene loaded: {scene.name}");
+        //Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")
         {
-            Debug.Log("Gameplay loaded (offline) - resetting players");
+            //Debug.Log("Gameplay loaded (offline) - resetting players");
 
             // Keep PlayerInputManager disabled to prevent duplicate joins
             if (playerInputManager != null)
@@ -1595,7 +1596,7 @@ public class GameManager : MonoBehaviour
         // For ONLINE gameplay
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
-            Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
+            //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
@@ -1616,7 +1617,7 @@ public class GameManager : MonoBehaviour
         // Handle shop scene loading for online
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
-            Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             isTransitioning = false;
             // Ready flags are already reset in RoundEnd()
         }
@@ -1717,7 +1718,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         // Handle potential null player slot if necessary, though playerCount should be accurate
-                        Debug.LogError($"Attempted to serialize null player at index {i}");
+                        //Debug.LogError($"Attempted to serialize null player at index {i}");
                     }
                 }
 
@@ -1779,7 +1780,7 @@ public class GameManager : MonoBehaviour
                     int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
                     if (prefabIndex == -1)
                     {
-                        Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
+                        //Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
                         bw.Write(-1);
                     }
                     else
@@ -1814,7 +1815,7 @@ public class GameManager : MonoBehaviour
                 int savedPlayerCount = br.ReadInt32();
                 if (savedPlayerCount != playerCount)
                 {
-                    Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
+                    //Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
                 }
                 for (int i = 0; i < playerCount; i++) // Use current (or updated) playerCount
                 {
@@ -1824,7 +1825,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
+                        //Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
                     }
                 }
 
@@ -1894,7 +1895,7 @@ public class GameManager : MonoBehaviour
                     int prefabIndex = br.ReadInt32();
                     if (prefabIndex == -1 || prefabIndex >= masterList.Count)
                     {
-                        Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
+                        //Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
                         // Need robust skipping logic here if SpellData.Deserialize can vary in length
                         continue; // Skip this entry
                     }
@@ -1916,7 +1917,7 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         // Cannot determine size to skip - this approach has issues.
-                        Debug.LogError("Cannot skip unknown projectile data.");
+                        //Debug.LogError("Cannot skip unknown projectile data.");
                         // Alternative: Calculate exact size of serialized projectile data.
                     }
                     long nextPos = br.BaseStream.Position;
@@ -1974,7 +1975,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
+                        //Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
                     }
                 }
 

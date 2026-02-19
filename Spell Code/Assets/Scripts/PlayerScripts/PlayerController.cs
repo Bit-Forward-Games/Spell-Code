@@ -12,6 +12,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
+using UnityEngine.UIElements;
+
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -1388,7 +1390,8 @@ public class PlayerController : MonoBehaviour
             if (stageDataSO == null) return false;
         }
 
-#region  --- SOLIDS (unchanged behavior) ---
+        
+        #region  --- SOLIDS (unchanged behavior) ---
         if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
         {
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
@@ -1679,6 +1682,54 @@ public class PlayerController : MonoBehaviour
             }
         }
         #endregion
+        #region--- Borders ---
+        if (stageDataSO.borderMin != null && stageDataSO.borderMax != null)
+        {
+            //switch between the stageDataSO borderTypes to determine how to handle border collisions (borders that stop, borders that wrap around, borders that kill you, etc.)
+            switch (stageDataSO.borderType)
+            {
+                case BorderType.Collision:
+                    FixedVec2 tempPos = position;
+                    position = FixedVec2.FromFloat(Mathf.Clamp(position.X.ToFloat(), stageDataSO.borderMin.x, stageDataSO.borderMax.x),
+                        Mathf.Clamp(position.Y.ToFloat(), stageDataSO.borderMin.y, stageDataSO.borderMax.y));
+
+                    returnVal = !tempPos.Equals(position);
+                    break;
+                case BorderType.Loop:
+                    if (position.X.ToFloat() > stageDataSO.borderMax.x)
+                    {
+                        position = FixedVec2.FromFloat(stageDataSO.borderMin.x, position.Y.ToFloat());
+                        returnVal = true;
+                    }
+                    else if (position.X.ToFloat() < stageDataSO.borderMin.x)
+                    {
+                        position = FixedVec2.FromFloat(stageDataSO.borderMax.x, position.Y.ToFloat());
+                        returnVal = true;
+                    }
+
+                    if (position.Y.ToFloat() > stageDataSO.borderMax.y)
+                    {
+                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMin.y);
+                        returnVal = true;
+                    }
+                    else if (position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    {
+                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMax.y);
+                        returnVal = true;
+                    }
+                    break;
+                case BorderType.DeathZone:
+                    if (position.X.ToFloat() > stageDataSO.borderMax.x || position.X.ToFloat() < stageDataSO.borderMin.x ||
+                        position.Y.ToFloat() > stageDataSO.borderMax.y || position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    {
+                        //kill player and respawn at spawn point
+                        currentPlayerHealth = 0;
+                        returnVal = true;
+                    }
+                    break;
+            }
+        }
+        #endregion
         return returnVal;
     }
 
@@ -1687,7 +1738,7 @@ public class PlayerController : MonoBehaviour
 
 
         prevState = state;
-        HandleExitLogic(prevState);
+        HandleExitState(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
         hitstunOverride = false;
@@ -1782,7 +1833,7 @@ public class PlayerController : MonoBehaviour
         }
     }
     //exit logic:
-    private void HandleExitLogic(PlayerState prevStateparam)
+    private void HandleExitState(PlayerState prevStateparam)
     {
         switch (prevStateparam)
         {
@@ -1801,27 +1852,11 @@ public class PlayerController : MonoBehaviour
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 lightArmor = false;
+                hitstunOverride = false;
                 ClearInputDisplay();
                 break;
         }
         stateSpecificArg = 0;
-    }
-
-    private bool CheckGrounded(bool checkOnly = false)
-    {
-        Fixed floorYval = Fixed.FromInt(StageData.Instance.floorYval);
-
-        if (position.Y + vSpd <= floorYval)
-        {
-            if (checkOnly)
-            {
-                return true;
-            }
-            position = new FixedVec2(position.X, floorYval);
-            vSpd = Fixed.FromInt(0);
-            return true;
-        }
-        return false;
     }
 
 

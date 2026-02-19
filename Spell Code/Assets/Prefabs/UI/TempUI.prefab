@@ -14241,9 +14241,9 @@ MonoBehaviour:
   - {fileID: 0}
   playerGoldBar:
   - {fileID: 7423463539434718706}
+  - {fileID: 3037086639612614321}
   - {fileID: 4429306757052886904}
   - {fileID: 1649410375628492494}
-  - {fileID: 3037086639612614321}
   spellOnCooldownIcon:
   - {fileID: 21300000, guid: e39b5b9c615424d43ae2ea209e4eb9c4, type: 3}
   - {fileID: 21300000, guid: 7664e7dc7dc8e4d0198674b3098438ae, type: 3}
@@ -14379,7 +14379,7 @@ GameObject:
   - component: {fileID: 1044423444925495927}
   - component: {fileID: 4429306757052886904}
   m_Layer: 0
-  m_Name: Player 2 Background Bar
+  m_Name: Player 3 Ram Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18165,7 +18165,7 @@ GameObject:
   - component: {fileID: 5764567454495806001}
   - component: {fileID: 7423463539434718706}
   m_Layer: 0
-  m_Name: Player 1 Background Bar
+  m_Name: Player 1 Ram Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -21675,9 +21675,9 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7992494163276988126}
+  - {fileID: 816090736995033577}
   - {fileID: 3138867190185705986}
   - {fileID: 4068679534797575715}
-  - {fileID: 816090736995033577}
   m_Father: {fileID: 1316871681052102852}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -21969,7 +21969,7 @@ GameObject:
   - component: {fileID: 177421654849768854}
   - component: {fileID: 1649410375628492494}
   m_Layer: 0
-  m_Name: Player 3 Background Bar
+  m_Name: Player 4 Ram Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -22756,7 +22756,7 @@ GameObject:
   - component: {fileID: 886027783956254130}
   - component: {fileID: 3037086639612614321}
   m_Layer: 0
-  m_Name: Player 4 Background Bar
+  m_Name: Player 2 Ram Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

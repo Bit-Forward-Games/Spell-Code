@@ -39,3 +39,6 @@ MonoBehaviour:
   - {x: 192, y: -192, z: 0}
   activatableSolidCenter: []
   activatableSolidExtent: []
+  borderMin: {x: -350, y: -220, z: 0}
+  borderMax: {x: 350, y: 220, z: 0}
+  borderType: 0

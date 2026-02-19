@@ -9,7 +9,7 @@ public class BifronsBlade : SpellData
     {
         spellName = "BifronsBlade";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 180;
+        cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };

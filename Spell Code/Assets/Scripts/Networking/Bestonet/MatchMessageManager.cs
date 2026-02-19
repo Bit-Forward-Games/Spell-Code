@@ -455,14 +455,9 @@ public class MatchMessageManager : MonoBehaviour
                             int frame = startFrame + i;
                             ulong input = reader.ReadUInt64();
 
-                            bool isNewInput = !RollbackManager.Instance.receivedInputs.ContainsKey(frame);
-
-                            // ALWAYS update received input with latest data
-                            RollbackManager.Instance.SetOpponentInput(frame, input);
-
-                            // Only send ACK for genuinely new frames
-                            if (isNewInput)
+                            if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                             {
+                                RollbackManager.Instance.SetOpponentInput(frame, input);
                                 SendMessageACK(frame);
                             }
 

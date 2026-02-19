@@ -205,50 +205,59 @@ using BestoNet.Collections; // Use BestoNet collections
             bool haveReceived = receivedInputs.ContainsKey(i);
             bool haveUsed = opponentInputs.ContainsKey(i);
 
-            // ONLY CHECK when we have BOTH inputs
+            // ONLY CHECK - DON'T RESIMULATE HERE
             if (haveReceived && haveUsed)
             {
                 ulong received = receivedInputs.GetInput(i);
                 ulong used = opponentInputs.GetInput(i);
 
-                if (received == used)
+                if (received == used && states[i % StateArraySize].frame == i)
                 {
-                    syncFrame = i; // Update sync point
+                    syncFrame = i;
                 }
-                else
+                else if (received != used)
                 {
-                    // ACTUAL MISMATCH - both clients should detect this
                     foundDesyncedFrame = true;
-                    Debug.LogWarning($"[ROLLBACK] Input mismatch at frame {i}: Received={received}, Used={used}");
                     break;
                 }
             }
+            else if (haveReceived && !haveUsed)
+            {
+                foundDesyncedFrame = true;
+                break;
+            }
         }
+        // --- End Mismatch Check ---
 
         if (!foundDesyncedFrame)
         {
-            return;
+            return; // No rollback needed
         }
 
         // --- Perform Rollback ---
-        Debug.Log($"[ROLLBACK] Triggered from frame {syncFrame} to {framesBeforeRollback}. Resimulating {framesBeforeRollback - syncFrame} frames.");
+        Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
 
         LoadState(syncFrame);
 
-        // Resimulate frames
+        // RESIMULATE HERE - ONLY WHEN ROLLBACK IS ACTUALLY NEEDED
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
             ulong[] inputsForResim = SynchronizeInput(i);
+
+            // Run base game state update
             GameManager.Instance.UpdateGameState(inputsForResim);
+
+            // Run scene-specific logic (lobby spell selection, shop, etc.)
             GameManager.Instance.UpdateSceneLogic(inputsForResim);
+
             GameManager.Instance.ForceSetFrame(i);
             ClearState(i);
         }
 
         SetRollbackStatus(false);
-        Debug.Log($"[ROLLBACK] Complete.");
+        Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
     /// <summary>
@@ -373,40 +382,31 @@ using BestoNet.Collections; // Use BestoNet collections
             return inputs;
         }
 
-    /// <summary>
-    /// Predicts the opponent's input for a given frame if the actual input hasn't arrived yet.
-    /// Stores the predicted/received input in opponentInputs history.
-    /// </summary>
-    /// <param name="frame">The frame to get opponent input for.</param>
-    /// <returns>The received or predicted opponent input.</returns>
-    private ulong PredictOpponentInput(int frame)
-    {
-        if (receivedInputs.ContainsKey(frame))
+        /// <summary>
+        /// Predicts the opponent's input for a given frame if the actual input hasn't arrived yet.
+        /// Stores the predicted/received input in opponentInputs history.
+        /// </summary>
+        /// <param name="frame">The frame to get opponent input for.</param>
+        /// <returns>The received or predicted opponent input.</returns>
+        private ulong PredictOpponentInput(int frame)
         {
-            ulong actualInput = receivedInputs.GetInput(frame);
-
-            // Check if we're overwriting a prediction
-            if (opponentInputs.ContainsKey(frame))
+            // If we have the actual received input for this frame, use it
+            if (receivedInputs.ContainsKey(frame))
             {
-                ulong previouslyUsed = opponentInputs.GetInput(frame);
-                if (previouslyUsed != actualInput)
-                {
-                    Debug.Log($"[INPUT] Frame {frame}: Replacing predicted input {previouslyUsed} with actual {actualInput}");
-                }
+                ulong actualInput = receivedInputs.GetInput(frame);
+                opponentLastAppliedInput = actualInput; // Update last known input
+                // Store the *actual* input we are using for this frame's simulation
+                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
+                return actualInput;
             }
-
-            opponentLastAppliedInput = actualInput;
-            opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
-            return actualInput;
+            else
+            {
+                // Simple prediction: reuse the last known input
+                // Store the *predicted* input we are using for this frame's simulation
+                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = opponentLastAppliedInput });
+                return opponentLastAppliedInput;
+            }
         }
-        else
-        {
-            // Predict using last known input
-            Debug.Log($"[INPUT] Frame {frame}: Predicting input as {opponentLastAppliedInput}");
-            opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = opponentLastAppliedInput });
-            return opponentLastAppliedInput;
-        }
-    }
 
     //// <summary>
     /// Saves the current game state by calling GameManager's serialization.

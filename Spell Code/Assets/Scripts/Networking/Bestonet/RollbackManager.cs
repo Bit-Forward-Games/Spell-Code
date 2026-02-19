@@ -113,7 +113,7 @@ using BestoNet.Collections; // Use BestoNet collections
         /// <param name="inputDelayFrames">Optional override for input delay.</param>
         public void Init(ulong opponentNetId, int? inputDelayFrames = null)
         {
-            Debug.Log("Initializing Rollback Connection...");
+            //Debug.Log("Initializing Rollback Connection...");
             this.opponentNetworkId = opponentNetId;
 
         // Find MatchMessageManager instance
@@ -132,7 +132,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // AutosetDelay logic removed, handle delay negotiation elsewhere if needed
 
             ClearVars(); // Reset state variables
-            Debug.Log("Rollback Connection Initialized.");
+            //Debug.Log("Rollback Connection Initialized.");
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ using BestoNet.Collections; // Use BestoNet collections
             }
 
             isRollbackFrame = false; // Ensure rollback status is reset
-            Debug.Log("Rollback variables cleared.");
+            //Debug.Log("Rollback variables cleared.");
         }
 
     /// <summary>

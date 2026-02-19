@@ -346,7 +346,7 @@ public class MatchMessageManager : MonoBehaviour
     {
         this.isRunning = false;
         this.opponentSteamId = default;
-        Debug.Log("MatchMessageManager stopped.");
+        //Debug.Log("MatchMessageManager stopped.");
     }
 
     private void ProcessPacket(byte[] messageData)

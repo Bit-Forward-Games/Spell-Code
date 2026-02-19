@@ -3264,18 +3264,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 1049873779782086816, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: ownerPID
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 5566621690820003596, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: ownerPID
-      value: 4
-      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3324,17 +3316,9 @@ PrefabInstance:
       propertyPath: onboardManager
       value: 
       objectReference: {fileID: 312826359}
-    - target: {fileID: 8724005506065256066, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: ownerPID
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
-      objectReference: {fileID: 0}
-    - target: {fileID: 9210901320383463919, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: ownerPID
-      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

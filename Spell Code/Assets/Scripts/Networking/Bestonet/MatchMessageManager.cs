@@ -435,7 +435,7 @@ public class MatchMessageManager : MonoBehaviour
                         int receivedSeed = reader.ReadInt32();
                         Debug.Log($"Received seed: {receivedSeed}");
                         GameManager.Instance.InitializeWithSeed(receivedSeed);
-                        GameManager.Instance.OnOpponentReady(); // Client triggers lobby start after receiving seed
+                        GameManager.Instance.StartLobbySimulation();
                         return;
                     }
 

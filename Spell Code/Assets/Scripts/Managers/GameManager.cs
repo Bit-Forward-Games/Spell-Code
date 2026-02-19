@@ -558,10 +558,10 @@ public class GameManager : MonoBehaviour
             MatchMessageManager.Instance.SendSeed(agreedSeed);
             StartLobbySimulation();
         }
-        // Client waits to receive seed via PACKET_TYPE_SEED, which then calls OnOpponentReady -> StartLobbySimulation
+        // Client does NOT call StartLobbySimulation here
     }
 
-    private void StartLobbySimulation()
+    public void StartLobbySimulation()
     {
         if (onlineMenuUI != null)
         {
@@ -580,8 +580,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        isWaitingForOpponent = false;
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+        lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
+
+        isWaitingForOpponent = false;
 
         // Send match start confirmation
         if (MatchMessageManager.Instance != null)

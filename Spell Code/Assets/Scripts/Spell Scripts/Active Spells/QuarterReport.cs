@@ -55,7 +55,7 @@ public class QuarterReport : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
+                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
                 break;
             default:
                 break;

@@ -1561,7 +1561,7 @@ public class GameManager : MonoBehaviour
         {
             do
             {
-                newStageIndex = seededRandom.Next(0, stages.Length);
+                newStageIndex = GetNextRandom(0, stages.Length);
             } while (currentStageIndex == newStageIndex);
         }
 

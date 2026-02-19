@@ -15,12 +15,43 @@ public class TempSpellDisplay : MonoBehaviour
     public List<Image> cooldownFills = new List<Image>();
     public List<Image> spellRechargingIcons = new List<Image>();
     public List<Image> spellReadyIcons = new List<Image>();
+    public List<Image> roundWinsIcons = new List<Image>();
     public List<ParticleSystem> spellReadyEffect = new List<ParticleSystem>();
     public List<GameObject> cooldownBars = new List<GameObject>();
 
     public void Start()
     {
         uiScript = FindParentByNameContains(gameObject.transform, "TempUI").GetComponent<TempUIScript>();
+    }
+
+    public void Update()
+    {
+        if (GameManager.Instance.roundOver)
+            UpdateRoundWinCounter();
+    }
+
+    public void UpdateRoundWinCounter()
+    {
+        PlayerController winner = null;
+        ushort highestRam = 0;
+        
+        for (int i = 0; i < 4; i++)
+        {
+            if (GameManager.Instance.players[i].roundRam >= GameManager.Instance.ramNeededToWinRound)
+            {
+                if (GameManager.Instance.players[i].roundRam > highestRam)
+                {
+                    winner = GameManager.Instance.players[i];
+                    highestRam = GameManager.Instance.players[i].roundRam;
+                }
+            }
+        }
+
+        for (int i = 0; i < winner.roundsWon; i++)
+        {
+            roundWinsIcons[i].color = new Color32(255, 255, 255, 60);
+            roundWinsIcons[i].sprite = uiScript.roundWinIcon[1];
+        }
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)

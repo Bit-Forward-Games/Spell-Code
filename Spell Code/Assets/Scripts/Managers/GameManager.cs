@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
     public int remotePlayerIndex = 1; // Set this before starting online match
     private int timeoutFrames = 0; // Timeout counter
     private int randomSeed = 0;
-    private int randomCallCount = 0;
+    public int randomCallCount = 0;
 
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;

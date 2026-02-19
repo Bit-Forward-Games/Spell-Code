@@ -55,8 +55,9 @@ public class CoinToss : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
-
+                int roll = GameManager.Instance.GetNextRandom(0, 100);
+                Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
+                doesCrit = roll < owner.stockStability;
                 break;
             default:
                 break;

@@ -15,13 +15,12 @@ public class StageCamera : MonoBehaviour
     [SerializeField] private float minZoom = 180f;
     [SerializeField] private float maxZoom = 1280F;
     [SerializeField] private float HardSetZoom = 205f;
-    //[SerializeField] private float minDistance = 360f;
-    //[SerializeField] private float zoomLimiter = 960f;
     [SerializeField] private float zoomSpeed = 1f;
     //[SerializeField] private float shakeDuration = 0.5f;
     [SerializeField] private float shakeMagnitude = 1f;
     // Buffer (world units) to keep between the players and the screen edge
     [SerializeField] private float screenEdgeBuffer = 128f;
+
 
     public Vector2 target;
     public bool lockCamera = true;
@@ -51,31 +50,33 @@ public class StageCamera : MonoBehaviour
 
         if (GameManager.Instance.playerCount > 0)
         {
-            // compute average position
-            //Vector2 averagePosition = Vector2.zero;
-            //for (int i = 0; i < GameManager.Instance.playerCount; i++)
-            //{
-            //    FixedVec2 fixedPos = GameManager.Instance.players[i].position;
-            //    Vector2 floatPos = new Vector2(fixedPos.X.ToFloat(), fixedPos.Y.ToFloat());
-            //    averagePosition += floatPos;
-            //}
-            //averagePosition /= GameManager.Instance.playerCount;
-            //target = averagePosition + offset;
 
             // get players bounding box
             Bounds greatestDistance = GetGreatestDistance();
             target = (Vector2)greatestDistance.center + offset;
+            StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
 
-            // --- NEW: compute required orthographic size based on both width and height ---
+
+            // --- get required orthographic size based on both width and height ---
             // orthographicSize is half the vertical size. Horizontal half-size = orthographicSize * aspect.
             float aspect = cam.aspect;
             // required size to fit height (half)
             float requiredFromHeight = greatestDistance.size.y * 0.5f + screenEdgeBuffer;
             // required size to fit width (convert half-width to half-vertical by dividing by aspect)
             float requiredFromWidth = (greatestDistance.size.x * 0.5f) / Mathf.Max(0.0001f, aspect) + screenEdgeBuffer;
+
+
+
+
             // choose the stricter requirement and clamp to min/max zoom
             float requiredSize = Mathf.Max(requiredFromHeight, requiredFromWidth, minZoom);
+
             float newZoom = Mathf.Clamp(requiredSize, minZoom, maxZoom);
+
+
+
+
+
 
             // smooth the zoom
             cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, zoomSpeed * Time.deltaTime);

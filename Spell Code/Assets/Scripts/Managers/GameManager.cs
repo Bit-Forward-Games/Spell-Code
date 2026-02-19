@@ -864,9 +864,9 @@ public class GameManager : MonoBehaviour
         else if (activeScene.name == "Gameplay")
         {
             // Only check end conditions if NOT rolling back
-            if (!rbManager.isRollbackFrame)
+            if (CheckDeathsAndRoundEnd(GetActivePlayerControllers())) 
             {
-                if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
+                if (!rbManager.isRollbackFrame)
                 {
                     if (!roundOver)
                     {

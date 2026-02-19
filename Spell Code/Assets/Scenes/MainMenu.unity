@@ -3042,10 +3042,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6814927c10c0a174aa00cdc5c7ae4c7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 0}
-  damping: 0
-  minZoom: 180
-  maxZoom: 1280
+  offset: {x: 0, y: 36}
+  minZoom: 50
+  maxZoom: 420
   HardSetZoom: 205
   zoomSpeed: 1
   shakeMagnitude: 1

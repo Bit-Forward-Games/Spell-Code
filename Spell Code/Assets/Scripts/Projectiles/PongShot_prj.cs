@@ -228,71 +228,71 @@ public class PongShot_prj : BaseProjectile
         }
         #endregion
         #region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
-        if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
-        {
-            int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
-            if (platformCount == 0) return;
+        //if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
+        //{
+        //    int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
+        //    if (platformCount == 0) return;
 
-            Fixed halfW = projectileWidth / Fixed.FromInt(2);
-            Fixed halfH = projectileHeight / Fixed.FromInt(2);
+        //    Fixed halfW = projectileWidth / Fixed.FromInt(2);
+        //    Fixed halfH = projectileHeight / Fixed.FromInt(2);
 
-            // projectile AABB
-            Fixed pMinX = position.X + hSpeed - halfW;
-            Fixed pMaxX = position.X + hSpeed + halfW;
-            Fixed pMinY = position.Y + vSpeed;
-            Fixed pMaxY = position.Y + vSpeed + projectileHeight;
+        //    // projectile AABB
+        //    Fixed pMinX = position.X + hSpeed - halfW;
+        //    Fixed pMaxX = position.X + hSpeed + halfW;
+        //    Fixed pMinY = position.Y + vSpeed;
+        //    Fixed pMaxY = position.Y + vSpeed + projectileHeight;
 
-            for (int i = 0; i < platformCount; i++)
-            {
-                FixedVec2 center = FixedVec2.FromFloat(stageDataSO.platformCenter[i].x, stageDataSO.platformCenter[i].y);
-                FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.platformExtent[i].x, stageDataSO.platformExtent[i].y);
+        //    for (int i = 0; i < platformCount; i++)
+        //    {
+        //        FixedVec2 center = FixedVec2.FromFloat(stageDataSO.platformCenter[i].x, stageDataSO.platformCenter[i].y);
+        //        FixedVec2 extent = FixedVec2.FromFloat(stageDataSO.platformExtent[i].x, stageDataSO.platformExtent[i].y);
 
-                // Treat extent as half-extents: platform min/max
-                FixedVec2 sMin = center - extent;
-                FixedVec2 sMax = center + extent;
+        //        // Treat extent as half-extents: platform min/max
+        //        FixedVec2 sMin = center - extent;
+        //        FixedVec2 sMax = center + extent;
 
-                // Quick horizontal rejection (platforms only matter when horizontally overlapping)
-                if (pMaxX < sMin.X || pMinX > sMax.X)
-                {
-                    continue;
-                }
+        //        // Quick horizontal rejection (platforms only matter when horizontally overlapping)
+        //        if (pMaxX < sMin.X || pMinX > sMax.X)
+        //        {
+        //            continue;
+        //        }
 
-                // Quick vertical rejection: platforms are thin surfaces; only consider collisions near the top surface.
-                // We'll only allow collision when the projectile is at or above the platform top and moving downward (or stationary).
-                // This implements a simple one-way platform behaviour.
-                Fixed platformTop = sMax.Y;
-                Fixed platformBottom = sMin.Y;
+        //        // Quick vertical rejection: platforms are thin surfaces; only consider collisions near the top surface.
+        //        // We'll only allow collision when the projectile is at or above the platform top and moving downward (or stationary).
+        //        // This implements a simple one-way platform behaviour.
+        //        Fixed platformTop = sMax.Y;
+        //        Fixed platformBottom = sMin.Y;
 
-                // If projectile is completely below platform top, ignore.
-                if (pMaxY <= sMin.Y)
-                    continue;
+        //        // If projectile is completely below platform top, ignore.
+        //        if (pMaxY <= sMin.Y)
+        //            continue;
 
-                // Overlap in X direction
-                Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
-                if (overlapX <= Fixed.FromInt(0))
-                    continue;
+        //        // Overlap in X direction
+        //        Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+        //        if (overlapX <= Fixed.FromInt(0))
+        //            continue;
 
 
-                // Only land on the platform when the projectile's bottom is at or above the platform top (or intersecting it)
-                // and the projectile is moving downward (vSpd <= 0) or already essentially resting on it.
-                // This avoids blocking the projectile from jumping up through the platform.
-                if (pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))
-                {
-                    vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
-                    bounceCount++; // Increment bounce count when hitting a platform
-                                   //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
-                    if (bounceCount >= 2)
-                    {
-                        logicFrame = animFrames.frameLengths.Take(11).Sum() + 1; // set to start of end animation
-                    }
-                    else
-                    {
-                        logicFrame = animFrames.frameLengths.Take(3).Sum() + 1; // set to start of active hitbox animation
-                    }
-                }
+        //        // Only land on the platform when the projectile's bottom is at or above the platform top (or intersecting it)
+        //        // and the projectile is moving downward (vSpd <= 0) or already essentially resting on it.
+        //        // This avoids blocking the projectile from jumping up through the platform.
+        //        if (pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))
+        //        {
+        //            vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
+        //            bounceCount++; // Increment bounce count when hitting a platform
+        //                           //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
+        //            if (bounceCount >= 2)
+        //            {
+        //                logicFrame = animFrames.frameLengths.Take(11).Sum() + 1; // set to start of end animation
+        //            }
+        //            else
+        //            {
+        //                logicFrame = animFrames.frameLengths.Take(3).Sum() + 1; // set to start of active hitbox animation
+        //            }
+        //        }
 
-            }
-        }
+        //    }
+        //}
         #endregion
     }
 }

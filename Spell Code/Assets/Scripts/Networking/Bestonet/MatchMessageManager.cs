@@ -18,6 +18,8 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
     private const byte PACKET_TYPE_SHOP_READY = 11;
+    private const byte PACKET_TYPE_SEED = 12;
+
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -113,6 +115,21 @@ public class MatchMessageManager : MonoBehaviour
             {
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
             }
+        }
+    }
+
+    public void SendSeed(int seed)
+    {
+        if (!opponentSteamId.IsValid || !isRunning) return;
+
+        using (MemoryStream ms = new MemoryStream())
+        using (BinaryWriter writer = new BinaryWriter(ms))
+        {
+            writer.Write(PACKET_TYPE_SEED);
+            writer.Write(seed);
+            byte[] data = ms.ToArray();
+            SteamNetworking.SendP2PPacket(opponentSteamId, data, data.Length, MATCH_MESSAGE_CHANNEL, P2PSend.Reliable);
+            Debug.Log($"Sent seed: {seed}");
         }
     }
 
@@ -410,6 +427,15 @@ public class MatchMessageManager : MonoBehaviour
                     if (packetType == PACKET_TYPE_MATCH_START)
                     {
                         //Debug.Log("Received MATCH START confirmation");
+                        return;
+                    }
+
+                    if (packetType == PACKET_TYPE_SEED)
+                    {
+                        int receivedSeed = reader.ReadInt32();
+                        Debug.Log($"Received seed: {receivedSeed}");
+                        GameManager.Instance.InitializeWithSeed(receivedSeed);
+                        GameManager.Instance.OnOpponentReady(); // Client triggers lobby start after receiving seed
                         return;
                     }
 

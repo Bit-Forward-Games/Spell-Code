@@ -77,6 +77,7 @@ public class ShopManager : MonoBehaviour
             // Combine the original match seed with the round number so it varies per game AND per round
             int shopSeed = gameManager.randomSeed ^ (roundNumber * 1000003);
             gameManager.InitializeWithSeed(shopSeed);
+            Debug.Log($"SHOP ENTERED with seed: {shopSeed}");
         }
         else
         {
@@ -84,7 +85,6 @@ public class ShopManager : MonoBehaviour
             gameManager.seededRandom = new System.Random(seed);
         }
 
-        Debug.Log($"SHOP ENTERED with seed: {seed}");
 
         // RESET chosenSpell flags for all players when entering shop
         for (int i = 0; i < gameManager.playerCount; i++)

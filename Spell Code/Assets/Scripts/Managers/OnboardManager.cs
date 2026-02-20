@@ -117,6 +117,42 @@ public class OnboardManager : MonoBehaviour
         p4_jumpTxt.enabled = false;
         p4_spellSlctGraphic.enabled = false;
         p4_floppy.SetActive(false);
+
+        // Online match active, skip onboarding and go straight to floppy disk stage
+        if (gM.isOnlineMatchActive)
+        {
+            // Skip tutorial, go straight to floppy disk stage
+            p1_moveComplete = true;
+            p1_jumpComplete = true;
+            p1_atkComplete = true;
+
+            p2_moveComplete = true;
+            p2_jumpComplete = true;
+            p2_atkComplete = true;
+            p2_joined = true;
+
+            // Hide all tutorial UI
+            p1_moveGraphic.enabled = false;
+            p1_moveTxt.enabled = false;
+            p1_jumpGraphic.enabled = false;
+            p1_jumpTxt.enabled = false;
+            p1_atkGraphic.enabled = false;
+            p1_atkTxt.enabled = false;
+
+            p2_moveGraphic.enabled = false;
+            p2_moveTxt.enabled = false;
+            p2_jumpGraphic.enabled = false;
+            p2_jumpTxt.enabled = false;
+            p2_atkGraphic.enabled = false;
+            p2_atkTxt.enabled = false;
+
+            // existing setup below still runs...
+            p3_spellSlctGraphic.enabled = false;
+            p3_floppy.SetActive(false);
+            p4_spellSlctGraphic.enabled = false;
+            p4_floppy.SetActive(false);
+            return;
+        }
     }
 
     public void OnboardUpdate(ulong[] playerInputs)

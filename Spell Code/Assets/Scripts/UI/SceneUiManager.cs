@@ -57,7 +57,7 @@ public class SceneUiManager : MonoBehaviour
         {
             GameManager.Instance.SetStage(-1);
             DataManager.Instance.ResetData();
-            GameManager.Instance.RestartGame();
+            GameManager.Instance.RestartLobby();
 
             GameManager.Instance.isRunning = true;
             GameManager.Instance.lastSceneName = SceneManager.GetActiveScene().name;

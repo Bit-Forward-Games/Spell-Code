@@ -31,26 +31,19 @@ public class AnimationManager : MonoBehaviour
     public SpriteSheetData[] spriteSheetData;
     public Texture2D[] paletteTextures;
     [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;
-    //[NonSerialized] public Dictionary<PlayerController, Dictionary<Type, Dictionary<SmartEnum<ProjectileState>, Sprite[]>>> characterSpecificProjectileAnimations;
     [SerializeField] public  PlayerController[] fighters;
 
 
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        //if (fighters.Length > 2)
-        //{
-        //    Debug.LogWarning("The 'fighters' array cannot have more than 2 elements. Trimming excess elements.");
-        //    System.Array.Resize(ref fighters, 2);
-        //}
-    }
-#endif
 
-    //private struct implicitStateAnimations
-    //{
-    //    public Sprite[] landingHitstunAnim;
-    //    public Sprite[] RisingHitstunAnim;
-    //}
+
+    private struct implicitStateAnimations
+    {
+        public Sprite[] jumpAnimRising;
+        public Sprite[] jumpAnimFalling;
+    }
+
+    [NonSerialized]
+    private Dictionary<PlayerController, implicitStateAnimations> implicitAnimationSprites = new();
 
     //[NonSerialized]
     //private Dictionary<PlayerController, implicitStateAnimations> implicitAnimationSprites = new();
@@ -66,12 +59,11 @@ public class AnimationManager : MonoBehaviour
     {
         string characterName = spriteSheetData[index].name;
         Sprite[] spriteSheet = spriteSheetData[index].subSprites;
-        //Sprite[] projectileSpriteSheet = spriteSheetData[index].projSubSprites;
 
 
         AnimFrames idleAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Idle);
         AnimFrames runAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run);
-        AnimFrames jumpAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Jump);
+        //AnimFrames jumpAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Jump);
         AnimFrames hitstunAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Hitstun);
         AnimFrames techAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Tech);
         AnimFrames codeWeaveAnimFrames = CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.CodeWeave);
@@ -83,12 +75,19 @@ public class AnimationManager : MonoBehaviour
         // Map animations
         Sprite[] idleAnim = idleAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] runAnim = runAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
-        Sprite[] jumpAnim = jumpAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
+        //Sprite[] jumpAnim = jumpAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] hitstunAnim = hitstunAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] techAnim = techAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] codeWeaveAnim = codeWeaveAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] codeReleaseAnim = codeReleaseAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
         Sprite[] slideAnim = slideAnimFrames.frameIndexes.Select(i => spriteSheet[i]).ToArray();
+
+        // implicit ANIMS **separately per player** 
+        implicitAnimationSprites[player] = new implicitStateAnimations
+        {
+            jumpAnimRising = spriteSheetData[index].subSprites[15..17],
+            jumpAnimFalling = spriteSheetData[index].subSprites[17..19],
+        };
 
         // Initialize player's animation dictionary with default empty sprite arrays for each state
         if (!PlayerAnimations.ContainsKey(player))
@@ -98,7 +97,7 @@ public class AnimationManager : MonoBehaviour
 
         PlayerAnimations[player][PlayerState.Idle] = idleAnim;
         PlayerAnimations[player][PlayerState.Run] = runAnim;
-        PlayerAnimations[player][PlayerState.Jump] = jumpAnim;
+        //PlayerAnimations[player][PlayerState.Jump] = jumpAnim;
         PlayerAnimations[player][PlayerState.Hitstun] = hitstunAnim;
         PlayerAnimations[player][PlayerState.Tech] = techAnim;
         PlayerAnimations[player][PlayerState.CodeWeave] = codeWeaveAnim;
@@ -120,7 +119,22 @@ public class AnimationManager : MonoBehaviour
         return frameLengthsData;
     }
 
-    
+    //helper method to set jump animation based on direction 
+    public void SetJumpAnimation(PlayerController player)
+    {
+        if (!implicitAnimationSprites.TryGetValue(player, out implicitStateAnimations jumpAnims))
+        {
+            Debug.LogError($"Jump animations not found for player {player.name}");
+            return;
+        }
+
+        // Determine if jumping or falling based on vertical speed 
+        bool jumpingRising = player.vSpd >= Fixed.FromInt(0);
+
+        // Assign animations
+        PlayerAnimations[player][PlayerState.Jump] = jumpingRising ? jumpAnims.jumpAnimRising : jumpAnims.jumpAnimFalling;
+    }
+
     private void Start()
     {
         PlayerAnimations = new Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>>();

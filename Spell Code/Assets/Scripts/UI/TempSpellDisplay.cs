@@ -15,12 +15,33 @@ public class TempSpellDisplay : MonoBehaviour
     public List<Image> cooldownFills = new List<Image>();
     public List<Image> spellRechargingIcons = new List<Image>();
     public List<Image> spellReadyIcons = new List<Image>();
+    public List<Image> roundWinsIcons = new List<Image>();
     public List<ParticleSystem> spellReadyEffect = new List<ParticleSystem>();
     public List<GameObject> cooldownBars = new List<GameObject>();
+    public int spellDisplayIndex;
+    public int tempPlayerIndex;
 
     public void Start()
     {
         uiScript = FindParentByNameContains(gameObject.transform, "TempUI").GetComponent<TempUIScript>();
+    }
+
+    public void Update()
+    {
+        if (GameManager.Instance.roundOver)
+            UpdateRoundWinCounter();
+    }
+
+    public void UpdateRoundWinCounter()
+    {
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            for (int j = 0; j < GameManager.Instance.players[spellDisplayIndex].roundsWon; j++)
+            {
+                roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
+                roundWinsIcons[j].sprite = uiScript.roundWinIcon[1]; // ← assuming [1] = won
+            }
+        }
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)

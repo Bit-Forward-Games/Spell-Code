@@ -14,6 +14,7 @@ public class TempUIScript : MonoBehaviour
     public Image[] playerGoldBar;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
+    public Sprite[] roundWinIcon;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;

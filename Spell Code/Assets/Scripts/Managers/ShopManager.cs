@@ -73,12 +73,10 @@ public class ShopManager : MonoBehaviour
 
         if (gameManager.isOnlineMatchActive)
         {
-            seed = (gameManager.players[0].roundsWon * 10000) +
-                   (gameManager.players[1].roundsWon * 1000) +
-                   777;
-
-            Debug.Log($"[SHOP ONLINE] Using deterministic seed: {seed} (P1 rounds={gameManager.players[0].roundsWon}, P2 rounds={gameManager.players[1].roundsWon})");
-            gameManager.InitializeWithSeed(seed);
+            int roundNumber = gameManager.players[0].roundsWon + gameManager.players[1].roundsWon;
+            // Combine the original match seed with the round number so it varies per game AND per round
+            int shopSeed = gameManager.randomSeed ^ (roundNumber * 1000003);
+            gameManager.InitializeWithSeed(shopSeed);
         }
         else
         {

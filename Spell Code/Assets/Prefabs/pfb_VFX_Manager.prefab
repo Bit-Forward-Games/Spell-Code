@@ -44,12 +44,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 932b66dae9f23ac44bf17e3f8d67302f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visualEffectObjects:
+  playerVisualEffectObjects:
   - visualEffectName: 0
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 303d5b9f4536b11419f30cd762d697ed, type: 3}
-    particleSystems:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    followsParent: 0
+    parentTransform: {fileID: 0}
+    particleSystems: []
+  - visualEffectName: 1
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: c505cdc85dde5f54fa5314fef0f9b294, type: 3}
+    followsParent: 1
+    parentTransform: {fileID: 0}
+    particleSystems: []
+  spellVisualEffectObjects: []

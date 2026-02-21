@@ -1075,6 +1075,22 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             players[i].ramBounty = (short)((float)(players[i].totalRam - averageTotalRam)/2);
         }
+
+        //give the player with the highest bounty the bounty aura VFX
+        int playerWithHighestBountyIndex = 0;
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i].ramBounty > players[playerWithHighestBountyIndex].ramBounty)
+            {
+                playerWithHighestBountyIndex = i;
+            }
+            else
+            {
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+            }
+        }
+        //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + BestoNet.Types.Vector2<Fixed32>.FromFloat(0f, 38f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)

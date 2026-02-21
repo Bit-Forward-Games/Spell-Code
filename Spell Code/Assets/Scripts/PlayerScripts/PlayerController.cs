@@ -273,7 +273,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
+        if (pID == 1) { startingSpell = "GiftOfPromethius"; }
         else if (pID == 2) { startingSpell = "QuarterReport"; }
         else if (pID == 3) { startingSpell = "BladeOfAres"; }
         else if (pID == 4) { startingSpell = "SkillshotSlash"; }
@@ -1792,6 +1792,7 @@ public class PlayerController : MonoBehaviour
 
             case PlayerState.Slide:
                 hSpd = facingRight ? slideSpeed : -slideSpeed;
+                playerHeight = Fixed.FromInt(charData.playerHeight/2);
                 break;
         }
     }
@@ -1817,6 +1818,9 @@ public class PlayerController : MonoBehaviour
                 lightArmor = false;
                 hitstunOverride = false;
                 ClearInputDisplay();
+                break;
+            case PlayerState.Slide:
+                playerHeight = Fixed.FromInt(charData.playerHeight);
                 break;
         }
         stateSpecificArg = 0;

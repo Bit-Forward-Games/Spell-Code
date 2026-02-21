@@ -222,7 +222,6 @@ public class PlayerController : MonoBehaviour
     {
         //Set Player Values 
         charData = CharacterDataDictionary.GetCharacterData(characterName);
-        //print(charData.projectileIds);
 
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
@@ -258,21 +257,18 @@ public class PlayerController : MonoBehaviour
                 //playerNum.text = "P2";
                 pID = 2;
                 playerNum.color = Color.cyan;
-                gameObject.GetComponent<SpriteRenderer>().color = Color.cyan;
                 break;
             case 2:
-                InitializePalette(matchPalette[0]);
+                InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
                 playerNum.color = Color.yellow;
-                gameObject.GetComponent<SpriteRenderer>().color = Color.yellow;
                 break;
             case 3:
-                InitializePalette(matchPalette[1]);
+                InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
                 playerNum.color = Color.green;
-                gameObject.GetComponent<SpriteRenderer>().color = Color.green;
                 break;
         }
 
@@ -419,6 +415,19 @@ public class PlayerController : MonoBehaviour
         }
         Debug.LogWarning("Spell not found in spell list, cannot remove!");
     }
+
+    public void AdjustBrightnessForIframes()
+    {
+        float targetBrightness = (IsCurrentHurtboxGroupEmpty()) ? 0.128f : 1.0f;
+        MaterialPropertyBlock propertyBlock = new();
+        spriteRenderer.GetPropertyBlock(propertyBlock);
+        if (propertyBlock.GetFloat("_Brightness") != targetBrightness)
+        {
+            propertyBlock.SetFloat("_Brightness", targetBrightness);
+            spriteRenderer.SetPropertyBlock(propertyBlock);
+        }
+    }
+
 
     public void InitializePalette(Texture2D palette)
     {
@@ -1233,51 +1242,7 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
 
         //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
-        if (IsCurrentHurtboxGroupEmpty())
-        {
-
-            Color tempColor;
-            switch (Array.IndexOf(GameManager.Instance.players, this))
-            {
-                case 0:
-                    tempColor = Color.red;
-                    break;
-                case 1:
-                    tempColor = Color.cyan;
-                    break;
-                case 2:
-                    tempColor = Color.yellow;
-                    break;
-                case 3:
-                    tempColor = Color.green;
-                    break;
-                default:
-                    tempColor = Color.white;
-                    break;
-            }
-            tempColor.r = Math.Clamp(tempColor.r - 0.5f, 0, 1f);
-            tempColor.g = Math.Clamp(tempColor.g - 0.5f, 0, 1f);
-            tempColor.b = Math.Clamp(tempColor.b - 0.5f, 0, 1f);
-            playerSpriteRenderer.color = tempColor;
-        }
-        else
-        {
-            switch (Array.IndexOf(GameManager.Instance.players, this))
-            {
-                case 0:
-                    playerSpriteRenderer.color = Color.red;
-                    break;
-                case 1:
-                    playerSpriteRenderer.color = Color.cyan;
-                    break;
-                case 2:
-                    playerSpriteRenderer.color = Color.yellow;
-                    break;
-                case 3:
-                    playerSpriteRenderer.color = Color.green;
-                    break;
-            }
-        }
+        AdjustBrightnessForIframes();
 
 
 
@@ -1827,6 +1792,7 @@ public class PlayerController : MonoBehaviour
 
             case PlayerState.Slide:
                 hSpd = facingRight ? slideSpeed : -slideSpeed;
+                playerHeight = Fixed.FromInt(charData.playerHeight/2);
                 break;
         }
     }
@@ -1852,6 +1818,9 @@ public class PlayerController : MonoBehaviour
                 lightArmor = false;
                 hitstunOverride = false;
                 ClearInputDisplay();
+                break;
+            case PlayerState.Slide:
+                playerHeight = Fixed.FromInt(charData.playerHeight);
                 break;
         }
         stateSpecificArg = 0;

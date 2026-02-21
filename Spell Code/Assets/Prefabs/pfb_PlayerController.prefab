@@ -677,8 +677,10 @@ MonoBehaviour:
   demonAuraLifeSpanTimer: 0
   reps: 0
   matchPalette:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 2800000, guid: 39033ccd28eb3ad4b8c181f5592e4bb7, type: 3}
+  - {fileID: 2800000, guid: bbcd8e41188b2474e9561b4ae266fd56, type: 3}
+  - {fileID: 2800000, guid: f1c116e4c9e2bba438c0dcbc725a4aa8, type: 3}
+  - {fileID: 2800000, guid: a497862143932ef40b80d2e7bfc2159c, type: 3}
   currentPlayerHealth: 0
   hitboxData:
     xOffset: 0
@@ -744,7 +746,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 3ee7a8d5763f39649a822c87a03037fc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

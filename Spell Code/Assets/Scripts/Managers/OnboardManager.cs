@@ -11,6 +11,7 @@ public class OnboardManager : MonoBehaviour
     private GameManager gM;
 
     public Sprite inputGraphic;
+    public Sprite atkGraphic;
 
     [Header("Player 1")]
     public bool p1_moveComplete = false;
@@ -25,6 +26,8 @@ public class OnboardManager : MonoBehaviour
     public Image p1_atkGraphic;
     public TextMeshProUGUI p1_atkTxt;
     public Image p1_spellSlctGraphic;
+    public TextMeshProUGUI p1_castTxt;
+    public Image p1_castGraphic;
 
     public SpellCode_FloppyDisk p1_floppyInfo;
     public GameObject p1_floppy;
@@ -43,6 +46,8 @@ public class OnboardManager : MonoBehaviour
     public Image p2_atkGraphic;
     public TextMeshProUGUI p2_atkTxt;
     public Image p2_spellSlctGraphic;
+    public TextMeshProUGUI p2_castTxt;
+    public Image p2_castGraphic;
 
     public SpellCode_FloppyDisk p2_floppyInfo;
     public GameObject p2_floppy;
@@ -61,6 +66,8 @@ public class OnboardManager : MonoBehaviour
     public Image p3_atkGraphic;
     public TextMeshProUGUI p3_atkTxt;
     public Image p3_spellSlctGraphic;
+    public TextMeshProUGUI p3_castTxt;
+    public Image p3_castGraphic;
 
     public SpellCode_FloppyDisk p3_floppyInfo;
     public GameObject p3_floppy;
@@ -79,6 +86,8 @@ public class OnboardManager : MonoBehaviour
     public Image p4_atkGraphic;
     public TextMeshProUGUI p4_atkTxt;
     public Image p4_spellSlctGraphic;
+    public TextMeshProUGUI p4_castTxt;
+    public Image p4_castGraphic;
 
     public SpellCode_FloppyDisk p4_floppyInfo;
     public GameObject p4_floppy;
@@ -93,6 +102,8 @@ public class OnboardManager : MonoBehaviour
         p1_atkTxt.enabled = false;
         p1_spellSlctGraphic.enabled = false;
         p1_floppy.SetActive(false);
+        p1_castGraphic.enabled = false;
+        p1_castTxt.enabled = false;
 
         p2_atkTxt.text = "Join";
         p2_moveGraphic.enabled = false;
@@ -101,6 +112,8 @@ public class OnboardManager : MonoBehaviour
         p2_jumpTxt.enabled = false;
         p2_spellSlctGraphic.enabled = false;
         p2_floppy.SetActive(false);
+        p2_castGraphic.enabled = false;
+        p2_castTxt.enabled = false;
 
         p3_atkTxt.text = "Join";
         p3_moveGraphic.enabled = false;
@@ -109,6 +122,8 @@ public class OnboardManager : MonoBehaviour
         p3_jumpTxt.enabled = false;
         p3_spellSlctGraphic.enabled = false;
         p3_floppy.SetActive(false);
+        p3_castGraphic.enabled = false;
+        p3_castTxt.enabled = false;
 
         p4_atkTxt.text = "Join";
         p4_moveGraphic.enabled = false;
@@ -117,6 +132,8 @@ public class OnboardManager : MonoBehaviour
         p4_jumpTxt.enabled = false;
         p4_spellSlctGraphic.enabled = false;
         p4_floppy.SetActive(false);
+        p4_castGraphic.enabled = false;
+        p4_castTxt.enabled = false;
     }
 
     public void OnboardUpdate(ulong[] playerInputs)
@@ -187,21 +204,18 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[0].chosenStartingSpell && !p1_glassBroken)
             {
-                p1_moveTxt.text = "Hold";
-                p1_moveTxt.color = Color.white;
-                p1_jumpTxt.text = "Input";
-                p1_jumpTxt.color = Color.white;
-                p1_moveGraphic.sprite = p1_atkGraphic.sprite;
-                p1_jumpGraphic.sprite = inputGraphic;
-
-                p1_moveTxt.enabled = true;
-                p1_jumpTxt.enabled = true;
-                p1_moveGraphic.enabled = true;
-                p1_jumpGraphic.enabled = true;
+                p1_castTxt.enabled = true;
+                p1_castGraphic.enabled = true;
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                 {
-                    p1_moveTxt.color = Color.green;
+                    p1_castGraphic.sprite = inputGraphic;
+                    p1_castTxt.text = "Input";
+                }
+                else
+                {
+                    p1_castTxt.text = "Hold";
+                    p1_castGraphic.sprite = 
                 }
 
                 if (gM.players[0].spellsFired > 0)

@@ -3649,6 +3649,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5185787177922014159}
     m_Modifications:
+    - target: {fileID: -7663104794325435176, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: diskName
+      value: QuarterReport
+      objectReference: {fileID: 0}
     - target: {fileID: -2169450228735217417, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_Color.b
       value: 0.990566
@@ -3723,6 +3727,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5185787177922014159}
     m_Modifications:
+    - target: {fileID: -7663104794325435176, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: diskName
+      value: AmonSlash
+      objectReference: {fileID: 0}
     - target: {fileID: -2169450228735217417, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_Color.b
       value: 0
@@ -3738,6 +3746,10 @@ PrefabInstance:
     - target: {fileID: 2806504647812706647, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_Name
       value: Floppy Pickup
+      objectReference: {fileID: 0}
+    - target: {fileID: 5718569921236517800, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6422342937780030392, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3777,6 +3789,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6422342937780030392, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7822767027006105375, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -11937,6 +11953,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5185787177922014159}
     m_Modifications:
+    - target: {fileID: -7663104794325435176, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: diskName
+      value: SkillshotSlash
+      objectReference: {fileID: 0}
     - target: {fileID: -2169450228735217417, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_Color.b
       value: 0.4959526
@@ -12152,6 +12172,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5185787177922014159}
     m_Modifications:
+    - target: {fileID: -7663104794325435176, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+      propertyPath: diskName
+      value: BladeOfAres
+      objectReference: {fileID: 0}
     - target: {fileID: -2169450228735217417, guid: 2a5b19df33862834294e45f69628e494, type: 3}
       propertyPath: m_Color.b
       value: 0.3037113

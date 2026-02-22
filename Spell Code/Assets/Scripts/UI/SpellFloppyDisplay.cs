@@ -11,13 +11,17 @@ public class SpellFloppyDisplay : MonoBehaviour
     public TextMeshProUGUI spellInput;
     public Image spellIcon;
     public Image Background;
+    public Image selectFill;
+
+    public GameObject canvasObject;
+
     [HideInInspector]
     public SpellData spellData;
 
 
-    public void SetSpellFloppyDisplay()
+    public void SetSpellFloppyDisplay( string spellString)
     {
-        spellData = gameObject.GetComponentInParent<SpellData>();
+        spellData = SpellDictionary.Instance.spellDict[spellString];
         spellName.text = spellData.spellName;
         spellDesc.text = spellData.description;
         spellCooldown.text = $"Cooldown: {spellData.cooldown/60f}s";

@@ -53,4 +53,20 @@ MonoBehaviour:
     particleSystemPrefab: {fileID: 3296486212350748271, guid: a0ffc953bf3aa094fbfd5cdcfc8f41fe, type: 3}
     parentTransform: {fileID: 0}
     particleSystems: []
+  - visualEffectName: 2
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: a45a6a100b067634aa5b7667ae8978ec, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
+  - visualEffectName: 4
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: ff5237284315efb4399cf761fa0d3555, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
+  - visualEffectName: 3
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: b2d55d26fec2e4541b82f921999cb535, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
+  - visualEffectName: 5
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: c9a9b50eab3e62f4abac21f8ca7f4262, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
   spellVisualEffectObjects: []

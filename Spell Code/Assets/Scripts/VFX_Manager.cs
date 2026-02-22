@@ -8,7 +8,7 @@ using UnityEngine.VFX;
 
 public enum VisualEffects
 {
-    DASH_DUST, BOUNTY_AURA
+    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -26,10 +26,8 @@ public class VFX_Manager : MonoBehaviour
         public VisualEffects visualEffectName; //name of the visual effect
         public GameObject particleSystemPrefab; //prefab of the particle system for this visual effect
 
-        //[Header("Optional variable")]
-        //public bool followsParent = false; //boolean to determine whether or not this particle system should continously follow a parent
         [HideInInspector] public Transform parentTransform = null; //parent to follow if the particle system should continously follow a parent object
-        public ParticleSystem[] particleSystems; //List of 5 particle systems that each play the visual effect. Each particle system in the array is associated with a unique player as well as a non player specific particle system
+        [HideInInspector] public ParticleSystem[] particleSystems; //List of 5 particle systems that each play the visual effect. Each particle system in the array is associated with a unique player as well as a non player specific particle system
     }
 
     [Header("Visual effects that VFX Manager can play")]
@@ -226,6 +224,11 @@ public class VFX_Manager : MonoBehaviour
         //play the visual effect
         _visualEffectObject.particleSystems[_playerNum].Play();
     }
+
+    //public void UpdateEmissionRate(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, float _emissionRate = -1f)
+    //{
+        
+    //}
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {

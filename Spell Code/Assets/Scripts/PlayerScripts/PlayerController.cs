@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BestoNet.Types;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -1223,7 +1224,6 @@ public class PlayerController : MonoBehaviour
             {
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
-
         }
         UpdateResources();
 
@@ -1835,7 +1835,46 @@ public class PlayerController : MonoBehaviour
         //update flow state
         if (flowState > 0)
         {
+            //play the flow state aura visual effect 
+            //BestoNet.Types.Vector2<Fixed32>.FromFloat(0f, 0f)
+            //this.gameObject.transform
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, Mathf.Clamp((flowState / maxFlowState), 0f, 1f) * 200f);
+
             flowState--;
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
+        }
+
+        if(demonAura > 0)
+        {
+            //play the demon aura visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, Mathf.Clamp((demonAura / maxDemonAura), 0f, 1f) * 200f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pID);
+        }
+
+        if (stockStability > 0)
+        {
+            //play the stock aura visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp((stockStability / 100f), 0f, 1f) * 200f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
+        }
+
+        if (reps > 0)
+        {
+            //play the reps visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position, pID, true, null, reps * 20f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pID);
         }
     }
 

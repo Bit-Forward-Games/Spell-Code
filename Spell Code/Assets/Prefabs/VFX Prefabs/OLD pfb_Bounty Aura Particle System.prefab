@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1204022229099497329}
   - component: {fileID: 2245513208090873954}
   m_Layer: 0
-  m_Name: pfb_Bounty Aura Particle System
+  m_Name: OLD pfb_Bounty Aura Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -870,7 +870,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 20
+      scalar: 200
       minScalar: 10
       maxCurve:
         serializedVersion: 2

@@ -47,12 +47,10 @@ MonoBehaviour:
   playerVisualEffectObjects:
   - visualEffectName: 0
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 303d5b9f4536b11419f30cd762d697ed, type: 3}
-    followsParent: 0
     parentTransform: {fileID: 0}
     particleSystems: []
   - visualEffectName: 1
-    particleSystemPrefab: {fileID: 3296486212350748271, guid: c505cdc85dde5f54fa5314fef0f9b294, type: 3}
-    followsParent: 1
+    particleSystemPrefab: {fileID: 3296486212350748271, guid: a0ffc953bf3aa094fbfd5cdcfc8f41fe, type: 3}
     parentTransform: {fileID: 0}
     particleSystems: []
   spellVisualEffectObjects: []

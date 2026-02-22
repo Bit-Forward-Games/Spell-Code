@@ -160,7 +160,7 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_spawnPos"> Position of the visual effect to be played</param>
     /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player)</param>
     /// <param name="_spawnFacingRight"> Whether or not the visual effect will spawn facing right. By default, set to true (facing right)</param>
-    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null)
+    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f)
     {
         //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
         if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
@@ -211,6 +211,14 @@ public class VFX_Manager : MonoBehaviour
         else
         {
             _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale = new Vector3(-1f, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.y, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.z);
+        }
+
+        //if _emissionRate is not the garbage defualt value,...
+        if (_emissionRate != -1f)
+        {
+            //set emission rate over time of the particle system to _emissionRate
+            var em = _visualEffectObject.particleSystems[_playerNum].emission;
+            em.rateOverTime = _emissionRate;
         }
 
         //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");

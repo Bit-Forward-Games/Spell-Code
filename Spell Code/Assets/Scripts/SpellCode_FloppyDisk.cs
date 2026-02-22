@@ -49,14 +49,12 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
 
-            diskDisplay.transform.position = new Vector3(transform.position.x, transform.position.y + 16f, transform.position.z);
+            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
             {
                 if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
                 {
-                    //overlappingPlayer.AddSpellToSpellList(diskName); //Change this when starting spells are proper
-                    //diskDisplay.gameObject.SetActive(false);
                     selectHoldCounter++;
                 }
                 else

@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System;
 
 public class SpellFloppyDisplay : MonoBehaviour
 {
@@ -12,6 +13,12 @@ public class SpellFloppyDisplay : MonoBehaviour
     public Image spellIcon;
     public Image Background;
     public Image selectFill;
+    [NonSerialized]
+    public Vector2[] displayLocations = new Vector2[4] { 
+        new Vector2(-250, 130),
+        new Vector2(250, 130), 
+        new Vector2(-250, -130), 
+        new Vector2(250, -130) };
 
     public GameObject canvasObject;
 
@@ -27,5 +34,10 @@ public class SpellFloppyDisplay : MonoBehaviour
         spellCooldown.text = $"Cooldown: {spellData.cooldown/60f}s";
         spellInput.text = $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}";
         spellIcon.sprite = spellData.readyIcon;
+    }
+
+    public void SetFloppyDisplayPosition(int index)
+    {
+        Background.rectTransform.anchoredPosition = displayLocations[index];
     }
 }

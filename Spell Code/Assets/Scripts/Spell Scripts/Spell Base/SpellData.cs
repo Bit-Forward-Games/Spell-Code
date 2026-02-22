@@ -101,6 +101,9 @@ public abstract class SpellData : MonoBehaviour
     [HideInInspector]
     public List<GameObject> projectileInstances;
 
+    
+    [HideInInspector]
+    public GameObject floppyDisplayInstance;
     public Sprite shopSprite;
     public Sprite readyIcon;
     public Sprite notReadyIcon;
@@ -140,6 +143,10 @@ public abstract class SpellData : MonoBehaviour
 
     public virtual void LoadSpell()
     {
+        //FloppyDisplayPrefabReference = Resources.Load<GameObject>("Prefabs/FloppyDisplay");
+        floppyDisplayInstance = Instantiate(GameManager.Instance.floppyDisplayPrefab, owner.transform.position, Quaternion.identity, transform);
+        floppyDisplayInstance.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay();
+        floppyDisplayInstance.SetActive(false);
 
     }
 

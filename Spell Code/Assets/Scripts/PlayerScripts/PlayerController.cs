@@ -115,7 +115,9 @@ public class PlayerController : MonoBehaviour
 
 
     //MATCH STATS
-    public Texture2D[] matchPalette = new Texture2D[2];
+    public Texture2D[] matchPalette = new Texture2D[4];
+    public Texture2D secretEpicPalette;
+    private bool secretEpicPaletteActive = false;
     public ushort currentPlayerHealth = 0;
 
     //money things
@@ -1037,10 +1039,24 @@ public class PlayerController : MonoBehaviour
                     facingRight = false;
                 }
 
-
+                
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
+                    if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
+                    {
+                        Debug.Log("Konami Code Activated!");
+                        if (!secretEpicPaletteActive)
+                        {
+                            InitializePalette(secretEpicPalette);
+                            secretEpicPaletteActive = true;
+                        }
+                        else
+                        {
+                            InitializePalette(matchPalette[pID - 1]);
+                            secretEpicPaletteActive = false;
+                        }
+                    }
                     for (int i = 0; i < spellList.Count; i++)
                     {
                         if (spellList[i].spellInput == stateSpecificArg &&

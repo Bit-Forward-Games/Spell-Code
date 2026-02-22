@@ -47,6 +47,8 @@ MonoBehaviour:
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 1ad302f9b5e81414a83092e11b61afda, type: 3}
   projectileInstances: []
+  FloppyDisplayPrefabReference: {fileID: 9097413590140942043, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
+  FloppyDisplayInstance: {fileID: 0}
   shopSprite: {fileID: 21300000, guid: 85373f70ebe3d004a9bd5abf4008a7fa, type: 3}
   readyIcon: {fileID: 21300000, guid: c83b099bbfbca8c4bb929a042863919a, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 7664e7dc7dc8e4d0198674b3098438ae, type: 3}

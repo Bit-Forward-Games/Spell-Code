@@ -63,6 +63,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public ShopManager shopManager;
     public OnboardManager onboardManager;
 
+
+    public GameObject floppyDisplayPrefab;
+
     public GO_Door goDoorPrefab;
 
     public bool roundOver;

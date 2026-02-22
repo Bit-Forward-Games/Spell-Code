@@ -18,9 +18,9 @@ public class SpellFloppyDisplay : MonoBehaviour
     public void SetSpellFloppyDisplay()
     {
         spellData = gameObject.GetComponentInParent<SpellData>();
-        spellName.text = spellData.name;
+        spellName.text = spellData.spellName;
         spellDesc.text = spellData.description;
-        spellCooldown.text = $"Cooldown: {spellData.cooldown} seconds";
+        spellCooldown.text = $"Cooldown: {spellData.cooldown/60f}s";
         spellInput.text = $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}";
         spellIcon.sprite = spellData.readyIcon;
     }

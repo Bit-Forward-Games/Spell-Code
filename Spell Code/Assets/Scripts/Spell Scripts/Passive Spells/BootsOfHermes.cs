@@ -30,9 +30,6 @@ public class BootsOfHermes : SpellData
         }
     }
 
-    public override void LoadSpell()
-    {
-    }
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {

@@ -2599,9 +2599,9 @@ MonoBehaviour:
   startSize: {x: 220, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
-  flashPulseDuration: 0.2
-  cooldownFlashAppeared: 0
-  cooldownFlashAnimationFinished: 0
+  flashPulseDuration: 1
+  cooldownFlashAppeared: 
+  cooldownFlashAnimationFinished: 
 --- !u!1 &788913475943425284
 GameObject:
   m_ObjectHideFlags: 0
@@ -2715,9 +2715,9 @@ MonoBehaviour:
   startSize: {x: 220, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
-  flashPulseDuration: 0.2
-  cooldownFlashAppeared: 0
-  cooldownFlashAnimationFinished: 0
+  flashPulseDuration: 1
+  cooldownFlashAppeared: 
+  cooldownFlashAnimationFinished: 
 --- !u!1 &835553574515021401
 GameObject:
   m_ObjectHideFlags: 0
@@ -8256,9 +8256,9 @@ MonoBehaviour:
   startSize: {x: 220, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
-  flashPulseDuration: 0.2
-  cooldownFlashAppeared: 0
-  cooldownFlashAnimationFinished: 0
+  flashPulseDuration: 1
+  cooldownFlashAppeared: 
+  cooldownFlashAnimationFinished: 
 --- !u!1 &2222563335430063971
 GameObject:
   m_ObjectHideFlags: 0
@@ -16016,9 +16016,9 @@ MonoBehaviour:
   startSize: {x: 220, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
-  flashPulseDuration: 0.2
-  cooldownFlashAppeared: 0
-  cooldownFlashAnimationFinished: 0
+  flashPulseDuration: 1
+  cooldownFlashAppeared: 
+  cooldownFlashAnimationFinished: 
 --- !u!1 &3984237710216899581
 GameObject:
   m_ObjectHideFlags: 0

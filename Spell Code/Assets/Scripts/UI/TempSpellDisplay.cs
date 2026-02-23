@@ -170,7 +170,7 @@ public class TempSpellDisplay : MonoBehaviour
             while (elapsed < flashPulseDuration)
             {
                 elapsed += Time.deltaTime;
-                c.a = Mathf.Lerp(1f, 0.1f, elapsed / flashPulseDuration);
+                c.a = Mathf.Lerp(0.5f, 0.1f, elapsed / flashPulseDuration);
                 cooldownFlashRect[i].GetComponent<Image>().color = c;
                 yield return null;
             }
@@ -180,7 +180,7 @@ public class TempSpellDisplay : MonoBehaviour
             while (elapsed < flashPulseDuration)
             {
                 elapsed += Time.deltaTime;
-                c.a = Mathf.Lerp(0.1f, 1f, elapsed / flashPulseDuration);
+                c.a = Mathf.Lerp(0.1f, 0.5f, elapsed / flashPulseDuration);
                 cooldownFlashRect[i].GetComponent<Image>().color = c;
                 yield return null;
             }

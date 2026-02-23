@@ -118,6 +118,8 @@ public class PlayerController : MonoBehaviour
     public Texture2D[] matchPalette = new Texture2D[4];
     public Texture2D secretEpicPalette;
     private bool secretEpicPaletteActive = false;
+    public Texture2D secretNormalPalette;
+    private bool secretNormalPaletteActive = false;
     public ushort currentPlayerHealth = 0;
 
     //money things
@@ -291,7 +293,7 @@ public class PlayerController : MonoBehaviour
         //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
         //SpawnPlayer(startPos);
 
-        //ProjectileManager.Instance.InitializeAllProjectiles();
+        ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)
@@ -1055,6 +1057,20 @@ public class PlayerController : MonoBehaviour
                         {
                             InitializePalette(matchPalette[pID - 1]);
                             secretEpicPaletteActive = false;
+                        }
+                    }
+                    if (stateSpecificArg == 0b_0000_0000_1001_1001_1111_0000_0000_1000) //Inverse Konami Code input
+                    {
+                        Debug.Log("Inverse Konami Code Activated!");
+                        if (!secretNormalPaletteActive)
+                        {
+                            InitializePalette(secretNormalPalette);
+                            secretNormalPaletteActive = true;
+                        }
+                        else
+                        {
+                            InitializePalette(matchPalette[pID - 1]);
+                            secretNormalPaletteActive = false;
                         }
                     }
                     for (int i = 0; i < spellList.Count; i++)

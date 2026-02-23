@@ -326,6 +326,8 @@ public class OnboardManager : MonoBehaviour
                 if (gM.players[1].spellsFired > 0)
                 {
                     p2_glassBroken = true;
+                    p2_castTxt.enabled = false;
+                    p2_castGraphic.enabled = false;
                 }
             }
 
@@ -429,9 +431,11 @@ public class OnboardManager : MonoBehaviour
                 }
             }
 
-            if (p1_glassBroken)
+            if (p3_glassBroken)
             {
                 p3_castTxt.color = Color.green;
+                p3_castTxt.enabled = false;
+                p3_castGraphic.enabled = false;
             }
         }
 
@@ -532,6 +536,8 @@ public class OnboardManager : MonoBehaviour
             if (p4_glassBroken)
             {
                 p4_castTxt.color = Color.green;
+                p4_castTxt.enabled = false;
+                p4_castGraphic.enabled = false;
             }
         }
     }

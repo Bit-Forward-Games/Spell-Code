@@ -780,7 +780,7 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "MainMenu")
         {
-            HandleOnlineSpellSelection();
+            //HandleOnlineSpellSelection();
             goDoorPrefab?.CheckOpenDoor();
         }
     }
@@ -850,7 +850,13 @@ public class GameManager : MonoBehaviour
         if (activeScene.name == "MainMenu")
         {
             // Handle spell selection for online players (only local and remote)
-            HandleOnlineSpellSelection();
+            //HandleOnlineSpellSelection();
+
+            if (onboardManager == null)
+            {
+                onboardManager = FindAnyObjectByType<OnboardManager>();
+            }
+            onboardManager.OnboardUpdate(syncedInput);
 
             // Check gates and door - same logic as offline
             goDoorPrefab.CheckOpenDoor();
@@ -866,6 +872,7 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Gameplay")
         {
+            onboardManager = null;
             // Only check end conditions if NOT rolling back
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers())) 
             {

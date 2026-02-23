@@ -230,6 +230,8 @@ public class OnboardManager : MonoBehaviour
             if (p1_glassBroken)
             {
                 p1_castTxt.color = Color.green;
+                p1_castTxt.enabled = false;
+                p1_castGraphic.enabled = false;
             }
         }
 

@@ -28,6 +28,9 @@ public class GambaMachine : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        if (gambaAnimator == null)
+            gambaAnimator = GetComponent<Animator>();
+
         GameManager.Instance.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 20, width = 20, xOffset = -10, yOffset = 20};
     }

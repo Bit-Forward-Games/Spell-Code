@@ -170,7 +170,8 @@ public class OnboardManager : MonoBehaviour
 
                 p1_atkGraphic.enabled = true;
                 p1_atkTxt.enabled = true;
-                p1_gamba.gambaAnimator.SetBool("isActive", true);
+                if (p1_gamba != null && p1_gamba.gambaAnimator != null)
+                    p1_gamba.gambaAnimator.SetBool("isActive", true);
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Pressed) { p1_atkComplete = true; p1_atkTxt.color = Color.green; Debug.Log("Atk Onboard Complete"); }
             }

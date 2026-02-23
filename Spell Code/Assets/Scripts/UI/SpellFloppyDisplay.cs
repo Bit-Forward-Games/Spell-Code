@@ -17,10 +17,10 @@ public class SpellFloppyDisplay : MonoBehaviour
     public Image selectFill;
     [NonSerialized]
     public Vector2[] displayLocations = new Vector2[4] { 
-        new Vector2(-480, 260),
-        new Vector2(480, 260), 
-        new Vector2(-480, -260), 
-        new Vector2(480, -260) };
+        new Vector2(-400, 260),
+        new Vector2(400, 260), 
+        new Vector2(-400, -260), 
+        new Vector2(400, -260) };
 
     public GameObject canvasObject;
 

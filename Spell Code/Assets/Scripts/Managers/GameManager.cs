@@ -874,7 +874,6 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Gameplay")
         {
-            onboardManager = null;
             // Only check end conditions if NOT rolling back
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers())) 
             {
@@ -1611,6 +1610,15 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
+
+        if (scene.name != "MainMenu")
+        {
+            if (onboardManager != null)
+            {
+                Destroy(onboardManager.gameObject);
+                onboardManager = null;
+            }
+        }
 
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")

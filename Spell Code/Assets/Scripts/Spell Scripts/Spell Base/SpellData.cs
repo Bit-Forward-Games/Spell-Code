@@ -143,10 +143,6 @@ public abstract class SpellData : MonoBehaviour
 
     public virtual void LoadSpell()
     {
-        //FloppyDisplayPrefabReference = Resources.Load<GameObject>("Prefabs/FloppyDisplay");
-        floppyDisplayInstance = Instantiate(GameManager.Instance.floppyDisplayPrefab, owner.transform.position, Quaternion.identity, transform);
-        floppyDisplayInstance.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay();
-        floppyDisplayInstance.SetActive(false);
 
     }
 

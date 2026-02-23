@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BestoNet.Types;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -114,7 +115,9 @@ public class PlayerController : MonoBehaviour
 
 
     //MATCH STATS
-    public Texture2D[] matchPalette = new Texture2D[2];
+    public Texture2D[] matchPalette = new Texture2D[4];
+    public Texture2D secretEpicPalette;
+    private bool secretEpicPaletteActive = false;
     public ushort currentPlayerHealth = 0;
 
     //money things
@@ -1036,10 +1039,24 @@ public class PlayerController : MonoBehaviour
                     facingRight = false;
                 }
 
-
+                
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
+                    if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
+                    {
+                        Debug.Log("Konami Code Activated!");
+                        if (!secretEpicPaletteActive)
+                        {
+                            InitializePalette(secretEpicPalette);
+                            secretEpicPaletteActive = true;
+                        }
+                        else
+                        {
+                            InitializePalette(matchPalette[pID - 1]);
+                            secretEpicPaletteActive = false;
+                        }
+                    }
                     for (int i = 0; i < spellList.Count; i++)
                     {
                         if (spellList[i].spellInput == stateSpecificArg &&
@@ -1223,7 +1240,6 @@ public class PlayerController : MonoBehaviour
             {
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
-
         }
         UpdateResources();
 
@@ -1835,7 +1851,44 @@ public class PlayerController : MonoBehaviour
         //update flow state
         if (flowState > 0)
         {
+            //play the flow state aura visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 200f);
+
             flowState--;
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
+        }
+
+        if(demonAura > 0)
+        {
+            //play the demon aura visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 200f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pID);
+        }
+
+        if (stockStability > 0)
+        {
+            //play the stock aura visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 200f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
+        }
+
+        if (reps > 0)
+        {
+            //play the reps visual effect 
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position, pID, true, null, (float)reps * 20f);
+        }
+        else
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pID);
         }
     }
 

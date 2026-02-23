@@ -173,36 +173,36 @@ public class OnboardManager : MonoBehaviour
             }
 
             //activate the floppy disk & let player get starting spell
-            if (p1_atkComplete && gM.players[0].chosenStartingSpell == false)
+            if (p1_atkComplete && gM.players[0].spellList.Count == 0)
             {
                 p1_atkGraphic.enabled = false;
                 p1_atkTxt.enabled = false;
 
-                p1_floppyInfo.diskName = gM.players[0].startingSpell;
-                gM.p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_floppyInfo.diskName].shopSprite;
+                //p1_floppyInfo.diskName = gM.players[0].startingSpell;
+                //gM.p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_floppyInfo.diskName].shopSprite;
                 p1_floppy.SetActive(true);
 
                 //if colliding and is player 1
-                if (p1_floppyInfo.colliding) 
-                {
-                    if (p1_floppyInfo.CheckPlayerCollision().pID == 1)
-                    {
-                        gM.p1_spellCard.enabled = true;
-                        p1_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
-                        {
-                            gM.players[0].AddSpellToSpellList(p1_floppyInfo.diskName); //Change this when starting spells are proper
-                            p1_floppy.SetActive(false);
-                            gM.p1_spellCard.enabled = false;
-                            p1_spellSlctGraphic.enabled = false;
-                            gM.players[0].chosenStartingSpell = true;
-                        }
-                    }
-                }
-                else { gM.p1_spellCard.enabled = false; p1_spellSlctGraphic.enabled = false; }
+                //if (p1_floppyInfo.colliding) 
+                //{
+                //    if (p1_floppyInfo.CheckPlayerCollision().pID == 1)
+                //    {
+                //        gM.p1_spellCard.enabled = true;
+                //        p1_spellSlctGraphic.enabled = true;
+                //        if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
+                //        {
+                //            gM.players[0].AddSpellToSpellList(p1_floppyInfo.diskName); //Change this when starting spells are proper
+                //            p1_floppy.SetActive(false);
+                //            gM.p1_spellCard.enabled = false;
+                //            p1_spellSlctGraphic.enabled = false;
+                //            gM.players[0].chosenStartingSpell = true;
+                //        }
+                //    }
+                //}
+                //else { gM.p1_spellCard.enabled = false; p1_spellSlctGraphic.enabled = false; }
             }
             //hold atk and input code to break free
-            if (gM.players[0].chosenStartingSpell && !p1_glassBroken)
+            if (gM.players[0].spellList.Count>0 && !p1_glassBroken)
             {
                 p1_castTxt.enabled = true;
                 p1_castGraphic.enabled = true;
@@ -274,36 +274,36 @@ public class OnboardManager : MonoBehaviour
             }
 
             //activate the floppy disk & let player get starting spell
-            if (p2_atkComplete && gM.players[1].chosenStartingSpell == false)
+            if (p2_atkComplete && gM.players[1].spellList.Count == 0)
             {
                 p2_atkGraphic.enabled = false;
                 p2_atkTxt.enabled = false;
 
-                p2_floppyInfo.diskName = gM.players[1].startingSpell;
-                gM.p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_floppyInfo.diskName].shopSprite;
+                //p2_floppyInfo.diskName = gM.players[1].startingSpell;
+                //gM.p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_floppyInfo.diskName].shopSprite;
                 p2_floppy.SetActive(true);
 
                 //if colliding and is player 2
-                if (p2_floppyInfo.colliding)
-                {
-                    if (p2_floppyInfo.CheckPlayerCollision().pID == 2)
-                    {
-                        gM.p2_spellCard.enabled = true;
-                        p2_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
-                        {
-                            gM.players[1].AddSpellToSpellList(p2_floppyInfo.diskName);
-                            p2_floppy.SetActive(false);
-                            gM.p2_spellCard.enabled = false;
-                            p2_spellSlctGraphic.enabled = false;
-                            gM.players[1].chosenStartingSpell = true;
-                        }
-                    }
-                }
-                else { gM.p2_spellCard.enabled = false; p2_spellSlctGraphic.enabled = false; }
+                //if (p2_floppyInfo.colliding)
+                //{
+                //    if (p2_floppyInfo.CheckPlayerCollision().pID == 2)
+                //    {
+                //        gM.p2_spellCard.enabled = true;
+                //        p2_spellSlctGraphic.enabled = true;
+                //        if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
+                //        {
+                //            gM.players[1].AddSpellToSpellList(p2_floppyInfo.diskName);
+                //            p2_floppy.SetActive(false);
+                //            gM.p2_spellCard.enabled = false;
+                //            p2_spellSlctGraphic.enabled = false;
+                //            gM.players[1].chosenStartingSpell = true;
+                //        }
+                //    }
+                //}
+                //else { gM.p2_spellCard.enabled = false; p2_spellSlctGraphic.enabled = false; }
             }
             //hold atk and input code to break free
-            if (gM.players[1].chosenStartingSpell && !p2_glassBroken)
+            if (gM.players[1].spellList.Count > 0 && !p2_glassBroken)
             {
                 p2_moveTxt.text = "Hold";
                 p2_moveTxt.color = Color.white;
@@ -378,36 +378,36 @@ public class OnboardManager : MonoBehaviour
             }
 
             //activate the floppy disk & let player get starting spell
-            if (p3_atkComplete && gM.players[2].chosenStartingSpell == false)
+            if (p3_atkComplete && gM.players[2].spellList.Count == 0)
             {
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
-                p3_floppyInfo.diskName = gM.players[2].startingSpell;
-                gM.p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_floppyInfo.diskName].shopSprite;
+                //p3_floppyInfo.diskName = gM.players[2].startingSpell;
+                //gM.p3_spellCard.sprite = SpellDictionary.Instance.spellDict[p3_floppyInfo.diskName].shopSprite;
                 p3_floppy.SetActive(true);
 
                 //if colliding and is player 3
-                if (p3_floppyInfo.colliding)
-                {
-                    if (p3_floppyInfo.CheckPlayerCollision().pID == 3)
-                    {
-                        gM.p3_spellCard.enabled = true;
-                        p3_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
-                        {
-                            gM.players[2].AddSpellToSpellList(p3_floppyInfo.diskName);
-                            p3_floppy.SetActive(false);
-                            gM.p3_spellCard.enabled = false;
-                            p3_spellSlctGraphic.enabled = false;
-                            gM.players[2].chosenStartingSpell = true;
-                        }
-                    }
-                }
-                else { gM.p3_spellCard.enabled = false; p3_spellSlctGraphic.enabled = false; }
+                //if (p3_floppyInfo.colliding)
+                //{
+                //    if (p3_floppyInfo.CheckPlayerCollision().pID == 3)
+                //    {
+                //        gM.p3_spellCard.enabled = true;
+                //        p3_spellSlctGraphic.enabled = true;
+                //        if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
+                //        {
+                //            gM.players[2].AddSpellToSpellList(p3_floppyInfo.diskName);
+                //            p3_floppy.SetActive(false);
+                //            gM.p3_spellCard.enabled = false;
+                //            p3_spellSlctGraphic.enabled = false;
+                //            gM.players[2].chosenStartingSpell = true;
+                //        }
+                //    }
+                //}
+                //else { gM.p3_spellCard.enabled = false; p3_spellSlctGraphic.enabled = false; }
             }
             //hold atk and input code to break free
-            if (gM.players[2].chosenStartingSpell && !p3_glassBroken)
+            if (gM.players[2].spellList.Count > 0 && !p3_glassBroken)
             {
                 p3_moveTxt.text = "Hold";
                 p3_moveTxt.color = Color.white;
@@ -482,36 +482,36 @@ public class OnboardManager : MonoBehaviour
             }
 
             //activate the floppy disk & let player get starting spell
-            if (p4_atkComplete && gM.players[3].chosenStartingSpell == false)
+            if (p4_atkComplete && gM.players[3].spellList.Count == 0)
             {
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
 
-                p4_floppyInfo.diskName = gM.players[3].startingSpell;
-                gM.p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_floppyInfo.diskName].shopSprite;
+                //p4_floppyInfo.diskName = gM.players[3].startingSpell;
+                //gM.p4_spellCard.sprite = SpellDictionary.Instance.spellDict[p4_floppyInfo.diskName].shopSprite;
                 p4_floppy.SetActive(true);
 
                 //if colliding and is player 4
-                if (p4_floppyInfo.colliding)
-                {
-                    if (p4_floppyInfo.CheckPlayerCollision().pID == 4)
-                    {
-                        gM.p4_spellCard.enabled = true;
-                        p4_spellSlctGraphic.enabled = true;
-                        if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
-                        {
-                            gM.players[3].AddSpellToSpellList(p4_floppyInfo.diskName);
-                            p4_floppy.SetActive(false);
-                            gM.p4_spellCard.enabled = false;
-                            p4_spellSlctGraphic.enabled = false;
-                            gM.players[3].chosenStartingSpell = true;
-                        }
-                    }
-                }
-                else { gM.p4_spellCard.enabled = false; p4_spellSlctGraphic.enabled = false; }
+                //if (p4_floppyInfo.colliding)
+                //{
+                //    if (p4_floppyInfo.CheckPlayerCollision().pID == 4)
+                //    {
+                //        gM.p4_spellCard.enabled = true;
+                //        p4_spellSlctGraphic.enabled = true;
+                //        if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
+                //        {
+                //            gM.players[3].AddSpellToSpellList(p4_floppyInfo.diskName);
+                //            p4_floppy.SetActive(false);
+                //            gM.p4_spellCard.enabled = false;
+                //            p4_spellSlctGraphic.enabled = false;
+                //            gM.players[3].chosenStartingSpell = true;
+                //        }
+                //    }
+                //}
+                //else { gM.p4_spellCard.enabled = false; p4_spellSlctGraphic.enabled = false; }
             }
             //hold atk and input code to break free
-            if (gM.players[3].chosenStartingSpell && !p4_glassBroken)
+            if (gM.players[3].spellList.Count > 0 && !p4_glassBroken)
             {
                 p4_moveTxt.text = "Hold";
                 p4_moveTxt.color = Color.white;

@@ -21,29 +21,68 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     //Bounds diskBounds;
     public string diskName;
     public Image shopSprite;
+    public SpellFloppyDisplay diskDisplay;
     public PlayerController overlappingPlayer = null;
 
     public bool colliding;
 
     public float colliderRadius = 16f;
 
+    private byte selectHoldCounter = 0;
+
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         GameManager.Instance.FindAllFloppyDisks();
+        diskDisplay.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay(diskName);
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (CheckPlayerCollision() != null)
+        colliding = (CheckPlayerCollision() != null);
+
+
+        if (colliding)
         {
-            //Do yo thing Billay
-            Debug.Log("Player overlapping floppy disk: " + diskName);
-            colliding = true;
+            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+
+            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+
+            if (overlappingPlayer != null)
+            {
+                if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
+                {
+                    selectHoldCounter++;
+                }
+                else
+                {
+                    selectHoldCounter = 0;
+                }
+
+                if (selectHoldCounter >= 60)
+                {
+                    overlappingPlayer.AddSpellToSpellList(diskName);
+                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                    //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                    Destroy(gameObject);
+                }
+            }
+            else
+            {
+                selectHoldCounter = 0;
+            }
+
+            
         }
-        else { colliding = false; }
+        else
+        {
+            selectHoldCounter = 0;
+            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;    
+        }
+        diskDisplay.selectFill.fillAmount = selectHoldCounter / 60f;
     }
 
     public PlayerController CheckPlayerCollision()
@@ -72,7 +111,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 return player;
             }
         }
-
+        overlappingPlayer = null;
         return null;
     }
 }

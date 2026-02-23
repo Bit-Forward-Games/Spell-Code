@@ -51,6 +51,7 @@ MonoBehaviour:
   diskAnimator: {fileID: -8571608057649326459}
   diskName: 
   shopSprite: {fileID: 0}
+  diskDisplay: {fileID: 6056028922573376659}
   overlappingPlayer: {fileID: 0}
   colliding: 0
   colliderRadius: 16
@@ -185,6 +186,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6422342937780030392}
     m_Modifications:
+    - target: {fileID: 417397517895827111, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7563302009229309308, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -239,3 +244,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7563302009229309308, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
   m_PrefabInstance: {fileID: 7591637402458331576}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6056028922573376659 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4418523569947104555, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
+  m_PrefabInstance: {fileID: 7591637402458331576}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe3dde35a6acb1149a9214990646e859, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

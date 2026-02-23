@@ -571,9 +571,14 @@ public class GameManager : MonoBehaviour
             onlineMenuUI.SetActive(false);
         }
 
-        if (onboardManager != null)
+        if (onboardManager == null)
         {
-            onboardManager.gameObject.SetActive(false);
+            onboardManager = FindAnyObjectByType<OnboardManager>(); // finds only active by default
+        }
+
+        if (onboardManager != null && onboardManager.gameObject.activeInHierarchy)
+        {
+            onboardManager.OnboardUpdate(syncedInput);
         }
 
         // Double-check we're in the right state

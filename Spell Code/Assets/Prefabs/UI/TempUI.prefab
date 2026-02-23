@@ -1094,7 +1094,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 1
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -2437,7 +2437,11 @@ MonoBehaviour:
   - {fileID: 8637250366549117565}
   cooldownBars: []
   spellDisplayIndex: 3
-  tempPlayerIndex: 0
+  cooldownFlashRect: []
+  startSize: {x: 200, y: 200}
+  minSize: {x: 50, y: 50}
+  duration: 2
+  cooldownFlashAppeared: 0
 --- !u!1 &788913475943425284
 GameObject:
   m_ObjectHideFlags: 0
@@ -2541,7 +2545,11 @@ MonoBehaviour:
   - {fileID: 2034030025662806477}
   cooldownBars: []
   spellDisplayIndex: 4
-  tempPlayerIndex: 0
+  cooldownFlashRect: []
+  startSize: {x: 200, y: 200}
+  minSize: {x: 50, y: 50}
+  duration: 2
+  cooldownFlashAppeared: 0
 --- !u!1 &835553574515021401
 GameObject:
   m_ObjectHideFlags: 0
@@ -7544,7 +7552,12 @@ MonoBehaviour:
   - {fileID: 7035538078469954453}
   - {fileID: 6985159699058640045}
   spellDisplayIndex: 1
-  tempPlayerIndex: 0
+  cooldownFlashRect:
+  - {fileID: 8529898273837930460}
+  startSize: {x: 120, y: 31}
+  minSize: {x: 101, y: 26}
+  duration: 0.2
+  cooldownFlashAppeared: 0
 --- !u!1 &2222563335430063971
 GameObject:
   m_ObjectHideFlags: 0
@@ -15138,7 +15151,11 @@ MonoBehaviour:
   - {fileID: 21073910835916409}
   cooldownBars: []
   spellDisplayIndex: 2
-  tempPlayerIndex: 0
+  cooldownFlashRect: []
+  startSize: {x: 200, y: 200}
+  minSize: {x: 50, y: 50}
+  duration: 2
+  cooldownFlashAppeared: 0
 --- !u!1 &3984237710216899581
 GameObject:
   m_ObjectHideFlags: 0

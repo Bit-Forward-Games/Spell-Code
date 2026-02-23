@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Collections;
 using System.Linq;
 
 public class TempSpellDisplay : MonoBehaviour
@@ -19,12 +20,11 @@ public class TempSpellDisplay : MonoBehaviour
     public List<ParticleSystem> spellReadyEffect = new List<ParticleSystem>();
     public List<GameObject> cooldownBars = new List<GameObject>();
     public int spellDisplayIndex;
-    public int tempPlayerIndex;
 
     // Cooldown bar flash
     public RectTransform[] cooldownFlashRect;
-    public Vector2 startSize = new Vector2(200f, 200f);
-    public Vector2 minSize = new Vector2(50f, 50f);
+    public Vector2 startSize = new Vector2(120, 30);
+    public Vector2 minSize = new Vector2(101, 26);
     public float duration = 2f;
     public bool cooldownFlashAppeared;
 
@@ -132,9 +132,10 @@ public class TempSpellDisplay : MonoBehaviour
         }
     }
 
-    IEnumerator CoolDownFlashAppear(int i)
+    public IEnumerator CoolDownFlashAppear(int i)
     {
         float elapsed = 0f;
+        cooldownFlashRect[i].gameObject.SetActive(false);
         cooldownFlashRect[i].sizeDelta = startSize;
 
         while (elapsed < duration)
@@ -171,6 +172,7 @@ public class TempSpellDisplay : MonoBehaviour
             {
                 spellReadyIcons[i].enabled = false;
                 spellReadyEffect[i].Stop();
+                cooldownFlashRect[i].gameObject.SetActive(false);
             }
             else if (cooldownFills[i].fillAmount >= 1)
             {

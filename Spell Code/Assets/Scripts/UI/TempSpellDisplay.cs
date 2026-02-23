@@ -21,6 +21,13 @@ public class TempSpellDisplay : MonoBehaviour
     public int spellDisplayIndex;
     public int tempPlayerIndex;
 
+    // Cooldown bar flash
+    public RectTransform[] cooldownFlashRect;
+    public Vector2 startSize = new Vector2(200f, 200f);
+    public Vector2 minSize = new Vector2(50f, 50f);
+    public float duration = 2f;
+    public bool cooldownFlashAppeared;
+
     public void Start()
     {
         uiScript = FindParentByNameContains(gameObject.transform, "TempUI").GetComponent<TempUIScript>();
@@ -125,33 +132,56 @@ public class TempSpellDisplay : MonoBehaviour
         }
     }
 
+    IEnumerator CoolDownFlashAppear(int i)
+    {
+        float elapsed = 0f;
+        cooldownFlashRect[i].sizeDelta = startSize;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            cooldownFlashRect[i].sizeDelta = Vector2.Lerp(startSize, minSize, t);
+            yield return null;
+        }
+
+        cooldownFlashRect[i].sizeDelta = minSize;
+    }
+
     public void UpdateCooldownDisplay(int playerIndex)
     {
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;
 
-
         for (int i = 0; i < spellSlots.Count; i++)
         {
-            if (i < playerSpells.Count)
-            {
-                cooldownFills[i].fillAmount = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
-
-                cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
-
-                if (cooldownFills[i].fillAmount < 1)
-                {
-                    spellReadyIcons[i].enabled = false;
-                    spellReadyEffect[i].Stop();
-                }
-                else if (cooldownFills[i].fillAmount >= 1)
-                {
-                    spellReadyIcons[i].enabled = true;
-                    spellReadyEffect[i].Play();
-                }
-            }
-            else
+            if (i >= playerSpells.Count)
             {
                 cooldownFills[i].fillAmount = 0f;
+                continue;
+            }
+
+            Color tempColor = cooldownFills[i].color;
+            tempColor.a = cooldownFills[i].fillAmount >= 1f ? 1.0f : 0.2f;
+            cooldownFills[i].color = tempColor;
+
+            cooldownFills[i].fillAmount = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
+            cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
+
+            if (cooldownFills[i].fillAmount < 1)
+            {
+                spellReadyIcons[i].enabled = false;
+                spellReadyEffect[i].Stop();
+            }
+            else if (cooldownFills[i].fillAmount >= 1)
+            {
+                spellReadyIcons[i].enabled = true;
+                spellReadyEffect[i].Play();
+
+                if (!cooldownFlashAppeared)
+                {
+                    cooldownFlashAppeared = true;
+                    StartCoroutine(CoolDownFlashAppear(i));
+                }
             }
         }
     }

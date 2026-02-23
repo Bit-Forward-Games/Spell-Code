@@ -380,6 +380,8 @@ public class GameManager : MonoBehaviour
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
+        onboardManager = null;
+
         //Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
         {
@@ -853,10 +855,10 @@ public class GameManager : MonoBehaviour
             //HandleOnlineSpellSelection();
 
             if (onboardManager == null)
-            {
-                onboardManager = FindAnyObjectByType<OnboardManager>();
-            }
-            onboardManager.OnboardUpdate(syncedInput);
+                onboardManager = FindFirstObjectByType<OnboardManager>(); // only finds active objects
+
+            if (onboardManager != null && !rbManager.isRollbackFrame)
+                onboardManager.OnboardUpdate(syncedInput);
 
             // Check gates and door - same logic as offline
             goDoorPrefab.CheckOpenDoor();

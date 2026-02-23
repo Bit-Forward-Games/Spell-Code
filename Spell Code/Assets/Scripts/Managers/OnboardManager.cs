@@ -215,7 +215,7 @@ public class OnboardManager : MonoBehaviour
                 else
                 {
                     p1_castTxt.text = "Hold";
-                    p1_castGraphic.sprite = 
+                    p1_castGraphic.sprite = atkGraphic;
                 }
 
                 if (gM.players[0].spellsFired > 0)
@@ -226,8 +226,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p1_glassBroken)
             {
-                p1_moveTxt.color = Color.green;
-                p1_jumpTxt.color = Color.green;
+                p1_castTxt.color = Color.green;
             }
         }
 
@@ -305,21 +304,18 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[1].spellList.Count > 0 && !p2_glassBroken)
             {
-                p2_moveTxt.text = "Hold";
-                p2_moveTxt.color = Color.white;
-                p2_jumpTxt.text = "Input";
-                p2_jumpTxt.color = Color.white;
-                p2_moveGraphic.sprite = p2_atkGraphic.sprite;
-                p2_jumpGraphic.sprite = inputGraphic;
-
-                p2_moveTxt.enabled = true;
-                p2_jumpTxt.enabled = true;
-                p2_moveGraphic.enabled = true;
-                p2_jumpGraphic.enabled = true;
+                p2_castTxt.enabled = true;
+                p2_castGraphic.enabled = true;
 
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                 {
-                    p2_moveTxt.color = Color.green;
+                    p2_castGraphic.sprite = inputGraphic;
+                    p2_castTxt.text = "Input";
+                }
+                else
+                {
+                    p2_castTxt.text = "Hold";
+                    p2_castGraphic.sprite = atkGraphic;
                 }
 
                 if (gM.players[1].spellsFired > 0)
@@ -330,8 +326,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p2_glassBroken)
             {
-                p2_moveTxt.color = Color.green;
-                p2_jumpTxt.color = Color.green;
+                p2_castTxt.color = Color.green;
             }
         }
 
@@ -409,21 +404,18 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[2].spellList.Count > 0 && !p3_glassBroken)
             {
-                p3_moveTxt.text = "Hold";
-                p3_moveTxt.color = Color.white;
-                p3_jumpTxt.text = "Input";
-                p3_jumpTxt.color = Color.white;
-                p3_moveGraphic.sprite = p3_atkGraphic.sprite;
-                p3_jumpGraphic.sprite = inputGraphic;
-
-                p3_moveTxt.enabled = true;
-                p3_jumpTxt.enabled = true;
-                p3_moveGraphic.enabled = true;
-                p3_jumpGraphic.enabled = true;
+                p3_castTxt.enabled = true;
+                p3_castGraphic.enabled = true;
 
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                 {
-                    p3_moveTxt.color = Color.green;
+                    p3_castGraphic.sprite = inputGraphic;
+                    p3_castTxt.text = "Input";
+                }
+                else
+                {
+                    p3_castTxt.text = "Hold";
+                    p3_castGraphic.sprite = atkGraphic;
                 }
 
                 if (gM.players[2].spellsFired > 0)
@@ -432,10 +424,9 @@ public class OnboardManager : MonoBehaviour
                 }
             }
 
-            if (p3_glassBroken)
+            if (p1_glassBroken)
             {
-                p3_moveTxt.color = Color.green;
-                p3_jumpTxt.color = Color.green;
+                p3_castTxt.color = Color.green;
             }
         }
 
@@ -513,21 +504,18 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[3].spellList.Count > 0 && !p4_glassBroken)
             {
-                p4_moveTxt.text = "Hold";
-                p4_moveTxt.color = Color.white;
-                p4_jumpTxt.text = "Input";
-                p4_jumpTxt.color = Color.white;
-                p4_moveGraphic.sprite = p4_atkGraphic.sprite;
-                p4_jumpGraphic.sprite = inputGraphic;
-
-                p4_moveTxt.enabled = true;
-                p4_jumpTxt.enabled = true;
-                p4_moveGraphic.enabled = true;
-                p4_jumpGraphic.enabled = true;
+                p4_castTxt.enabled = true;
+                p4_castGraphic.enabled = true;
 
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                 {
-                    p4_moveTxt.color = Color.green;
+                    p4_castGraphic.sprite = inputGraphic;
+                    p4_castTxt.text = "Input";
+                }
+                else
+                {
+                    p4_castTxt.text = "Hold";
+                    p4_castGraphic.sprite = atkGraphic;
                 }
 
                 if (gM.players[3].spellsFired > 0)
@@ -538,8 +526,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p4_glassBroken)
             {
-                p4_moveTxt.color = Color.green;
-                p4_jumpTxt.color = Color.green;
+                p4_castTxt.color = Color.green;
             }
         }
     }

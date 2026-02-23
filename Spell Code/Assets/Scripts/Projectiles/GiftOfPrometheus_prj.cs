@@ -14,7 +14,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         projName = "GiftOfPrometheus";
         lifeSpan = 300; // lasts for 120 logic frames
         deleteOnHit = false;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -27,7 +27,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
     {
 
         deleteOnHit = false;
-        projectileHitboxes = new HitboxGroup[2];
+        projectileHitboxes = new HitboxGroup[3];
 
         projectileHitboxes[0] = new HitboxGroup
         {
@@ -48,9 +48,31 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
                     height = 128,
                     xKnockback = 5,
                     yKnockback = 15,
-                    damage = 20,
+                    damage = 30,
                     hitstun = 30,
-                    attackLvl = 2,
+                    attackLvl = 3,
+                    //cancelOptions = new List<int> { } // No cancel options
+                }
+            },
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[2] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -96,
+                    yOffset = 96,
+                    width = 96*2,
+                    height = 96*2,
+                    xKnockback = 5,
+                    yKnockback = 15,
+                    damage = 30,
+                    hitstun = 30,
+                    attackLvl = 3,
                     //cancelOptions = new List<int> { } // No cancel options
                 }
             },
@@ -67,13 +89,21 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(16).Sum() + 1)
+        if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
         {
             hSpeed = Fixed.FromInt(0);
         }
-        if (logicFrame >= animFrames.frameLengths.Take(19).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(23).Sum())
+        if (logicFrame >= animFrames.frameLengths.Take(11).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(12).Sum())
         {
             activeHitboxGroupIndex = 1;
+        }
+        else if (logicFrame >= animFrames.frameLengths.Take(12).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(16).Sum())
+        {
+            activeHitboxGroupIndex = 2;
+        }
+        else
+        {
+            activeHitboxGroupIndex = 0;
         }
         if (logicFrame >= animFrames.frameLengths.Sum())
         {

@@ -265,7 +265,7 @@ GameObject:
   - component: {fileID: 3007533508063906361}
   - component: {fileID: 4983569709763771326}
   - component: {fileID: 8759932525811072817}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Spell_Inputs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -332,8 +332,8 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1090599107
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &8759932525811072817
@@ -383,13 +383,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 86.6
-  m_fontSizeBase: 86.6
+  m_fontSize: 96
+  m_fontSizeBase: 96
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -441,7 +441,7 @@ GameObject:
   - component: {fileID: 6316090297524934411}
   - component: {fileID: 742603392473583563}
   - component: {fileID: 3800171966472687191}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: PlayerID
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -508,8 +508,8 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1090599107
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &3800171966472687191
@@ -677,8 +677,12 @@ MonoBehaviour:
   demonAuraLifeSpanTimer: 0
   reps: 0
   matchPalette:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 2800000, guid: 39033ccd28eb3ad4b8c181f5592e4bb7, type: 3}
+  - {fileID: 2800000, guid: bbcd8e41188b2474e9561b4ae266fd56, type: 3}
+  - {fileID: 2800000, guid: f1c116e4c9e2bba438c0dcbc725a4aa8, type: 3}
+  - {fileID: 2800000, guid: a497862143932ef40b80d2e7bfc2159c, type: 3}
+  secretEpicPalette: {fileID: 2800000, guid: 89351bb7c23086143aa9af4dd52f4a4e, type: 3}
+  secretNormalPalette: {fileID: 2800000, guid: 0c90348273f52834e837604d57f76e1b, type: 3}
   currentPlayerHealth: 0
   hitboxData:
     xOffset: 0
@@ -700,6 +704,7 @@ MonoBehaviour:
   hitstop: 0
   hitstopActive: 0
   hitstunOverride: 0
+  lightArmor: 0
   spellList: []
   basicProjectileInstance: {fileID: 0}
   inputDisplay: {fileID: 8759932525811072817}
@@ -709,11 +714,13 @@ MonoBehaviour:
   spellsFired: 0
   basicsFired: 0
   spellsHit: 0
+  basicSpawnOverride: 0
   roundsWon: 0
   chosenSpell: 0
   chosenStartingSpell: 0
   isSpawned: 0
   startingSpell: 
+  pID: 0
   vWave: 0
   killeez: 0
   DemonX: 0
@@ -741,7 +748,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 3ee7a8d5763f39649a822c87a03037fc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -760,7 +767,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

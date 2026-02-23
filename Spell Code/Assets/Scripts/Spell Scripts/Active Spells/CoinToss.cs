@@ -46,6 +46,7 @@ public class CoinToss : SpellData
 
     public override void LoadSpell()
     {
+        base.LoadSpell();
         owner.stockStability += 15;
         doesCrit = false;
     }

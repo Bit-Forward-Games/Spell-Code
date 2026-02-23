@@ -103,64 +103,64 @@ MonoBehaviour:
   m_GlyphTable:
   - m_Index: 0
     m_Metrics:
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
       m_HorizontalBearingX: -0
-      m_HorizontalBearingY: 85
-      m_HorizontalAdvance: 85
+      m_HorizontalBearingY: 48
+      m_HorizontalAdvance: 48
     m_GlyphRect:
       m_X: 0
       m_Y: 0
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 7682775282628432987, guid: 0a7795b7cf4c0b04996dc4699160e2cc, type: 3}
   - m_Index: 1
     m_Metrics:
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
       m_HorizontalBearingX: -0
-      m_HorizontalBearingY: 85
-      m_HorizontalAdvance: 85
+      m_HorizontalBearingY: 48
+      m_HorizontalAdvance: 48
     m_GlyphRect:
-      m_X: 85
+      m_X: 48
       m_Y: 0
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: -5614905376672287769, guid: 0a7795b7cf4c0b04996dc4699160e2cc, type: 3}
   - m_Index: 2
     m_Metrics:
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
       m_HorizontalBearingX: -0
-      m_HorizontalBearingY: 85
-      m_HorizontalAdvance: 85
+      m_HorizontalBearingY: 48
+      m_HorizontalAdvance: 48
     m_GlyphRect:
-      m_X: 170
+      m_X: 96
       m_Y: 0
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 8015265116165982136, guid: 0a7795b7cf4c0b04996dc4699160e2cc, type: 3}
   - m_Index: 3
     m_Metrics:
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
       m_HorizontalBearingX: -0
-      m_HorizontalBearingY: 85
-      m_HorizontalAdvance: 85
+      m_HorizontalBearingY: 48
+      m_HorizontalAdvance: 48
     m_GlyphRect:
-      m_X: 255
+      m_X: 144
       m_Y: 0
-      m_Width: 85
-      m_Height: 85
+      m_Width: 48
+      m_Height: 48
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0

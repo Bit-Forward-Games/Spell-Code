@@ -106,7 +106,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 82, y: 96}
+  m_Size: {x: 32, y: 128}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -147,3 +147,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isOpen: 0
   gateAnimator: {fileID: 2193675128947869329}
+  ownerPID: 0

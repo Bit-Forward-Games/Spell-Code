@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: BigSewers_ArenaStageDataSO
+  m_EditorClassIdentifier: 
+  platformCenter:
+  - {x: 200, y: 156}
+  - {x: -152, y: 156}
+  - {x: -336, y: 156}
+  - {x: 336, y: 92}
+  - {x: 0, y: 92}
+  - {x: -336, y: 92}
+  - {x: 336, y: -4}
+  - {x: 240, y: -20}
+  - {x: 96, y: -20}
+  - {x: -176, y: -4}
+  - {x: -336, y: -4}
+  - {x: 336, y: -100}
+  - {x: 168, y: -100}
+  - {x: 0, y: -100}
+  - {x: -304, y: -100}
+  platformExtent:
+  - {x: 72.000885, y: 4}
+  - {x: 40.000492, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 40.000492, y: 4}
+  - {x: 32.000397, y: 4}
+  - {x: 63.998405, y: 4}
+  solidCenter:
+  - {x: 112, y: 192}
+  - {x: 288, y: 16}
+  - {x: 168, y: 80}
+  - {x: 48, y: 40}
+  - {x: -48, y: 40}
+  - {x: -168, y: 80}
+  - {x: 256, y: -112}
+  - {x: 80, y: -112}
+  - {x: -136, y: -112}
+  - {x: -224, y: -64}
+  - {x: -256, y: -16}
+  - {x: 384, y: 16}
+  - {x: 0, y: 240}
+  - {x: 0, y: -208}
+  - {x: -384, y: 16}
+  solidExtent:
+  - {x: 15.993599, y: 32.002075}
+  - {x: 15.993591, y: 48.000725}
+  - {x: 136, y: 16.00064}
+  - {x: 16, y: 24.00048}
+  - {x: 16, y: 24}
+  - {x: 136, y: 16}
+  - {x: 48, y: 16}
+  - {x: 48, y: 16}
+  - {x: 104, y: 16}
+  - {x: 16, y: 32}
+  - {x: 48, y: 16}
+  - {x: 16, y: 239.9936}
+  - {x: 373.97403, y: 16}
+  - {x: 373.97403, y: 16}
+  - {x: 16, y: 239.9936}
+  playerSpawnTransform:
+  - {x: -336, y: 97, z: 0}
+  - {x: 336, y: 97, z: 0}
+  - {x: -336, y: -191, z: 0}
+  - {x: 336, y: -191, z: 0}
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: -500, y: -208, z: 0}
+  borderMax: {x: 486, y: 240, z: 0}
+  borderType: 0

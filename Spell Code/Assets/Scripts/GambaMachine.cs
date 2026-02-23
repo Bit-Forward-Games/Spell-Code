@@ -20,6 +20,7 @@ public class GambaMachine : MonoBehaviour
     public Animator gambaAnimator;
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
+    public int ownerPID;
 
     public HurtboxData hurtbox = new HurtboxData();
     public float colliderRadius = 16f;
@@ -35,6 +36,7 @@ public class GambaMachine : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (ownerPlayer == null) { ownerPlayer = GameManager.Instance.players[ownerPID - 1]; }
         if(CheckHitboxCollision())
         {
             Debug.Log("Hitbox collision detected!");

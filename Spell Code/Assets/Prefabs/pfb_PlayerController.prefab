@@ -682,6 +682,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: f1c116e4c9e2bba438c0dcbc725a4aa8, type: 3}
   - {fileID: 2800000, guid: a497862143932ef40b80d2e7bfc2159c, type: 3}
   secretEpicPalette: {fileID: 2800000, guid: 89351bb7c23086143aa9af4dd52f4a4e, type: 3}
+  secretNormalPalette: {fileID: 2800000, guid: 0c90348273f52834e837604d57f76e1b, type: 3}
   currentPlayerHealth: 0
   hitboxData:
     xOffset: 0

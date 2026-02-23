@@ -32,6 +32,8 @@ public class OnboardManager : MonoBehaviour
     public SpellCode_FloppyDisk p1_floppyInfo;
     public GameObject p1_floppy;
 
+    public GambaMachine p1_gamba;
+
     [Header("Player 2")]
     public bool p2_joined = false;
     public bool p2_moveComplete = false;
@@ -168,6 +170,7 @@ public class OnboardManager : MonoBehaviour
 
                 p1_atkGraphic.enabled = true;
                 p1_atkTxt.enabled = true;
+                p1_gamba.gambaAnimator.SetBool("isActive", true);
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Pressed) { p1_atkComplete = true; p1_atkTxt.color = Color.green; Debug.Log("Atk Onboard Complete"); }
             }

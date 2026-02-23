@@ -101,6 +101,9 @@ public abstract class SpellData : MonoBehaviour
     [HideInInspector]
     public List<GameObject> projectileInstances;
 
+    
+    [HideInInspector]
+    public GameObject floppyDisplayInstance;
     public Sprite shopSprite;
     public Sprite readyIcon;
     public Sprite notReadyIcon;

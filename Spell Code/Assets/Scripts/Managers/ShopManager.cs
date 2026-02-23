@@ -15,7 +15,6 @@ public class ShopManager : MonoBehaviour
     public Canvas shop;
     private GameManager gameManager;
 
-    
 
     private bool allPlayersChosen = false;
     private bool backToGameplay = false;

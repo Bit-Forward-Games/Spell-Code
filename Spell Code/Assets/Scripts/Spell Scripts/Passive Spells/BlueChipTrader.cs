@@ -20,6 +20,7 @@ public class BlueChipTrader : SpellData
 
     public override void LoadSpell()
     {
+        base.LoadSpell();
         storedStockStability = 0;
     }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)

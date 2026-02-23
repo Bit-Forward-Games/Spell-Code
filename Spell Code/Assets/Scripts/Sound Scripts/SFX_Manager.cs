@@ -8,7 +8,7 @@ using UnityEngine.Audio;
 
 public enum Sounds //enum to store the names of the sounds that can play
 { 
-    JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE_UP, INPUT_CODE_RIGHT, INPUT_CODE_DOWN, INPUT_CODE_LEFT
+    JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -25,7 +25,6 @@ public class SFX_Manager : MonoBehaviour
     {
         public Sounds soundName; //name of the sound
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
-        public AudioClip secretVersionOfSound; //secret version of the sound to play
         [HideInInspector] public bool[] playersWhoAreRepeatedlyPlaying = new bool[4]; //boolean array to record whether or not this sound is repeatedly playing for each of the 4 players
     }
 
@@ -57,12 +56,8 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_nameOfSoundToPlay"> Sound to be played by the SFX Handler</param>
     /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
-    /// <param name="_chanceToPlaySecretVersion"> change (out of 1f) to play the secret version of the sound</param>
-    public void PlaySound(Sounds _nameOfSoundToPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
+    public void PlaySound(Sounds _nameOfSoundToPlay, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
-        //clamp _chanceToPlaySecretVersion between 0 and 1
-        _chanceToPlaySecretVersion = Mathf.Clamp01(_chanceToPlaySecretVersion);
-
         //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
         if (soundObjects.Find(x => x.soundName == _nameOfSoundToPlay) == null)
         {
@@ -88,23 +83,6 @@ public class SFX_Manager : MonoBehaviour
 
         //Randomize pitch between minPitchShift and maxPitchShift
         sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
-
-        //if this sound can play a secret version,...
-        if (_soundObject.secretVersionOfSound != null && _chanceToPlaySecretVersion <= 0.0f)
-        {
-            //do a random roll to see if the secret version will play
-            float _randomRoll = UnityEngine.Random.Range(0.0f, 1.0f);
-
-            //if the secret version can play, play it and return
-            if (_randomRoll <= _chanceToPlaySecretVersion)
-            {
-                //load and play the the secret version of sound with name equal to nameOfSoundToPlay
-                sfxAudioSource.PlayOneShot(_soundObject.secretVersionOfSound, sfxAudioSource.volume);
-
-                //return
-                return;
-            }
-        }
 
         //pick a random sound from _possibleSounds to play
         int _randomSoundIndex = UnityEngine.Random.Range(0, _soundObject.possibleSounds.Count);

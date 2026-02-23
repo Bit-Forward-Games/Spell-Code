@@ -5,6 +5,7 @@ using Unity.VisualScripting.Antlr3.Runtime;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using BestoNet.Types;
 using UnityEngine.VFX;
+using static UnityEngine.ParticleSystem;
 
 public enum VisualEffects
 {
@@ -48,7 +49,10 @@ public class VFX_Manager : MonoBehaviour
             //set instance to this instance of VFX_Manager
             Instance = this;
         }
+    }
 
+    private void Start()
+    {
         //instantiate all particle systems
         InstantiateAllParticleSystems();
     }
@@ -115,6 +119,14 @@ public class VFX_Manager : MonoBehaviour
     //Function to instantiate all particle systems relating to spells
     private void InstantiateSpellParticleSystems()
     {
+        //if there are no players,...
+        if (GameManager.Instance.playerCount == 0)
+        {
+            //return
+            return;
+        }
+
+
         //loop through each player
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {

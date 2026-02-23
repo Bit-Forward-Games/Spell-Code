@@ -1852,9 +1852,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            //BestoNet.Types.Vector2<Fixed32>.FromFloat(0f, 0f)
-            //this.gameObject.transform
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, Mathf.Clamp((flowState / maxFlowState), 0f, 1f) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 200f);
 
             flowState--;
         }
@@ -1866,7 +1864,7 @@ public class PlayerController : MonoBehaviour
         if(demonAura > 0)
         {
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, Mathf.Clamp((demonAura / maxDemonAura), 0f, 1f) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 200f);
         }
         else
         {
@@ -1876,7 +1874,7 @@ public class PlayerController : MonoBehaviour
         if (stockStability > 0)
         {
             //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp((stockStability / 100f), 0f, 1f) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 200f);
         }
         else
         {
@@ -1886,7 +1884,7 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position, pID, true, null, reps * 20f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position, pID, true, null, (float)reps * 20f);
         }
         else
         {

@@ -821,6 +821,7 @@ MonoBehaviour:
   p1_castGraphic: {fileID: 1552533681}
   p1_floppyInfo: {fileID: 192657014}
   p1_floppy: {fileID: 192657010}
+  p1_gamba: {fileID: 0}
   p2_joined: 0
   p2_moveComplete: 0
   p2_jumpComplete: 0

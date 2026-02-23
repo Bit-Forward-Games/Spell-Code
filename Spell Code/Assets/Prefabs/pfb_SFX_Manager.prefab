@@ -169,10 +169,6 @@ MonoBehaviour:
     - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
     - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000
-  - soundName: 8
-    possibleSounds:
-    - {fileID: 8300000, guid: ed7fd9856d0962e43ac3a40f804deb7f, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
   - soundName: 7
     possibleSounds:
     - {fileID: 8300000, guid: 457b7b3fd6e8ddb48ad6a1a6bab03d94, type: 3}
@@ -185,4 +181,16 @@ MonoBehaviour:
   - soundName: 6
     possibleSounds:
     - {fileID: 8300000, guid: 8cd3a1bf4d388a842bb2193a89023d5f, type: 3}
+    playersWhoAreRepeatedlyPlaying: 00000000
+  - soundName: 8
+    possibleSounds:
+    - {fileID: 8300000, guid: cac753c2e6e290a4fb10b8fbcc6139c8, type: 3}
+    playersWhoAreRepeatedlyPlaying: 00000000
+  - soundName: 9
+    possibleSounds:
+    - {fileID: 8300000, guid: fd2e8d902efa67541b65024054fee331, type: 3}
+    playersWhoAreRepeatedlyPlaying: 00000000
+  - soundName: 10
+    possibleSounds:
+    - {fileID: 8300000, guid: e476329fcd512f6499aec1563321abb3, type: 3}
     playersWhoAreRepeatedlyPlaying: 00000000

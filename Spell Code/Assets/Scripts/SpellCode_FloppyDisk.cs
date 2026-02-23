@@ -136,9 +136,4 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         overlappingPlayer = null;
         return null;
     }
-
-    public SpellCode_FloppyDisk(string diskName)
-    {
-        this.diskName = diskName;
-    }
 }

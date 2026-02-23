@@ -22,6 +22,15 @@ public class GambaMachine : MonoBehaviour
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
     public int ownerPID;
+    private GameManager gameManager;
+
+    public List<string> spells;
+
+    [SerializeField]
+    private List<GameObject> p1_floppys = new List<GameObject>();
+    private List<GameObject> p2_floppys = new List<GameObject>();
+    private List<GameObject> p3_floppys = new List<GameObject>();
+    private List<GameObject> p4_floppys = new List<GameObject>();
 
     public HurtboxData hurtbox = new HurtboxData();
     public float colliderRadius = 16f;
@@ -30,7 +39,6 @@ public class GambaMachine : MonoBehaviour
     public int activatedCount = 0;
 
     public GameObject floppy;
-    private List<GameObject> floppys;
     public Vector2[] diskLocations;
     private Scene activeScene;
 
@@ -38,41 +46,77 @@ public class GambaMachine : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        activeScene = SceneManager.GetActiveScene();
-        GameManager.Instance.FindAllFloppyDisks();
+        gameManager = GameManager.Instance;
+        gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
-        floppys = new List<GameObject>();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (ownerPlayer == null) { ownerPlayer = GameManager.Instance.players[ownerPID - 1]; }
-        if(CheckHitboxCollision())
+        activeScene = SceneManager.GetActiveScene();
+        if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
+
+        if (activeScene.name == "Shop")
         {
-            Debug.Log("Hitbox collision detected!");
-            if (activeScene.name == "MainMenu" && gambaAnimator.GetBool("isActive"))
+            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
+                Debug.Log("Hitbox collision detected!");
+                Debug.Log("LOBBY GAMBA");
                 gambaAnimator.SetBool("isActive", false);
 
-                if (ownerPID == 1) { SpawnFloppyDisk(1, diskLocations[2], ownerPlayer.startingSpell); }
-                if (ownerPID == 2) { SpawnFloppyDisk(1, diskLocations[3], ownerPlayer.startingSpell); }
-                if (ownerPID == 3) { SpawnFloppyDisk(1, diskLocations[8], ownerPlayer.startingSpell); }
-                if (ownerPID == 4) { SpawnFloppyDisk(1, diskLocations[9], ownerPlayer.startingSpell); }
+                if (ownerPID == 1) { SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); }
+                if (ownerPID == 2) { SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); }
+                if (ownerPID == 3) { SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); }
+                if (ownerPID == 4) { SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); }
             }
         }
 
-        if (gambaAnimator.GetBool("isActive") == false)
+        else if (activeScene.name == "MainMenu")
         {
-            if (activeScene.name == "BetterShop")
+            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
+                Debug.Log("Hitbox collision detected!");
+                Debug.Log("SHOP GAMBA");
+                gambaAnimator.SetBool("isActive", false);
+
+                if (ownerPID == 1)
+                {
+                    SpawnFloppyDisk(ownerPID, diskLocations[0]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[2]);
+                }
+                if (ownerPID == 2)
+                {
+                    SpawnFloppyDisk(ownerPID, diskLocations[3]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[5]);
+                }
+                if (ownerPID == 3)
+                {
+                    SpawnFloppyDisk(ownerPID, diskLocations[6]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[8]);
+                }
+                if (ownerPID == 4)
+                {
+                    SpawnFloppyDisk(ownerPID, diskLocations[9]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                    SpawnFloppyDisk(ownerPID, diskLocations[11]);
+                }
+            }
+            if (gambaAnimator.GetBool("isActive") == false)
+            {
+                Debug.Log("GAMBA RESET TIMER GOING");
                 resetTimer++;
 
                 if (resetTimer > 120)
                 {
                     gambaAnimator.SetBool("isActive", true);
                     resetTimer = 0;
+                    activatedCount++;
                 }
+                
             }
         }
     }
@@ -95,11 +139,64 @@ public class GambaMachine : MonoBehaviour
 
     public void SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "")
     {
+        List<GameObject> floppys = new List<GameObject>();
         //random spell
         if (name == "")
         {
+            //list of all spells in dictionary
+            spells = new List<string>();
 
+            //list of spells in player[ownerPID]'s spellbook
+            List<string> playerSpells = new List<string>();
+
+            //fill list of all spells in dictionary
+            foreach (var item in SpellDictionary.Instance.spellDict)
+            {
+                spells.Add(item.Key);
+            }
+
+            //fill list of specific player's spells
+            for (int i = 0; i < gameManager.players[ownerPID - 1].spellList.Count; i++)
+            {
+                playerSpells.Add(gameManager.players[ownerPID - 1].spellList[i].spellName);
+            }
+
+            //Remove all passives for which the player has no actives for, or already has
+            if (!gameManager.players[ownerPID - 1].vWave || playerSpells.Contains("Overclock"))
+            {
+                spells.Remove("Overclock");
+            }
+            if (!gameManager.players[ownerPID - 1].killeez || playerSpells.Contains("BootsOfHermes"))
+            {
+                spells.Remove("BootsOfHermes");
+            }
+            if (!gameManager.players[ownerPID - 1].DemonX || playerSpells.Contains("DemonicDescent"))
+            {
+                spells.Remove("DemonicDescent");
+            }
+            if (!gameManager.players[ownerPID - 1].bigStox || playerSpells.Contains("BlueChipTrader"))
+            {
+                spells.Remove("BlueChipTrader");
+            }
+
+
+            //get a random spell
+            int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
+            string spellToAdd = spells[randomInt];
+
+            GameObject disk = Instantiate(floppy, location, Quaternion.identity);
+            SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            info.diskName = spellToAdd;
+            info.ownerPID = ownerPID;
+            floppys.Add(disk);
+            if (floppys.Count > 1)
+            {
+                Destroy(disk);
+            }
+
+            if (ownerPID == 1) { p1_floppys.Add(disk); }
         }
+
         else
         {
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);

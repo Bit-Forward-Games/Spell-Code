@@ -858,18 +858,18 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
         ///shop specific update
-        if (activeScene.name == "Shop")
-        {
-            if (shopManager == null)
-            {
-                shopManager = FindAnyObjectByType<ShopManager>();
-            }
-            shopManager.ShopUpdate(inputs);
-        }
-        else
-        {
-            shopManager = null;
-        }
+        //if (activeScene.name == "Shop")
+        //{
+        //    if (shopManager == null)
+        //    {
+        //        shopManager = FindAnyObjectByType<ShopManager>();
+        //    }
+        //    shopManager.ShopUpdate(inputs);
+        //}
+        //else
+        //{
+        //    shopManager = null;
+        //}
 
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
@@ -976,7 +976,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
-                    else if (players[0].spellList.Count >= 6)
+                    else if (players[0].spellList.Count >= 1)
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
@@ -1249,7 +1249,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isSaved = true;
         }
         ProjectileManager.Instance.DeleteAllProjectiles();
-        isRunning = false;
+        //isRunning = false;
 
         if (isOnlineMatchActive)
         {
@@ -1257,6 +1257,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                                     
         }
         SceneManager.LoadScene("Shop");
+        SetStage(-1);
 
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();

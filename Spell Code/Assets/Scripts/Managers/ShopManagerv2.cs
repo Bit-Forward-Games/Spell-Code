@@ -3,7 +3,6 @@ using UnityEngine;
 public class ShopManagerv2 : MonoBehaviour
 {
     //variables
-    public InputSnapshot[] inputSnapshots = new InputSnapshot[4];
 
     private GameManager gM;
 
@@ -14,7 +13,7 @@ public class ShopManagerv2 : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         
     }

@@ -136,14 +136,6 @@ public class OnboardManager : MonoBehaviour
         p4_floppy.SetActive(false);
         p4_castGraphic.enabled = false;
         p4_castTxt.enabled = false;
-
-        if (gM.isOnlineMatchActive)
-        {
-            p1_atkComplete = true;
-            p2_atkComplete = true;
-            p3_atkComplete = true;
-            p4_atkComplete = true;
-        }
     }
 
     public void OnboardUpdate(ulong[] playerInputs)

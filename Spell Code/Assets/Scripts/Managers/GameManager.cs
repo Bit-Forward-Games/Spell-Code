@@ -777,7 +777,7 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "MainMenu")
         {
-            //HandleOnlineSpellSelection();
+            HandleOnlineSpellSelection();
             goDoorPrefab?.CheckOpenDoor();
         }
     }
@@ -846,18 +846,19 @@ public class GameManager : MonoBehaviour
         // ONLINE LOBBY LOGIC (MainMenu scene)
         if (activeScene.name == "MainMenu")
         {
-            if (onboardManager == null)
-                onboardManager = FindAnyObjectByType<OnboardManager>();
+            // Handle spell selection for online players (only local and remote)
+            HandleOnlineSpellSelection();
 
-            if (onboardManager != null)
-                onboardManager.OnboardUpdate(syncedInput);
-
+            // Check gates and door - same logic as offline
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
+                // In online mode, signal readiness instead of immediately transitioning
                 if (!localPlayerReadyForGameplay)
+                {
                     SendLobbyReadyForGameplay();
+                }
             }
         }
         else if (activeScene.name == "Gameplay")

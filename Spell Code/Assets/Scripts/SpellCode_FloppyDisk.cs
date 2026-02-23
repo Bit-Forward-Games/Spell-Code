@@ -20,9 +20,10 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     public Animator diskAnimator;
     //Bounds diskBounds;
     public string diskName;
-    public Image shopSprite;
     public SpellFloppyDisplay diskDisplay;
     public PlayerController overlappingPlayer = null;
+    private SpriteRenderer sprite;
+    public int ownerPID;
 
     public bool colliding;
 
@@ -35,8 +36,29 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        diskAnimator = GetComponent<Animator>();
         GameManager.Instance.FindAllFloppyDisks();
         diskDisplay.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay(diskName);
+        sprite = GetComponent<SpriteRenderer>();
+        for (int i = 0; i < SpellDictionary.Instance.spellDict[diskName].brands.Length; i++)
+        {
+            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
+            {
+                sprite.color = Color.green;
+            }
+            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
+            {
+                sprite.color = Color.yellow;
+            }
+            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
+            {
+                sprite.color = Color.red;
+            }
+            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
+            {
+                sprite.color = Color.blue;
+            }
+        }
     }
 
     // Update is called once per frame
@@ -113,5 +135,10 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         }
         overlappingPlayer = null;
         return null;
+    }
+
+    public SpellCode_FloppyDisk(string diskName)
+    {
+        this.diskName = diskName;
     }
 }

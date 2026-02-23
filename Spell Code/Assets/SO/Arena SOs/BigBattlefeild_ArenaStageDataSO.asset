@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: BigBattlefeild_ArenaStageDataSO
   m_EditorClassIdentifier: 
   platformCenter:
+  - {x: -224, y: -100}
   - {x: 0, y: 92}
   - {x: 112, y: -4}
   - {x: -112, y: -4}
   - {x: 224, y: -100}
-  - {x: 0, y: -100}
   - {x: 0, y: -100}
   platformExtent:
   - {x: 48, y: 4}
@@ -43,6 +43,6 @@ MonoBehaviour:
   - {x: 224, y: -191, z: 0}
   activatableSolidCenter: []
   activatableSolidExtent: []
-  borderMin: {x: -486, y: -208, z: 0}
-  borderMax: {x: 486, y: 240, z: 0}
+  borderMin: {x: -582, y: -328, z: 0}
+  borderMax: {x: 582, y: 328, z: 0}
   borderType: 0

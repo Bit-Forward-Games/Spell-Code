@@ -230,8 +230,8 @@ public class OnboardManager : MonoBehaviour
             if (p1_glassBroken)
             {
                 p1_castTxt.color = Color.green;
-                p1_castTxt.enabled = true;
-                p1_castGraphic.enabled = true;
+                p1_castTxt.enabled = false;
+                p1_castGraphic.enabled = false;
             }
         }
 
@@ -271,8 +271,8 @@ public class OnboardManager : MonoBehaviour
                 p2_jumpGraphic.enabled = false;
                 p2_jumpTxt.enabled = false;
 
-                p2_atkGraphic.enabled = false;
-                p2_atkTxt.enabled = false;
+                p2_atkGraphic.enabled = true;
+                p2_atkTxt.enabled = true;
 
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Pressed) { p2_atkComplete = true; p2_atkTxt.color = Color.green; Debug.Log("Atk Onboard Complete"); }
             }
@@ -332,8 +332,6 @@ public class OnboardManager : MonoBehaviour
             if (p2_glassBroken)
             {
                 p2_castTxt.color = Color.green;
-                p2_castTxt.enabled = false;
-                p2_castGraphic.enabled = false;
             }
         }
 
@@ -428,8 +426,6 @@ public class OnboardManager : MonoBehaviour
                 if (gM.players[2].spellsFired > 0)
                 {
                     p3_glassBroken = true;
-                    p3_castTxt.enabled = false;
-                    p3_castGraphic.enabled = false;
                 }
             }
 
@@ -536,8 +532,6 @@ public class OnboardManager : MonoBehaviour
             if (p4_glassBroken)
             {
                 p4_castTxt.color = Color.green;
-                p4_castTxt.enabled = false;
-                p4_castGraphic.enabled = false;
             }
         }
     }

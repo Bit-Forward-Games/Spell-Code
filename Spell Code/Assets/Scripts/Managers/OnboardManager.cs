@@ -8,6 +8,8 @@ public class OnboardManager : MonoBehaviour
     //variables
     public InputSnapshot[] inputSnapshots = new InputSnapshot[4];
 
+    public static OnboardManager Instance { get; private set; }
+
     private GameManager gM;
 
     public Sprite inputGraphic;
@@ -93,6 +95,22 @@ public class OnboardManager : MonoBehaviour
 
     public SpellCode_FloppyDisk p4_floppyInfo;
     public GameObject p4_floppy;
+
+    private void Awake()
+    {
+        // if an instance already exists and it's not this one, destroy this duplicate
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            // otherwise, set this as the instance
+            Instance = this;
+            // optional: prevent the gameobject from being destroyed when loading new scenes
+            DontDestroyOnLoad(gameObject);
+        }
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

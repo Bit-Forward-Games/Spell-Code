@@ -573,10 +573,10 @@ public class GameManager : MonoBehaviour
             onlineMenuUI.SetActive(false);
         }
 
-        if (onboardManager != null)
-        {
-            onboardManager.gameObject.SetActive(false);
-        }
+        //if (onboardManager != null)
+        //{
+        //    onboardManager.gameObject.SetActive(false);
+        //}
 
         // Double-check we're in the right state
         if (!isWaitingForOpponent)

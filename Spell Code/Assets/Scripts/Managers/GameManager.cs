@@ -862,7 +862,7 @@ public class GameManager : MonoBehaviour
                 onboardManager = FindAnyObjectByType<OnboardManager>();
             }
 
-            if (onboardManager != null)
+            if (onboardManager != null && !rbManager.isRollbackFrame)
             {
                 onboardManager.OnboardUpdate(syncedInput);
             }

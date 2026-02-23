@@ -184,7 +184,7 @@ public class OnboardManager : MonoBehaviour
 
                 //p1_floppyInfo.diskName = gM.players[0].startingSpell;
                 //gM.p1_spellCard.sprite = SpellDictionary.Instance.spellDict[p1_floppyInfo.diskName].shopSprite;
-                p1_floppy.SetActive(true);
+                if (p1_floppy != null) p1_floppy.SetActive(true);
 
                 //if colliding and is player 1
                 //if (p1_floppyInfo.colliding) 
@@ -286,7 +286,7 @@ public class OnboardManager : MonoBehaviour
 
                 //p2_floppyInfo.diskName = gM.players[1].startingSpell;
                 //gM.p2_spellCard.sprite = SpellDictionary.Instance.spellDict[p2_floppyInfo.diskName].shopSprite;
-                p2_floppy.SetActive(true);
+                if (p2_floppy != null) p2_floppy.SetActive(true);
 
                 //if colliding and is player 2
                 //if (p2_floppyInfo.colliding)

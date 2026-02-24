@@ -56,6 +56,8 @@ public class GambaMachine : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (gameManager.isOnlineMatchActive) return;
+
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -224,7 +226,140 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
+    public void SimulateOnline(int ownerPlayerIndex)
+    {
+        activeScene = SceneManager.GetActiveScene();
+        if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
+        if (ownerPlayer == null) return;
 
+        if (activeScene.name == "MainMenu")
+        {
+            if (ownerPlayer.spellList.Count > 0)
+            {
+                gambaAnimator.SetBool("isActive", false);
+                ClearFloppysForPID(ownerPID);
+            }
+
+            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            {
+                gambaAnimator.SetBool("isActive", false);
+                SpawnFloppysForOwner();
+            }
+        }
+        else if (activeScene.name == "Shop")
+        {
+            SimulateShopOnline();
+        }
+    }
+
+    private void SimulateShopOnline()
+    {
+        if (ownerPlayer == null) return;
+
+        if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+        {
+            activatedCount = 3;
+            gambaAnimator.SetBool("isActive", false);
+            ClearFloppysForPID(ownerPID);
+        }
+
+        if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+        {
+            Debug.Log("SHOP GAMBA ONLINE");
+            gambaAnimator.SetBool("isActive", false);
+            activatedCount++;
+
+            ClearFloppysForPID(ownerPID);
+
+            if (ownerPID == 1)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[0]);
+                SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                SpawnFloppyDisk(ownerPID, diskLocations[2]);
+            }
+            if (ownerPID == 2)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[3]);
+                SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                SpawnFloppyDisk(ownerPID, diskLocations[5]);
+            }
+            if (ownerPID == 3)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[6]);
+                SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                SpawnFloppyDisk(ownerPID, diskLocations[8]);
+            }
+            if (ownerPID == 4)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[9]);
+                SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                SpawnFloppyDisk(ownerPID, diskLocations[11]);
+            }
+        }
+
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            resetTimer++;
+            if (resetTimer > 120)
+            {
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
+            }
+        }
+    }
+
+    private void ClearFloppysForPID(int pid)
+    {
+        List<GameObject> list = GetFloppyListForPID(pid);
+        foreach (GameObject flop in list) { Destroy(flop); }
+        list.Clear();
+    }
+
+    private List<GameObject> GetFloppyListForPID(int pid)
+    {
+        if (pid == 1) return p1_floppys;
+        if (pid == 2) return p2_floppys;
+        if (pid == 3) return p3_floppys;
+        return p4_floppys;
+    }
+
+    private void SpawnFloppysForOwner()
+    {
+        if (activeScene.name == "MainMenu")
+        {
+            if (ownerPID == 1)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell);
+                SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
+                SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
+                SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            }
+
+            if (ownerPID == 2)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell);
+                SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
+                SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
+                SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            }
+
+            if (ownerPID == 3)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell);
+                SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
+                SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
+                SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            }
+
+            if (ownerPID == 4)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell);
+                SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
+                SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
+                SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            }
+        }
+    }
     public bool CheckHitboxCollision()
     {
         if(ownerPlayer == null || ownerPlayer.basicProjectileInstance == null ||
@@ -283,7 +418,7 @@ public class GambaMachine : MonoBehaviour
 
 
             //get a random spell
-            int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
+            int randomInt = GameManager.Instance.GetNextRandom(0, spells.Count);
             string spellToAdd = spells[randomInt];
 
             if (ownerPID == 1)

@@ -820,30 +820,6 @@ public class GameManager : MonoBehaviour
 
         Scene activeScene = SceneManager.GetActiveScene();
 
-        //if (activeScene.name == "Shop")
-        //{
-        //    // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
-        //    // Assuming ShopUpdate relies on inputs and needs to be deterministic:
-        //    if (shopManager == null)
-        //    {
-        //        shopManager = FindAnyObjectByType<ShopManager>();
-        //    }
-
-        //    if (shopManager != null)
-        //    {
-        //        // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
-        //        // Assuming ShopUpdate accepts ulong[] or casting is handled
-        //        ulong[] shopInputs = new ulong[playerCount];
-        //        for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
-
-        //        shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
-        //    }
-        //}
-        //else
-        //{
-        //    shopManager = null;
-        //}
-
         UpdateGameState(syncedInput);
 
         UpdateSceneLogic(syncedInput);
@@ -860,7 +836,16 @@ public class GameManager : MonoBehaviour
             if (onboardManager != null && !rbManager.isRollbackFrame)
                 onboardManager.OnboardUpdate(syncedInput);
 
-            // Check gates and door - same logic as offline
+            // Drive gamba machines through synced simulation
+            if (!rbManager.isRollbackFrame)
+            {
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+                }
+            }
+
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
@@ -964,6 +949,17 @@ public class GameManager : MonoBehaviour
                             roundOver = false;
                         }
                     }
+                }
+            }
+        }
+        else if (activeScene.name == "Shop")
+        {
+            if (!rbManager.isRollbackFrame)
+            {
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
                 }
             }
         }

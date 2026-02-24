@@ -156,8 +156,6 @@ MonoBehaviour:
     previousSong: {fileID: 0}
   - sceneName: Shop
     availableSongs:
-    - {fileID: 8300000, guid: 014cf47e3584d2b478778707bd959d62, type: 3}
-    - {fileID: 8300000, guid: 126adb5067d6a8b4789d0174678caf86, type: 3}
-    - {fileID: 8300000, guid: ce05b6b00f283a64d9af3daa3c58ee1e, type: 3}
-    - {fileID: 8300000, guid: 2f2a0b079c18a574d80400cf67160bda, type: 3}
-    previousSong: {fileID: 8300000, guid: faaa7926c7336f540b4eb6c6238c2237, type: 3}
+    - {fileID: 8300000, guid: 378cccd14eb54a94f9e831be92b21908, type: 3}
+    - {fileID: 8300000, guid: 3ccded274e28bb54f85149c5b850ddcd, type: 3}
+    previousSong: {fileID: 0}

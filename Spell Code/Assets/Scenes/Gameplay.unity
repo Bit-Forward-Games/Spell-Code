@@ -1583,7 +1583,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 36}
   minZoom: 64
-  maxZoom: 480
+  maxZoom: 9999
   HardSetZoom: 205
   zoomSpeed: 1.5
   shakeMagnitude: 1

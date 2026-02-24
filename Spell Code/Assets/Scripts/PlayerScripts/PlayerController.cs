@@ -294,7 +294,7 @@ public class PlayerController : MonoBehaviour
         //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
         //SpawnPlayer(startPos);
 
-        //ProjectileManager.Instance.InitializeAllProjectiles();
+        ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)
@@ -1916,6 +1916,11 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
+        if(GameManager.Instance.currentStageIndex < 0)
+        {
+            //don't take damage in the lobby
+            return;
+        }
 
         //checking for death
         if (damageAmount > currentPlayerHealth)
@@ -1959,6 +1964,11 @@ public class PlayerController : MonoBehaviour
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
+            if (GameManager.Instance.currentStageIndex < 0)
+            {
+                //don't take damage in the lobby
+                return;
+            }
 
             //update the damage matrix the attacker attacking this player
             GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);

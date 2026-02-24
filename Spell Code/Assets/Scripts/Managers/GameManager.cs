@@ -104,6 +104,8 @@ public class GameManager : MonoBehaviour
     private int p3_index = 0;
     private int p4_index = 0;
 
+    public List<GameObject> gambas;
+
     [Header("Online UI")]
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
@@ -820,29 +822,29 @@ public class GameManager : MonoBehaviour
 
         Scene activeScene = SceneManager.GetActiveScene();
 
-        if (activeScene.name == "Shop")
-        {
-            // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
-            // Assuming ShopUpdate relies on inputs and needs to be deterministic:
-            if (shopManager == null)
-            {
-                shopManager = FindAnyObjectByType<ShopManager>();
-            }
+        //if (activeScene.name == "Shop")
+        //{
+        //    // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
+        //    // Assuming ShopUpdate relies on inputs and needs to be deterministic:
+        //    if (shopManager == null)
+        //    {
+        //        shopManager = FindAnyObjectByType<ShopManager>();
+        //    }
 
-            if (shopManager != null)
-            {
-                // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
-                // Assuming ShopUpdate accepts ulong[] or casting is handled
-                ulong[] shopInputs = new ulong[playerCount];
-                for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
+        //    if (shopManager != null)
+        //    {
+        //        // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
+        //        // Assuming ShopUpdate accepts ulong[] or casting is handled
+        //        ulong[] shopInputs = new ulong[playerCount];
+        //        for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
 
-                shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
-            }
-        }
-        else
-        {
-            shopManager = null;
-        }
+        //        shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
+        //    }
+        //}
+        //else
+        //{
+        //    shopManager = null;
+        //}
 
         UpdateGameState(syncedInput);
 
@@ -1085,16 +1087,14 @@ public class GameManager : MonoBehaviour
         ///shop specific update
         if (activeScene.name == "Shop")
         {
-            if (shopManager == null)
+            goDoorPrefab.CheckOpenDoor();
+
+            if (goDoorPrefab.CheckAllPlayersReady())
             {
-                shopManager = FindAnyObjectByType<ShopManager>();
+                LoadRandomGameplayStage();
             }
-            shopManager.ShopUpdate(inputs);
         }
-        else
-        {
-            shopManager = null;
-        }
+
 
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
@@ -1206,16 +1206,18 @@ public class GameManager : MonoBehaviour
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         LoadRandomGameplayStage();
-                        foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
-                        //Debug.Log(roundEndTimer);
+                        ResetPlayers();
+                        Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundOver = false;
                     }
                     else
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
-                        //Debug.Log(roundEndTimer);
+                        ResetPlayers();
+                        Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
                     }
@@ -1379,6 +1381,8 @@ public class GameManager : MonoBehaviour
                 players[i].times = new List<Fixed>();
                 players[i].isAlive = true;
                 players[i].SpawnPlayer(spawnPos[i]);
+                players[i].inputDisplay.enabled = true;
+                players[i].playerNum.enabled = true;
             }
         }
 
@@ -1485,8 +1489,8 @@ public class GameManager : MonoBehaviour
             dataManager.SaveMatch();
             isSaved = true;
         }
-        ProjectileManager.Instance.DeleteAllProjectiles();
-        isRunning = false;
+        //ProjectileManager.Instance.DeleteAllProjectiles();
+        //isRunning = false;
 
         if (isOnlineMatchActive)
         {
@@ -1496,6 +1500,7 @@ public class GameManager : MonoBehaviour
             remotePlayerReadyForGameplay = false;
         }
         SceneManager.LoadScene("Shop");
+        SetStage(-1);
 
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();

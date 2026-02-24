@@ -172,9 +172,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gambaAnimator: {fileID: 7695478952057797815}
   ownerPlayer: {fileID: 0}
+  ownerPID: 0
   hurtbox:
     xOffset: 0
     yOffset: 0
     width: 0
     height: 0
   colliderRadius: 16
+  activatedCount: 0
+  floppy: {fileID: 2806504647812706647, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+  diskLocations:
+  - {x: -234, y: 15}
+  - {x: -158, y: 15}
+  - {x: -86, y: 15}
+  - {x: 86, y: 15}
+  - {x: 158, y: 15}
+  - {x: 234, y: 15}
+  - {x: -234, y: -192}
+  - {x: -158, y: -192}
+  - {x: -86, y: -192}
+  - {x: 86, y: -192}
+  - {x: 158, y: -192}
+  - {x: 234, y: -192}

@@ -12,6 +12,7 @@ public class TempSpellDisplay : MonoBehaviour
     public bool invertAlign = false;
     private bool spellListUpdated = false;
     private bool roundWinCounterUpdated = false;
+    private bool isPulsing = false;
     //public CodeList[] arrowLists;
     //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
     public List<Image> cooldownFills = new List<Image>();
@@ -51,6 +52,9 @@ public class TempSpellDisplay : MonoBehaviour
         {
             roundWinCounterUpdated = false;
         }
+
+        if (!isPulsing)
+            StartCoroutine(CoolDownReadyPulse());
     }
 
     public void UpdateRoundWinCounter()
@@ -71,15 +75,6 @@ public class TempSpellDisplay : MonoBehaviour
             roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
             roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
         }
-        
-        // for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        // {
-        //     for (int j = 0; j < GameManager.Instance.players[spellDisplayIndex].roundsWon; j++)
-        //     {
-        //         roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-        //         roundWinsIcons[j].sprite = uiScript.roundWinIcon[1]; // ← assuming [1] = won
-        //     }
-        // }
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
@@ -186,37 +181,27 @@ public class TempSpellDisplay : MonoBehaviour
         cooldownFlashAnimationFinished[i] = true;   
     }
 
-    public IEnumerator CoolDownReadyPulse(int i)
+    public IEnumerator CoolDownReadyPulse()
     {
-        while (cooldownFills[i].fillAmount >= 1f)
+        isPulsing = true;
+        float elapsed = 0f;
+
+        while (elapsed < flashPulseDuration)
         {
-            // Fade out
-            float elapsed = 0f;
-            Color c = cooldownFlashRect[i].GetComponent<Image>().color;
-
-            while (elapsed < flashPulseDuration)
-            {
-                elapsed += Time.deltaTime;
-                c.a = Mathf.Lerp(0.5f, 0.1f, elapsed / flashPulseDuration);
-                cooldownFlashRect[i].GetComponent<Image>().color = c;
-                yield return null;
-            }
-
-            // Fade in
-            elapsed = 0f;
-            while (elapsed < flashPulseDuration)
-            {
-                elapsed += Time.deltaTime;
-                c.a = Mathf.Lerp(0.1f, 0.5f, elapsed / flashPulseDuration);
-                cooldownFlashRect[i].GetComponent<Image>().color = c;
-                yield return null;
-            }
+            elapsed += Time.deltaTime;
+            uiScript.flashAlpha = Mathf.Lerp(0.5f, 0.1f, elapsed / flashPulseDuration);
+            yield return null;
         }
 
-        // Reset alpha when spell goes on cooldown again
-        Color reset = cooldownFlashRect[i].GetComponent<Image>().color;
-        reset.a = 1f;
-        cooldownFlashRect[i].GetComponent<Image>().color = reset;
+        // Fade in
+        elapsed = 0f;
+        while (elapsed < flashPulseDuration)
+        {
+            elapsed += Time.deltaTime;
+            uiScript.flashAlpha = Mathf.Lerp(0.1f, 0.5f, elapsed / flashPulseDuration);
+            yield return null;
+        }
+        isPulsing = false;
     }
 
     public void UpdateCooldownDisplay(int playerIndex)
@@ -257,7 +242,9 @@ public class TempSpellDisplay : MonoBehaviour
                 }
                 if (cooldownFlashAnimationFinished[i])
                 {
-                    StartCoroutine(CoolDownReadyPulse(i));
+                    Color c = cooldownFlashRect[i].GetComponent<Image>().color;
+                    c.a = uiScript.flashAlpha;
+                    cooldownFlashRect[i].GetComponent<Image>().color = c;
                 }
             }
         }

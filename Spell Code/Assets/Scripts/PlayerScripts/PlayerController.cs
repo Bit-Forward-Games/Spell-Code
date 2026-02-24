@@ -294,7 +294,7 @@ public class PlayerController : MonoBehaviour
         //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
         //SpawnPlayer(startPos);
 
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)

@@ -279,11 +279,14 @@ public class OnboardManager : MonoBehaviour
 
                 if (!p2_gambaActive)
                 {
-                    p2_gamba.gambaAnimator.SetBool("isActive", true);
-                    p2_gambaActive = true;
+                    if (p2_gamba != null)
+                    {
+                        p2_gamba.gambaAnimator.SetBool("isActive", true);
+                        p2_gambaActive = true;
+                    }
                 }
 
-                if (p2_gamba.gambaAnimator.GetBool("isActive") == false)
+                if (p2_gamba != null && p2_gamba.gambaAnimator.GetBool("isActive") == false)
                 {
                     p2_atkComplete = true;
                     Debug.Log("Atk Onboard Complete");

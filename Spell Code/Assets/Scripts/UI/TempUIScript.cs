@@ -19,6 +19,7 @@ public class TempUIScript : MonoBehaviour
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] demonAuraVals;
     public TextMeshProUGUI[] repsVals;
+    public float flashAlpha = .5f;
     //public Image[] momentumVals;
     //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created

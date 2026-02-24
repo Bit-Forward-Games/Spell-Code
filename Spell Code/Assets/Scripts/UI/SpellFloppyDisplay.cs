@@ -33,8 +33,9 @@ public class SpellFloppyDisplay : MonoBehaviour
         spellData = SpellDictionary.Instance.spellDict[spellString];
         spellName.text = spellData.spellName;
         spellDesc.text = spellData.description;
-        spellCooldown.text = $"Cooldown: {spellData.cooldown/60f}s";
-        spellInput.text = $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}";
+        int displayCooldown = (int)(spellData.cooldown > 59 ? spellData.cooldown / 60f : 0f);
+        spellCooldown.text = $"Cooldown: {displayCooldown}s";
+        spellInput.text = spellData.spellType == SpellType.Active? $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}": "Passive";
         spellIcon.sprite = spellData.readyIcon;
         switch (spellData.brands[0])
         {

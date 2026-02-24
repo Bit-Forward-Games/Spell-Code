@@ -2596,7 +2596,7 @@ MonoBehaviour:
   - {fileID: 1051803887716396071}
   - {fileID: 5526373820028345954}
   - {fileID: 2405343795907399939}
-  startSize: {x: 220, y: 52}
+  startSize: {x: 260, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
   flashPulseDuration: 1
@@ -2712,7 +2712,7 @@ MonoBehaviour:
   - {fileID: 110039087353018841}
   - {fileID: 1009795100170225146}
   - {fileID: 7533161111254800137}
-  startSize: {x: 220, y: 52}
+  startSize: {x: 260, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
   flashPulseDuration: 1
@@ -8403,7 +8403,7 @@ MonoBehaviour:
   - {fileID: 5551813381736728340}
   - {fileID: 2611410853068559926}
   - {fileID: 775791845407840554}
-  startSize: {x: 220, y: 52}
+  startSize: {x: 260, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
   flashPulseDuration: 1
@@ -16313,7 +16313,7 @@ MonoBehaviour:
   - {fileID: 6892253596531988224}
   - {fileID: 8883469589845535672}
   - {fileID: 5620702096649873082}
-  startSize: {x: 220, y: 52}
+  startSize: {x: 260, y: 52}
   minSize: {x: 110, y: 26}
   duration: 0.35
   flashPulseDuration: 1

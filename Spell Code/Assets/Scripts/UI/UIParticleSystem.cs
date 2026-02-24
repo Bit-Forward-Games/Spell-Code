@@ -117,6 +117,9 @@ public class UIParticleSystem : MaskableGraphic {
             return;
         }
 
+        if (canvas == null || _particleSystem == null)
+            return;
+
         // iterate through current particles
         int count = _particleSystem.GetParticles(_particles);
 

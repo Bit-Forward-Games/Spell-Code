@@ -773,13 +773,11 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "Shop")
         {
-            if (shopManager == null)
+            goDoorPrefab.CheckOpenDoor();
+
+            if (goDoorPrefab.CheckAllPlayersReady())
             {
-                shopManager = FindAnyObjectByType<ShopManager>();
-            }
-            if (shopManager != null)
-            {
-                shopManager.ShopUpdate(inputs);
+                LoadRandomGameplayStage();
             }
         }
         else if (activeScene.name == "MainMenu")
@@ -1915,13 +1913,6 @@ public class GameManager : MonoBehaviour
                 // Deserialize shop spell choices
                 List<string> savedP1Choices = DeserializeStringList(br);
                 List<string> savedP2Choices = DeserializeStringList(br);
-
-                // If shop manager exists, verify or restore choices
-                if (shopManager != null)
-                {
-                    shopManager.SetP1Choices(savedP1Choices);
-                    shopManager.SetP2Choices(savedP2Choices);
-                }
 
                 for (int i = 0; i < playerCount; i++)
                 {

@@ -17,7 +17,6 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
-    private const byte PACKET_TYPE_SHOP_READY = 11;
     private const byte PACKET_TYPE_SEED = 12;
 
     [Header("Ping Calculation")]
@@ -275,8 +274,6 @@ public class MatchMessageManager : MonoBehaviour
             {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
-                    writer.Write(PACKET_TYPE_SHOP_READY);
-
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SteamNetworking.SendP2PPacket(
@@ -445,17 +442,6 @@ public class MatchMessageManager : MonoBehaviour
                         if (GameManager.Instance != null)
                         {
                             GameManager.Instance.OnOpponentReadyForGameplay();
-                        }
-                        return;
-                    }
-
-                    // Handle shop ready for gameplay
-                    if (packetType == PACKET_TYPE_SHOP_READY)
-                    {
-                        //Debug.Log("Received SHOP_READY signal from opponent");
-                        if (GameManager.Instance != null && GameManager.Instance.shopManager != null)
-                        {
-                            GameManager.Instance.shopManager.OnOpponentReadyForGameplay();
                         }
                         return;
                     }

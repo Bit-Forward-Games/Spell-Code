@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
-using System.Linq;
+using System.Linq; // (no longer needed, but leaving it won't break anything)
 
 public class TempSpellDisplay : MonoBehaviour
 {
@@ -12,8 +12,7 @@ public class TempSpellDisplay : MonoBehaviour
     public bool invertAlign = false;
     private bool spellListUpdated = false;
     private bool roundWinCounterUpdated = false;
-    //public CodeList[] arrowLists;
-    //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
+
     public List<Image> cooldownFills = new List<Image>();
     public List<Image> spellRechargingIcons = new List<Image>();
     public List<Image> spellReadyIcons = new List<Image>();
@@ -31,13 +30,40 @@ public class TempSpellDisplay : MonoBehaviour
     public bool[] cooldownFlashAppeared;
     public bool[] cooldownFlashAnimationFinished;
 
+    // ---- FIXES: coroutine guards + caching ----
+    private Coroutine[] readyPulseRoutines;
+    private Coroutine[] flashAppearRoutines;
+    private Image[] cooldownFlashImages;
+    private GameObject[] cooldownBarParents; // cached parent "CooldownBar" for each fill
+
     public void Start()
     {
-        GameObject tempUI = FindParentByNameContains(gameObject.transform, "TempUI");
+        GameObject tempUI = FindParentByNameContains_NoAlloc(gameObject.transform, "TempUI");
         if (tempUI != null)
             uiScript = tempUI.GetComponent<TempUIScript>();
+
         cooldownFlashAppeared = new bool[cooldownFlashRect.Length];
         cooldownFlashAnimationFinished = new bool[cooldownFlashRect.Length];
+
+        // coroutine handles sized to slot count
+        readyPulseRoutines = new Coroutine[spellSlots.Count];
+        flashAppearRoutines = new Coroutine[spellSlots.Count];
+
+        // cache images on flash rects
+        cooldownFlashImages = new Image[cooldownFlashRect.Length];
+        for (int i = 0; i < cooldownFlashRect.Length; i++)
+        {
+            cooldownFlashImages[i] = cooldownFlashRect[i] != null ? cooldownFlashRect[i].GetComponent<Image>() : null;
+        }
+
+        // cache cooldown bar parents (avoids GetComponentsInParent + LINQ allocations)
+        cooldownBarParents = new GameObject[cooldownFills.Count];
+        for (int i = 0; i < cooldownFills.Count; i++)
+        {
+            cooldownBarParents[i] = cooldownFills[i] != null
+                ? FindParentByNameContains_NoAlloc(cooldownFills[i].transform, "CooldownBar")
+                : null;
+        }
     }
 
     public void Update()
@@ -56,72 +82,61 @@ public class TempSpellDisplay : MonoBehaviour
     public void UpdateRoundWinCounter()
     {
         if (uiScript == null || uiScript.roundWinIcon == null || uiScript.roundWinIcon.Length < 2)
-        {
             return;
-        }
 
         var player = GameManager.Instance.players[spellDisplayIndex];
         if (player == null)
-        {
             return;
-        }
 
-        for (int j = 0; j < GameManager.Instance.players[spellDisplayIndex].roundsWon && j < roundWinsIcons.Count; j++)
+        for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
             roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
         }
-        
-        // for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        // {
-        //     for (int j = 0; j < GameManager.Instance.players[spellDisplayIndex].roundsWon; j++)
-        //     {
-        //         roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-        //         roundWinsIcons[j].sprite = uiScript.roundWinIcon[1]; // ← assuming [1] = won
-        //     }
-        // }
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
-    {   
+    {
         PlayerController player = GameManager.Instance.players[playerIndex];
 
-        if(player.spellList.Count <= 0)
+        if (player.spellList.Count <= 0)
         {
             for (int i = 0; i < cooldownBars.Count; i++)
             {
                 cooldownBars[i].SetActive(false);
-                spellSlots[i].text = "";
+                if (i < spellSlots.Count) spellSlots[i].text = "";
             }
             return;
         }
 
-
-        for (int i = 0; i < player.spellList.Count; i++)
-        {
+        for (int i = 0; i < player.spellList.Count && i < cooldownBars.Count; i++)
             cooldownBars[i].SetActive(true);
-        }
 
-        var playerSpells = GameManager.Instance.players[playerIndex].spellList;
+        var playerSpells = player.spellList;
 
         for (int i = 0; i < spellSlots.Count; i++)
         {
-            
-            GameObject parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
+            GameObject parent = (cooldownBarParents != null && i < cooldownBarParents.Length) ? cooldownBarParents[i] : null;
 
             if (parent == null)
             {
-                // cooldownBars[i].SetActive(true);
-                continue;
+                // if cache missed (e.g., dynamic UI), try once:
+                if (i < cooldownFills.Count && cooldownFills[i] != null)
+                {
+                    parent = FindParentByNameContains_NoAlloc(cooldownFills[i].transform, "CooldownBar");
+                    if (cooldownBarParents != null && i < cooldownBarParents.Length) cooldownBarParents[i] = parent;
+                }
+
+                if (parent == null)
+                    continue;
             }
-            
+
             if (i < playerSpells.Count)
             {
                 var main = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
 
-
-                //handle cooldown fill color and particle effect color based on spell brand
+                // handle cooldown fill color and particle effect color based on spell brand
                 switch (playerSpells[i].brands[0])
                 {
                     case Brand.VWave:
@@ -146,19 +161,16 @@ public class TempSpellDisplay : MonoBehaviour
                 spellReadyIcons[i].sprite = playerSpells[i].readyIcon;
 
                 if (playerSpells[i].spellType == SpellType.Active)
-                {
                     spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-                }
                 else
-                {
                     spellSlots[i].text = playerSpells[i].spellName;
-                }
             }
             else
             {
                 parent.gameObject.SetActive(false);
                 spellSlots[i].text = "";
             }
+
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         }
     }
@@ -180,25 +192,37 @@ public class TempSpellDisplay : MonoBehaviour
             }
         }
 
-
         cooldownFlashRect[i].sizeDelta = minSize;
-        cooldownFlashAppeared[i] = false;
-        cooldownFlashAnimationFinished[i] = true;   
+        cooldownFlashAppeared[i] = false;                 // allow re-appear next time we enter ready state
+        cooldownFlashAnimationFinished[i] = true;
+
+        // clear coroutine handle
+        if (flashAppearRoutines != null && i < flashAppearRoutines.Length)
+            flashAppearRoutines[i] = null;
     }
 
     public IEnumerator CoolDownReadyPulse(int i)
     {
+        // cache reference
+        Image img = (cooldownFlashImages != null && i < cooldownFlashImages.Length) ? cooldownFlashImages[i] : null;
+        if (img == null)
+        {
+            // fallback if not cached
+            img = cooldownFlashRect[i].GetComponent<Image>();
+            if (cooldownFlashImages != null && i < cooldownFlashImages.Length) cooldownFlashImages[i] = img;
+        }
+
         while (cooldownFills[i].fillAmount >= 1f)
         {
             // Fade out
             float elapsed = 0f;
-            Color c = cooldownFlashRect[i].GetComponent<Image>().color;
+            Color c = img.color;
 
             while (elapsed < flashPulseDuration)
             {
                 elapsed += Time.deltaTime;
                 c.a = Mathf.Lerp(0.5f, 0.1f, elapsed / flashPulseDuration);
-                cooldownFlashRect[i].GetComponent<Image>().color = c;
+                img.color = c;
                 yield return null;
             }
 
@@ -208,15 +232,19 @@ public class TempSpellDisplay : MonoBehaviour
             {
                 elapsed += Time.deltaTime;
                 c.a = Mathf.Lerp(0.1f, 0.5f, elapsed / flashPulseDuration);
-                cooldownFlashRect[i].GetComponent<Image>().color = c;
+                img.color = c;
                 yield return null;
             }
         }
 
         // Reset alpha when spell goes on cooldown again
-        Color reset = cooldownFlashRect[i].GetComponent<Image>().color;
+        Color reset = img.color;
         reset.a = 1f;
-        cooldownFlashRect[i].GetComponent<Image>().color = reset;
+        img.color = reset;
+
+        // clear coroutine handle
+        if (readyPulseRoutines != null && i < readyPulseRoutines.Length)
+            readyPulseRoutines[i] = null;
     }
 
     public void UpdateCooldownDisplay(int playerIndex)
@@ -227,63 +255,119 @@ public class TempSpellDisplay : MonoBehaviour
         {
             if (i >= playerSpells.Count)
             {
-                cooldownFills[i].fillAmount = 0f;
+                if (i < cooldownFills.Count) cooldownFills[i].fillAmount = 0f;
+
+                // stop pulses/flash if any
+                StopSlotCoroutines(i);
                 continue;
             }
 
-            Color tempColor = cooldownFills[i].color;
-            tempColor.a = cooldownFills[i].fillAmount >= 1f ? 1.0f : 0.2f;
-            cooldownFills[i].color = tempColor;
-
-            cooldownFills[i].fillAmount = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
+            // get fill amount first (so alpha logic uses updated state)
+            float fill = (float)(playerSpells[i].cooldown - playerSpells[i].cooldownCounter) / (float)playerSpells[i].cooldown;
+            cooldownFills[i].fillAmount = fill;
             cooldownFills[i].fillOrigin = invertAlign ? (int)Image.OriginHorizontal.Right : (int)Image.OriginHorizontal.Left;
 
-            if (cooldownFills[i].fillAmount < 1)
+            // get alpha based on fill
+            Color tempColor = cooldownFills[i].color;
+            tempColor.a = fill >= 1f ? 1.0f : 0.2f;
+            cooldownFills[i].color = tempColor;
+
+            if (fill < 1f)
             {
                 spellReadyIcons[i].enabled = false;
-                spellReadyEffect[i].Stop();
+                if (spellReadyEffect[i].isPlaying) spellReadyEffect[i].Stop();
+
                 cooldownFlashRect[i].gameObject.SetActive(false);
                 cooldownFlashAnimationFinished[i] = false;
+                cooldownFlashAppeared[i] = false;
+
+                // stop pulse coroutines
+                StopSlotCoroutines(i);
             }
-            else if (cooldownFills[i].fillAmount >= 1)
+            else // ready
             {
                 spellReadyIcons[i].enabled = true;
-                spellReadyEffect[i].Play();
+                if (!spellReadyEffect[i].isPlaying) spellReadyEffect[i].Play();
 
+                // Appear animation (start once)
                 if (!cooldownFlashAppeared[i])
                 {
                     cooldownFlashAppeared[i] = true;
-                    StartCoroutine(CoolDownFlashAppear(i));
+                    if (flashAppearRoutines != null && i < flashAppearRoutines.Length && flashAppearRoutines[i] == null)
+                        flashAppearRoutines[i] = StartCoroutine(CoolDownFlashAppear(i));
                 }
+
+                // Ready pulse (start once)
                 if (cooldownFlashAnimationFinished[i])
                 {
-                    StartCoroutine(CoolDownReadyPulse(i));
+                    if (readyPulseRoutines != null && i < readyPulseRoutines.Length && readyPulseRoutines[i] == null)
+                        readyPulseRoutines[i] = StartCoroutine(CoolDownReadyPulse(i));
                 }
             }
         }
     }
 
-    GameObject FindParentByNameContains(Transform childTransform, string nameToContain)
+    private void StopSlotCoroutines(int i)
     {
-        return childTransform.GetComponentsInParent<Transform>()
-            .FirstOrDefault(t => t.name.Contains(nameToContain))?.gameObject;
-    }
-
-    public void OldUpdateSpellDisplay(int playerIndex)
-    {
-        var playerSpells = GameManager.Instance.players[playerIndex].spellList;
-        for (int i = 0; i < spellSlots.Count; i++)
+        if (readyPulseRoutines != null && i < readyPulseRoutines.Length && readyPulseRoutines[i] != null)
         {
-            if (i < playerSpells.Count)
-            {
-                spellSlots[i].text = playerSpells[i].spellName + ":\n" + PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-            }
-            else
-            {
-                spellSlots[i].text = "";
-            }
-            spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
+            StopCoroutine(readyPulseRoutines[i]);
+            readyPulseRoutines[i] = null;
+        }
+
+        if (flashAppearRoutines != null && i < flashAppearRoutines.Length && flashAppearRoutines[i] != null)
+        {
+            StopCoroutine(flashAppearRoutines[i]);
+            flashAppearRoutines[i] = null;
         }
     }
 
+    private void OnDisable()
+    {
+        // prevent coroutines from lingering if object is disabled/destroyed
+        if (readyPulseRoutines != null)
+        {
+            for (int i = 0; i < readyPulseRoutines.Length; i++)
+                if (readyPulseRoutines[i] != null) StopCoroutine(readyPulseRoutines[i]);
+        }
+
+        if (flashAppearRoutines != null)
+        {
+            for (int i = 0; i < flashAppearRoutines.Length; i++)
+                if (flashAppearRoutines[i] != null) StopCoroutine(flashAppearRoutines[i]);
+        }
+    }
+
+    
+    GameObject FindParentByNameContains_NoAlloc(Transform childTransform, string nameToContain)
+    {
+        Transform t = childTransform;
+        while (t != null)
+        {
+            if (t.name.Contains(nameToContain))
+                return t.gameObject;
+
+            t = t.parent;
+        }
+        return null;
+    }
+
+    //GameObject FindParentByNameContains(Transform childTransform, string nameToContain)
+    //{
+    //    return FindParentByNameContains_NoAlloc(childTransform, nameToContain);
+    //}
+
+    //public void OldUpdateSpellDisplay(int playerIndex)
+    //{
+    //    var playerSpells = GameManager.Instance.players[playerIndex].spellList;
+    //    for (int i = 0; i < spellSlots.Count; i++)
+    //    {
+    //        if (i < playerSpells.Count)
+    //            spellSlots[i].text = playerSpells[i].spellName + ":\n" + PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+    //        else
+    //            spellSlots[i].text = "";
+
+    //        spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
+    //    }
+    //}
 }

@@ -61,16 +61,71 @@ public class GambaMachine : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
+            if (ownerPlayer != null)
+            {
+                //delete other options after selecting one
+                if (ownerPlayer.spellList.Count > 0)
+                {
+                    gambaAnimator.SetBool("isActive", false);
+
+                    if (ownerPID == 1)
+                    {
+                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                        p1_floppys.Clear();
+                    }
+
+                    if (ownerPID == 2)
+                    {
+                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                        p2_floppys.Clear();
+                    }
+
+                    if (ownerPID == 3)
+                    {
+                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                        p3_floppys.Clear();
+                    }
+
+                    if (ownerPID == 4)
+                    {
+                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                        p4_floppys.Clear();
+                    }
+                }
+            }
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
                 Debug.Log("Hitbox collision detected!");
                 Debug.Log("LOBBY GAMBA");
                 gambaAnimator.SetBool("isActive", false);
 
-                if (ownerPID == 1) { SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); }
-                if (ownerPID == 2) { SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); }
-                if (ownerPID == 3) { SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); }
-                if (ownerPID == 4) { SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); }
+                if (ownerPID == 1) {
+                    SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
+                    SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
+                    SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
+                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+                }
+                if (ownerPID == 2) 
+                { 
+                    SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
+                    SpawnFloppyDisk(ownerPID, diskLocations[4], "AmonSlash");
+                    SpawnFloppyDisk(ownerPID, diskLocations[5], "SkillshotSlash");
+                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+                }
+                if (ownerPID == 3) 
+                { 
+                    SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
+                    SpawnFloppyDisk(ownerPID, diskLocations[6], "QuarterReport");
+                    SpawnFloppyDisk(ownerPID, diskLocations[7], "SkillshotSlash");
+                    SpawnFloppyDisk(ownerPID, this.transform.position, "AmonSlash");
+                }
+                if (ownerPID == 4) 
+                { 
+                    SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
+                    SpawnFloppyDisk(ownerPID, diskLocations[10], "QuarterReport");
+                    SpawnFloppyDisk(ownerPID, diskLocations[11], "AmonSlash");
+                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+                }
             }
         }
 
@@ -314,12 +369,31 @@ public class GambaMachine : MonoBehaviour
         {
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
             SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            disk.transform.position = new Vector3(disk.transform.position.x, disk.transform.position.y, -1);
             info.diskName = name;
             info.ownerPID = ownerPID;
             floppys.Add(disk);
             if (floppys.Count > 1)
             {
                 Destroy(disk);
+            }
+
+            if (ownerPID == 1)
+            {
+                p1_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+
+            if (ownerPID == 2)
+            {
+                p2_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+            if (ownerPID == 3)
+            {
+                p3_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+            if (ownerPID == 4)
+            {
+                p4_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
             }
         }
     }

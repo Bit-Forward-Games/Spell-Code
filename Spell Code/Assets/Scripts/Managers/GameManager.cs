@@ -727,29 +727,29 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         Scene activeScene = SceneManager.GetActiveScene();
 
-        if (activeScene.name == "Shop")
-        {
-            // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
-            // Assuming ShopUpdate relies on inputs and needs to be deterministic:
-            if (shopManager == null)
-            {
-                shopManager = FindAnyObjectByType<ShopManager>();
-            }
+        //if (activeScene.name == "Shop")
+        //{
+        //    // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
+        //    // Assuming ShopUpdate relies on inputs and needs to be deterministic:
+        //    if (shopManager == null)
+        //    {
+        //        shopManager = FindAnyObjectByType<ShopManager>();
+        //    }
 
-            if (shopManager != null)
-            {
-                // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
-                // Assuming ShopUpdate accepts ulong[] or casting is handled
-                ulong[] shopInputs = new ulong[playerCount];
-                for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
+        //    if (shopManager != null)
+        //    {
+        //        // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
+        //        // Assuming ShopUpdate accepts ulong[] or casting is handled
+        //        ulong[] shopInputs = new ulong[playerCount];
+        //        for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
 
-                shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
-            }
-        }
-        else
-        {
-            shopManager = null;
-        }
+        //        shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
+        //    }
+        //}
+        //else
+        //{
+        //    shopManager = null;
+        //}
 
         UpdateGameState(syncedInput);
 

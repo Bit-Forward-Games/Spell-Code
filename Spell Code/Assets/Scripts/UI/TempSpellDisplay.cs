@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.SceneManagement;
 // using System.Linq; // Deprecated path used LINQ
 public class TempSpellDisplay : MonoBehaviour
 {
@@ -50,8 +51,11 @@ public class TempSpellDisplay : MonoBehaviour
         cooldownFlashAppeared = new bool[cooldownFlashRect.Length];
         cooldownFlashAnimationFinished = new bool[cooldownFlashRect.Length];
 
+        roundWinCounterUpdated = false; 
+
         // Cache the parent gameobjects once 
         CacheCooldownParents();
+        UpdateRoundWinCounter();
     }
 
     private void CacheCooldownParents()
@@ -101,11 +105,30 @@ public class TempSpellDisplay : MonoBehaviour
             return;
         }
 
-        for (int j = 0; j < GameManager.Instance.players[spellDisplayIndex].roundsWon && j < roundWinsIcons.Count; j++)
+        Debug.Log($"[WinCounter] Called on {SceneManager.GetActiveScene().name}, " +
+              $"player {spellDisplayIndex}, " +
+              $"roundsWon: {GameManager.Instance.players[spellDisplayIndex].roundsWon}, " +
+              $"roundWinsIcons count: {roundWinsIcons.Count}, " +
+              $"uiScript null: {uiScript == null}, " +
+              $"roundWinIcon null: {uiScript?.roundWinIcon == null}");
+
+        for (int j = 0; j < roundWinsIcons.Count; j++)
+        {
+            roundWinsIcons[j].color = new Color32(255, 255, 255, 60);
+            roundWinsIcons[j].sprite = uiScript.roundWinIcon[0];
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "End")
+            return; // Leave all icons in the reset state on the End screen
+
+        // Fill in won rounds
+        for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
             roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
         }
+
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)

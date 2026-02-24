@@ -23,6 +23,7 @@ public class GambaMachine : MonoBehaviour
     public PlayerController ownerPlayer = null;
     public int ownerPID;
     private GameManager gameManager;
+    private DataManager dataManager;
 
     public List<string> spells;
 
@@ -47,6 +48,7 @@ public class GambaMachine : MonoBehaviour
     void Start()
     {
         gameManager = GameManager.Instance;
+        dataManager = DataManager.Instance;
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
     }
@@ -57,7 +59,7 @@ public class GambaMachine : MonoBehaviour
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
-        if (activeScene.name == "Shop")
+        if (activeScene.name == "MainMenu")
         {
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
@@ -72,40 +74,83 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        else if (activeScene.name == "MainMenu")
+        else if (activeScene.name == "Shop")
         {
-            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            if (ownerPlayer != null)
             {
-                Debug.Log("Hitbox collision detected!");
-                Debug.Log("SHOP GAMBA");
+                if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+                {
+                activatedCount = 3;
                 gambaAnimator.SetBool("isActive", false);
 
                 if (ownerPID == 1)
                 {
-                    SpawnFloppyDisk(ownerPID, diskLocations[0]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[1]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[2]);
+                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                    p1_floppys.Clear();
                 }
+
                 if (ownerPID == 2)
                 {
-                    SpawnFloppyDisk(ownerPID, diskLocations[3]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[5]);
+                    foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                    p2_floppys.Clear();
                 }
+
                 if (ownerPID == 3)
                 {
-                    SpawnFloppyDisk(ownerPID, diskLocations[6]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[8]);
+                    foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                    p3_floppys.Clear();
                 }
+
                 if (ownerPID == 4)
                 {
-                    SpawnFloppyDisk(ownerPID, diskLocations[9]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                    SpawnFloppyDisk(ownerPID, diskLocations[11]);
+                    foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                    p4_floppys.Clear();
+                }
+                }
+
+                if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+                {
+                    Debug.Log("Hitbox collision detected!");
+                    Debug.Log("SHOP GAMBA");
+                    gambaAnimator.SetBool("isActive", false);
+
+                    if (ownerPID == 1)
+                    {
+                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                        p1_floppys.Clear();
+                        SpawnFloppyDisk(ownerPID, diskLocations[0]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[2]);
+                    }
+                    if (ownerPID == 2)
+                    {
+                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                        p2_floppys.Clear();
+                        SpawnFloppyDisk(ownerPID, diskLocations[3]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[5]);
+                    }
+                    if (ownerPID == 3)
+                    {
+                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                        p3_floppys.Clear();
+                        SpawnFloppyDisk(ownerPID, diskLocations[6]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[8]);
+                    }
+                    if (ownerPID == 4)
+                    {
+                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                        p4_floppys.Clear();
+                        SpawnFloppyDisk(ownerPID, diskLocations[9]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                        SpawnFloppyDisk(ownerPID, diskLocations[11]);
+                    }
                 }
             }
-            if (gambaAnimator.GetBool("isActive") == false)
+
+            //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
+            if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
             {
                 Debug.Log("GAMBA RESET TIMER GOING");
                 resetTimer++;
@@ -195,6 +240,9 @@ public class GambaMachine : MonoBehaviour
             }
 
             if (ownerPID == 1) { p1_floppys.Add(disk); }
+            if (ownerPID == 2) { p2_floppys.Add(disk); }
+            if (ownerPID == 3) { p3_floppys.Add(disk); }
+            if (ownerPID == 4) { p4_floppys.Add(disk); }
         }
 
         else

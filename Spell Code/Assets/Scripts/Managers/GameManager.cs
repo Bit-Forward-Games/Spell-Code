@@ -976,20 +976,22 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
-                    else if (players[0].spellList.Count >= 1)
+                    else if (players[0].spellList.Count >= 6)
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         LoadRandomGameplayStage();
-                        foreach (PlayerController player in players) { player.inputDisplay.enabled = true; }
+                        ResetPlayers();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundOver = false;
                     }
                     else
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
+                        ResetPlayers();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
@@ -1155,6 +1157,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 players[i].times = new List<Fixed>();
                 players[i].isAlive = true;
                 players[i].SpawnPlayer(spawnPos[i]);
+                players[i].inputDisplay.enabled = true;
+                players[i].playerNum.enabled = true;
             }
         }
 
@@ -1248,7 +1252,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             dataManager.SaveMatch();
             isSaved = true;
         }
-        ProjectileManager.Instance.DeleteAllProjectiles();
+        //ProjectileManager.Instance.DeleteAllProjectiles();
         //isRunning = false;
 
         if (isOnlineMatchActive)

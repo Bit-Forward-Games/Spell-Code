@@ -3,16 +3,21 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
-using System.Linq;
-
+// using System.Linq; // Deprecated path used LINQ
 public class TempSpellDisplay : MonoBehaviour
 {
     public TempUIScript uiScript;
     public List<TextMeshProUGUI> spellSlots = new List<TextMeshProUGUI>();
     public bool invertAlign = false;
-    private bool spellListUpdated = false;
+    //private bool spellListUpdated = false;
     private bool roundWinCounterUpdated = false;
-    private bool isPulsing = false;
+
+    // Pulsing alpha (PingPong)
+    [Header("Flash Alpha Pulse (PingPong)")]
+    [SerializeField] private float flashAlphaMin = 0.1f;
+    [SerializeField] private float flashAlphaMax = 0.5f;
+    [SerializeField] private float flashPulseSpeed = 2.5f; // higher = faster pulse
+
     //public CodeList[] arrowLists;
     //[SerializeField] private Sprite[] arrowsSprite = new Sprite[4];
     public List<Image> cooldownFills = new List<Image>();
@@ -28,17 +33,37 @@ public class TempSpellDisplay : MonoBehaviour
     public Vector2 startSize = new Vector2(120, 30);
     public Vector2 minSize = new Vector2(101, 26);
     public float duration = 2f;
-    public float flashPulseDuration = 0.2f;
+    public float flashPulseDuration = 0.2f; // Deprecated (coroutine-based pulse)
     public bool[] cooldownFlashAppeared;
     public bool[] cooldownFlashAnimationFinished;
 
+    // Cached references 
+    private GameObject[] cooldownBarParents; // cached things so we dont have to do GetComponentInParent + LINQ every update
+
     public void Start()
     {
-        GameObject tempUI = FindParentByNameContains(gameObject.transform, "TempUI");
-        if (tempUI != null)
-            uiScript = tempUI.GetComponent<TempUIScript>();
+        //its better to just assign this in inspector bcs find functions are doody other than find with tag
+        //GameObject tempUI = FindParentByNameContains(gameObject.transform, "TempUI");
+        //if (tempUI != null)
+        //    uiScript = tempUI.GetComponent<TempUIScript>();
+
         cooldownFlashAppeared = new bool[cooldownFlashRect.Length];
         cooldownFlashAnimationFinished = new bool[cooldownFlashRect.Length];
+
+        // Cache the parent gameobjects once 
+        CacheCooldownParents();
+    }
+
+    private void CacheCooldownParents()
+    {
+        // schizo check: use the smaller of the two lists so we don't index out of range.
+        int n = Mathf.Min(cooldownFills.Count, cooldownBars.Count);
+        cooldownBarParents = new GameObject[n];
+
+        for (int i = 0; i < n; i++)
+        {
+            cooldownBarParents[i] = cooldownBars[i];
+        }
     }
 
     public void Update()
@@ -53,8 +78,14 @@ public class TempSpellDisplay : MonoBehaviour
             roundWinCounterUpdated = false;
         }
 
+        // PINGA PONGA instead of coroutine for flash alpha pulse 
+        float t = Mathf.PingPong(Time.time * flashPulseSpeed, 1f);
+        uiScript.flashAlpha = Mathf.Lerp(flashAlphaMax, flashAlphaMin, t);
+
+        /*
         if (!isPulsing)
             StartCoroutine(CoolDownReadyPulse());
+        */
     }
 
     public void UpdateRoundWinCounter()
@@ -78,10 +109,10 @@ public class TempSpellDisplay : MonoBehaviour
     }
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
-    {   
+    {
         PlayerController player = GameManager.Instance.players[playerIndex];
 
-        if(player.spellList.Count <= 0)
+        if (player.spellList.Count <= 0)
         {
             for (int i = 0; i < cooldownBars.Count; i++)
             {
@@ -90,7 +121,6 @@ public class TempSpellDisplay : MonoBehaviour
             }
             return;
         }
-
 
         for (int i = 0; i < player.spellList.Count; i++)
         {
@@ -101,20 +131,20 @@ public class TempSpellDisplay : MonoBehaviour
 
         for (int i = 0; i < spellSlots.Count; i++)
         {
-            
-            GameObject parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
+            // Fix #1: avoid hierarchy search + LINQ allocs every update; use cached refs instead.
+            GameObject parent = (cooldownBarParents != null && i < cooldownBarParents.Length) ? cooldownBarParents[i] : null;
 
-            if (parent == null)
-            {
-                // cooldownBars[i].SetActive(true);
-                continue;
-            }
-            
+            //if (parent == null)
+            //{
+            //    // Deprecated - was doing GetComponentsInParent + LINQ every call.
+            //    // parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
+            //    continue;
+            //}
+
             if (i < playerSpells.Count)
             {
                 var main = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
-
 
                 //handle cooldown fill color and particle effect color based on spell brand
                 switch (playerSpells[i].brands[0])
@@ -154,6 +184,7 @@ public class TempSpellDisplay : MonoBehaviour
                 parent.gameObject.SetActive(false);
                 spellSlots[i].text = "";
             }
+
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         }
     }
@@ -175,11 +206,14 @@ public class TempSpellDisplay : MonoBehaviour
             }
         }
 
-
         cooldownFlashRect[i].sizeDelta = minSize;
         cooldownFlashAppeared[i] = false;
-        cooldownFlashAnimationFinished[i] = true;   
+        cooldownFlashAnimationFinished[i] = true;
     }
+
+    /*
+    // old: coroutine-based pulse replaced by PingPong in Update()
+    private bool isPulsing = false;
 
     public IEnumerator CoolDownReadyPulse()
     {
@@ -203,6 +237,7 @@ public class TempSpellDisplay : MonoBehaviour
         }
         isPulsing = false;
     }
+    */
 
     public void UpdateCooldownDisplay(int playerIndex)
     {
@@ -250,27 +285,27 @@ public class TempSpellDisplay : MonoBehaviour
         }
     }
 
-    GameObject FindParentByNameContains(Transform childTransform, string nameToContain)
-    {
-        return childTransform.GetComponentsInParent<Transform>()
-            .FirstOrDefault(t => t.name.Contains(nameToContain))?.gameObject;
-    }
+    // Old: alloc-heavy hierarchy search + LINQ (kept commented for reference)
+    //GameObject FindParentByNameContains(Transform childTransform, string nameToContain)
+    //{
+    //    return childTransform.GetComponentsInParent<Transform>()
+    //        .FirstOrDefault(t => t.name.Contains(nameToContain))?.gameObject;
+    //}
 
-    public void OldUpdateSpellDisplay(int playerIndex)
-    {
-        var playerSpells = GameManager.Instance.players[playerIndex].spellList;
-        for (int i = 0; i < spellSlots.Count; i++)
-        {
-            if (i < playerSpells.Count)
-            {
-                spellSlots[i].text = playerSpells[i].spellName + ":\n" + PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
-            }
-            else
-            {
-                spellSlots[i].text = "";
-            }
-            spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
-        }
-    }
-
+    //public void OldUpdateSpellDisplay(int playerIndex)
+    //{
+    //    var playerSpells = GameManager.Instance.players[playerIndex].spellList;
+    //    for (int i = 0; i < spellSlots.Count; i++)
+    //    {
+    //        if (i < playerSpells.Count)
+    //        {
+    //            spellSlots[i].text = playerSpells[i].spellName + ":\n" + PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+    //        }
+    //        else
+    //        {
+    //            spellSlots[i].text = "";
+    //        }
+    //        spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
+    //    }
+    //}
 }

@@ -28,6 +28,7 @@ public class SpellCode_Gate : MonoBehaviour
         {
             CheckGateBroken();
         }
+        SetOpen(isOpen);
     }
 
     public void CheckGateBroken()
@@ -60,7 +61,7 @@ public class SpellCode_Gate : MonoBehaviour
                     if (CheckCollision(hitbox, projectile.position, gateBounds,
                                 projectile.facingRight) && projectile.owner.pID == ownerPID)
                     {
-                        SetOpen(true);
+                        isOpen = true;
                         return;
                     }
                 }
@@ -72,7 +73,6 @@ public class SpellCode_Gate : MonoBehaviour
     // Helper to set state and update visuals
     public void SetOpen(bool open)
     {
-        isOpen = open;
         if (gateAnimator != null)
         {
             gateAnimator.SetBool("live", !isOpen);
@@ -130,7 +130,6 @@ public class SpellCode_Gate : MonoBehaviour
 
     public void Deserialize(BinaryReader br)
     {
-        bool wasOpen = br.ReadBoolean();
-        SetOpen(wasOpen);
+        isOpen = br.ReadBoolean();
     }
 }

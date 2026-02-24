@@ -75,7 +75,7 @@ public class VFX_Manager : MonoBehaviour
         InstantiatePlayerParticleSystems();
 
         //instantiate spell particle systems
-        InstantiateSpellParticleSystems();
+        //InstantiateSpellParticleSystems();
     }
 
     //Function to instantiate all particle systems relating to players
@@ -95,7 +95,8 @@ public class VFX_Manager : MonoBehaviour
             }
 
             //define and instantiate an empty gameobject to help organize the particle systems
-            GameObject _headingGameobject = Instantiate(new GameObject(), this.gameObject.transform);
+            GameObject _headingGameobject = new GameObject();
+            _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);
             _headingGameobject.name = visualEffectObject.particleSystemPrefab.name + "s";
 
             //allocate memory for the particleSystems array
@@ -131,7 +132,8 @@ public class VFX_Manager : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             //define and instantiate an empty gameobject to help organize the particle systems
-            GameObject _headingGameobject = Instantiate(new GameObject(), this.gameObject.transform);
+            GameObject _headingGameobject = new GameObject();
+            _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);
             _headingGameobject.name = "Spell Particle Systems for player #" + (i + 1).ToString();
 
             //loop through all the spells in a player's inventory

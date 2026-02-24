@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1204022229099497329}
   - component: {fileID: 2245513208090873954}
   m_Layer: 0
-  m_Name: pfb_Bounty Aura Particle System 1
+  m_Name: pfb_Bounty Aura Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

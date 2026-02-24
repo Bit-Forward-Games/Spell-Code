@@ -98,10 +98,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     [SerializeField]
     private List<string> p4_choices;
 
-    private int p1_index = 0;
-    private int p2_index = 0;
-    private int p3_index = 0;
-    private int p4_index = 0;
+    public List<GameObject> gambas;
 
     [Header("Online UI")]
     public GameObject onlineMenuUI;
@@ -858,18 +855,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
         ///shop specific update
-        //if (activeScene.name == "Shop")
-        //{
-        //    if (shopManager == null)
-        //    {
-        //        shopManager = FindAnyObjectByType<ShopManager>();
-        //    }
-        //    shopManager.ShopUpdate(inputs);
-        //}
-        //else
-        //{
-        //    shopManager = null;
-        //}
+        if (activeScene.name == "Shop")
+        {
+            goDoorPrefab.CheckOpenDoor();
+
+            if (goDoorPrefab.CheckAllPlayersReady())
+            {
+                LoadRandomGameplayStage();
+            }
+        }
+
 
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")

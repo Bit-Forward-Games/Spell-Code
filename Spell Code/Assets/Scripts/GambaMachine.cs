@@ -80,32 +80,33 @@ public class GambaMachine : MonoBehaviour
             {
                 if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
                 {
-                activatedCount = 3;
-                gambaAnimator.SetBool("isActive", false);
+                    activatedCount = 3;
+                    gambaAnimator.SetBool("isActive", false);
 
-                if (ownerPID == 1)
-                {
-                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                    p1_floppys.Clear();
-                }
 
-                if (ownerPID == 2)
-                {
-                    foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                    p2_floppys.Clear();
-                }
+                    if (ownerPID == 1)
+                    {
+                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                        p1_floppys.Clear();
+                    }
+    
+                    if (ownerPID == 2)
+                    {
+                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                        p2_floppys.Clear();
+                    }
 
-                if (ownerPID == 3)
-                {
-                    foreach (GameObject flop in p3_floppys) { Destroy(flop); }
-                    p3_floppys.Clear();
-                }
+                    if (ownerPID == 3)
+                    {
+                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                        p3_floppys.Clear();
+                    }
 
-                if (ownerPID == 4)
-                {
-                    foreach (GameObject flop in p4_floppys) { Destroy(flop); }
-                    p4_floppys.Clear();
-                }
+                    if (ownerPID == 4)
+                    {
+                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                        p4_floppys.Clear();
+                    }
                 }
 
                 if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))

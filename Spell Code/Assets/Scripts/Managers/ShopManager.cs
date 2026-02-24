@@ -12,5 +12,16 @@ using UnityEngine.Windows;
 
 public class ShopManager : MonoBehaviour
 {
+    private GameManager gameManager;
 
+    void Start()
+    {
+        gameManager = GameManager.Instance;
+
+        foreach (GameObject gamba in gameManager.gambas)
+        {
+            gamba.GetComponent<GambaMachine>().activatedCount = 0;
+            gamba.GetComponent<GambaMachine>().gambaAnimator.SetBool("isActive", true);
+        }
+    }
 }

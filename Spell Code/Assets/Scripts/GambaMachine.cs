@@ -78,6 +78,7 @@ public class GambaMachine : MonoBehaviour
         {
             if (ownerPlayer != null)
             {
+                //delete other options after selecting one
                 if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
                 {
                     activatedCount = 3;
@@ -109,11 +110,13 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
 
+                //clear player choice lists and spawn 3 new floppys
                 if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
                 {
                     Debug.Log("Hitbox collision detected!");
                     Debug.Log("SHOP GAMBA");
                     gambaAnimator.SetBool("isActive", false);
+                    activatedCount++;
 
                     if (ownerPID == 1)
                     {
@@ -160,7 +163,6 @@ public class GambaMachine : MonoBehaviour
                 {
                     gambaAnimator.SetBool("isActive", true);
                     resetTimer = 0;
-                    activatedCount++;
                 }
                 
             }
@@ -189,7 +191,6 @@ public class GambaMachine : MonoBehaviour
         //random spell
         if (name == "")
         {
-            //list of all spells in dictionary
             spells = new List<string>();
 
             //list of spells in player[ownerPID]'s spellbook
@@ -230,6 +231,55 @@ public class GambaMachine : MonoBehaviour
             int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
             string spellToAdd = spells[randomInt];
 
+            if (ownerPID == 1)
+            {
+                foreach (GameObject flop in p1_floppys)
+                {
+                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd) 
+                    {
+                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
+                        SpawnFloppyDisk(ownerPID, location);
+                        return;
+                    }
+                }
+            }
+            if (ownerPID == 2)
+            {
+                foreach (GameObject flop in p2_floppys)
+                {
+                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
+                    {
+                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
+                        SpawnFloppyDisk(ownerPID, location);
+                        return;
+                    }
+                }
+            }
+            if (ownerPID == 3)
+            {
+                foreach (GameObject flop in p3_floppys)
+                {
+                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
+                    {
+                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
+                        SpawnFloppyDisk(ownerPID, location);
+                        return;
+                    }
+                }
+            }
+            if (ownerPID == 4)
+            {
+                foreach (GameObject flop in p4_floppys)
+                {
+                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
+                    {
+                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
+                        SpawnFloppyDisk(ownerPID, location);
+                        return;
+                    }
+                }
+            }
+
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
             SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
             info.diskName = spellToAdd;
@@ -240,12 +290,26 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
-            if (ownerPID == 1) { p1_floppys.Add(disk); }
-            if (ownerPID == 2) { p2_floppys.Add(disk); }
-            if (ownerPID == 3) { p3_floppys.Add(disk); }
-            if (ownerPID == 4) { p4_floppys.Add(disk); }
+            if (ownerPID == 1) 
+            { 
+                p1_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+            
+            if (ownerPID == 2) 
+            {
+                p2_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+            if (ownerPID == 3) 
+            {
+                p3_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
+            if (ownerPID == 4) 
+            {
+                p4_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+            }
         }
 
+        //case where spell name is specified
         else
         {
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);

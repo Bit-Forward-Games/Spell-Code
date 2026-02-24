@@ -23,5 +23,10 @@ public class ShopManager : MonoBehaviour
             gamba.GetComponent<GambaMachine>().activatedCount = 0;
             gamba.GetComponent<GambaMachine>().gambaAnimator.SetBool("isActive", true);
         }
+
+        foreach (SpellCode_Gate spellcodeGate in gameManager.gates)
+        {
+            spellcodeGate.isOpen = false;
+        }
     }
 }

@@ -1036,7 +1036,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (players[i] == existingPlayer)
             {
-                Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
+                //Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
                 return; // Already registered, don't add again!
             }
         }

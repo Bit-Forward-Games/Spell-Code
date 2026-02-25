@@ -211,7 +211,11 @@ public class PlayerController : MonoBehaviour
         hitboxData = null;
 
         //specialMoves.SetupSpecialMoves(characterName);
-        InitCharacter();
+        if (!GameManager.Instance.isOnlineMatchActive)
+        {
+            InitCharacter();
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
 
     }
 

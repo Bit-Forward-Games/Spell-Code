@@ -12,6 +12,7 @@ public class TempUIScript : MonoBehaviour
     public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
+    public Image[] emptyQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
     public Sprite[] roundWinIcon;
@@ -52,6 +53,8 @@ public class TempUIScript : MonoBehaviour
             playerHpBar[i].fillAmount = fillAmountVal;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
             playerGoldBar[i].fillAmount = fillGoldAmountVal;
+
+            emptyQuadrants[i].enabled = false;
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;

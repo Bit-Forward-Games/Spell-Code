@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a44a8604141a940519fa91d5b99a677b
+guid: 00dcd1f5dba2a4c679aa148355784673
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4527880234927291660
-    second: Screen__Glow 3_0
+      213: 7877041894513430012
+    second: Untitled_Artwork 223_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Screen__Glow 3_0
+      name: Untitled_Artwork 223_0
       rect:
         serializedVersion: 2
-        x: 32
-        y: 44
-        width: 599
-        height: 699
+        x: 0
+        y: 0
+        width: 656
+        height: 826
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4f285a38aecb921c0800000000000000
-      internalID: -4527880234927291660
+      spriteID: cfdc7536edfd05d60800000000000000
+      internalID: 7877041894513430012
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Screen__Glow 3_0: -4527880234927291660
+      Untitled_Artwork 223_0: 7877041894513430012
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -12,11 +12,13 @@ public class TempUIScript : MonoBehaviour
     public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
+    public GameObject[] emptyQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
     public Sprite[] roundWinIcon;
     public Image[] flowStateVals;
     public TextMeshProUGUI[] stockStabilityVals;
+    public Image[] stockStabilityIcons;
     public Image[] demonAuraVals;
     public TextMeshProUGUI[] repsVals;
     public float flashAlpha = .5f;
@@ -51,6 +53,8 @@ public class TempUIScript : MonoBehaviour
             playerHpBar[i].fillAmount = fillAmountVal;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
             playerGoldBar[i].fillAmount = fillGoldAmountVal;
+
+            emptyQuadrants[i].SetActive(false);
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;
@@ -88,13 +92,13 @@ public class TempUIScript : MonoBehaviour
             flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / PlayerController.maxFlowState;
 
             stockStabilityVals[i].enabled = true;
-            stockStabilityVals[i].text = "Crit: " + GameManager.Instance.players[i].stockStability;
+            stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
             
             demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
             
             repsVals[i].enabled = true;
-            repsVals[i].text = "REPS: " + GameManager.Instance.players[i].reps;
+            repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
 
             //momentumVals[i].enabled = true;
             //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;

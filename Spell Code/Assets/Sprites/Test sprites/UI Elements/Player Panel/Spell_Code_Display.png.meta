@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a44a8604141a940519fa91d5b99a677b
+guid: 935e86506accd40d6944efb921ed42bc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4527880234927291660
-    second: Screen__Glow 3_0
+      213: -2962894741560468251
+    second: Spell_Code_Display_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Screen__Glow 3_0
+      name: Spell_Code_Display_0
       rect:
         serializedVersion: 2
-        x: 32
-        y: 44
-        width: 599
-        height: 699
+        x: 0
+        y: 0
+        width: 360
+        height: 516
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4f285a38aecb921c0800000000000000
-      internalID: -4527880234927291660
+      spriteID: 5ec5a6e3eeea1e6d0800000000000000
+      internalID: -2962894741560468251
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Screen__Glow 3_0: -4527880234927291660
+      Spell_Code_Display_0: -2962894741560468251
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

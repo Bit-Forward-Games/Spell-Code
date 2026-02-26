@@ -68,6 +68,7 @@ public class PlayerController : MonoBehaviour
     private readonly bool[] codeButton = new bool[2];
     private readonly bool[] jumpButton = new bool[2];
     private readonly ButtonState[] buttons = new ButtonState[2];
+    private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
@@ -2258,6 +2259,24 @@ public class PlayerController : MonoBehaviour
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
+        bw.Write(isHit);
+
+        bool hasHitboxData = hitboxData != null;
+        bw.Write(hasHitboxData);
+        if (hasHitboxData)
+        {
+            bw.Write(hitboxData.damage);
+            bw.Write(hitboxData.hitstun);
+            bw.Write(hitboxData.xKnockback);
+            bw.Write(hitboxData.yKnockback);
+            bw.Write(hitboxData.attackLvl);
+            bw.Write(hitboxData.basicAttackHitbox);
+            int ownerIndex = hitboxData.parentProjectile?.owner != null
+                ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
+                : -1;
+            bw.Write(ownerIndex);
+        }
+
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
@@ -2310,6 +2329,25 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
+        isHit = br.ReadBoolean();
+
+        bool hasHitboxData = br.ReadBoolean();
+        if (hasHitboxData)
+        {
+            if (hitboxData == null) hitboxData = new HitboxData();
+            hitboxData.damage = br.ReadUInt16();
+            hitboxData.hitstun = br.ReadUInt16();
+            hitboxData.xKnockback = br.ReadInt32();
+            hitboxData.yKnockback = br.ReadInt32();
+            hitboxData.attackLvl = br.ReadByte();
+            hitboxData.basicAttackHitbox = br.ReadBoolean();
+            _pendingHitboxOwnerIndex = br.ReadInt32();
+        }
+        else
+        {
+            hitboxData = null;
+            _pendingHitboxOwnerIndex = -1;
+        }
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();

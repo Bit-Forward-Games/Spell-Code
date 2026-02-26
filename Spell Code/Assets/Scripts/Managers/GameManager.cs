@@ -699,19 +699,35 @@ public class GameManager : MonoBehaviour
     {
         Scene activeScene = SceneManager.GetActiveScene();
 
-        if (activeScene.name == "Shop")
+        if (activeScene.name == "MainMenu")
+        {
+            goDoorPrefab?.CheckOpenDoor();
+
+            if (onboardManager == null)
+                onboardManager = FindFirstObjectByType<OnboardManager>();
+            if (onboardManager != null)
+                onboardManager.OnboardUpdate(inputs);
+
+            foreach (GameObject gambaGO in gambas)
+            {
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+            }
+        }
+        else if (activeScene.name == "Shop")
         {
             goDoorPrefab.CheckOpenDoor();
+
+            foreach (GameObject gambaGO in gambas)
+            {
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+            }
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
             }
-        }
-        else if (activeScene.name == "MainMenu")
-        {
-            //HandleOnlineSpellSelection();
-            goDoorPrefab?.CheckOpenDoor();
         }
     }
 

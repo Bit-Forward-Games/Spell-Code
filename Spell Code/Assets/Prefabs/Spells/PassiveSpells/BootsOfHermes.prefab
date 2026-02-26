@@ -46,7 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefabs: []
   projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
   shopSprite: {fileID: 21300000, guid: 846860a04d78e2340a4a0d7786b4a74c, type: 3}
-  readyIcon: {fileID: 8618120170163339053, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
+  readyIcon: {fileID: 21300000, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
   notReadyIcon: {fileID: 1867592112603371345, guid: dbc078bde85e8634382c4c4f1be9f179, type: 3}
   hermesJumps: 0

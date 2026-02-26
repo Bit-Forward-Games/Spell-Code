@@ -121,11 +121,11 @@ public class GameManager : MonoBehaviour
     public string lastSceneName;
 
     // Add these fields to GameManager class
-    private ulong cachedLocalInput = 5; // Stores input gathered in Update()
-    private bool codePrevFrame = false;
-    private bool jumpPrevFrame = false;
-    private bool codeCurrentFrame = false;
-    private bool jumpCurrentFrame = false;
+    //private ulong cachedLocalInput = 5; // Stores input gathered in Update()
+    //private bool codePrevFrame = false;
+    //private bool jumpPrevFrame = false;
+    //private bool codeCurrentFrame = false;
+    //private bool jumpCurrentFrame = false;
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
@@ -303,47 +303,40 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
-        //if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs.IsActive)
-        //{
-        //    var upVal = players[localPlayerIndex].inputs.UpAction?.ReadValue<float>() ?? 0f;
-        //    var downVal = players[localPlayerIndex].inputs.DownAction?.ReadValue<float>() ?? 0f;
-        //    var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
-        //    var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
-
-        //    return players[localPlayerIndex].GetInputs();
-        //    //if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
-        //    //{
-        //    //    return players[localPlayerIndex].GetInputs();
-        //    //}
-        //}
-        return GatherRawInput();
+        PlayerController localPlayer = players[localPlayerIndex];
+        if (localPlayer != null && localPlayer.inputs.IsActive)
+        {
+            return (ulong)localPlayer.inputs.UpdateInputs();
+        }
+        return 5; // neutral
+        //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
     }
 
-    private ulong GatherRawInput()
-    {
-        // Direction
-        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+    //private ulong GatherRawInput()
+    //{
+    //    // Direction
+    //    bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+    //    bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+    //    bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+    //    bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Buttons - sample current state
-        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+    //    // Buttons - sample current state
+    //    bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+    //    bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Detect state transitions
-        ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeNow);
-        ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpNow);
+    //    // Detect state transitions
+    //    ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeNow);
+    //    ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpNow);
 
-        // Update for next frame - do this AFTER getting states
-        codePrevFrame = codeNow;
-        jumpPrevFrame = jumpNow;
+    //    // Update for next frame - do this AFTER getting states
+    //    codePrevFrame = codeNow;
+    //    jumpPrevFrame = jumpNow;
 
-        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-        bool[] dirs = new bool[4] { up, down, left, right };
+    //    ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+    //    bool[] dirs = new bool[4] { up, down, left, right };
 
-        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    }
+    //    return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    //}
 
     private ButtonState GetButtonStateHelper(bool previous, bool current)
     {

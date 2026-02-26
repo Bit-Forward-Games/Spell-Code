@@ -317,31 +317,19 @@ public class GambaMachine : MonoBehaviour
 
         if (ownerPID == 1)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell);
-            SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
-            SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
-            SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
         }
         if (ownerPID == 2)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); 
-            SpawnFloppyDisk(ownerPID, diskLocations[4], "AmonSlash");               
-            SpawnFloppyDisk(ownerPID, diskLocations[5], "SkillshotSlash");          
-            SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
         }
         if (ownerPID == 3)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell);
-            SpawnFloppyDisk(ownerPID, diskLocations[6], "QuarterReport");
-            SpawnFloppyDisk(ownerPID, diskLocations[7], "SkillshotSlash");
-            SpawnFloppyDisk(ownerPID, this.transform.position, "AmonSlash");
+            SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
         }
         if (ownerPID == 4)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell);
-            SpawnFloppyDisk(ownerPID, diskLocations[10], "QuarterReport");
-            SpawnFloppyDisk(ownerPID, diskLocations[11], "AmonSlash");
-            SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
+            SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
         }
     }
 

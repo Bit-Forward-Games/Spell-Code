@@ -555,16 +555,6 @@ public class GameManager : MonoBehaviour
 
     public void StartLobbySimulation()
     {
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
-        }
-
-        //if (onboardManager != null)
-        //{
-        //    onboardManager.gameObject.SetActive(false);
-        //}
-
         // Double-check we're in the right state
         if (!isWaitingForOpponent)
         {

@@ -84,10 +84,6 @@ public class GameManager : MonoBehaviour
 
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
-    public Image p1_spellCard;
-    public Image p2_spellCard;
-    public Image p3_spellCard;
-    public Image p4_spellCard;
     public GameObject[] floppyObjects;
 
     [SerializeField]
@@ -180,11 +176,6 @@ public class GameManager : MonoBehaviour
 
         isRunning = true;
         isSaved = false;
-
-        p1_spellCard.enabled = false;
-        p2_spellCard.enabled = false;
-        p3_spellCard.enabled = false;
-        p4_spellCard.enabled = false;
 
         playerWinText.enabled = false;
         playerInputManager = GetComponent<PlayerInputManager>();
@@ -307,12 +298,6 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive || (RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame))
         {
             AnimationManager.Instance.RenderGameState();
-
-            // Refresh lobby UI alongside animation rendering
-            if (isOnlineMatchActive)
-            {
-                RefreshLobbyUI();
-            }
         }
     }
 
@@ -723,48 +708,6 @@ public class GameManager : MonoBehaviour
         localPlayerInput = 0;
         syncedInput = new ulong[2] { 0, 0 };
         timeoutFrames = 0;
-    }
-
-    // Call this to sync UI with game state (only called on non-rollback frames from FixedUpdate)
-    public void RefreshLobbyUI()
-    {
-        if (!isOnlineMatchActive) return;
-
-        Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name != "MainMenu") return;
-
-        // Sync spell selection UI for both players
-        for (int i = 0; i < 2; i++)
-        {
-            if (players[i] == null) continue;
-
-            List<string> choices = i == 0 ? p1_choices : p2_choices;
-            int currentIndex = i == 0 ? p1_index : p2_index;
-            Image spellCard = i == 0 ? p1_spellCard : p2_spellCard;
-
-            if (spellCard == null) continue;
-
-            // If player spawned but hasn't chosen yet - show current selection
-            if (players[i].isSpawned && !players[i].chosenStartingSpell)
-            {
-                if (choices != null && choices.Count > 0 && currentIndex >= 0 && currentIndex < choices.Count)
-                {
-                    // Update sprite to match current synced index
-                    spellCard.sprite = SpellDictionary.Instance.spellDict[choices[currentIndex]].shopSprite;
-                    spellCard.enabled = true;
-                }
-            }
-            // If player has chosen - hide the card
-            else if (players[i].chosenStartingSpell)
-            {
-                spellCard.enabled = false;
-            }
-            // If player not spawned yet - ensure card is disabled
-            else
-            {
-                spellCard.enabled = false;
-            }
-        }
     }
 
     public void UpdateSceneLogic(ulong[] inputs)

@@ -118,7 +118,7 @@ public class OnboardManager : MonoBehaviour
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;
-        p1_spellSlctGraphic.enabled = false;
+        //p1_spellSlctGraphic.enabled = false;
         p1_castGraphic.enabled = false;
         p1_castTxt.enabled = false;
         p1_gambaActive = false;
@@ -128,7 +128,7 @@ public class OnboardManager : MonoBehaviour
         p2_moveTxt.enabled = false;
         p2_jumpGraphic.enabled = false;
         p2_jumpTxt.enabled = false;
-        p2_spellSlctGraphic.enabled = false;
+        //p2_spellSlctGraphic.enabled = false;
         p2_castGraphic.enabled = false;
         p2_castTxt.enabled = false;
         p2_gambaActive = false;
@@ -138,7 +138,7 @@ public class OnboardManager : MonoBehaviour
         p3_moveTxt.enabled = false;
         p3_jumpGraphic.enabled = false;
         p3_jumpTxt.enabled = false;
-        p3_spellSlctGraphic.enabled = false;
+        //p3_spellSlctGraphic.enabled = false;
         p3_castGraphic.enabled = false;
         p3_castTxt.enabled = false;
         p3_gambaActive = false;
@@ -148,7 +148,7 @@ public class OnboardManager : MonoBehaviour
         p4_moveTxt.enabled = false;
         p4_jumpGraphic.enabled = false;
         p4_jumpTxt.enabled = false;
-        p4_spellSlctGraphic.enabled = false;
+        //p4_spellSlctGraphic.enabled = false;
         p4_castGraphic.enabled = false;
         p4_castTxt.enabled = false;
         p4_gambaActive = false;

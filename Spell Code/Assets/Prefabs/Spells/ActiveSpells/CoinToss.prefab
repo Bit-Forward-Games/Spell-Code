@@ -49,9 +49,8 @@ MonoBehaviour:
   - {fileID: 7323394407539773554, guid: 3c17e1415e2cb7148af8764e1d307018, type: 3}
   - {fileID: 7323394407539773554, guid: 0313600240a42e54184617cf8275501f, type: 3}
   projectileInstances: []
-  FloppyDisplayPrefabReference: {fileID: 9097413590140942043, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}
-  FloppyDisplayInstance: {fileID: 0}
+  floppyDisplayInstance: {fileID: 0}
   shopSprite: {fileID: 21300000, guid: b6b76d8190ffd014fb2acb09c9c41b2e, type: 3}
-  readyIcon: {fileID: 21300000, guid: 3eda17606ca5f2e4a9a92e87aec4e41d, type: 3}
+  readyIcon: {fileID: 7729621735142151825, guid: 120c6bb00c8734f96bd2f572e79fa079, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 91d51ae16c0ba1c4d96bf64d6ad94dd8, type: 3}
   doesCrit: 0

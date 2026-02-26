@@ -56,6 +56,8 @@ public class GambaMachine : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+
+        gambaAnimator.SetBool("facingLeft", !facingRight);
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 

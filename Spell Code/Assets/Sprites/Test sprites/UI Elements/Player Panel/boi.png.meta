@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 57562b01a303043bc9723bb444721c45
+guid: 00dcd1f5dba2a4c679aa148355784673
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7267318787668557838
-    second: Empty_Quadrant_0
+      213: 7877041894513430012
+    second: Untitled_Artwork 223_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Empty_Quadrant_0
+      name: Untitled_Artwork 223_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2ff3e77011c452b90800000000000000
-      internalID: -7267318787668557838
+      spriteID: cfdc7536edfd05d60800000000000000
+      internalID: 7877041894513430012
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Empty_Quadrant_0: -7267318787668557838
+      Untitled_Artwork 223_0: 7877041894513430012
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

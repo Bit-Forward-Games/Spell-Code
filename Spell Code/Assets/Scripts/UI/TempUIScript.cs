@@ -75,6 +75,7 @@ public class TempUIScript : MonoBehaviour
                 if (spell.brands.Contains(Brand.BigStox))
                 {
                     stockStabilityVals[i].enabled = true;
+                    stockStabilityIcons[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.DemonX))
                 {
@@ -83,6 +84,7 @@ public class TempUIScript : MonoBehaviour
                 if (spell.brands.Contains(Brand.Killeez))
                 {
                     repsVals[i].enabled = true;
+                    repsIcons[i].enabled = true;
                 }
                 //if (spell.brands.Contains(Brand.Halk))
                 //{

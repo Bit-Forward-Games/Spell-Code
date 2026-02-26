@@ -449,6 +449,8 @@ public class GameManager : MonoBehaviour
                         );
                     }
                 }
+
+                players[i].inputs.AssignInputDevice(null);
                 players[i].CheckForInputs(true);
             }
         }

@@ -2335,7 +2335,7 @@ MonoBehaviour:
   opponentIdField: {fileID: 1015212266}
   myIdText: {fileID: 1417159160}
   onlineUI: {fileID: 1505144232}
-  gameplaySceneName: Gameplay
+  gameplaySceneName: MainMenu
 --- !u!114 &1101021166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3589,7 +3589,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: 57562b01a303043bc9723bb444721c45, type: 3}
     - target: {fileID: 5556436313567878654, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x

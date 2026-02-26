@@ -1471,6 +1471,7 @@ public class GameManager : MonoBehaviour
     {
         Vector2[] spawnPointList = GetSpawnPositions();
         Vector2 spawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
+        Debug.Log("SpawnPoint chosen: " + spawnPoint);
         return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
     }
 
@@ -1661,6 +1662,10 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             isTransitioning = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+
+            ResetPlayers();
             // Ready flags are already reset in RoundEnd()
         }
     }

@@ -1011,7 +1011,7 @@ public class PlayerController : MonoBehaviour
                             storedCode = stateSpecificArg;
 
                             uint spellCodeLength = (storedCode & 0xFu);
-                            storedCodeDuration = Math.Clamp(5 - spellCodeLength, 0, 5) * 60; //stored code lasts for 5 seconds (300 logic frames) minus 1 second (60 logic frames) per input in the code
+                            storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             break;
                         }

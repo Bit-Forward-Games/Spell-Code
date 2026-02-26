@@ -22,6 +22,7 @@ public class GambaMachine : MonoBehaviour
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
     public int ownerPID;
+    public bool facingRight = true;
     private GameManager gameManager;
     private DataManager dataManager;
 
@@ -56,6 +57,8 @@ public class GambaMachine : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+
+        //gambaAnimator.SetBool("facingLeft", !facingRight);
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -67,6 +70,7 @@ public class GambaMachine : MonoBehaviour
                 if (ownerPlayer.spellList.Count > 0)
                 {
                     gambaAnimator.SetBool("isActive", false);
+
 
                     if (ownerPID == 1)
                     {

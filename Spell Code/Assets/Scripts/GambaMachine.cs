@@ -42,6 +42,7 @@ public class GambaMachine : MonoBehaviour
     public GameObject floppy;
     public Vector2[] diskLocations;
     private Scene activeScene;
+    public bool facingRight = true;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

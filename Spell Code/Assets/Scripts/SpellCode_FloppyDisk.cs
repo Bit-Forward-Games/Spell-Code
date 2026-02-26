@@ -67,7 +67,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         colliding = (CheckPlayerCollision() != null);
 
 
-        if (colliding)
+        if (colliding && overlappingPlayer.pID == ownerPID)
         {
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
 

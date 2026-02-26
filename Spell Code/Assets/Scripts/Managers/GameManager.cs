@@ -83,10 +83,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
-    public Image p1_spellCard;
-    public Image p2_spellCard;
-    public Image p3_spellCard;
-    public Image p4_spellCard;
     public GameObject[] floppyObjects;
 
     [SerializeField]
@@ -160,11 +156,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         isRunning = true;
         isSaved = false;
-
-        p1_spellCard.enabled = false;
-        p2_spellCard.enabled = false;
-        p3_spellCard.enabled = false;
-        p4_spellCard.enabled = false;
 
         playerWinText.enabled = false;
         playerInputManager = GetComponent<PlayerInputManager>();
@@ -570,7 +561,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         // Set up the game stage
         SetStage(0); // Load alley arena
-        p1_spellCard.enabled = false;
         ResetPlayers();
 
         // Reset frame counter

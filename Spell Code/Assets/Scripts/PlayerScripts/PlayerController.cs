@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour
     public bool facingRight = true;
     public bool isGrounded = false;
     public bool onPlatform = false;
+    public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -905,10 +906,24 @@ public class PlayerController : MonoBehaviour
                         currentInput = 0b00;
                         break;
                     case 4:
-                        currentInput = 0b10;
+                        if(relativeInputs)
+                        {
+                            currentInput = facingRight ? (byte)0b10 : (byte)0b01;
+                        }
+                        else
+                        {
+                            currentInput = 0b10;
+                        }
                         break;
                     case 6:
-                        currentInput = 0b01;
+                        if (relativeInputs)
+                        {
+                            currentInput = facingRight ? (byte)0b01 : (byte)0b10;
+                        }
+                        else
+                        {
+                            currentInput = 0b01;
+                        }
                         break;
                     case 8:
                         currentInput = 0b11;
@@ -923,6 +938,7 @@ public class PlayerController : MonoBehaviour
 
                 if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
+                    byte tempInput;
                     switch (input.Direction)
                     {
                         case 2:
@@ -936,14 +952,31 @@ public class PlayerController : MonoBehaviour
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 0.95f, 0.95f);
                             break;
                         case 4:
-                            stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
+                            if(relativeInputs)
+                            {
+                                tempInput = facingRight ? (byte)0b10 : (byte)0b01;
+
+                            }
+                            else
+                            {
+                                tempInput = 0b10;
+                            }
+                                stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
                             //play the input code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.05f, 1.05f);
                             break;
                         case 6:
-                            stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
+                            if (relativeInputs)
+                            {
+                                tempInput = facingRight ? (byte)0b01 : (byte)0b10;
+                            }
+                            else
+                            {
+                                tempInput = 0b01;
+                            }
+                            stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
                             //play the input code sound
@@ -1072,6 +1105,11 @@ public class PlayerController : MonoBehaviour
                             InitializePalette(matchPalette[pID - 1]);
                             secretNormalPaletteActive = false;
                         }
+                    }
+                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
+                    {
+                        Debug.Log("Relative Inputs activated!");
+                        relativeInputs = !relativeInputs;
                     }
                     for (int i = 0; i < spellList.Count; i++)
                     {

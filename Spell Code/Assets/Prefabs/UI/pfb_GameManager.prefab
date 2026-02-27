@@ -2435,7 +2435,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 25db1c35f6dc7564fa996f91129404e5, type: 2}
   - {fileID: 11400000, guid: e2e1836036575f041b055441cf2032d5, type: 2}
   - {fileID: 11400000, guid: 50d4aff065ec55849956fb6be3e1a3a0, type: 2}
-  lobbySO: {fileID: 11400000, guid: 5d056a58e4770224f96cc4062bd2b31a, type: 2}
+  gameStages: []
+  lobbySO: {fileID: 11400000, guid: d976fc78240ce5f419ece00d3e5b660e, type: 2}
   currentStageIndex: -1
   sceneManager: {fileID: 3482084119599465952}
   tempMapGOs:
@@ -2470,10 +2471,6 @@ MonoBehaviour:
   roundEndTransitionTime: 2
   playerWinText: {fileID: 6972165823169607545}
   playersChosenSpell: 0
-  p1_spellCard: {fileID: 1218310616019635003}
-  p2_spellCard: {fileID: 3515640928645104075}
-  p3_spellCard: {fileID: 630245634410597839}
-  p4_spellCard: {fileID: 288789991111066132}
   floppyObjects: []
   p1_choices: []
   p2_choices: []

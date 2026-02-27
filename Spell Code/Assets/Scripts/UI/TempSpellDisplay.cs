@@ -175,18 +175,25 @@ public class TempSpellDisplay : MonoBehaviour
                     case Brand.VWave:
                         cooldownFills[i].color = new Color32(107, 255, 116, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
+                        uiScript.flowStateVals[i].enabled = true;
                         break;
                     case Brand.BigStox:
                         cooldownFills[i].color = new Color32(67, 122, 252, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
+                        uiScript.stockStabilityVals[i].enabled = true;
+                        uiScript.stockStabilityIcons[i].enabled = true;
                         break;
                     case Brand.Killeez:
                         cooldownFills[i].color = new Color32(255, 207, 0, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
+                        uiScript.repsVals[i].enabled = true;
+                        uiScript.repsIcons[i].enabled = true;
                         break;
                     case Brand.DemonX:
                         cooldownFills[i].color = new Color32(255, 62, 117, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
+                        uiScript.demonAuraVals[i].enabled = true;
+
                         break;
                 }
 

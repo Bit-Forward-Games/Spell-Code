@@ -22,7 +22,6 @@ public class GambaMachine : MonoBehaviour
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
     public int ownerPID;
-    public bool facingRight = true;
     private GameManager gameManager;
     private DataManager dataManager;
 
@@ -43,6 +42,7 @@ public class GambaMachine : MonoBehaviour
     public GameObject floppy;
     public Vector2[] diskLocations;
     private Scene activeScene;
+    public bool facingRight = true;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -58,7 +58,7 @@ public class GambaMachine : MonoBehaviour
     void FixedUpdate()
     {
 
-        //gambaAnimator.SetBool("facingLeft", !facingRight);
+        gambaAnimator.SetBool("facingLeft", !facingRight);
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -70,7 +70,6 @@ public class GambaMachine : MonoBehaviour
                 if (ownerPlayer.spellList.Count > 0)
                 {
                     gambaAnimator.SetBool("isActive", false);
-
 
                     if (ownerPID == 1)
                     {
@@ -105,30 +104,18 @@ public class GambaMachine : MonoBehaviour
 
                 if (ownerPID == 1) {
                     SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
-                    SpawnFloppyDisk(ownerPID, diskLocations[1], "QuarterReport");
-                    SpawnFloppyDisk(ownerPID, diskLocations[0], "SkillshotSlash");
-                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
                 }
                 if (ownerPID == 2) 
                 { 
                     SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
-                    SpawnFloppyDisk(ownerPID, diskLocations[4], "AmonSlash");
-                    SpawnFloppyDisk(ownerPID, diskLocations[5], "SkillshotSlash");
-                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
                 }
                 if (ownerPID == 3) 
                 { 
                     SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
-                    SpawnFloppyDisk(ownerPID, diskLocations[6], "QuarterReport");
-                    SpawnFloppyDisk(ownerPID, diskLocations[7], "SkillshotSlash");
-                    SpawnFloppyDisk(ownerPID, this.transform.position, "AmonSlash");
                 }
                 if (ownerPID == 4) 
                 { 
                     SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
-                    SpawnFloppyDisk(ownerPID, diskLocations[10], "QuarterReport");
-                    SpawnFloppyDisk(ownerPID, diskLocations[11], "AmonSlash");
-                    SpawnFloppyDisk(ownerPID, this.transform.position, "BladeOfAres");
                 }
             }
         }

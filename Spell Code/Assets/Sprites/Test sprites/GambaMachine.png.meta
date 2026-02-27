@@ -169,10 +169,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 48
+        width: 32
         height: 48
       alignment: 9
-      pivot: {x: 0.3333333, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.1666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -189,12 +189,12 @@ TextureImporter:
       name: GambaMachine_1
       rect:
         serializedVersion: 2
-        x: 48
+        x: 32
         y: 0
-        width: 48
+        width: 32
         height: 48
       alignment: 9
-      pivot: {x: 0.3333333, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.1666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -211,12 +211,12 @@ TextureImporter:
       name: GambaMachine_2
       rect:
         serializedVersion: 2
-        x: 96
+        x: 64
         y: 0
-        width: 48
+        width: 32
         height: 48
       alignment: 9
-      pivot: {x: 0.3333333, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.1666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -225,6 +225,72 @@ TextureImporter:
       bones: []
       spriteID: 422875036ecabeea0800000000000000
       internalID: -5842385986929589724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GambaMachine_3
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.1666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9dcc3d23177f4e8449abc3bcd243ccd2
+      internalID: -1115844835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GambaMachine_4
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 32
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.1666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73ec10e7d0ba14e409970d6a1cdf3f9f
+      internalID: 1838916167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GambaMachine_5
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 0
+        width: 32
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.1666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 453ce0039d88e0943a660da06e1e71cd
+      internalID: -972537356
       vertices: []
       indices: 
       edges: []
@@ -246,6 +312,9 @@ TextureImporter:
       GambaMachine_0: 2880347623437797983
       GambaMachine_1: 3477412032146528476
       GambaMachine_2: -5842385986929589724
+      GambaMachine_3: -1115844835
+      GambaMachine_4: 1838916167
+      GambaMachine_5: -972537356
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

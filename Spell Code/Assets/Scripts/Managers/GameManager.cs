@@ -16,6 +16,7 @@ using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
 using System;
+using static RollbackManager;
 
 public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 {
@@ -50,7 +51,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     private DataManager dataManager;
     public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
-    public StageDataSO[] stages;
+    public List<StageDataSO> stages;
+    [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
     public StageDataSO lobbySO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
@@ -1331,20 +1333,28 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             Debug.Log("Disabled PlayerInputManager before scene load");
         }
 
-        int newStageIndex;
+        //if gameStages is empty,...
+        if (gameStages.Count <= 0)
+        {
+            //fill it back up
+            RandomizeGameStages();
+        }
+
+        int _newStageIndex;
         if (isOnlineMatchActive)
         {
-            newStageIndex = 1;
+            _newStageIndex = 1;
         }
         else
         {
-            do
-            {
-                newStageIndex = seededRandom.Next(0, stages.Length);
-            } while (currentStageIndex == newStageIndex);
+            int _gameStageIndex = seededRandom.Next(0, gameStages.Count);
+            _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
         }
 
-        SetStage(newStageIndex);
+        //remove the stage associated with newStageIndex so it does not repeat for the rest of the game
+        gameStages.Remove(stages[_newStageIndex]);
+
+        SetStage(_newStageIndex);
         if (isOnlineMatchActive)
         {
             isTransitioning = true;
@@ -1689,5 +1699,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
+    /// </summary>
+    private void RandomizeGameStages()
+    {
+        //copy all stages from stages into gameStages
+        gameStages = new List<StageDataSO>(stages);
+
+        //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
+
+        //delete random stages from gameStages until gameStages.Length equals 9
+        while (gameStages.Count > 9)
+        {
+            gameStages.RemoveAt(UnityEngine.Random.Range(0, gameStages.Count));
+        }
+
+        //Debug.Log("After culling: gameStages.Count = " + gameStages.Count);
     }
 }

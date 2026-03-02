@@ -59,8 +59,7 @@ public class Pause : MonoBehaviour
         Resume();
 
         //Restart the game back at the lobby
-        sceneUiManager.MainMenu();
-        //GameManager.Instance.RestartGame();
+        sceneUiManager.Restart();
     }
 
     public void QuitGame()

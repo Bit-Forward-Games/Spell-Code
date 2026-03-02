@@ -1598,7 +1598,9 @@ public class PlayerController : MonoBehaviour
                         if (Mathf.Approximately(objPos.x, stageDataSO.activatableSolidCenter[i].x) &&
                             Mathf.Approximately(objPos.y, stageDataSO.activatableSolidCenter[i].y))
                         {
-                            isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
+                            //isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
+                            isOpen = GameManager.Instance.IsGateOpenAtPosition(stageDataSO.activatableSolidCenter[i].x,
+                                                                               stageDataSO.activatableSolidCenter[i].y);
                             break;
                         }
                     }
@@ -1959,8 +1961,6 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            // isHit = false;
-
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
             if (lightArmor && hitboxData.attackLvl < 2)
             {
@@ -2042,7 +2042,8 @@ public class PlayerController : MonoBehaviour
             //subtract demon aura based on the hitbox's damage
             //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
-
+            isHit = false;
+            hitboxData = null;
         }
     }
 
@@ -2088,6 +2089,28 @@ public class PlayerController : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void ResolveReferences()
+    {
+        if (hitboxData != null && _pendingHitboxOwnerIndex >= 0
+            && _pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
+        {
+            PlayerController ownerPlayer = GameManager.Instance.players[_pendingHitboxOwnerIndex];
+            if (ownerPlayer != null)
+            {
+                // Find the projectile whose owner matches
+                foreach (BaseProjectile proj in ProjectileManager.Instance.activeProjectiles)
+                {
+                    if (proj.owner == ownerPlayer)
+                    {
+                        hitboxData.parentProjectile = proj;
+                        break;
+                    }
+                }
+            }
+            _pendingHitboxOwnerIndex = -1;
+        }
     }
 
     /// <summary>

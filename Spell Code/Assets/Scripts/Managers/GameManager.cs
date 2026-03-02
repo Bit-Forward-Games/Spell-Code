@@ -137,6 +137,7 @@ public class GameManager : MonoBehaviour
     private int timeoutFrames = 0; // Timeout counter
     public int randomSeed = 0;
     public int randomCallCount = 0;
+    private uint rngState = 0;
 
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
@@ -912,72 +913,6 @@ public class GameManager : MonoBehaviour
         {
             rbManager.SaveState();
         }
-
-        // ALWAYS refresh UI on non-rollback frames to sync with game state
-        // RefreshLobbyUI();
-    }
-
-    // Handle spell selection for online players (GAME STATE ONLY)
-    public void HandleOnlineSpellSelection()
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            if (players[i] == null) continue;
-
-            if (!players[i].isSpawned)
-            {
-                GenerateStartingSpells(i);
-                players[i].isSpawned = true;
-            }
-
-            if (!players[i].chosenStartingSpell && players[i].isSpawned)
-            {
-                List<string> choices = i == 0 ? p1_choices : p2_choices;
-                int currentIndex = i == 0 ? p1_index : p2_index;
-
-                int lastCycleFrame = i == 0 ? p1_lastCycleFrame : p2_lastCycleFrame;
-
-                InputSnapshot snapshot = InputConverter.ConvertFromLong(syncedInput[i]);
-
-                // Cycle spells - ONLY if button is PRESSED and cooldown has passed
-                if (snapshot.ButtonStates[0] == ButtonState.Pressed &&
-                    (frameNumber - lastCycleFrame) >= CYCLE_COOLDOWN_FRAMES)
-                {
-                    //Debug.Log($"[SYNCED] p{i + 1} pressed cycle spell (current index: {currentIndex})");
-
-                    currentIndex = (currentIndex + 1) % choices.Count;
-
-                    if (i == 0)
-                    {
-                        p1_index = currentIndex;
-                        p1_lastCycleFrame = frameNumber;
-                    }
-                    else
-                    {
-                        p2_index = currentIndex;
-                        p2_lastCycleFrame = frameNumber;
-                    }
-
-                    //Debug.Log($"[SYNCED] p{i + 1} new index: {currentIndex}, spell: {choices[currentIndex]}");
-                }
-
-                // Choose spell
-                if (snapshot.ButtonStates[1] == ButtonState.Pressed)
-                {
-                    //Debug.Log($"[SYNCED] p{i + 1} chose spell: {choices[currentIndex]}");
-
-                    players[i].startingSpell = choices[currentIndex];
-                    players[i].chosenStartingSpell = true;
-
-                    if (!players[i].startingSpellAdded)
-                    {
-                        players[i].AddSpellToSpellList(choices[currentIndex]);
-                        players[i].startingSpellAdded = true;
-                        //Debug.Log($"[SYNCED] Added starting spell to player {i}: {choices[currentIndex]}");
-                    }
-                }
-            }
-        }
     }
 
     public void ForceSetFrame(int newFrame)
@@ -1229,6 +1164,20 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
     }
 
+    public bool IsGateOpenAtPosition(float x, float y)
+    {
+        foreach (var gate in gates)
+        {
+            if (gate == null) continue;
+            Vector3 gatePos = gate.transform.position;
+            if (Mathf.Approximately(gatePos.x, x) && Mathf.Approximately(gatePos.y, y))
+            {
+                return gate.isOpen; // This is the LOGICAL state, restored by Deserialize
+            }
+        }
+        return false; // Default closed if not found
+    }
+
     public void UpdatePlayerBounties()
     {
         ushort averageTotalRam = 0;
@@ -1397,18 +1346,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public int GetNextRandom(int minValue, int maxValue)
-    {
-        randomCallCount++;
-        return seededRandom.Next(minValue, maxValue);
-    }
-
     public void InitializeWithSeed(int seed)
     {
         randomSeed = seed;
         randomCallCount = 0;
-        seededRandom = new System.Random(seed);
-        Debug.Log($"[SEED] Initialized seededRandom with seed: {seed}");
+        rngState = (uint)seed;
+        Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
+    }
+
+    public int GetNextRandom(int minValue, int maxValue)
+    {
+        // Simple LCG - fully deterministic, reconstructible from state alone
+        rngState = rngState * 1664525u + 1013904223u;
+        randomCallCount++;
+        int range = maxValue - minValue;
+        if (range <= 0) return minValue;
+        return minValue + (int)(rngState % (uint)range);
     }
 
     public FixedVec2 GetRandomSpawnVec2()
@@ -1729,6 +1682,7 @@ public class GameManager : MonoBehaviour
                 // Serialize random state for deterministic respawns
                 bw.Write(randomSeed);
                 bw.Write(randomCallCount);
+                bw.Write(rngState);
 
                 // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
@@ -1835,15 +1789,8 @@ public class GameManager : MonoBehaviour
 
                 // Deserialize random state
                 randomSeed = br.ReadInt32();
-                int savedCallCount = br.ReadInt32();
-
-                // Reconstruct random to exact same state as when it was saved
-                seededRandom = new System.Random(randomSeed);
-                for (int i = 0; i < savedCallCount; i++)
-                {
-                    seededRandom.Next();
-                }
-                randomCallCount = savedCallCount;
+                randomCallCount = br.ReadInt32();
+                rngState = br.ReadUInt32(); // Restore exact RNG state directly
 
                 // Deserialize spell selection indices
                 p1_index = br.ReadInt32();
@@ -1978,6 +1925,11 @@ public class GameManager : MonoBehaviour
                 foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles) // Iterate over the now correct list
                 {
                     projectile.ResolveReferences();
+                }
+                for (int i = 0; i < playerCount; i++)
+                {
+                    if (players[i] != null)
+                        players[i].ResolveReferences();
                 }
             }
         }

@@ -730,6 +730,10 @@ public class GameManager : MonoBehaviour
                 LoadRandomGameplayStage();
             }
         }
+        else if (activeScene.name == "Gameplay")
+        {
+            CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+        }
     }
 
     /// <summary>
@@ -804,95 +808,46 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Gameplay")
         {
-            // Only check end conditions if NOT rolling back
-            if (CheckDeathsAndRoundEnd(GetActivePlayerControllers())) 
+            // Only handle transitions on non-rollback frames
+            // Death/respawn is handled in UpdateSceneLogic (which also runs during rollback)
+            if (!rbManager.isRollbackFrame && roundOver)
             {
-                if (!rbManager.isRollbackFrame)
+                if (roundEndTransitionTime >= roundEndTimer)
                 {
-                    if (!roundOver)
+                    roundEndTimer += Time.fixedDeltaTime;
+                }
+
+                if (roundEndTransitionTime <= roundEndTimer)
+                {
+                    ClearStages();
+
+                    if (gameOver)
                     {
-                        // Determine winner
-                        ushort highestRam = 0;
-                        PlayerController winner = null;
-                        for (int i = 0; i < playerCount; i++)
-                        {
-                            if (players[i].roundRam >= ramNeededToWinRound)
-                            {
-                                if (players[i].roundRam > highestRam)
-                                {
-                                    winner = players[i];
-                                    highestRam = players[i].roundRam;
-                                }
-                            }
-                        }
-
-                        if (winner != null)
-                        {
-                            winner.roundsWon += 1;
-                            roundOver = true;
-
-                            // Show win text (optional - might look weird in online with lag)
-                            // playerWinText.enabled = true;
-                            // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-
-                            // Reset roundRam for all players
-                            for (int i = 0; i < playerCount; i++)
-                            {
-                                players[i].roundRam = 0;
-                                players[i].playerNum.enabled = false;
-                                players[i].inputDisplay.enabled = false;
-                                if (players[i].roundsWon >= 3) { gameOver = true; }
-                            }
-                        }
+                        dataManager.totalRoundsPlayed += 1;
+                        GameEnd();
+                        roundEndTimer = 0;
                     }
-
-                    // Handle round end timer (deterministic)
-                    if (roundEndTransitionTime >= roundEndTimer)
+                    else if (players[0].spellList.Count >= 6)
                     {
-                        roundEndTimer += Time.fixedDeltaTime; // Use fixedDeltaTime for determinism
+                        dataManager.totalRoundsPlayed += 1;
+                        localPlayerReadyForGameplay = false;
+                        remotePlayerReadyForGameplay = false;
+                        isTransitioning = true;
+                        LoadRandomGameplayStage();
+                        foreach (PlayerController player in players)
+                        {
+                            if (player != null)
+                                player.inputDisplay.enabled = true;
+                        }
+                        roundEndTimer = 0;
+                        roundOver = false;
                     }
-
-                    // Transition after timer
-                    if (roundEndTransitionTime <= roundEndTimer)
+                    else
                     {
-                        ClearStages();
-
-                        if (gameOver)
-                        {
-                            // playerWinText.enabled = false;
-                            dataManager.totalRoundsPlayed += 1;
-                            GameEnd();
-                            roundEndTimer = 0;
-                        }
-                        else if (players[0].spellList.Count >= 6)
-                        {
-                            // Max spells reached - skip shop, go to next gameplay
-                            // playerWinText.enabled = false;
-                            dataManager.totalRoundsPlayed += 1;
-
-                            // Need to reset ready flags and set transitioning
-                            localPlayerReadyForGameplay = false;
-                            remotePlayerReadyForGameplay = false;
-                            isTransitioning = true;
-
-                            LoadRandomGameplayStage();
-                            foreach (PlayerController player in players)
-                            {
-                                if (player != null)
-                                    player.inputDisplay.enabled = true;
-                            }
-                            roundEndTimer = 0;
-                            roundOver = false;
-                        }
-                        else
-                        {
-                            // Normal round end - go to shop
-                            // playerWinText.enabled = false;
-                            dataManager.totalRoundsPlayed += 1;
-                            RoundEnd();
-                            roundEndTimer = 0;
-                            roundOver = false;
-                        }
+                        dataManager.totalRoundsPlayed += 1;
+                        RoundEnd();
+                        roundEndTimer = 0;
+                        roundOver = false;
                     }
                 }
             }
@@ -1244,11 +1199,37 @@ public class GameManager : MonoBehaviour
         {
             if (player.roundRam >= ramNeededToWinRound)
             {
+                // Determine winner deterministically here
+                if (!roundOver)
+                {
+                    ushort highestRam = 0;
+                    PlayerController winner = null;
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        if (players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
+                        {
+                            winner = players[i];
+                            highestRam = players[i].roundRam;
+                        }
+                    }
+
+                    if (winner != null)
+                    {
+                        winner.roundsWon += 1;
+                        roundOver = true;
+
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].playerNum.enabled = false;
+                            players[i].inputDisplay.enabled = false;
+                            if (players[i].roundsWon >= 3) { gameOver = true; }
+                        }
+                    }
+                }
                 return true;
             }
         }
-
-
         return false;
     }
 

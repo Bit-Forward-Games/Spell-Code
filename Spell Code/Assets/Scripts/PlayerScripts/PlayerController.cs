@@ -156,6 +156,7 @@ public class PlayerController : MonoBehaviour
 
     public List<SpellData> spellList = new List<SpellData>();
     public GameObject basicProjectileInstance;
+    private int _pendingHitboxProjectileIndex = -1;
 
     //TMPro
     public TextMeshPro inputDisplay;
@@ -2093,23 +2094,31 @@ public class PlayerController : MonoBehaviour
 
     public void ResolveReferences()
     {
-        if (hitboxData != null && _pendingHitboxOwnerIndex >= 0
-            && _pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
+        if (hitboxData != null && _pendingHitboxOwnerIndex >= 0)
         {
-            PlayerController ownerPlayer = GameManager.Instance.players[_pendingHitboxOwnerIndex];
-            if (ownerPlayer != null)
+            // Use specific projectile index if available
+            if (_pendingHitboxProjectileIndex >= 0 &&
+                _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count)
             {
-                // Find the projectile whose owner matches
-                foreach (BaseProjectile proj in ProjectileManager.Instance.activeProjectiles)
+                hitboxData.parentProjectile = ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex];
+            }
+            else if (_pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
+            {
+                PlayerController ownerPlayer = GameManager.Instance.players[_pendingHitboxOwnerIndex];
+                if (ownerPlayer != null)
                 {
-                    if (proj.owner == ownerPlayer)
+                    foreach (BaseProjectile proj in ProjectileManager.Instance.activeProjectiles)
                     {
-                        hitboxData.parentProjectile = proj;
-                        break;
+                        if (proj.owner == ownerPlayer)
+                        {
+                            hitboxData.parentProjectile = proj;
+                            break;
+                        }
                     }
                 }
             }
             _pendingHitboxOwnerIndex = -1;
+            _pendingHitboxProjectileIndex = -1;
         }
     }
 
@@ -2298,6 +2307,10 @@ public class PlayerController : MonoBehaviour
                 ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
                 : -1;
             bw.Write(ownerIndex);
+            int projPrefabIndex = hitboxData.parentProjectile != null
+                ? ProjectileManager.Instance.projectilePrefabs.IndexOf(hitboxData.parentProjectile)
+                : -1;
+            bw.Write(projPrefabIndex);
         }
 
         bw.Write(flowState);
@@ -2308,6 +2321,10 @@ public class PlayerController : MonoBehaviour
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
+        bw.Write(roundsWon);
+        bw.Write(totalRam);
+        bw.Write(roundRam);
+        bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
         bw.Write(startingSpellAdded);
 
@@ -2365,6 +2382,7 @@ public class PlayerController : MonoBehaviour
             hitboxData.attackLvl = br.ReadByte();
             hitboxData.basicAttackHitbox = br.ReadBoolean();
             _pendingHitboxOwnerIndex = br.ReadInt32();
+            _pendingHitboxProjectileIndex = br.ReadInt32();
         }
         else
         {
@@ -2379,6 +2397,10 @@ public class PlayerController : MonoBehaviour
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();
+        roundsWon = br.ReadInt32();
+        totalRam = br.ReadUInt16();
+        roundRam = br.ReadUInt16();
+        ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();
         bool savedStartingSpellAdded = br.ReadBoolean();
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());

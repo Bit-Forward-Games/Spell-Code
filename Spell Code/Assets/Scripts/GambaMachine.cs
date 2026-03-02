@@ -59,6 +59,7 @@ public class GambaMachine : MonoBehaviour
     {
         if (gameManager.isOnlineMatchActive) return;
 
+        gambaAnimator.SetBool("facingLeft", !facingRight);
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 

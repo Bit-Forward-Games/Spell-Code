@@ -1975,6 +1975,8 @@ public class GameManager : MonoBehaviour
         {
             list.Add(br.ReadString());
         }
+
+        return list;
     }
 
     /// <summary>

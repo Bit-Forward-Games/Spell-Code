@@ -26,6 +26,7 @@ public class TempUIScript : MonoBehaviour
 
     private float[] previousHealthFill; // track last known health per player
     private bool[] damageBarRunning;
+    private Coroutine[] damageBarCoroutines;
     //public Image[] momentumVals;
     //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,10 +36,12 @@ public class TempUIScript : MonoBehaviour
         Image[] followPlayerDamageBar = new Image[4];
         previousHealthFill = new float[4];
         damageBarRunning = new bool[4];
+        damageBarCoroutines = new Coroutine[4];
         for (int i = 0; i < 4; i++)
         {
             previousHealthFill[i] = 1f;
             damageBarRunning[i] = false;
+            damageBarCoroutines[i] = null;
         }
     }
 
@@ -63,9 +66,18 @@ public class TempUIScript : MonoBehaviour
             float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
 
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-            if (!isRollback && fillAmountVal < previousHealthFill[i] && !damageBarRunning[i])
+            if (!isRollback && fillAmountVal < previousHealthFill[i])
             {
-                StartCoroutine(DamageBar(i, previousHealthFill[i], fillAmountVal));
+                // Stop any running coroutine and restart from current damage bar fill
+                // so stacked hits all get shown
+                if (damageBarRunning[i])
+                {
+                    StopCoroutine(damageBarCoroutines[i]);
+                    damageBarRunning[i] = false;
+                }
+                // Start from wherever the red bar currently sits (may still be draining from last hit)
+                float drainFrom = playerDamageBar[i].fillAmount;
+                damageBarCoroutines[i] = StartCoroutine(DamageBar(i, drainFrom, fillAmountVal));
             }
 
             playerHpBar[i].fillAmount = fillAmountVal;

@@ -36,7 +36,7 @@ public class GambaMachine : MonoBehaviour
     public HurtboxData hurtbox = new HurtboxData();
     public float colliderRadius = 16f;
 
-    private byte resetTimer = 0;
+    public byte resetTimer = 0;
     public int activatedCount = 0;
 
     public GameObject floppy;

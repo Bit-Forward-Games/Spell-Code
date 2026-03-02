@@ -719,15 +719,20 @@ public class GameManager : MonoBehaviour
         {
             goDoorPrefab.CheckOpenDoor();
 
-            foreach (GameObject gambaGO in gambas)
+            // Only run gamba logic on real frames - it spawns GameObjects and consumes RNG
+            bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+            if (!isRollback)
             {
-                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-            }
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+                }
 
-            if (goDoorPrefab.CheckAllPlayersReady())
-            {
-                LoadRandomGameplayStage();
+                if (goDoorPrefab.CheckAllPlayersReady())
+                {
+                    LoadRandomGameplayStage();
+                }
             }
         }
         else if (activeScene.name == "Gameplay")
@@ -852,17 +857,17 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        else if (activeScene.name == "Shop")
-        {
-            if (!rbManager.isRollbackFrame)
-            {
-                foreach (GameObject gambaGO in gambas)
-                {
-                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-                }
-            }
-        }
+        //else if (activeScene.name == "Shop")
+        //{
+        //    if (!rbManager.isRollbackFrame)
+        //    {
+        //        foreach (GameObject gambaGO in gambas)
+        //        {
+        //            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+        //            if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+        //        }
+        //    }
+        //}
 
         if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
         {
@@ -1722,6 +1727,15 @@ public class GameManager : MonoBehaviour
                     if (gate != null) gate.Serialize(bw);
                 }
 
+                bw.Write(gambas.Count);
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    // Write defaults if somehow null, so byte count stays consistent
+                    bw.Write(gamba != null ? gamba.activatedCount : 0);
+                    bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+                }
+
                 return memoryStream.ToArray();
             }
         }
@@ -1897,6 +1911,20 @@ public class GameManager : MonoBehaviour
                     if (i < gates.Length && gates[i] != null)
                     {
                         gates[i].Deserialize(br);
+                    }
+                }
+
+                int gambaCount = br.ReadInt32();
+                for (int i = 0; i < gambaCount; i++)
+                {
+                    if (i < gambas.Count)
+                    {
+                        GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
+                        if (gamba != null)
+                        {
+                            gamba.activatedCount = br.ReadInt32();
+                            gamba.resetTimer = br.ReadByte();
+                        }
                     }
                 }
 

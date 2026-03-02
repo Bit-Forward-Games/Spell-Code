@@ -2043,8 +2043,11 @@ public class PlayerController : MonoBehaviour
             //subtract demon aura based on the hitbox's damage
             //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
-            isHit = false;
-            hitboxData = null;
+            if (GameManager.Instance.isOnlineMatchActive)
+            {
+                isHit = false;
+                hitboxData = null;
+            }
         }
     }
 

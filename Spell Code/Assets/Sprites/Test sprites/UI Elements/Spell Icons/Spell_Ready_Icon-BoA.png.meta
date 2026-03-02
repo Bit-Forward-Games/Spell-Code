@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 61f5b2c3cff0e4c4db01fcd89c15cffc
+guid: 2659b60f806c94a76bd96bd38a7183da
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8291514842741968779
-    second: Spell_Ready_Icon-BoA_0
+      213: -2211682862989334575
+    second: Untitled_Artwork 225_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -84,6 +84,19 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
     buildTarget: iOS
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -98,19 +111,6 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -152,13 +152,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_Ready_Icon-BoA_0
+      name: Untitled_Artwork 225_0
       rect:
         serializedVersion: 2
         x: 0
         y: 1
-        width: 124
-        height: 99
+        width: 119
+        height: 97
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -167,8 +167,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b8f8383b1d0611370800000000000000
-      internalID: 8291514842741968779
+      spriteID: 1d7a3b377268e41e0800000000000000
+      internalID: -2211682862989334575
       vertices: []
       indices: 
       edges: []
@@ -187,7 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_Ready_Icon-BoA_0: 8291514842741968779
+      Untitled_Artwork 225_0: -2211682862989334575
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

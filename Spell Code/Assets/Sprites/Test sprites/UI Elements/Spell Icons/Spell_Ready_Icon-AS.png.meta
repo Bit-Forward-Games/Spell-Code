@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c83b099bbfbca8c4bb929a042863919a
+guid: 07f0afe1afadd4234878fa4b053f9ba1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3999534691365058911
-    second: Spell_Ready_Icon-AS_0
+      213: 3501991945931954458
+    second: Untitled_Artwork 230_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -152,13 +152,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_Ready_Icon-AS_0
+      name: Untitled_Artwork 230_0
       rect:
         serializedVersion: 2
         x: 0
         y: 1
-        width: 124
-        height: 99
+        width: 119
+        height: 97
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -167,8 +167,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1a6855e736cce78c0800000000000000
-      internalID: -3999534691365058911
+      spriteID: a199d87de13999030800000000000000
+      internalID: 3501991945931954458
       vertices: []
       indices: 
       edges: []
@@ -187,7 +187,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_Ready_Icon-AS_0: -3999534691365058911
+      Untitled_Artwork 230_0: 3501991945931954458
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

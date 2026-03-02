@@ -82,6 +82,7 @@ public class PlayerController : MonoBehaviour
     public bool facingRight = true;
     public bool isGrounded = false;
     public bool onPlatform = false;
+    public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -767,7 +768,7 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Run:
 
-                //...
+                //if the logic frame is a frame at which the player should make a run sound,...
                 if (logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == 0 || logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run).frameLengths.Take(3).Sum() + 1)
                 {
                     //play the run sound
@@ -913,10 +914,24 @@ public class PlayerController : MonoBehaviour
                         currentInput = 0b00;
                         break;
                     case 4:
-                        currentInput = 0b10;
+                        if(relativeInputs)
+                        {
+                            currentInput = facingRight ? (byte)0b10 : (byte)0b01;
+                        }
+                        else
+                        {
+                            currentInput = 0b10;
+                        }
                         break;
                     case 6:
-                        currentInput = 0b01;
+                        if (relativeInputs)
+                        {
+                            currentInput = facingRight ? (byte)0b01 : (byte)0b10;
+                        }
+                        else
+                        {
+                            currentInput = 0b01;
+                        }
                         break;
                     case 8:
                         currentInput = 0b11;
@@ -931,6 +946,7 @@ public class PlayerController : MonoBehaviour
 
                 if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
+                    byte tempInput;
                     switch (input.Direction)
                     {
                         case 2:
@@ -940,29 +956,46 @@ public class PlayerController : MonoBehaviour
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("down input Pressed!");
-                            //play the input code sound
-                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 0.95f, 0.95f);
+                            //play the input down code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_DOWN, 0.95f, 0.95f);
                             break;
                         case 4:
-                            stateSpecificArg |= (uint)(0b10 << (8 + (codeCount * 2)));
+                            if(relativeInputs)
+                            {
+                                tempInput = facingRight ? (byte)0b10 : (byte)0b01;
+
+                            }
+                            else
+                            {
+                                tempInput = 0b10;
+                            }
+                                stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("left input Pressed!");
-                            //play the input code sound
-                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.05f, 1.05f);
+                            //play the input left code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_LEFT, 1.05f, 1.05f);
                             break;
                         case 6:
-                            stateSpecificArg |= (uint)(0b01 << (8 + (codeCount * 2)));
+                            if (relativeInputs)
+                            {
+                                tempInput = facingRight ? (byte)0b01 : (byte)0b10;
+                            }
+                            else
+                            {
+                                tempInput = 0b01;
+                            }
+                            stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("right input Pressed!");
-                            //play the input code sound
-                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1f, 1f);
+                            //play the input right code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_RIGHT, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
                             Debug.Log("up input Pressed!");
-                            //play the input code sound
-                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE, 1.1f, 1.1f);
+                            //play the input up code sound
+                            SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_UP, 1.1f, 1.1f);
                             break;
                         default:
                             //stateSpecificArg &= ~(1u << 4);
@@ -1080,6 +1113,11 @@ public class PlayerController : MonoBehaviour
                             InitializePalette(matchPalette[pID - 1]);
                             secretNormalPaletteActive = false;
                         }
+                    }
+                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
+                    {
+                        Debug.Log("Relative Inputs activated!");
+                        relativeInputs = !relativeInputs;
                     }
                     for (int i = 0; i < spellList.Count; i++)
                     {
@@ -1810,7 +1848,7 @@ public class PlayerController : MonoBehaviour
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
                 //begin to continuously play the code weave sound
-                SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 1f, 1f);
+                SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
 
                 if (!isGrounded)
                 {

@@ -21,6 +21,7 @@ public class TempUIScript : MonoBehaviour
     public Image[] stockStabilityIcons;
     public Image[] demonAuraVals;
     public TextMeshProUGUI[] repsVals;
+    public Image[] repsIcons;
     public float flashAlpha = .5f;
 
     private float[] previousHealthFill; // track last known health per player
@@ -76,8 +77,10 @@ public class TempUIScript : MonoBehaviour
 
             flowStateVals[i].enabled = false;
             stockStabilityVals[i].enabled = false;
+            stockStabilityIcons[i].enabled = false;
             demonAuraVals[i].enabled = false;
             repsVals[i].enabled = false;
+            repsIcons[i].enabled = false;
             //momentumVals[i].enabled = false;
             //slimedVals[i].enabled = false;
 
@@ -90,6 +93,7 @@ public class TempUIScript : MonoBehaviour
                 if (spell.brands.Contains(Brand.BigStox))
                 {
                     stockStabilityVals[i].enabled = true;
+                    stockStabilityIcons[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.DemonX))
                 {
@@ -98,6 +102,7 @@ public class TempUIScript : MonoBehaviour
                 if (spell.brands.Contains(Brand.Killeez))
                 {
                     repsVals[i].enabled = true;
+                    repsIcons[i].enabled = true;
                 }
                 //if (spell.brands.Contains(Brand.Halk))
                 //{
@@ -106,16 +111,18 @@ public class TempUIScript : MonoBehaviour
 
             }
 
-            flowStateVals[i].enabled = true;
+            // flowStateVals[i].enabled = true;
             flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / PlayerController.maxFlowState;
 
-            stockStabilityVals[i].enabled = true;
+            // stockStabilityVals[i].enabled = true;
+            // stockStabilityIcons[i].enabled = true;
             stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
             
-            demonAuraVals[i].enabled = true;
+            // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
             
-            repsVals[i].enabled = true;
+            // repsVals[i].enabled = true;
+            // repsIcons[i].enabled = true;
             repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
 
             //momentumVals[i].enabled = true;

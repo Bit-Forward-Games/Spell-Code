@@ -29,9 +29,8 @@ public class SFX_Manager : MonoBehaviour
         public Sounds soundName; //name of the sound
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
         public AudioClip secretVersionOfSound; //secret version of the sound to play
-        [HideInInspector] public bool[] playersWhoAreRepeatedlyPlaying = new bool[4]; //boolean array to record whether or not this sound is repeatedly playing for each of the 4 players
-        public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for when this song repeats 
-        //[HideInInspector] 
+        public bool canRepeat = false; //whether or not this sound can repeat
+        [HideInInspector] public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for if and when this song repeats 
     }
 
     [Header("Sounds that SFX Manager can play")]
@@ -73,14 +72,18 @@ public class SFX_Manager : MonoBehaviour
             //iterate through each AudioSource in the audioSources array for each _soundObject,...
             for (int i = 0; i < _soundObject.audioSources.Length; i++)
             {
-                //create the audio source object
-                GameObject audioSourceObject = Instantiate(audioSourcePrefab, this.gameObject.transform);
+                //if this SoundObject can repeat,...
+                if (_soundObject.canRepeat)
+                {
+                    //create the audio source object
+                    GameObject audioSourceObject = Instantiate(audioSourcePrefab, this.gameObject.transform);
 
-                //assign the audio source of the audio source object
-                _soundObject.audioSources[i] = audioSourceObject.GetComponent<AudioSource>();
+                    //assign the audio source of the audio source object
+                    _soundObject.audioSources[i] = audioSourceObject.GetComponent<AudioSource>();
 
-                //give the audio source object a unique name
-                audioSourceObject.name = _soundObject.possibleSounds[0].name + " Yeah yeah #" + (i + 1).ToString();
+                    //give the audio source object a unique name
+                    audioSourceObject.name = _soundObject.possibleSounds[0].name + " Audio Source #" + (i + 1).ToString();
+                }
             }
         }
     }
@@ -123,7 +126,6 @@ public class SFX_Manager : MonoBehaviour
         //Randomize pitch between minPitchShift and maxPitchShift
         sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
-
         //if this sound can play a secret version,...
         if (_soundObject.secretVersionOfSound != null && _chanceToPlaySecretVersion <= 0.0f)
         {
@@ -149,25 +151,54 @@ public class SFX_Manager : MonoBehaviour
     }
 
     /// <summary>
-    /// Start to repeatedly play the sound specified by _soundName
+    /// Start to repeatedly play the sound specified by _soundName. Note: "StartRepeatingSound()" cannot play secret versions of sounds
     /// </summary>
     /// <param name="_soundName"> Sound to be start be played by the SFX Handler. This sound will play on repeat until StopRepeatingSound(_soundName) is called</param>
-    /// <param name="_playRate"> rate at which this sound will repeat. Note that this is the time between the start of each sound</param>
+    /// <param name="_playRate"> [CURRENTLY NOT IN USE] Rate at which this sound will repeat. Note that this is the time between the start of each sound</param>
     /// <param name="_playerIndex"> player index of the player who is repeatedly playing the sound. Note that player 1 is _playerIndex == 0 and so on</param>
     /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
     /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
     public void StartRepeatingSound(Sounds _soundName, float _playRate, int _playerIndex, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
-        //sanity check to make sure that StartRepeatingSound was not already called for _soundName
-        if (soundObjects.Find(x => x.soundName == _soundName).audioSources[_playerIndex].isPlaying == true)
+        //sanity check to make sure that there is a sound with name equal to nameOfSoundToPlay that exists within availableSounds
+        if (soundObjects.Find(x => x.soundName == _soundName) == null)
         {
-            Debug.Log("Nuh uh");
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within availableSounds of the SFX_Manager script. Please specify a sound that exists with availableSounds");
+
             //return
             return;
         }
 
-        //get sound object 
+        //save the appropriate SoundObject since we know it exists
         SoundObject _soundObject = soundObjects.Find(x => x.soundName == _soundName);
+
+        //sanity check to make sure that this sound can be repeatedly played
+        if (_soundObject.canRepeat == false)
+        {
+            //return
+            return;
+        }
+
+        //sanity check to make sure that _soundName has an AudioClip associated with it
+        if (_soundObject.possibleSounds.Count <= 0 || _soundObject.possibleSounds[0] == null)
+        {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": The SoundObject for \"" + _soundName + "\" does not contain an AudioClip to play. Please add an AudioClip to the SoundObject for \"" + _soundName + "\" in availableSounds");
+
+            //return
+            return;
+        }
+
+        //sanity check to make sure that StartRepeatingSound was not already called for _soundName
+        if (_soundObject.audioSources[_playerIndex].isPlaying == true)
+        {
+            //return
+            return;
+        }
+
+        //Randomize pitch between minPitchShift and maxPitchShift
+        _soundObject.audioSources[_playerIndex].pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
 
         //pick a random sound from _possibleSounds to play
         int _randomSoundIndex = UnityEngine.Random.Range(0, _soundObject.possibleSounds.Count);
@@ -175,8 +206,7 @@ public class SFX_Manager : MonoBehaviour
         //set the resource of the audioSourceObject
         _soundObject.audioSources[_playerIndex].resource = _soundObject.possibleSounds[_randomSoundIndex];
 
-        //start to repeatedly the 
-        Debug.Log("Start playing");
+        //start to repeatedly play the sound 
         _soundObject.audioSources[_playerIndex].Play();
     }
 
@@ -188,7 +218,6 @@ public class SFX_Manager : MonoBehaviour
     public void StopRepeatingSound(Sounds _soundName, int _playerIndex)
     {
         //stop playing _soundname of _playerIndex
-        Debug.Log("STOP playing");
         soundObjects.Find(x => x.soundName == _soundName).audioSources[_playerIndex].Stop();
     }
 }

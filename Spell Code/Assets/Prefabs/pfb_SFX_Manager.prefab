@@ -148,7 +148,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 8471bc2185ed6c5439a84f7f3e01dfed, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -159,7 +159,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: c433c6b4fe19b4740b6009b40abf55aa, type: 3}
     - {fileID: 8300000, guid: fe12d7f7227a06e4faeb00a51fc807b8, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -169,7 +169,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 2fb09d9ede8f3cf469cdf6069a324db3, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -179,7 +179,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: ece4c26789322634aa4c709f0b79e113, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -189,7 +189,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: dbde8fb6eabe76d44a23aebe9010e390, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -200,7 +200,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
     - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -210,7 +210,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 2275f65132a465445a8e9cbcada03496, type: 3}
     secretVersionOfSound: {fileID: 8300000, guid: 457b7b3fd6e8ddb48ad6a1a6bab03d94, type: 3}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -220,7 +220,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 8cd3a1bf4d388a842bb2193a89023d5f, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 1
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -230,7 +230,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 3ab1ddadb3923f34398ca2c53f1974ec, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -240,7 +240,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 7416a9140c8c28e4a84a2f630678cc4c, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -250,7 +250,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 71a5b0fafa9ef92459d0c8e4c77039bb, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}
@@ -260,7 +260,7 @@ MonoBehaviour:
     possibleSounds:
     - {fileID: 8300000, guid: 4f16ad1d9f63c7c4a97b99e13de62584, type: 3}
     secretVersionOfSound: {fileID: 0}
-    playersWhoAreRepeatedlyPlaying: 00000000
+    canRepeat: 0
     audioSources:
     - {fileID: 0}
     - {fileID: 0}

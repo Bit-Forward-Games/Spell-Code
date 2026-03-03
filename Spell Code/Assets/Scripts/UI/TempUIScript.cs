@@ -26,6 +26,7 @@ public class TempUIScript : MonoBehaviour
 
     private float[] previousHealthFill; // track last known health per player
     private bool[] damageBarRunning;
+    private Coroutine[] damageBarCoroutines;
     //public Image[] momentumVals;
     //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,10 +36,12 @@ public class TempUIScript : MonoBehaviour
         Image[] followPlayerDamageBar = new Image[4];
         previousHealthFill = new float[4];
         damageBarRunning = new bool[4];
+        damageBarCoroutines = new Coroutine[4];
         for (int i = 0; i < 4; i++)
         {
             previousHealthFill[i] = 1f;
             damageBarRunning[i] = false;
+            damageBarCoroutines[i] = null;
         }
     }
 
@@ -59,13 +62,22 @@ public class TempUIScript : MonoBehaviour
             playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
             //if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
 
-            float fillAmountVal = GameManager.Instance.players[i].charData != null ? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
-            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null ? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
+            float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
+            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
 
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-            if (!isRollback && fillAmountVal < previousHealthFill[i] && !damageBarRunning[i])
+            if (!isRollback && fillAmountVal < previousHealthFill[i])
             {
-                StartCoroutine(DamageBar(i, previousHealthFill[i], fillAmountVal));
+                // Stop any running coroutine and restart from current damage bar fill
+                // so stacked hits all get shown
+                if (damageBarRunning[i])
+                {
+                    StopCoroutine(damageBarCoroutines[i]);
+                    damageBarRunning[i] = false;
+                }
+                // Start from wherever the red bar currently sits (may still be draining from last hit)
+                float drainFrom = playerDamageBar[i].fillAmount;
+                damageBarCoroutines[i] = StartCoroutine(DamageBar(i, drainFrom, fillAmountVal));
             }
 
             playerHpBar[i].fillAmount = fillAmountVal;
@@ -117,10 +129,10 @@ public class TempUIScript : MonoBehaviour
             // stockStabilityVals[i].enabled = true;
             // stockStabilityIcons[i].enabled = true;
             stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
-
+            
             // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
-
+            
             // repsVals[i].enabled = true;
             // repsIcons[i].enabled = true;
             repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
@@ -168,7 +180,7 @@ public class TempUIScript : MonoBehaviour
     GameObject FindChildContainingName(GameObject parent, string namePart)
     {
         // Get all child transforms (including grandchildren, etc.)
-        Transform[] children = parent.GetComponentsInChildren<Transform>(true);
+        Transform[] children = parent.GetComponentsInChildren<Transform>(true); 
 
         // Iterate through the children to find one whose name contains the specified part
         foreach (Transform childTransform in children)

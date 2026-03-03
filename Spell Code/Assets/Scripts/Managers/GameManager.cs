@@ -711,11 +711,11 @@ public class GameManager : MonoBehaviour
             if (onboardManager != null)
                 onboardManager.OnboardUpdate(inputs);
 
-            foreach (GameObject gambaGO in gambas)
-            {
-                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-            }
+            //foreach (GameObject gambaGO in gambas)
+            //{
+            //    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            //    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+            //}
         }
         else if (activeScene.name == "Shop")
         {
@@ -786,11 +786,11 @@ public class GameManager : MonoBehaviour
             // Handle spell selection for online players (only local and remote)
             //HandleOnlineSpellSelection();
 
-            if (onboardManager == null)
-                onboardManager = FindFirstObjectByType<OnboardManager>(); // only finds active objects
+            //if (onboardManager == null)
+            //    onboardManager = FindFirstObjectByType<OnboardManager>(); // only finds active objects
 
-            if (onboardManager != null && !rbManager.isRollbackFrame)
-                onboardManager.OnboardUpdate(syncedInput);
+            //if (onboardManager != null && !rbManager.isRollbackFrame)
+            //    onboardManager.OnboardUpdate(syncedInput);
 
             // Drive gamba machines through synced simulation
             if (!rbManager.isRollbackFrame)
@@ -1194,7 +1194,10 @@ public class GameManager : MonoBehaviour
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
 
-                UpdatePlayerBounties();
+                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                {
+                    UpdatePlayerBounties();
+                }
 
                 //respawn the dead player
                 player.SpawnPlayer(GetRandomSpawnVec2());
@@ -1479,7 +1482,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            int _gameStageIndex = seededRandom.Next(0, gameStages.Count);
+            int _gameStageIndex = GetNextRandom(0, gameStages.Count);
             _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
         }
 

@@ -36,6 +36,12 @@ public class SceneUiManager : MonoBehaviour
     /// </summary>
     public void Restart()
     {
+        //delete the old game manager
+        //Destroy(GameManager.Instance);
+
+        //create a new game manager
+        //Instantiate(GameManager.Instance);
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadRandomGameplayStage();

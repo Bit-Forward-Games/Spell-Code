@@ -1142,16 +1142,20 @@ public class GameManager : MonoBehaviour
 
     public void UpdatePlayerBounties()
     {
-        ushort averageTotalRam = 0;
+        ushort averageRoundRam = 0;
+        int averageRoundWins = 0;
         for (int i = 0; i < playerCount; i++)
         {
-            averageTotalRam += players[i].totalRam;
+            averageRoundRam += players[i].totalRam;
+            averageRoundWins += players[i].roundsWon;
         }
-        averageTotalRam = (ushort)((float)averageTotalRam / (float)playerCount);
+        averageRoundRam = (ushort)((float)averageRoundRam / (float)playerCount);
+        averageRoundWins = (int)((float)averageRoundWins / (float)playerCount);
+
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)((float)(players[i].totalRam - averageTotalRam)/2);
+            players[i].ramBounty = (short)((players[i].roundRam - averageRoundRam) + (50*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX

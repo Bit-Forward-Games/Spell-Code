@@ -23,10 +23,6 @@ public class TempUIScript : MonoBehaviour
     public TextMeshProUGUI[] repsVals;
     public Image[] repsIcons;
     public float flashAlpha = .5f;
-
-    private float[] previousHealthFill; // track last known health per player
-    private bool[] damageBarRunning;
-    private Coroutine[] damageBarCoroutines;
     //public Image[] momentumVals;
     //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -34,15 +30,6 @@ public class TempUIScript : MonoBehaviour
     {
         Image[] followPlayerHpBar = new Image[4];
         Image[] followPlayerDamageBar = new Image[4];
-        previousHealthFill = new float[4];
-        damageBarRunning = new bool[4];
-        damageBarCoroutines = new Coroutine[4];
-        for (int i = 0; i < 4; i++)
-        {
-            previousHealthFill[i] = 1f;
-            damageBarRunning[i] = false;
-            damageBarCoroutines[i] = null;
-        }
     }
 
     // Update is called once per frame
@@ -60,29 +47,12 @@ public class TempUIScript : MonoBehaviour
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
             playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
-            //if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
+            if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
 
-            float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
-            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
-
-            bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-            if (!isRollback && fillAmountVal < previousHealthFill[i])
-            {
-                // Stop any running coroutine and restart from current damage bar fill
-                // so stacked hits all get shown
-                if (damageBarRunning[i])
-                {
-                    StopCoroutine(damageBarCoroutines[i]);
-                    damageBarRunning[i] = false;
-                }
-                // Start from wherever the red bar currently sits (may still be draining from last hit)
-                float drainFrom = playerDamageBar[i].fillAmount;
-                damageBarCoroutines[i] = StartCoroutine(DamageBar(i, drainFrom, fillAmountVal));
-            }
-
+            float fillAmountVal = GameManager.Instance.players[i].charData != null ? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
+            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null ? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
             playerHpBar[i].fillAmount = fillAmountVal;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
-            previousHealthFill[i] = fillAmountVal;
             playerGoldBar[i].fillAmount = fillGoldAmountVal;
 
             emptyQuadrants[i].SetActive(false);
@@ -129,10 +99,10 @@ public class TempUIScript : MonoBehaviour
             // stockStabilityVals[i].enabled = true;
             // stockStabilityIcons[i].enabled = true;
             stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
-            
+
             // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
-            
+
             // repsVals[i].enabled = true;
             // repsIcons[i].enabled = true;
             repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
@@ -146,16 +116,21 @@ public class TempUIScript : MonoBehaviour
         }
     }
 
-    public IEnumerator DamageBar(int playerIndex, float fromFill, float toFill)
+    public IEnumerator DamageBar(int playerIndex)
     {
         // Transform childTransform = GameManager.Instance.players[playerIndex].transform.Find("Damage Bar");
-        damageBarRunning[playerIndex] = true;
+        followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
+        PlayerController player = GameManager.Instance.players[playerIndex];
 
-        followPlayerDamageBar[playerIndex] = FindChildContainingName(
-            GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
+        player.isHit = false;
 
-        playerDamageBar[playerIndex].fillAmount = fromFill;
-        followPlayerDamageBar[playerIndex].fillAmount = fromFill;
+        float previousHealthAmount = playerHpBar[playerIndex].fillAmount;
+
+        float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
+        playerHpBar[playerIndex].fillAmount = newHealthAmount;
+
+        playerDamageBar[playerIndex].fillAmount = previousHealthAmount;
+        followPlayerDamageBar[playerIndex].fillAmount = previousHealthAmount;
 
         yield return new WaitForSeconds(1f);
 
@@ -166,21 +141,19 @@ public class TempUIScript : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / animationDuration;
-            playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(fromFill, toFill, t);
-            followPlayerDamageBar[playerIndex].fillAmount = Mathf.Lerp(fromFill, toFill, t);
+            playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
+            followPlayerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             yield return null;
         }
 
-        playerDamageBar[playerIndex].fillAmount = toFill;
-        followPlayerDamageBar[playerIndex].fillAmount = toFill;
-
-        damageBarRunning[playerIndex] = false;
+        playerDamageBar[playerIndex].fillAmount = newHealthAmount;
+        followPlayerDamageBar[playerIndex].fillAmount = newHealthAmount;
     }
 
     GameObject FindChildContainingName(GameObject parent, string namePart)
     {
         // Get all child transforms (including grandchildren, etc.)
-        Transform[] children = parent.GetComponentsInChildren<Transform>(true); 
+        Transform[] children = parent.GetComponentsInChildren<Transform>(true);
 
         // Iterate through the children to find one whose name contains the specified part
         foreach (Transform childTransform in children)

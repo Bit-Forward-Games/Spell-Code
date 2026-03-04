@@ -30,8 +30,7 @@ public class SFX_Manager : MonoBehaviour
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
         public AudioClip secretVersionOfSound; //secret version of the sound to play
         public bool canRepeat = false; //whether or not this sound can repeat
-        public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for if and when this song repeats 
-        //[HideInInspector] 
+        [HideInInspector] public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for if and when this song repeats 
     }
 
     [Header("Sounds that SFX Manager can play")]

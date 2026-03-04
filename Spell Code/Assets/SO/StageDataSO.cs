@@ -23,5 +23,6 @@ public class StageDataSO : ScriptableObject
     public Vector3 borderMin;
     public Vector3 borderMax;
     public BorderType borderType;
+    public bool dynamicCamera;
 }
 

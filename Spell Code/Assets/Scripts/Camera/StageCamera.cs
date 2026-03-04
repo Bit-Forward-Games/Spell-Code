@@ -39,7 +39,8 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
-
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        lockCamera = !stageDataSO.dynamicCamera;
         // If camera is locked, set to hard zoom and return
         if (lockCamera)
         {
@@ -50,7 +51,7 @@ public class StageCamera : MonoBehaviour
 
         if (GameManager.Instance.playerCount > 0)
         {
-            StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+            
 
             // get players bounding box
             Bounds greatestDistance = GetGreatestDistance();

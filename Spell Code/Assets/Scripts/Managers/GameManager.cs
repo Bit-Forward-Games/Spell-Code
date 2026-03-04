@@ -1104,7 +1104,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
+                    ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
                     float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
                     p.roundRam += (ushort)totalRamEarned;
                     p.totalRam += (ushort)totalRamEarned;

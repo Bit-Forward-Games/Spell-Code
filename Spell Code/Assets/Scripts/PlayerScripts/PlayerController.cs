@@ -247,11 +247,17 @@ public class PlayerController : MonoBehaviour
     private void OnDisable()
     {
         ClearToasts();
+
+        //stop playing all repeating sounds for this player
+        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
     }
 
     private void OnDestroy()
     {
         ClearToasts();
+
+        //stop playing all repeating sounds for this player
+        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
     }
 
     //get max health helper func:

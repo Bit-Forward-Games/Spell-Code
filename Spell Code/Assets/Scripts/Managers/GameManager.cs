@@ -573,7 +573,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         // Transition to gameplay scene
         isTransitioning = true;
-        SceneManager.LoadScene("Gameplay");
+        sceneManager.LoadScene("Gameplay");
 
         Debug.Log("Match simulation started - Loading Gameplay scene");
     }
@@ -935,6 +935,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     playerWinText.enabled = true;
                     playerWinText.text = "Player " + (winner.pID) + " wins the match!";
 
+                    //stop repeating all sounds
+                    SFX_Manager.Instance.StopRepeatingAllSounds();
+
                     for (int i = 0; i < playerCount; i++)
                     {
                         players[i].roundRam = 0;
@@ -1252,7 +1255,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isTransitioning = true; // Stop RunOnlineFrame
                                     
         }
-        SceneManager.LoadScene("Shop");
+        sceneManager.LoadScene("Shop");
         SetStage(-1);
 
          //play a new shop song
@@ -1291,7 +1294,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             isRunning = false;
         }
-        SceneManager.LoadScene("End");
+        sceneManager.LoadScene("End");
 
         //play a new end song
         //BGM_Manager.Instance.StartAndPlaySong();
@@ -1365,7 +1368,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isTransitioning = true;
         }
 
-        SceneManager.LoadScene("Gameplay");
+        sceneManager.LoadScene("Gameplay");
         // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 

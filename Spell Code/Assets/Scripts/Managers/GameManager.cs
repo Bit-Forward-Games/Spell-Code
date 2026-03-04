@@ -573,7 +573,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         // Transition to gameplay scene
         isTransitioning = true;
-        SceneManager.LoadScene("Gameplay");
+        sceneManager.LoadScene("Gameplay");
 
         Debug.Log("Match simulation started - Loading Gameplay scene");
     }
@@ -935,6 +935,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     playerWinText.enabled = true;
                     playerWinText.text = "Player " + (winner.pID) + " wins the match!";
 
+                    //stop repeating all sounds
+                    SFX_Manager.Instance.StopRepeatingAllSounds();
+
                     for (int i = 0; i < playerCount; i++)
                     {
                         players[i].roundRam = 0;
@@ -1056,16 +1059,20 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public void UpdatePlayerBounties()
     {
-        ushort averageTotalRam = 0;
+        ushort averageRoundRam = 0;
+        int averageRoundWins = 0;
         for (int i = 0; i < playerCount; i++)
         {
-            averageTotalRam += players[i].totalRam;
+            averageRoundRam += players[i].totalRam;
+            averageRoundWins += players[i].roundsWon;
         }
-        averageTotalRam = (ushort)((float)averageTotalRam / (float)playerCount);
+        averageRoundRam = (ushort)((float)averageRoundRam / (float)playerCount);
+        averageRoundWins = (int)((float)averageRoundWins / (float)playerCount);
+
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)((float)(players[i].totalRam - averageTotalRam)/2);
+            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (50*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1100,10 +1107,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
+                    ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
                     float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
                     p.roundRam += (ushort)totalRamEarned;
                     p.totalRam += (ushort)totalRamEarned;
+                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
@@ -1247,7 +1255,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isTransitioning = true; // Stop RunOnlineFrame
                                     
         }
-        SceneManager.LoadScene("Shop");
+        sceneManager.LoadScene("Shop");
         SetStage(-1);
 
          //play a new shop song
@@ -1286,7 +1294,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             isRunning = false;
         }
-        SceneManager.LoadScene("End");
+        sceneManager.LoadScene("End");
 
         //play a new end song
         //BGM_Manager.Instance.StartAndPlaySong();
@@ -1360,7 +1368,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isTransitioning = true;
         }
 
-        SceneManager.LoadScene("Gameplay");
+        sceneManager.LoadScene("Gameplay");
         // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 

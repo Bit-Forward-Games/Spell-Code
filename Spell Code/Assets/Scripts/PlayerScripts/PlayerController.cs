@@ -52,6 +52,12 @@ public struct AttackData
 [DisallowMultipleComponent] //we only want one player controller per player
 public class PlayerController : MonoBehaviour
 {
+    private class PlayerToast
+    {
+        public TextMeshPro textMesh;
+        public float elapsed;
+        public Color baseColor;
+    }
 
     public bool isAlive = true;
     public SpriteRenderer playerSpriteRenderer;
@@ -162,8 +168,23 @@ public class PlayerController : MonoBehaviour
     public bool removeInputDisplay;
     public TextMeshPro playerNum;
 
-    [SerializeField]
+    //[SerializeField]
     public Color colorSuccess;
+
+
+    //Toast Variables
+    //[SerializeField]
+    private float toastLifetime = 0.9f;
+    //[SerializeField]
+    private float toastFadeDuration = 0.35f;
+    //[SerializeField]
+    private float toastBaseVerticalOffset = 85;
+    //[SerializeField]
+    private float toastStackSpacing = 8f;
+    //[SerializeField]
+    private float toastRiseDistance = 2f;
+    //[SerializeField]
+    private float toastFontSize = 72;
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
@@ -190,6 +211,9 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
+    private readonly List<PlayerToast> activeToasts = new();
+    private Transform toastRoot;
+
 
     private void Awake()
     {
@@ -213,6 +237,27 @@ public class PlayerController : MonoBehaviour
         //specialMoves.SetupSpecialMoves(characterName);
         InitCharacter();
 
+    }
+
+    private void Update()
+    {
+        UpdateToasts();
+    }
+
+    private void OnDisable()
+    {
+        ClearToasts();
+
+        //stop playing all repeating sounds for this player
+        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+    }
+
+    private void OnDestroy()
+    {
+        ClearToasts();
+
+        //stop playing all repeating sounds for this player
+        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
     }
 
     //get max health helper func:
@@ -299,6 +344,7 @@ public class PlayerController : MonoBehaviour
 
     public void SpawnPlayer(FixedVec2 spawnPos)
     {
+        ClearToasts();
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
         position = spawnPos;
@@ -466,6 +512,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void ResetPlayer()
     {
+        ClearToasts();
         ClearSpellList();
 
         //fill the spell list with the character's initial spells
@@ -759,7 +806,6 @@ public class PlayerController : MonoBehaviour
                 LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
-
                 //if the logic frame is a frame at which the player should make a run sound,...
                 if (logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == 0 || logicFrame % CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Run) == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Run).frameLengths.Take(3).Sum() + 1)
                 {
@@ -883,8 +929,6 @@ public class PlayerController : MonoBehaviour
                 {
                     gravity = Fixed.Clamp(gravity + Fixed.FromFloat(0.002f), Fixed.FromInt(0), Fixed.FromInt(1));
                 }
-
-
 
                 if (input.Direction is 5 or 7 or 1 or 3 or 9)
                 {
@@ -1046,6 +1090,7 @@ public class PlayerController : MonoBehaviour
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
+                            SpawnToast("STORED!", Color.white);
                             break;
                         }
                     }
@@ -1055,6 +1100,7 @@ public class PlayerController : MonoBehaviour
 
                         ClearInputDisplay();
                         stateSpecificArg = 0;
+                        SpawnToast("INPUTS CLEARED!", Color.white);
                     }
                 }
 
@@ -1083,6 +1129,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
                         {
+                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", Color.white);
                             InitializePalette(secretEpicPalette);
                             secretEpicPaletteActive = true;
                         }
@@ -1097,6 +1144,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
                         {
+                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", Color.white);
                             InitializePalette(secretNormalPalette);
                             secretNormalPaletteActive = true;
                         }
@@ -1110,6 +1158,8 @@ public class PlayerController : MonoBehaviour
                     {
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
+                        string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
+                        SpawnToast($"RELATIVE INPUTS {activeWord}!", Color.white);
                     }
                     for (int i = 0; i < spellList.Count; i++)
                     {
@@ -1146,6 +1196,7 @@ public class PlayerController : MonoBehaviour
                         {
                             inputDisplay.color = Color.yellow;
                             Debug.Log("COOLDOWN");
+                            SpawnToast("ON COOLDOWN!",Color.white);
                         }
                         else { inputDisplay.color = Color.red; }
                     }
@@ -1995,6 +2046,7 @@ public class PlayerController : MonoBehaviour
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
             if (lightArmor && hitboxData.attackLvl < 2)
             {
+                SpawnToast($"BLOCKED!", Color.white);
                 return;
             }
 
@@ -2021,6 +2073,7 @@ public class PlayerController : MonoBehaviour
                 //award the killer with the extra bonus ram
                 attacker.roundRam += baseRamKillBonus;
                 attacker.totalRam += baseRamKillBonus;
+                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
             }
             else
             {
@@ -2478,6 +2531,51 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SpawnToast(string text, Color color)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return;
+        }
+
+        EnsureToastRoot();
+
+        GameObject toastObject = new($"{name}_Toast");
+        toastObject.transform.SetParent(toastRoot, false);
+
+        TextMeshPro toastText = toastObject.AddComponent<TextMeshPro>();
+        toastText.text = text;
+        toastText.color = color;
+        toastText.alignment = TextAlignmentOptions.Center;
+        toastText.fontSize = toastFontSize;
+        toastText.fontStyle = FontStyles.Bold;
+        toastText.textWrappingMode = TextWrappingModes.NoWrap;
+        toastText.overflowMode = TextOverflowModes.Overflow;
+        toastText.raycastTarget = false;
+        toastText.sortingOrder = 100;
+
+        Renderer toastRenderer = toastText.GetComponent<Renderer>();
+        if (toastRenderer != null)
+        {
+            toastRenderer.sortingLayerID = GetFrontmostSortingLayerId();
+            toastRenderer.sortingOrder = short.MaxValue;
+        }
+
+        activeToasts.Add(new PlayerToast
+        {
+            textMesh = toastText,
+            elapsed = 0f,
+            baseColor = color
+        });
+
+        UpdateToastVisuals();
+    }
+
     public static string ConvertCodeToString(uint code, Color? color = null)
     {
         if (color == null) { color = Color.white; }
@@ -2504,6 +2602,129 @@ public class PlayerController : MonoBehaviour
             }
         }
         return codeString.Trim();
+    }
+
+    private void EnsureToastRoot()
+    {
+        if (toastRoot != null)
+        {
+            return;
+        }
+
+        Transform existingRoot = transform.Find("ToastRoot");
+        if (existingRoot != null)
+        {
+            toastRoot = existingRoot;
+        }
+        else
+        {
+            GameObject toastRootObject = new("ToastRoot");
+            toastRoot = toastRootObject.transform;
+            toastRoot.SetParent(transform, false);
+        }
+
+        toastRoot.localPosition = new Vector3(0f, 0f, -0.1f);
+        toastRoot.localRotation = Quaternion.identity;
+        toastRoot.localScale = Vector3.one;
+    }
+
+    private void UpdateToasts()
+    {
+        if (activeToasts.Count == 0)
+        {
+            return;
+        }
+
+        float lifetime = Mathf.Max(0.01f, toastLifetime);
+        for (int i = activeToasts.Count - 1; i >= 0; i--)
+        {
+            PlayerToast toast = activeToasts[i];
+            if (toast == null || toast.textMesh == null)
+            {
+                activeToasts.RemoveAt(i);
+                continue;
+            }
+
+            toast.elapsed += Time.deltaTime;
+            if (toast.elapsed >= lifetime)
+            {
+                Destroy(toast.textMesh.gameObject);
+                activeToasts.RemoveAt(i);
+            }
+        }
+
+        if (activeToasts.Count == 0)
+        {
+            return;
+        }
+
+        UpdateToastVisuals();
+    }
+
+    private void UpdateToastVisuals()
+    {
+        float lifetime = Mathf.Max(0.01f, toastLifetime);
+        float fadeDuration = Mathf.Clamp(toastFadeDuration, 0f, lifetime);
+        float fadeStart = lifetime - fadeDuration;
+
+        for (int i = 0; i < activeToasts.Count; i++)
+        {
+            PlayerToast toast = activeToasts[i];
+            if (toast == null || toast.textMesh == null)
+            {
+                continue;
+            }
+
+            float normalizedLifetime = Mathf.Clamp01(toast.elapsed / lifetime);
+            float alpha = toast.baseColor.a;
+            if (fadeDuration > 0f && toast.elapsed > fadeStart)
+            {
+                float fadeProgress = Mathf.InverseLerp(fadeStart, lifetime, toast.elapsed);
+                alpha *= 1f - fadeProgress;
+            }
+
+            Color displayColor = toast.baseColor;
+            displayColor.a = alpha;
+            toast.textMesh.color = displayColor;
+
+            int stackIndex = (activeToasts.Count - 1) - i;
+            float yOffset = toastBaseVerticalOffset + (stackIndex * toastStackSpacing) + (normalizedLifetime * toastRiseDistance);
+            toast.textMesh.transform.localPosition = new Vector3(0f, yOffset, 0f);
+        }
+    }
+
+    private void ClearToasts()
+    {
+        for (int i = activeToasts.Count - 1; i >= 0; i--)
+        {
+            PlayerToast toast = activeToasts[i];
+            if (toast != null && toast.textMesh != null)
+            {
+                Destroy(toast.textMesh.gameObject);
+            }
+        }
+
+        activeToasts.Clear();
+    }
+
+    private static int GetFrontmostSortingLayerId()
+    {
+        SortingLayer[] sortingLayers = SortingLayer.layers;
+        if (sortingLayers == null || sortingLayers.Length == 0)
+        {
+            return 0;
+        }
+
+        SortingLayer frontmostLayer = sortingLayers[0];
+        for (int i = 1; i < sortingLayers.Length; i++)
+        {
+            if (sortingLayers[i].value > frontmostLayer.value)
+            {
+                frontmostLayer = sortingLayers[i];
+            }
+        }
+
+        return frontmostLayer.id;
     }
 }
 

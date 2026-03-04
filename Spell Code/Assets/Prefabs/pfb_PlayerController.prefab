@@ -38,7 +38,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 430.9, y: 237.5}
+  m_AnchoredPosition: {x: 430.9, y: 235.20001}
   m_SizeDelta: {x: 241.97647, y: 136.09412}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &3488432875508756406
@@ -288,8 +288,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.17, y: 64.7}
-  m_SizeDelta: {x: 44.3026, y: 15.8458}
+  m_AnchoredPosition: {x: 2.17, y: 63.3}
+  m_SizeDelta: {x: 44.3026, y: 10.84}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &4983569709763771326
 MeshRenderer:
@@ -464,7 +464,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -25.1, y: 74.5}
+  m_AnchoredPosition: {x: -25.1, y: 72.200005}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &742603392473583563
@@ -666,6 +666,7 @@ MonoBehaviour:
   facingRight: 1
   isGrounded: 0
   onPlatform: 0
+  relativeInputs: 0
   logicFrame: 0
   animationFrame: 0
   state: 0

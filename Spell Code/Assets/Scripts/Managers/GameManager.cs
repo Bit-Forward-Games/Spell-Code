@@ -1069,7 +1069,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)((players[i].roundRam - averageRoundRam) + (50*(players[i].roundsWon - averageRoundWins)));
+            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (50*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1108,6 +1108,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
                     p.roundRam += (ushort)totalRamEarned;
                     p.totalRam += (ushort)totalRamEarned;
+                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }

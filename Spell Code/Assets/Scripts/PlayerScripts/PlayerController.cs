@@ -1084,6 +1084,7 @@ public class PlayerController : MonoBehaviour
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
+                            SpawnToast("STORED!", Color.white);
                             break;
                         }
                     }
@@ -1093,6 +1094,7 @@ public class PlayerController : MonoBehaviour
 
                         ClearInputDisplay();
                         stateSpecificArg = 0;
+                        SpawnToast("INPUTS CLEARED!", Color.white);
                     }
                 }
 
@@ -1121,6 +1123,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
                         {
+                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", Color.white);
                             InitializePalette(secretEpicPalette);
                             secretEpicPaletteActive = true;
                         }
@@ -1135,6 +1138,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
                         {
+                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", Color.white);
                             InitializePalette(secretNormalPalette);
                             secretNormalPaletteActive = true;
                         }
@@ -1148,6 +1152,8 @@ public class PlayerController : MonoBehaviour
                     {
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
+                        string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
+                        SpawnToast($"RELATIVE INPUTS {activeWord}!", Color.white);
                     }
                     for (int i = 0; i < spellList.Count; i++)
                     {
@@ -1184,6 +1190,7 @@ public class PlayerController : MonoBehaviour
                         {
                             inputDisplay.color = Color.yellow;
                             Debug.Log("COOLDOWN");
+                            SpawnToast("ON COOLDOWN!",Color.white);
                         }
                         else { inputDisplay.color = Color.red; }
                     }
@@ -2546,6 +2553,13 @@ public class PlayerController : MonoBehaviour
         toastText.raycastTarget = false;
         toastText.sortingOrder = 100;
 
+        Renderer toastRenderer = toastText.GetComponent<Renderer>();
+        if (toastRenderer != null)
+        {
+            toastRenderer.sortingLayerID = GetFrontmostSortingLayerId();
+            toastRenderer.sortingOrder = short.MaxValue;
+        }
+
         activeToasts.Add(new PlayerToast
         {
             textMesh = toastText,
@@ -2685,6 +2699,26 @@ public class PlayerController : MonoBehaviour
         }
 
         activeToasts.Clear();
+    }
+
+    private static int GetFrontmostSortingLayerId()
+    {
+        SortingLayer[] sortingLayers = SortingLayer.layers;
+        if (sortingLayers == null || sortingLayers.Length == 0)
+        {
+            return 0;
+        }
+
+        SortingLayer frontmostLayer = sortingLayers[0];
+        for (int i = 1; i < sortingLayers.Length; i++)
+        {
+            if (sortingLayers[i].value > frontmostLayer.value)
+            {
+                frontmostLayer = sortingLayers[i];
+            }
+        }
+
+        return frontmostLayer.id;
     }
 }
 

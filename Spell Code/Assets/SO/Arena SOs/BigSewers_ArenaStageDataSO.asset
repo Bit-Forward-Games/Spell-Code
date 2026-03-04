@@ -86,3 +86,4 @@ MonoBehaviour:
   borderMin: {x: -582, y: -328, z: 0}
   borderMax: {x: 582, y: 328, z: 0}
   borderType: 0
+  dynamicCamera: 1

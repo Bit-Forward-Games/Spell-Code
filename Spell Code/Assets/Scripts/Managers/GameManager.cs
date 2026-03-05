@@ -1152,8 +1152,8 @@ public class GameManager : MonoBehaviour
             averageRoundRam += players[i].totalRam;
             averageRoundWins += players[i].roundsWon;
         }
-        averageRoundRam = (ushort)((float)averageRoundRam / (float)playerCount);
-        averageRoundWins = (int)((float)averageRoundWins / (float)playerCount);
+        averageRoundRam = (ushort)(averageRoundRam / playerCount);
+        averageRoundWins = averageRoundWins / playerCount;
 
 
         for (int i = 0; i < playerCount; i++)
@@ -1195,8 +1195,9 @@ public class GameManager : MonoBehaviour
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
-                    float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
+                    int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
+                    int bountyCut = Math.Max(0, (damagePercent * player.ramBounty) / 100);
+                    int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
                     p.roundRam += (ushort)totalRamEarned;
                     p.totalRam += (ushort)totalRamEarned;
                     p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);

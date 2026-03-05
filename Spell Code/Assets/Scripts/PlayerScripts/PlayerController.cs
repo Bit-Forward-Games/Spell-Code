@@ -2032,7 +2032,7 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
-        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -2068,8 +2068,7 @@ public class PlayerController : MonoBehaviour
             }
 
             //update the damage matrix the attacker attacking this player
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
-
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp((int)hitboxData.damage, 0, (int)currentPlayerHealth);
             //checking for death
             if (hitboxData.damage >= currentPlayerHealth)
             {

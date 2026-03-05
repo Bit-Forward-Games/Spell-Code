@@ -36,7 +36,7 @@ public class PennyStockPeddler : SpellData
                 }
                 break;
             case ProcCondition.OnHitSpell:
-                if (defender.hitboxData.sweetSpot && owner.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.BigStox))
+                if (defender.hitboxData.sweetSpot && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.BigStox))
                 {
                     defender.TakeEffectDamage(convertedStockStability, owner);
                 }

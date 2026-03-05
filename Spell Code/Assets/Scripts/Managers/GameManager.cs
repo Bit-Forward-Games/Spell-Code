@@ -1008,6 +1008,9 @@ public class GameManager : MonoBehaviour
                     playerWinText.enabled = true;
                     playerWinText.text = "Player " + (winner.pID) + " wins the match!";
 
+                    //stop repeating all sounds
+                    SFX_Manager.Instance.StopRepeatingAllSounds();
+
                     for (int i = 0; i < playerCount; i++)
                     {
                         players[i].roundRam = 0;
@@ -1033,7 +1036,7 @@ public class GameManager : MonoBehaviour
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         GameEnd();
-                        //Debug.Log(roundEndTimer);
+                        Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                     }
                     else if (players[0].spellList.Count >= 6)
@@ -1155,7 +1158,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)((players[i].roundRam - averageRoundRam) + (50*(players[i].roundsWon - averageRoundWins)));
+            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (100*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1168,11 +1171,13 @@ public class GameManager : MonoBehaviour
             }
             else
             {
+                //remove the bounty VFX from this player
                 VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
             }
         }
         //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
-        //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + BestoNet.Types.Vector2<Fixed32>.FromFloat(0f, 38f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+
+        //give the bounty VFX to the player with the highest bounty
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
     }
 
@@ -1190,10 +1195,11 @@ public class GameManager : MonoBehaviour
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    ushort bountyCut = (ushort)(((float)damageMatrix[player.pID - 1, p.pID - 1]/100) * (float)player.ramBounty);
+                    ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
                     float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
                     p.roundRam += (ushort)totalRamEarned;
                     p.totalRam += (ushort)totalRamEarned;
+                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
@@ -1386,7 +1392,7 @@ public class GameManager : MonoBehaviour
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
         }
-        SceneManager.LoadScene("Shop");
+        sceneManager.LoadScene("Shop");
         SetStage(-1);
 
          //play a new shop song
@@ -1425,7 +1431,7 @@ public class GameManager : MonoBehaviour
         {
             isRunning = false;
         }
-        SceneManager.LoadScene("End");
+        sceneManager.LoadScene("End");
 
         //play a new end song
         //BGM_Manager.Instance.StartAndPlaySong();
@@ -1499,7 +1505,8 @@ public class GameManager : MonoBehaviour
             isTransitioning = true;
         }
 
-        SceneManager.LoadScene("Gameplay");
+        sceneManager.LoadScene("Gameplay");
+        // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }

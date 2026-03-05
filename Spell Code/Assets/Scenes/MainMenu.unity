@@ -3787,6 +3787,14 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 746055915148608448, guid: 66fede69e33244c85beaebddac16289e, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellList.Array.size
+      value: 17
+      objectReference: {fileID: 0}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[16]'
+      value: 
+      objectReference: {fileID: 5563068128995029098, guid: cb2eff8e4e8b8ff40a4400428f820dbd, type: 3}
     - target: {fileID: 7027461285122317583, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -267.7

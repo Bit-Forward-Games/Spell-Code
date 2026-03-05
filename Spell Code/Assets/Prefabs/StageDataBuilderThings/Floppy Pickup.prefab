@@ -50,9 +50,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   diskAnimator: {fileID: -8571608057649326459}
   diskName: 
-  shopSprite: {fileID: 0}
   diskDisplay: {fileID: 6056028922573376659}
   overlappingPlayer: {fileID: 0}
+  ownerPID: 0
   colliding: 0
   colliderRadius: 16
 --- !u!61 &-720661110382548396
@@ -167,7 +167,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -5420707574545824002, guid: 79e109dc09847984fac59c401749251c, type: 3}
+  m_Sprite: {fileID: 2014434400, guid: 79e109dc09847984fac59c401749251c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

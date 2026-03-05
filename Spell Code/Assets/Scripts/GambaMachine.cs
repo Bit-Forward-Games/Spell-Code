@@ -44,6 +44,9 @@ public class GambaMachine : MonoBehaviour
     private Scene activeScene;
     public bool facingRight = true;
 
+    private String[] startingSpells;
+    private int startingSpellPos;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -52,6 +55,12 @@ public class GambaMachine : MonoBehaviour
         dataManager = DataManager.Instance;
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
+
+        startingSpells = new string[4] {"AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
+        if (ownerPID == 1) { startingSpellPos = 0; }
+        if (ownerPID == 2) { startingSpellPos = 1; }
+        if (ownerPID == 3) { startingSpellPos = 2; }
+        if (ownerPID == 4) { startingSpellPos = 3; }
     }
 
     // Update is called once per frame
@@ -75,24 +84,28 @@ public class GambaMachine : MonoBehaviour
                     {
                         foreach (GameObject flop in p1_floppys) { Destroy(flop); }
                         p1_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 2)
                     {
                         foreach (GameObject flop in p2_floppys) { Destroy(flop); }
                         p2_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 3)
                     {
                         foreach (GameObject flop in p3_floppys) { Destroy(flop); }
                         p3_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 4)
                     {
                         foreach (GameObject flop in p4_floppys) { Destroy(flop); }
                         p4_floppys.Clear();
+                        activatedCount = 3;
                     }
                 }
             }
@@ -103,19 +116,33 @@ public class GambaMachine : MonoBehaviour
                 gambaAnimator.SetBool("isActive", false);
 
                 if (ownerPID == 1) {
-                    SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
+                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                    p1_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 2) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                    p2_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 3) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                    p3_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 4) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                    p4_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+                }
+
+                startingSpellPos++;
+                if (startingSpellPos > 3)
+                {
+                    startingSpellPos = 0;
                 }
             }
         }
@@ -198,19 +225,17 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
             }
+        }
+        //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            Debug.Log("GAMBA RESET TIMER GOING");
+            resetTimer++;
 
-            //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
-            if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+            if (resetTimer > 120)
             {
-                Debug.Log("GAMBA RESET TIMER GOING");
-                resetTimer++;
-
-                if (resetTimer > 120)
-                {
-                    gambaAnimator.SetBool("isActive", true);
-                    resetTimer = 0;
-                }
-                
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
             }
         }
     }

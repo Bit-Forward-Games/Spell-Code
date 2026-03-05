@@ -2424,14 +2424,19 @@ public class PlayerController : MonoBehaviour
         bw.Write(startingSpellAdded);
 
         // Spell List Serialization
-        bw.Write(spellList.Count); // Write how many spells are in the list
+        bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            // Write the spell's unique name/ID to identify which spell it is
-            bw.Write(spellList[i].spellName); // Assuming spellName is unique and constant
+            bw.Write(spellList[i].spellName);
 
-            // Call the spell's own Serialize method (needs to be implemented in SpellData)
-            spellList[i].Serialize(bw); // Assumes SpellData has Serialize(BinaryWriter bw)
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
         }
 
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
@@ -2537,22 +2542,19 @@ public class PlayerController : MonoBehaviour
 
         for (int i = 0; i < spellCount; i++)
         {
-            string spellName = br.ReadString(); // Read the identifier
+            string spellName = br.ReadString();
+            int spellDataLength = br.ReadInt32();
 
-            // Find the corresponding spell instance in the current list
             SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
-
             if (spellInstance != null)
             {
-                // Call the spell's Deserialize method
-                spellInstance.Deserialize(br); // Assumes SpellData has Deserialize(BinaryReader br)
+                spellInstance.Deserialize(br);
             }
             else
             {
-                Debug.LogError($"Spell '{spellName}' not found in list during Deserialize. Skipping spell state.");
-                // Need a robust way to handle this, perhaps by skipping the correct number of bytes
-                // based on how SpellData.Deserialize is implemented, or failing entirely.
-                // For now, this will likely cause complete desync if a spell is missing.
+                // Safely skip the exact bytes for this spell
+                br.ReadBytes(spellDataLength);
+                Debug.LogWarning($"Spell '{spellName}' not found - skipped {spellDataLength} bytes");
             }
         }
     }

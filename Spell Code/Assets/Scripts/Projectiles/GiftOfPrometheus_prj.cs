@@ -48,7 +48,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
                     height = 128,
                     xKnockback = 5,
                     yKnockback = 15,
-                    damage = 30,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 3,
                     //cancelOptions = new List<int> { } // No cancel options
@@ -70,7 +70,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
                     height = 96*2,
                     xKnockback = 5,
                     yKnockback = 15,
-                    damage = 30,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 3,
                     //cancelOptions = new List<int> { } // No cancel options

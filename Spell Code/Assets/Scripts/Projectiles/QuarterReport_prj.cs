@@ -43,7 +43,7 @@ public class QuarterReport_prj : BaseProjectile
                     yKnockback = 5,
                     damage = 10,
                     hitstun = 15,
-                    attackLvl = 2,
+                    attackLvl = 2
                 }
             },
             hitbox2 = new List<HitboxData>(),

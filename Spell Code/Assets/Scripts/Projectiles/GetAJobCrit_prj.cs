@@ -44,6 +44,7 @@ public class GetAJobCrit_prj : BaseProjectile
                     damage = 25,
                     hitstun = 45,
                     attackLvl = 2,
+                    sweetSpot = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

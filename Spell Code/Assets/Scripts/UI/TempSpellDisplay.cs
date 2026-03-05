@@ -88,6 +88,12 @@ public class TempSpellDisplay : MonoBehaviour
         float t = Mathf.PingPong(Time.time * flashPulseSpeed, 1f);
         uiScript.flashAlpha = Mathf.Lerp(flashAlphaMax, flashAlphaMin, t);
 
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "End")
+        {
+            UpdateRoundWinCounter();
+        }
+
         /*
         if (!isPulsing)
             StartCoroutine(CoolDownReadyPulse());
@@ -122,7 +128,14 @@ public class TempSpellDisplay : MonoBehaviour
 
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.name == "End")
+        {
+            for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
+            {
+                roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
+                roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
+            }
             return; // Leave all icons in the reset state on the End screen
+        }
 
         // Fill in won rounds
         for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)

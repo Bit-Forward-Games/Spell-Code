@@ -44,6 +44,9 @@ public class GambaMachine : MonoBehaviour
     private Scene activeScene;
     public bool facingRight = true;
 
+    private String[] startingSpells;
+    private int startingSpellPos;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -52,6 +55,12 @@ public class GambaMachine : MonoBehaviour
         dataManager = DataManager.Instance;
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
+
+        startingSpells = new string[4] {"AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
+        if (ownerPID == 1) { startingSpellPos = 0; }
+        if (ownerPID == 2) { startingSpellPos = 1; }
+        if (ownerPID == 3) { startingSpellPos = 2; }
+        if (ownerPID == 4) { startingSpellPos = 3; }
     }
 
     // Update is called once per frame
@@ -75,24 +84,28 @@ public class GambaMachine : MonoBehaviour
                     {
                         foreach (GameObject flop in p1_floppys) { Destroy(flop); }
                         p1_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 2)
                     {
                         foreach (GameObject flop in p2_floppys) { Destroy(flop); }
                         p2_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 3)
                     {
                         foreach (GameObject flop in p3_floppys) { Destroy(flop); }
                         p3_floppys.Clear();
+                        activatedCount = 3;
                     }
 
                     if (ownerPID == 4)
                     {
                         foreach (GameObject flop in p4_floppys) { Destroy(flop); }
                         p4_floppys.Clear();
+                        activatedCount = 3;
                     }
                 }
             }
@@ -103,19 +116,33 @@ public class GambaMachine : MonoBehaviour
                 gambaAnimator.SetBool("isActive", false);
 
                 if (ownerPID == 1) {
-                    SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
+                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                    p1_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 2) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                    p2_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 3) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                    p3_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
                 }
                 if (ownerPID == 4) 
-                { 
-                    SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
+                {
+                    foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                    p4_floppys.Clear();
+                    SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+                }
+
+                startingSpellPos++;
+                if (startingSpellPos > 3)
+                {
+                    startingSpellPos = 0;
                 }
             }
         }
@@ -198,19 +225,17 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
             }
+        }
+        //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            Debug.Log("GAMBA RESET TIMER GOING");
+            resetTimer++;
 
-            //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
-            if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+            if (resetTimer > 120)
             {
-                Debug.Log("GAMBA RESET TIMER GOING");
-                resetTimer++;
-
-                if (resetTimer > 120)
-                {
-                    gambaAnimator.SetBool("isActive", true);
-                    resetTimer = 0;
-                }
-                
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
             }
         }
     }
@@ -241,6 +266,7 @@ public class GambaMachine : MonoBehaviour
 
             //list of spells in player[ownerPID]'s spellbook
             List<string> playerSpells = new List<string>();
+            List<string> removedSpells = new List<string>();
 
             //fill list of all spells in dictionary
             foreach (var item in SpellDictionary.Instance.spellDict)
@@ -254,24 +280,69 @@ public class GambaMachine : MonoBehaviour
                 playerSpells.Add(gameManager.players[ownerPID - 1].spellList[i].spellName);
             }
 
-            //Remove all passives for which the player has no actives for, or already has
-            if (!gameManager.players[ownerPID - 1].vWave || playerSpells.Contains("Overclock"))
+            //remove passive spell if the player has it
+            foreach (var spell in playerSpells)
             {
-                spells.Remove("Overclock");
-            }
-            if (!gameManager.players[ownerPID - 1].killeez || playerSpells.Contains("BootsOfHermes"))
-            {
-                spells.Remove("BootsOfHermes");
-            }
-            if (!gameManager.players[ownerPID - 1].DemonX || playerSpells.Contains("DemonicDescent"))
-            {
-                spells.Remove("DemonicDescent");
-            }
-            if (!gameManager.players[ownerPID - 1].bigStox || playerSpells.Contains("BlueChipTrader"))
-            {
-                spells.Remove("BlueChipTrader");
+                if (SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                {
+                    Debug.Log("Dupe Passive: " + spell + " has been removed");
+                    removedSpells.Add(spell);
+                }
             }
 
+            //remove passives from the pool if the player has no active for them
+            foreach (var spell in spells)
+            {
+                if (!gameManager.players[ownerPID - 1].vWave)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.VWave && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("VWave passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].killeez)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.Killeez && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("Killeez passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].DemonX)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.DemonX && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("DemonX passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].bigStox)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.BigStox && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("BigStox passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+            }
+
+            foreach (string spell in removedSpells)
+            {
+                if (spells.Contains(spell)) { spells.Remove(spell); }
+            }
 
             //get a random spell
             int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);

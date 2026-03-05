@@ -1072,7 +1072,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (50*(players[i].roundsWon - averageRoundWins)));
+            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (100*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1085,11 +1085,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
             else
             {
+                //remove the bounty VFX from this player
                 VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
             }
         }
         //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
-        //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + BestoNet.Types.Vector2<Fixed32>.FromFloat(0f, 38f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+
+        //give the bounty VFX to the player with the highest bounty
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
     }
 

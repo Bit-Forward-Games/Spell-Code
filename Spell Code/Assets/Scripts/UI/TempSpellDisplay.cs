@@ -72,6 +72,8 @@ public class TempSpellDisplay : MonoBehaviour
 
     public void Update()
     {
+        if (GameManager.Instance == null) return;
+
         if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
             UpdateRoundWinCounter();
@@ -175,25 +177,30 @@ public class TempSpellDisplay : MonoBehaviour
                     case Brand.VWave:
                         cooldownFills[i].color = new Color32(107, 255, 116, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                        uiScript.flowStateVals[i].enabled = true;
+                        if (i < uiScript.flowStateVals.Length && uiScript.flowStateVals[i] != null)
+                            uiScript.flowStateVals[i].enabled = true;
                         break;
                     case Brand.BigStox:
                         cooldownFills[i].color = new Color32(67, 122, 252, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
-                        uiScript.stockStabilityVals[i].enabled = true;
-                        uiScript.stockStabilityIcons[i].enabled = true;
-                        break;
-                    case Brand.Killeez:
-                        cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                        uiScript.repsVals[i].enabled = true;
-                        uiScript.repsIcons[i].enabled = true;
+                        if (i < uiScript.stockStabilityVals.Length && uiScript.stockStabilityVals[i] != null)
+                            uiScript.stockStabilityVals[i].enabled = true;
+                        if (i < uiScript.stockStabilityIcons.Length && uiScript.stockStabilityIcons[i] != null)
+                            uiScript.stockStabilityIcons[i].enabled = true;
                         break;
                     case Brand.DemonX:
                         cooldownFills[i].color = new Color32(255, 62, 117, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                        uiScript.demonAuraVals[i].enabled = true;
-
+                        if (i < uiScript.demonAuraVals.Length && uiScript.demonAuraVals[i] != null)
+                            uiScript.demonAuraVals[i].enabled = true;
+                        break;
+                    case Brand.Killeez:
+                        cooldownFills[i].color = new Color32(255, 207, 0, 255);
+                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
+                        if (i < uiScript.repsVals.Length && uiScript.repsVals[i] != null)
+                            uiScript.repsVals[i].enabled = true;
+                        if (i < uiScript.repsIcons.Length && uiScript.repsIcons[i] != null)
+                            uiScript.repsIcons[i].enabled = true;
                         break;
                 }
 

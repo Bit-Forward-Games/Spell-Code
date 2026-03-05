@@ -103,6 +103,7 @@ public class PlayerController : MonoBehaviour
     //Character Data
     public CharacterData charData { get; private set; }
     public Fixed gravity = Fixed.FromFloat(0.75f);
+    public const int TerminalVelocity = -20;
     [HideInInspector]
     public Fixed jumpForce = Fixed.FromInt(10);
     public Fixed runSpeed = Fixed.FromInt(0);
@@ -740,7 +741,7 @@ public class PlayerController : MonoBehaviour
             {
                 vSpd -= gravity;
             }
-            else
+            else if (vSpd > Fixed.FromInt(TerminalVelocity))
             {
                 vSpd -= gravity / Fixed.FromInt(2); // Halve gravity if falling
             }

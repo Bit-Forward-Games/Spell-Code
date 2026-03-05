@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 389584798577933438}
   - component: {fileID: -4727238776019900093}
-  - component: {fileID: -935830711900372419}
+  - component: {fileID: 8861553680937587425}
   m_Layer: 0
   m_Name: prj_CoinTossLoaded
   m_TagString: Untagged
@@ -75,7 +75,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_Sprite: {fileID: 7707291184640536222, guid: 0bf7fbd34a8b239428d05e8fbe52ece2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -88,7 +88,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-935830711900372419
+--- !u!114 &8861553680937587425
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,7 +97,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7323394407539773554}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f890c108d9f1314aa63b4b701c9841f, type: 3}
+  m_Script: {fileID: 11500000, guid: 747bf59775cd16f4999ad8e563a23626, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   sprites:

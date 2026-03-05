@@ -1874,8 +1874,17 @@ public class PlayerController : MonoBehaviour
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
                 Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);
-                hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
-                vSpd = yKnockback;
+                if (GameManager.Instance.isOnlineMatchActive)
+                {
+                    hSpd = xKnockback;
+                    vSpd = yKnockback;
+                    facingRight = hitboxData.xKnockback > 0;
+                }
+                else
+                {
+                    hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
+                    vSpd = yKnockback;
+                }
 
                 //if (isGrounded)
                 //{

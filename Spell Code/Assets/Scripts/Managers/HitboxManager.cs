@@ -115,6 +115,17 @@ public class HitboxManager : MonoBehaviour
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
+                            if (GameManager.Instance.isOnlineMatchActive)
+                            {
+                                HitboxData bakedHitbox = hitbox.Clone();
+                                bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * (projectile.facingRight ? 1 : -1);
+                                defendingPlayer.hitboxData = bakedHitbox;
+                            }
+                            else
+                            {
+                                defendingPlayer.facingRight = !projectile.facingRight;
+                                defendingPlayer.hitboxData = hitbox;
+                            }
                             //if (!RollbackManager.Instance.isRollbackFrame)
                             //{
                             //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);

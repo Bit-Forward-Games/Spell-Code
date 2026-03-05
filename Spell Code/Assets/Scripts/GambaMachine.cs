@@ -241,6 +241,7 @@ public class GambaMachine : MonoBehaviour
 
             //list of spells in player[ownerPID]'s spellbook
             List<string> playerSpells = new List<string>();
+            List<string> removedSpells = new List<string>();
 
             //fill list of all spells in dictionary
             foreach (var item in SpellDictionary.Instance.spellDict)
@@ -254,24 +255,69 @@ public class GambaMachine : MonoBehaviour
                 playerSpells.Add(gameManager.players[ownerPID - 1].spellList[i].spellName);
             }
 
-            //Remove all passives for which the player has no actives for, or already has
-            if (!gameManager.players[ownerPID - 1].vWave || playerSpells.Contains("Overclock"))
+            //remove passive spell if the player has it
+            foreach (var spell in playerSpells)
             {
-                spells.Remove("Overclock");
-            }
-            if (!gameManager.players[ownerPID - 1].killeez || playerSpells.Contains("BootsOfHermes"))
-            {
-                spells.Remove("BootsOfHermes");
-            }
-            if (!gameManager.players[ownerPID - 1].DemonX || playerSpells.Contains("DemonicDescent"))
-            {
-                spells.Remove("DemonicDescent");
-            }
-            if (!gameManager.players[ownerPID - 1].bigStox || playerSpells.Contains("BlueChipTrader"))
-            {
-                spells.Remove("BlueChipTrader");
+                if (SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                {
+                    Debug.Log("Dupe Passive: " + spell + " has been removed");
+                    removedSpells.Add(spell);
+                }
             }
 
+            //remove passives from the pool if the player has no active for them
+            foreach (var spell in spells)
+            {
+                if (!gameManager.players[ownerPID - 1].vWave)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.VWave && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("VWave passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].killeez)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.Killeez && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("Killeez passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].DemonX)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.DemonX && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("DemonX passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+                if (!gameManager.players[ownerPID - 1].bigStox)
+                {
+                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.BigStox && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
+                    {
+                        if (!removedSpells.Contains(spell))
+                        {
+                            removedSpells.Add(spell);
+                            Debug.Log("BigStox passive: " + spell + " has been removed");
+                        }
+                    }
+                }
+            }
+
+            foreach (string spell in removedSpells)
+            {
+                if (spells.Contains(spell)) { spells.Remove(spell); }
+            }
 
             //get a random spell
             int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);

@@ -46,6 +46,10 @@ public class DataManager : MonoBehaviour
     //temp for testing in-engine
     private void Update()
     {
+        while (GameManager.Instance != null && GameManager.Instance.sceneManager.sceneName == "Gameplay") 
+        {
+            
+        }
         //This is just a shortcut for me to test stuff
 
         //if (Input.GetKeyDown(KeyCode.L))

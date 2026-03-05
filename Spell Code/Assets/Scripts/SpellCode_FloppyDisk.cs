@@ -44,19 +44,19 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
             {
-                sprite.color = Color.green;
+                diskAnimator.Play("FloppySpin");
             }
             if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
             {
-                sprite.color = Color.yellow;
+                diskAnimator.Play("FloppySpinKilleez");
             }
             if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
             {
-                sprite.color = Color.red;
+                diskAnimator.Play("FloppySpinDemonX");
             }
             if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
             {
-                sprite.color = Color.blue;
+                diskAnimator.Play("FloppySpinBigStox");
             }
         }
     }

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ce4f5e92308c30b449f0145986afa5e5
+guid: ef20f5abb6c1f4060803313531622f4c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4734979165760444432
-    second: QuarterReport_disk_0
+      213: 5394201786137487000
+    second: Resources_Dim_Glow 2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: QuarterReport_disk_0
+      name: Resources_Dim_Glow 2_0
       rect:
         serializedVersion: 2
-        x: 1
-        y: 92
-        width: 959
-        height: 864
+        x: 0
+        y: 0
+        width: 84
+        height: 84
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0f729f52989f94eb0800000000000000
-      internalID: -4734979165760444432
+      spriteID: 896a08dd1fd0cda40800000000000000
+      internalID: 5394201786137487000
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      QuarterReport_disk_0: -4734979165760444432
+      Resources_Dim_Glow 2_0: 5394201786137487000
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

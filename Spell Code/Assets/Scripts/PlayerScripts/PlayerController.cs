@@ -2068,6 +2068,7 @@ public class PlayerController : MonoBehaviour
                 //play the death sound
                 SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
                 
                 currentPlayerHealth = 0;
 

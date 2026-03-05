@@ -104,7 +104,7 @@ public abstract class SpellData : MonoBehaviour
     
     [HideInInspector]
     public GameObject floppyDisplayInstance;
-    public Sprite shopSprite;
+    //public Sprite shopSprite;
     public Sprite readyIcon;
     public Sprite notReadyIcon;
 

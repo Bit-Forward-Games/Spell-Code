@@ -10,7 +10,7 @@ public class PongShot : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1011_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
-        description = "Shoot a Pong ball diagonally downwards which ricochets off surfaces. If this spell hits after ricocheting twice, enter \"Flow State\". Speeds up in \"Flow State\"";
+        description = "Shoot a Pong ball diagonally downwards, which ricochets off surfaces. If this spell hits after ricocheting twice, enter \"Flow State\". Speeds up in \"Flow State\".";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 20;
         spawnOffsetY = 45;

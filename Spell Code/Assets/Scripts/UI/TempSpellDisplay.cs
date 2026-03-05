@@ -261,34 +261,6 @@ public class TempSpellDisplay : MonoBehaviour
         cooldownFlashAnimationFinished[i] = true;
     }
 
-    /*
-    // old: coroutine-based pulse replaced by PingPong in Update()
-    private bool isPulsing = false;
-
-    public IEnumerator CoolDownReadyPulse()
-    {
-        isPulsing = true;
-        float elapsed = 0f;
-
-        while (elapsed < flashPulseDuration)
-        {
-            elapsed += Time.deltaTime;
-            uiScript.flashAlpha = Mathf.Lerp(0.5f, 0.1f, elapsed / flashPulseDuration);
-            yield return null;
-        }
-
-        // Fade in
-        elapsed = 0f;
-        while (elapsed < flashPulseDuration)
-        {
-            elapsed += Time.deltaTime;
-            uiScript.flashAlpha = Mathf.Lerp(0.1f, 0.5f, elapsed / flashPulseDuration);
-            yield return null;
-        }
-        isPulsing = false;
-    }
-    */
-
     public void UpdateCooldownDisplay(int playerIndex)
     {
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;

@@ -17,11 +17,15 @@ public class TempUIScript : MonoBehaviour
     public Sprite[] spellReadyIcon;
     public Sprite[] roundWinIcon;
     public Image[] flowStateVals;
+    public Image[] flowStateDim;
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] stockStabilityIcons;
+    public Image[] stockStabilityDim;
     public Image[] demonAuraVals;
+    public Image[] demonAuraDim;
     public TextMeshProUGUI[] repsVals;
     public Image[] repsIcons;
+    public Image[] repsDim;
     public float flashAlpha = .5f;
     //public Image[] momentumVals;
     //public Image[] slimedVals;
@@ -63,6 +67,11 @@ public class TempUIScript : MonoBehaviour
             demonAuraVals[i].enabled = false;
             repsVals[i].enabled = false;
             repsIcons[i].enabled = false;
+
+            flowStateDim[i].enabled = false;
+            stockStabilityDim[i].enabled = false;
+            demonAuraDim[i].enabled = false;
+            repsDim[i].enabled = false;
             //momentumVals[i].enabled = false;
             //slimedVals[i].enabled = false;
 
@@ -71,20 +80,24 @@ public class TempUIScript : MonoBehaviour
                 if (spell.brands.Contains(Brand.VWave))
                 {
                     flowStateVals[i].enabled = true;
+                    flowStateDim[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.BigStox))
                 {
                     stockStabilityVals[i].enabled = true;
                     stockStabilityIcons[i].enabled = true;
+                    stockStabilityDim[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.DemonX))
                 {
                     demonAuraVals[i].enabled = true;
+                    demonAuraDim[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.Killeez))
                 {
                     repsVals[i].enabled = true;
                     repsIcons[i].enabled = true;
+                    repsDim[i].enabled = true;
                 }
                 //if (spell.brands.Contains(Brand.Halk))
                 //{
@@ -106,6 +119,12 @@ public class TempUIScript : MonoBehaviour
             // repsVals[i].enabled = true;
             // repsIcons[i].enabled = true;
             repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
+
+            if (repsVals[i].text == "0")
+            {
+                repsVals[i].enabled = false;
+                repsIcons[i].enabled = false;
+            }
 
             //momentumVals[i].enabled = true;
             //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;

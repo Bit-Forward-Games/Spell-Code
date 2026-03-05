@@ -14,7 +14,7 @@ public class NoScopeShot : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in \"Flow State\", replaces your basic attack with a long range sniper shot. If this spell hits, consume all \"Flow State\" and deal increased damage based on amount consumed.";
+        description = "While in \"Flow State,\" replace your basic attack with a long-range sniper shot. If this spell hits, consume all \"Flow State\" and deal increased damage based on the amount consumed.";
 
         projectilePrefabs = new GameObject[1];
     }

@@ -2387,6 +2387,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(unchecked((int)0xAABBCCDD));
 
         bool hasHitboxData = hitboxData != null;
         bw.Write(hasHitboxData);
@@ -2407,6 +2408,7 @@ public class PlayerController : MonoBehaviour
                 : -1;
             bw.Write(projPrefabIndex);
         }
+        bw.Write(unchecked((int)0xAABBCCDD));
 
         bw.Write(flowState);
         bw.Write(stockStability);
@@ -2422,8 +2424,11 @@ public class PlayerController : MonoBehaviour
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
         bw.Write(startingSpellAdded);
+        bw.Write(unchecked((int)0xAABBCCDD));
+
 
         // Spell List Serialization
+        bw.Write(unchecked((int)0xAABBCCDD));
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
@@ -2470,6 +2475,8 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isHit = br.ReadBoolean();
+        int markerA = br.ReadInt32();
+        if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
 
         bool hasHitboxData = br.ReadBoolean();
         if (hasHitboxData)
@@ -2489,6 +2496,9 @@ public class PlayerController : MonoBehaviour
             hitboxData = null;
             _pendingHitboxOwnerIndex = -1;
         }
+
+        int markerB = br.ReadInt32();
+        if (markerB != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at B: {markerB:X8}");
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
@@ -2503,9 +2513,14 @@ public class PlayerController : MonoBehaviour
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();
         bool savedStartingSpellAdded = br.ReadBoolean();
+        int markerC = br.ReadInt32();
+        if (markerC != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at C: {markerC:X8}");
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
 
         // Spell List Deserialization
+        int markerD = br.ReadInt32();
+        if (markerD != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at D: {markerD:X8}");
+
         int spellCount = br.ReadInt32();
 
         // HANDLE SPELL LIST SYNC BASED ON FLAG

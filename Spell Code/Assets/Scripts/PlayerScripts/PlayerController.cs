@@ -1878,7 +1878,7 @@ public class PlayerController : MonoBehaviour
                 {
                     hSpd = xKnockback;
                     vSpd = yKnockback;
-                    facingRight = hitboxData.xKnockback > 0;
+                    facingRight = hitboxData.xKnockback < 0;
                 }
                 else
                 {

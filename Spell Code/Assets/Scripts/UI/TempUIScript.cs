@@ -125,6 +125,11 @@ public class TempUIScript : MonoBehaviour
                 repsVals[i].enabled = false;
                 repsIcons[i].enabled = false;
             }
+            else if (repsVals[i].text != "0")
+            {
+                repsVals[i].enabled = true;
+                repsIcons[i].enabled = true;
+            }
 
             //momentumVals[i].enabled = true;
             //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;

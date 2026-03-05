@@ -15,7 +15,7 @@ public class CoinToss : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1101_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Toss a coin, dealing massive damage if it lands on heads. There is a chance equal to your \"Stock Stability\" that you throw ad Loaded coin. You gain 15% \"Stock Stability\".";
+        description = "Toss a coin, dealing massive damage if it lands on heads. There is a chance equal to your \"Stock Stability\" that you throw a Loaded coin. You gain 15% \"Stock Stability\".";
         projectilePrefabs = new GameObject[3];
     }
 

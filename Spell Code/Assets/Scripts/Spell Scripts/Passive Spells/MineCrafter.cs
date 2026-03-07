@@ -4,17 +4,21 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class Overclock : SpellData
+public class MineCrafter : SpellData
 {
 
-    public Overclock()
+    public MineCrafter()
     {
-        spellName = "Overclock";
+        spellName = "MineCrafter";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[1] { ProcCondition.OnCastSpell };
+        procConditions = new ProcCondition[1] { ProcCondition.OnSlide };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in \"Flow State\", you overclock your spell-codes, creating an explosion on spell-cast.";
+        description = "While in \"Flow State\", your slide crafts a mine.";
+
+        projectilePrefabs = new GameObject[1];
+        spawnOffsetX = 0;
+        spawnOffsetY = 10;
     }
 
 
@@ -23,7 +27,7 @@ public class Overclock : SpellData
         //OnCast proc: Check if in flow state, if so, spawn an Overclock Explosion
         switch(targetProcCon)
         {
-            case ProcCondition.OnCastSpell:
+            case ProcCondition.OnSlide:
                 if (owner.flowState > 0)
                 {
                     activateFlag = true;

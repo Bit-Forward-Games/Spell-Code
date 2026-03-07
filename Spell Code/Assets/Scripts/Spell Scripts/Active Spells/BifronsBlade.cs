@@ -36,6 +36,7 @@ public class BifronsBlade : SpellData
                 else //if it is the spell hitbox, gain 20 Demon Aura, but only if the player is not already at max Demon Aura
                 {
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
+                    owner.SpawnToast("+20 DEMON AURA", Color.red);
                 }
                 break;
             case ProcCondition.OnCastBasic:

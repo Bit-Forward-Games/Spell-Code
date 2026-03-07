@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7745486899729457613}
   - component: {fileID: 8791147183177087036}
   m_Layer: 0
-  m_Name: Overclock
+  m_Name: MineCrafter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

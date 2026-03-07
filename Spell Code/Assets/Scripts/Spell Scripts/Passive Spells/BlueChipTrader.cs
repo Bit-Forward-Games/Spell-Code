@@ -30,10 +30,12 @@ public class BlueChipTrader : SpellData
             case ProcCondition.OnHitBasic:
                 storedStockStability += 10;
                 owner.stockStability += 10;
+                owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
                 break;
             case ProcCondition.OnCastSpell:
                 owner.stockStability -= storedStockStability;
                 storedStockStability = 0;
+                owner.SpawnToast($"+{storedStockStability}% STOCK STABILITY", Color.gray);
                 break;
             default:
                 break;

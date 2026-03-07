@@ -23,6 +23,7 @@ public class BladeOfAres : SpellData
         {
             case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
                 owner.reps += 1;
+                owner.SpawnToast("+1 REP", Color.yellow);
                 defender.TakeEffectDamage(owner.reps * 2, owner);
                 break;
             default:

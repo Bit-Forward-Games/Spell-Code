@@ -15,7 +15,7 @@ public class RodOfAsclepius : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitSpell, ProcCondition.OnDeath };
         brands = new Brand[1] { Brand.Killeez };
-        description = "Heal 10 hp once after every 3rd \"Rep\" you gain.";
+        description = "Heal 15 hp once after every 3rd \"Rep\" you gain.";
     }
 
     public override void LoadSpell()
@@ -32,8 +32,8 @@ public class RodOfAsclepius : SpellData
                 if(owner.reps >= nextRepProc)
                 {
                     nextRepProc += 3;
-                    owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + 10, owner.GetMaxHealth());
-                    owner.SpawnToast("+10 HP", Color.green);
+                    owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + 15, owner.GetMaxHealth());
+                    owner.SpawnToast("+15 HP", Color.green);
                 }
                 break;
             case ProcCondition.OnDeath:

@@ -75,6 +75,7 @@ public class MightOfZeus : SpellData
                 }
 
                 owner.reps++;
+                owner.SpawnToast("+1 REP", Color.yellow);
                 break;
             default:
                 break;

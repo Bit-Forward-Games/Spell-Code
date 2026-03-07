@@ -23,6 +23,7 @@ public class GetAJob : SpellData
     {
         base.LoadSpell();
         owner.stockStability += 15;
+        owner.SpawnToast("+15% STOCK STABILITY", Color.blue);
         doesCrit = false;
     }
     public override void SpellUpdate()

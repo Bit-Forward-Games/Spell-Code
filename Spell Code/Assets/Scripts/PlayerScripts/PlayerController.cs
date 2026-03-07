@@ -79,7 +79,7 @@ public class PlayerController : MonoBehaviour
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
 
-
+    public static readonly Fixed FixedDeltaTime = Fixed.FromFloat(1f / 60f);
 
     private ushort lerpDelay = 0;
     [NonSerialized]
@@ -932,7 +932,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //keep track of how lojng player is in state for
-                timer += Fixed.FromFloat(Time.fixedDeltaTime);
+                timer += FixedDeltaTime;
 
                 if (vSpd <= Fixed.FromInt(0) && !isGrounded)
                 {

@@ -1679,8 +1679,6 @@ public class PlayerController : MonoBehaviour
                 for (int i = 0; i < activatableSolidCount; i++)
                 {
 
-
-
                     //find the activatable solid that corresponds to this index via matching the center position
                     bool isOpen = false;
                     foreach (GameObject obj in activatableSolidsInScene)
@@ -1785,8 +1783,14 @@ public class PlayerController : MonoBehaviour
             {
                 case BorderType.Collision:
                     FixedVec2 tempPos = position;
-                    position = FixedVec2.FromFloat(Mathf.Clamp(position.X.ToFloat(), stageDataSO.borderMin.x, stageDataSO.borderMax.x),
-                        Mathf.Clamp(position.Y.ToFloat(), stageDataSO.borderMin.y, stageDataSO.borderMax.y));
+                    Fixed borderMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed borderMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed borderMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed borderMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+                    position = new FixedVec2(
+                        Fixed.Clamp(position.X, borderMinX, borderMaxX),
+                        Fixed.Clamp(position.Y, borderMinY, borderMaxY)
+                    );
 
                     returnVal = !tempPos.Equals(position);
                     break;
@@ -2023,11 +2027,14 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
-        if(GameManager.Instance.currentStageIndex < 0)
+        if (GameManager.Instance.currentStageIndex < 0)
         {
             //don't take damage in the lobby
             return;
         }
+
+        bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+
 
         //checking for death
         if (damageAmount > currentPlayerHealth)
@@ -2041,8 +2048,11 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
 
         }
-        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
 
+        if (!isRollback)
+        {
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
+        }
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
 
@@ -2076,8 +2086,14 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
+            bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+
             //update the damage matrix the attacker attacking this player
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp((int)hitboxData.damage, 0, (int)currentPlayerHealth);
+            if (!isRollback)
+            {
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp((int)hitboxData.damage, 0, (int)currentPlayerHealth);
+            }            
+            
             //checking for death
             if (hitboxData.damage >= currentPlayerHealth)
             {
@@ -2089,9 +2105,12 @@ public class PlayerController : MonoBehaviour
                 currentPlayerHealth = 0;
 
                 //award the killer with the extra bonus ram
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+                if (!isRollback)
+                {
+                    attacker.roundRam += baseRamKillBonus;
+                    attacker.totalRam += baseRamKillBonus;
+                    attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+                }
             }
             else
             {

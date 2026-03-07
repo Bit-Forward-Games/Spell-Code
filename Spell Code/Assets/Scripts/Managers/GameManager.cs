@@ -1186,6 +1186,8 @@ public class GameManager : MonoBehaviour
 
         if(roundOver) { return true; }
 
+        bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+
         foreach (PlayerController player in playerControllers)
         {
             //check for player deaths
@@ -1198,9 +1200,14 @@ public class GameManager : MonoBehaviour
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(0, (damagePercent * player.ramBounty) / 100);
                     int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
-                    p.roundRam += (ushort)totalRamEarned;
-                    p.totalRam += (ushort)totalRamEarned;
-                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
+
+                    // Only apply RAM and side effects on real frames, not rollback resimulation
+                    if (!isRollback)
+                    {
+                        p.roundRam += (ushort)totalRamEarned;
+                        p.totalRam += (ushort)totalRamEarned;
+                        p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
+                    }
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
@@ -1242,8 +1249,11 @@ public class GameManager : MonoBehaviour
                         for (int i = 0; i < playerCount; i++)
                         {
                             players[i].roundRam = 0;
-                            players[i].playerNum.enabled = false;
-                            players[i].inputDisplay.enabled = false;
+                            if (!isRollback)
+                            {
+                                players[i].playerNum.enabled = false;
+                                players[i].inputDisplay.enabled = false;
+                            }
                             if (players[i].roundsWon >= 3) { gameOver = true; }
                         }
                     }

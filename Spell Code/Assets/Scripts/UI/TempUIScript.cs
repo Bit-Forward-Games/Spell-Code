@@ -8,6 +8,7 @@ public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerRamVals;
     public Image[] playerHpBar;
+    public Image[] playerStoreBar;
     public Image[] followPlayerHpBar;
     public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
@@ -27,28 +28,26 @@ public class TempUIScript : MonoBehaviour
     public Image[] repsIcons;
     public Image[] repsDim;
     public float flashAlpha = .5f;
-    //public Image[] momentumVals;
-    //public Image[] slimedVals;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        Image[] followPlayerHpBar = new Image[4];
-        Image[] followPlayerDamageBar = new Image[4];
+        followPlayerHpBar = new Image[4];
+        followPlayerDamageBar = new Image[4];
+        playerStoreBar = new Image[4];
     }
 
     // Update is called once per frame
     void Update()
     {
-        UpdateHealthVals();
+        UpdateUIBarVals();
     }
 
-    public void UpdateHealthVals()
+    public void UpdateUIBarVals()
     {
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            // Transform childTransform = GameManager.Instance.players[i].transform.Find("Health Bar");
-            // followPlayerHpBar[i] = childTransform.gameObject.GetComponent<Image>();
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
+            playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
             // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
             playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
             if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
@@ -72,8 +71,6 @@ public class TempUIScript : MonoBehaviour
             stockStabilityDim[i].enabled = false;
             demonAuraDim[i].enabled = false;
             repsDim[i].enabled = false;
-            //momentumVals[i].enabled = false;
-            //slimedVals[i].enabled = false;
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
             {
@@ -99,10 +96,6 @@ public class TempUIScript : MonoBehaviour
                     repsIcons[i].enabled = true;
                     repsDim[i].enabled = true;
                 }
-                //if (spell.brands.Contains(Brand.Halk))
-                //{
-                //    momentumVals[i].enabled = true;
-                //}
 
             }
 
@@ -131,12 +124,9 @@ public class TempUIScript : MonoBehaviour
                 repsIcons[i].enabled = true;
             }
 
-            //momentumVals[i].enabled = true;
-            //momentumVals[i].fillAmount = (float)GameManager.Instance.players[i].momentum / 100;
-
-            //if (GameManager.Instance.players[i].slimed)
-            //    slimedVals[i].enabled = true;
-            //else slimedVals[i].enabled = false;
+            //Spell Store Bar
+            float storeFillAmount = (float)GameManager.Instance.players[i].storedCodeDuration / 240;//TODO: change 240 to use the scale the bar length based on spell length
+            playerStoreBar[i].fillAmount = storeFillAmount;
         }
     }
 

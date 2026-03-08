@@ -1111,8 +1111,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
                     float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
-                    p.roundRam += (ushort)totalRamEarned;
-                    p.totalRam += (ushort)totalRamEarned;
+                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,599-p.roundRam);
+                    p.roundRam += (ushort)CollectedGold;
+                    p.totalRam += (ushort)CollectedGold;
                     p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death

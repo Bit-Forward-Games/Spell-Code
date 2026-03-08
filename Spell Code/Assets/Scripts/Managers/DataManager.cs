@@ -167,5 +167,6 @@ public class DataManager : MonoBehaviour
         gameData = new SaveDataHolder();
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
+        totalRoundsPlayed = 0;
     }
 }

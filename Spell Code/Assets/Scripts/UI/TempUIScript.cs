@@ -7,10 +7,8 @@ using UnityEngine.UI;
 public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerRamVals;
-    public Image[] playerHpBar;
     public Image[] playerStoreBar;
     public Image[] followPlayerHpBar;
-    public Image[] playerDamageBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
     public GameObject[] emptyQuadrants;
@@ -28,12 +26,16 @@ public class TempUIScript : MonoBehaviour
     public Image[] repsIcons;
     public Image[] repsDim;
     public float flashAlpha = .5f;
+    
+    private Coroutine[] damageBarCoroutines = new Coroutine[4];
+    private float[] damageBarDisplayFill = new float[4];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
+        damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
     }
 
     // Update is called once per frame
@@ -50,11 +52,15 @@ public class TempUIScript : MonoBehaviour
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
             // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
             playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
-            if (GameManager.Instance.players[i].isHit) StartCoroutine(DamageBar(i));
+
+            if (GameManager.Instance.players[i].isHit)
+            {
+                if (damageBarCoroutines[i] != null) StopCoroutine(damageBarCoroutines[i]);
+                damageBarCoroutines[i] = StartCoroutine(DamageBar(i));
+            }
 
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
             float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
-            playerHpBar[i].fillAmount = fillAmountVal;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
             playerGoldBar[i].fillAmount = fillGoldAmountVal;
 
@@ -138,12 +144,10 @@ public class TempUIScript : MonoBehaviour
         
         player.isHit = false;
         
-        float previousHealthAmount = playerHpBar[playerIndex].fillAmount;
+        float previousHealthAmount = damageBarDisplayFill[playerIndex];
         
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
-        playerHpBar[playerIndex].fillAmount = newHealthAmount;
         
-        playerDamageBar[playerIndex].fillAmount = previousHealthAmount;
         followPlayerDamageBar[playerIndex].fillAmount = previousHealthAmount;
         
         yield return new WaitForSeconds(1f);
@@ -155,13 +159,12 @@ public class TempUIScript : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / animationDuration;
-            playerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             followPlayerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             yield return null;
         }
 
-        playerDamageBar[playerIndex].fillAmount = newHealthAmount;
         followPlayerDamageBar[playerIndex].fillAmount = newHealthAmount;
+        damageBarDisplayFill[playerIndex] = newHealthAmount;
     }
 
     GameObject FindChildContainingName(GameObject parent, string namePart)

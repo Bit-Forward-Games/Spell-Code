@@ -78,6 +78,8 @@ public class GameManager : MonoBehaviour
     public bool isTransitioning = false;
 
     public SpellCode_Gate[] gates = new SpellCode_Gate[4];
+    private readonly Dictionary<Vector2, SpellCode_Gate> gateLookup = new();
+    private const float GatePositionKeyPrecision = 1000f;
 
     //game timers
     public float roundEndTimer = 0f;
@@ -1131,16 +1133,38 @@ public class GameManager : MonoBehaviour
 
     public bool IsGateOpenAtPosition(float x, float y)
     {
-        foreach (var gate in gates)
+        if (TryGetGateAtPosition(x, y, out var gate))
+        {
+            return gate.isOpen;
+        }
+        return false;
+    }
+
+    public bool TryGetGateAtPosition(float x, float y, out SpellCode_Gate gate)
+    {
+        return gateLookup.TryGetValue(GetGateKey(x, y), out gate);
+    }
+
+    public Vector2 GetGateKey(float x, float y)
+    {
+        return NormalizeGatePosition(new Vector2(x, y));
+    }
+
+    private Vector2 NormalizeGatePosition(Vector2 raw)
+    {
+        float roundedX = Mathf.Round(raw.x * GatePositionKeyPrecision) / GatePositionKeyPrecision;
+        float roundedY = Mathf.Round(raw.y * GatePositionKeyPrecision) / GatePositionKeyPrecision;
+        return new Vector2(roundedX, roundedY);
+    }
+
+    private void RebuildGateLookup()
+    {
+        gateLookup.Clear();
+        foreach (SpellCode_Gate gate in gates)
         {
             if (gate == null) continue;
-            Vector3 gatePos = gate.transform.position;
-            if (Mathf.Approximately(gatePos.x, x) && Mathf.Approximately(gatePos.y, y))
-            {
-                return gate.isOpen; // This is the LOGICAL state, restored by Deserialize
-            }
+            gateLookup[NormalizeGatePosition(gate.transform.position)] = gate;
         }
-        return false; // Default closed if not found
     }
 
     public void UpdatePlayerBounties()

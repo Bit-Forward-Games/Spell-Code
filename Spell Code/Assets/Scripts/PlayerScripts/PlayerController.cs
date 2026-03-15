@@ -1673,26 +1673,11 @@ public class PlayerController : MonoBehaviour
                 Fixed pMinY = position.Y + vSpd;
                 Fixed pMaxY = position.Y + vSpd + playerHeight;
 
-                //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
-                GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
-
                 for (int i = 0; i < activatableSolidCount; i++)
                 {
-
-                    //find the activatable solid that corresponds to this index via matching the center position
-                    bool isOpen = false;
-                    foreach (GameObject obj in activatableSolidsInScene)
-                    {
-                        Vector3 objPos = obj.transform.position;
-                        if (Mathf.Approximately(objPos.x, stageDataSO.activatableSolidCenter[i].x) &&
-                            Mathf.Approximately(objPos.y, stageDataSO.activatableSolidCenter[i].y))
-                        {
-                            //isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
-                            isOpen = GameManager.Instance.IsGateOpenAtPosition(stageDataSO.activatableSolidCenter[i].x,
-                                                                               stageDataSO.activatableSolidCenter[i].y);
-                            break;
-                        }
-                    }
+                    float centerX = stageDataSO.activatableSolidCenter[i].x;
+                    float centerY = stageDataSO.activatableSolidCenter[i].y;
+                    bool isOpen = GameManager.Instance.IsGateOpenAtPosition(centerX, centerY);
                     if (!isOpen)
                     {
 

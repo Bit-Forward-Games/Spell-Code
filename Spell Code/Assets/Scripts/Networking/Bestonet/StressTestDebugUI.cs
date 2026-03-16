@@ -61,6 +61,8 @@ public class StressTestDebugUI : MonoBehaviour
         GUILayout.Space(6);
         GUILayout.Label("Network Chaos");
         ctrl.enableNetworkChaos = GUILayout.Toggle(ctrl.enableNetworkChaos, "Enable Network Chaos");
+        ctrl.affectOutbound = GUILayout.Toggle(ctrl.affectOutbound, "Affect Outbound (their view)");
+        ctrl.affectInbound = GUILayout.Toggle(ctrl.affectInbound, "Affect Inbound (your view)");
         ctrl.outboundLossChance = DrawFloat01("Outbound Loss", ctrl.outboundLossChance);
         ctrl.inboundLossChance = DrawFloat01("Inbound Loss", ctrl.inboundLossChance);
         ctrl.minLatencyMs = DrawInt("Min Latency (ms)", ctrl.minLatencyMs, 0, 500);
@@ -106,6 +108,8 @@ public class StressTestDebugUI : MonoBehaviour
         {
             case 0: // None
                 ctrl.enableNetworkChaos = false;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0f;
                 ctrl.inboundLossChance = 0f;
                 ctrl.minLatencyMs = 0;
@@ -115,6 +119,8 @@ public class StressTestDebugUI : MonoBehaviour
                 break;
             case 1: // Light
                 ctrl.enableNetworkChaos = true;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0.01f;
                 ctrl.inboundLossChance = 0.01f;
                 ctrl.minLatencyMs = 60;
@@ -124,6 +130,8 @@ public class StressTestDebugUI : MonoBehaviour
                 break;
             case 2: // Medium
                 ctrl.enableNetworkChaos = true;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0.03f;
                 ctrl.inboundLossChance = 0.03f;
                 ctrl.minLatencyMs = 80;
@@ -133,6 +141,8 @@ public class StressTestDebugUI : MonoBehaviour
                 break;
             case 3: // Heavy
                 ctrl.enableNetworkChaos = true;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0.05f;
                 ctrl.inboundLossChance = 0.05f;
                 ctrl.minLatencyMs = 120;
@@ -142,6 +152,8 @@ public class StressTestDebugUI : MonoBehaviour
                 break;
             case 4: // Jitter
                 ctrl.enableNetworkChaos = true;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0.02f;
                 ctrl.inboundLossChance = 0.02f;
                 ctrl.minLatencyMs = 0;
@@ -151,6 +163,8 @@ public class StressTestDebugUI : MonoBehaviour
                 break;
             case 5: // Reorder
                 ctrl.enableNetworkChaos = true;
+                ctrl.affectOutbound = true;
+                ctrl.affectInbound = true;
                 ctrl.outboundLossChance = 0.01f;
                 ctrl.inboundLossChance = 0.01f;
                 ctrl.minLatencyMs = 40;

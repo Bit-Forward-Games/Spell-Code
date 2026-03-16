@@ -120,12 +120,12 @@ public class MatchMessageManager : MonoBehaviour
             {
                 try
                 {
-                    if (IsChaosActive() && StressTestController.Instance.ShouldDropInbound())
+                    if (IsChaosActive() && StressTestController.Instance.affectInbound && StressTestController.Instance.ShouldDropInbound())
                     {
                         continue;
                     }
 
-                    if (IsChaosActive())
+                    if (IsChaosActive() && StressTestController.Instance.affectInbound)
                     {
                         EnqueueInbound(packet.Value.Data, GetChaosDelaySeconds());
                     }
@@ -648,7 +648,7 @@ public class MatchMessageManager : MonoBehaviour
             return false;
         }
 
-        if (IsChaosActive())
+        if (IsChaosActive() && StressTestController.Instance.affectOutbound)
         {
             if (StressTestController.Instance.ShouldDropOutbound())
             {

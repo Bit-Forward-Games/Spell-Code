@@ -11,6 +11,8 @@ public class StressTestController : MonoBehaviour
 
     [Header("Network Chaos")]
     public bool enableNetworkChaos = false;
+    public bool affectOutbound = true;
+    public bool affectInbound = true;
     [Range(0f, 1f)] public float outboundLossChance = 0f;
     [Range(0f, 1f)] public float inboundLossChance = 0f;
     public int minLatencyMs = 0;

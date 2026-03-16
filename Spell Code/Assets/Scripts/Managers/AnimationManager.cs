@@ -85,8 +85,8 @@ public class AnimationManager : MonoBehaviour
         // implicit ANIMS **separately per player** 
         implicitAnimationSprites[player] = new implicitStateAnimations
         {
-            jumpAnimRising = spriteSheetData[index].subSprites[15..17],
-            jumpAnimFalling = spriteSheetData[index].subSprites[17..19],
+            jumpAnimRising = spriteSheetData[index].subSprites[17..19],
+            jumpAnimFalling = spriteSheetData[index].subSprites[19..21],
         };
 
         // Initialize player's animation dictionary with default empty sprite arrays for each state

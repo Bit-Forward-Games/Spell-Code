@@ -83,7 +83,8 @@ public class GameManager : MonoBehaviour
 
     //game timers
     public float roundEndTimer = 0f;
-    public int roundEndTransitionTime = 2;
+    public float roundEndTransitionTime = 2f;
+    private int roundEndFrameCounter = 0;
     public TextMeshProUGUI playerWinText;
 
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
@@ -817,49 +818,7 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Gameplay")
         {
-            // Only handle transitions on non-rollback frames
-            // Death/respawn is handled in UpdateSceneLogic (which also runs during rollback)
-            if (!rbManager.isRollbackFrame && roundOver)
-            {
-                if (roundEndTransitionTime >= roundEndTimer)
-                {
-                    roundEndTimer += Time.fixedDeltaTime;
-                }
-
-                if (roundEndTransitionTime <= roundEndTimer)
-                {
-                    ClearStages();
-
-                    if (gameOver)
-                    {
-                        dataManager.totalRoundsPlayed += 1;
-                        GameEnd();
-                        roundEndTimer = 0;
-                    }
-                    else if (players[0].spellList.Count >= 6)
-                    {
-                        dataManager.totalRoundsPlayed += 1;
-                        localPlayerReadyForGameplay = false;
-                        remotePlayerReadyForGameplay = false;
-                        isTransitioning = true;
-                        LoadRandomGameplayStage();
-                        foreach (PlayerController player in players)
-                        {
-                            if (player != null)
-                                player.inputDisplay.enabled = true;
-                        }
-                        roundEndTimer = 0;
-                        roundOver = false;
-                    }
-                    else
-                    {
-                        dataManager.totalRoundsPlayed += 1;
-                        RoundEnd();
-                        roundEndTimer = 0;
-                        roundOver = false;
-                    }
-                }
-            }
+            TickRoundEndTransition(!rbManager.isRollbackFrame);
         }
         //else if (activeScene.name == "Shop")
         //{
@@ -877,6 +836,68 @@ public class GameManager : MonoBehaviour
         {
             rbManager.SaveState();
         }
+    }
+
+    private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));
+
+    private void TickRoundEndTransition(bool isRealFrame)
+    {
+        if (!roundOver)
+        {
+            roundEndFrameCounter = 0;
+            return;
+        }
+
+        if (!isRealFrame)
+        {
+            return;
+        }
+
+        roundEndFrameCounter++;
+        if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
+        {
+            roundEndFrameCounter = 0;
+            PerformRoundTransition();
+        }
+    }
+
+    private void PerformRoundTransition()
+    {
+        ClearStages();
+
+        if (gameOver)
+        {
+            playerWinText.enabled = false;
+            dataManager.totalRoundsPlayed += 1;
+            GameEnd();
+            roundOver = false;
+            return;
+        }
+
+        playerWinText.enabled = false;
+        dataManager.totalRoundsPlayed += 1;
+
+        bool hasMaxSpells = playerCount > 0
+            && players[0] != null
+            && players[0].spellList != null
+            && players[0].spellList.Count >= 6;
+
+        if (hasMaxSpells)
+        {
+            if (isOnlineMatchActive)
+            {
+                localPlayerReadyForGameplay = false;
+                remotePlayerReadyForGameplay = false;
+            }
+            LoadRandomGameplayStage();
+            ResetPlayers();
+            roundOver = false;
+            return;
+        }
+
+        RoundEnd();
+        ResetPlayers();
+        roundOver = false;
     }
 
     public void ForceSetFrame(int newFrame)
@@ -988,7 +1009,7 @@ public class GameManager : MonoBehaviour
         {
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                
+
                 if (!roundOver)
                 {
                     ushort highestRam = 0;
@@ -1022,7 +1043,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                
+
 
                 if (roundEndTransitionTime >= roundEndTimer)
                 {
@@ -1713,7 +1734,7 @@ public class GameManager : MonoBehaviour
 
                 bw.Write(roundOver);
                 bw.Write(gameOver);
-                bw.Write(roundEndTimer);
+                bw.Write(roundEndFrameCounter);
 
                 // Serialize damage matrix
                 for (int i = 0; i < 4; i++)
@@ -1830,7 +1851,7 @@ public class GameManager : MonoBehaviour
 
                 roundOver = br.ReadBoolean();
                 gameOver = br.ReadBoolean();
-                roundEndTimer = br.ReadSingle();
+                roundEndFrameCounter = br.ReadInt32();
 
                 // Deserialize damage matrix
                 for (int i = 0; i < 4; i++)

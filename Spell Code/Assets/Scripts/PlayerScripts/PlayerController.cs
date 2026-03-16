@@ -155,6 +155,8 @@ public class PlayerController : MonoBehaviour
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public uint storedCode = 0; //the code that is stored up for release
+
+    public uint storedCodeMaxDuration = 0; //NAME THIS
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
 
     public byte hitstop = 0;

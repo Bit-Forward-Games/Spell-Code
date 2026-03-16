@@ -89,6 +89,12 @@ public class StressTestDebugUI : MonoBehaviour
             ctrl.ResetForNewMatch();
         }
 
+        if (GUILayout.Button("Log Dump Folder Path"))
+        {
+            string path = ctrl.GetDumpDirectory();
+            Debug.Log($"[StressTest] Desync dump folder: {path}");
+        }
+
         GUI.enabled = true;
         GUILayout.EndVertical();
         GUI.DragWindow(new Rect(0, 0, 10000, 20));

@@ -309,6 +309,11 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
+        if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
+        {
+            return StressTestController.Instance.GetDeterministicInput(frameNumber);
+        }
+
         PlayerController localPlayer = players[localPlayerIndex];
         if (localPlayer != null && localPlayer.inputs.IsActive)
         {
@@ -474,6 +479,10 @@ public class GameManager : MonoBehaviour
 
         if (MatchMessageManager.Instance != null)
         {
+            if (StressTestController.Instance != null && StressTestController.Instance.enableStressTest)
+            {
+                StressTestController.Instance.ResetForNewMatch();
+            }
             MatchMessageManager.Instance.StartMatch(opponentId);
             // Send ready signal to opponent
             MatchMessageManager.Instance.SendReadySignal();

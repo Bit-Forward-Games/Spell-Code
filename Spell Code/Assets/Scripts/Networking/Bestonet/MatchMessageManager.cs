@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
@@ -18,6 +19,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
     private const byte PACKET_TYPE_SEED = 12;
+    private const byte PACKET_TYPE_STATE_HASH = 20;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -30,6 +32,22 @@ public class MatchMessageManager : MonoBehaviour
     private bool isRunning = false;
     private bool localReadySent = false;
     private bool remoteReadyReceived = false;
+
+    private struct PendingOutboundPacket
+    {
+        public byte[] data;
+        public P2PSend sendType;
+        public float deliverTime;
+    }
+
+    private struct PendingInboundPacket
+    {
+        public byte[] data;
+        public float deliverTime;
+    }
+
+    private readonly List<PendingOutboundPacket> outboundQueue = new List<PendingOutboundPacket>();
+    private readonly List<PendingInboundPacket> inboundQueue = new List<PendingInboundPacket>();
 
     private void Awake()
     {
@@ -102,7 +120,19 @@ public class MatchMessageManager : MonoBehaviour
             {
                 try
                 {
-                    ProcessPacket(packet.Value.Data);
+                    if (IsChaosActive() && StressTestController.Instance.ShouldDropInbound())
+                    {
+                        continue;
+                    }
+
+                    if (IsChaosActive())
+                    {
+                        EnqueueInbound(packet.Value.Data, GetChaosDelaySeconds());
+                    }
+                    else
+                    {
+                        ProcessPacket(packet.Value.Data);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -114,6 +144,9 @@ public class MatchMessageManager : MonoBehaviour
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
             }
         }
+
+        ProcessOutboundQueue();
+        ProcessInboundQueue();
     }
 
     public void SendSeed(int seed)
@@ -126,7 +159,7 @@ public class MatchMessageManager : MonoBehaviour
             writer.Write(PACKET_TYPE_SEED);
             writer.Write(seed);
             byte[] data = ms.ToArray();
-            SteamNetworking.SendP2PPacket(opponentSteamId, data, data.Length, MATCH_MESSAGE_CHANNEL, P2PSend.Reliable);
+            SendPacket(data, P2PSend.Reliable);
             Debug.Log($"Sent seed: {seed}");
         }
     }
@@ -156,13 +189,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     byte[] data = memoryStream.ToArray();
 
-                    bool success = SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        data.Length,
-                        MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable
-                    );
+                    bool success = SendPacket(data, P2PSend.Reliable);
 
                     if (success)
                     {
@@ -197,13 +224,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     byte[] data = memoryStream.ToArray();
 
-                    SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        data.Length,
-                        MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable
-                    );
+                    SendPacket(data, P2PSend.Reliable);
 
                     //Debug.Log("Sent MATCH START confirmation");
                 }
@@ -234,13 +255,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     byte[] data = memoryStream.ToArray();
 
-                    bool success = SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        data.Length,
-                        MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable
-                    );
+                    bool success = SendPacket(data, P2PSend.Reliable);
 
                     if (success)
                     {
@@ -276,13 +291,7 @@ public class MatchMessageManager : MonoBehaviour
                 {
                     byte[] data = memoryStream.ToArray();
 
-                    bool success = SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        data.Length,
-                        MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable
-                    );
+                    bool success = SendPacket(data, P2PSend.Reliable);
 
                     if (success)
                     {
@@ -311,6 +320,8 @@ public class MatchMessageManager : MonoBehaviour
             this.isRunning = true;
             Ping = 100;
             sentFrameTimes.Clear();
+            outboundQueue.Clear();
+            inboundQueue.Clear();
 
             ResetReadyFlags();
             SteamNetworking.AllowP2PPacketRelay(true);
@@ -339,13 +350,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     byte[] data = memoryStream.ToArray();
 
-                    bool success = SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        data.Length,
-                        MATCH_MESSAGE_CHANNEL,
-                        P2PSend.Reliable
-                    );
+                    bool success = SendPacket(data, P2PSend.Reliable);
                 }
             }
         }
@@ -432,6 +437,14 @@ public class MatchMessageManager : MonoBehaviour
                         Debug.Log($"Received seed: {receivedSeed}");
                         GameManager.Instance.InitializeWithSeed(receivedSeed);
                         GameManager.Instance.StartLobbySimulation(); // Client triggers lobby start after receiving seed
+                        return;
+                    }
+
+                    if (packetType == PACKET_TYPE_STATE_HASH)
+                    {
+                        int frame = reader.ReadInt32();
+                        uint hash = reader.ReadUInt32();
+                        RollbackManager.Instance.OnRemoteStateHash(frame, hash);
                         return;
                     }
 
@@ -564,13 +577,7 @@ public class MatchMessageManager : MonoBehaviour
                     byte[] data = memoryStream.ToArray();
                     int dataSize = data.Length;
 
-                    bool success = SteamNetworking.SendP2PPacket(
-                                opponentSteamId,
-                                data,
-                                dataSize,
-                                MATCH_MESSAGE_CHANNEL,
-                                INPUT_SEND_TYPE
-                            );
+                    bool success = SendPacket(data, INPUT_SEND_TYPE);
                 }
             }
         }
@@ -598,19 +605,160 @@ public class MatchMessageManager : MonoBehaviour
 
                     byte[] data = memoryStream.ToArray();
                     int dataSize = data.Length;
-                    bool success = SteamNetworking.SendP2PPacket(
-                        opponentSteamId,
-                        data,
-                        dataSize,
-                        MATCH_MESSAGE_CHANNEL,
-                        ACK_SEND_TYPE
-                    );
+                    bool success = SendPacket(data, ACK_SEND_TYPE);
                 }
             }
         }
         catch (Exception e)
         {
             Debug.LogError($"Error sending ACK: {e}");
+        }
+    }
+
+    public void SendStateHash(int frame, uint hash)
+    {
+        if (!opponentSteamId.IsValid || !isRunning)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_STATE_HASH);
+                writer.Write(frame);
+                writer.Write(hash);
+
+                byte[] data = memoryStream.ToArray();
+                SendPacket(data, P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending state hash: {e}");
+        }
+    }
+
+    private bool SendPacket(byte[] data, P2PSend sendType)
+    {
+        if (!opponentSteamId.IsValid || !isRunning)
+        {
+            return false;
+        }
+
+        if (IsChaosActive())
+        {
+            if (StressTestController.Instance.ShouldDropOutbound())
+            {
+                return false;
+            }
+
+            EnqueueOutbound(data, sendType, GetChaosDelaySeconds());
+            return true;
+        }
+
+        return SteamNetworking.SendP2PPacket(
+            opponentSteamId,
+            data,
+            data.Length,
+            MATCH_MESSAGE_CHANNEL,
+            sendType
+        );
+    }
+
+    private bool IsChaosActive()
+    {
+        return StressTestController.Instance != null &&
+               StressTestController.Instance.IsActiveOnline &&
+               StressTestController.Instance.enableNetworkChaos;
+    }
+
+    private float GetChaosDelaySeconds()
+    {
+        int delayMs = StressTestController.Instance.GetNetworkDelayMs();
+        return Mathf.Max(0f, delayMs / 1000f);
+    }
+
+    private void EnqueueOutbound(byte[] data, P2PSend sendType, float delaySeconds)
+    {
+        byte[] copy = new byte[data.Length];
+        Buffer.BlockCopy(data, 0, copy, 0, data.Length);
+
+        PendingOutboundPacket packet = new PendingOutboundPacket
+        {
+            data = copy,
+            sendType = sendType,
+            deliverTime = Time.unscaledTime + delaySeconds
+        };
+
+        if (StressTestController.Instance.ShouldReorder() && outboundQueue.Count > 0)
+        {
+            outboundQueue.Insert(0, packet);
+        }
+        else
+        {
+            outboundQueue.Add(packet);
+        }
+    }
+
+    private void EnqueueInbound(byte[] data, float delaySeconds)
+    {
+        byte[] copy = new byte[data.Length];
+        Buffer.BlockCopy(data, 0, copy, 0, data.Length);
+
+        PendingInboundPacket packet = new PendingInboundPacket
+        {
+            data = copy,
+            deliverTime = Time.unscaledTime + delaySeconds
+        };
+
+        if (StressTestController.Instance.ShouldReorder() && inboundQueue.Count > 0)
+        {
+            inboundQueue.Insert(0, packet);
+        }
+        else
+        {
+            inboundQueue.Add(packet);
+        }
+    }
+
+    private void ProcessOutboundQueue()
+    {
+        if (outboundQueue.Count == 0) return;
+
+        float now = Time.unscaledTime;
+        for (int i = outboundQueue.Count - 1; i >= 0; i--)
+        {
+            if (outboundQueue[i].deliverTime <= now)
+            {
+                PendingOutboundPacket packet = outboundQueue[i];
+                outboundQueue.RemoveAt(i);
+                SteamNetworking.SendP2PPacket(
+                    opponentSteamId,
+                    packet.data,
+                    packet.data.Length,
+                    MATCH_MESSAGE_CHANNEL,
+                    packet.sendType
+                );
+            }
+        }
+    }
+
+    private void ProcessInboundQueue()
+    {
+        if (inboundQueue.Count == 0) return;
+
+        float now = Time.unscaledTime;
+        for (int i = inboundQueue.Count - 1; i >= 0; i--)
+        {
+            if (inboundQueue[i].deliverTime <= now)
+            {
+                PendingInboundPacket packet = inboundQueue[i];
+                inboundQueue.RemoveAt(i);
+                ProcessPacket(packet.data);
+            }
         }
     }
 }

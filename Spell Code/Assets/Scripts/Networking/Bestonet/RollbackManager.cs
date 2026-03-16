@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using BestoNet.Collections; // Use BestoNet collections
 
@@ -15,6 +16,7 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             public int frame;
             public byte[] state;
+            public uint hash;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -67,6 +69,8 @@ using BestoNet.Collections; // Use BestoNet collections
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
+        private int lastHashSentFrame = -1;
+        private int firstHashMismatchFrame = -1;
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
@@ -151,6 +155,8 @@ using BestoNet.Collections; // Use BestoNet collections
             syncFrame = 0;
             predictedRemoteFrame = 0;
             remoteFrame = 0;
+            lastHashSentFrame = -1;
+            firstHashMismatchFrame = -1;
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
@@ -162,7 +168,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // Initialize states array
             for (int i = 0; i < StateArraySize; i++)
             {
-                states[i] = new GameState() { frame = -1, state = null }; // Use null instead of empty array
+                states[i] = new GameState() { frame = -1, state = null, hash = 0 }; // Use null instead of empty array
             }
 
             // Pre-fill input buffers for the input delay period with neutral input
@@ -422,14 +428,28 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
+        uint hash = ComputeFnv1a(currentStateBytes);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
         states[frameIndex] = new GameState()
         {
             frame = localFrame,
-            state = currentStateBytes // Store the byte array from GameManager
+            state = currentStateBytes, // Store the byte array from GameManager
+            hash = hash
         };
+
+        if (StressTestController.Instance != null &&
+            StressTestController.Instance.IsActiveOnline &&
+            StressTestController.Instance.enableStateHashing)
+        {
+            int interval = Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames);
+            if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
+            {
+                lastHashSentFrame = localFrame;
+                matchManager?.SendStateHash(localFrame, hash);
+            }
+        }
     }
 
     /// <summary>
@@ -478,6 +498,62 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Force the GameManager's frame number to match the loaded state
         GameManager.Instance.ForceSetFrame(frame);
+    }
+
+    public void OnRemoteStateHash(int frame, uint remoteHash)
+    {
+        if (firstHashMismatchFrame >= 0)
+        {
+            return;
+        }
+
+        int index = frame % StateArraySize;
+        if (states[index].frame != frame || states[index].state == null)
+        {
+            return;
+        }
+
+        uint localHash = states[index].hash;
+        if (localHash != remoteHash)
+        {
+            firstHashMismatchFrame = frame;
+            Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
+
+            if (StressTestController.Instance != null &&
+                StressTestController.Instance.IsActiveOnline &&
+                StressTestController.Instance.dumpStateOnMismatch)
+            {
+                DumpLocalState(frame, localHash, remoteHash, states[index].state);
+            }
+        }
+    }
+
+    private void DumpLocalState(int frame, uint localHash, uint remoteHash, byte[] stateBytes)
+    {
+        if (stateBytes == null || stateBytes.Length == 0) return;
+
+        string dir = StressTestController.Instance != null
+            ? StressTestController.Instance.GetDumpDirectory()
+            : Application.persistentDataPath;
+
+        string fileName = $"desync_frame_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+        string path = Path.Combine(dir, fileName);
+        File.WriteAllBytes(path, stateBytes);
+        Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
+    }
+
+    private static uint ComputeFnv1a(byte[] data)
+    {
+        if (data == null) return 0;
+        const uint offset = 2166136261;
+        const uint prime = 16777619;
+        uint hash = offset;
+        for (int i = 0; i < data.Length; i++)
+        {
+            hash ^= data[i];
+            hash *= prime;
+        }
+        return hash;
     }
 
 

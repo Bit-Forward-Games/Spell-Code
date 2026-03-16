@@ -118,7 +118,16 @@ public class HitboxManager : MonoBehaviour
                             if (GameManager.Instance.isOnlineMatchActive)
                             {
                                 HitboxData bakedHitbox = hitbox.Clone();
-                                bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * (projectile.facingRight ? 1 : -1);
+                                int attackerFacing = 1;
+                                if (projectile.owner != null)
+                                {
+                                    attackerFacing = projectile.owner.facingRight ? 1 : -1;
+                                }
+                                else
+                                {
+                                    attackerFacing = projectile.facingRight ? 1 : -1;
+                                }
+                                bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
                                 defendingPlayer.hitboxData = bakedHitbox;
                             }
                             else

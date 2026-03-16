@@ -1289,7 +1289,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 //respawn the dead player
-                player.SpawnPlayer(GetRandomSpawnVec2());
+                player.SpawnPlayer(GetRandomSpawnVec2(player));
             }
         }
 
@@ -1447,12 +1447,19 @@ public class GameManager : MonoBehaviour
         return minValue + (int)(rngState % (uint)range);
     }
 
-    public FixedVec2 GetRandomSpawnVec2()
+    public FixedVec2 GetRandomSpawnVec2(PlayerController player = null)
     {
         Vector2[] spawnPointList = GetSpawnPositions();
-        Vector2 spawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
-        Debug.Log("SpawnPoint chosen: " + spawnPoint);
-        return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
+        if (isOnlineMatchActive && player != null && spawnPointList.Length > 0)
+        {
+            int index = (frameNumber + player.pID) % spawnPointList.Length;
+            Vector2 selectedSpawn = spawnPointList[index];
+            Debug.Log("SpawnPoint chosen: " + selectedSpawn);
+            return new FixedVec2(Fixed.FromFloat(selectedSpawn.x), Fixed.FromFloat(selectedSpawn.y));
+        }
+        Vector2 randomSpawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
+        Debug.Log("SpawnPoint chosen: " + randomSpawnPoint);
+        return new FixedVec2(Fixed.FromFloat(randomSpawnPoint.x), Fixed.FromFloat(randomSpawnPoint.y));
     }
 
 

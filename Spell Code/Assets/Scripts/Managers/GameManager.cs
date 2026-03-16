@@ -1163,7 +1163,13 @@ public class GameManager : MonoBehaviour
 
     public bool TryGetGateAtPosition(float x, float y, out SpellCode_Gate gate)
     {
-        return gateLookup.TryGetValue(GetGateKey(x, y), out gate);
+        Vector2 key = GetGateKey(x, y);
+        if (gateLookup.TryGetValue(key, out gate))
+        {
+            return true;
+        }
+
+        return TryLocateGateNearKey(key, out gate);
     }
 
     public Vector2 GetGateKey(float x, float y)
@@ -1186,6 +1192,26 @@ public class GameManager : MonoBehaviour
             if (gate == null) continue;
             gateLookup[NormalizeGatePosition(gate.transform.position)] = gate;
         }
+    }
+
+    private bool TryLocateGateNearKey(Vector2 key, out SpellCode_Gate gate)
+    {
+        float tolerance = 1f / GatePositionKeyPrecision;
+        foreach (SpellCode_Gate candidate in gates)
+        {
+            if (candidate == null) continue;
+
+            Vector2 candidateKey = NormalizeGatePosition(candidate.transform.position);
+            if (Vector2.Distance(candidateKey, key) <= tolerance)
+            {
+                gate = candidate;
+                gateLookup[candidateKey] = candidate;
+                return true;
+            }
+        }
+
+        gate = null;
+        return false;
     }
 
     public void UpdatePlayerBounties()

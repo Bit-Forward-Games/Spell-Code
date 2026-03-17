@@ -23,6 +23,15 @@ public class SteamManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject); // Keep it running between scenes
 
+        if (GetComponent<SteamLobbyManager>() == null)
+        {
+            gameObject.AddComponent<SteamLobbyManager>();
+        }
+        if (GetComponent<HostingPromptUI>() == null)
+        {
+            gameObject.AddComponent<HostingPromptUI>();
+        }
+
         // --- Initialize Steamworks ---
         try
         {

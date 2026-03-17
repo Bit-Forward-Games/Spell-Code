@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour
     public GameObject floppyDisplayPrefab;
 
     public GO_Door goDoorPrefab;
+    public OnlineHostDoor onlineHostDoor;
 
     public bool roundOver;
     public bool gameOver;
@@ -1008,6 +1009,12 @@ public class GameManager : MonoBehaviour
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
+            }
+
+            if (!isOnlineMatchActive && onlineHostDoor != null)
+            {
+                onlineHostDoor.CheckOpenDoor();
+                onlineHostDoor.CheckHostTrigger();
             }
 
             if (players[0] != null)

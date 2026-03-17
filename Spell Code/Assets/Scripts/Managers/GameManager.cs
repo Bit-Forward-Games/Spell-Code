@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
     /// </summary>
-    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    public byte[,] damageMatrix = new byte[,]
     {
         { 0, 0, 0, 0 }, // player 1 dies
         { 0, 0, 0, 0 }, // player 2 dies
@@ -61,6 +61,7 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
+    public string currentStage;
 
     [HideInInspector]
     public ShopManager shopManager;
@@ -1548,6 +1549,7 @@ public class GameManager : MonoBehaviour
         {
             //foreach (SpellCode_Gate gate in gates) { gate.isOpen = false; }
             lobbyMapGO.SetActive(true);
+            currentStage = lobbyMapGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
@@ -1555,6 +1557,7 @@ public class GameManager : MonoBehaviour
             if (i == stageIndex)
             {
                 tempMapGOs[i].SetActive(true);
+                currentStage = tempMapGOs[i].name;
             }
         }
     }

@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+
 //using UnityEditor.Experimental.GraphView;
 
 //using UnityEditor.U2D.Animation;
@@ -2028,13 +2030,7 @@ public class PlayerController : MonoBehaviour
         {
             currentPlayerHealth = 0;
 
-        }
-        else
-        {
-            // Reduce health 
-            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
-
-        }
+        HandleDamage(attacker, damageAmount);
 
         if (!isRollback)
         {
@@ -2073,40 +2069,9 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-
-            //update the damage matrix the attacker attacking this player
-            if (!isRollback)
-            {
-                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp((int)hitboxData.damage, 0, (int)currentPlayerHealth);
-            }            
             
-            //checking for death
-            if (hitboxData.damage >= currentPlayerHealth)
-            {
-                //play the death sound
-                SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
-                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
-                
-                currentPlayerHealth = 0;
-
-                //award the killer with the extra bonus ram
-                if (!isRollback)
-                {
-                    attacker.roundRam += baseRamKillBonus;
-                    attacker.totalRam += baseRamKillBonus;
-                    attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
-                }
-            }
-            else
-            {
-
-
-                // Reduce health 
-                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
-
-            }
+            HandleDamage(attacker, hitboxData.damage);
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
@@ -2150,13 +2115,42 @@ public class PlayerController : MonoBehaviour
             //subtract demon aura based on the hitbox's damage
             //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
-            if (GameManager.Instance.isOnlineMatchActive)
-            {
-                isHit = false;
-                hitboxData = null;
-            }
+
         }
     }
+
+
+    private void HandleDamage(PlayerController attacker, int damageAmount)
+    {
+
+        //update the damage matrix the attacker attacking this player
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        //checking for death
+        if (damageAmount >= currentPlayerHealth)
+        {
+            //play the death sound
+            SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
+
+            currentPlayerHealth = 0;
+
+            //award the killer with the extra bonus ram
+            attacker.roundRam += baseRamKillBonus;
+            attacker.totalRam += baseRamKillBonus;
+            attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+
+        }
+        else
+        {
+
+
+            // Reduce health 
+            currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
+
+        }
+    }
+
 
 
     /// <summary>

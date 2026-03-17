@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 
 //using UnityEditor.Experimental.GraphView;
 
@@ -15,7 +13,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
@@ -172,6 +170,8 @@ public class PlayerController : MonoBehaviour
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
     public TextMeshPro playerNum;
+    public List<Image> playerIndexImages = new List<Image>();
+    public bool test;
 
     //[SerializeField]
     public Color colorSuccess;
@@ -307,24 +307,32 @@ public class PlayerController : MonoBehaviour
                 //playerNum.text = "P1";
                 pID = 1;
                 playerNum.color = Color.red;
+                playerIndexImages[0].enabled = true;
+                playerIndexImages[0].color = new Color32(255, 62, 117, 255);
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
                 pID = 2;
                 playerNum.color = Color.cyan;
+                playerIndexImages[1].enabled = true;
+                playerIndexImages[1].color = new Color32(67, 122, 252, 255);
                 break;
             case 2:
                 InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
                 playerNum.color = Color.yellow;
+                playerIndexImages[2].enabled = true;
+                playerIndexImages[2].color = new Color32(255, 207, 0, 255);
                 break;
             case 3:
                 InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
                 playerNum.color = Color.green;
+                playerIndexImages[3].enabled = true;
+                playerIndexImages[3].color = new Color32(107, 255, 116, 255);
                 break;
         }
 

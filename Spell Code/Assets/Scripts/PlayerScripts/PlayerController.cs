@@ -2077,10 +2077,7 @@ public class PlayerController : MonoBehaviour
 
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
-            if (attacker != null)
-            {
-                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
-            }
+            CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
             
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
@@ -2089,21 +2086,15 @@ public class PlayerController : MonoBehaviour
             //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
             if (hitboxData.basicAttackHitbox)
             {
-                if (attacker != null)
-                {
-                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
-                }
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic);
             }
             else
             {
-                if (attacker != null)
-                {
-                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
-                }
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                if (attacker != null && attacker.demonAura > 0)
+                if(attacker.demonAura > 0)
                 {
                     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
                 }
@@ -2111,12 +2102,6 @@ public class PlayerController : MonoBehaviour
 
             //subtract demon aura based on the hitbox's damage
             //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
-
-            if (GameManager.Instance.isOnlineMatchActive)
-            {
-                isHit = false;
-                hitboxData = null;
-            }
 
 
         }
@@ -2126,29 +2111,18 @@ public class PlayerController : MonoBehaviour
     private void HandleDamage(PlayerController attacker, int damageAmount)
     {
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-        bool hasAttacker = attacker != null;
 
-        if (DataManager.Instance != null &&
-            DataManager.Instance.gameData != null &&
-            DataManager.Instance.gameData.arenaData != null)
+        DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
+        //update the damage matrix the attacker attacking this player
+        if (!isRollback)
         {
-            DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
-            //update the damage matrix the attacker attacking this player
-            if (!isRollback && hasAttacker)
-            {
-                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-            }
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
         }
 
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
-            if (DataManager.Instance != null &&
-                DataManager.Instance.gameData != null &&
-                DataManager.Instance.gameData.arenaData != null)
-            {
-                DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
-            }
+            DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
@@ -2157,20 +2131,22 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = 0;
 
             //award the killer with the extra bonus ram
-            if (hasAttacker)
-            {
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
-            }
+            attacker.roundRam += baseRamKillBonus;
+            attacker.totalRam += baseRamKillBonus;
+            attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
 
         }
         else
         {
+
+
             // Reduce health 
             currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
+
         }
     }
+
+
 
     /// <summary>
     /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
@@ -2255,7 +2231,7 @@ public class PlayerController : MonoBehaviour
     //    float boundaryX = rightWall
     //        ? cameraMidX + cameraHalfWidth // right edge
     //        : cameraMidX - cameraHalfWidth; // left  edge
-    //    //- will we cross (or are we already flush) next frame? 
+    //    //─ will we cross (or are we already flush) next frame? 
     //    const float eps = 0.0001f;
     //    bool crossing = rightWall
     //        ? position.x + hSpd + playerWidth * 1.5f >= boundaryX - eps
@@ -2401,7 +2377,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
-        bw.Write(logicFrame); // ?? Save current animation frame
+        bw.Write(logicFrame); // 🔹 Save current animation frame
         bw.Write(animationFrame);
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
@@ -2895,9 +2871,6 @@ public class PlayerController : MonoBehaviour
         return frontmostLayer.id;
     }
 }
-
-
-
 
 
 

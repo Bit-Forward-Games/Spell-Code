@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
+
 //using UnityEditor.Experimental.GraphView;
 
 //using UnityEditor.U2D.Animation;
@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 // Alias for convenience (optional, but recommended for readability)
 using Fixed = BestoNet.Types.Fixed32;
@@ -170,6 +170,8 @@ public class PlayerController : MonoBehaviour
     public TextMeshPro inputDisplay;
     public bool removeInputDisplay;
     public TextMeshPro playerNum;
+    public List<Image> playerIndexImages = new List<Image>();
+    public bool test;
 
     //[SerializeField]
     public Color colorSuccess;
@@ -305,24 +307,32 @@ public class PlayerController : MonoBehaviour
                 //playerNum.text = "P1";
                 pID = 1;
                 playerNum.color = Color.red;
+                playerIndexImages[0].enabled = true;
+                playerIndexImages[0].color = new Color32(255, 62, 117, 255);
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
                 pID = 2;
                 playerNum.color = Color.cyan;
+                playerIndexImages[1].enabled = true;
+                playerIndexImages[1].color = new Color32(67, 122, 252, 255);
                 break;
             case 2:
                 InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
                 playerNum.color = Color.yellow;
+                playerIndexImages[2].enabled = true;
+                playerIndexImages[2].color = new Color32(255, 207, 0, 255);
                 break;
             case 3:
                 InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
                 playerNum.color = Color.green;
+                playerIndexImages[3].enabled = true;
+                playerIndexImages[3].color = new Color32(107, 255, 116, 255);
                 break;
         }
 
@@ -2012,19 +2022,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //checking for death
-        if (damageAmount > currentPlayerHealth)
-        {
-            currentPlayerHealth = 0;
 
-        }
-        else
-        {
-            // Reduce health 
-            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
-
-        }
-        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        HandleDamage(attacker, damageAmount);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -2061,32 +2060,9 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            //update the damage matrix the attacker attacking this player
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
+            
 
-            //checking for death
-            if (hitboxData.damage >= currentPlayerHealth)
-            {
-                //play the death sound
-                SFX_Manager.Instance.PlaySound(Sounds.DEATH);
-
-                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
-                
-                currentPlayerHealth = 0;
-
-                //award the killer with the extra bonus ram
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
-            }
-            else
-            {
-
-
-                // Reduce health 
-                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
-
-            }
+            HandleDamage(attacker, hitboxData.damage);
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
@@ -2133,6 +2109,42 @@ public class PlayerController : MonoBehaviour
 
         }
     }
+
+
+    private void HandleDamage(PlayerController attacker, int damageAmount)
+    {
+        DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
+        Debug.Log("Hit Pos: " + transform.position);
+        //update the damage matrix the attacker attacking this player
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        //checking for death
+        if (damageAmount >= currentPlayerHealth)
+        {
+            DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
+            Debug.Log("Death Pos: " + transform.position);
+            //play the death sound
+            SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
+
+            currentPlayerHealth = 0;
+
+            //award the killer with the extra bonus ram
+            attacker.roundRam += baseRamKillBonus;
+            attacker.totalRam += baseRamKillBonus;
+            attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+
+        }
+        else
+        {
+
+
+            // Reduce health 
+            currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
+
+        }
+    }
+
 
 
     /// <summary>

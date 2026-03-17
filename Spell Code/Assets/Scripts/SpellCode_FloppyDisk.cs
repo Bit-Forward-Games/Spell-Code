@@ -104,7 +104,14 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             selectHoldCounter = 0;
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;    
         }
-        diskDisplay.selectFill.fillAmount = selectHoldCounter / 60f;
+        diskDisplay.selectFill.fillAmount = GetFillPercent();
+    }
+
+    private float GetFillPercent()
+    {
+        float percent = selectHoldCounter / 60f;
+        float normalizedLogarithmicfillPercent = Mathf.Clamp01(Mathf.Log10(percent)+1);
+        return normalizedLogarithmicfillPercent;
     }
 
     public PlayerController CheckPlayerCollision()

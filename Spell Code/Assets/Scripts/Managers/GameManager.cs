@@ -28,14 +28,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
     [NonSerialized]
-    public ushort ramNeededToWinRound = 600;
+    public ushort ramNeededToWinRound = 1;
 
 
     [NonSerialized]
     /// <summary>
     /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
     /// </summary>
-    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    public byte[,] damageMatrix = new byte[,]
     {
         { 0, 0, 0, 0 }, // player 1 dies
         { 0, 0, 0, 0 }, // player 2 dies
@@ -60,6 +60,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
+    public string currentStage;
 
     [HideInInspector]
     public ShopManager shopManager;
@@ -1072,7 +1073,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (100*(players[i].roundsWon - averageRoundWins)));
+            players[i].ramBounty = (short)(((players[i].roundRam - averageRoundRam)/2) + (100*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1109,8 +1110,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    ushort bountyCut = (ushort)(MathF.Max(0, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty));
-                    float totalRamEarned = (damageMatrix[player.pID - 1, p.pID - 1]/100f) * PlayerController.baseRamLifeWorth + bountyCut;
+                    short bountyCut = (short)MathF.Max(-PlayerController.baseRamLifeWorth, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty);
+                    float totalRamEarned = damageMatrix[player.pID - 1, p.pID - 1]/100f * PlayerController.baseRamLifeWorth + bountyCut;
                     int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,599-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
                     p.totalRam += (ushort)CollectedGold;
@@ -1323,6 +1324,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             //foreach (SpellCode_Gate gate in gates) { gate.isOpen = false; }
             lobbyMapGO.SetActive(true);
+            currentStage = lobbyMapGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
@@ -1330,6 +1332,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (i == stageIndex)
             {
                 tempMapGOs[i].SetActive(true);
+                currentStage = tempMapGOs[i].name;
             }
         }
     }
@@ -1383,7 +1386,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-
+        ramNeededToWinRound = (ushort)(300+ 100* dataManager.totalRoundsPlayed);
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")
         {
@@ -1436,44 +1439,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             MainMenuScreen.SetActive(isActive);
         }
-    }
-
-    public void GenerateStartingSpells(int index)
-    {
-
-        if (index == 0)
-        {
-            p1_choices = new List<string>();
-            p1_choices.Add("SkillshotSlash");
-            p1_choices.Add("MightOfZeus");
-            p1_choices.Add("AmonSlash");
-            p1_choices.Add("CoinToss");
-        }
-        if (index == 1)
-        {
-            p2_choices = new List<string>();
-            p2_choices.Add("SkillshotSlash");
-            p2_choices.Add("MightOfZeus");
-            p2_choices.Add("AmonSlash");
-            p2_choices.Add("CoinToss");
-        }
-        if (index == 2)
-        {
-            p3_choices = new List<string>();
-            p3_choices.Add("SkillshotSlash");
-            p3_choices.Add("MightOfZeus");
-            p3_choices.Add("AmonSlash");
-            p3_choices.Add("CoinToss");
-        }
-        if (index == 3)
-        {
-            p4_choices = new List<string>();
-            p4_choices.Add("SkillshotSlash");
-            p4_choices.Add("MightOfZeus");
-            p4_choices.Add("AmonSlash");
-            p4_choices.Add("CoinToss");
-        }
-
     }
 
     //resets the raw stats for each player back to 0 or their base state

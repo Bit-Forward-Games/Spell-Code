@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+
 //using UnityEditor.Experimental.GraphView;
 
 //using UnityEditor.U2D.Animation;
@@ -2012,19 +2014,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //checking for death
-        if (damageAmount > currentPlayerHealth)
-        {
-            currentPlayerHealth = 0;
 
-        }
-        else
-        {
-            // Reduce health 
-            currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
-
-        }
-        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        HandleDamage(attacker, damageAmount);
 
         Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
@@ -2061,32 +2052,9 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            //update the damage matrix the attacker attacking this player
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(hitboxData.damage, 0, currentPlayerHealth);
+            
 
-            //checking for death
-            if (hitboxData.damage >= currentPlayerHealth)
-            {
-                //play the death sound
-                SFX_Manager.Instance.PlaySound(Sounds.DEATH);
-
-                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
-                
-                currentPlayerHealth = 0;
-
-                //award the killer with the extra bonus ram
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
-            }
-            else
-            {
-
-
-                // Reduce health 
-                currentPlayerHealth = (ushort)(currentPlayerHealth - (int)hitboxData.damage);
-
-            }
+            HandleDamage(attacker, hitboxData.damage);
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
@@ -2133,6 +2101,39 @@ public class PlayerController : MonoBehaviour
 
         }
     }
+
+
+    private void HandleDamage(PlayerController attacker, int damageAmount)
+    {
+
+        //update the damage matrix the attacker attacking this player
+        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        //checking for death
+        if (damageAmount >= currentPlayerHealth)
+        {
+            //play the death sound
+            SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
+
+            currentPlayerHealth = 0;
+
+            //award the killer with the extra bonus ram
+            attacker.roundRam += baseRamKillBonus;
+            attacker.totalRam += baseRamKillBonus;
+            attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+
+        }
+        else
+        {
+
+
+            // Reduce health 
+            currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
+
+        }
+    }
+
 
 
     /// <summary>

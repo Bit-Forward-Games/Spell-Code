@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// <summary>
     /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
     /// </summary>
-    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    public byte[,] damageMatrix = new byte[,]
     {
         { 0, 0, 0, 0 }, // player 1 dies
         { 0, 0, 0, 0 }, // player 2 dies

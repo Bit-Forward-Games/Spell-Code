@@ -2114,12 +2114,14 @@ public class PlayerController : MonoBehaviour
     private void HandleDamage(PlayerController attacker, int damageAmount)
     {
         DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
+        Debug.Log("Hit Pos: " + transform.position);
         //update the damage matrix the attacker attacking this player
         GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
             DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
+            Debug.Log("Death Pos: " + transform.position);
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 

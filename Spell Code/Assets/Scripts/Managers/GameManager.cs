@@ -1240,7 +1240,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)(players[i].roundRam - averageRoundRam + (100*(players[i].roundsWon - averageRoundWins)));
+            players[i].ramBounty = (short)(((players[i].roundRam - averageRoundRam)/2) + (100*(players[i].roundsWon - averageRoundWins)));
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1279,17 +1279,12 @@ public class GameManager : MonoBehaviour
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
-                    int bountyCut = Math.Max(0, (damagePercent * player.ramBounty) / 100);
-                    int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
-
-                    // Only apply RAM and side effects on real frames, not rollback resimulation
-                    if (!isRollback)
-                    {
-                        p.roundRam += (ushort)totalRamEarned;
-                        p.totalRam += (ushort)totalRamEarned;
-                        p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
-                    }
+                    short bountyCut = (short)MathF.Max(-PlayerController.baseRamLifeWorth, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty);
+                    float totalRamEarned = damageMatrix[player.pID - 1, p.pID - 1]/100f * PlayerController.baseRamLifeWorth + bountyCut;
+                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,599-p.roundRam);
+                    p.roundRam += (ushort)CollectedGold;
+                    p.totalRam += (ushort)CollectedGold;
+                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }

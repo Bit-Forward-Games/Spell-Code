@@ -37,8 +37,15 @@ public class DataManager : MonoBehaviour
 
     private void Start()
     {
+        gM = GameManager.Instance;
+
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
+
+        if (gM == null)
+        {
+            return;
+        }
 
         for (ushort i = 0; i < gM.tempMapGOs.Count; i++)
         {
@@ -51,8 +58,6 @@ public class DataManager : MonoBehaviour
                 gameData.arenaData.hitDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
             }
         }
-
-        gM = GameManager.Instance;
     }
 
     //temp for testing in-engine

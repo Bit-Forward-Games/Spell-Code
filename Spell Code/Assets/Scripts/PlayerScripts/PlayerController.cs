@@ -2597,15 +2597,18 @@ public class PlayerController : MonoBehaviour
             string spellName = br.ReadString();
             int spellDataLength = br.ReadInt32();
 
+            byte[] spellBytes = br.ReadBytes(spellDataLength);
             SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
             if (spellInstance != null)
             {
-                spellInstance.Deserialize(br);
+                using (MemoryStream tempStream = new MemoryStream(spellBytes))
+                using (BinaryReader tempReader = new BinaryReader(tempStream))
+                {
+                    spellInstance.Deserialize(tempReader);
+                }
             }
             else
             {
-                // Safely skip the exact bytes for this spell
-                br.ReadBytes(spellDataLength);
                 Debug.LogWarning($"Spell '{spellName}' not found - skipped {spellDataLength} bytes");
             }
         }

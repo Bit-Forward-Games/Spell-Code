@@ -84,7 +84,7 @@ public class HitboxManager : MonoBehaviour
 
         foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
         {
-            if (projectile.projectileHitboxes.Length == 0) break;
+            if (projectile.projectileHitboxes.Length == 0) continue;
             HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
             // Combine all hitbox lists into one sequence
             var activeProjHit = activeGroup.hitbox1
@@ -99,7 +99,7 @@ public class HitboxManager : MonoBehaviour
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
-                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) return;
+                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 

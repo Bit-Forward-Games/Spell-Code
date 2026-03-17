@@ -2022,46 +2022,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        //if (GameManager.Instance.isOnlineMatchActive)
-        //{
-        //    bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-
-        //    DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
-
-        //    if (!isRollback)
-        //    {
-        //        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-        //    }
-
-        //    //checking for death
-        //    if (damageAmount > currentPlayerHealth)
-        //    {
-        //        DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
-        //        //play the death sound
-        //        SFX_Manager.Instance.PlaySound(Sounds.DEATH);
-
-        //        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
-
-        //        currentPlayerHealth = 0;
-
-        //        //award the killer with the extra bonus ram
-        //        attacker.roundRam += baseRamKillBonus;
-        //        attacker.totalRam += baseRamKillBonus;
-        //        attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
-
-        //    }
-        //    else
-        //    {
-        //        // Reduce health 
-        //        currentPlayerHealth = (ushort)((int)currentPlayerHealth - damageAmount);
-
-        //    }
-        //}
-        //else
-        //{
-        //    HandleDamage(attacker, damageAmount);
-        //}
-
         HandleDamage(attacker, damageAmount);
     }
 

@@ -144,6 +144,7 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public int randomCallCount = 0;
     private uint rngState = 0;
+    private System.Random stageRandom;
 
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
@@ -1444,6 +1445,7 @@ public class GameManager : MonoBehaviour
         randomSeed = seed;
         randomCallCount = 0;
         rngState = (uint)seed;
+        stageRandom = new System.Random((int)(seed ^ 0x9E3779B9));
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
     }
 
@@ -1455,6 +1457,17 @@ public class GameManager : MonoBehaviour
         int range = maxValue - minValue;
         if (range <= 0) return minValue;
         return minValue + (int)(rngState % (uint)range);
+    }
+
+    private int GetNextStageRandom(int minValue, int maxValue)
+    {
+        if (stageRandom == null)
+        {
+            stageRandom = new System.Random((int)(randomSeed ^ 0x9E3779B9));
+        }
+        int range = maxValue - minValue;
+        if (range <= 0) return minValue;
+        return minValue + stageRandom.Next(range);
     }
 
     public FixedVec2 GetRandomSpawnVec2()
@@ -1564,6 +1577,15 @@ public class GameManager : MonoBehaviour
 
     public void LoadRandomGameplayStage()
     {
+        if (isOnlineMatchActive)
+        {
+            if (localPlayerIndex == 0)
+            {
+                SelectAndBroadcastStage();
+            }
+            return;
+        }
+
         // Disable PlayerInputManager BEFORE loading scene to prevent duplicate player registration
         if (playerInputManager != null)
         {
@@ -1579,17 +1601,8 @@ public class GameManager : MonoBehaviour
             RandomizeGameStages();
         }
 
-        int _newStageIndex;
-        if (isOnlineMatchActive)
-        {
-            int _gameStageIndex = GetNextRandom(0, gameStages.Count);
-            _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
-        }
-        else
-        {
-            int _gameStageIndex = GetNextRandom(0, gameStages.Count);
-            _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
-        }
+        int _gameStageIndex = GetNextRandom(0, gameStages.Count);
+        int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
 
         //remove the stage associated with newStageIndex so it does not repeat for the rest of the game
         gameStages.Remove(stages[_newStageIndex]);
@@ -1602,6 +1615,46 @@ public class GameManager : MonoBehaviour
 
         sceneManager.LoadScene("Gameplay");
         // DON'T call ResetPlayers() here - do it in OnSceneLoaded
+    }
+
+    private void SelectAndBroadcastStage()
+    {
+        if (gameStages.Count <= 0)
+        {
+            gameStages = new List<StageDataSO>(stages);
+        }
+
+        int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
+        int newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+        ApplyOnlineStageSelection(newStageIndex);
+
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.SendStageSelect(newStageIndex);
+        }
+    }
+
+    public void ApplyOnlineStageSelection(int stageIndex)
+    {
+        if (playerInputManager != null)
+        {
+            playerInputManager.DisableJoining();
+            playerInputManager.enabled = false;
+        }
+
+        if (gameStages.Count <= 0)
+        {
+            gameStages = new List<StageDataSO>(stages);
+        }
+
+        if (stageIndex >= 0 && stageIndex < stages.Count)
+        {
+            gameStages.Remove(stages[stageIndex]);
+        }
+
+        SetStage(stageIndex);
+        isTransitioning = true;
+        sceneManager.LoadScene("Gameplay");
     }
 
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
@@ -1646,7 +1699,7 @@ public class GameManager : MonoBehaviour
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
 
-            if (currentStageIndex != 0 && currentStageIndex != 1)
+            if (currentStageIndex < 0)
             {
                 SetStage(1);
             }

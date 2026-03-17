@@ -22,6 +22,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_STATE_HASH = 20;
+    private const byte PACKET_TYPE_STAGE_SELECT = 30;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -449,6 +450,16 @@ public class MatchMessageManager : MonoBehaviour
                         RollbackManager.Instance.OnRemoteStateHash(frame, hash);
                         return;
                     }
+                    
+                    if (packetType == PACKET_TYPE_STAGE_SELECT)
+                    {
+                        int stageIndex = reader.ReadInt32();
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.ApplyOnlineStageSelection(stageIndex);
+                        }
+                        return;
+                    }
 
                     // Handle lobby ready for gameplay
                     if (packetType == PACKET_TYPE_LOBBY_READY)
@@ -641,6 +652,31 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending state hash: {e}");
+        }
+    }
+
+    public void SendStageSelect(int stageIndex)
+    {
+        if (!opponentSteamId.IsValid || !isRunning)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_STAGE_SELECT);
+                writer.Write(stageIndex);
+
+                byte[] data = memoryStream.ToArray();
+                SendPacket(data, P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending stage select: {e}");
         }
     }
 

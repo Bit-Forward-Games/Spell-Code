@@ -40,6 +40,18 @@ public class DataManager : MonoBehaviour
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
 
+        for (ushort i = 0; i < gM.tempMapGOs.Count; i++)
+        {
+            if (!gameData.arenaData.deathDict.ContainsKey(gM.tempMapGOs[i].name))
+            {
+                gameData.arenaData.deathDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
+            }
+            if (!gameData.arenaData.hitDict.ContainsKey(gM.tempMapGOs[i].name))
+            {
+                gameData.arenaData.hitDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
+            }
+        }
+
         gM = GameManager.Instance;
     }
 

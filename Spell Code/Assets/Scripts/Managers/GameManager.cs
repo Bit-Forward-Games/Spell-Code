@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// <summary>
     /// This matrix defines how much damage each player has done to a given player when said player dies, notably used for RAM payout.
     /// </summary>
-    public byte[,] damageMatrix = new byte[,] //@jayesh, lemme know if this needs to be serialized
+    public byte[,] damageMatrix = new byte[,]
     {
         { 0, 0, 0, 0 }, // player 1 dies
         { 0, 0, 0, 0 }, // player 2 dies
@@ -60,6 +60,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
+    public string currentStage;
 
     [HideInInspector]
     public ShopManager shopManager;
@@ -1323,6 +1324,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             //foreach (SpellCode_Gate gate in gates) { gate.isOpen = false; }
             lobbyMapGO.SetActive(true);
+            currentStage = lobbyMapGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
@@ -1330,6 +1332,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             if (i == stageIndex)
             {
                 tempMapGOs[i].SetActive(true);
+                currentStage = tempMapGOs[i].name;
             }
         }
     }
@@ -1436,44 +1439,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             MainMenuScreen.SetActive(isActive);
         }
-    }
-
-    public void GenerateStartingSpells(int index)
-    {
-
-        if (index == 0)
-        {
-            p1_choices = new List<string>();
-            p1_choices.Add("SkillshotSlash");
-            p1_choices.Add("MightOfZeus");
-            p1_choices.Add("AmonSlash");
-            p1_choices.Add("CoinToss");
-        }
-        if (index == 1)
-        {
-            p2_choices = new List<string>();
-            p2_choices.Add("SkillshotSlash");
-            p2_choices.Add("MightOfZeus");
-            p2_choices.Add("AmonSlash");
-            p2_choices.Add("CoinToss");
-        }
-        if (index == 2)
-        {
-            p3_choices = new List<string>();
-            p3_choices.Add("SkillshotSlash");
-            p3_choices.Add("MightOfZeus");
-            p3_choices.Add("AmonSlash");
-            p3_choices.Add("CoinToss");
-        }
-        if (index == 3)
-        {
-            p4_choices = new List<string>();
-            p4_choices.Add("SkillshotSlash");
-            p4_choices.Add("MightOfZeus");
-            p4_choices.Add("AmonSlash");
-            p4_choices.Add("CoinToss");
-        }
-
     }
 
     //resets the raw stats for each player back to 0 or their base state

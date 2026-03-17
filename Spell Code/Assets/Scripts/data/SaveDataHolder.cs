@@ -7,4 +7,5 @@ public class SaveDataHolder
 {
     public string dateTime;
     public List<MatchData> matchData;
+    public ArenaData arenaData;
 }

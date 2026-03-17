@@ -15,6 +15,8 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
+    [SerializeField] private int EXTRA_RESEND_FRAMES = 10;
+    [SerializeField] private int MAX_INPUTS_PER_PACKET = 25;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
@@ -540,16 +542,17 @@ public class MatchMessageManager : MonoBehaviour
 
         int currentLocalFrame = GameManager.Instance.frameNumber;
         int latestTargetFrame = currentLocalFrame + RollbackManager.Instance.InputDelay;
-        int firstFrameToSend = Math.Max(0, latestTargetFrame - RollbackManager.Instance.MaxRollBackFrames - RollbackManager.Instance.InputDelay);
+        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(0, EXTRA_RESEND_FRAMES);
+        int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 
         int inputCount = latestTargetFrame - firstFrameToSend + 1;
         if (inputCount <= 0) return;
 
-        const int MaxInputsPerPacket = 15;
-        if (inputCount > MaxInputsPerPacket)
+        int maxInputsPerPacket = Mathf.Max(1, MAX_INPUTS_PER_PACKET);
+        if (inputCount > maxInputsPerPacket)
         {
-            firstFrameToSend = latestTargetFrame - MaxInputsPerPacket + 1;
-            inputCount = MaxInputsPerPacket;
+            firstFrameToSend = latestTargetFrame - maxInputsPerPacket + 1;
+            inputCount = maxInputsPerPacket;
         }
 
         try
@@ -570,7 +573,7 @@ public class MatchMessageManager : MonoBehaviour
                         int frame = firstFrameToSend + i;
                         ulong inputToSend = RollbackManager.Instance.clientInputs.ContainsKey(frame)
                                             ? RollbackManager.Instance.clientInputs.GetInput(frame)
-                                            : 0UL;
+                                            : 5UL;
                         writer.Write(inputToSend);
                     }
 

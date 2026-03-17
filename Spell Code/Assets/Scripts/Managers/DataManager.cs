@@ -16,6 +16,8 @@ public class DataManager : MonoBehaviour
     private GameManager gM;
 
     public SaveDataHolder gameData = new SaveDataHolder();
+
+    public ArenaData arenaData = new ArenaData();
     
 
     public int totalRoundsPlayed = 0;
@@ -39,18 +41,6 @@ public class DataManager : MonoBehaviour
     {
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
-
-        for (ushort i = 0; i < gM.tempMapGOs.Count; i++)
-        {
-            if (!gameData.arenaData.deathDict.ContainsKey(gM.tempMapGOs[i].name))
-            {
-                gameData.arenaData.deathDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
-            }
-            if (!gameData.arenaData.hitDict.ContainsKey(gM.tempMapGOs[i].name))
-            {
-                gameData.arenaData.hitDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
-            }
-        }
 
         gM = GameManager.Instance;
     }
@@ -80,11 +70,17 @@ public class DataManager : MonoBehaviour
     public void SaveToFile()
     {
         //save the data to file
+        SaveArena();
         //if true, it will use remote save as well (which isn't a thing yet, so keep it false)
         SaveData saver = DataSaver.MakeSaver(false);
         StartCoroutine(saver.Save(gameData));
 
         Debug.Log("Data Saved");
+    }
+
+    public void SaveArena()
+    {
+        gameData.arenaData = arenaData;
     }
 
     public void SaveMatch()
@@ -179,6 +175,7 @@ public class DataManager : MonoBehaviour
         gameData = new SaveDataHolder();
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
+        gameData.arenaData = new ArenaData();
         totalRoundsPlayed = 0;
     }
 }

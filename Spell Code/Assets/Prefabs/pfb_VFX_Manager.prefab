@@ -50,7 +50,7 @@ MonoBehaviour:
     parentTransform: {fileID: 0}
     particleSystems: []
   - visualEffectName: 1
-    particleSystemPrefab: {fileID: 3296486212350748271, guid: a0ffc953bf3aa094fbfd5cdcfc8f41fe, type: 3}
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: df0a3663f64196644a352a5f00bc22de, type: 3}
     parentTransform: {fileID: 0}
     particleSystems: []
   - visualEffectName: 2

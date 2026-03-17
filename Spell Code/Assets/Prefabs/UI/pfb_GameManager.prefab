@@ -2023,6 +2023,7 @@ MonoBehaviour:
   - {fileID: 5147300399228318624}
   - {fileID: 6714676575999424325}
   lobbyMapGO: {fileID: 8050427597921004613}
+  currentStage: 
   shopManager: {fileID: 0}
   onboardManager: {fileID: 0}
   floppyDisplayPrefab: {fileID: 9097413590140942043, guid: 0200e4d4ffffa464abb3c4b748d14f4b, type: 3}

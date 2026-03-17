@@ -1582,7 +1582,8 @@ public class GameManager : MonoBehaviour
         int _newStageIndex;
         if (isOnlineMatchActive)
         {
-            _newStageIndex = 1;
+            int _gameStageIndex = GetNextRandom(0, gameStages.Count);
+            _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
         }
         else
         {

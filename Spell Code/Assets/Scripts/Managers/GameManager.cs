@@ -28,7 +28,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
     [NonSerialized]
-    public ushort ramNeededToWinRound = 600;
+    public ushort ramNeededToWinRound = 1;
 
 
     [NonSerialized]
@@ -1386,7 +1386,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-
+        ramNeededToWinRound = (ushort)(300+ 100* dataManager.totalRoundsPlayed);
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")
         {

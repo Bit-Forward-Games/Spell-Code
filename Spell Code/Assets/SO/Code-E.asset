@@ -52,5 +52,9 @@ MonoBehaviour:
   - {fileID: -2140393814, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   - {fileID: 349640164, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   - {fileID: 1142500592, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
+  - {fileID: -2024454101, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
+  - {fileID: 927630750, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
+  - {fileID: -427754592, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
+  - {fileID: -773205088, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   projSubSprites: []
   Portrait: {fileID: 0}

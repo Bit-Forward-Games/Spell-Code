@@ -1483,14 +1483,14 @@ ParticleSystem:
     tilesY: 1
     animationType: 0
     rowIndex: 0
-    cycles: 1
+    cycles: 0.0001
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: -5044624606283509814, guid: f7260b13945d1fe45aa016506cb22c82, type: 3}
-    - sprite: {fileID: -320559990, guid: f7260b13945d1fe45aa016506cb22c82, type: 3}
-    - sprite: {fileID: -1257106271, guid: f7260b13945d1fe45aa016506cb22c82, type: 3}
-    - sprite: {fileID: 427551835, guid: f7260b13945d1fe45aa016506cb22c82, type: 3}
+    - sprite: {fileID: -1325233761926099203, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: 1355018282, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: 1099131574, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: -455561779, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:

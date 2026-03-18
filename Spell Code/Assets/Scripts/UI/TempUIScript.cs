@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class TempUIScript : MonoBehaviour
 {
@@ -30,18 +31,44 @@ public class TempUIScript : MonoBehaviour
     private Coroutine[] damageBarCoroutines = new Coroutine[4];
     private float[] damageBarDisplayFill = new float[4];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+
+    public GameObject MainMenuScreen;
+
+    public GameObject GameplayOverview;
+    public GameObject RoundConclusion;
+    public GameObject ShopOverview;
+
+    public bool transitionScreenDisplayed;
+    public bool shopScreenDisplayed;
+    
     void Start()
     {
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
+
+        transitionScreenDisplayed = false;
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateUIBarVals();
+        Scene currentScene = SceneManager.GetActiveScene();
+
+        if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
+        {
+            transitionScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f));
+        }
+
+
+        if (currentScene.name == "Shop" && !shopScreenDisplayed)
+        {
+            shopScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f));
+        }
     }
 
     public void UpdateUIBarVals()
@@ -165,6 +192,15 @@ public class TempUIScript : MonoBehaviour
 
         followPlayerDamageBar[playerIndex].fillAmount = newHealthAmount;
         damageBarDisplayFill[playerIndex] = newHealthAmount;
+    }
+
+    public IEnumerator DisplayTransitionScreen(GameObject screen, float transitionTime)
+    {
+        screen.SetActive(true);
+
+        yield return new WaitForSeconds(transitionTime);
+
+        screen.SetActive(false);
     }
 
     GameObject FindChildContainingName(GameObject parent, string namePart)

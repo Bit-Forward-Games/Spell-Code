@@ -81,6 +81,7 @@ public class TempSpellDisplay : MonoBehaviour
 
         if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
+            uiScript.transitionScreenDisplayed = false;
             UpdateRoundWinCounter();
             roundWinCounterUpdated = true;
         }

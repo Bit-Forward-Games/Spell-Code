@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
     public PlayerController[] players = new PlayerController[4];
     public int playerCount = 0;
     [NonSerialized]
-    public ushort ramNeededToWinRound = 600;
+    public ushort ramNeededToWinRound = 1;
 
 
     [NonSerialized]
@@ -88,6 +88,7 @@ public class GameManager : MonoBehaviour
     public float roundEndTransitionTime = 2f;
     private int roundEndFrameCounter = 0;
     public TextMeshProUGUI playerWinText;
+    public TextMeshProUGUI roundEndedText;
 
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
@@ -1047,7 +1048,9 @@ public class GameManager : MonoBehaviour
                     winner.roundsWon += 1;
                     roundOver = true;
                     playerWinText.enabled = true;
+                    StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
                     playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                    roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
 
                     //stop repeating all sounds
                     SFX_Manager.Instance.StopRepeatingAllSounds();
@@ -1502,7 +1505,6 @@ public class GameManager : MonoBehaviour
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
-
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();
     }
@@ -1668,6 +1670,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
+        ramNeededToWinRound = (ushort)(300+ 100* dataManager.totalRoundsPlayed);
 
         if (scene.name != "MainMenu")
         {

@@ -1970,7 +1970,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 100f);
 
             flowState--;
         }
@@ -1982,7 +1982,7 @@ public class PlayerController : MonoBehaviour
         if(demonAura > 0)
         {
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 100f);
         }
         else
         {
@@ -1992,7 +1992,7 @@ public class PlayerController : MonoBehaviour
         if (stockStability > 0)
         {
             //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 200f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
         }
         else
         {

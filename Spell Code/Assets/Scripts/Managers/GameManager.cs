@@ -83,6 +83,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public float roundEndTimer = 0f;
     public int roundEndTransitionTime = 2;
     public TextMeshProUGUI playerWinText;
+    public TextMeshProUGUI roundEndedText;
 
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
@@ -934,7 +935,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     winner.roundsWon += 1;
                     roundOver = true;
                     playerWinText.enabled = true;
+                    StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
                     playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                    roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
 
                     //stop repeating all sounds
                     SFX_Manager.Instance.StopRepeatingAllSounds();
@@ -1262,7 +1265,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
-
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();
     }

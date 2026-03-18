@@ -27,11 +27,7 @@ public class SteamManager : MonoBehaviour
         {
             gameObject.AddComponent<SteamLobbyManager>();
         }
-        if (GetComponent<HostingPromptUI>() == null)
-        {
-            gameObject.AddComponent<HostingPromptUI>();
-        }
-
+        
         // --- Initialize Steamworks ---
         try
         {

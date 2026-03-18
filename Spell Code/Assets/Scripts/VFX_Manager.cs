@@ -128,7 +128,6 @@ public class VFX_Manager : MonoBehaviour
             return;
         }
 
-
         //loop through each player
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
@@ -251,11 +250,6 @@ public class VFX_Manager : MonoBehaviour
         _visualEffectObject.particleSystems[_playerNum].Play();
     }
 
-    //public void UpdateEmissionRate(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, float _emissionRate = -1f)
-    //{
-        
-    //}
-
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {
         //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
@@ -280,13 +274,6 @@ public class VFX_Manager : MonoBehaviour
 
         //get visual effect object
         VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
-
-        ////if the visual effect for this player is already stopped,...
-        //if (_visualEffectObject.particleSystems[_playerNum].isStopped)
-        //{
-        //    //do nothing and return
-        //    return;
-        //}
 
         //stop the particle effect
         _visualEffectObject.particleSystems[_playerNum].Stop();

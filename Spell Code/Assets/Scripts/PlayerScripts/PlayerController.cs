@@ -2002,7 +2002,7 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position, pID, true, null, (float)reps * 20f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, null, (float)reps * 20f);
         }
         else
         {

@@ -2070,6 +2070,9 @@ public class PlayerController : MonoBehaviour
             //play the damaged sound
             SFX_Manager.Instance.PlaySound(Sounds.HIT);
 
+            //play the damage VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
+
             SetState(PlayerState.Hitstun);
 
             //call the active on hit proc of the spell that created the projectile that hit us

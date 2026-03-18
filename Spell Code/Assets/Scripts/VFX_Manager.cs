@@ -10,7 +10,7 @@ using UnityEngine.UI.Extensions.Tweens;
 
 public enum VisualEffects
 {
-    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA
+    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, DAMAGE
 }
 public class VFX_Manager : MonoBehaviour
 {

@@ -69,4 +69,8 @@ MonoBehaviour:
     particleSystemPrefab: {fileID: 3296486212350748271, guid: c9a9b50eab3e62f4abac21f8ca7f4262, type: 3}
     parentTransform: {fileID: 0}
     particleSystems: []
+  - visualEffectName: 6
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 76afb0c7808e68741ad808feab2d9a07, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
   spellVisualEffectObjects: []

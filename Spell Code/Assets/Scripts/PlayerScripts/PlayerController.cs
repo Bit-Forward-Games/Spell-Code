@@ -185,7 +185,7 @@ public class PlayerController : MonoBehaviour
     //[SerializeField]
     private float toastFadeDuration = 0.35f;
     //[SerializeField]
-    private float toastBaseVerticalOffset = 85;
+    private float toastBaseVerticalOffset = 90;
     //[SerializeField]
     private float toastStackSpacing = 8f;
     //[SerializeField]

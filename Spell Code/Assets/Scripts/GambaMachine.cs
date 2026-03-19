@@ -56,11 +56,8 @@ public class GambaMachine : MonoBehaviour
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
 
-        startingSpells = new string[4] {"AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
-        if (ownerPID == 1) { startingSpellPos = 0; }
-        if (ownerPID == 2) { startingSpellPos = 1; }
-        if (ownerPID == 3) { startingSpellPos = 2; }
-        if (ownerPID == 4) { startingSpellPos = 3; }
+        startingSpells = new string[4] { "AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
+        ResetLobbyState();
     }
 
     // Update is called once per frame
@@ -401,6 +398,24 @@ public class GambaMachine : MonoBehaviour
         if (startingSpellPos > 3)
         {
             startingSpellPos = 0;
+        }
+    }
+
+    public void ResetLobbyState()
+    {
+        resetTimer = 0;
+        activatedCount = 0;
+
+        if (ownerPID == 1) { startingSpellPos = 0; }
+        if (ownerPID == 2) { startingSpellPos = 1; }
+        if (ownerPID == 3) { startingSpellPos = 2; }
+        if (ownerPID == 4) { startingSpellPos = 3; }
+
+        ClearFloppysForPID(ownerPID);
+
+        if (gambaAnimator != null)
+        {
+            gambaAnimator.SetBool("isActive", true);
         }
     }
 

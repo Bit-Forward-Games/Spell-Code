@@ -408,6 +408,15 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        foreach (GameObject gambaGO in gambas)
+        {
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba != null)
+            {
+                gamba.ResetLobbyState();
+            }
+        }
+
         // Hide online menu immediately
         if (onlineMenuUI != null)
         {

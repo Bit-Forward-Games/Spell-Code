@@ -1068,6 +1068,7 @@ public class PlayerController : MonoBehaviour
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
                         stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                        storedCodeDuration = 0;
                     }
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
@@ -1088,7 +1089,8 @@ public class PlayerController : MonoBehaviour
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
-                        storedCodeDuration += 3;
+                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
+                        storedCodeDuration += 2;
                         if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             lightArmor = false;
@@ -1127,6 +1129,8 @@ public class PlayerController : MonoBehaviour
                 //handle the button cases for invalid inputs
                 if (!spellMatched)
                 {
+                    //reset the storedCode timer
+                        storedCodeDuration = 0;
                     //code button released
                     if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
@@ -2388,13 +2392,14 @@ public class PlayerController : MonoBehaviour
         bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
-        bw.Write(logicFrame); // 🔹 Save current animation frame
+        bw.Write(logicFrame); // 🔹 Save current logic frame
         bw.Write(animationFrame);
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
+        bw.Write(iframes);
         bw.Write(lightArmor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
@@ -2444,6 +2449,7 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
+        iframes = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
         basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();

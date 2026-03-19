@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4cad5432da9de24ea610644c86a765c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showUI: 1
+  showUI: 0
   toggleKey: 287
   windowRect:
     serializedVersion: 2

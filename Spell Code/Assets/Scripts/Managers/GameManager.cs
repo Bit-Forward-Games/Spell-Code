@@ -1670,7 +1670,14 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-        ramNeededToWinRound = (ushort)(300+ 100* dataManager.totalRoundsPlayed);
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+        if (dataManager != null)
+        {
+            ramNeededToWinRound = (ushort)(300 + 100 * dataManager.totalRoundsPlayed);
+        }
 
         if (scene.name != "MainMenu")
         {

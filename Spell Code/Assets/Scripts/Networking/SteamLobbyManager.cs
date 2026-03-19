@@ -9,9 +9,41 @@ public class SteamLobbyManager : MonoBehaviour
 
     private Lobby? currentLobby;
     private bool isHostingFlow;
+    private Result lastLobbyCreateResult = Result.None;
+    private Lobby? lastLobbyCreated;
+
+    [SerializeField] private bool debugLogs = true;
 
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
+
+    public bool TryOpenInviteOverlay()
+    {
+        if (!SteamClient.IsValid || !currentLobby.HasValue)
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] TryOpenInviteOverlay blocked. SteamValid={SteamClient.IsValid} HasLobby={currentLobby.HasValue}");
+            }
+            return false;
+        }
+
+        if (currentLobby.Value.Owner.Id != SteamClient.SteamId)
+        {
+            if (debugLogs)
+            {
+                Debug.Log("[SteamLobbyManager] TryOpenInviteOverlay blocked. Not lobby owner.");
+            }
+            return false;
+        }
+
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Opening invite overlay. OverlayEnabled={SteamUtils.IsOverlayEnabled} LobbyId={currentLobby.Value.Id.Value}");
+        }
+        SteamFriends.OpenGameInviteOverlay(currentLobby.Value.Id);
+        return true;
+    }
 
     private void Awake()
     {
@@ -29,6 +61,7 @@ public class SteamLobbyManager : MonoBehaviour
     {
         SteamMatchmaking.OnLobbyEntered += HandleLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined += HandleLobbyMemberJoined;
+        SteamMatchmaking.OnLobbyCreated += HandleLobbyCreated;
         SteamFriends.OnGameLobbyJoinRequested += HandleGameLobbyJoinRequested;
     }
 
@@ -36,6 +69,7 @@ public class SteamLobbyManager : MonoBehaviour
     {
         SteamMatchmaking.OnLobbyEntered -= HandleLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined -= HandleLobbyMemberJoined;
+        SteamMatchmaking.OnLobbyCreated -= HandleLobbyCreated;
         SteamFriends.OnGameLobbyJoinRequested -= HandleGameLobbyJoinRequested;
     }
 
@@ -57,10 +91,29 @@ public class SteamLobbyManager : MonoBehaviour
 
         try
         {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Creating lobby. SteamId={SteamClient.SteamId.Value} AppId={SteamClient.AppId} OverlayEnabled={SteamUtils.IsOverlayEnabled}");
+            }
+
             Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(2);
             if (!lobby.HasValue)
             {
-                Debug.LogError("Failed to create Steam lobby.");
+                if (lastLobbyCreateResult == Result.OK && lastLobbyCreated.HasValue)
+                {
+                    lobby = lastLobbyCreated;
+                }
+                else
+                {
+                    Debug.LogError($"Failed to create Steam lobby. Result={lastLobbyCreateResult}");
+                    isHostingFlow = false;
+                    return;
+                }
+            }
+
+            if (!lobby.HasValue)
+            {
+                Debug.LogError($"Failed to create Steam lobby. Result={lastLobbyCreateResult}");
                 isHostingFlow = false;
                 return;
             }
@@ -170,5 +223,16 @@ public class SteamLobbyManager : MonoBehaviour
 
         GameManager.Instance.StartOnlineMatch(localIndex: 0, remoteIndex: 1, opponentId: friend.Id);
         isHostingFlow = false;
+    }
+
+    private void HandleLobbyCreated(Result result, Lobby lobby)
+    {
+        lastLobbyCreateResult = result;
+        lastLobbyCreated = lobby;
+
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Lobby created callback. Result={result} LobbyId={lobby.Id.Value}");
+        }
     }
 }

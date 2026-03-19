@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -9,11 +10,38 @@ public class OnlineHostDoor : MonoBehaviour
 
     [SerializeField] private float colliderRadius = 32f;
     [SerializeField] private bool requireSoloPlayer = true;
+    [SerializeField] private bool requireButtonPress = true;
+    [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [SerializeField] private float triggerCooldownSeconds = 0.5f;
     [SerializeField] private bool debugLogs = false;
+    private float nextTriggerTime;
+    private bool interactPressedThisFrame;
 
     private void Start()
     {
         animator = GetComponent<Animator>();
+    }
+
+    private void Update()
+    {
+        if (!requireButtonPress)
+        {
+            interactPressedThisFrame = false;
+            return;
+        }
+
+        bool pressed = false;
+        if (Keyboard.current != null)
+        {
+            pressed = GetKeyPressedThisFrame(interactKey);
+        }
+
+        if (!pressed)
+        {
+            pressed = Input.GetKeyDown(interactKey);
+        }
+
+        interactPressedThisFrame = pressed;
     }
 
     public bool CheckOpenDoor()
@@ -50,8 +78,7 @@ public class OnlineHostDoor : MonoBehaviour
             return false;
         }
 
-        if (SteamLobbyManager.Instance == null
-            || SteamLobbyManager.Instance.IsHostingFlow)
+        if (SteamLobbyManager.Instance == null)
         {
             if (debugLogs)
             {
@@ -61,6 +88,11 @@ public class OnlineHostDoor : MonoBehaviour
         }
 
         if (GameManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (Time.unscaledTime < nextTriggerTime)
         {
             return false;
         }
@@ -75,11 +107,29 @@ public class OnlineHostDoor : MonoBehaviour
 
             if (IsPlayerInRange(player))
             {
+                if (requireButtonPress && !interactPressedThisFrame)
+                {
+                    return false;
+                }
+
                 if (debugLogs)
                 {
                     Debug.Log("[OnlineHostDoor] Player in range. Starting host flow.");
                 }
-                SteamLobbyManager.Instance.HostAndInvite();
+                nextTriggerTime = Time.unscaledTime + Mathf.Max(0.1f, triggerCooldownSeconds);
+
+                if (SteamLobbyManager.Instance.IsInLobby)
+                {
+                    bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
+                    if (!opened)
+                    {
+                        SteamLobbyManager.Instance.HostAndInvite();
+                    }
+                }
+                else
+                {
+                    SteamLobbyManager.Instance.HostAndInvite();
+                }
                 return true;
             }
         }
@@ -99,5 +149,17 @@ public class OnlineHostDoor : MonoBehaviour
         Fixed radiusSq = radius * radius;
 
         return distSq <= radiusSq;
+    }
+
+    private bool GetKeyPressedThisFrame(KeyCode key)
+    {
+        return key switch
+        {
+            KeyCode.E => Keyboard.current.eKey.wasPressedThisFrame,
+            KeyCode.F => Keyboard.current.fKey.wasPressedThisFrame,
+            KeyCode.Space => Keyboard.current.spaceKey.wasPressedThisFrame,
+            KeyCode.Return => Keyboard.current.enterKey.wasPressedThisFrame,
+            _ => false
+        };
     }
 }

@@ -148,6 +148,10 @@ public class GameManager : MonoBehaviour
     private uint rngState = 0;
     private System.Random stageRandom;
 
+    [Header("Debug")]
+    public bool logDesyncTrace = false;
+    public int logDesyncEveryNFrames = 1;
+
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
     public bool remotePlayerReadyForGameplay = false;

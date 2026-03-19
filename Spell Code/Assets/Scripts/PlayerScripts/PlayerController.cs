@@ -1379,6 +1379,11 @@ public class PlayerController : MonoBehaviour
         //position.x += hSpd;
         //position.y += vSpd;
 
+        if (ShouldLogDesyncFrame())
+        {
+            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
+        }
+
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
@@ -1398,6 +1403,29 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = charData.playerHealth;
         }
         logicFrame++;
+    }
+
+    private bool ShouldLogDesyncFrame()
+    {
+        GameManager gm = GameManager.Instance;
+        if (gm == null || !gm.isOnlineMatchActive || !gm.logDesyncTrace)
+        {
+            return false;
+        }
+
+        RollbackManager rb = RollbackManager.Instance;
+        if (rb != null && rb.isRollbackFrame)
+        {
+            return false;
+        }
+
+        int interval = gm.logDesyncEveryNFrames;
+        if (interval < 1)
+        {
+            interval = 1;
+        }
+
+        return gm.frameNumber % interval == 0;
     }
 
     /// <summary>

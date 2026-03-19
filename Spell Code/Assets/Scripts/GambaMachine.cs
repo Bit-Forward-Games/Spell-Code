@@ -265,6 +265,18 @@ public class GambaMachine : MonoBehaviour
         {
             SimulateShopOnline();
         }
+
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            Debug.Log("GAMBA RESET TIMER GOING");
+            resetTimer++;
+
+            if (resetTimer > 120)
+            {
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
+            }
+        }
     }
 
     private void SimulateShopOnline()
@@ -370,11 +382,15 @@ public class GambaMachine : MonoBehaviour
 
         if (ownerPID == 1)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[2], lobbySpell); //real starter
+            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+            p1_floppys.Clear();
+            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
         }
         if (ownerPID == 2)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[3], lobbySpell); //real starter
+            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+            p2_floppys.Clear();
+            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
         }
         if (ownerPID == 3)
         {

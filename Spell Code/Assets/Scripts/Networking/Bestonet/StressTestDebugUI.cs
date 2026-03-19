@@ -4,7 +4,7 @@ using UnityEngine;
 public class StressTestDebugUI : MonoBehaviour
 {
     [Header("UI")]
-    public bool showUI = true;
+    public bool showUI = false;
     public KeyCode toggleKey = KeyCode.F6;
     public Rect windowRect = new Rect(20, 20, 360, 480);
 

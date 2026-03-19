@@ -1067,7 +1067,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         int averageRoundWins = 0;
         for (int i = 0; i < playerCount; i++)
         {
-            averageRoundRam += players[i].totalRam;
+            averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
         }
         averageRoundRam = (ushort)((float)averageRoundRam / (float)playerCount);
@@ -1116,7 +1116,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     short bountyCut = (short)MathF.Max(-PlayerController.baseRamLifeWorth, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty);
                     float totalRamEarned = damageMatrix[player.pID - 1, p.pID - 1]/100f * PlayerController.baseRamLifeWorth + bountyCut;
-                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,599-p.roundRam);
+                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,ramNeededToWinRound-1-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
                     p.totalRam += (ushort)CollectedGold;
                     p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);

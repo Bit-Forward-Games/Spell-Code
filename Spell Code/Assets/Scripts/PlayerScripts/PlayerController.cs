@@ -161,6 +161,8 @@ public class PlayerController : MonoBehaviour
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
+
+    public ushort iframes = 0;
     public bool lightArmor = false;
 
     public List<SpellData> spellList = new List<SpellData>();
@@ -179,7 +181,7 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 0.9f;
+    private float toastLifetime = 1f;
     //[SerializeField]
     private float toastFadeDuration = 0.35f;
     //[SerializeField]
@@ -370,6 +372,7 @@ public class PlayerController : MonoBehaviour
         jumpForce = Fixed.FromInt(charData.jumpForce);
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
+        iframes = 180; //you get 3 sec of invul on spawn
         SetState(PlayerState.Idle);
 
 
@@ -483,7 +486,7 @@ public class PlayerController : MonoBehaviour
 
     public void AdjustBrightnessForIframes()
     {
-        float targetBrightness = (IsCurrentHurtboxGroupEmpty()) ? 0.128f : 1.0f;
+        float targetBrightness = IsInvincible() ? 0.128f : 1.0f;
         MaterialPropertyBlock propertyBlock = new();
         spriteRenderer.GetPropertyBlock(propertyBlock);
         if (propertyBlock.GetFloat("_Brightness") != targetBrightness)
@@ -1424,8 +1427,13 @@ public class PlayerController : MonoBehaviour
     /// Returns true when the hurtbox group for the current character/state/frame
     /// has no active hurtboxes or all active hurtboxes are null or have width==0 and height==0.
     /// </summary>
-    public bool IsCurrentHurtboxGroupEmpty()
+    public bool IsInvincible()
     {
+        if(iframes > 0)
+        {
+            //if you are invincible based on iframes, always return true
+            return true;
+        }
         var hurtInfo = CharacterDataDictionary.GetHurtboxInfo(characterName, state);
         HurtboxGroup group = hurtInfo.Item1;
         List<int> frames = hurtInfo.Item2;
@@ -2030,6 +2038,11 @@ public class PlayerController : MonoBehaviour
 
     public void CheckHit(InputSnapshot input)
     {
+        if(iframes > 0)
+        {
+            iframes--;
+            return;
+        }
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
         if (hitboxData != null && isHit)
         {

@@ -6,10 +6,11 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using BestoNet.Types;
 using UnityEngine.VFX;
 using static UnityEngine.ParticleSystem;
+using UnityEngine.UI.Extensions.Tweens;
 
 public enum VisualEffects
 {
-    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA
+    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, DAMAGE
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -127,7 +128,6 @@ public class VFX_Manager : MonoBehaviour
             return;
         }
 
-
         //loop through each player
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
@@ -169,10 +169,13 @@ public class VFX_Manager : MonoBehaviour
     /// Play a visual effect with the name defined by "_nameOfSoundToPlay" at the position defined by "_spawnPos"
     /// </summary>
     /// <param name="_nameOfVisualEffectToPlay"> Name of the visual effect to be played</param>
-    /// <param name="_spawnPos"> Position of the visual effect to be played</param>
-    /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player)</param>
-    /// <param name="_spawnFacingRight"> Whether or not the visual effect will spawn facing right. By default, set to true (facing right)</param>
-    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f)
+    /// <param name="_spawnPos"> Position of the visual effect to be played.</param>
+    /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player).</param>
+    /// <param name="_spawnFacingRight"> Whether or not the visual effect will spawn facing right. By default, set to true (facing right).</param>
+    /// <param name="_parentTransform"> Parent transform that this particle effect should follow. By default, set to null.</param>
+    /// <param name="_emissionRate"> Rate at which particles are emitted from the particle system. By default, set to -1 which indicates that the particle system should emit at its default rate.</param>
+    /// <param name="_particleLifetime"> How long (in seconds) each particle emitted by the particle system will last for. By default, set to -1 which indicates that the particles will last for their default lifetime.</param>
+    public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f, float _particleLifetime = -1f)
     {
         //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
         if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
@@ -233,16 +236,19 @@ public class VFX_Manager : MonoBehaviour
             em.rateOverTime = _emissionRate;
         }
 
+        //if _particleLifetime is not the garbage defualt value,...
+        if (_particleLifetime != -1f)
+        {
+            //set lifetime of the particle system to _particleLifetime
+            var main = _visualEffectObject.particleSystems[_playerNum].main;
+            main.startLifetime = _particleLifetime;
+        }
+
         //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
 
         //play the visual effect
         _visualEffectObject.particleSystems[_playerNum].Play();
     }
-
-    //public void UpdateEmissionRate(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, float _emissionRate = -1f)
-    //{
-        
-    //}
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {
@@ -268,13 +274,6 @@ public class VFX_Manager : MonoBehaviour
 
         //get visual effect object
         VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
-
-        ////if the visual effect for this player is already stopped,...
-        //if (_visualEffectObject.particleSystems[_playerNum].isStopped)
-        //{
-        //    //do nothing and return
-        //    return;
-        //}
 
         //stop the particle effect
         _visualEffectObject.particleSystems[_playerNum].Stop();

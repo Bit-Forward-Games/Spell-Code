@@ -101,7 +101,7 @@ public class HitboxManager : MonoBehaviour
             {
                 if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
-                GetActiveBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
+                GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
                 foreach (HitboxData hitbox in activeProjHit)
                 {
@@ -190,9 +190,13 @@ public class HitboxManager : MonoBehaviour
         return hitboxIndex == frameData.startFrames.Count - 1;
     }
 
-    private void GetActiveBoxes(out List<HurtboxData> activeHurtboxes, (HurtboxGroup, List<int>) hurtInfo, PlayerController defendingPlayer)
+    private void GetActiveHurtBoxes(out List<HurtboxData> activeHurtboxes, (HurtboxGroup, List<int>) hurtInfo, PlayerController defendingPlayer)
     {
         activeHurtboxes = new List<HurtboxData>();
+        if(defendingPlayer.iframes > 0)
+        {
+            return;
+        }
 
         if (hurtInfo.Item2.Count == 1)
         {

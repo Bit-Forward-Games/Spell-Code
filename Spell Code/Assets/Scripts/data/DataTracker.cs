@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json;
 
 public static class DataSaver
 {
@@ -44,6 +45,7 @@ public class SaveDataLFS : SaveData
     //save all data to directory
     public override IEnumerator Save(SaveDataHolder data)
     {
+        Debug.Log("Began Data Save");
         //where data will be locally written
         string fileName = Guid.NewGuid().ToString() + ".json";
         string path = Path.GetDirectoryName(filePath + fileName);
@@ -54,8 +56,14 @@ public class SaveDataLFS : SaveData
             Directory.CreateDirectory(path);
         }
 
+        string output = JsonConvert.SerializeObject(data, Formatting.Indented, new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        });
+
         //write the data to the directory
-        File.WriteAllText(filePath + fileName, JsonUtility.ToJson(data));
+        File.WriteAllText(filePath + fileName, output);
+        Debug.Log("Data Save Complete to: " + filePath);
 
         yield return null;
     }

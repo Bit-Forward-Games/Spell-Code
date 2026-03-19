@@ -1256,7 +1256,7 @@ public class GameManager : MonoBehaviour
         int averageRoundWins = 0;
         for (int i = 0; i < playerCount; i++)
         {
-            averageRoundRam += players[i].totalRam;
+            averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
         }
         averageRoundRam = (ushort)(averageRoundRam / playerCount);
@@ -1285,7 +1285,8 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
+        //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 110f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)

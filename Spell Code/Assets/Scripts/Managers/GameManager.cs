@@ -1389,7 +1389,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-        ramNeededToWinRound = (ushort)(300+ 100* dataManager.totalRoundsPlayed);
+        int roundsPlayed = dataManager != null?dataManager.totalRoundsPlayed:1;
+        ramNeededToWinRound = (ushort)(300+ 100* roundsPlayed);
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")
         {

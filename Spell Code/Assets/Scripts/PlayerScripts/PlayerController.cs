@@ -1073,62 +1073,78 @@ public class PlayerController : MonoBehaviour
                 }
 
                 inputDisplay.text = ConvertCodeToString(stateSpecificArg);
-                if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
-                {
-                    //set the 5th bit to 0 to indicate we are no longer primed
-                    stateSpecificArg &= ~(1u << 4);
-                    //Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-                    lightArmor = false;
-                    for (int i = i = 0; i < spellList.Count; i++)
+                //set the 5th bit to 0 to indicate we are no longer primed
+                //uint checkedSpellInput = stateSpecificArg &~(1u << 4);
+                //stateSpecificArg &= ~(1u << 4);
+
+                //loop through spells to see if your current input matches any of your spells
+                bool spellMatched = false;
+                for (int i = i = 0; i < spellList.Count; i++)
+                {
+                    if (spellList[i].spellInput == (stateSpecificArg& ~(1u << 4)) &&
+                        spellList[i].spellType == SpellType.Active &&
+                        spellList[i].cooldownCounter <= 0)
                     {
-                        if (spellList[i].spellInput == stateSpecificArg &&
-                            spellList[i].spellType == SpellType.Active &&
-                            spellList[i].cooldownCounter <= 0)
+                        spellMatched = true;
+                        //increment the store code timer (charging up to store)
+                        storedCodeDuration += 3;
+                        if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
-                            Debug.Log($"You Released {spellList[i].spellName}!");
-                            lightArmor = true;
+                            lightArmor = false;
+                            //set the 5th bit to 0 to indicate we are no longer primed
+                            stateSpecificArg &= ~(1u << 4);
+
+                            //reset the storedCode timer
+                            storedCodeDuration = 0;
+                            SetState(PlayerState.CodeRelease, stateSpecificArg);
+
                             break;
                         }
-                    }
 
-                    SetState(PlayerState.CodeRelease, stateSpecificArg);
-
-                    break;
-                }
-
-                //jump button pressed
-                if (input.ButtonStates[1] == ButtonState.Pressed)
-                {
-                    lightArmor = false;
-                    //set the 5th bit to 0 to indicate we are no longer primed
-                    stateSpecificArg &= ~(1u << 4);
-                    //if the current code is a valid spell code, store it for later use
-                    for (int i = 0; i < spellList.Count; i++)
-                    {
-                        if (spellList[i].spellInput == stateSpecificArg &&
-                            spellList[i].spellType == SpellType.Active &&
-                            spellList[i].cooldownCounter <= 0)
+                        //jump button pressed or held for long enough
+                        if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
-
+                            lightArmor = false;
+                            //set the 5th bit to 0 to indicate we are no longer primed
+                            stateSpecificArg &= ~(1u << 4);
+                            //if the current code is a valid spell code, store it for later use
+                            
                             storedCode = stateSpecificArg;
 
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", Color.white);
-                            break;
+                            //break;
+                            
                         }
+                        break;
                     }
-                    //If the code is not valid, clear the input display and reset the stored code
-                    if (storedCode == 0)
-                    {
+                }
 
+
+                //handle the button cases for invalid inputs
+                if (!spellMatched)
+                {
+                    //code button released
+                    if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                    {
+                        lightArmor = false;
+                        
+                        SetState(PlayerState.CodeRelease, stateSpecificArg);
+
+                        break;
+                    }
+                    //jump button pressed
+                    if (input.ButtonStates[1] == ButtonState.Pressed)
+                    {
                         ClearInputDisplay();
                         stateSpecificArg = 0;
                         SpawnToast("INPUTS CLEARED!", Color.white);
                     }
                 }
+                
 
 
                 LerpHspd(Fixed.FromInt(0), isGrounded ? 3 : 15);
@@ -2506,7 +2522,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (storedCodeDuration > 0)
+        if (storedCodeDuration > 0 && state != PlayerState.CodeWeave)
         {
             storedCodeDuration--;
             Debug.Log($"Stored code duration: {storedCodeDuration}");

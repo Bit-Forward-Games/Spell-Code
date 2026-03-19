@@ -389,6 +389,21 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        onboardManager = FindFirstObjectByType<OnboardManager>();
+        if (onboardManager != null)
+        {
+            onboardManager.ResetOnboarding();
+        }
+
+        for (int i = 0; i < gates.Length; i++)
+        {
+            if (gates[i] != null)
+            {
+                gates[i].isOpen = false;
+                gates[i].SetOpen(false);
+            }
+        }
+
         // Hide online menu immediately
         if (onlineMenuUI != null)
         {

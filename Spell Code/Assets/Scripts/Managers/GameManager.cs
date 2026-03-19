@@ -731,43 +731,6 @@ public class GameManager : MonoBehaviour
         localPlayerInput = 0;
         syncedInput = new ulong[2] { 0, 0 };
         timeoutFrames = 0;
-        ResetLobbySpellIndices();
-    }
-
-    private void ResetLobbySpellIndices()
-    {
-        p1_index = 0;
-        p2_index = 1;
-        p3_index = 2;
-        p4_index = 3;
-        p1_lastCycleFrame = -999;
-        p2_lastCycleFrame = -999;
-    }
-
-    public int GetLobbySpellIndex(int ownerPID)
-    {
-        if (ownerPID == 1) return p1_index;
-        if (ownerPID == 2) return p2_index;
-        if (ownerPID == 3) return p3_index;
-        return p4_index;
-    }
-
-    public void AdvanceLobbySpellIndex(int ownerPID, int choiceCount)
-    {
-        int nextIndex = GetLobbySpellIndex(ownerPID) + 1;
-        if (choiceCount > 0)
-        {
-            nextIndex %= choiceCount;
-        }
-        else
-        {
-            nextIndex = 0;
-        }
-
-        if (ownerPID == 1) p1_index = nextIndex;
-        else if (ownerPID == 2) p2_index = nextIndex;
-        else if (ownerPID == 3) p3_index = nextIndex;
-        else p4_index = nextIndex;
     }
 
     public void UpdateSceneLogic(ulong[] inputs)

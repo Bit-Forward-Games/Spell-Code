@@ -376,10 +376,6 @@ public class GambaMachine : MonoBehaviour
     {
         if (activeScene.name != "MainMenu") return;
 
-        int lobbyIndex = gameManager.GetLobbySpellIndex(ownerPID);
-        string lobbySpell = startingSpells[lobbyIndex];
-        gameManager.AdvanceLobbySpellIndex(ownerPID, startingSpells.Length);
-
         if (ownerPID == 1)
         {
             foreach (GameObject flop in p1_floppys) { Destroy(flop); }
@@ -394,11 +390,17 @@ public class GambaMachine : MonoBehaviour
         }
         if (ownerPID == 3)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[8], lobbySpell); //real starter
+            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
         }
         if (ownerPID == 4)
         {
-            SpawnFloppyDisk(ownerPID, diskLocations[9], lobbySpell); //real starter
+            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+        }
+
+        startingSpellPos++;
+        if (startingSpellPos > 3)
+        {
+            startingSpellPos = 0;
         }
     }
 

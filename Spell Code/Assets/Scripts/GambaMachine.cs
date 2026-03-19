@@ -258,7 +258,7 @@ public class GambaMachine : MonoBehaviour
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
                 gambaAnimator.SetBool("isActive", false);
-                SpawnFloppysForOwner();
+                SpawnFloppysForOwnerOnline();
             }
         }
         else if (activeScene.name == "Shop")
@@ -357,6 +357,32 @@ public class GambaMachine : MonoBehaviour
         if (ownerPID == 4)
         {
             SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
+        }
+    }
+
+    private void SpawnFloppysForOwnerOnline()
+    {
+        if (activeScene.name != "MainMenu") return;
+
+        int lobbyIndex = gameManager.GetLobbySpellIndex(ownerPID);
+        string lobbySpell = startingSpells[lobbyIndex];
+        gameManager.AdvanceLobbySpellIndex(ownerPID, startingSpells.Length);
+
+        if (ownerPID == 1)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[2], lobbySpell); //real starter
+        }
+        if (ownerPID == 2)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[3], lobbySpell); //real starter
+        }
+        if (ownerPID == 3)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[8], lobbySpell); //real starter
+        }
+        if (ownerPID == 4)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[9], lobbySpell); //real starter
         }
     }
 

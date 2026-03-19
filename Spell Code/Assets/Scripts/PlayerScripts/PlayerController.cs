@@ -816,6 +816,9 @@ public class PlayerController : MonoBehaviour
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -860,6 +863,9 @@ public class PlayerController : MonoBehaviour
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -889,6 +895,10 @@ public class PlayerController : MonoBehaviour
                 if (isGrounded)
                 {
                     SetState(PlayerState.Idle);
+
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     break;
                 }
                 if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)

@@ -6,7 +6,8 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class AuraFarmer : SpellData
 {
-    int demonAuraProcTimestamp = 180; //this is what logic frame the player has to be to gain the free demon aura
+    const int initDemonAuraTimestamp = 240;
+    int demonAuraProcTimestamp = initDemonAuraTimestamp; //this is what logic frame the player has to be to gain the free demon aura
     public AuraFarmer()
     {
         spellName = "AuraFarmer";
@@ -14,7 +15,7 @@ public class AuraFarmer : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate};
         brands = new Brand[1] { Brand.DemonX };
-        description = "After 6 seconds of standing still, slowly gain \"Demon Aura\"";
+        description = "After 4 seconds of standing still, slowly gain \"Demon Aura\"";
     }
 
 
@@ -25,10 +26,13 @@ public class AuraFarmer : SpellData
             case ProcCondition.OnUpdate:
                 if(owner.logicFrame >= demonAuraProcTimestamp && owner.demonAura < PlayerController.maxDemonAura)
                 {
-                    owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                    demonAuraProcTimestamp +=120;
+                    owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 1, 0, PlayerController.maxDemonAura);
+                    demonAuraProcTimestamp += 4;
                     owner.demonAuraLifeSpanTimer = 360;
-                    owner.SpawnToast("+20 DEMON AURA", Color.red);
+                }
+                if(owner.demonAuraLifeSpanTimer < 355)
+                {
+                    demonAuraProcTimestamp = initDemonAuraTimestamp;
                 }
                 break;
             default:

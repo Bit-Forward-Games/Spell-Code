@@ -1381,17 +1381,6 @@ public class PlayerController : MonoBehaviour
         //Check conditions of all spells with the onupdate condition
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
-        if (demonAura > 0)
-        {
-            if (demonAuraLifeSpanTimer > 0)
-            {
-                demonAuraLifeSpanTimer--;
-            }
-            else
-            {
-                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
-            }
-        }
         UpdateResources();
 
         //check player collisions
@@ -2021,6 +2010,14 @@ public class PlayerController : MonoBehaviour
         {
             //play the demon aura visual effect 
             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 100f);
+            if (demonAuraLifeSpanTimer > 0)
+            {
+                demonAuraLifeSpanTimer--;
+            }
+            else
+            {
+                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
+            }
         }
         else
         {

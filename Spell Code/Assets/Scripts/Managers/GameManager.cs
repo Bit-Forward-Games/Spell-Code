@@ -1308,7 +1308,7 @@ public class GameManager : MonoBehaviour
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
                     int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
-                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,599-p.roundRam);
+                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,ramNeededToWinRound-1-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
                     p.totalRam += (ushort)CollectedGold;
                     p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);

@@ -158,6 +158,7 @@ public class PlayerController : MonoBehaviour
     public uint storedCodeMaxDuration = 0; //NAME THIS
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
 
+    public byte comboCounter = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
@@ -193,6 +194,9 @@ public class PlayerController : MonoBehaviour
     //[SerializeField]
     private float toastFontSize = 72;
 
+    private readonly List<PlayerToast> activeToasts = new();
+    private Transform toastRoot;
+
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
     public int basicsFired = 0;
@@ -218,8 +222,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-    private readonly List<PlayerToast> activeToasts = new();
-    private Transform toastRoot;
+    
 
 
     private void Awake()
@@ -1326,7 +1329,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
                 {
                     if(input.ButtonStates[0] == ButtonState.Held)
                     {
@@ -1917,6 +1920,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
                 vSpd = Fixed.FromInt(5);
+                comboCounter = 0;
                 //if (isGrounded)
                 //{
                 //    position.y = StageData.Instance.floorYval + 1;
@@ -2103,6 +2107,13 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
+            comboCounter++;
+            if (comboCounter >= 4)
+            {
+                SpawnToast("COMBO BREAK!!!", Color.magenta);
+                iframes = 120;
+                comboCounter = 0;
+            }
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));

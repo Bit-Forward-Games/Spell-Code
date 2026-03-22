@@ -2208,6 +2208,9 @@ public class PlayerController : MonoBehaviour
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
+            //play the death visual effect
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 
             currentPlayerHealth = 0;

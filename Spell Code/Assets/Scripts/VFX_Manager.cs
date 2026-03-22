@@ -228,15 +228,22 @@ public class VFX_Manager : MonoBehaviour
             _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale = new Vector3(-1f, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.y, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.z);
         }
 
-        //if _emissionRate is not the garbage defualt value,...
+        //if _emissionRate is not the garbage default value,...
         if (_emissionRate != -1f)
         {
-            //set emission rate over time of the particle system to _emissionRate
+            //get the emission modular from the particle system
             var em = _visualEffectObject.particleSystems[_playerNum].emission;
+
+            //turn off emmision
+            _visualEffectObject.particleSystems[_playerNum].Stop();
+            em.enabled = false;
+
+            //set emission rate over time of the particle system to _emissionRate
             em.rateOverTime = _emissionRate;
+            em.enabled = true;
         }
 
-        //if _particleLifetime is not the garbage defualt value,...
+        //if _particleLifetime is not the garbage default value,...
         if (_particleLifetime != -1f)
         {
             //set lifetime of the particle system to _particleLifetime
@@ -248,6 +255,11 @@ public class VFX_Manager : MonoBehaviour
 
         //play the visual effect
         _visualEffectObject.particleSystems[_playerNum].Play();
+
+        if (_nameOfVisualEffectToPlay == VisualEffects.DEMON_AURA)
+        {
+            Debug.Log("VFX Manager | Player " + _playerNum + " is emitting at " + _emissionRate);
+        }
     }
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
@@ -277,5 +289,34 @@ public class VFX_Manager : MonoBehaviour
 
         //stop the particle effect
         _visualEffectObject.particleSystems[_playerNum].Stop();
+    }
+
+    public bool IsVisualEffecyPlaying(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
+    {
+        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
+        if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
+        {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script. Please specify a song that exists with playerVisualEffectObjects");
+
+            //return false
+            return false;
+        }
+
+        //sanity check to make sure that _playerNum is valid (always 0, 1, 2, 3, or 4)
+        if (_playerNum < 0 && _playerNum > 4)
+        {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + _playerNum + "\" is not valid. Please make sure thet _playerNum is either 0, 1, 2, 3, or 4");
+
+            //return false
+            return false;
+        }
+
+        //get visual effect object
+        VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
+
+        //return whether or not the particle system in question is playing
+        return _visualEffectObject.particleSystems[_playerNum].isPlaying;
     }
 }

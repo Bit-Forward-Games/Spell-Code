@@ -745,6 +745,8 @@ public class GameManager : MonoBehaviour
     public void UpdateSceneLogic(ulong[] inputs)
     {
         Scene activeScene = SceneManager.GetActiveScene();
+        bool isOnline = isOnlineMatchActive;
+        bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
 
         if (activeScene.name == "MainMenu")
         {
@@ -755,11 +757,10 @@ public class GameManager : MonoBehaviour
             if (onboardManager != null)
                 onboardManager.OnboardUpdate(inputs);
 
-            //foreach (GameObject gambaGO in gambas)
-            //{
-            //    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-            //    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-            //}
+            if (isOnline)
+            {
+                SimulateOnlineFloppies(inputs, isRealFrame);
+            }
         }
         else if (activeScene.name == "Shop")
         {
@@ -780,10 +781,35 @@ public class GameManager : MonoBehaviour
                     LoadRandomGameplayStage();
                 }
             }
+            if (isOnline)
+            {
+                SimulateOnlineFloppies(inputs, isRealFrame);
+            }
         }
         else if (activeScene.name == "Gameplay")
         {
             CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+        }
+    }
+
+    private void SimulateOnlineFloppies(ulong[] inputs, bool isRealFrame)
+    {
+        if (!isRealFrame) return;
+        if (floppyObjects == null || floppyObjects.Length == 0)
+        {
+            FindAllFloppyDisks();
+        }
+        if (floppyObjects == null) return;
+
+        for (int i = 0; i < floppyObjects.Length; i++)
+        {
+            GameObject floppy = floppyObjects[i];
+            if (floppy == null) continue;
+            SpellCode_FloppyDisk disk = floppy.GetComponent<SpellCode_FloppyDisk>();
+            if (disk != null)
+            {
+                disk.SimulateOnline(inputs, isRealFrame);
+            }
         }
     }
 
@@ -1948,6 +1974,7 @@ public class GameManager : MonoBehaviour
                     // Write defaults if somehow null, so byte count stays consistent
                     bw.Write(gamba != null ? gamba.activatedCount : 0);
                     bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+                    bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
                 }
 
                 return memoryStream.ToArray();
@@ -2131,13 +2158,17 @@ public class GameManager : MonoBehaviour
                 int gambaCount = br.ReadInt32();
                 for (int i = 0; i < gambaCount; i++)
                 {
+                    int activatedCount = br.ReadInt32();
+                    byte resetTimer = br.ReadByte();
+                    int startingSpellPos = br.ReadInt32();
                     if (i < gambas.Count)
                     {
                         GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
                         if (gamba != null)
                         {
-                            gamba.activatedCount = br.ReadInt32();
-                            gamba.resetTimer = br.ReadByte();
+                            gamba.activatedCount = activatedCount;
+                            gamba.resetTimer = resetTimer;
+                            gamba.SetStartingSpellPos(startingSpellPos);
                         }
                     }
                 }

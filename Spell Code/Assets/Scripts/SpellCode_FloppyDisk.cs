@@ -64,6 +64,10 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            return;
+        }
         colliding = (CheckPlayerCollision() != null);
 
 
@@ -104,6 +108,49 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             selectHoldCounter = 0;
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;    
         }
+        diskDisplay.selectFill.fillAmount = GetFillPercent();
+    }
+
+    public void SimulateOnline(ulong[] inputs, bool isRealFrame)
+    {
+        if (!isRealFrame) return;
+
+        colliding = (CheckPlayerCollision() != null);
+
+        if (colliding && overlappingPlayer.pID == ownerPID)
+        {
+            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
+
+            InputSnapshot inputSnapshot = InputConverter.ConvertFromLong(5);
+            int ownerIndex = ownerPID - 1;
+            if (inputs != null && ownerIndex >= 0 && ownerIndex < inputs.Length)
+            {
+                inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
+            }
+
+            if (inputSnapshot.ButtonStates[0] == ButtonState.Held)
+            {
+                selectHoldCounter++;
+            }
+            else
+            {
+                selectHoldCounter = 0;
+            }
+
+            if (selectHoldCounter >= 60)
+            {
+                overlappingPlayer.AddSpellToSpellList(diskName);
+                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                Destroy(gameObject);
+            }
+        }
+        else
+        {
+            selectHoldCounter = 0;
+            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+        }
+
         diskDisplay.selectFill.fillAmount = GetFillPercent();
     }
 

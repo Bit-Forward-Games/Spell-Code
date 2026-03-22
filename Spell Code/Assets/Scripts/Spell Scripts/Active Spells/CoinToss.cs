@@ -66,5 +66,17 @@ public class CoinToss : SpellData
         }
     }
 
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(doesCrit);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        doesCrit = br.ReadBoolean();
+    }
+
     
 }

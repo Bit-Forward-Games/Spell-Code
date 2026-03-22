@@ -82,7 +82,15 @@ public class HitboxManager : MonoBehaviour
 
         //Projectile vs Player Collision
 
-        foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
+        IEnumerable<BaseProjectile> projectileList = ProjectileManager.Instance.activeProjectiles;
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            projectileList = projectileList
+                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p))
+                .ThenBy(p => p != null ? p.GetInstanceID() : 0);
+        }
+
+        foreach (BaseProjectile projectile in projectileList)
         {
             if (projectile.projectileHitboxes.Length == 0) continue;
             HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];

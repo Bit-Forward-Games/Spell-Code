@@ -2476,6 +2476,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(iframes);
         bw.Write(unchecked((int)0xAABBCCDD));
 
         bool hasHitboxData = hitboxData != null;
@@ -2564,6 +2565,7 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isHit = br.ReadBoolean();
+        iframes = br.ReadUInt16();
         int markerA = br.ReadInt32();
         if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
 

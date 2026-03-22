@@ -419,6 +419,16 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
+    public int GetStartingSpellPos()
+    {
+        return startingSpellPos;
+    }
+
+    public void SetStartingSpellPos(int value)
+    {
+        startingSpellPos = value;
+    }
+
     public bool CheckHitboxCollision()
     {
         if(ownerPlayer == null || ownerPlayer.basicProjectileInstance == null ||
@@ -450,6 +460,10 @@ public class GambaMachine : MonoBehaviour
             foreach (var item in SpellDictionary.Instance.spellDict)
             {
                 spells.Add(item.Key);
+            }
+            if (gameManager != null && gameManager.isOnlineMatchActive)
+            {
+                spells.Sort(StringComparer.Ordinal);
             }
 
             //fill list of specific player's spells

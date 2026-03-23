@@ -159,6 +159,7 @@ public class PlayerController : MonoBehaviour
     public uint storedCodeMaxDuration = 0; //NAME THIS
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
 
+    public byte comboCounter = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
@@ -187,13 +188,16 @@ public class PlayerController : MonoBehaviour
     //[SerializeField]
     private float toastFadeDuration = 0.35f;
     //[SerializeField]
-    private float toastBaseVerticalOffset = 85;
+    private float toastBaseVerticalOffset = 90;
     //[SerializeField]
     private float toastStackSpacing = 8f;
     //[SerializeField]
     private float toastRiseDistance = 2f;
     //[SerializeField]
     private float toastFontSize = 72;
+
+    private readonly List<PlayerToast> activeToasts = new();
+    private Transform toastRoot;
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
@@ -221,8 +225,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-    private readonly List<PlayerToast> activeToasts = new();
-    private Transform toastRoot;
+    
 
 
     private void Awake()
@@ -824,6 +827,9 @@ public class PlayerController : MonoBehaviour
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -868,6 +874,9 @@ public class PlayerController : MonoBehaviour
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -897,6 +906,10 @@ public class PlayerController : MonoBehaviour
                 if (isGrounded)
                 {
                     SetState(PlayerState.Idle);
+
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
                     break;
                 }
                 if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
@@ -1066,67 +1079,87 @@ public class PlayerController : MonoBehaviour
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
                         stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                        storedCodeDuration = 0;
                     }
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
                 inputDisplay.text = ConvertCodeToString(stateSpecificArg);
-                if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
-                {
-                    //set the 5th bit to 0 to indicate we are no longer primed
-                    stateSpecificArg &= ~(1u << 4);
-                    //Debug.Log($"your inputted code: {Convert.ToString(stateSpecificArg, toBase: 2)}");
 
-                    lightArmor = false;
-                    for (int i = i = 0; i < spellList.Count; i++)
+                //set the 5th bit to 0 to indicate we are no longer primed
+                //uint checkedSpellInput = stateSpecificArg &~(1u << 4);
+                //stateSpecificArg &= ~(1u << 4);
+
+                //loop through spells to see if your current input matches any of your spells
+                bool spellMatched = false;
+                for (int i = i = 0; i < spellList.Count; i++)
+                {
+                    if (spellList[i].spellInput == (stateSpecificArg& ~(1u << 4)) &&
+                        spellList[i].spellType == SpellType.Active &&
+                        spellList[i].cooldownCounter <= 0)
                     {
-                        if (spellList[i].spellInput == stateSpecificArg &&
-                            spellList[i].spellType == SpellType.Active &&
-                            spellList[i].cooldownCounter <= 0)
+                        spellMatched = true;
+                        //increment the store code timer (charging up to store)
+                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
+                        storedCodeDuration += 2;
+                        if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
-                            Debug.Log($"You Released {spellList[i].spellName}!");
-                            lightArmor = true;
+                            lightArmor = false;
+                            //set the 5th bit to 0 to indicate we are no longer primed
+                            stateSpecificArg &= ~(1u << 4);
+
+                            //reset the storedCode timer
+                            storedCodeDuration = 0;
+                            SetState(PlayerState.CodeRelease, stateSpecificArg);
+
                             break;
                         }
-                    }
 
-                    SetState(PlayerState.CodeRelease, stateSpecificArg);
-
-                    break;
-                }
-
-                //jump button pressed
-                if (input.ButtonStates[1] == ButtonState.Pressed)
-                {
-                    lightArmor = false;
-                    //set the 5th bit to 0 to indicate we are no longer primed
-                    stateSpecificArg &= ~(1u << 4);
-                    //if the current code is a valid spell code, store it for later use
-                    for (int i = 0; i < spellList.Count; i++)
-                    {
-                        if (spellList[i].spellInput == stateSpecificArg &&
-                            spellList[i].spellType == SpellType.Active &&
-                            spellList[i].cooldownCounter <= 0)
+                        //jump button pressed or held for long enough
+                        if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
-
+                            lightArmor = false;
+                            //set the 5th bit to 0 to indicate we are no longer primed
+                            stateSpecificArg &= ~(1u << 4);
+                            //if the current code is a valid spell code, store it for later use
+                            
                             storedCode = stateSpecificArg;
 
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", Color.white);
-                            break;
+                            //break;
+                            
                         }
+                        break;
                     }
-                    //If the code is not valid, clear the input display and reset the stored code
-                    if (storedCode == 0)
-                    {
+                }
 
+
+                //handle the button cases for invalid inputs
+                if (!spellMatched)
+                {
+                    //reset the storedCode timer
+                        storedCodeDuration = 0;
+                    //code button released
+                    if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                    {
+                        lightArmor = false;
+                        
+                        SetState(PlayerState.CodeRelease, stateSpecificArg);
+
+                        break;
+                    }
+                    //jump button pressed
+                    if (input.ButtonStates[1] == ButtonState.Pressed)
+                    {
                         ClearInputDisplay();
                         stateSpecificArg = 0;
                         SpawnToast("INPUTS CLEARED!", Color.white);
                     }
                 }
+                
 
 
                 LerpHspd(Fixed.FromInt(0), isGrounded ? 3 : 15);
@@ -1304,7 +1337,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech))
+                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
                 {
                     if(input.ButtonStates[0] == ButtonState.Held)
                     {
@@ -1359,17 +1392,6 @@ public class PlayerController : MonoBehaviour
         //Check conditions of all spells with the onupdate condition
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
-        if (demonAura > 0)
-        {
-            if (demonAuraLifeSpanTimer > 0)
-            {
-                demonAuraLifeSpanTimer--;
-            }
-            else
-            {
-                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
-            }
-        }
         UpdateResources();
 
         //check player collisions
@@ -1934,6 +1956,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
                 vSpd = Fixed.FromInt(5);
+                comboCounter = 0;
                 //if (isGrounded)
                 //{
                 //    position.y = StageData.Instance.floorYval + 1;
@@ -2025,8 +2048,45 @@ public class PlayerController : MonoBehaviour
 
         if(demonAura > 0)
         {
+            if (demonAuraLifeSpanTimer > 0)
+            {
+                demonAuraLifeSpanTimer--;
+            }
+            else
+            {
+                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
+            }
+
+            Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
+
+            if (demonAura > (ushort)0 && demonAura <= (ushort)20)
+            {
+                //play the demon aura visual effect 
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.20f * 50f);
+            }
+            else if (demonAura > (ushort)20 && demonAura <= (ushort)40)
+            {
+                //play the demon aura visual effect 
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.40f * 50f);
+            }
+            else if (demonAura > (ushort)40 && demonAura <= (ushort)60)
+            {
+                //play the demon aura visual effect 
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.60f * 50f);
+            }
+            else if (demonAura > (ushort)60 && demonAura <= (ushort)80)
+            {
+                //play the demon aura visual effect 
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.80f * 50f);
+            }
+            else if (demonAura > (ushort)80 && demonAura <= (ushort)100)
+            {
+                //play the demon aura visual effect 
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 1.0f * 50f);
+            }
+
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 100f);
+            //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
         }
         else
         {
@@ -2107,6 +2167,13 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
+            comboCounter++;
+            if (comboCounter >= 4)
+            {
+                SpawnToast("COMBO BREAK!!!", Color.magenta);
+                iframes = 120;
+                comboCounter = 0;
+            }
 
 
             //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
@@ -2212,6 +2279,9 @@ public class PlayerController : MonoBehaviour
             }
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
+
+            //play the death visual effect
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
 
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 
@@ -2462,7 +2532,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(onPlatform);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
-        bw.Write(logicFrame); // 🔹 Save current animation frame
+        bw.Write(logicFrame); // 🔹 Save current logic frame
         bw.Write(animationFrame);
         bw.Write(lerpDelay);
         bw.Write(stateSpecificArg);
@@ -2698,7 +2768,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (storedCodeDuration > 0)
+        if (storedCodeDuration > 0 && state != PlayerState.CodeWeave)
         {
             storedCodeDuration--;
             Debug.Log($"Stored code duration: {storedCodeDuration}");

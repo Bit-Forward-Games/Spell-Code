@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1537425862657586282}
   - component: {fileID: 1002400748505547318}
   m_Layer: 0
-  m_Name: pfb_Damage Particle System
+  m_Name: pfb_Jump Dust Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -116,7 +116,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.2
+      scalar: 0.25
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -287,7 +287,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 192
+      scalar: 64
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -445,7 +445,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationX:
       serializedVersion: 2
-      minMaxState: 3
+      minMaxState: 0
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -498,7 +498,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotationY:
       serializedVersion: 2
-      minMaxState: 3
+      minMaxState: 0
       scalar: 0
       minScalar: 0
       maxCurve:
@@ -551,8 +551,8 @@ ParticleSystem:
         m_RotationOrder: 4
     startRotation:
       serializedVersion: 2
-      minMaxState: 3
-      scalar: 6.283185
+      minMaxState: 0
+      scalar: 0
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -1545,10 +1545,11 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: 8587742790880602414, guid: 7148cdacb8caaa348aa6de8dc769b361, type: 3}
-    - sprite: {fileID: -333110511, guid: 7148cdacb8caaa348aa6de8dc769b361, type: 3}
-    - sprite: {fileID: -564810212, guid: 7148cdacb8caaa348aa6de8dc769b361, type: 3}
-    - sprite: {fileID: 1815816551, guid: 7148cdacb8caaa348aa6de8dc769b361, type: 3}
+    - sprite: {fileID: -5318385019163132376, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: -4994083195939480237, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: 5575686753339795057, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: 5783041832989420543, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: -8314866025837574179, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:

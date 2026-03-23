@@ -1,10 +1,31 @@
 fileFormatVersion: 2
-guid: 7148cdacb8caaa348aa6de8dc769b361
+guid: ab235fdf1c087a64e9d07a0ede667406
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8587742790880602414
-    second: Test_Damage_VFX_0
+      213: -5318385019163132376
+    second: jumpDust-Sheet_0
+  - first:
+      213: -4994083195939480237
+    second: jumpDust-Sheet_1
+  - first:
+      213: 5575686753339795057
+    second: jumpDust-Sheet_2
+  - first:
+      213: 5783041832989420543
+    second: jumpDust-Sheet_3
+  - first:
+      213: -8314866025837574179
+    second: jumpDust-Sheet_4
+  - first:
+      213: -9047401694079802512
+    second: jumpDust-Sheet_5
+  - first:
+      213: -8146053909156715636
+    second: jumpDust-Sheet_6
+  - first:
+      213: -7210945173003054669
+    second: jumpDust-Sheet_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +72,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 512
+  spritePixelsToUnits: 64
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -76,6 +97,32 @@ TextureImporter:
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -109,93 +156,128 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Test_Damage_VFX_0
+      name: jumpDust-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e292cd8819acd2770800000000000000
-      internalID: 8587742790880602414
+      spriteID: 82eb50ac00d4136b0800000000000000
+      internalID: -5318385019163132376
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Test_Damage_VFX_1
+      name: jumpDust-Sheet_1
       rect:
         serializedVersion: 2
-        x: 690
+        x: 64
         y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: cc6f857e65c0aa346919b59b5186be74
-      internalID: -333110511
+      spriteID: 35d97470bc371bab0800000000000000
+      internalID: -4994083195939480237
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Test_Damage_VFX_2
+      name: jumpDust-Sheet_2
       rect:
         serializedVersion: 2
-        x: 1380
+        x: 128
         y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: e85cec15556ec4244a55bb11b51b2377
-      internalID: -564810212
+      spriteID: 1766ba79f81d06d40800000000000000
+      internalID: 5575686753339795057
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Test_Damage_VFX_3
+      name: jumpDust-Sheet_3
       rect:
         serializedVersion: 2
-        x: 2070
+        x: 192
         y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 13fde05447049744d944f863fa48a126
-      internalID: 1815816551
+      spriteID: ffbee8048ed714050800000000000000
+      internalID: 5783041832989420543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: jumpDust-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd7ccfe4769ab9c80800000000000000
+      internalID: -8314866025837574179
       vertices: []
       indices: 
       edges: []
@@ -204,7 +286,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 53175068b2763de45a013f508164462d
     internalID: 0
     vertices: []
     indices: 
@@ -214,10 +296,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Test_Damage_VFX_0: 8587742790880602414
-      Test_Damage_VFX_1: -333110511
-      Test_Damage_VFX_2: -564810212
-      Test_Damage_VFX_3: 1815816551
+      jumpDust-Sheet_0: -5318385019163132376
+      jumpDust-Sheet_1: -4994083195939480237
+      jumpDust-Sheet_2: 5575686753339795057
+      jumpDust-Sheet_3: 5783041832989420543
+      jumpDust-Sheet_4: -8314866025837574179
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7148cdacb8caaa348aa6de8dc769b361
+guid: 08012a6cb74f0c74a805a4b4edc72a8f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8587742790880602414
-    second: Test_Damage_VFX_0
+      213: 1732932149084449612
+    second: ZeroAndOne-Sheet_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,10 +48,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 512
+  spritePixelsToUnits: 9
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Test_Damage_VFX_0
+      name: ZeroAndOne-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 690
-        height: 690
+        width: 5
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,20 +128,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e292cd8819acd2770800000000000000
-      internalID: 8587742790880602414
+      spriteID: c4b680eab9c9c0810800000000000000
+      internalID: 1732932149084449612
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Test_Damage_VFX_1
+      name: ZeroAndOne-Sheet_1
       rect:
         serializedVersion: 2
-        x: 690
+        x: 5
         y: 0
-        width: 690
-        height: 690
+        width: 5
+        height: 9
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -150,52 +150,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cc6f857e65c0aa346919b59b5186be74
-      internalID: -333110511
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Test_Damage_VFX_2
-      rect:
-        serializedVersion: 2
-        x: 1380
-        y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e85cec15556ec4244a55bb11b51b2377
-      internalID: -564810212
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Test_Damage_VFX_3
-      rect:
-        serializedVersion: 2
-        x: 2070
-        y: 0
-        width: 690
-        height: 690
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 13fde05447049744d944f863fa48a126
-      internalID: 1815816551
+      spriteID: 7f196fa2d7c5a98418706cbfce5231f1
+      internalID: -1142660065
       vertices: []
       indices: 
       edges: []
@@ -204,7 +160,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: e546280ace86f7443a7891c4eeb9a76a
     internalID: 0
     vertices: []
     indices: 
@@ -214,10 +170,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Test_Damage_VFX_0: 8587742790880602414
-      Test_Damage_VFX_1: -333110511
-      Test_Damage_VFX_2: -564810212
-      Test_Damage_VFX_3: 1815816551
+      ZeroAndOne-Sheet_0: 1732932149084449612
+      ZeroAndOne-Sheet_1: -1142660065
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

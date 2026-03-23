@@ -2057,36 +2057,36 @@ public class PlayerController : MonoBehaviour
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
 
-            Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
+            //Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
 
-            if (demonAura > (ushort)0 && demonAura <= (ushort)20)
-            {
-                //play the demon aura visual effect 
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.20f * 50f);
-            }
-            else if (demonAura > (ushort)20 && demonAura <= (ushort)40)
-            {
-                //play the demon aura visual effect 
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.40f * 50f);
-            }
-            else if (demonAura > (ushort)40 && demonAura <= (ushort)60)
-            {
-                //play the demon aura visual effect 
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.60f * 50f);
-            }
-            else if (demonAura > (ushort)60 && demonAura <= (ushort)80)
-            {
-                //play the demon aura visual effect 
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.80f * 50f);
-            }
-            else if (demonAura > (ushort)80 && demonAura <= (ushort)100)
-            {
-                //play the demon aura visual effect 
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 1.0f * 50f);
-            }
+            //if (demonAura > (ushort)0 && demonAura <= (ushort)20)
+            //{
+            //    //play the demon aura visual effect 
+            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.20f * 50f);
+            //}
+            //else if (demonAura > (ushort)20 && demonAura <= (ushort)40)
+            //{
+            //    //play the demon aura visual effect 
+            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.40f * 50f);
+            //}
+            //else if (demonAura > (ushort)40 && demonAura <= (ushort)60)
+            //{
+            //    //play the demon aura visual effect 
+            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.60f * 50f);
+            //}
+            //else if (demonAura > (ushort)60 && demonAura <= (ushort)80)
+            //{
+            //    //play the demon aura visual effect 
+            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.80f * 50f);
+            //}
+            //else if (demonAura > (ushort)80 && demonAura <= (ushort)100)
+            //{
+            //    //play the demon aura visual effect 
+            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 1.0f * 50f);
+            //}
 
             //play the demon aura visual effect 
-            //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
         }
         else
         {

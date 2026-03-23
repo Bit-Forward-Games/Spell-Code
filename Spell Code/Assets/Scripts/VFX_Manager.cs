@@ -256,10 +256,10 @@ public class VFX_Manager : MonoBehaviour
         //play the visual effect
         _visualEffectObject.particleSystems[_playerNum].Play();
 
-        if (_nameOfVisualEffectToPlay == VisualEffects.DEMON_AURA)
-        {
-            Debug.Log("VFX Manager | Player " + _playerNum + " is emitting at " + _emissionRate);
-        }
+        //if (_nameOfVisualEffectToPlay == VisualEffects.DEMON_AURA)
+        //{
+        //    Debug.Log("VFX Manager | Player " + _playerNum + " is emitting at " + _emissionRate);
+        //}
     }
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)

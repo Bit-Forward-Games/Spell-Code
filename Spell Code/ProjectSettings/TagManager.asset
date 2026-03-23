@@ -54,6 +54,9 @@ TagManager:
   - name: Background
     uniqueID: 3654933929
     locked: 0
+  - name: Tileset
+    uniqueID: 654771783
+    locked: 0
   - name: GameplayEffects
     uniqueID: 3204368189
     locked: 0

@@ -484,12 +484,27 @@ public class GameManager : MonoBehaviour
                 if (pInput != null)
                 {
                     pInput.ActivateInput();
-                    if (pInput.user.valid && UnityEngine.InputSystem.Keyboard.current != null)
+                    if (pInput.user.valid)
                     {
-                        UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
-                            UnityEngine.InputSystem.Keyboard.current,
-                            pInput.user
-                        );
+                        var keyboard = UnityEngine.InputSystem.Keyboard.current;
+                        if (keyboard != null)
+                        {
+                            UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
+                                keyboard,
+                                pInput.user
+                            );
+                        }
+
+                        // Allow either keyboard or controller for the local online player
+                        foreach (var gamepad in UnityEngine.InputSystem.Gamepad.all)
+                        {
+                            UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(gamepad, pInput.user);
+                        }
+
+                        foreach (var joystick in UnityEngine.InputSystem.Joystick.all)
+                        {
+                            UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(joystick, pInput.user);
+                        }
                     }
                 }
 

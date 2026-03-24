@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -363,13 +364,30 @@ public class InputPlayerBindings : MonoBehaviour
         IsActive = enable;
         if (enable)
         {
-            // Ensure keyboard is assigned to the input action asset
+            // Ensure allowed devices are assigned to the input action asset
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            if (keyboard != null && inputActionAsset != null)
+            if (inputActionAsset != null)
             {
-                // Assign keyboard to the action asset
-                inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { keyboard });
-                Debug.Log($"[CheckForInputs] Assigned keyboard '{keyboard.name}' to inputActionAsset");
+                // Online matches should allow keyboard or controller for the same local player
+                if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+                {
+                    var devices = new List<InputDevice>();
+                    if (keyboard != null) devices.Add(keyboard);
+                    devices.AddRange(UnityEngine.InputSystem.Gamepad.all);
+                    devices.AddRange(UnityEngine.InputSystem.Joystick.all);
+
+                    if (devices.Count > 0)
+                    {
+                        inputActionAsset.devices = new ReadOnlyArray<InputDevice>(devices.ToArray());
+                        Debug.Log($"[CheckForInputs] Assigned {devices.Count} device(s) for online input.");
+                    }
+                }
+                else if (keyboard != null)
+                {
+                    // Offline behavior: keyboard-only for local player
+                    inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { keyboard });
+                    Debug.Log($"[CheckForInputs] Assigned keyboard '{keyboard.name}' to inputActionAsset");
+                }
 
                 // Also check if actions have bindings
                 Debug.Log($"[CheckForInputs] Up action bindings: {upAction?.bindings.Count ?? 0}");
@@ -383,7 +401,7 @@ public class InputPlayerBindings : MonoBehaviour
             }
             else
             {
-                Debug.LogError("[CheckForInputs] Keyboard or inputActionAsset is null!");
+                Debug.LogError("[CheckForInputs] inputActionAsset is null!");
             }
 
             // Enable all actions

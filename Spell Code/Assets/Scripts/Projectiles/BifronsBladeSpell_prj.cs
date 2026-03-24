@@ -9,15 +9,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class BifronsBladeBasic_prj : BaseProjectile
 {
 
-    public BifronsBladeBasic_prj()
+    protected override void InitializeDefaults()
     {
         projName = "BifronsBladeBasic";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 45; // lasts for 300 logic frames
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 4, 4, 4, 4 }, false);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

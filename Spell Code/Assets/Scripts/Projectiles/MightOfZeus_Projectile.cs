@@ -9,15 +9,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class MightOfZeus_Projectile : BaseProjectile
 {
 
-    public MightOfZeus_Projectile()
+    protected override void InitializeDefaults()
     {
         projName = "MightOfZeus";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 60; // lasts for 300 logic frames
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

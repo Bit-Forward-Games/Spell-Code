@@ -9,7 +9,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class CoinTossTails_prj : BaseProjectile
 {
     
-    public CoinTossTails_prj()
+    protected override void InitializeDefaults()
     {
         projName = "CoinTossTails";
         lifeSpan = 600; // lasts for 120 logic frames

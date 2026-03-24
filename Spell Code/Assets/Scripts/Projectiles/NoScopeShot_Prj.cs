@@ -8,15 +8,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class NoScopeShot_Prj : BaseProjectile
 {
 
-    public NoScopeShot_Prj()
+    protected override void InitializeDefaults()
     {
         projName = "NoScopeShot";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 20; // lasts for 300 logic frames
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

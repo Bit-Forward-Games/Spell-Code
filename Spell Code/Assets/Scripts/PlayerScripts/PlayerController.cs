@@ -2708,20 +2708,27 @@ public class PlayerController : MonoBehaviour
 
         startingSpellAdded = savedStartingSpellAdded;
 
-        // NOW deserialize spell list as normal
-        if (spellList.Count != spellCount)
-        {
-            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
-            // Potentially try to rebuild the list based on saved names? Very risky.
-            // For simplicity, assuming the list composition is stable during rollback frames.
-        }
-
+        // Read serialized spell payloads first
+        List<(string name, byte[] data)> savedSpells = new List<(string name, byte[] data)>(spellCount);
         for (int i = 0; i < spellCount; i++)
         {
             string spellName = br.ReadString();
             int spellDataLength = br.ReadInt32();
-
             byte[] spellBytes = br.ReadBytes(spellDataLength);
+            savedSpells.Add((spellName, spellBytes));
+        }
+
+        if (spellList.Count != spellCount)
+        {
+            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
+            RebuildSpellListFromSaved(savedSpells);
+        }
+
+        // Deserialize spell state into matching instances
+        for (int i = 0; i < savedSpells.Count; i++)
+        {
+            string spellName = savedSpells[i].name;
+            byte[] spellBytes = savedSpells[i].data;
             SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
             if (spellInstance != null)
             {
@@ -2733,7 +2740,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Spell '{spellName}' not found - skipped {spellDataLength} bytes");
+                Debug.LogWarning($"Spell '{spellName}' not found after rebuild - skipped {spellBytes.Length} bytes");
             }
         }
     }
@@ -2759,6 +2766,72 @@ public class PlayerController : MonoBehaviour
         state == PlayerState.Jump ||
         state == PlayerState.Slide ||
         state == PlayerState.CodeWeave;
+
+    private void RebuildSpellListFromSaved(List<(string name, byte[] data)> savedSpells)
+    {
+        // Destroy existing spell instances
+        for (int i = spellList.Count - 1; i >= 0; i--)
+        {
+            SpellData spell = spellList[i];
+            if (spell != null)
+            {
+                Destroy(spell.gameObject);
+            }
+        }
+        spellList.Clear();
+
+        // Recreate list in saved order (no LoadSpell to avoid side effects)
+        for (int i = 0; i < savedSpells.Count; i++)
+        {
+            string spellName = savedSpells[i].name;
+            if (SpellDictionary.Instance != null &&
+                SpellDictionary.Instance.spellDict != null &&
+                SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData template) &&
+                template != null)
+            {
+                SpellData instance = Instantiate(template);
+                instance.owner = this;
+                spellList.Add(instance);
+            }
+            else
+            {
+                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell '{spellName}' in dictionary.");
+            }
+        }
+
+        // Recompute brand flags from rebuilt list
+        vWave = false;
+        killeez = false;
+        DemonX = false;
+        bigStox = false;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null || spell.brands == null) continue;
+            for (int b = 0; b < spell.brands.Length; b++)
+            {
+                if (spell.brands[b] == Brand.VWave) vWave = true;
+                if (spell.brands[b] == Brand.Killeez) killeez = true;
+                if (spell.brands[b] == Brand.DemonX) DemonX = true;
+                if (spell.brands[b] == Brand.BigStox) bigStox = true;
+            }
+        }
+
+        // Rebuild projectile pool once to match the new spell list
+        if (ProjectileManager.Instance != null)
+        {
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
+
+        // Update UI if available
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        if (playerIndex >= 0 && GameManager.Instance.tempSpellDisplays != null &&
+            playerIndex < GameManager.Instance.tempSpellDisplays.Length &&
+            GameManager.Instance.tempSpellDisplays[playerIndex] != null)
+        {
+            GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+        }
+    }
 
 
     public void CheckReleaseCode(InputSnapshot targetInput)

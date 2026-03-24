@@ -146,8 +146,6 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public int randomCallCount = 0;
     private uint rngState = 0;
-    private uint spawnRngState = 0;
-    private int spawnRandomCallCount = 0;
     private System.Random stageRandom;
 
     [Header("Debug")]
@@ -1523,8 +1521,6 @@ public class GameManager : MonoBehaviour
         randomSeed = seed;
         randomCallCount = 0;
         rngState = (uint)seed;
-        spawnRandomCallCount = 0;
-        spawnRngState = (uint)(seed ^ 0xA5A5A5A5);
         stageRandom = new System.Random((int)(seed ^ 0x9E3779B9));
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
     }
@@ -1537,15 +1533,6 @@ public class GameManager : MonoBehaviour
         int range = maxValue - minValue;
         if (range <= 0) return minValue;
         return minValue + (int)(rngState % (uint)range);
-    }
-
-    private int GetNextSpawnRandom(int minValue, int maxValue)
-    {
-        spawnRngState = spawnRngState * 1664525u + 1013904223u;
-        spawnRandomCallCount++;
-        int range = maxValue - minValue;
-        if (range <= 0) return minValue;
-        return minValue + (int)(spawnRngState % (uint)range);
     }
 
     private int GetNextStageRandom(int minValue, int maxValue)
@@ -1562,10 +1549,7 @@ public class GameManager : MonoBehaviour
     public FixedVec2 GetRandomSpawnVec2()
     {
         Vector2[] spawnPointList = GetSpawnPositions();
-        int idx = isOnlineMatchActive
-            ? GetNextSpawnRandom(0, spawnPointList.Length)
-            : GetNextRandom(0, spawnPointList.Length);
-        Vector2 spawnPoint = spawnPointList[idx]; // Use wrapper
+        Vector2 spawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
         Debug.Log("SpawnPoint chosen: " + spawnPoint);
         return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
     }
@@ -1950,8 +1934,6 @@ public class GameManager : MonoBehaviour
                 bw.Write(randomSeed);
                 bw.Write(randomCallCount);
                 bw.Write(rngState);
-                bw.Write(spawnRandomCallCount);
-                bw.Write(spawnRngState);
 
                 // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
@@ -2070,8 +2052,6 @@ public class GameManager : MonoBehaviour
                 randomSeed = br.ReadInt32();
                 randomCallCount = br.ReadInt32();
                 rngState = br.ReadUInt32(); // Restore exact RNG state directly
-                spawnRandomCallCount = br.ReadInt32();
-                spawnRngState = br.ReadUInt32();
 
                 // Deserialize spell selection indices
                 p1_index = br.ReadInt32();

@@ -10,6 +10,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class PlayerData
 {
     //Data class to represent our players & their performance
+    public int pID;
     public int codesFired;
     public int basicsFired;
     public int codesHit;

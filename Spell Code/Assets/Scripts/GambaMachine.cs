@@ -599,6 +599,36 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //play the floppy disk VFX depending on the disk brand
+            switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+            {
+                //if the disk's brand is VWave,...
+                case Brand.VWave:
+                    //play the VWave floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is DemonX,...
+                case Brand.DemonX:
+                    //play the DemonX floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is Killeez,...
+                case Brand.Killeez:
+                    //play the Killeez floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is BigStox,...
+                case Brand.BigStox:
+                    //play the BigStox floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //by default, play the VWave floppy spawn VFX
+                default:
+                    //play the VWave floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+            }
+
             if (ownerPID == 1) 
             { 
                 p1_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
@@ -630,6 +660,36 @@ public class GambaMachine : MonoBehaviour
             if (floppys.Count > 1)
             {
                 Destroy(disk);
+            }
+
+            //play the floppy disk VFX depending on the disk brand
+            switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+            {
+                //if the disk's brand is VWave,...
+                case Brand.VWave:
+                    //play the VWave floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is DemonX,...
+                case Brand.DemonX:
+                    //play the DemonX floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is Killeez,...
+                case Brand.Killeez:
+                    //play the Killeez floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //if the disk's brand is BigStox,...
+                case Brand.BigStox:
+                    //play the BigStox floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
+                //by default, play the VWave floppy spawn VFX
+                default:
+                    //play the VWave floppy spawn VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                    break;
             }
 
             if (ownerPID == 1)

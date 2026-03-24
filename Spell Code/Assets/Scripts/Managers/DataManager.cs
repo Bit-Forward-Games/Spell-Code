@@ -18,6 +18,7 @@ public class DataManager : MonoBehaviour
     public SaveDataHolder gameData = new SaveDataHolder();
 
     public int totalRoundsPlayed = 0;
+    public float roundTimer;
     void Awake()
     {
         // If an instance already exists and it's not this one, destroy this duplicate
@@ -60,11 +61,11 @@ public class DataManager : MonoBehaviour
     }
 
     //temp for testing in-engine
-    private void Update()
+    private void FixedUpdate()
     {
         while (GameManager.Instance != null && GameManager.Instance.sceneManager.sceneName == "Gameplay") 
         {
-            
+
         }
         //This is just a shortcut for me to test stuff
 
@@ -101,6 +102,9 @@ public class DataManager : MonoBehaviour
         //general game data
         MatchData matchData = new MatchData();
 
+        matchData.matchNum = (byte)(totalRoundsPlayed);
+        matchData.matchLength = roundTimer / 60;
+
         //player data, looped for each player
         if (gM.playerCount > 0)
         {
@@ -112,6 +116,7 @@ public class DataManager : MonoBehaviour
 
                 //raw stats
                 matchData.playerData[i] = new PlayerData();
+                matchData.playerData[i].pID = gM.players[i].pID;
                 matchData.playerData[i].basicsFired = gM.players[i].basicsFired;
                 matchData.playerData[i].codesFired = gM.players[i].spellsFired;
                 matchData.playerData[i].codesHit = gM.players[i].spellsHit;

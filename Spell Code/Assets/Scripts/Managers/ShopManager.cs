@@ -13,6 +13,7 @@ using UnityEngine.Windows;
 public class ShopManager : MonoBehaviour
 {
     private GameManager gameManager;
+    private DataManager dataManager;
 
 
     private bool allPlayersChosen = false;
@@ -66,6 +67,7 @@ public class ShopManager : MonoBehaviour
     void Start()
     {
         gameManager = GameManager.Instance;
+        dataManager = DataManager.Instance;
 
         foreach (GameObject gamba in gameManager.gambas)
         {

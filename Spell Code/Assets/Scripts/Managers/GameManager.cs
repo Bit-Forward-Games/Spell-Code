@@ -1080,9 +1080,10 @@ public class GameManager : MonoBehaviour
 
         else if (activeScene.name == "Gameplay")
         {
+            if (!roundOver) { dataManager.roundTimer++; }
+
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-
                 if (!roundOver)
                 {
                     ushort highestRam = 0;
@@ -1102,20 +1103,33 @@ public class GameManager : MonoBehaviour
                     winner.roundsWon += 1;
                     roundOver = true;
                     playerWinText.enabled = true;
-                    StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
-                    playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                    roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
 
-                    //stop repeating all sounds
-                    SFX_Manager.Instance.StopRepeatingAllSounds();
+                    if (!gameOver)
+                    {
+                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
+                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
+                        playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                        // roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
+                    }
 
                     for (int i = 0; i < playerCount; i++)
                     {
                         players[i].roundRam = 0;
                         players[i].playerNum.enabled = false;
                         players[i].inputDisplay.enabled = false;
-                        if (players[i].roundsWon >= 3) { gameOver = true; }
+                        if (players[i].roundsWon >= 3) 
+                        { 
+                            gameOver = true; 
+                            roundEndedText.text = "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!";
+                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, roundEndedText.text));
+                            playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                            // roundEndedText.text = "Game Over\n" + "Player " + (winner.pID) + " wins the match!\n" + "Congratulations!!!";
+                        }
                     }
+
+                    //stop repeating all sounds
+                    SFX_Manager.Instance.StopRepeatingAllSounds();
+
                 }
 
 
@@ -1325,7 +1339,7 @@ public class GameManager : MonoBehaviour
 
         //give the bounty VFX to the player with the highest bounty
         //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 110f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
@@ -1547,6 +1561,7 @@ public class GameManager : MonoBehaviour
         {
             dataManager.SaveMatch();
             isSaved = true;
+            dataManager.roundTimer = 0;
         }
         //ProjectileManager.Instance.DeleteAllProjectiles();
         //isRunning = false;

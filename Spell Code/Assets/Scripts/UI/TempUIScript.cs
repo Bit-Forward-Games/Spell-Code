@@ -35,6 +35,7 @@ public class TempUIScript : MonoBehaviour
     public GameObject MainMenuScreen;
 
     public GameObject GameplayOverview;
+    public GameObject BeginRound;
     public GameObject RoundConclusion;
     public GameObject ShopOverview;
 
@@ -47,28 +48,44 @@ public class TempUIScript : MonoBehaviour
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
+    }
 
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
         transitionScreenDisplayed = false;
+        shopScreenDisplayed = false;
+
+        if (scene.name == "MainMenu" && GameManager.Instance.players[0] != null)
+        {
+            transitionScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f));
+        }
+        else if (scene.name == "Gameplay")
+        {
+            transitionScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(BeginRound, 2.0f));
+        }
+        else if (scene.name == "Shop")
+        {
+            shopScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f));
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateUIBarVals();
-        Scene currentScene = SceneManager.GetActiveScene();
-
-        if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
-        {
-            transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f));
-        }
-
-
-        if (currentScene.name == "Shop" && !shopScreenDisplayed)
-        {
-            shopScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f));
-        }
     }
 
     public void UpdateUIBarVals()

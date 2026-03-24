@@ -114,13 +114,6 @@ public class TempSpellDisplay : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[WinCounter] Called on {SceneManager.GetActiveScene().name}, " +
-              $"player {spellDisplayIndex}, " +
-              $"roundsWon: {GameManager.Instance.players[spellDisplayIndex].roundsWon}, " +
-              $"roundWinsIcons count: {roundWinsIcons.Count}, " +
-              $"uiScript null: {uiScript == null}, " +
-              $"roundWinIcon null: {uiScript?.roundWinIcon == null}");
-
         for (int j = 0; j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 60);

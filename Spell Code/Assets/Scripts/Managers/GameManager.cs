@@ -913,9 +913,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         else if (activeScene.name == "Gameplay")
         {
+            if (!roundOver) { dataManager.roundTimer++; }
+
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                
                 if (!roundOver)
                 {
                     ushort highestRam = 0;
@@ -1267,6 +1268,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             dataManager.SaveMatch();
             isSaved = true;
+            dataManager.roundTimer = 0;
         }
         //ProjectileManager.Instance.DeleteAllProjectiles();
         //isRunning = false;

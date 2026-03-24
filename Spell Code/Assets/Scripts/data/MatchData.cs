@@ -5,5 +5,7 @@ using System;
 public class MatchData
 {
     //hold all data we wont to consolidate
+    public byte matchNum;
+    public float matchLength;
     public PlayerData[] playerData;
 }

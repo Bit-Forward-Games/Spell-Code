@@ -13,10 +13,12 @@ using UnityEngine.Windows;
 public class ShopManager : MonoBehaviour
 {
     private GameManager gameManager;
+    private DataManager dataManager;
 
     void Start()
     {
         gameManager = GameManager.Instance;
+        dataManager = DataManager.Instance;
 
         foreach (GameObject gamba in gameManager.gambas)
         {

@@ -78,6 +78,12 @@ public class PlayerController : MonoBehaviour
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
+    [Header("Haptics")]
+    [SerializeField] private bool enableHitRumble = true;
+    [SerializeField, Range(0f, 1f)] private float hitRumbleLow = 0.2f;
+    [SerializeField, Range(0f, 1f)] private float hitRumbleHigh = 0.6f;
+    [SerializeField] private float hitRumbleDuration = 0.12f;
+    private Coroutine hitRumbleRoutine;
 
     public static readonly Fixed FixedDeltaTime = Fixed.FromFloat(1f / 60f);
 
@@ -267,6 +273,7 @@ public class PlayerController : MonoBehaviour
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        StopHitRumble();
     }
 
     private void OnDestroy()
@@ -275,6 +282,7 @@ public class PlayerController : MonoBehaviour
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        StopHitRumble();
     }
 
     //get max health helper func:
@@ -2242,6 +2250,10 @@ public class PlayerController : MonoBehaviour
     {
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
+        if (!isRollback && damageAmount > 0)
+        {
+            TriggerHitRumble();
+        }
 
         if (DataManager.Instance != null &&
             DataManager.Instance.gameData != null &&
@@ -2743,6 +2755,78 @@ public class PlayerController : MonoBehaviour
                 Debug.LogWarning($"Spell '{spellName}' not found after rebuild - skipped {spellBytes.Length} bytes");
             }
         }
+    }
+
+    private void TriggerHitRumble()
+    {
+        if (!enableHitRumble)
+        {
+            return;
+        }
+
+        Gamepad gamepad = GetAssignedGamepad();
+        if (gamepad == null)
+        {
+            return;
+        }
+
+        if (hitRumbleRoutine != null)
+        {
+            StopCoroutine(hitRumbleRoutine);
+        }
+
+        hitRumbleRoutine = StartCoroutine(HitRumbleRoutine(gamepad));
+    }
+
+    private IEnumerator HitRumbleRoutine(Gamepad gamepad)
+    {
+        gamepad.SetMotorSpeeds(hitRumbleLow, hitRumbleHigh);
+        yield return new WaitForSeconds(hitRumbleDuration);
+        gamepad.SetMotorSpeeds(0f, 0f);
+        hitRumbleRoutine = null;
+    }
+
+    private void StopHitRumble()
+    {
+        if (hitRumbleRoutine != null)
+        {
+            StopCoroutine(hitRumbleRoutine);
+            hitRumbleRoutine = null;
+        }
+
+        Gamepad gamepad = GetAssignedGamepad();
+        if (gamepad != null)
+        {
+            gamepad.SetMotorSpeeds(0f, 0f);
+        }
+    }
+
+    private Gamepad GetAssignedGamepad()
+    {
+        if (TryGetComponent<PlayerInput>(out PlayerInput playerInput))
+        {
+            for (int i = 0; i < playerInput.devices.Count; i++)
+            {
+                if (playerInput.devices[i] is Gamepad gp)
+                {
+                    return gp;
+                }
+            }
+        }
+
+        if (playerInputs != null && playerInputs.devices.HasValue)
+        {
+            var devices = playerInputs.devices.Value;
+            for (int i = 0; i < devices.Count; i++)
+            {
+                if (devices[i] is Gamepad gp)
+                {
+                    return gp;
+                }
+            }
+        }
+
+        return null;
     }
 
 

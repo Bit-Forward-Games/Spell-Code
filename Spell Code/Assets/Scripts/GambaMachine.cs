@@ -446,6 +446,7 @@ public class GambaMachine : MonoBehaviour
 
     public void SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "")
     {
+        activeScene = SceneManager.GetActiveScene();
         List<GameObject> floppys = new List<GameObject>();
         //random spell
         if (name == "")
@@ -537,7 +538,11 @@ public class GambaMachine : MonoBehaviour
             }
 
             //get a random spell
-            int randomInt = GameManager.Instance.GetNextRandom(0, spells.Count);
+            int randomInt = (gameManager != null &&
+                             gameManager.isOnlineMatchActive &&
+                             activeScene.name == "Shop")
+                ? gameManager.GetNextShopRandom(0, spells.Count)
+                : GameManager.Instance.GetNextRandom(0, spells.Count);
             string spellToAdd = spells[randomInt];
 
             if (ownerPID == 1)

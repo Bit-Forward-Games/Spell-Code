@@ -148,6 +148,8 @@ public class GameManager : MonoBehaviour
     private uint rngState = 0;
     private uint spawnRngState = 0;
     private int spawnRandomCallCount = 0;
+    private uint shopRngState = 0;
+    private int shopRandomCallCount = 0;
     private System.Random stageRandom;
 
     [Header("Debug")]
@@ -1525,6 +1527,8 @@ public class GameManager : MonoBehaviour
         rngState = (uint)seed;
         spawnRandomCallCount = 0;
         spawnRngState = (uint)(seed ^ 0xA5A5A5A5);
+        shopRandomCallCount = 0;
+        shopRngState = (uint)(seed ^ 0x3C3C3C3C);
         stageRandom = new System.Random((int)(seed ^ 0x9E3779B9));
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
     }
@@ -1546,6 +1550,15 @@ public class GameManager : MonoBehaviour
         int range = maxValue - minValue;
         if (range <= 0) return minValue;
         return minValue + (int)(spawnRngState % (uint)range);
+    }
+
+    public int GetNextShopRandom(int minValue, int maxValue)
+    {
+        shopRngState = shopRngState * 1664525u + 1013904223u;
+        shopRandomCallCount++;
+        int range = maxValue - minValue;
+        if (range <= 0) return minValue;
+        return minValue + (int)(shopRngState % (uint)range);
     }
 
     private int GetNextStageRandom(int minValue, int maxValue)
@@ -1952,6 +1965,8 @@ public class GameManager : MonoBehaviour
                 bw.Write(rngState);
                 bw.Write(spawnRandomCallCount);
                 bw.Write(spawnRngState);
+                bw.Write(shopRandomCallCount);
+                bw.Write(shopRngState);
 
                 // Serialize spell selection indices for lobby state
                 bw.Write(p1_index);
@@ -2072,6 +2087,8 @@ public class GameManager : MonoBehaviour
                 rngState = br.ReadUInt32(); // Restore exact RNG state directly
                 spawnRandomCallCount = br.ReadInt32();
                 spawnRngState = br.ReadUInt32();
+                shopRandomCallCount = br.ReadInt32();
+                shopRngState = br.ReadUInt32();
 
                 // Deserialize spell selection indices
                 p1_index = br.ReadInt32();

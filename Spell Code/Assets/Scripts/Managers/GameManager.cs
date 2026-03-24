@@ -938,9 +938,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
                     if (!gameOver)
                     {
-                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
+                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
+                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
                         playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                        roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
+                        // roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
                     }
 
                     for (int i = 0; i < playerCount; i++)
@@ -951,9 +952,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         if (players[i].roundsWon >= 3) 
                         { 
                             gameOver = true; 
-                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f));
+                            roundEndedText.text = "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!";
+                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, roundEndedText.text));
                             playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                            roundEndedText.text = "Game Over\n" + "Player " + (winner.pID) + " wins the match!\n" + "Congratulations!!!";
+                            // roundEndedText.text = "Game Over\n" + "Player " + (winner.pID) + " wins the match!\n" + "Congratulations!!!";
                         }
                     }
 

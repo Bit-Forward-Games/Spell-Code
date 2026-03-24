@@ -42,6 +42,10 @@ public class TempUIScript : MonoBehaviour
 
     public bool transitionScreenDisplayed;
     public bool shopScreenDisplayed;
+
+    public string screenTransitionText;
+    public float textSpeed;
+    private int i = 0;
     
     void Start()
     {
@@ -65,21 +69,16 @@ public class TempUIScript : MonoBehaviour
     {
         transitionScreenDisplayed = false;
         shopScreenDisplayed = false;
-
-        if (scene.name == "MainMenu" && GameManager.Instance.players[0] != null)
+        
+        if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f));
-        }
-        else if (scene.name == "Gameplay")
-        {
-            transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(BeginRound, 2.0f));
+            StartCoroutine(DisplayTransitionScreen(BeginRound, 2.0f, "FIGHT!!!"));
         }
         else if (scene.name == "Shop")
         {
             shopScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f));
+            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f, "Equip new spells before entering the next round"));
         }
     }
 
@@ -87,6 +86,14 @@ public class TempUIScript : MonoBehaviour
     void Update()
     {
         UpdateUIBarVals();
+
+        Scene currentScene = SceneManager.GetActiveScene();
+
+        if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
+        {
+            transitionScreenDisplayed = true;
+            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f, "Pick your starter spell before beginning the match"));
+        }
     }
 
     public void UpdateUIBarVals()
@@ -212,13 +219,35 @@ public class TempUIScript : MonoBehaviour
         damageBarDisplayFill[playerIndex] = newHealthAmount;
     }
 
-    public IEnumerator DisplayTransitionScreen(GameObject screen, float transitionTime)
+    public IEnumerator DisplayTransitionScreen(GameObject screen, float transitionTime, string text)
     {
         screen.SetActive(true);
+        screenTransitionText = text;
 
+        Transform childTransform = screen.transform.Find("Text");
+        TextMeshProUGUI screenText = null;
+
+        if (childTransform != null)
+            screenText = childTransform.GetComponent<TextMeshProUGUI>();
+
+        if (screenText != null)
+        {
+            screenText.text = "";
+            StartCoroutine(TypeLine(screenText));
+        }
+        
         yield return new WaitForSeconds(transitionTime);
 
         screen.SetActive(false);
+    }
+
+    IEnumerator TypeLine(TextMeshProUGUI screenText)
+    {
+        foreach (char c in screenTransitionText.ToCharArray())
+        {
+            screenText.text += c;
+            yield return new WaitForSeconds(textSpeed);
+        }
     }
 
     GameObject FindChildContainingName(GameObject parent, string namePart)

@@ -600,6 +600,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4373271853459852223}
+  - {fileID: 3477660286906898447}
   m_Father: {fileID: 5586739243119581139}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1888,7 +1889,7 @@ GameObject:
   - component: {fileID: 4326066453952025187}
   - component: {fileID: 6876427980842877138}
   m_Layer: 5
-  m_Name: Round Ended Text
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1901,12 +1902,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2676106441585177405}
-  m_LocalRotation: {x: 0, y: 0, z: 0.05843519, w: 0.99829125}
+  m_LocalRotation: {x: -0, y: -0, z: 0.05843519, w: 0.99829125}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 4373271853459852223}
+  m_Father: {fileID: 1923177371932443574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 6.7}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1941,11 +1942,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Round Ended
-
-    Player 1 Wins the match!
-
-    Beginning Shop phase...'
+  m_text: 'Round Ended: Player 1 Wins the match! Beginning Shop phase...'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
@@ -2010,7 +2007,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 347.73822, y: 0, z: 12.827362, w: 0}
+  m_margin: {x: 425.4013, y: 0, z: 69.07236, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2050,7 +2047,6 @@ RectTransform:
   - {fileID: 6108174817002154803}
   - {fileID: 8574758816180073024}
   - {fileID: 4168184435666598881}
-  - {fileID: 3477660286906898447}
   m_Father: {fileID: 1923177371932443574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2367,7 +2363,7 @@ GameObject:
   - component: {fileID: 7831436732758315385}
   - component: {fileID: 1253608472276019996}
   m_Layer: 5
-  m_Name: Title
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2503,7 +2499,7 @@ GameObject:
   - component: {fileID: 2473471204913468450}
   - component: {fileID: 3332691600427177549}
   m_Layer: 5
-  m_Name: Title
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2516,12 +2512,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4528633476439870480}
-  m_LocalRotation: {x: 0, y: 0, z: 0.06279056, w: 0.9980267}
+  m_LocalRotation: {x: -0, y: -0, z: 0.06279056, w: 0.9980267}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3495751627202904166}
+  m_Father: {fileID: 5012693317083486986}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 7.2}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3478,7 +3474,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7046810682588747863
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3796,7 +3792,6 @@ RectTransform:
   - {fileID: 3654064585748937210}
   - {fileID: 1080929164248379032}
   - {fileID: 2117626703719935551}
-  - {fileID: 7484772130974007925}
   m_Father: {fileID: 5012693317083486986}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3854,7 +3849,7 @@ GameObject:
   - component: {fileID: 5235082736907514788}
   - component: {fileID: 6189504242123138455}
   m_Layer: 5
-  m_Name: Round Ended Text
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3867,12 +3862,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5960577695901312486}
-  m_LocalRotation: {x: 0, y: 0, z: 0.05843519, w: 0.99829125}
+  m_LocalRotation: {x: -0, y: -0, z: 0.05843519, w: 0.99829125}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6097459982940500395}
+  m_Father: {fileID: 7861618244269915835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 6.7}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3907,11 +3902,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Game Over
-
-    Player 1 Wins the match!
-
-    Congratulations!!!'
+  m_text: 'Game Over: Player 1 Wins the match! Congratulations!!!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: dc36b3fdc14f47ebb36fd484a67e268a, type: 2}
@@ -3976,7 +3967,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 347.73822, y: 0, z: 12.827362, w: 0}
+  m_margin: {x: 347.73822, y: 0, z: 45.627716, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4152,7 +4143,6 @@ RectTransform:
   - {fileID: 7637956089421284029}
   - {fileID: 1291950458009238216}
   - {fileID: 6367907537759778562}
-  - {fileID: 5574769085945047065}
   m_Father: {fileID: 8203605447119756845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4539,6 +4529,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 778530629996927346}
+  - {fileID: 5574769085945047065}
   m_Father: {fileID: 5586739243119581139}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4621,7 +4612,7 @@ GameObject:
   - component: {fileID: 2333662956602155894}
   - component: {fileID: 6938181853748082194}
   m_Layer: 5
-  m_Name: Title
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4634,12 +4625,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7284759221617418258}
-  m_LocalRotation: {x: 0, y: 0, z: 0.06923417, w: 0.99760044}
+  m_LocalRotation: {x: -0, y: -0, z: 0.06923417, w: 0.99760044}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 778530629996927346}
+  m_Father: {fileID: 8203605447119756845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 7.94}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4877,7 +4868,6 @@ RectTransform:
   - {fileID: 9041449084032669278}
   - {fileID: 7697899026517727082}
   - {fileID: 668605240480727694}
-  - {fileID: 4290581676360412207}
   m_Father: {fileID: 7861618244269915835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5030,6 +5020,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6097459982940500395}
+  - {fileID: 4290581676360412207}
   m_Father: {fileID: 5586739243119581139}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5132,6 +5123,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3495751627202904166}
+  - {fileID: 7484772130974007925}
   m_Father: {fileID: 5586739243119581139}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -28864,6 +28856,10 @@ PrefabInstance:
       propertyPath: GameOver
       value: 
       objectReference: {fileID: 8154843973239609910}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: textSpeed
+      value: 0.02
+      objectReference: {fileID: 0}
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: BeginRound
       value: 

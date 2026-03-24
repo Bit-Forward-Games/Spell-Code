@@ -23,6 +23,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
+    private const byte PACKET_TYPE_SETTINGS = 40;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -164,6 +165,35 @@ public class MatchMessageManager : MonoBehaviour
             byte[] data = ms.ToArray();
             SendPacket(data, P2PSend.Reliable);
             Debug.Log($"Sent seed: {seed}");
+        }
+    }
+
+    public void SendRollbackSettings()
+    {
+        if (!opponentSteamId.IsValid || !isRunning) return;
+        if (RollbackManager.Instance == null) return;
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_SETTINGS);
+                writer.Write(RollbackManager.Instance.InputDelay);
+                writer.Write(RollbackManager.Instance.DelayBased);
+                writer.Write(RollbackManager.Instance.MaxRollBackFrames);
+                writer.Write(RollbackManager.Instance.FrameAdvantageLimit);
+                writer.Write(RollbackManager.Instance.FrameExtensionLimit);
+                writer.Write(RollbackManager.Instance.FrameExtensionWindow);
+                writer.Write(RollbackManager.Instance.TimeoutFrames);
+
+                byte[] data = memoryStream.ToArray();
+                SendPacket(data, P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending rollback settings: {e}");
         }
     }
 
@@ -440,6 +470,27 @@ public class MatchMessageManager : MonoBehaviour
                         Debug.Log($"Received seed: {receivedSeed}");
                         GameManager.Instance.InitializeWithSeed(receivedSeed);
                         GameManager.Instance.StartLobbySimulation(); // Client triggers lobby start after receiving seed
+                        return;
+                    }
+
+                    if (packetType == PACKET_TYPE_SETTINGS)
+                    {
+                        int inputDelay = reader.ReadInt32();
+                        bool delayBased = reader.ReadBoolean();
+                        int maxRollback = reader.ReadInt32();
+                        int frameAdvLimit = reader.ReadInt32();
+                        float frameExtensionLimit = reader.ReadSingle();
+                        int frameExtensionWindow = reader.ReadInt32();
+                        int timeoutFrames = reader.ReadInt32();
+
+                        RollbackManager.Instance.ApplyOnlineSettings(
+                            inputDelay,
+                            delayBased,
+                            maxRollback,
+                            frameAdvLimit,
+                            frameExtensionLimit,
+                            frameExtensionWindow,
+                            timeoutFrames);
                         return;
                     }
 

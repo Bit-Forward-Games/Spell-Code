@@ -507,7 +507,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Initialize managers
-        RollbackManager.Instance.Init(opponentId.Value);
+        RollbackManager.Instance.Init(opponentId.Value, 0);
 
         if (MatchMessageManager.Instance != null)
         {
@@ -588,6 +588,7 @@ public class GameManager : MonoBehaviour
         opponentIsReady = true;
         if (localPlayerIndex == 0) // Host generates and sends seed
         {
+            MatchMessageManager.Instance.SendRollbackSettings();
             int agreedSeed = UnityEngine.Random.Range(0, 100000);
             InitializeWithSeed(agreedSeed);
             MatchMessageManager.Instance.SendSeed(agreedSeed);

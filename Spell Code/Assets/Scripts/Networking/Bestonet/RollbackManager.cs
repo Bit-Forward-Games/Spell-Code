@@ -139,6 +139,26 @@ using BestoNet.Collections; // Use BestoNet collections
             //Debug.Log("Rollback Connection Initialized.");
         }
 
+        public void ApplyOnlineSettings(
+            int inputDelay,
+            bool delayBased,
+            int maxRollbackFrames,
+            int frameAdvantageLimit,
+            float frameExtensionLimit,
+            int frameExtensionWindow,
+            int timeoutFrames)
+        {
+            InputDelay = inputDelay;
+            DelayBased = delayBased;
+            MaxRollBackFrames = maxRollbackFrames;
+            FrameAdvantageLimit = frameAdvantageLimit;
+            FrameExtensionLimit = frameExtensionLimit;
+            FrameExtensionWindow = frameExtensionWindow;
+            TimeoutFrames = timeoutFrames;
+
+            ClearVars();
+        }
+
         /// <summary>
         /// Resets all runtime state variables for a new match or disconnect.
         /// </summary>

@@ -38,6 +38,7 @@ public class TempUIScript : MonoBehaviour
     public GameObject BeginRound;
     public GameObject RoundConclusion;
     public GameObject ShopOverview;
+    public GameObject GameOver;
 
     public bool transitionScreenDisplayed;
     public bool shopScreenDisplayed;

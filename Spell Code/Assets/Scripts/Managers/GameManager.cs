@@ -935,20 +935,31 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     winner.roundsWon += 1;
                     roundOver = true;
                     playerWinText.enabled = true;
-                    StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
-                    playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                    roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
 
-                    //stop repeating all sounds
-                    SFX_Manager.Instance.StopRepeatingAllSounds();
+                    if (!gameOver)
+                    {
+                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f));
+                        playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                        roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
+                    }
 
                     for (int i = 0; i < playerCount; i++)
                     {
                         players[i].roundRam = 0;
                         players[i].playerNum.enabled = false;
                         players[i].inputDisplay.enabled = false;
-                        if (players[i].roundsWon >= 3) { gameOver = true; }
+                        if (players[i].roundsWon >= 3) 
+                        { 
+                            gameOver = true; 
+                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f));
+                            playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                            roundEndedText.text = "Game Over\n" + "Player " + (winner.pID) + " wins the match!\n" + "Congratulations!!!";
+                        }
                     }
+
+                    //stop repeating all sounds
+                    SFX_Manager.Instance.StopRepeatingAllSounds();
+
                 }
 
                 

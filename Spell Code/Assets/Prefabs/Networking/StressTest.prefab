@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &629384877364464829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3283366173699551350}
+  - component: {fileID: 8791054693218257011}
+  - component: {fileID: 3824873698247663113}
+  m_Layer: 0
+  m_Name: StressTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3283366173699551350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 629384877364464829}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -130.01498, y: 102.43824, z: -0.053072717}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8791054693218257011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 629384877364464829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b10daeb0741e564c8ab5a276d393b42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableStressTest: 0
+  enableNetworkChaos: 0
+  affectOutbound: 1
+  affectInbound: 1
+  outboundLossChance: 0
+  inboundLossChance: 0
+  minLatencyMs: 0
+  maxLatencyMs: 0
+  jitterMs: 0
+  reorderChance: 0
+  chaosSeed: 12345
+  enableDeterministicInput: 0
+  inputSeed: 12345
+  directionChangeInterval: 10
+  buttonPulseInterval: 15
+  buttonHoldFrames: 4
+  enableStateHashing: 0
+  hashSendIntervalFrames: 10
+  dumpStateOnMismatch: 1
+--- !u!114 &3824873698247663113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 629384877364464829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4cad5432da9de24ea610644c86a765c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showUI: 0
+  toggleKey: 287
+  windowRect:
+    serializedVersion: 2
+    x: 20
+    y: 20
+    width: 360
+    height: 480

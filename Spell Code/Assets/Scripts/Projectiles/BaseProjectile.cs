@@ -95,6 +95,14 @@ public abstract class BaseProjectile : MonoBehaviour
     }
 
     protected virtual void InitializeDefaults() { }
+
+    public void EnsureDefaults()
+    {
+        if (string.IsNullOrEmpty(projName))
+        {
+            InitializeDefaults();
+        }
+    }
     public virtual void ProjectileUpdate()
     {
         //position.X += hSpeed;

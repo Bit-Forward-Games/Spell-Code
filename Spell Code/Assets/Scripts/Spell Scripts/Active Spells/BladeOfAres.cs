@@ -11,7 +11,7 @@ public class BladeOfAres : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[1];
-        description = "Strike down with the Blade of Ares, granting 1 \"Rep\" on hit, and dealing increased damage based on \"Reps\".";
+        description = "Short-range slash.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nDeals increased damage based on Reps<sprite name=\"Reps\">.";
 
     }
 

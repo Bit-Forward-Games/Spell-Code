@@ -1121,15 +1121,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Long Range Shot.
+  m_text: 'Diagonal downward shot.
 
-    Hit this: Reset all other cooldowns.
+    Hit sweet-spot: Enter Flow State<sprite name="FlowState">.
 
-    Hit sweet-spot:
-    enter Flow State<sprite name="FlowState">
-
-    Consume all Flow State<sprite
-    name="FlowState"> to reduce this cooldown.'
+    This
+    spell ricochets off surfaces, resetting its lifespan.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

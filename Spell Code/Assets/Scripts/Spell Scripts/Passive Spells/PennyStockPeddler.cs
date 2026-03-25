@@ -16,7 +16,7 @@ public class PennyStockPeddler : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "Your \"Stock Stability\" is capped at 15%. all excess Stock Stability is converted into bonus damage upon hitting an empowered \"Big Stox\" Spell";
+        description = "Stock Stability<sprite name=\"StockStability\"> is capped at 10%.\nConvert excess Stock Stability<sprite name=\"StockStability\"> into bonus damage on empowered \"Big Stox\" Spells.";
     }
 
     public override void LoadSpell()

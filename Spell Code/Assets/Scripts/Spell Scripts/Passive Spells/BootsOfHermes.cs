@@ -15,7 +15,7 @@ public class BootsOfHermes : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.Killeez };
-        description = "Gain 1 Jump for every 3 \"Reps\" you have.";
+        description = "Gain 1 Jump for every 3 Reps<sprite name=\"Reps\"> you have.";
     }
 
     public override void SpellUpdate()

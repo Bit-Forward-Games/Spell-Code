@@ -14,7 +14,7 @@ public class MineCrafter : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnSlide };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in \"Flow State\", your slide crafts a mine.";
+        description = "While in Flow State<sprite name=\"FlowState\">, slide crafts a mine.";
 
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;

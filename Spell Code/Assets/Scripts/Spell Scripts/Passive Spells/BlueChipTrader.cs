@@ -15,7 +15,7 @@ public class BlueChipTrader : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "Gain 10% \"Stock Stability\" upon hitting your basic spell, consumed upon Using your next spell-code.";
+        description = "On Basic hit: gain 10% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
     }
 
     public override void LoadSpell()

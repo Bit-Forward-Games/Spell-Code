@@ -11,7 +11,7 @@ public class SkillshotSlash : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[1];
-        description = "Slash through reality in an area in front of you, dealing increased damage if you are in \"Flow State\". If you hit the tip of Skillshot Slash, you enter \"Flow State\".";
+        description = "Medium-range slash.\nHit sweet-spot: Enter Flow State<sprite name=\"FlowState\">.\nDeals increased damage in Flow State <sprite name=\"FlowState\">.";
 
     }
 

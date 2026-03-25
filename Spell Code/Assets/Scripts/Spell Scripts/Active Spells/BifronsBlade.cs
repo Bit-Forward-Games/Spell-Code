@@ -14,7 +14,7 @@ public class BifronsBlade : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Slash upwards with a two-faced blade, granting \"Demon Aura\" on hit. your basic attack then slashes downward, dealing damage based on your \"Demon Aura\".";
+        description = "Short-range slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nEnhance next basic attack based on Demon Aura<sprite name=\"DemonAura\">.";
         spawnOffsetX = 25;
         spawnOffsetY = 40;
 

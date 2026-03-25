@@ -1090,7 +1090,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.6, y: -3.7}
+  m_AnchoredPosition: {x: -2.6, y: -3.49}
   m_SizeDelta: {x: 220, y: 162.19}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8352917261150441621
@@ -1121,9 +1121,15 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Send forth your quarterly projections materialized. This spell has a chance
-    equal to your "Stock Stability" to gain increased size and damage. Gain 15% "Stock
-    Stability".
+  m_text: 'Long Range Shot.
+
+    Hit this: Reset all other cooldowns.
+
+    Hit sweet-spot:
+    enter Flow State<sprite name="FlowState">
+
+    Consume all Flow State<sprite
+    name="FlowState"> to reduce this cooldown.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1142,7 +1148,7 @@ MonoBehaviour:
     bottomLeft: {r: 1, g: 1, b: 1, a: 1}
     bottomRight: {r: 1, g: 1, b: 1, a: 1}
   m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
+  m_spriteAsset: {fileID: 11400000, guid: 7c0befe17c451ea4f8abc072e9da248c, type: 2}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
   m_TextStyleHashCode: -1183493901

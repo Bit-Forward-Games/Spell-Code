@@ -16,7 +16,7 @@ public class AsuranBlades : SpellData
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];
 
-        description = "Leap back sending forth 3 shuriken, each granting \"Demon Aura\" on hit. If you have 50% or more \"Demon Aura\", your slide summons a blade";
+        description = "Throw 3 shurikens downward.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, slide deals damage.";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;

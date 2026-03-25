@@ -3188,9 +3188,3 @@ public class PlayerController : MonoBehaviour
         return frontmostLayer.id;
     }
 }
-
-
-
-
-
-

@@ -60,10 +60,6 @@ public class ShopManager : MonoBehaviour
     public TextMeshProUGUI p3_spellText;
     public TextMeshProUGUI p4_spellText;
 
-    // Online shop state tracking
-    private bool localPlayerReadyForGameplay = false;
-    private bool remotePlayerReadyForGameplay = false;
-
     void Start()
     {
         gameManager = GameManager.Instance;

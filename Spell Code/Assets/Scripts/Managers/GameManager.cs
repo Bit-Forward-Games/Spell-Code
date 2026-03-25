@@ -103,11 +103,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private List<string> p4_choices;
 
-    private int p1_index = 0;
-    private int p2_index = 0;
-    private int p3_index = 0;
-    private int p4_index = 0;
-
     public List<GameObject> gambas;
 
     [Header("Online UI")]
@@ -1933,12 +1928,6 @@ public class GameManager : MonoBehaviour
                 bw.Write(randomCallCount);
                 bw.Write(rngState);
 
-                // Serialize spell selection indices for lobby state
-                bw.Write(p1_index);
-                bw.Write(p2_index);
-                bw.Write(p3_index);
-                bw.Write(p4_index);
-
                 bw.Write(p1_shopIndex);
                 bw.Write(p2_shopIndex);
 
@@ -2051,11 +2040,6 @@ public class GameManager : MonoBehaviour
                 randomCallCount = br.ReadInt32();
                 rngState = br.ReadUInt32(); // Restore exact RNG state directly
 
-                // Deserialize spell selection indices
-                p1_index = br.ReadInt32();
-                p2_index = br.ReadInt32();
-                p3_index = br.ReadInt32();
-                p4_index = br.ReadInt32();
                 p1_shopIndex = br.ReadInt32();
                 p2_shopIndex = br.ReadInt32();
                 p1_lastCycleFrame = br.ReadInt32();

@@ -15,7 +15,7 @@ public class GetAJob : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range lunging job application.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to increase range.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Medium-range lunging job application.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to increase range and damage.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
         spawnOffsetX = 36;
         spawnOffsetY = 36;
     }

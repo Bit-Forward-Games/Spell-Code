@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class TempUIScript : MonoBehaviour
 {
@@ -39,6 +40,9 @@ public class TempUIScript : MonoBehaviour
     public GameObject RoundConclusion;
     public GameObject ShopOverview;
     public GameObject GameOver;
+    public GameObject textBoxUI;
+    public Animator textBoxAnim;
+    public GameObject[] announcer;
 
     public bool transitionScreenDisplayed;
     public bool shopScreenDisplayed;
@@ -222,7 +226,18 @@ public class TempUIScript : MonoBehaviour
     public IEnumerator DisplayTransitionScreen(GameObject screen, float transitionTime, string text)
     {
         screen.SetActive(true);
+        textBoxUI.SetActive(true);
         screenTransitionText = text;
+
+        foreach (var item in announcer)
+        {
+            item.transform.localScale = Vector3.zero;
+        }
+
+        foreach (var item in announcer)
+        {
+            item.transform.DOScale(new Vector2(0.17f, 0.33575f), 0.5f).SetEase(Ease.OutBounce);
+        }
 
         Transform childTransform = screen.transform.Find("Text");
         TextMeshProUGUI screenText = null;
@@ -233,15 +248,25 @@ public class TempUIScript : MonoBehaviour
         if (screenText != null)
         {
             screenText.text = "";
-            StartCoroutine(TypeLine(screenText));
+            StartCoroutine(TypeLine(screenText, text));
         }
         
         yield return new WaitForSeconds(transitionTime);
 
         screen.SetActive(false);
+        textBoxAnim.SetInteger("Reverse", 1);
+
+        foreach (var item in announcer)
+        {
+            item.transform.DOScale(0f, 0.5f).SetEase(Ease.InOutQuint);
+        }
+
+        yield return new WaitForSeconds(0.2f);
+        textBoxAnim.SetInteger("Reverse", 0);
+        textBoxUI.SetActive(false);
     }
 
-    IEnumerator TypeLine(TextMeshProUGUI screenText)
+    IEnumerator TypeLine(TextMeshProUGUI screenText, string text)
     {
         foreach (char c in screenTransitionText.ToCharArray())
         {

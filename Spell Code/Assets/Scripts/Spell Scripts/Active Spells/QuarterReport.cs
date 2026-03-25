@@ -15,7 +15,7 @@ public class QuarterReport : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Send forth your quarterly projections materialized. This spell has a chance equal to your \"Stock Stability\" to gain increased size and damage. Gain 15% \"Stock Stability\".";
+        description = "Medium-range shot.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to enhance range and damage.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
     }
 

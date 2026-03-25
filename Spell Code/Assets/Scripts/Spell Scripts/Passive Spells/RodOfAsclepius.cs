@@ -15,7 +15,7 @@ public class RodOfAsclepius : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitSpell, ProcCondition.OnDeath };
         brands = new Brand[1] { Brand.Killeez };
-        description = "Heal 15 hp once after every 3rd \"Rep\" you gain.";
+        description = "Heal 15 hp after every 3rd Rep<sprite name=\"Reps\"> gained.";
     }
 
     public override void LoadSpell()

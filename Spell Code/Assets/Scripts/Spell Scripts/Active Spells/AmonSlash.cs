@@ -14,7 +14,7 @@ public class AmonSlash : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Lunge forward slashing in front of you, granting \"Demon Aura\" on hit. Your next basic attack consumes all \"Demon Aura\" and deals increased damage based on how much is consumed.";
+        description = "Short-range lunging slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nOn Basic Hit: Consume Demon Aura<sprite name=\"DemonAura\"> and deal extra damage.";
 
     }
 

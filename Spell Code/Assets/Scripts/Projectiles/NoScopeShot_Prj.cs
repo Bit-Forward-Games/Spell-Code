@@ -21,7 +21,7 @@ public class NoScopeShot_Prj : BaseProjectile
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 20); // Set horizontal speed based on facing direction
+        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 16); // Set horizontal speed based on facing direction
     }
 
     public override void LoadProjectile()
@@ -39,7 +39,7 @@ public class NoScopeShot_Prj : BaseProjectile
                     height = 8*2,
                     xKnockback = 5,
                     yKnockback = 8,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 1,
                     basicAttackHitbox = true,

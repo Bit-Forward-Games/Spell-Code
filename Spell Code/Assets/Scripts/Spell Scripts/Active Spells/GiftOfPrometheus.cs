@@ -10,7 +10,7 @@ public class GiftOfPrometheus : SpellData
         spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        description = "Send forth an orb of promethian flame, granting 2 \"Reps\" on hit. Deals massive damage, increased by how many \"Reps\" you currently have";
+        description = "Delayed massive explosion.\nHit this: Gain 2 Reps<sprite name=\"Reps\">.\nDeals greatly increased damage based on Reps<sprite name=\"Reps\">.";
 
         projectilePrefabs = new GameObject[1];
     }

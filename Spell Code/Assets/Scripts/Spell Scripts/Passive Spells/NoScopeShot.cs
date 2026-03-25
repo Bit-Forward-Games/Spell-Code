@@ -12,9 +12,9 @@ public class NoScopeShot : SpellData
         spellName = "NoScopeShot";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic };
+        procConditions = new ProcCondition[1] {ProcCondition.OnCastBasic };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in \"Flow State,\" replace your basic attack with a long-range sniper shot. If this spell hits, consume all \"Flow State\" and deal increased damage based on the amount consumed.";
+        description = "While in Flow State,<sprite name=\"FlowState\"> basic attack becomes long-range shot.";
 
         projectilePrefabs = new GameObject[1];
     }
@@ -24,12 +24,6 @@ public class NoScopeShot : SpellData
     {
         switch (targetProcCon)
         {
-            //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
-            case ProcCondition.ActiveOnHit:
-                int consumedFlowState = defender.GetMaxHealth()*owner.flowState/PlayerController.maxFlowState/4;
-                owner.flowState = 0;
-                defender.TakeEffectDamage(consumedFlowState, owner);
-                break;
             case ProcCondition.OnCastBasic:
 
                 if (owner.flowState > 0)

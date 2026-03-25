@@ -16,7 +16,7 @@ public class MightOfZeus : SpellData
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[3];
 
-        description = "Summon down 3 lightning strikes, each granting 1 \"Rep\" if it hits. If you have 8 or more \"Reps\", this Spell-Code stuns!";
+        description = "Summon tall, medium-range lightning.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nIf 8+ Reps<sprite name=\"Reps\">, this stuns.";
 
         spawnOffsetX = 25;
         spawnOffsetY = 0;

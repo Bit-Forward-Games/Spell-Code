@@ -14,7 +14,7 @@ public class DemonicDescent : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.DemonX };
-        description = "While at 100% \"Demon Aura\", you gain mobility, and your Spells deal increased damage";
+        description = "While at 100% Demon Aura <sprite name=\"DemonAura\">, you gain mobility, and your Spells deal increased damage";
     }
 
 

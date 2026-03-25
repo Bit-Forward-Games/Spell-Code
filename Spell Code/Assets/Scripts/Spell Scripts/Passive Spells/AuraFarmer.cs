@@ -15,7 +15,7 @@ public class AuraFarmer : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate};
         brands = new Brand[1] { Brand.DemonX };
-        description = "After 4 seconds of standing still, slowly gain \"Demon Aura\"";
+        description = "After 4 seconds of standing still, slowly gain Demon Aura <sprite name=\"DemonAura\">.";
     }
 
 

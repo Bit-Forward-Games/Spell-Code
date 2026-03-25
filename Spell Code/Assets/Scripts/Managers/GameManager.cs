@@ -81,7 +81,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     //game timers
     public float roundEndTimer = 0f;
-    public int roundEndTransitionTime = 2;
+    public int roundEndTransitionTime = 5;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -937,13 +937,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     roundOver = true;
                     playerWinText.enabled = true;
 
-                    if (!gameOver)
-                    {
-                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
-                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
-                        playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                        // roundEndedText.text = "Round Ended\n" + "Player " + (winner.pID) + " wins the match!\n" + "Beginning Shop Phase...";
-                    }
 
                     for (int i = 0; i < playerCount; i++)
                     {
@@ -955,11 +948,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                             gameOver = true; 
                             roundEndedText.text = "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!";
                             StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, roundEndedText.text));
-                            playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                            // roundEndedText.text = "Game Over\n" + "Player " + (winner.pID) + " wins the match!\n" + "Congratulations!!!";
+                            // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
                         }
                     }
 
+                    if (!gameOver)
+                    {
+                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
+                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
+                        // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                    }
                     //stop repeating all sounds
                     SFX_Manager.Instance.StopRepeatingAllSounds();
 

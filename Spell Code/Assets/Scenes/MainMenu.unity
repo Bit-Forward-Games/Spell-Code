@@ -1370,6 +1370,7 @@ MonoBehaviour:
     dateTime: 
     matchData: []
   totalRoundsPlayed: 0
+  roundTimer: 0
 --- !u!1 &564834495
 GameObject:
   m_ObjectHideFlags: 0

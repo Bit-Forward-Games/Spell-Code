@@ -1996,6 +1996,8 @@ public class GameManager : MonoBehaviour
                     bw.Write(gamba != null ? gamba.activatedCount : 0);
                     bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
                     bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+                    bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+                    bw.Write(isActive);
                 }
 
                 return memoryStream.ToArray();
@@ -2177,6 +2179,7 @@ public class GameManager : MonoBehaviour
                     int activatedCount = br.ReadInt32();
                     byte resetTimer = br.ReadByte();
                     int startingSpellPos = br.ReadInt32();
+                    bool isActive = br.ReadBoolean();
                     if (i < gambas.Count)
                     {
                         GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
@@ -2185,6 +2188,10 @@ public class GameManager : MonoBehaviour
                             gamba.activatedCount = activatedCount;
                             gamba.resetTimer = resetTimer;
                             gamba.SetStartingSpellPos(startingSpellPos);
+                            if (gamba.gambaAnimator != null)
+                            {
+                                gamba.gambaAnimator.SetBool("isActive", isActive);
+                            }
                         }
                     }
                 }

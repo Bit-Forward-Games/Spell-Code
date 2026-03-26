@@ -6,6 +6,7 @@ public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameManager gameManager;
     public bool paused;
     public bool options;
     public bool shakeEnabled = true;
@@ -13,6 +14,7 @@ public class Pause : MonoBehaviour
 
     private void Start()
     {
+        gameManager = GameManager.Instance;
         //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
     }
@@ -20,15 +22,18 @@ public class Pause : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape))
+        if (!gameManager.isOnlineMatchActive)
         {
-            if (paused)
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Resume();
-            }
-            else
-            {
-                Pausing();
+                if (paused)
+                {
+                    Resume();
+                }
+                else
+                {
+                    Pausing();
+                }
             }
         }
     }

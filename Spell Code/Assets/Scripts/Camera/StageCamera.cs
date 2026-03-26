@@ -24,7 +24,7 @@ public class StageCamera : MonoBehaviour
 
     public Vector2 target;
     public bool lockCamera = true;
-    public bool dynamicCameraOverride;
+    public bool dynamicCameraOverride = false;
     //private Vector3 vel = Vector3.one;
     private Camera cam;
 

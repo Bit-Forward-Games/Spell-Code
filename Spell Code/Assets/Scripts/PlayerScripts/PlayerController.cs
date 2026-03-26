@@ -2289,6 +2289,10 @@ public class PlayerController : MonoBehaviour
                 }
                 deathList.Add(transform.position);
             }
+
+            // play the controller vibration
+            TriggerHitRumble(1f, 1f, 1f);
+
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 

@@ -13,6 +13,7 @@ public class TempUIScript : MonoBehaviour
     public Image[] followPlayerHpBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
+    public GameObject[] onPlayerUI;
     public GameObject[] emptyQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
@@ -50,6 +51,7 @@ public class TempUIScript : MonoBehaviour
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
+        onPlayerUI = new GameObject[4];
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
     }
 
@@ -96,12 +98,21 @@ public class TempUIScript : MonoBehaviour
 
     public void UpdateUIBarVals()
     {
+        Scene currentScene = SceneManager.GetActiveScene();
+
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            onPlayerUI[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "On-Player UI").gameObject;
+            if (currentScene.name == "MainMenu" || currentScene.name == "Shop")
+            {
+                onPlayerUI[i].SetActive(false);
+            }
+            else
+                onPlayerUI[i].SetActive(true);
+
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
             // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
-            playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
 
             if (GameManager.Instance.players[i].isHit)
             {
@@ -112,6 +123,7 @@ public class TempUIScript : MonoBehaviour
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
             float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
+            playerRamVals[i].text = $"{GameManager.Instance.players[i].roundRam}";
             playerGoldBar[i].fillAmount = fillGoldAmountVal;
 
             emptyQuadrants[i].SetActive(false);

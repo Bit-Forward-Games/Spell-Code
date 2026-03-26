@@ -101,4 +101,8 @@ MonoBehaviour:
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 39021a632c012114b80000478a10ad2a, type: 3}
     parentTransform: {fileID: 0}
     particleSystems: []
+  - visualEffectName: 13
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: c896e9074d21cd4488d67ddee48bdc1e, type: 3}
+    parentTransform: {fileID: 0}
+    particleSystems: []
   spellVisualEffectObjects: []

@@ -2070,6 +2070,9 @@ public class PlayerController : MonoBehaviour
                 SpawnToast("COMBO BREAK!!!", Color.magenta);
                 iframes = 120;
                 comboCounter = 0;
+
+                //Play the combo break VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, -38f), pID);
             }
 
 

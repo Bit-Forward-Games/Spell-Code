@@ -24,6 +24,7 @@ public class StageCamera : MonoBehaviour
 
     public Vector2 target;
     public bool lockCamera = true;
+    public bool dynamicCameraOverride;
     //private Vector3 vel = Vector3.one;
     private Camera cam;
 
@@ -48,7 +49,7 @@ public class StageCamera : MonoBehaviour
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         lockCamera = !stageDataSO.dynamicCamera;
         // If camera is locked, set to hard zoom and return
-        if (lockCamera)
+        if (lockCamera || dynamicCameraOverride)
         {
             cam.orthographicSize = HardSetZoom;
             if (pause.shakeEnabled) ApplyShake();

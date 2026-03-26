@@ -2055,7 +2055,7 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
-        if(demonAura > 0)
+        if (demonAura > 0)
         {
             if (demonAuraLifeSpanTimer > 0)
             {
@@ -2066,7 +2066,7 @@ public class PlayerController : MonoBehaviour
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
 
-            //Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
+            Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
             //if (demonAura > (ushort)0 && demonAura <= (ushort)20)
             //{
@@ -2095,7 +2095,7 @@ public class PlayerController : MonoBehaviour
             //}
 
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, (demonAura / maxDemonAura) * 50);
         }
         else
         {
@@ -2182,6 +2182,9 @@ public class PlayerController : MonoBehaviour
                 SpawnToast("COMBO BREAK!!!", Color.magenta);
                 iframes = 120;
                 comboCounter = 0;
+
+                //Play the combo break VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, -38f), pID);
             }
 
 

@@ -246,6 +246,7 @@ public class GameManager : MonoBehaviour
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 
+#if UNITY_EDITOR
         if (!isOnlineMatchActive)
         {
             if (UnityEngine.Input.GetKeyDown(toggleOnlineMenuKey))
@@ -258,6 +259,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+#endif
     }
 
     private void FixedUpdate()

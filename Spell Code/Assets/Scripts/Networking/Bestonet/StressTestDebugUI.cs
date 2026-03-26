@@ -21,10 +21,12 @@ public class StressTestDebugUI : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_EDITOR
         if (Input.GetKeyDown(toggleKey))
         {
             showUI = !showUI;
         }
+#endif
     }
 
     private void OnGUI()

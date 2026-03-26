@@ -2252,7 +2252,7 @@ public class PlayerController : MonoBehaviour
         bool hasAttacker = attacker != null;
         if (!isRollback && damageAmount > 0)
         {
-            TriggerHitRumble();
+            TriggerHitRumble(0.2f, 0.6f, 0.12f);
         }
 
         if (DataManager.Instance != null &&
@@ -2757,7 +2757,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void TriggerHitRumble()
+    private void TriggerHitRumble(float low, float high, float duration)
     {
         if (!enableHitRumble)
         {
@@ -2770,18 +2770,22 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        low = Mathf.Clamp01(low);
+        high = Mathf.Clamp01(high);
+        duration = Mathf.Max(0f, duration);
+
         if (hitRumbleRoutine != null)
         {
             StopCoroutine(hitRumbleRoutine);
         }
 
-        hitRumbleRoutine = StartCoroutine(HitRumbleRoutine(gamepad));
+        hitRumbleRoutine = StartCoroutine(HitRumbleRoutine(gamepad, low, high, duration));
     }
 
-    private IEnumerator HitRumbleRoutine(Gamepad gamepad)
+    private IEnumerator HitRumbleRoutine(Gamepad gamepad, float low, float high, float duration)
     {
-        gamepad.SetMotorSpeeds(hitRumbleLow, hitRumbleHigh);
-        yield return new WaitForSeconds(hitRumbleDuration);
+        gamepad.SetMotorSpeeds(low, high);
+        yield return new WaitForSeconds(duration);
         gamepad.SetMotorSpeeds(0f, 0f);
         hitRumbleRoutine = null;
     }

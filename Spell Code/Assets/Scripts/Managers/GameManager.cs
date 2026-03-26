@@ -992,7 +992,7 @@ public class GameManager : MonoBehaviour
             }
             if (tempUI != null)
             {
-                StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, message));
+                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
             }
         }
         else
@@ -1004,7 +1004,7 @@ public class GameManager : MonoBehaviour
             }
             if (tempUI != null)
             {
-                StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, message));
+                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
             }
         }
     }

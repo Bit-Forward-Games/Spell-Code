@@ -46,9 +46,9 @@ public class BladeOfAres_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 12*2,
+                    xOffset = 15*2,
                     yOffset = 29*2,
-                    width = 27*2,
+                    width = 30*2,
                     height = 45*2,
                     xKnockback = 5,
                     yKnockback = 5,

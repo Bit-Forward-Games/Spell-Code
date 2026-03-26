@@ -5,11 +5,17 @@ using UnityEngine.UI;
 public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
+    public GameObject optionsMenu;
+    public GameManager gameManager;
     public bool paused;
+    public bool options;
+    public bool shakeEnabled = true;
+    public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
 
     private void Start()
     {
+        gameManager = GameManager.Instance;
         //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
     }
@@ -17,49 +23,55 @@ public class Pause : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape))
+        if (!gameManager.isOnlineMatchActive)
         {
-            if (paused)
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Resume();
-            }
-            else
-            {
-                Pausing();
+                if (paused)
+                {
+                    Resume();
+                }
+                else
+                {
+                    Pausing();
+                }
             }
         }
     }
 
     public void Resume()
     {
-        //Log a message
-        Debug.Log("Game Resumed");
-
         paused = false;
+        options = false;
         pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
         Time.timeScale = 1f;    
     }
 
     public void Pausing()
     {
-        //Log a message
-        Debug.Log("Game Paused");
-
         paused = true;
+        options = false;
         pausemenu.SetActive(true);
+        optionsMenu.SetActive(false);
+        Time.timeScale = 0f;
+    }
+
+    public void Options()
+    {
+        options = true;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(true);
         Time.timeScale = 0f;
     }
 
     public void ReturnToLobby()
     {
-        //Log a message
-        Debug.Log("Returning to Lobby");
-
         //Resume game
         Resume();
 
         //Restart the game back at the lobby
-        sceneUiManager.Restart();
+        sceneUiManager.MainMenu();
     }
 
     public void QuitGame()
@@ -70,5 +82,15 @@ public class Pause : MonoBehaviour
         //quit the game
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
+    }
+
+    public void ToggleCameraShake()
+    {
+        shakeEnabled = !shakeEnabled;
+    }
+
+    public void ToggleDynamicCamera()
+    {
+        dynamicCameraOverride = !dynamicCameraOverride;
     }
 }

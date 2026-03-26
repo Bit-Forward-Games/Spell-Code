@@ -2155,7 +2155,6 @@ MonoBehaviour:
   opponentIdField: {fileID: 1015212266}
   myIdText: {fileID: 1417159160}
   onlineUI: {fileID: 1505144232}
-  gameplaySceneName: MainMenu
 --- !u!114 &1101021166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3096,6 +3095,9 @@ MonoBehaviour:
   screenEdgeBuffer: 50
   target: {x: 0, y: 0}
   lockCamera: 1
+  dynamicCameraOverride: 0
+  pause: {fileID: 0}
+  shakeEnabled: 0
 --- !u!114 &1452465065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3448,7 +3450,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5556436313567878654, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5579797999015951978, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -3533,6 +3535,10 @@ PrefabInstance:
     - target: {fileID: 6820320932916685196, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.y
       value: 149.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6871153022848100378, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6947627161954669677, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x

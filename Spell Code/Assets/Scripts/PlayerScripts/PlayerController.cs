@@ -2545,11 +2545,17 @@ public class PlayerController : MonoBehaviour
         bw.Write(position.Y.RawValue);
         bw.Write(hSpd.RawValue);
         bw.Write(vSpd.RawValue);
+        bw.Write(playerWidth.RawValue);
+        bw.Write(playerHeight.RawValue);
+        bw.Write(runSpeed.RawValue);
+        bw.Write(slideSpeed.RawValue);
+        bw.Write(jumpForce.RawValue);
         bw.Write(gravity.RawValue);
         bw.Write(timer.RawValue);
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
+        bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
         bw.Write(logicFrame); // 🔹 Save current logic frame
@@ -2633,11 +2639,17 @@ public class PlayerController : MonoBehaviour
         position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
         hSpd = new Fixed(br.ReadInt32());
         vSpd = new Fixed(br.ReadInt32());
+        playerWidth = new Fixed(br.ReadInt32());
+        playerHeight = new Fixed(br.ReadInt32());
+        runSpeed = new Fixed(br.ReadInt32());
+        slideSpeed = new Fixed(br.ReadInt32());
+        jumpForce = new Fixed(br.ReadInt32());
         gravity = new Fixed(br.ReadInt32());
         timer = new Fixed(br.ReadInt32());
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         onPlatform = br.ReadBoolean();
+        relativeInputs = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();
         logicFrame = br.ReadInt32();

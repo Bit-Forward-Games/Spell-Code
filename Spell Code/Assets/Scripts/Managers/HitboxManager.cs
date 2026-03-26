@@ -82,9 +82,17 @@ public class HitboxManager : MonoBehaviour
 
         //Projectile vs Player Collision
 
-        foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
+        IEnumerable<BaseProjectile> projectileList = ProjectileManager.Instance.activeProjectiles;
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         {
-            if (projectile.projectileHitboxes.Length == 0) break;
+            projectileList = projectileList
+                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p))
+                .ThenBy(p => p != null ? p.GetInstanceID() : 0);
+        }
+
+        foreach (BaseProjectile projectile in projectileList)
+        {
+            if (projectile.projectileHitboxes.Length == 0) continue;
             HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
             // Combine all hitbox lists into one sequence
             var activeProjHit = activeGroup.hitbox1
@@ -99,7 +107,7 @@ public class HitboxManager : MonoBehaviour
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
-                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) return;
+                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
@@ -115,6 +123,26 @@ public class HitboxManager : MonoBehaviour
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
+                            if (GameManager.Instance.isOnlineMatchActive)
+                            {
+                                HitboxData bakedHitbox = hitbox.Clone();
+                                int attackerFacing = 1;
+                                if (projectile.owner != null)
+                                {
+                                    attackerFacing = projectile.owner.facingRight ? 1 : -1;
+                                }
+                                else
+                                {
+                                    attackerFacing = projectile.facingRight ? 1 : -1;
+                                }
+                                bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
+                                defendingPlayer.hitboxData = bakedHitbox;
+                            }
+                            else
+                            {
+                                defendingPlayer.facingRight = !projectile.facingRight;
+                                defendingPlayer.hitboxData = hitbox;
+                            }
                             //if (!RollbackManager.Instance.isRollbackFrame)
                             //{
                             //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);

@@ -8,15 +8,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class QuarterReport_prj : BaseProjectile
 {
 
-    public QuarterReport_prj()
+    protected override void InitializeDefaults()
     {
         projName = "QuarterReport";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30;
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, true);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

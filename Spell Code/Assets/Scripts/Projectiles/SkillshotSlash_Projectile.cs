@@ -9,15 +9,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class SkillshotSlash_Projectile : BaseProjectile
 {
 
-    public SkillshotSlash_Projectile()
+    protected override void InitializeDefaults()
     {
         projName = "SkillshotSlash";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 3, 3, 3, 3, 3 }, false);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

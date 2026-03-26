@@ -36,7 +36,7 @@ public class GambaMachine : MonoBehaviour
     public HurtboxData hurtbox = new HurtboxData();
     public float colliderRadius = 16f;
 
-    private byte resetTimer = 0;
+    public byte resetTimer = 0;
     public int activatedCount = 0;
 
     public GameObject floppy;
@@ -56,16 +56,14 @@ public class GambaMachine : MonoBehaviour
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
 
-        startingSpells = new string[4] {"AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
-        if (ownerPID == 1) { startingSpellPos = 0; }
-        if (ownerPID == 2) { startingSpellPos = 1; }
-        if (ownerPID == 3) { startingSpellPos = 2; }
-        if (ownerPID == 4) { startingSpellPos = 3; }
+        startingSpells = new string[4] { "AmonSlash", "QuarterReport", "BladeOfAres", "SkillshotSlash" };
+        ResetLobbyState();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (gameManager.isOnlineMatchActive) return;
 
         gambaAnimator.SetBool("facingLeft", !facingRight);
         activeScene = SceneManager.GetActiveScene();
@@ -240,6 +238,196 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
+    public void SimulateOnline(int ownerPlayerIndex)
+    {
+        activeScene = SceneManager.GetActiveScene();
+        if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
+        if (ownerPlayer == null) return;
+
+        if (activeScene.name == "MainMenu")
+        {
+            if (ownerPlayer.spellList.Count > 0)
+            {
+                gambaAnimator.SetBool("isActive", false);
+                ClearFloppysForPID(ownerPID);
+            }
+
+            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            {
+                gambaAnimator.SetBool("isActive", false);
+                SpawnFloppysForOwnerOnline();
+            }
+        }
+        else if (activeScene.name == "Shop")
+        {
+            SimulateShopOnline();
+        }
+
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            Debug.Log("GAMBA RESET TIMER GOING");
+            resetTimer++;
+
+            if (resetTimer > 120)
+            {
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
+            }
+        }
+    }
+
+    private void SimulateShopOnline()
+    {
+        if (ownerPlayer == null) return;
+
+        if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+        {
+            activatedCount = 3;
+            gambaAnimator.SetBool("isActive", false);
+            ClearFloppysForPID(ownerPID);
+        }
+
+        if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+        {
+            Debug.Log("SHOP GAMBA ONLINE");
+            gambaAnimator.SetBool("isActive", false);
+            activatedCount++;
+
+            ClearFloppysForPID(ownerPID);
+
+            if (ownerPID == 1)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[0]);
+                SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                SpawnFloppyDisk(ownerPID, diskLocations[2]);
+            }
+            if (ownerPID == 2)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[3]);
+                SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                SpawnFloppyDisk(ownerPID, diskLocations[5]);
+            }
+            if (ownerPID == 3)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[6]);
+                SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                SpawnFloppyDisk(ownerPID, diskLocations[8]);
+            }
+            if (ownerPID == 4)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[9]);
+                SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                SpawnFloppyDisk(ownerPID, diskLocations[11]);
+            }
+        }
+
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        {
+            resetTimer++;
+            if (resetTimer > 120)
+            {
+                gambaAnimator.SetBool("isActive", true);
+                resetTimer = 0;
+            }
+        }
+    }
+
+    private void ClearFloppysForPID(int pid)
+    {
+        List<GameObject> list = GetFloppyListForPID(pid);
+        foreach (GameObject flop in list) { Destroy(flop); }
+        list.Clear();
+    }
+
+    private List<GameObject> GetFloppyListForPID(int pid)
+    {
+        if (pid == 1) return p1_floppys;
+        if (pid == 2) return p2_floppys;
+        if (pid == 3) return p3_floppys;
+        return p4_floppys;
+    }
+
+    private void SpawnFloppysForOwner()
+    {
+        if (activeScene.name != "MainMenu") return;
+
+        if (ownerPID == 1)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[2], ownerPlayer.startingSpell); //real starter
+        }
+        if (ownerPID == 2)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[3], ownerPlayer.startingSpell); //real starter
+        }
+        if (ownerPID == 3)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[8], ownerPlayer.startingSpell); //real starter
+        }
+        if (ownerPID == 4)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[9], ownerPlayer.startingSpell); //real starter
+        }
+    }
+
+    private void SpawnFloppysForOwnerOnline()
+    {
+        if (activeScene.name != "MainMenu") return;
+
+        if (ownerPID == 1)
+        {
+            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+            p1_floppys.Clear();
+            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
+        }
+        if (ownerPID == 2)
+        {
+            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+            p2_floppys.Clear();
+            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
+        }
+        if (ownerPID == 3)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
+        }
+        if (ownerPID == 4)
+        {
+            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+        }
+
+        startingSpellPos++;
+        if (startingSpellPos > 3)
+        {
+            startingSpellPos = 0;
+        }
+    }
+
+    public void ResetLobbyState()
+    {
+        resetTimer = 0;
+        activatedCount = 0;
+
+        if (ownerPID == 1) { startingSpellPos = 0; }
+        if (ownerPID == 2) { startingSpellPos = 1; }
+        if (ownerPID == 3) { startingSpellPos = 2; }
+        if (ownerPID == 4) { startingSpellPos = 3; }
+
+        ClearFloppysForPID(ownerPID);
+
+        if (gambaAnimator != null)
+        {
+            gambaAnimator.SetBool("isActive", true);
+        }
+    }
+
+    public int GetStartingSpellPos()
+    {
+        return startingSpellPos;
+    }
+
+    public void SetStartingSpellPos(int value)
+    {
+        startingSpellPos = value;
+    }
 
     public bool CheckHitboxCollision()
     {
@@ -272,6 +460,10 @@ public class GambaMachine : MonoBehaviour
             foreach (var item in SpellDictionary.Instance.spellDict)
             {
                 spells.Add(item.Key);
+            }
+            if (gameManager != null && gameManager.isOnlineMatchActive)
+            {
+                spells.Sort(StringComparer.Ordinal);
             }
 
             //fill list of specific player's spells
@@ -345,7 +537,7 @@ public class GambaMachine : MonoBehaviour
             }
 
             //get a random spell
-            int randomInt = GameManager.Instance.seededRandom.Next(0, spells.Count);
+            int randomInt = GameManager.Instance.GetNextRandom(0, spells.Count);
             string spellToAdd = spells[randomInt];
 
             if (ownerPID == 1)

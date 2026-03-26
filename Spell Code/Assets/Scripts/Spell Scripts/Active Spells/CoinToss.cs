@@ -32,7 +32,7 @@ public class CoinToss : SpellData
 
             // Reset the activate flag
             activateFlag = false;
-            byte projectileIndex = (byte)(doesCrit ? 0 : (GameManager.Instance.seededRandom.Next(0, 100) < 50?1:2));
+            byte projectileIndex = (byte)(doesCrit ? 0 : (GameManager.Instance.GetNextRandom(0, 100) < 50?1:2));
 
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject
@@ -57,12 +57,25 @@ public class CoinToss : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
-
+                int roll = GameManager.Instance.GetNextRandom(0, 100);
+                Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
+                doesCrit = roll < owner.stockStability;
                 break;
             default:
                 break;
         }
+    }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(doesCrit);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        doesCrit = br.ReadBoolean();
     }
 
     

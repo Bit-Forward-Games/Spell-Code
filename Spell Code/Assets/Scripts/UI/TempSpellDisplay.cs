@@ -41,6 +41,11 @@ public class TempSpellDisplay : MonoBehaviour
     // Cached references 
     private GameObject[] cooldownBarParents; // cached things so we dont have to do GetComponentInParent + LINQ every update
 
+    private bool IsRollbackFrame => GameManager.Instance != null
+                              && GameManager.Instance.isOnlineMatchActive
+                              && RollbackManager.Instance != null
+                              && RollbackManager.Instance.isRollbackFrame;
+
     public void Start()
     {
         //its better to just assign this in inspector bcs find functions are doody other than find with tag
@@ -142,6 +147,8 @@ public class TempSpellDisplay : MonoBehaviour
 
     public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
     {
+        if (IsRollbackFrame) return;
+
         PlayerController player = GameManager.Instance.players[playerIndex];
 
         if (player.spellList.Count <= 0)
@@ -257,6 +264,8 @@ public class TempSpellDisplay : MonoBehaviour
 
     public void UpdateCooldownDisplay(int playerIndex)
     {
+        if (IsRollbackFrame) return;
+
         var playerSpells = GameManager.Instance.players[playerIndex].spellList;
 
         for (int i = 0; i < spellSlots.Count; i++)

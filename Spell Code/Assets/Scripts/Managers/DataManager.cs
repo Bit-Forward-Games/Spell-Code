@@ -37,22 +37,27 @@ public class DataManager : MonoBehaviour
 
     private void Start()
     {
+        gM = GameManager.Instance;
+
         gameData.dateTime = System.DateTime.Now.ToString();
         gameData.matchData = new List<MatchData>();
 
-        for (ushort i = 0; i < GameManager.Instance.tempMapGOs.Count; i++)
+        if (gM == null)
         {
-            if (!gameData.arenaData.deathDict.ContainsKey(GameManager.Instance.tempMapGOs[i].name))
-            {
-                gameData.arenaData.deathDict.Add(GameManager.Instance.tempMapGOs[i].name, new List<Vector2>());
-            }
-            if (!gameData.arenaData.hitDict.ContainsKey(GameManager.Instance.tempMapGOs[i].name))
-            {
-                gameData.arenaData.hitDict.Add(GameManager.Instance.tempMapGOs[i].name, new List<Vector2>());
-            }
+            return;
         }
 
-        gM = GameManager.Instance;
+        for (ushort i = 0; i < gM.tempMapGOs.Count; i++)
+        {
+            if (!gameData.arenaData.deathDict.ContainsKey(gM.tempMapGOs[i].name))
+            {
+                gameData.arenaData.deathDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
+            }
+            if (!gameData.arenaData.hitDict.ContainsKey(gM.tempMapGOs[i].name))
+            {
+                gameData.arenaData.hitDict.Add(gM.tempMapGOs[i].name, new List<Vector2>());
+            }
+        }
     }
 
     //temp for testing in-engine

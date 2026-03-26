@@ -74,11 +74,18 @@ public class PlayerController : MonoBehaviour
     private readonly bool[] codeButton = new bool[2];
     private readonly bool[] jumpButton = new bool[2];
     private readonly ButtonState[] buttons = new ButtonState[2];
+    private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
+    [Header("Haptics")]
+    [SerializeField] private bool enableHitRumble = true;
+    [SerializeField, Range(0f, 1f)] private float hitRumbleLow = 0.2f;
+    [SerializeField, Range(0f, 1f)] private float hitRumbleHigh = 0.6f;
+    [SerializeField] private float hitRumbleDuration = 0.12f;
+    private Coroutine hitRumbleRoutine;
 
-
+    public static readonly Fixed FixedDeltaTime = Fixed.FromFloat(1f / 60f);
 
     private ushort lerpDelay = 0;
     [NonSerialized]
@@ -168,6 +175,7 @@ public class PlayerController : MonoBehaviour
 
     public List<SpellData> spellList = new List<SpellData>();
     public GameObject basicProjectileInstance;
+    private int _pendingHitboxProjectileIndex = -1;
 
     //TMPro
     public TextMeshPro inputDisplay;
@@ -212,6 +220,7 @@ public class PlayerController : MonoBehaviour
     public bool chosenStartingSpell = false;
     public bool isSpawned;
     public string startingSpell;
+    public bool startingSpellAdded = false;
 
     public int pID;
 
@@ -245,7 +254,11 @@ public class PlayerController : MonoBehaviour
         hitboxData = null;
 
         //specialMoves.SetupSpecialMoves(characterName);
-        InitCharacter();
+        if (!GameManager.Instance.isOnlineMatchActive)
+        {
+            InitCharacter();
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
 
     }
 
@@ -260,6 +273,7 @@ public class PlayerController : MonoBehaviour
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        StopHitRumble();
     }
 
     private void OnDestroy()
@@ -268,6 +282,7 @@ public class PlayerController : MonoBehaviour
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        StopHitRumble();
     }
 
     //get max health helper func:
@@ -291,7 +306,7 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
-        //startingSpell = charData.startingInventory[0];
+        startingSpell = charData.startingInventory[0];
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -357,7 +372,7 @@ public class PlayerController : MonoBehaviour
         //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
         //SpawnPlayer(startPos);
 
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)
@@ -534,6 +549,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         ClearSpellList();
 
+        startingSpellAdded = false;
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
         //{
@@ -615,7 +631,80 @@ public class PlayerController : MonoBehaviour
         return input;
     }
 
-    
+    /// <summary>
+    /// Gets keyboard input directly using Unity's old Input API.
+    /// This bypasses the Input System entirely.
+    /// </summary>
+    private ulong GetRawKeyboardInput()
+    {
+        // DEBUG: Check if ANY key is being pressed
+        if (UnityEngine.Input.anyKey)
+        {
+            //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+            // Log specific keys
+            //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+            //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+            //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+            //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+        }
+
+        // Direction input (using numpad notation: 5 = neutral)
+        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+
+        // Button states (need to track previous state for Pressed/Released detection)
+        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+
+        // Store previous button states (you might need to add these as class fields)
+        bool codePrev = codePrevFrame;
+        bool jumpPrev = jumpPrevFrame;
+
+        // Update for next frame
+        codePrevFrame = codeNow;
+        jumpPrevFrame = jumpNow;
+
+        // Calculate direction (numpad notation)
+        byte direction = 5; // neutral
+
+        if (up && right) direction = 9;
+        else if (up && left) direction = 7;
+        else if (down && right) direction = 3;
+        else if (down && left) direction = 1;
+        else if (up) direction = 8;
+        else if (down) direction = 2;
+        else if (left) direction = 4;
+        else if (right) direction = 6;
+
+        // Calculate button states
+        ButtonState codeState = GetButtonState(codePrev, codeNow);
+        ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
+
+        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+        bool[] dirs = new bool[4] { up, down, left, right };
+
+        //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+
+        // Convert to ulong using your existing converter
+        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    }
+
+    private bool codePrevFrame = false;
+    private bool jumpPrevFrame = false;
+
+    private ButtonState GetButtonState(bool previous, bool current)
+    {
+        if (!previous && !current)
+            return ButtonState.None;
+        else if (current && !previous)
+            return ButtonState.Pressed;
+        else if (current && previous)
+            return ButtonState.Held;
+        else
+            return ButtonState.Released;
+    }
 
     public void PlayerUpdate(ulong rawInput)
     {
@@ -879,7 +968,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //keep track of how lojng player is in state for
-                timer += Fixed.FromFloat(Time.fixedDeltaTime);
+                timer += FixedDeltaTime;
 
                 if (vSpd <= Fixed.FromInt(0) && !isGrounded)
                 {
@@ -1321,6 +1410,11 @@ public class PlayerController : MonoBehaviour
         //position.x += hSpd;
         //position.y += vSpd;
 
+        if (ShouldLogDesyncFrame())
+        {
+            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
+        }
+
         //handle player animation
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
@@ -1340,6 +1434,29 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = charData.playerHealth;
         }
         logicFrame++;
+    }
+
+    private bool ShouldLogDesyncFrame()
+    {
+        GameManager gm = GameManager.Instance;
+        if (gm == null || !gm.isOnlineMatchActive || !gm.logDesyncTrace)
+        {
+            return false;
+        }
+
+        RollbackManager rb = RollbackManager.Instance;
+        if (rb != null && rb.isRollbackFrame)
+        {
+            return false;
+        }
+
+        int interval = gm.logDesyncEveryNFrames;
+        if (interval < 1)
+        {
+            interval = 1;
+        }
+
+        return gm.frameNumber % interval == 0;
     }
 
     /// <summary>
@@ -1635,26 +1752,11 @@ public class PlayerController : MonoBehaviour
                 Fixed pMinY = position.Y + vSpd;
                 Fixed pMaxY = position.Y + vSpd + playerHeight;
 
-                //first get the activation status of the solid from the scene by finding the object in the scene with the tag "activatableSolid" and checking its active status
-                GameObject[] activatableSolidsInScene = GameObject.FindGameObjectsWithTag("activatableSolid");
-
                 for (int i = 0; i < activatableSolidCount; i++)
                 {
-
-
-
-                    //find the activatable solid that corresponds to this index via matching the center position
-                    bool isOpen = false;
-                    foreach (GameObject obj in activatableSolidsInScene)
-                    {
-                        Vector3 objPos = obj.transform.position;
-                        if (Mathf.Approximately(objPos.x, stageDataSO.activatableSolidCenter[i].x) &&
-                            Mathf.Approximately(objPos.y, stageDataSO.activatableSolidCenter[i].y))
-                        {
-                            isOpen = obj.GetComponent<SpellCode_Gate>().isOpen;
-                            break;
-                        }
-                    }
+                    float centerX = stageDataSO.activatableSolidCenter[i].x;
+                    float centerY = stageDataSO.activatableSolidCenter[i].y;
+                    bool isOpen = GameManager.Instance.IsGateOpenAtPosition(centerX, centerY);
                     if (!isOpen)
                     {
 
@@ -1745,8 +1847,14 @@ public class PlayerController : MonoBehaviour
             {
                 case BorderType.Collision:
                     FixedVec2 tempPos = position;
-                    position = FixedVec2.FromFloat(Mathf.Clamp(position.X.ToFloat(), stageDataSO.borderMin.x, stageDataSO.borderMax.x),
-                        Mathf.Clamp(position.Y.ToFloat(), stageDataSO.borderMin.y, stageDataSO.borderMax.y));
+                    Fixed borderMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed borderMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed borderMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed borderMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+                    position = new FixedVec2(
+                        Fixed.Clamp(position.X, borderMinX, borderMaxX),
+                        Fixed.Clamp(position.Y, borderMinY, borderMaxY)
+                    );
 
                     returnVal = !tempPos.Equals(position);
                     break;
@@ -1834,8 +1942,17 @@ public class PlayerController : MonoBehaviour
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
                 Fixed yKnockback = Fixed.FromInt(hitboxData.yKnockback);
-                hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
-                vSpd = yKnockback;
+                if (GameManager.Instance.isOnlineMatchActive)
+                {
+                    hSpd = xKnockback;
+                    vSpd = yKnockback;
+                    facingRight = hitboxData.xKnockback < 0;
+                }
+                else
+                {
+                    hSpd = xKnockback * (facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1));
+                    vSpd = yKnockback;
+                }
 
                 //if (isGrounded)
                 //{
@@ -2012,16 +2129,13 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker)
     {
-        if(GameManager.Instance.currentStageIndex < 0)
+        if (GameManager.Instance.currentStageIndex < 0)
         {
             //don't take damage in the lobby
             return;
         }
 
-
         HandleDamage(attacker, damageAmount);
-
-        Debug.Log($"{characterName} took {damageAmount} effect damage! Current Health: {currentPlayerHealth}");
     }
 
     public void CheckHit(InputSnapshot input)
@@ -2043,8 +2157,6 @@ public class PlayerController : MonoBehaviour
 
                 return;
             }
-
-            // isHit = false;
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
             if (lightArmor && hitboxData.attackLvl < 2)
@@ -2091,7 +2203,10 @@ public class PlayerController : MonoBehaviour
 
 
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
-            CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+            if (attacker != null)
+            {
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+            }
             
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
@@ -2100,15 +2215,21 @@ public class PlayerController : MonoBehaviour
             //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
             if (hitboxData.basicAttackHitbox)
             {
-                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
+                if (attacker != null)
+                {
+                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
+                }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic);
             }
             else
             {
-                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
+                if (attacker != null)
+                {
+                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
+                }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                if(attacker.demonAura > 0)
+                if (attacker != null && attacker.demonAura > 0)
                 {
                     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
                 }
@@ -2117,22 +2238,62 @@ public class PlayerController : MonoBehaviour
             //subtract demon aura based on the hitbox's damage
             //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
+            if (GameManager.Instance.isOnlineMatchActive)
+            {
+                isHit = false;
+                hitboxData = null;
+            }
+
 
         }
     }
-
-
     private void HandleDamage(PlayerController attacker, int damageAmount)
     {
-        DataManager.Instance.gameData.arenaData.hitDict[GameManager.Instance.currentStage].Add(transform.position);
-        Debug.Log("Hit Pos: " + transform.position);
-        //update the damage matrix the attacker attacking this player
-        GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Mathf.Clamp(damageAmount, 0, currentPlayerHealth);
+        bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+        bool hasAttacker = attacker != null;
+        if (!isRollback && damageAmount > 0)
+        {
+            TriggerHitRumble(0.2f, 0.6f, 0.12f);
+        }
+
+        if (DataManager.Instance != null &&
+            DataManager.Instance.gameData != null &&
+            DataManager.Instance.gameData.arenaData != null)
+        {
+            var arenaData = DataManager.Instance.gameData.arenaData;
+            if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+            {
+                hitList = new List<Vector2>();
+                arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+            }
+            hitList.Add(transform.position);
+
+            //update the damage matrix the attacker attacking this player
+            if (!isRollback && hasAttacker)
+            {
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
+            }
+        }
+
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
-            DataManager.Instance.gameData.arenaData.deathDict[GameManager.Instance.currentStage].Add(transform.position);
-            Debug.Log("Death Pos: " + transform.position);
+            if (DataManager.Instance != null &&
+                DataManager.Instance.gameData != null &&
+                DataManager.Instance.gameData.arenaData != null)
+            {
+                var arenaData = DataManager.Instance.gameData.arenaData;
+                if (!arenaData.deathDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> deathList))
+                {
+                    deathList = new List<Vector2>();
+                    arenaData.deathDict[GameManager.Instance.currentStage] = deathList;
+                }
+                deathList.Add(transform.position);
+            }
+
+            // play the controller vibration
+            TriggerHitRumble(1f, 1f, 1f);
+
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
@@ -2144,22 +2305,20 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = 0;
 
             //award the killer with the extra bonus ram
-            attacker.roundRam += baseRamKillBonus;
-            attacker.totalRam += baseRamKillBonus;
-            attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+            if (hasAttacker)
+            {
+                attacker.roundRam += baseRamKillBonus;
+                attacker.totalRam += baseRamKillBonus;
+                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+            }
 
         }
         else
         {
-
-
             // Reduce health 
             currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
-
         }
     }
-
-
 
     /// <summary>
     /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
@@ -2202,6 +2361,36 @@ public class PlayerController : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void ResolveReferences()
+    {
+        if (hitboxData != null && _pendingHitboxOwnerIndex >= 0)
+        {
+            // Use specific projectile index if available
+            if (_pendingHitboxProjectileIndex >= 0 &&
+                _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count)
+            {
+                hitboxData.parentProjectile = ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex];
+            }
+            else if (_pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
+            {
+                PlayerController ownerPlayer = GameManager.Instance.players[_pendingHitboxOwnerIndex];
+                if (ownerPlayer != null)
+                {
+                    foreach (BaseProjectile proj in ProjectileManager.Instance.activeProjectiles)
+                    {
+                        if (proj.owner == ownerPlayer)
+                        {
+                            hitboxData.parentProjectile = proj;
+                            break;
+                        }
+                    }
+                }
+            }
+            _pendingHitboxOwnerIndex = -1;
+            _pendingHitboxProjectileIndex = -1;
+        }
     }
 
     /// <summary>
@@ -2367,13 +2556,37 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
-        bw.Write(iframes);
         bw.Write(lightArmor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
+        bw.Write(isHit);
+        bw.Write(iframes);
+        bw.Write(unchecked((int)0xAABBCCDD));
+
+        bool hasHitboxData = hitboxData != null;
+        bw.Write(hasHitboxData);
+        if (hasHitboxData)
+        {
+            bw.Write(hitboxData.damage);
+            bw.Write(hitboxData.hitstun);
+            bw.Write(hitboxData.xKnockback);
+            bw.Write(hitboxData.yKnockback);
+            bw.Write(hitboxData.attackLvl);
+            bw.Write(hitboxData.basicAttackHitbox);
+            int ownerIndex = hitboxData.parentProjectile?.owner != null
+                ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
+                : -1;
+            bw.Write(ownerIndex);
+            int projPrefabIndex = hitboxData.parentProjectile != null
+                ? ProjectileManager.Instance.projectilePrefabs.IndexOf(hitboxData.parentProjectile)
+                : -1;
+            bw.Write(projPrefabIndex);
+        }
+        bw.Write(unchecked((int)0xAABBCCDD));
+
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(demonAura);
@@ -2381,16 +2594,31 @@ public class PlayerController : MonoBehaviour
         bw.Write(reps);
         //bw.Write(momentum);
         //bw.Write(slimed);
+        bw.Write(isSpawned);
+        bw.Write(roundsWon);
+        bw.Write(totalRam);
+        bw.Write(roundRam);
+        bw.Write(ramBounty);
+        bw.Write(chosenStartingSpell);
+        bw.Write(startingSpellAdded);
+        bw.Write(unchecked((int)0xAABBCCDD));
+
 
         // Spell List Serialization
-        bw.Write(spellList.Count); // Write how many spells are in the list
+        bw.Write(unchecked((int)0xAABBCCDD));
+        bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            // Write the spell's unique name/ID to identify which spell it is
-            bw.Write(spellList[i].spellName); // Assuming spellName is unique and constant
+            bw.Write(spellList[i].spellName);
 
-            // Call the spell's own Serialize method (needs to be implemented in SpellData)
-            spellList[i].Serialize(bw); // Assumes SpellData has Serialize(BinaryWriter bw)
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
         }
 
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
@@ -2417,13 +2645,38 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
-        iframes = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
         basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
-        storedCodeDuration = br.ReadUInt16();
+        storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
+        isHit = br.ReadBoolean();
+        iframes = br.ReadUInt16();
+        int markerA = br.ReadInt32();
+        if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
+
+        bool hasHitboxData = br.ReadBoolean();
+        if (hasHitboxData)
+        {
+            if (hitboxData == null) hitboxData = new HitboxData();
+            hitboxData.damage = br.ReadUInt16();
+            hitboxData.hitstun = br.ReadUInt16();
+            hitboxData.xKnockback = br.ReadInt32();
+            hitboxData.yKnockback = br.ReadInt32();
+            hitboxData.attackLvl = br.ReadByte();
+            hitboxData.basicAttackHitbox = br.ReadBoolean();
+            _pendingHitboxOwnerIndex = br.ReadInt32();
+            _pendingHitboxProjectileIndex = br.ReadInt32();
+        }
+        else
+        {
+            hitboxData = null;
+            _pendingHitboxOwnerIndex = -1;
+        }
+
+        int markerB = br.ReadInt32();
+        if (markerB != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at B: {markerB:X8}");
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
         demonAura = br.ReadUInt16();
@@ -2431,39 +2684,158 @@ public class PlayerController : MonoBehaviour
         reps = br.ReadUInt16();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
+        isSpawned = br.ReadBoolean();
+        roundsWon = br.ReadInt32();
+        totalRam = br.ReadUInt16();
+        roundRam = br.ReadUInt16();
+        ramBounty = br.ReadInt16();
+        chosenStartingSpell = br.ReadBoolean();
+        bool savedStartingSpellAdded = br.ReadBoolean();
+        int markerC = br.ReadInt32();
+        if (markerC != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at C: {markerC:X8}");
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());
 
         // Spell List Deserialization
+        int markerD = br.ReadInt32();
+        if (markerD != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at D: {markerD:X8}");
+
         int spellCount = br.ReadInt32();
-        // Important: Ensure the spellList is the correct size and has the correct spells
-        // This is complex. A simple approach if the list order/contents don't change dynamically mid-match:
-        if (spellList.Count != spellCount)
+
+        // HANDLE SPELL LIST SYNC BASED ON FLAG
+        if (savedStartingSpellAdded && !startingSpellAdded)
         {
-            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. State corruption likely.");
-            // Potentially try to rebuild the list based on saved names? Very risky.
-            // For simplicity, assuming the list composition is stable during rollback frames.
+            // Saved state had the spell, but we don't - need to add it
+            if (!string.IsNullOrEmpty(startingSpell))
+            {
+                //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
+                AddSpellToSpellList(startingSpell);
+                startingSpellAdded = true;
+            }
+        }
+        else if (!savedStartingSpellAdded && startingSpellAdded)
+        {
+            // Saved state didn't have the spell, but we do - need to remove it
+            if (!string.IsNullOrEmpty(startingSpell))
+            {
+                //Debug.Log($"[ROLLBACK] Removing starting spell: {startingSpell}");
+                RemoveSpellFromSpellList(startingSpell);
+                startingSpellAdded = false;
+            }
         }
 
+        startingSpellAdded = savedStartingSpellAdded;
+
+        // Read serialized spell payloads first
+        List<(string name, byte[] data)> savedSpells = new List<(string name, byte[] data)>(spellCount);
         for (int i = 0; i < spellCount; i++)
         {
-            string spellName = br.ReadString(); // Read the identifier
+            string spellName = br.ReadString();
+            int spellDataLength = br.ReadInt32();
+            byte[] spellBytes = br.ReadBytes(spellDataLength);
+            savedSpells.Add((spellName, spellBytes));
+        }
 
-            // Find the corresponding spell instance in the current list
+        if (spellList.Count != spellCount)
+        {
+            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
+            RebuildSpellListFromSaved(savedSpells);
+        }
+
+        // Deserialize spell state into matching instances
+        for (int i = 0; i < savedSpells.Count; i++)
+        {
+            string spellName = savedSpells[i].name;
+            byte[] spellBytes = savedSpells[i].data;
             SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
-
             if (spellInstance != null)
             {
-                // Call the spell's Deserialize method
-                spellInstance.Deserialize(br); // Assumes SpellData has Deserialize(BinaryReader br)
+                using (MemoryStream tempStream = new MemoryStream(spellBytes))
+                using (BinaryReader tempReader = new BinaryReader(tempStream))
+                {
+                    spellInstance.Deserialize(tempReader);
+                }
             }
             else
             {
-                Debug.LogError($"Spell '{spellName}' not found in list during Deserialize. Skipping spell state.");
-                // Need a robust way to handle this, perhaps by skipping the correct number of bytes
-                // based on how SpellData.Deserialize is implemented, or failing entirely.
-                // For now, this will likely cause complete desync if a spell is missing.
+                Debug.LogWarning($"Spell '{spellName}' not found after rebuild - skipped {spellBytes.Length} bytes");
             }
         }
+    }
+
+    private void TriggerHitRumble(float low, float high, float duration)
+    {
+        if (!enableHitRumble)
+        {
+            return;
+        }
+
+        Gamepad gamepad = GetAssignedGamepad();
+        if (gamepad == null)
+        {
+            return;
+        }
+
+        low = Mathf.Clamp01(low);
+        high = Mathf.Clamp01(high);
+        duration = Mathf.Max(0f, duration);
+
+        if (hitRumbleRoutine != null)
+        {
+            StopCoroutine(hitRumbleRoutine);
+        }
+
+        hitRumbleRoutine = StartCoroutine(HitRumbleRoutine(gamepad, low, high, duration));
+    }
+
+    private IEnumerator HitRumbleRoutine(Gamepad gamepad, float low, float high, float duration)
+    {
+        gamepad.SetMotorSpeeds(low, high);
+        yield return new WaitForSeconds(duration);
+        gamepad.SetMotorSpeeds(0f, 0f);
+        hitRumbleRoutine = null;
+    }
+
+    private void StopHitRumble()
+    {
+        if (hitRumbleRoutine != null)
+        {
+            StopCoroutine(hitRumbleRoutine);
+            hitRumbleRoutine = null;
+        }
+
+        Gamepad gamepad = GetAssignedGamepad();
+        if (gamepad != null)
+        {
+            gamepad.SetMotorSpeeds(0f, 0f);
+        }
+    }
+
+    private Gamepad GetAssignedGamepad()
+    {
+        if (TryGetComponent<PlayerInput>(out PlayerInput playerInput))
+        {
+            for (int i = 0; i < playerInput.devices.Count; i++)
+            {
+                if (playerInput.devices[i] is Gamepad gp)
+                {
+                    return gp;
+                }
+            }
+        }
+
+        if (playerInputs != null && playerInputs.devices.HasValue)
+        {
+            var devices = playerInputs.devices.Value;
+            for (int i = 0; i < devices.Count; i++)
+            {
+                if (devices[i] is Gamepad gp)
+                {
+                    return gp;
+                }
+            }
+        }
+
+        return null;
     }
 
 
@@ -2487,6 +2859,72 @@ public class PlayerController : MonoBehaviour
         state == PlayerState.Jump ||
         state == PlayerState.Slide ||
         state == PlayerState.CodeWeave;
+
+    private void RebuildSpellListFromSaved(List<(string name, byte[] data)> savedSpells)
+    {
+        // Destroy existing spell instances
+        for (int i = spellList.Count - 1; i >= 0; i--)
+        {
+            SpellData spell = spellList[i];
+            if (spell != null)
+            {
+                Destroy(spell.gameObject);
+            }
+        }
+        spellList.Clear();
+
+        // Recreate list in saved order (no LoadSpell to avoid side effects)
+        for (int i = 0; i < savedSpells.Count; i++)
+        {
+            string spellName = savedSpells[i].name;
+            if (SpellDictionary.Instance != null &&
+                SpellDictionary.Instance.spellDict != null &&
+                SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData template) &&
+                template != null)
+            {
+                SpellData instance = Instantiate(template);
+                instance.owner = this;
+                spellList.Add(instance);
+            }
+            else
+            {
+                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell '{spellName}' in dictionary.");
+            }
+        }
+
+        // Recompute brand flags from rebuilt list
+        vWave = false;
+        killeez = false;
+        DemonX = false;
+        bigStox = false;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null || spell.brands == null) continue;
+            for (int b = 0; b < spell.brands.Length; b++)
+            {
+                if (spell.brands[b] == Brand.VWave) vWave = true;
+                if (spell.brands[b] == Brand.Killeez) killeez = true;
+                if (spell.brands[b] == Brand.DemonX) DemonX = true;
+                if (spell.brands[b] == Brand.BigStox) bigStox = true;
+            }
+        }
+
+        // Rebuild projectile pool once to match the new spell list
+        if (ProjectileManager.Instance != null)
+        {
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
+
+        // Update UI if available
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        if (playerIndex >= 0 && GameManager.Instance.tempSpellDisplays != null &&
+            playerIndex < GameManager.Instance.tempSpellDisplays.Length &&
+            GameManager.Instance.tempSpellDisplays[playerIndex] != null)
+        {
+            GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+        }
+    }
 
 
     public void CheckReleaseCode(InputSnapshot targetInput)
@@ -2759,7 +3197,3 @@ public class PlayerController : MonoBehaviour
         return frontmostLayer.id;
     }
 }
-
-
-
-

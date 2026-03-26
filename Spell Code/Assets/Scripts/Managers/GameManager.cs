@@ -87,6 +87,8 @@ public class GameManager : MonoBehaviour
     public float roundEndTimer = 0f;
     public int roundEndTransitionTime = 5;
     private int roundEndFrameCounter = 0;
+    private bool roundEndUIShown = false;
+    private int lastRoundWinnerPID = -1;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -916,6 +918,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        HandleRoundEndUI(isRealFrame);
+
         roundEndFrameCounter++;
         if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
         {
@@ -934,6 +938,8 @@ public class GameManager : MonoBehaviour
             dataManager.totalRoundsPlayed += 1;
             GameEnd();
             roundOver = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
             return;
         }
 
@@ -955,12 +961,52 @@ public class GameManager : MonoBehaviour
             LoadRandomGameplayStage();
             ResetPlayers();
             roundOver = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
             return;
         }
 
         RoundEnd();
         ResetPlayers();
         roundOver = false;
+        roundEndUIShown = false;
+        lastRoundWinnerPID = -1;
+    }
+
+    private void HandleRoundEndUI(bool isRealFrame)
+    {
+        if (!isRealFrame || !roundOver || roundEndUIShown || lastRoundWinnerPID <= 0)
+        {
+            return;
+        }
+
+        roundEndUIShown = true;
+
+        string message;
+        if (gameOver)
+        {
+            message = "Game Over : Player " + lastRoundWinnerPID + " wins the match! Congratulations!!!";
+            if (roundEndedText != null)
+            {
+                roundEndedText.text = message;
+            }
+            if (tempUI != null)
+            {
+                StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, message));
+            }
+        }
+        else
+        {
+            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! Beginning Shop Phase...";
+            if (roundEndedText != null)
+            {
+                roundEndedText.text = message;
+            }
+            if (tempUI != null)
+            {
+                StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, message));
+            }
+        }
     }
 
     public void ForceSetFrame(int newFrame)
@@ -1080,51 +1126,10 @@ public class GameManager : MonoBehaviour
 
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                if (!roundOver)
-                {
-                    ushort highestRam = 0;
-                    PlayerController winner = null;
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        if (players[i].roundRam >= ramNeededToWinRound)
-                        {
-                            if (players[i].roundRam > highestRam)
-                            {
-                                winner = players[i];
-                                highestRam = players[i].roundRam;
-                            }
-                        }
-                    }
+                HandleRoundEndUI(true);
 
-                    winner.roundsWon += 1;
-                    roundOver = true;
-                    playerWinText.enabled = true;
-
-
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        players[i].roundRam = 0;
-                        players[i].playerNum.enabled = false;
-                        players[i].inputDisplay.enabled = false;
-                        if (players[i].roundsWon >= 3) 
-                        { 
-                            gameOver = true; 
-                            roundEndedText.text = "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!";
-                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, roundEndedText.text));
-                            // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                        }
-                    }
-
-                    if (!gameOver)
-                    {
-                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
-                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
-                        // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
-                    }
-                    //stop repeating all sounds
-                    SFX_Manager.Instance.StopRepeatingAllSounds();
-
-                }
+                //stop repeating all sounds
+                SFX_Manager.Instance.StopRepeatingAllSounds();
 
 
 
@@ -1144,6 +1149,8 @@ public class GameManager : MonoBehaviour
                         GameEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                     else if (players[0].spellList.Count >= 6)
                     {
@@ -1154,6 +1161,8 @@ public class GameManager : MonoBehaviour
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                     else
                     {
@@ -1164,6 +1173,8 @@ public class GameManager : MonoBehaviour
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                 }
             }
@@ -1265,16 +1276,6 @@ public class GameManager : MonoBehaviour
         float roundedX = Mathf.Round(raw.x * GatePositionKeyPrecision) / GatePositionKeyPrecision;
         float roundedY = Mathf.Round(raw.y * GatePositionKeyPrecision) / GatePositionKeyPrecision;
         return new Vector2(roundedX, roundedY);
-    }
-
-    private void RebuildGateLookup()
-    {
-        gateLookup.Clear();
-        foreach (SpellCode_Gate gate in gates)
-        {
-            if (gate == null) continue;
-            gateLookup[NormalizeGatePosition(gate.transform.position)] = gate;
-        }
     }
 
     private bool TryLocateGateNearKey(Vector2 key, out SpellCode_Gate gate)
@@ -1396,6 +1397,8 @@ public class GameManager : MonoBehaviour
                     {
                         winner.roundsWon += 1;
                         roundOver = true;
+                        lastRoundWinnerPID = winner.pID;
+                        roundEndUIShown = false;
 
                         for (int i = 0; i < playerCount; i++)
                         {
@@ -1406,6 +1409,10 @@ public class GameManager : MonoBehaviour
                                 players[i].inputDisplay.enabled = false;
                             }
                             if (players[i].roundsWon >= 3) { gameOver = true; }
+                        }
+                        if (!isRollback)
+                        {
+                            playerWinText.enabled = true;
                         }
                     }
                 }

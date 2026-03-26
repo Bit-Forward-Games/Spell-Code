@@ -10,6 +10,7 @@ public class Pause : MonoBehaviour
     public bool paused;
     public bool options;
     public bool shakeEnabled = true;
+    public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
 
     private void Start()
@@ -86,5 +87,10 @@ public class Pause : MonoBehaviour
     public void ToggleCameraShake()
     {
         shakeEnabled = !shakeEnabled;
+    }
+
+    public void ToggleDynamicCamera()
+    {
+        dynamicCameraOverride = !dynamicCameraOverride;
     }
 }

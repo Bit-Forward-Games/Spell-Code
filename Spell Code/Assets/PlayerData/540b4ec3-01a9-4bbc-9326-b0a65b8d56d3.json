@@ -1,0 +1,157 @@
+{
+  "dateTime": "3/25/2026 5:03:09 PM",
+  "matchData": [
+    {
+      "matchNum": 1,
+      "matchLength": 3.4333334,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "AmonSlash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "QuarterReport"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 2,
+      "matchLength": 5.0333333,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "AmonSlash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "QuarterReport"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 3,
+      "matchLength": 3.48333335,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "AmonSlash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "QuarterReport"
+          ]
+        }
+      ]
+    }
+  ],
+  "arenaData": {
+    "deathDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "TwoValve_Arena": []
+    },
+    "hitDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "TwoValve_Arena": []
+    }
+  }
+}

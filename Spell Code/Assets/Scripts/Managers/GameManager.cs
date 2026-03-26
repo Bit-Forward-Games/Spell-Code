@@ -946,17 +946,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         if (players[i].roundsWon >= 3) 
                         { 
                             gameOver = true; 
-                            roundEndedText.text = "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!";
-                            StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.GameOver, 4f, roundEndedText.text));
-                            // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                            StartCoroutine(tempUI.DisplayTransitionScreen(4f, "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!"));
                         }
                     }
 
                     if (!gameOver)
                     {
-                        roundEndedText.text = "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase...";
-                        StartCoroutine(tempUI.DisplayTransitionScreen(tempUI.RoundConclusion, 4f, roundEndedText.text));
-                        // playerWinText.text = "Player " + (winner.pID) + " wins the match!";
+                        StartCoroutine(tempUI.DisplayTransitionScreen(4f, "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase..."));
                     }
                     //stop repeating all sounds
                     SFX_Manager.Instance.StopRepeatingAllSounds();

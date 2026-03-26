@@ -35,11 +35,6 @@ public class TempUIScript : MonoBehaviour
 
     public GameObject MainMenuScreen;
 
-    public GameObject GameplayOverview;
-    public GameObject BeginRound;
-    public GameObject RoundConclusion;
-    public GameObject ShopOverview;
-    public GameObject GameOver;
     public GameObject textBoxUI;
     public Animator textBoxAnim;
     public GameObject[] announcer;
@@ -47,7 +42,6 @@ public class TempUIScript : MonoBehaviour
     public bool transitionScreenDisplayed;
     public bool shopScreenDisplayed;
 
-    public string screenTransitionText;
     public float textSpeed;
     private int i = 0;
     
@@ -77,12 +71,12 @@ public class TempUIScript : MonoBehaviour
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(BeginRound, 2.0f, "FIGHT!!!"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "FIGHT!!!"));
         }
         else if (scene.name == "Shop")
         {
             shopScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(ShopOverview, 3.5f, "Equip new spells before entering the next round"));
+            StartCoroutine(DisplayTransitionScreen(3.5f, "Equip new spells before entering the next round"));
         }
     }
 
@@ -96,7 +90,7 @@ public class TempUIScript : MonoBehaviour
         if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(GameplayOverview, 3.5f, "Pick your starter spell before beginning the match"));
+            StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
     }
 
@@ -223,11 +217,9 @@ public class TempUIScript : MonoBehaviour
         damageBarDisplayFill[playerIndex] = newHealthAmount;
     }
 
-    public IEnumerator DisplayTransitionScreen(GameObject screen, float transitionTime, string text)
+    public IEnumerator DisplayTransitionScreen(float transitionTime, string text)
     {
-        screen.SetActive(true);
         textBoxUI.SetActive(true);
-        screenTransitionText = text;
 
         foreach (var item in announcer)
         {
@@ -236,10 +228,10 @@ public class TempUIScript : MonoBehaviour
 
         foreach (var item in announcer)
         {
-            item.transform.DOScale(new Vector2(0.17f, 0.33575f), 0.5f).SetEase(Ease.OutBounce);
+            item.transform.DOScale(new Vector2(0.17f, 0.33575f), 1f).SetEase(Ease.OutBounce);
         }
 
-        Transform childTransform = screen.transform.Find("Text");
+        Transform childTransform = textBoxUI.transform.Find("Text");
         TextMeshProUGUI screenText = null;
 
         if (childTransform != null)
@@ -248,30 +240,42 @@ public class TempUIScript : MonoBehaviour
         if (screenText != null)
         {
             screenText.text = "";
-            StartCoroutine(TypeLine(screenText, text));
+            StartCoroutine(TypeLine(screenText, text, false));
         }
         
         yield return new WaitForSeconds(transitionTime);
 
-        screen.SetActive(false);
         textBoxAnim.SetInteger("Reverse", 1);
 
         foreach (var item in announcer)
         {
-            item.transform.DOScale(0f, 0.5f).SetEase(Ease.InOutQuint);
+            item.transform.DOScale(0f, 1f).SetEase(Ease.InOutQuint);
         }
 
-        yield return new WaitForSeconds(0.2f);
+        StartCoroutine(TypeLine(screenText, text, true));
+
+        yield return new WaitForSeconds(0.5f);
         textBoxAnim.SetInteger("Reverse", 0);
         textBoxUI.SetActive(false);
     }
 
-    IEnumerator TypeLine(TextMeshProUGUI screenText, string text)
+    IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse)
     {
-        foreach (char c in screenTransitionText.ToCharArray())
+        if (!reverse)
         {
-            screenText.text += c;
-            yield return new WaitForSeconds(textSpeed);
+            foreach (char c in text.ToCharArray())
+            {
+                screenText.text += c;
+                yield return new WaitForSeconds(textSpeed);
+            }
+        }
+        else
+        {
+            while (screenText.text.Length > 0)
+            {
+                screenText.text = screenText.text.Substring(0, screenText.text.Length - 1);
+                yield return new WaitForSeconds(textSpeed);
+            }
         }
     }
 

@@ -88,7 +88,7 @@ GameObject:
   - component: {fileID: 6173509346221523524}
   - component: {fileID: 6070034598609477280}
   m_Layer: 0
-  m_Name: Canvas
+  m_Name: On-Player UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -487,7 +487,7 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &8759932525811072817
@@ -813,7 +813,7 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &3800171966472687191
@@ -1129,9 +1129,11 @@ MonoBehaviour:
   storedCode: 0
   storedCodeMaxDuration: 0
   storedCodeDuration: 0
+  comboCounter: 0
   hitstop: 0
   hitstopActive: 0
   hitstunOverride: 0
+  iframes: 0
   lightArmor: 0
   spellList: []
   basicProjectileInstance: {fileID: 0}
@@ -1201,7 +1203,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

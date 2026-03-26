@@ -32,6 +32,9 @@ public class StageCamera : MonoBehaviour
     private float shakeTimeRemaining;
     private Vector3 shakeOffset;
 
+    public Pause pause;
+    public bool shakeEnabled;
+
     void Start()
     {
         cam = GetComponent<Camera>();
@@ -39,13 +42,16 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (pause == null)
+            pause = GameObject.Find("TempUI").gameObject.GetComponent<Pause>();
+
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         lockCamera = !stageDataSO.dynamicCamera;
         // If camera is locked, set to hard zoom and return
         if (lockCamera)
         {
             cam.orthographicSize = HardSetZoom;
-            ApplyShake();
+            if (pause.shakeEnabled) ApplyShake();
             return;
         }
 
@@ -98,7 +104,7 @@ public class StageCamera : MonoBehaviour
             transform.position = Vector3.Lerp(transform.position, targetPosition, lerpFactor);
 
 
-            ApplyShake();
+            if (pause.shakeEnabled) ApplyShake();
 
         }
     }

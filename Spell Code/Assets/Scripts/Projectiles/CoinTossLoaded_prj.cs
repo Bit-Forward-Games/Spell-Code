@@ -9,7 +9,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class CoinTossLoaded_prj : BaseProjectile
 {
     
-    public CoinTossLoaded_prj()
+    protected override void InitializeDefaults()
     {
         projName = "CoinTossLoaded";
         hSpeed = Fixed.FromInt(1);

@@ -14,7 +14,7 @@ public class PongShot_prj : BaseProjectile
     int speed;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
-    public PongShot_prj()
+    protected override void InitializeDefaults()
     {
         projName = "PongShot";
         lifeSpan = 240;

@@ -23,6 +23,13 @@ public class ProjectileDictionary : NonPersistantSingleton<ProjectileDictionary>
             //}
 
 
+            projectileList[i].EnsureDefaults();
+            if (string.IsNullOrEmpty(projectileList[i].projName))
+            {
+                Debug.LogError($"ProjectileDictionary: Projectile at index {i} has no projName. Skipping.");
+                continue;
+            }
+
             //add the projectile to the dictionary
             if (!projectileDict.ContainsKey(projectileList[i].projName))
             {

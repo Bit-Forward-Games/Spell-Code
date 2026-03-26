@@ -23,6 +23,11 @@ public class SteamManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject); // Keep it running between scenes
 
+        if (GetComponent<SteamLobbyManager>() == null)
+        {
+            gameObject.AddComponent<SteamLobbyManager>();
+        }
+        
         // --- Initialize Steamworks ---
         try
         {
@@ -59,7 +64,7 @@ public class SteamManager : MonoBehaviour
             }
             else
             {
-                Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
+                //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
             }
 
         }

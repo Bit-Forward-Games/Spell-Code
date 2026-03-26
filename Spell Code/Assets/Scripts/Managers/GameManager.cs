@@ -17,8 +17,9 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
 using System;
 using static RollbackManager;
+using UnityEngine.InputSystem.Composites;
 
-public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
+public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
@@ -70,6 +71,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public GameObject floppyDisplayPrefab;
 
     public GO_Door goDoorPrefab;
+    public OnlineHostDoor onlineHostDoor;
 
     public bool roundOver;
     public bool gameOver;
@@ -78,10 +80,15 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public bool isTransitioning = false;
 
     public SpellCode_Gate[] gates = new SpellCode_Gate[4];
+    private readonly Dictionary<Vector2, SpellCode_Gate> gateLookup = new();
+    private const float GatePositionKeyPrecision = 1000f;
 
     //game timers
     public float roundEndTimer = 0f;
     public int roundEndTransitionTime = 5;
+    private int roundEndFrameCounter = 0;
+    private bool roundEndUIShown = false;
+    private int lastRoundWinnerPID = -1;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -119,11 +126,11 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public string lastSceneName;
 
     // Add these fields to GameManager class
-    private ulong cachedLocalInput = 5; // Stores input gathered in Update()
-    private bool codePrevFrame = false;
-    private bool jumpPrevFrame = false;
-    private bool codeCurrentFrame = false;
-    private bool jumpCurrentFrame = false;
+    //private ulong cachedLocalInput = 5; // Stores input gathered in Update()
+    //private bool codePrevFrame = false;
+    //private bool jumpPrevFrame = false;
+    //private bool codeCurrentFrame = false;
+    //private bool jumpCurrentFrame = false;
 
     // New variables for Online Match State
     public int frameNumber { get; private set; } = 0; // Master frame counter
@@ -133,6 +140,26 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public int localPlayerIndex = 0; // Set this before starting online match
     public int remotePlayerIndex = 1; // Set this before starting online match
     private int timeoutFrames = 0; // Timeout counter
+    public int randomSeed = 0;
+    public int randomCallCount = 0;
+    private uint rngState = 0;
+    private System.Random stageRandom;
+
+    [Header("Debug")]
+    public bool logDesyncTrace = false;
+    public int logDesyncEveryNFrames = 1;
+
+    // Online lobby state tracking
+    public bool localPlayerReadyForGameplay = false;
+    public bool remotePlayerReadyForGameplay = false;
+    [HideInInspector]
+    public int p1_shopIndex = 0;
+    [HideInInspector]
+    public int p2_shopIndex = 0;
+
+    private int p1_lastCycleFrame = -999;
+    private int p2_lastCycleFrame = -999;
+    private const int CYCLE_COOLDOWN_FRAMES = 15; // Prevent cycling for 15 frames (~0.25 seconds)
 
     private void Awake()
     {
@@ -184,14 +211,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     // Update is called once per frame
     void Update()
     {
-        // Cache input for online matches
-        if (isOnlineMatchActive)
-        {
-            //cachedLocalInput = GetRawKeyboardInput(); // Old input API
-            //cachedLocalInput = players[localPlayerIndex].GetInputs(); // current input gathering method
-            cachedLocalInput = GatherInputForOnline();
-            Debug.Log($"[Update] Cached input from input system: {cachedLocalInput}");
-        }
+        //if (isOnlineMatchActive)
+        //{
+        //    cachedLocalInput = GatherInputForOnline();
+        //}
 
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
@@ -223,6 +246,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 
+#if UNITY_EDITOR
         if (!isOnlineMatchActive)
         {
             if (UnityEngine.Input.GetKeyDown(toggleOnlineMenuKey))
@@ -235,6 +259,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 }
             }
         }
+#endif
     }
 
     private void FixedUpdate()
@@ -247,18 +272,18 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isTransitioning) return;
 
+        // ONLINE LOBBY WAIT STATE
         if (isOnlineMatchActive && isWaitingForOpponent)
         {
             // Check for lobby timeout
             float waitTime = UnityEngine.Time.unscaledTime - lobbyWaitStartTime;
             if (waitTime > LOBBY_TIMEOUT)
             {
-                Debug.LogError("Lobby timeout - opponent didn't join in time");
+                //Debug.LogError("Lobby timeout - opponent didn't join in time");
                 StopMatch("Opponent failed to connect");
                 // Return to menu or show error UI
                 return;
             }
-
             return; // Don't run simulation yet
         }
 
@@ -282,65 +307,54 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             RunFrame();
         }
 
-
+        // RENDER/UPDATE UI ONLY ON NON-ROLLBACK FRAMES
         if (!isOnlineMatchActive || (RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame))
         {
             AnimationManager.Instance.RenderGameState();
-        }
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Backslash))
-        {
-            BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
     }
 
     private ulong GatherInputForOnline()
     {
-        // Try Input System first
-        if (players[localPlayerIndex] != null && players[localPlayerIndex].inputs.IsActive)
+        if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
         {
-            // Check if Input System is actually working
-            var upVal = players[localPlayerIndex].inputs.UpAction?.ReadValue<float>() ?? 0f;
-            var downVal = players[localPlayerIndex].inputs.DownAction?.ReadValue<float>() ?? 0f;
-            var leftVal = players[localPlayerIndex].inputs.LeftAction?.ReadValue<float>() ?? 0f;
-            var rightVal = players[localPlayerIndex].inputs.RightAction?.ReadValue<float>() ?? 0f;
-
-            // If ANY direction shows input, Input System is working
-            if (upVal > 0.1f || downVal > 0.1f || leftVal > 0.1f || rightVal > 0.1f)
-            {
-                // Input System is working, use it
-                return players[localPlayerIndex].GetInputs();
-            }
+            return StressTestController.Instance.GetDeterministicInput(frameNumber);
         }
 
-        // Fallback to raw input (this always works)
-        return GatherRawInput();
+        PlayerController localPlayer = players[localPlayerIndex];
+        if (localPlayer != null && localPlayer.inputs.IsActive)
+        {
+            return (ulong)localPlayer.inputs.UpdateInputs();
+        }
+        return 5; // neutral
+        //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
     }
 
-    private ulong GatherRawInput()
-    {
-        // Direction
-        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+    //private ulong GatherRawInput()
+    //{
+    //    // Direction
+    //    bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+    //    bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+    //    bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+    //    bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Buttons - sample current state
-        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+    //    // Buttons - sample current state
+    //    bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+    //    bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Detect state transitions
-        ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeNow);
-        ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpNow);
+    //    // Detect state transitions
+    //    ButtonState codeState = GetButtonStateHelper(codePrevFrame, codeNow);
+    //    ButtonState jumpState = GetButtonStateHelper(jumpPrevFrame, jumpNow);
 
-        // Update for next frame - do this AFTER getting states
-        codePrevFrame = codeNow;
-        jumpPrevFrame = jumpNow;
+    //    // Update for next frame - do this AFTER getting states
+    //    codePrevFrame = codeNow;
+    //    jumpPrevFrame = jumpNow;
 
-        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-        bool[] dirs = new bool[4] { up, down, left, right };
+    //    ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+    //    bool[] dirs = new bool[4] { up, down, left, right };
 
-        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    }
+    //    return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    //}
 
     private ButtonState GetButtonStateHelper(bool previous, bool current)
     {
@@ -364,31 +378,65 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
-        Debug.Log("Starting Online Match...");
+        onboardManager = null;
+
+        //Debug.Log("Starting Online Match...");
         if (RollbackManager.Instance == null)
         {
-            Debug.LogError("Cannot start online match: RollbackManager not found!");
+            //Debug.LogError("Cannot start online match: RollbackManager not found!");
             return;
         }
         if (!opponentId.IsValid)
         {
-            Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
+            //Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
             return;
         }
 
-        // Reset online match state first
-        isOnlineMatchActive = false; // Set false first to prevent Update() from interfering
+        onboardManager = FindFirstObjectByType<OnboardManager>();
+        if (onboardManager != null)
+        {
+            onboardManager.ResetOnboarding();
+        }
+
+        for (int i = 0; i < gates.Length; i++)
+        {
+            if (gates[i] != null)
+            {
+                gates[i].isOpen = false;
+                gates[i].SetOpen(false);
+            }
+        }
+
+        foreach (GameObject gambaGO in gambas)
+        {
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba != null)
+            {
+                gamba.ResetLobbyState();
+            }
+        }
+
+        // Hide online menu immediately
+        if (onlineMenuUI != null)
+        {
+            onlineMenuUI.SetActive(false);
+            //Debug.Log("Online menu UI hidden");
+        }
+
+        isOnlineMatchActive = false;
         isWaitingForOpponent = false;
         opponentIsReady = false;
         isRunning = false;
         isTransitioning = false;
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
 
         // Disable PlayerInputManager
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("PlayerInputManager disabled");
+            //Debug.Log("PlayerInputManager disabled");
         }
 
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
@@ -403,7 +451,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (playerPrefab == null)
         {
-            Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
+            //Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
             return;
         }
 
@@ -443,6 +491,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         );
                     }
                 }
+
+                players[i].inputs.AssignInputDevice(null);
                 players[i].CheckForInputs(true);
             }
         }
@@ -456,17 +506,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         // Initialize managers
-        RollbackManager.Instance.Init(opponentId.Value);
+        RollbackManager.Instance.Init(opponentId.Value, 0);
 
         if (MatchMessageManager.Instance != null)
         {
+            if (StressTestController.Instance != null && StressTestController.Instance.enableStressTest)
+            {
+                StressTestController.Instance.ResetForNewMatch();
+            }
             MatchMessageManager.Instance.StartMatch(opponentId);
             // Send ready signal to opponent
             MatchMessageManager.Instance.SendReadySignal();
         }
         else
         {
-            Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
+            //Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
         }
 
         // Set up online state but DON'T start simulation yet
@@ -474,9 +528,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         isWaitingForOpponent = true; // Enter lobby wait state
 
         ProjectileManager.Instance.InitializeAllProjectiles();
+
+        SetStage(-1); // Lobby stage
         ResetPlayers();
-        // DON'T set isRunning yet - wait for opponent
-        Debug.Log($"Entered Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
+
+        isRunning = true;
+
+        //Debug.Log($"Entered Online Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
     }
 
     public void OnPacketReceived()
@@ -496,7 +554,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             // Give 15 seconds for initial connection
             if (UnityEngine.Time.unscaledTime - lobbyWaitStartTime > 15f)
             {
-                Debug.LogError("Network timeout - no packets received after 15 seconds");
+                //Debug.LogError("Network timeout - no packets received after 15 seconds");
                 return false;
             }
             return true;
@@ -507,53 +565,49 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (timeSinceLastPacket > NETWORK_TIMEOUT)
         {
-            Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
+            //Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
             return false;
         }
 
         // Warn if connection is getting laggy
         if (timeSinceLastPacket > 3f && Mathf.FloorToInt(timeSinceLastPacket) % 1 == 0)
         {
-            Debug.LogWarning($"Network lag - no packets for {timeSinceLastPacket:F1} seconds");
+            //Debug.LogWarning($"Network lag - no packets for {timeSinceLastPacket:F1} seconds");
         }
 
         return true;
     }
+
     public void OnOpponentReady()
     {
-        Debug.Log("Received opponent ready signal");
+        //Debug.Log("Received opponent ready signal");
 
-        if (!isOnlineMatchActive)
-        {
-            Debug.LogWarning("Received ready signal but not in online match state - ignoring");
-            return;
-        }
-
-        if (!isWaitingForOpponent)
-        {
-            Debug.LogWarning("Received ready signal but already started - ignoring");
-            return;
-        }
+        if (!isOnlineMatchActive || !isWaitingForOpponent) return;
 
         opponentIsReady = true;
-
-        // Start match immediately when opponent is ready
-        StartMatchSimulation();
+        if (localPlayerIndex == 0) // Host generates and sends seed
+        {
+            MatchMessageManager.Instance.SendRollbackSettings();
+            int agreedSeed = UnityEngine.Random.Range(0, 100000);
+            InitializeWithSeed(agreedSeed);
+            MatchMessageManager.Instance.SendSeed(agreedSeed);
+            StartLobbySimulation();
+        }
     }
 
-    private void StartMatchSimulation()
+    public void StartLobbySimulation()
     {
-        Debug.Log("Starting Match Simulation!");
-
         // Double-check we're in the right state
         if (!isWaitingForOpponent)
         {
-            Debug.LogWarning("StartMatchSimulation called but not waiting - aborting");
+            //Debug.LogWarning("StartLobbySimulation called but not waiting - aborting");
             return;
         }
 
-        isWaitingForOpponent = false;
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+        lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
+
+        isWaitingForOpponent = false;
 
         // Send match start confirmation
         if (MatchMessageManager.Instance != null)
@@ -562,22 +616,45 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
 
         ProjectileManager.Instance.InitializeAllProjectiles();
-
-        // Set up the game stage
-        SetStage(0); // Load alley arena
-        ResetPlayers();
-
-        // Reset frame counter
         frameNumber = 0;
-
-        // NOW start running
         isRunning = true;
 
-        // Transition to gameplay scene
-        isTransitioning = true;
-        sceneManager.LoadScene("Gameplay");
+        int testValue = GetNextRandom(0,100);
+        Debug.Log($"[SYNC CHECK] seededRandom test value: {testValue} | randomCallCount: {randomCallCount}");
+    }
 
-        Debug.Log("Match simulation started - Loading Gameplay scene");
+    // Send lobby ready signal
+    public void SendLobbyReadyForGameplay()
+    {
+        if (!isOnlineMatchActive || MatchMessageManager.Instance == null)
+            return;
+
+        localPlayerReadyForGameplay = true;
+        //Debug.Log("Local player ready for gameplay transition - sending signal");
+
+        // Send via MatchMessageManager
+        MatchMessageManager.Instance.SendLobbyReadySignal();
+
+        CheckBothPlayersReadyForGameplay();
+    }
+
+    // Receive lobby ready signal
+    public void OnOpponentReadyForGameplay()
+    {
+        //Debug.Log("Opponent is ready for gameplay transition");
+        remotePlayerReadyForGameplay = true;
+        CheckBothPlayersReadyForGameplay();
+    }
+
+    // Check if both players are ready to transition
+    private void CheckBothPlayersReadyForGameplay()
+    {
+        if (localPlayerReadyForGameplay && remotePlayerReadyForGameplay)
+        {
+            //Debug.Log("Both players ready - transitioning to Gameplay");
+            isTransitioning = true;
+            LoadRandomGameplayStage();
+        }
     }
 
     /// <summary>
@@ -586,13 +663,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     /// <param name="reason">Reason for stopping.</param>
     public void StopMatch(string reason = "Match Ended")
     {
-        Debug.Log($"Stopping Match: {reason}");
+        //Debug.Log($"Stopping Match: {reason}");
 
         isRunning = false;
 
         if (isOnlineMatchActive)
         {
-            Debug.Log("Cleaning up online match state...");
+            //Debug.Log("Cleaning up online match state...");
 
             // Clean up rollback manager
             if (RollbackManager.Instance != null)
@@ -611,6 +688,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             isWaitingForOpponent = false;
             opponentIsReady = false;
             isTransitioning = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
 
             // Reset frame counter
             frameNumber = 0;
@@ -623,14 +702,14 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
-                Debug.Log("PlayerInputManager re-enabled for offline play");
+                //Debug.Log("PlayerInputManager re-enabled for offline play");
             }
         }
 
         // General cleanup
         ProjectileManager.Instance.DeleteAllProjectiles();
 
-        Debug.Log("Match stopped and state reset");
+        //Debug.Log("Match stopped and state reset");
     }
 
     private void ClearPlayerObjects()
@@ -661,12 +740,78 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         localPlayerInput = 0;
         syncedInput = new ulong[2] { 0, 0 };
         timeoutFrames = 0;
-        // Reset game-specific things like round number if needed
-        // round = 1;
     }
 
+    public void UpdateSceneLogic(ulong[] inputs)
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        bool isOnline = isOnlineMatchActive;
+        bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
 
-    // Simulation Loop Methods
+        if (activeScene.name == "MainMenu")
+        {
+            goDoorPrefab?.CheckOpenDoor();
+
+            if (onboardManager == null)
+                onboardManager = FindFirstObjectByType<OnboardManager>();
+            if (onboardManager != null)
+                onboardManager.OnboardUpdate(inputs);
+
+            if (isOnline)
+            {
+                SimulateOnlineFloppies(inputs, isRealFrame);
+            }
+        }
+        else if (activeScene.name == "Shop")
+        {
+            goDoorPrefab.CheckOpenDoor();
+
+            // Only run gamba logic on real frames - it spawns GameObjects and consumes RNG
+            bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+            if (!isRollback)
+            {
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+                }
+
+                if (goDoorPrefab.CheckAllPlayersReady())
+                {
+                    LoadRandomGameplayStage();
+                }
+            }
+            if (isOnline)
+            {
+                SimulateOnlineFloppies(inputs, isRealFrame);
+            }
+        }
+        else if (activeScene.name == "Gameplay")
+        {
+            CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+        }
+    }
+
+    private void SimulateOnlineFloppies(ulong[] inputs, bool isRealFrame)
+    {
+        if (!isRealFrame) return;
+        if (floppyObjects == null || floppyObjects.Length == 0)
+        {
+            FindAllFloppyDisks();
+        }
+        if (floppyObjects == null) return;
+
+        for (int i = 0; i < floppyObjects.Length; i++)
+        {
+            GameObject floppy = floppyObjects[i];
+            if (floppy == null) continue;
+            SpellCode_FloppyDisk disk = floppy.GetComponent<SpellCode_FloppyDisk>();
+            if (disk != null)
+            {
+                disk.SimulateOnline(inputs, isRealFrame);
+            }
+        }
+    }
 
     /// <summary>
     /// Executes one frame of the online match simulation using RollbackManager.
@@ -682,21 +827,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             rbManager.SaveState();
         }
 
-        localPlayerInput = cachedLocalInput;
-        codePrevFrame = codeCurrentFrame;
-        jumpPrevFrame = jumpCurrentFrame;
-        Debug.Log($"[RunOnlineFrame] Using cached input: {localPlayerInput}");
-
-        //bool timeSynced = rbManager.CheckTimeSync(out float frameAdvantageDifference);
-        //if (!timeSynced)
-        //{
-        //    timeoutFrames++;
-        //    if (timeoutFrames > rbManager.TimeoutFrames)
-        //    {                                                 frame timeout thingy
-        //        rbManager.TriggerMatchTimeout();
-        //    }
-        //    return; // Skip frame
-        //}
+        localPlayerInput = GatherInputForOnline();
+        //codePrevFrame = codeCurrentFrame;
+        //jumpPrevFrame = jumpCurrentFrame;
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();
@@ -705,11 +838,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
 
-        //Debug.Log($"[Frame {frameNumber}] LocalPlayerIndex={localPlayerIndex}, " +
-        //  $"LocalInput={localPlayerInput}, " +
-        //  $"SyncedInput[0]={syncedInput[0]}, SyncedInput[1]={syncedInput[1]}");
-
-        // Stall check
         if (!rbManager.AllowUpdate())
         {
             frameNumber--;
@@ -718,95 +846,172 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         Scene activeScene = SceneManager.GetActiveScene();
 
-        //if (activeScene.name == "Shop")
-        //{
-        //    // Only run non-rollback shop logic if needed, or ensure ShopUpdate is deterministic
-        //    // Assuming ShopUpdate relies on inputs and needs to be deterministic:
-        //    if (shopManager == null)
-        //    {
-        //        shopManager = FindAnyObjectByType<ShopManager>();
-        //    }
-
-        //    if (shopManager != null)
-        //    {
-        //        // Need to pass the SYNCHRONIZED inputs to the shop so both players buy/select the same things
-        //        // Assuming ShopUpdate accepts ulong[] or casting is handled
-        //        ulong[] shopInputs = new ulong[playerCount];
-        //        for (int i = 0; i < playerCount; i++) shopInputs[i] = syncedInput[i];
-
-        //        shopManager.ShopUpdate(shopInputs); // Using Synced Inputs
-        //    }
-        //}
-        //else
-        //{
-        //    shopManager = null;
-        //}
-
         UpdateGameState(syncedInput);
 
+        UpdateSceneLogic(syncedInput);
+
+        // ONLINE LOBBY LOGIC (MainMenu scene)
         if (activeScene.name == "MainMenu")
         {
-            //goDoorPrefab.CheckOpenDoor();
+            // Handle spell selection for online players (only local and remote)
+            //HandleOnlineSpellSelection();
 
-            //if (goDoorPrefab.CheckAllPlayersReady())
-            //{
-            //    // CRITICAL: Stop simulation before loading
-            //    isTransitioning = true; // Use the Transition flag
-            //    LoadRandomGameplayStage();
-            //}
-            // Immediately transition if we are somehow in MainMenu
-            if (!isTransitioning)
-            {
-                isTransitioning = true;
-                LoadRandomGameplayStage();
-            }
-        }
+            //if (onboardManager == null)
+            //    onboardManager = FindFirstObjectByType<OnboardManager>(); // only finds active objects
 
-        else if (activeScene.name == "Gameplay")
-        {
-            // Only check end conditions if NOT rolling back
-            // Don't want to trigger a scene change during a resimulation
+            //if (onboardManager != null && !rbManager.isRollbackFrame)
+            //    onboardManager.OnboardUpdate(syncedInput);
+
+            // Drive gamba machines through synced simulation
             if (!rbManager.isRollbackFrame)
             {
-                if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
+                foreach (GameObject gambaGO in gambas)
                 {
-                    // Tally wins
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        if (players[i].roundsWon >= 3) { gameOver = true; }
-                    }
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+                }
+            }
 
-                    ClearStages();
+            goDoorPrefab.CheckOpenDoor();
 
-                    // Handle Transitions
-                    // Scene changes in Online Play can be risky if not synced. 
-                    // Should send a "Ready" packet before loading ideally.
-                    // For now, mirror offline logic:
-                    if (gameOver)
-                    {
-                        GameEnd();
-                    }
-                    else
-                    {
-                        RoundEnd();
-                    }
+            if (goDoorPrefab.CheckAllPlayersReady())
+            {
+                // In online mode, signal readiness instead of immediately transitioning
+                if (!localPlayerReadyForGameplay)
+                {
+                    SendLobbyReadyForGameplay();
                 }
             }
         }
+        else if (activeScene.name == "Gameplay")
+        {
+            TickRoundEndTransition(!rbManager.isRollbackFrame);
+        }
+        //else if (activeScene.name == "Shop")
+        //{
+        //    if (!rbManager.isRollbackFrame)
+        //    {
+        //        foreach (GameObject gambaGO in gambas)
+        //        {
+        //            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+        //            if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
+        //        }
+        //    }
+        //}
 
         if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
         {
             rbManager.SaveState();
         }
-
     }
 
-    /// <summary>
-    /// Forces the internal frame number to a specific value.
-    /// Used by RollbackManager after loading a previous state.
-    /// </summary>
-    /// <param name="newFrame">The frame number to set.</param>
-    public void ForceSetFrame(int newFrame) // Make sure this is PUBLIC
+    private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));
+
+    private void TickRoundEndTransition(bool isRealFrame)
+    {
+        if (!roundOver)
+        {
+            roundEndFrameCounter = 0;
+            return;
+        }
+
+        if (!isRealFrame)
+        {
+            return;
+        }
+
+        HandleRoundEndUI(isRealFrame);
+
+        roundEndFrameCounter++;
+        if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
+        {
+            roundEndFrameCounter = 0;
+            PerformRoundTransition();
+        }
+    }
+
+    private void PerformRoundTransition()
+    {
+        ClearStages();
+
+        if (gameOver)
+        {
+            playerWinText.enabled = false;
+            dataManager.totalRoundsPlayed += 1;
+            GameEnd();
+            roundOver = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
+            return;
+        }
+
+        playerWinText.enabled = false;
+        dataManager.totalRoundsPlayed += 1;
+
+        bool hasMaxSpells = playerCount > 0
+            && players[0] != null
+            && players[0].spellList != null
+            && players[0].spellList.Count >= 6;
+
+        if (hasMaxSpells)
+        {
+            if (isOnlineMatchActive)
+            {
+                localPlayerReadyForGameplay = false;
+                remotePlayerReadyForGameplay = false;
+            }
+            LoadRandomGameplayStage();
+            ResetPlayers();
+            roundOver = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
+            return;
+        }
+
+        RoundEnd();
+        ResetPlayers();
+        roundOver = false;
+        roundEndUIShown = false;
+        lastRoundWinnerPID = -1;
+    }
+
+    private void HandleRoundEndUI(bool isRealFrame)
+    {
+        if (!isRealFrame || !roundOver || roundEndUIShown || lastRoundWinnerPID <= 0)
+        {
+            return;
+        }
+
+        roundEndUIShown = true;
+
+        string message;
+        if (gameOver)
+        {
+            message = "Game Over : Player " + lastRoundWinnerPID + " wins the match! Congratulations!!!";
+            if (roundEndedText != null)
+            {
+                roundEndedText.text = message;
+            }
+            if (tempUI != null)
+            {
+                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
+            }
+        }
+        else
+        {
+            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! Beginning Shop Phase...";
+            if (roundEndedText != null)
+            {
+                roundEndedText.text = message;
+            }
+            if (tempUI != null)
+            {
+                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
+            }
+        }
+    }
+
+    public void ForceSetFrame(int newFrame)
     {
         this.frameNumber = newFrame;
     }
@@ -905,6 +1110,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 LoadRandomGameplayStage();
             }
 
+            if (!isOnlineMatchActive && onlineHostDoor != null)
+            {
+                onlineHostDoor.CheckOpenDoor();
+                onlineHostDoor.CheckHostTrigger();
+            }
+
             if (players[0] != null)
             {
                 SetMenuActive(false);
@@ -917,49 +1128,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
             if (CheckDeathsAndRoundEnd(GetActivePlayerControllers()))
             {
-                if (!roundOver)
-                {
-                    ushort highestRam = 0;
-                    PlayerController winner = null;
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        if (players[i].roundRam >= ramNeededToWinRound)
-                        {
-                            if (players[i].roundRam > highestRam)
-                            {
-                                winner = players[i];
-                                highestRam = players[i].roundRam;
-                            }
-                        }
-                    }
+                HandleRoundEndUI(true);
 
-                    winner.roundsWon += 1;
-                    roundOver = true;
-                    playerWinText.enabled = true;
+                //stop repeating all sounds
+                SFX_Manager.Instance.StopRepeatingAllSounds();
 
 
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        players[i].roundRam = 0;
-                        players[i].playerNum.enabled = false;
-                        players[i].inputDisplay.enabled = false;
-                        if (players[i].roundsWon >= 3) 
-                        { 
-                            gameOver = true; 
-                            StartCoroutine(tempUI.DisplayTransitionScreen(4f, "Game Over : Player " + (winner.pID) + " wins the match! Congratulations!!!"));
-                        }
-                    }
-
-                    if (!gameOver)
-                    {
-                        StartCoroutine(tempUI.DisplayTransitionScreen(4f, "Round Ended : Player " + (winner.pID) + " wins the match! Beginning Shop Phase..."));
-                    }
-                    //stop repeating all sounds
-                    SFX_Manager.Instance.StopRepeatingAllSounds();
-
-                }
-
-                
 
                 if (roundEndTransitionTime >= roundEndTimer)
                 {
@@ -977,6 +1151,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         GameEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                     else if (players[0].spellList.Count >= 6)
                     {
@@ -987,6 +1163,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                     else
                     {
@@ -997,6 +1175,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
                         roundOver = false;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
                     }
                 }
             }
@@ -1010,7 +1190,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     public void UpdateGameState(ulong[] inputs)
     {
         ProjectileManager.Instance.UpdateProjectiles();
-
         HitboxManager.Instance.ProcessCollisions();
 
         //update each player update values
@@ -1033,7 +1212,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
     {
         if (isOnlineMatchActive)
         {
-            Debug.Log("GetPlayerControllers called but online match active - ignoring");
+            //Debug.Log("GetPlayerControllers called but online match active - ignoring");
             return;
         }
 
@@ -1048,7 +1227,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
 
-        Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
+        //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
 
         players[playerCount] = existingPlayer;
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
@@ -1066,7 +1245,59 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             }
         }
 
-        Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+        //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+    }
+
+    public bool IsGateOpenAtPosition(float x, float y)
+    {
+        if (TryGetGateAtPosition(x, y, out var gate))
+        {
+            return gate.isOpen;
+        }
+        return false;
+    }
+
+    public bool TryGetGateAtPosition(float x, float y, out SpellCode_Gate gate)
+    {
+        Vector2 key = GetGateKey(x, y);
+        if (gateLookup.TryGetValue(key, out gate))
+        {
+            return true;
+        }
+
+        return TryLocateGateNearKey(key, out gate);
+    }
+
+    public Vector2 GetGateKey(float x, float y)
+    {
+        return NormalizeGatePosition(new Vector2(x, y));
+    }
+
+    private Vector2 NormalizeGatePosition(Vector2 raw)
+    {
+        float roundedX = Mathf.Round(raw.x * GatePositionKeyPrecision) / GatePositionKeyPrecision;
+        float roundedY = Mathf.Round(raw.y * GatePositionKeyPrecision) / GatePositionKeyPrecision;
+        return new Vector2(roundedX, roundedY);
+    }
+
+    private bool TryLocateGateNearKey(Vector2 key, out SpellCode_Gate gate)
+    {
+        float tolerance = 1f / GatePositionKeyPrecision;
+        foreach (SpellCode_Gate candidate in gates)
+        {
+            if (candidate == null) continue;
+
+            Vector2 candidateKey = NormalizeGatePosition(candidate.transform.position);
+            if (Vector2.Distance(candidateKey, key) <= tolerance)
+            {
+                gate = candidate;
+                gateLookup[candidateKey] = candidate;
+                return true;
+            }
+        }
+
+        gate = null;
+        return false;
     }
 
     public void UpdatePlayerBounties()
@@ -1078,8 +1309,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
         }
-        averageRoundRam = (ushort)((float)averageRoundRam / (float)playerCount);
-        averageRoundWins = (int)((float)averageRoundWins / (float)playerCount);
+        averageRoundRam = (ushort)(averageRoundRam / playerCount);
+        averageRoundWins = averageRoundWins / playerCount;
 
 
         for (int i = 0; i < playerCount; i++)
@@ -1113,6 +1344,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if(roundOver) { return true; }
 
+        bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+
         foreach (PlayerController player in playerControllers)
         {
             //check for player deaths
@@ -1122,8 +1355,9 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
-                    short bountyCut = (short)MathF.Max(-PlayerController.baseRamLifeWorth, damageMatrix[player.pID - 1, p.pID - 1] / 100 * player.ramBounty);
-                    float totalRamEarned = damageMatrix[player.pID - 1, p.pID - 1]/100f * PlayerController.baseRamLifeWorth + bountyCut;
+                    int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
+                    int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
+                    int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
                     int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,ramNeededToWinRound-1-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
                     p.totalRam += (ushort)CollectedGold;
@@ -1132,7 +1366,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
 
-                UpdatePlayerBounties();
+                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                {
+                    UpdatePlayerBounties();
+                }
 
                 //respawn the dead player
                 player.SpawnPlayer(GetRandomSpawnVec2());
@@ -1144,11 +1381,46 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             if (player.roundRam >= ramNeededToWinRound)
             {
+                // Determine winner deterministically here
+                if (!roundOver)
+                {
+                    ushort highestRam = 0;
+                    PlayerController winner = null;
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        if (players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
+                        {
+                            winner = players[i];
+                            highestRam = players[i].roundRam;
+                        }
+                    }
+
+                    if (winner != null)
+                    {
+                        winner.roundsWon += 1;
+                        roundOver = true;
+                        lastRoundWinnerPID = winner.pID;
+                        roundEndUIShown = false;
+
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            if (!isRollback)
+                            {
+                                players[i].playerNum.enabled = false;
+                                players[i].inputDisplay.enabled = false;
+                            }
+                            if (players[i].roundsWon >= 3) { gameOver = true; }
+                        }
+                        if (!isRollback)
+                        {
+                            playerWinText.enabled = true;
+                        }
+                    }
+                }
                 return true;
             }
         }
-
-
         return false;
     }
 
@@ -1246,14 +1518,44 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         }
     }
 
+    public void InitializeWithSeed(int seed)
+    {
+        randomSeed = seed;
+        randomCallCount = 0;
+        rngState = (uint)seed;
+        stageRandom = new System.Random((int)(seed ^ 0x9E3779B9));
+        Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
+    }
+
+    public int GetNextRandom(int minValue, int maxValue)
+    {
+        // Simple LCG - fully deterministic, reconstructible from state alone
+        rngState = rngState * 1664525u + 1013904223u;
+        randomCallCount++;
+        int range = maxValue - minValue;
+        if (range <= 0) return minValue;
+        return minValue + (int)(rngState % (uint)range);
+    }
+
+    private int GetNextStageRandom(int minValue, int maxValue)
+    {
+        if (stageRandom == null)
+        {
+            stageRandom = new System.Random((int)(randomSeed ^ 0x9E3779B9));
+        }
+        int range = maxValue - minValue;
+        if (range <= 0) return minValue;
+        return minValue + stageRandom.Next(range);
+    }
+
     public FixedVec2 GetRandomSpawnVec2()
     {
-
         Vector2[] spawnPointList = GetSpawnPositions();
-        Vector2 spawnPoint = spawnPointList[seededRandom.Next(0, spawnPointList.Length)];
+        Vector2 spawnPoint = spawnPointList[GetNextRandom(0, spawnPointList.Length)]; // Use wrapper
+        Debug.Log("SpawnPoint chosen: " + spawnPoint);
         return new FixedVec2(Fixed.FromFloat(spawnPoint.x), Fixed.FromFloat(spawnPoint.y));
-
     }
+
 
     //A round is 1 match + spell acquisition phase
     public void RoundEnd()
@@ -1269,8 +1571,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
         if (isOnlineMatchActive)
         {
-            isTransitioning = true; // Stop RunOnlineFrame
-                                    
+            isTransitioning = true;
+            // Reset ready flags for next shop phase
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
@@ -1351,12 +1655,21 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
 
     public void LoadRandomGameplayStage()
     {
+        if (isOnlineMatchActive)
+        {
+            if (localPlayerIndex == 0)
+            {
+                SelectAndBroadcastStage();
+            }
+            return;
+        }
+
         // Disable PlayerInputManager BEFORE loading scene to prevent duplicate player registration
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
             playerInputManager.enabled = false;
-            Debug.Log("Disabled PlayerInputManager before scene load");
+            //Debug.Log("Disabled PlayerInputManager before scene load");
         }
 
         //if gameStages is empty,...
@@ -1366,16 +1679,8 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             RandomizeGameStages();
         }
 
-        int _newStageIndex;
-        if (isOnlineMatchActive)
-        {
-            _newStageIndex = 1;
-        }
-        else
-        {
-            int _gameStageIndex = seededRandom.Next(0, gameStages.Count);
-            _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
-        }
+        int _gameStageIndex = GetNextRandom(0, gameStages.Count);
+        int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
 
         //remove the stage associated with newStageIndex so it does not repeat for the rest of the game
         gameStages.Remove(stages[_newStageIndex]);
@@ -1390,20 +1695,85 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 
+    private void SelectAndBroadcastStage()
+    {
+        if (gameStages.Count <= 0)
+        {
+            gameStages = new List<StageDataSO>(stages);
+        }
+
+        int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
+        int newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+        ApplyOnlineStageSelection(newStageIndex);
+
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.SendStageSelect(newStageIndex);
+        }
+    }
+
+    public void ApplyOnlineStageSelection(int stageIndex)
+    {
+        if (playerInputManager != null)
+        {
+            playerInputManager.DisableJoining();
+            playerInputManager.enabled = false;
+        }
+
+        if (gameStages.Count <= 0)
+        {
+            gameStages = new List<StageDataSO>(stages);
+        }
+
+        if (stageIndex >= 0 && stageIndex < stages.Count)
+        {
+            gameStages.Remove(stages[stageIndex]);
+        }
+
+        SetStage(stageIndex);
+        isTransitioning = true;
+        sceneManager.LoadScene("Gameplay");
+    }
+
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
     private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Debug.Log($"Scene loaded: {scene.name}");
+        //Debug.Log($"Scene loaded: {scene.name}");
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-        int roundsPlayed = dataManager != null?dataManager.totalRoundsPlayed:1;
-        ramNeededToWinRound = (ushort)(300+ 100* roundsPlayed);
+
+        int roundsPlayed = 0;
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+        if (dataManager != null)
+        {
+            roundsPlayed = dataManager.totalRoundsPlayed;
+            
+        }
+        else
+        {
+            roundsPlayed = 1;
+        }
+
+        ramNeededToWinRound = (ushort)(300 + 100 * roundsPlayed);
+
+        if (scene.name != "MainMenu")
+        {
+            if (onboardManager != null)
+            {
+                Destroy(onboardManager.gameObject);
+                onboardManager = null;
+            }
+        }
+
         // For OFFLINE gameplay
         if (!isOnlineMatchActive && scene.name == "Gameplay")
         {
-            Debug.Log("Gameplay loaded (offline) - resetting players");
+            //Debug.Log("Gameplay loaded (offline) - resetting players");
 
             // Keep PlayerInputManager disabled to prevent duplicate joins
             if (playerInputManager != null)
@@ -1419,10 +1789,12 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         // For ONLINE gameplay
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
-            Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
+            //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             isTransitioning = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
 
-            if (currentStageIndex != 0 && currentStageIndex != 1)
+            if (currentStageIndex < 0)
             {
                 SetStage(1);
             }
@@ -1433,6 +1805,18 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             {
                 RollbackManager.Instance.SaveState();
             }
+        }
+
+        // Handle shop scene loading for online
+        if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
+        {
+            //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            isTransitioning = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+
+            ResetPlayers();
+            // Ready flags are already reset in RoundEnd()
         }
     }
 
@@ -1445,12 +1829,47 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         lobbyMapGO.SetActive(false);
     }
 
-
     public void SetMenuActive(bool isActive)
     {
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(isActive);
+        }
+    }
+
+    public void GenerateStartingSpells(int index)
+    {
+        if (index == 0)
+        {
+            p1_choices = new List<string>();
+            p1_choices.Add("SkillshotSlash");
+            p1_choices.Add("MightOfZeus");
+            p1_choices.Add("AmonSlash");
+            p1_choices.Add("CoinToss");
+        }
+        if (index == 1)
+        {
+            p2_choices = new List<string>();
+            p2_choices.Add("SkillshotSlash");
+            p2_choices.Add("MightOfZeus");
+            p2_choices.Add("AmonSlash");
+            p2_choices.Add("CoinToss");
+        }
+        if (index == 2)
+        {
+            p3_choices = new List<string>();
+            p3_choices.Add("SkillshotSlash");
+            p3_choices.Add("MightOfZeus");
+            p3_choices.Add("AmonSlash");
+            p3_choices.Add("CoinToss");
+        }
+        if (index == 3)
+        {
+            p4_choices = new List<string>();
+            p4_choices.Add("SkillshotSlash");
+            p4_choices.Add("MightOfZeus");
+            p4_choices.Add("AmonSlash");
+            p4_choices.Add("CoinToss");
         }
     }
 
@@ -1463,7 +1882,6 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
             players[i].spellsFired = 0;
             players[i].spellsHit = 0;
             players[i].times = new List<Fixed>();
-
         }
     }
 
@@ -1497,14 +1915,55 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     else
                     {
                         // Handle potential null player slot if necessary, though playerCount should be accurate
-                        Debug.LogError($"Attempted to serialize null player at index {i}");
-                        // Need placeholder data or ensure players array is always contiguous
+                        //Debug.LogError($"Attempted to serialize null player at index {i}");
                     }
                 }
 
-                // Projectile State
+                bw.Write(roundOver);
+                bw.Write(gameOver);
+                bw.Write(roundEndFrameCounter);
+
+                // Serialize damage matrix
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        bw.Write(damageMatrix[i, j]);
+                    }
+                }
+
+                // Serialize random state for deterministic respawns
+                bw.Write(randomSeed);
+                bw.Write(randomCallCount);
+                bw.Write(rngState);
+
+                bw.Write(p1_shopIndex);
+                bw.Write(p2_shopIndex);
+
+                bw.Write(p1_lastCycleFrame);
+                bw.Write(p2_lastCycleFrame);
+
+                // Serialize shop spell choices themselves
+                if (shopManager != null)
+                {
+                    SerializeStringList(bw, shopManager.GetP1Choices());
+                    SerializeStringList(bw, shopManager.GetP2Choices());
+                }
+                else
+                {
+                    // No shop active, write empty lists
+                    bw.Write(0); // p1_choices count
+                    bw.Write(0); // p2_choices count
+                }
+
+                // Also serialize if players have chosen their shop spell
+                for (int i = 0; i < playerCount; i++)
+                {
+                    bw.Write(players[i].chosenSpell);
+                }
+
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
-                bw.Write(activeProjectiles.Count); // Save number of active projectiles
+                bw.Write(activeProjectiles.Count);
 
                 foreach (BaseProjectile projectile in activeProjectiles)
                 {
@@ -1513,14 +1972,13 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
                     if (prefabIndex == -1)
                     {
-                        Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
-                        // Handle error: Maybe skip this projectile, but it indicates a problem
-                        bw.Write(-1); // Write invalid index
+                        //Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
+                        bw.Write(-1);
                     }
                     else
                     {
-                        bw.Write(prefabIndex); // Write its index from the master list
-                        projectile.Serialize(bw); // Call projectile's serialize method
+                        bw.Write(prefabIndex);
+                        projectile.Serialize(bw);
                     }
                 }
 
@@ -1528,6 +1986,16 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 foreach (var gate in gates)
                 {
                     if (gate != null) gate.Serialize(bw);
+                }
+
+                bw.Write(gambas.Count);
+                foreach (GameObject gambaGO in gambas)
+                {
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    // Write defaults if somehow null, so byte count stays consistent
+                    bw.Write(gamba != null ? gamba.activatedCount : 0);
+                    bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+                    bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
                 }
 
                 return memoryStream.ToArray();
@@ -1546,17 +2014,10 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
         {
             using (BinaryReader br = new BinaryReader(memoryStream))
             {
-                // Global State
-                // currentGameTimer = br.ReadSingle(); // Load any global state saved first
-
-                // Player State
                 int savedPlayerCount = br.ReadInt32();
                 if (savedPlayerCount != playerCount)
                 {
-                    Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}. State might be corrupted if players joined/left mid-match (not typical for rollback).");
-                    // Adjust playerCount or handle error
-                    // Assuming playerCount is stable for rollback segment:
-                    // playerCount = savedPlayerCount;
+                    //Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
                 }
                 for (int i = 0; i < playerCount; i++) // Use current (or updated) playerCount
                 {
@@ -1566,9 +2027,40 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                     else
                     {
-                        Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
-                        // Need to skip the appropriate bytes if a player is unexpectedly null
+                        //Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
                     }
+                }
+
+                roundOver = br.ReadBoolean();
+                gameOver = br.ReadBoolean();
+                roundEndFrameCounter = br.ReadInt32();
+
+                // Deserialize damage matrix
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        damageMatrix[i, j] = br.ReadByte();
+                    }
+                }
+
+                // Deserialize random state
+                randomSeed = br.ReadInt32();
+                randomCallCount = br.ReadInt32();
+                rngState = br.ReadUInt32(); // Restore exact RNG state directly
+
+                p1_shopIndex = br.ReadInt32();
+                p2_shopIndex = br.ReadInt32();
+                p1_lastCycleFrame = br.ReadInt32();
+                p2_lastCycleFrame = br.ReadInt32();
+
+                // Deserialize shop spell choices
+                List<string> savedP1Choices = DeserializeStringList(br);
+                List<string> savedP2Choices = DeserializeStringList(br);
+
+                for (int i = 0; i < playerCount; i++)
+                {
+                    players[i].chosenSpell = br.ReadBoolean();
                 }
 
                 // Projectile State 
@@ -1586,7 +2078,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     int prefabIndex = br.ReadInt32();
                     if (prefabIndex == -1 || prefabIndex >= masterList.Count)
                     {
-                        Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
+                        //Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
                         // Need robust skipping logic here if SpellData.Deserialize can vary in length
                         continue; // Skip this entry
                     }
@@ -1608,7 +2100,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     else
                     {
                         // Cannot determine size to skip - this approach has issues.
-                        Debug.LogError("Cannot skip unknown projectile data.");
+                        //Debug.LogError("Cannot skip unknown projectile data.");
                         // Alternative: Calculate exact size of serialized projectile data.
                     }
                     long nextPos = br.BaseStream.Position;
@@ -1666,7 +2158,7 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                     else
                     {
-                        Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
+                        //Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
                     }
                 }
 
@@ -1679,6 +2171,24 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                     }
                 }
 
+                int gambaCount = br.ReadInt32();
+                for (int i = 0; i < gambaCount; i++)
+                {
+                    int activatedCount = br.ReadInt32();
+                    byte resetTimer = br.ReadByte();
+                    int startingSpellPos = br.ReadInt32();
+                    if (i < gambas.Count)
+                    {
+                        GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
+                        if (gamba != null)
+                        {
+                            gamba.activatedCount = activatedCount;
+                            gamba.resetTimer = resetTimer;
+                            gamba.SetStartingSpellPos(startingSpellPos);
+                        }
+                    }
+                }
+
                 // Resolve References
                 // Call ResolveReferences on players if they need it (unlikely for player->spell)
                 // Call ResolveReferences on all *active* projectiles
@@ -1686,8 +2196,38 @@ public class GameManager : MonoBehaviour/*NonPersistantSingleton<GameManager>*/
                 {
                     projectile.ResolveReferences();
                 }
+                for (int i = 0; i < playerCount; i++)
+                {
+                    if (players[i] != null)
+                        players[i].ResolveReferences();
+                }
             }
         }
+    }
+
+    // Helper methods for string list serialization
+    private void SerializeStringList(BinaryWriter bw, List<string> list)
+    {
+        bw.Write(list?.Count ?? 0);
+        if (list != null)
+        {
+            foreach (string s in list)
+            {
+                bw.Write(s ?? "");
+            }
+        }
+    }
+
+    private List<string> DeserializeStringList(BinaryReader br)
+    {
+        int count = br.ReadInt32();
+        List<string> list = new List<string>();
+        for (int i = 0; i < count; i++)
+        {
+            list.Add(br.ReadString());
+        }
+
+        return list;
     }
 
     /// <summary>

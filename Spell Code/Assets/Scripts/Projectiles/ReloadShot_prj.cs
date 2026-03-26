@@ -9,7 +9,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class ReloadShot_prj : BaseProjectile
 {
     
-    public ReloadShot_prj()
+    protected override void InitializeDefaults()
     {
         projName = "ReloadShot";
         hSpeed = Fixed.FromInt(1);

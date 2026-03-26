@@ -57,11 +57,23 @@ public class QuarterReport : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
+                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
                 break;
             default:
                 break;
         }
+    }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(doesCrit);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        doesCrit = br.ReadBoolean();
     }
 
     

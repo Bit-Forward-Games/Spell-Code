@@ -9,7 +9,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class GiftOfPrometheus_Projectile : BaseProjectile
 {
     
-    public GiftOfPrometheus_Projectile()
+    protected override void InitializeDefaults()
     {
         projName = "GiftOfPrometheus";
         lifeSpan = 300; // lasts for 120 logic frames

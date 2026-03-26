@@ -60,7 +60,7 @@ public class GetAJob : SpellData
         {
             
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.seededRandom.Next(0, 100) < owner.stockStability;
+                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
                 owner.lightArmor = doesCrit;
                 break;
             default:
@@ -68,5 +68,17 @@ public class GetAJob : SpellData
         }
 
         
+    }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(doesCrit);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        doesCrit = br.ReadBoolean();
     }
 }

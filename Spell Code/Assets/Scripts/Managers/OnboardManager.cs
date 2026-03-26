@@ -8,6 +8,8 @@ public class OnboardManager : MonoBehaviour
     //variables
     public InputSnapshot[] inputSnapshots = new InputSnapshot[4];
 
+    public static OnboardManager Instance { get; private set; }
+
     private GameManager gM;
 
     public Sprite inputGraphic;
@@ -92,11 +94,59 @@ public class OnboardManager : MonoBehaviour
     public GambaMachine p4_gamba;
     private bool p4_gambaActive;
 
+    private void Awake()
+    {
+        // if an instance already exists and it's not this one, destroy this duplicate
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            // otherwise, set this as the instance
+            Instance = this;
+            // optional: prevent the gameobject from being destroyed when loading new scenes
+            DontDestroyOnLoad(gameObject);
+        }
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         gM = GameManager.Instance;
+        ResetOnboarding();
+    }
 
+    public void ResetOnboarding()
+    {
+        p1_moveComplete = false;
+        p1_jumpComplete = false;
+        p1_atkComplete = false;
+        p1_glassBroken = false;
+
+        p2_joined = false;
+        p2_moveComplete = false;
+        p2_jumpComplete = false;
+        p2_atkComplete = false;
+        p2_glassBroken = false;
+
+        p3_joined = false;
+        p3_moveComplete = false;
+        p3_jumpComplete = false;
+        p3_atkComplete = false;
+        p3_glassBroken = false;
+
+        p4_joined = false;
+        p4_moveComplete = false;
+        p4_jumpComplete = false;
+        p4_atkComplete = false;
+        p4_glassBroken = false;
+
+        ApplyInitialUiState();
+    }
+
+    private void ApplyInitialUiState()
+    {
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;
@@ -104,6 +154,7 @@ public class OnboardManager : MonoBehaviour
         p1_castGraphic.enabled = false;
         p1_castTxt.enabled = false;
         p1_gambaActive = false;
+        if (p1_gamba != null) p1_gamba.gambaAnimator.SetBool("isActive", false);
 
         p2_atkTxt.text = "Join";
         p2_moveGraphic.enabled = false;
@@ -114,6 +165,7 @@ public class OnboardManager : MonoBehaviour
         p2_castGraphic.enabled = false;
         p2_castTxt.enabled = false;
         p2_gambaActive = false;
+        if (p2_gamba != null) p2_gamba.gambaAnimator.SetBool("isActive", false);
 
         p3_atkTxt.text = "Join";
         p3_moveGraphic.enabled = false;
@@ -124,6 +176,7 @@ public class OnboardManager : MonoBehaviour
         p3_castGraphic.enabled = false;
         p3_castTxt.enabled = false;
         p3_gambaActive = false;
+        if (p3_gamba != null) p3_gamba.gambaAnimator.SetBool("isActive", false);
 
         p4_atkTxt.text = "Join";
         p4_moveGraphic.enabled = false;
@@ -134,6 +187,7 @@ public class OnboardManager : MonoBehaviour
         p4_castGraphic.enabled = false;
         p4_castTxt.enabled = false;
         p4_gambaActive = false;
+        if (p4_gamba != null) p4_gamba.gambaAnimator.SetBool("isActive", false);
     }
 
     public void OnboardUpdate(ulong[] playerInputs)

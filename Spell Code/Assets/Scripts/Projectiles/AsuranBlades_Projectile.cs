@@ -8,15 +8,13 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class AsuranBlades_Projectile : BaseProjectile
 {
 
-    public AsuranBlades_Projectile()
+    protected override void InitializeDefaults()
     {
         projName = "AsuranBlades";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 20 logic frames
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

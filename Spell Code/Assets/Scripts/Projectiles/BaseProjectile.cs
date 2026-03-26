@@ -42,6 +42,7 @@ public abstract class BaseProjectile : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
     {
+        InitializeDefaults();
         DontDestroyOnLoad(this.gameObject);
     }
 
@@ -78,6 +79,7 @@ public abstract class BaseProjectile : MonoBehaviour
     }
     public virtual void LoadProjectile()
     {
+        InitializeDefaults();
         foreach (HitboxGroup hitboxGroup in projectileHitboxes)
         {
             foreach (List<HitboxData> hitboxList in new List<List<HitboxData>> { hitboxGroup.hitbox1, hitboxGroup.hitbox2, hitboxGroup.hitbox3, hitboxGroup.hitbox4 })
@@ -90,6 +92,16 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+    }
+
+    protected virtual void InitializeDefaults() { }
+
+    public void EnsureDefaults()
+    {
+        if (string.IsNullOrEmpty(projName))
+        {
+            InitializeDefaults();
+        }
     }
     public virtual void ProjectileUpdate()
     {

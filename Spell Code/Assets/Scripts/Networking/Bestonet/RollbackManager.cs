@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using BestoNet.Collections; // Use BestoNet collections
 
@@ -15,6 +16,7 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             public int frame;
             public byte[] state;
+            public uint hash;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -67,6 +69,8 @@ using BestoNet.Collections; // Use BestoNet collections
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
+        private int lastHashSentFrame = -1;
+        private int firstHashMismatchFrame = -1;
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
@@ -113,7 +117,7 @@ using BestoNet.Collections; // Use BestoNet collections
         /// <param name="inputDelayFrames">Optional override for input delay.</param>
         public void Init(ulong opponentNetId, int? inputDelayFrames = null)
         {
-            Debug.Log("Initializing Rollback Connection...");
+            //Debug.Log("Initializing Rollback Connection...");
             this.opponentNetworkId = opponentNetId;
 
         // Find MatchMessageManager instance
@@ -132,7 +136,27 @@ using BestoNet.Collections; // Use BestoNet collections
             // AutosetDelay logic removed, handle delay negotiation elsewhere if needed
 
             ClearVars(); // Reset state variables
-            Debug.Log("Rollback Connection Initialized.");
+            //Debug.Log("Rollback Connection Initialized.");
+        }
+
+        public void ApplyOnlineSettings(
+            int inputDelay,
+            bool delayBased,
+            int maxRollbackFrames,
+            int frameAdvantageLimit,
+            float frameExtensionLimit,
+            int frameExtensionWindow,
+            int timeoutFrames)
+        {
+            InputDelay = inputDelay;
+            DelayBased = delayBased;
+            MaxRollBackFrames = maxRollbackFrames;
+            FrameAdvantageLimit = frameAdvantageLimit;
+            FrameExtensionLimit = frameExtensionLimit;
+            FrameExtensionWindow = frameExtensionWindow;
+            TimeoutFrames = timeoutFrames;
+
+            ClearVars();
         }
 
         /// <summary>
@@ -151,6 +175,8 @@ using BestoNet.Collections; // Use BestoNet collections
             syncFrame = 0;
             predictedRemoteFrame = 0;
             remoteFrame = 0;
+            lastHashSentFrame = -1;
+            firstHashMismatchFrame = -1;
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
@@ -162,7 +188,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // Initialize states array
             for (int i = 0; i < StateArraySize; i++)
             {
-                states[i] = new GameState() { frame = -1, state = null }; // Use null instead of empty array
+                states[i] = new GameState() { frame = -1, state = null, hash = 0 }; // Use null instead of empty array
             }
 
             // Pre-fill input buffers for the input delay period with neutral input
@@ -182,107 +208,90 @@ using BestoNet.Collections; // Use BestoNet collections
             }
 
             isRollbackFrame = false; // Ensure rollback status is reset
-            Debug.Log("Rollback variables cleared.");
+            //Debug.Log("Rollback variables cleared.");
         }
 
-        /// <summary>
-        /// Checks for input mismatches and triggers a rollback if necessary.
-        /// Should be called once per frame before simulation.
-        /// </summary>
-        public void RollbackEvent()
+    /// <summary>
+    /// Checks for input mismatches and triggers a rollback if necessary.
+    /// Should be called once per frame before simulation.
+    /// </summary>
+    public void RollbackEvent()
+    {
+        if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning)
         {
-            if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning) // Check if match is running
+            return;
+        }
+
+        int framesBeforeRollback = localFrame;
+        bool foundDesyncedFrame = false;
+
+        // --- Check for Mismatched Inputs ---
+        for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
+        {
+            bool haveReceived = receivedInputs.ContainsKey(i);
+            bool haveUsed = opponentInputs.ContainsKey(i);
+
+            // ONLY CHECK - DON'T RESIMULATE HERE
+            if (haveReceived && haveUsed)
             {
-                return;
-            }
+                ulong received = receivedInputs.GetInput(i);
+                ulong used = opponentInputs.GetInput(i);
 
-            int framesBeforeRollback = localFrame; // Cache frame before potential load
-            bool foundDesyncedFrame = false;
-
-            // --- Check for Mismatched Inputs ---
-            // Iterate from the frame *after* the last known sync point up to the current frame
-            for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
-            {
-                // We need both the received input and the input we *used* (predicted or received) for this frame
-                bool haveReceived = receivedInputs.ContainsKey(i);
-                bool haveUsed = opponentInputs.ContainsKey(i); // This stores what was actually simulated
-
-                if (haveReceived && haveUsed)
+                if (received == used && states[i % StateArraySize].frame == i)
                 {
-                    ulong received = receivedInputs.GetInput(i);
-                    ulong used = opponentInputs.GetInput(i);
-
-                    // If they match AND we have a saved state for this frame, this frame is now confirmed synced
-                    if (received == used && states[i % StateArraySize].frame == i)
-                    {
-                        syncFrame = i; // Advance the sync point
-                    }
-                    // If they don't match, we found a desync!
-                    else if (received != used)
-                    {
-                        foundDesyncedFrame = true;
-                        // Don't advance syncFrame, rollback needed from the *previous* sync point (syncFrame)
-                        break; // Exit loop, no need to check further frames
-                    }
-                    // If received == used but state is missing, we might have issues saving state? Log warning?
+                    syncFrame = i;
                 }
-                else if (haveReceived && !haveUsed)
+                else if (received != used)
                 {
-                    // Received input for a frame we simulated predictively. This is a potential desync.
-                    // (Unless prediction was perfect, but we check that above)
                     foundDesyncedFrame = true;
                     break;
                 }
-                // If !haveReceived, we can't confirm sync yet, just continue assuming prediction was ok for now.
             }
-            // --- End Mismatch Check ---
-
-
-            if (!foundDesyncedFrame)
+            else if (haveReceived && !haveUsed)
             {
-                // No mismatch found up to the current frame, no rollback needed this tick.
-                return; // Exit rollback logic
+                foundDesyncedFrame = true;
+                break;
             }
+        }
+        // --- End Mismatch Check ---
 
-            // --- Perform Rollback ---
-            // Rollback to the last known fully synchronized frame 'syncFrame'
-            Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
-            SetRollbackStatus(true); // Signal that we are now resimulating
-            RollbackFrames = framesBeforeRollback - syncFrame;
-
-            LoadState(syncFrame); // Load state from the last sync point (calls GameManager.Deserialize...)
-
-            // Resimulate frames from syncFrame + 1 up to the original frame number
-            for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
-            {
-                // Get the correct inputs for the resimulation frame 'i'
-                ulong[] inputsForResim = SynchronizeInput(i); // Use version that takes frame number
-
-                // Run the simulation step using GameManager
-                GameManager.Instance.UpdateGameState(inputsForResim);
-                GameManager.Instance.ForceSetFrame(i); // Ensure GameManager frame number matches simulation
-
-                // Save state during resimulation (optional, GGPO does speculative saving)
-                // SaveState(); // Save state for every resimulated frame? Or only specific ones?
-                // Simple approach: Only save the *final* frame state outside this loop.
-                // Complex/GGPO approach: Save state at intervals or based on remote frame.
-                // Let's stick to saving outside the loop for simplicity for now.
-                ClearState(i); // Clear potentially incorrect states saved earlier predictively
-            }
-
-            SetRollbackStatus(false); // Finished resimulating
-            Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
-            // The main loop will now continue from 'framesBeforeRollback', running the simulation
-            // for the current frame again with (hopefully) corrected opponent input.
-            // The SaveState call in the main loop will save the final corrected state.
+        if (!foundDesyncedFrame)
+        {
+            return; // No rollback needed
         }
 
-        /// <summary>
-        /// Sends the local player's input for the current frame (plus delay) to the opponent.
-        /// </summary>
-        /// <param name="input">The local player's input for the current frame.</param>
-        public bool SendLocalInput(ulong input)
+        // --- Perform Rollback ---
+        Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
+        SetRollbackStatus(true);
+        RollbackFrames = framesBeforeRollback - syncFrame;
+
+        LoadState(syncFrame);
+
+        // RESIMULATE HERE - ONLY WHEN ROLLBACK IS ACTUALLY NEEDED
+        for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
+            ulong[] inputsForResim = SynchronizeInput(i);
+
+            // Run base game state update
+            GameManager.Instance.UpdateGameState(inputsForResim);
+
+            // Run scene-specific logic (lobby spell selection, shop, etc.)
+            GameManager.Instance.UpdateSceneLogic(inputsForResim);
+
+            GameManager.Instance.ForceSetFrame(i);
+            ClearState(i);
+        }
+
+        SetRollbackStatus(false);
+        Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
+    }
+
+    /// <summary>
+    /// Sends the local player's input for the current frame (plus delay) to the opponent.
+    /// </summary>
+    /// <param name="input">The local player's input for the current frame.</param>
+    public bool SendLocalInput(ulong input)
+    {
             // Check if opponent ID is set and we have a match manager
             if (opponentNetworkId == 0 || matchManager == null || GameManager.Instance == null) return false;
 
@@ -296,7 +305,7 @@ using BestoNet.Collections; // Use BestoNet collections
             // Send input packet via MatchMessageManager
             matchManager.SendInputs(); // Send target frame and input
             return true;
-        }
+    }
 
 
         /// <summary>
@@ -439,14 +448,28 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
+        uint hash = ComputeFnv1a(currentStateBytes);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
         states[frameIndex] = new GameState()
         {
             frame = localFrame,
-            state = currentStateBytes // Store the byte array from GameManager
+            state = currentStateBytes, // Store the byte array from GameManager
+            hash = hash
         };
+
+        if (StressTestController.Instance != null &&
+            StressTestController.Instance.IsActiveOnline &&
+            StressTestController.Instance.enableStateHashing)
+        {
+            int interval = Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames);
+            if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
+            {
+                lastHashSentFrame = localFrame;
+                matchManager?.SendStateHash(localFrame, hash);
+            }
+        }
     }
 
     /// <summary>
@@ -495,6 +518,62 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Force the GameManager's frame number to match the loaded state
         GameManager.Instance.ForceSetFrame(frame);
+    }
+
+    public void OnRemoteStateHash(int frame, uint remoteHash)
+    {
+        if (firstHashMismatchFrame >= 0)
+        {
+            return;
+        }
+
+        int index = frame % StateArraySize;
+        if (states[index].frame != frame || states[index].state == null)
+        {
+            return;
+        }
+
+        uint localHash = states[index].hash;
+        if (localHash != remoteHash)
+        {
+            firstHashMismatchFrame = frame;
+            Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
+
+            if (StressTestController.Instance != null &&
+                StressTestController.Instance.IsActiveOnline &&
+                StressTestController.Instance.dumpStateOnMismatch)
+            {
+                DumpLocalState(frame, localHash, remoteHash, states[index].state);
+            }
+        }
+    }
+
+    private void DumpLocalState(int frame, uint localHash, uint remoteHash, byte[] stateBytes)
+    {
+        if (stateBytes == null || stateBytes.Length == 0) return;
+
+        string dir = StressTestController.Instance != null
+            ? StressTestController.Instance.GetDumpDirectory()
+            : Application.persistentDataPath;
+
+        string fileName = $"desync_frame_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+        string path = Path.Combine(dir, fileName);
+        File.WriteAllBytes(path, stateBytes);
+        Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
+    }
+
+    private static uint ComputeFnv1a(byte[] data)
+    {
+        if (data == null) return 0;
+        const uint offset = 2166136261;
+        const uint prime = 16777619;
+        uint hash = offset;
+        for (int i = 0; i < data.Length; i++)
+        {
+            hash ^= data[i];
+            hash *= prime;
+        }
+        return hash;
     }
 
 

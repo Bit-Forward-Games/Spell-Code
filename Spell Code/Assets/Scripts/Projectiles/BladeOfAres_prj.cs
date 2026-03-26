@@ -9,13 +9,11 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class BladeOfAres_prj : BaseProjectile
 {
 
-    public BladeOfAres_prj()
+    protected override void InitializeDefaults()
     {
         projName = "BladeOfAres";
         lifeSpan = 45; 
-
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5}, false);
-
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

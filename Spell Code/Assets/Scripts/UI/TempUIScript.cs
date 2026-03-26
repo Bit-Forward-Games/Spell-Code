@@ -173,10 +173,10 @@ public class TempUIScript : MonoBehaviour
             // stockStabilityVals[i].enabled = true;
             // stockStabilityIcons[i].enabled = true;
             stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
-            
+
             // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
-            
+
             // repsVals[i].enabled = true;
             // repsIcons[i].enabled = true;
             repsVals[i].text = GameManager.Instance.players[i].reps.ToString();
@@ -203,7 +203,7 @@ public class TempUIScript : MonoBehaviour
         // Transform childTransform = GameManager.Instance.players[playerIndex].transform.Find("Damage Bar");
         followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
         PlayerController player = GameManager.Instance.players[playerIndex];
-        
+
         player.isHit = false;
         
         float previousHealthAmount = damageBarDisplayFill[playerIndex];
@@ -211,12 +211,12 @@ public class TempUIScript : MonoBehaviour
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
         
         followPlayerDamageBar[playerIndex].fillAmount = previousHealthAmount;
-        
+
         yield return new WaitForSeconds(1f);
-        
+
         float elapsedTime = 0f;
-        float animationDuration = 1f; 
-        
+        float animationDuration = 1f;
+
         while (elapsedTime < animationDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -294,7 +294,7 @@ public class TempUIScript : MonoBehaviour
     GameObject FindChildContainingName(GameObject parent, string namePart)
     {
         // Get all child transforms (including grandchildren, etc.)
-        Transform[] children = parent.GetComponentsInChildren<Transform>(true); 
+        Transform[] children = parent.GetComponentsInChildren<Transform>(true);
 
         // Iterate through the children to find one whose name contains the specified part
         foreach (Transform childTransform in children)

@@ -158,6 +158,7 @@ public class ProjectileManager : MonoBehaviour
         {
             if (!matchingProjectiles[i].gameObject.activeSelf)
             {
+                matchingProjectiles[i].ResetValues();
                 matchingProjectiles[i].gameObject.SetActive(true);
                 matchingProjectiles[i].SpawnProjectile(facingRight, spawnOffset);
                 return;
@@ -188,6 +189,7 @@ public class ProjectileManager : MonoBehaviour
     {
         if (!projectilePrefab.gameObject.activeSelf)
         {
+            projectilePrefab.ResetValues();
             projectilePrefab.gameObject.SetActive(true);
             projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
             return;

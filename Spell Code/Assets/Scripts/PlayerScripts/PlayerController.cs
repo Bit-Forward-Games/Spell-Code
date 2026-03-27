@@ -2046,7 +2046,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, ((float)flowState / (float)maxFlowState) * 100f);
 
             flowState--;
         }
@@ -2055,7 +2055,7 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
-        if(demonAura > 0)
+        if (demonAura > 0)
         {
             if (demonAuraLifeSpanTimer > 0)
             {
@@ -2066,36 +2066,10 @@ public class PlayerController : MonoBehaviour
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
 
-            //Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
-
-            //if (demonAura > (ushort)0 && demonAura <= (ushort)20)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.20f * 50f);
-            //}
-            //else if (demonAura > (ushort)20 && demonAura <= (ushort)40)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.40f * 50f);
-            //}
-            //else if (demonAura > (ushort)40 && demonAura <= (ushort)60)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.60f * 50f);
-            //}
-            //else if (demonAura > (ushort)60 && demonAura <= (ushort)80)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.80f * 50f);
-            //}
-            //else if (demonAura > (ushort)80 && demonAura <= (ushort)100)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 1.0f * 50f);
-            //}
+            //Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, this.gameObject.transform, (((float)demonAura / (float)maxDemonAura) * 50f));
         }
         else
         {
@@ -2105,7 +2079,7 @@ public class PlayerController : MonoBehaviour
         if (stockStability > 0)
         {
             //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
         }
         else
         {
@@ -2115,7 +2089,7 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, null, (float)reps * 20f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, this.gameObject.transform, (float)reps * 20f);
         }
         else
         {
@@ -2182,6 +2156,9 @@ public class PlayerController : MonoBehaviour
                 SpawnToast("COMBO BREAK!!!", Color.magenta);
                 iframes = 120;
                 comboCounter = 0;
+
+                //Play the combo break VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, -38f), pID);
             }
 
 

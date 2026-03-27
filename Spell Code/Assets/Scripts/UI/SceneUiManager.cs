@@ -28,7 +28,10 @@ public class SceneUiManager : MonoBehaviour
     public void LoadScene(string sceneName)
     {
         //stop repeating all sounds
-        SFX_Manager.Instance.StopRepeatingAllSounds();
+        if (SFX_Manager.Instance != null)
+        {
+            SFX_Manager.Instance.StopRepeatingAllSounds();
+        }
 
         SceneManager.LoadScene(sceneName);
     }
@@ -64,14 +67,7 @@ public class SceneUiManager : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.SetStage(-1);
-            DataManager.Instance.ResetData();
-            GameManager.Instance.RestartLobby();
-
-            GameManager.Instance.isRunning = true;
-            GameManager.Instance.lastSceneName = SceneManager.GetActiveScene().name;
-
-            this.LoadScene("MainMenu");
+            GameManager.Instance.ExecuteOrder66();
         }
 
         this.LoadScene("MainMenu");

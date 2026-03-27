@@ -176,6 +176,27 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
     }
+
+    public void ExecuteOrder66()
+    {
+        GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
+        DontDestroyOnLoad(dontDestroyProbe);
+
+        Scene dontDestroyScene = dontDestroyProbe.scene;
+        GameObject[] persistentRoots = dontDestroyScene.GetRootGameObjects();
+
+        for (int i = 0; i < persistentRoots.Length; i++)
+        {
+            if (persistentRoots[i] != dontDestroyProbe)
+            {
+                Destroy(persistentRoots[i]);
+            }
+        }
+
+        Destroy(dontDestroyProbe);
+        Instance = null;
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

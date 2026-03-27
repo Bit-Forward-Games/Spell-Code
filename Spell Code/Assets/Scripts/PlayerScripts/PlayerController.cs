@@ -281,7 +281,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
 
         //stop playing all repeating sounds for this player
-        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
         StopHitRumble();
     }
 

@@ -7,6 +7,7 @@ using BestoNet.Types;
 using UnityEngine.VFX;
 using static UnityEngine.ParticleSystem;
 using UnityEngine.UI.Extensions.Tweens;
+using static SFX_Manager;
 
 public enum VisualEffects
 {

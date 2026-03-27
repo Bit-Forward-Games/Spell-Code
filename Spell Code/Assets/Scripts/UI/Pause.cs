@@ -9,6 +9,10 @@ public class Pause : MonoBehaviour
     public GameManager gameManager;
     public bool paused;
     public bool options;
+    public Slider volumeSlider;
+    public Slider sfxSlider;
+    public AudioSource musicAudioSource;
+    public AudioSource sfxAudioSource;
     public bool shakeEnabled = true;
     public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
@@ -23,6 +27,12 @@ public class Pause : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (musicAudioSource == null)
+            musicAudioSource = GameObject.Find("pfb_BGM_Manager").gameObject.GetComponent<AudioSource>();
+            
+        if (sfxAudioSource == null)
+            sfxAudioSource = GameObject.Find("pfb_SFX_Manager").gameObject.GetComponent<AudioSource>();
+
         if (!gameManager.isOnlineMatchActive)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
@@ -82,6 +92,16 @@ public class Pause : MonoBehaviour
         //quit the game
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
+    }
+
+    public void MusicVolume()
+    {
+        musicAudioSource.volume = volumeSlider.value;
+    }
+
+    public void SFXVolume()
+    {
+        sfxAudioSource.volume = sfxSlider.value;
     }
 
     public void ToggleCameraShake()

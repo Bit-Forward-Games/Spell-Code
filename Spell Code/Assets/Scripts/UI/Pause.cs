@@ -22,6 +22,7 @@ public class Pause : MonoBehaviour
         gameManager = GameManager.Instance;
         //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
+        Resume();
     }
 
     // Update is called once per frame

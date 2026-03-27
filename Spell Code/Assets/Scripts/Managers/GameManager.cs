@@ -843,10 +843,10 @@ public class GameManager : MonoBehaviour
         if (rbManager == null) return;
 
 
-        if (frameNumber <= rbManager.InputDelay)
-        {
-            rbManager.SaveState();
-        }
+        //if (frameNumber <= rbManager.InputDelay)
+        //{
+        //    rbManager.SaveState();
+        //}
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;

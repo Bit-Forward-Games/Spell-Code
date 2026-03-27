@@ -266,13 +266,13 @@ public class VFX_Manager : MonoBehaviour
         }
 
         //if _emissionRate is not the garbage default value,...
-        if (_emissionRate != -1f)
+        if (_emissionRate != -1f && _visualEffectObject.numParticleSystemsPerPlayer == 1)
         {
             //get the emission modular from the particle system
-            var em = _particleSystem.emission;
+            var em = _visualEffectObject.particleSystems[_playerNum][0].emission;
 
             //turn off emmision
-            _particleSystem.Stop();
+            _visualEffectObject.particleSystems[_playerNum][0].Stop();
             em.enabled = false;
 
             //set emission rate over time of the particle system to _emissionRate

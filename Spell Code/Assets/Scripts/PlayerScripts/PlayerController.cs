@@ -1200,8 +1200,9 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
-                    uint testCode = stateSpecificArg & ~(1u << 4);
-                    if (testCode == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
+                    //uint testCode = stateSpecificArg & ~(1u << 4);
+                    stateSpecificArg &= ~(1u << 4);
+                    if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
                     {
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
@@ -1216,7 +1217,7 @@ public class PlayerController : MonoBehaviour
                             secretEpicPaletteActive = false;
                         }
                     }
-                    if (testCode == 0b_0000_0000_1001_1001_1111_0000_0000_1000) //Inverse Konami Code input
+                    if (stateSpecificArg == 0b_0000_0000_1001_1001_1111_0000_0000_1000) //Inverse Konami Code input
                     {
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
@@ -1231,7 +1232,7 @@ public class PlayerController : MonoBehaviour
                             secretNormalPaletteActive = false;
                         }
                     }
-                    if (testCode == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
+                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
                     {
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;

@@ -1980,7 +1980,7 @@ public class PlayerController : MonoBehaviour
                 //hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
                 //vSpd = Fixed.FromInt(5);
 
-                comboResetTimer = 60;
+                comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
                 lightArmor = true;
@@ -2276,6 +2276,7 @@ public class PlayerController : MonoBehaviour
                     deathList = new List<Vector2>();
                     arenaData.deathDict[GameManager.Instance.currentStage] = deathList;
                 }
+                ClearInputDisplay();
                 deathList.Add(transform.position);
             }
 

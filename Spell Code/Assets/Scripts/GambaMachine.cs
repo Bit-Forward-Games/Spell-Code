@@ -230,7 +230,7 @@ public class GambaMachine : MonoBehaviour
             Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
-            if (resetTimer > 120)
+            if (resetTimer > 60)
             {
                 gambaAnimator.SetBool("isActive", true);
                 resetTimer = 0;
@@ -472,14 +472,17 @@ public class GambaMachine : MonoBehaviour
                 playerSpells.Add(gameManager.players[ownerPID - 1].spellList[i].spellName);
             }
 
-            //remove passive spell if the player has it
+            //remove possible dupes of various reasons
             foreach (var spell in playerSpells)
             {
+                //remove passive spell if the player has it
                 if (SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
                 {
                     Debug.Log("Dupe Passive: " + spell + " has been removed");
                     removedSpells.Add(spell);
                 }
+
+                
             }
 
             //remove passives from the pool if the player has no active for them

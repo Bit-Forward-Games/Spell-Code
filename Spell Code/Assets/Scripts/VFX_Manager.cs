@@ -7,15 +7,18 @@ using BestoNet.Types;
 using UnityEngine.VFX;
 using static UnityEngine.ParticleSystem;
 using UnityEngine.UI.Extensions.Tweens;
+using static SFX_Manager;
+using UnityEditor;
+using TMPro;
 
 public enum VisualEffects
 {
-    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, DAMAGE, JUMP_DUST, DEATH, VWAVE_FLOPPY_SPAWN, KILLEEZ_FLOPPY_SPAWN, DEMONX_FLOPPY_SPAWN, BIGSTOX_FLOPPY_SPAWN
+    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, DAMAGE, JUMP_DUST, DEATH, VWAVE_FLOPPY_SPAWN, KILLEEZ_FLOPPY_SPAWN, DEMONX_FLOPPY_SPAWN, BIGSTOX_FLOPPY_SPAWN, COMBO_BREAKER
 }
 public class VFX_Manager : MonoBehaviour
 {
     //constant integer to store the number of particle systems per VisualEffectObject
-    private const int NUM_PARTICLESYSTEMS_PER_VFXOBJECT = 5;
+    private const uint DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT = 5;
 
     /// <value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
     public static VFX_Manager Instance { get; private set; }
@@ -28,8 +31,11 @@ public class VFX_Manager : MonoBehaviour
         public VisualEffects visualEffectName; //name of the visual effect
         public GameObject particleSystemPrefab; //prefab of the particle system for this visual effect
 
-        [HideInInspector] public Transform parentTransform = null; //parent to follow if the particle system should continously follow a parent object
-        [HideInInspector] public ParticleSystem[] particleSystems; //List of 5 particle systems that each play the visual effect. Each particle system in the array is associated with a unique player as well as a non player specific particle system
+        [Range(1, 10)]
+        public uint numParticleSystemsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
+
+        //[HideInInspector] public Transform parentTransform = null; //parent to follow if the particle system should continously follow a parent object
+        [HideInInspector] public List<ParticleSystem>[] particleSystems; //Array of Lists of particle systems that each play the visual effect. Each list of particle systems in the array is associated with a unique player as well as a non player specific particle system list
     }
 
     [Header("Visual effects that VFX Manager can play")]
@@ -82,14 +88,14 @@ public class VFX_Manager : MonoBehaviour
     //Function to instantiate all particle systems relating to players
     private void InstantiatePlayerParticleSystems()
     {
-        //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems per VisualEffectObject in playerVisualEffectObjects
-        foreach (VisualEffectObject visualEffectObject in playerVisualEffectObjects)
+        //instantiate the appropriate number of particle systems per VisualEffectObject in playerVisualEffectObjects
+        foreach (VisualEffectObject _visualEffectObject in playerVisualEffectObjects)
         {
             //sanity check to make sure that particleSystemPrefab has been assigned for this visualEffectObject
-            if (visualEffectObject.particleSystemPrefab == null)
+            if (_visualEffectObject.particleSystemPrefab == null)
             {
                 //log an error
-                Debug.LogError(gameObject.name + ": The particle system prefab for \"" + visualEffectObject.visualEffectName + "\" has not been assigned within playerVisualEffectObjects. Assign a particle system prefab to \"" + visualEffectObject.visualEffectName + "\"");
+                Debug.LogError(gameObject.name + ": The particle system prefab for \"" + _visualEffectObject.visualEffectName + "\" has not been assigned within playerVisualEffectObjects. Assign a particle system prefab to \"" + _visualEffectObject.visualEffectName + "\"");
 
                 //skip the rest of this foreach loop iteration
                 continue;
@@ -98,22 +104,32 @@ public class VFX_Manager : MonoBehaviour
             //define and instantiate an empty gameobject to help organize the particle systems
             GameObject _headingGameobject = new GameObject();
             _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);
-            _headingGameobject.name = visualEffectObject.particleSystemPrefab.name + "s";
+            _headingGameobject.name = _visualEffectObject.particleSystemPrefab.name + "s";
 
-            //allocate memory for the particleSystems array
-            visualEffectObject.particleSystems = new ParticleSystem[NUM_PARTICLESYSTEMS_PER_VFXOBJECT];
+            //calculate the number of particle systems for this visual effect object with where _numParticleSystemsToInstantiate is equal to 1 + (4 * numParticleSystemsPerPlayer)
+            //uint _numParticleSystemsToInstantiate = 1 + (4 * _visualEffectObject.numParticleSystemsPerPlayer);
 
-            //instantiate NUM_PARTICLESYSTEMS_PER_VFXOBJECT (5) particle systems
-            for (int i = 0; i < NUM_PARTICLESYSTEMS_PER_VFXOBJECT; i++)
+            //allocate memory for the particleSystems array and each list for each element within that array 
+            _visualEffectObject.particleSystems = new List<ParticleSystem>[DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT];
+            for (int i = 0; i < _visualEffectObject.particleSystems.Length; i++)
             {
-                //instantiate a particle system that is a child of the _headingGameobject 
-                GameObject _createdParticleSystem = Instantiate(visualEffectObject.particleSystemPrefab, _headingGameobject.transform);
+                _visualEffectObject.particleSystems[i] = new List<ParticleSystem>();
+            }
 
-                //give the newly created particle system a unique name
-                _createdParticleSystem.name = visualEffectObject.particleSystemPrefab.name + " #" + i.ToString();
+            //instantiate a particle system for each element of each list of each array
+            for (int i = 0; i < _visualEffectObject.particleSystems.Length; i++)
+            {
+                for (int j = 0; j < _visualEffectObject.numParticleSystemsPerPlayer; j++)
+                {
+                    //instantiate a particle system that is a child of the _headingGameobject 
+                    GameObject _createdParticleSystem = Instantiate(_visualEffectObject.particleSystemPrefab, _headingGameobject.transform);
 
-                //add the newly created particle system to the particleSystems array for this VisualEffectObject
-                visualEffectObject.particleSystems[i] = _createdParticleSystem.GetComponent<ParticleSystem>();
+                    //give the newly created particle system a unique name
+                    _createdParticleSystem.name = _visualEffectObject.particleSystemPrefab.name + " #" + (i + j).ToString();
+
+                    //add the newly created particle system to the particleSystems array for this player number (i)
+                    _visualEffectObject.particleSystems[i].Add(_createdParticleSystem.GetComponent<ParticleSystem>());
+                }
             }
         }
     }
@@ -202,40 +218,62 @@ public class VFX_Manager : MonoBehaviour
 
         //Debug.Log("PlayerNum = " + _playerNum + ". And particleSystems has size = " + _visualEffectObject.particleSystems.Length);
 
+        //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
+        ParticleSystem _particleSystem = null;
+        foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
+        {
+            //if the particle system is NOT already playing,...
+            if(!_listedParticleSystem.isPlaying)
+            {
+                //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
+                //set _particleSystem to the particle system in question
+                _particleSystem = _listedParticleSystem;
+
+                //break out of the foreach loop
+                break;
+            }
+        }
+
+        //if no available particle system was found,...
+        if(_particleSystem == null)
+        {
+            //use the first particle system
+            _particleSystem = _visualEffectObject.particleSystems[_playerNum][0];
+        }
+
         //if _parentTransform has been specified,...
         if (_parentTransform != null)
         {
             //make particle system a child of the _parentTransform
-            _visualEffectObject.particleSystems[_playerNum].gameObject.transform.parent = _parentTransform;
-
-            //assign parentTransform
-            _visualEffectObject.parentTransform = _parentTransform;
+            _particleSystem.gameObject.transform.parent = _parentTransform;
+            
+            //Debug.Log("VFX Debug | " + _particleSystem.gameObject.name + "'s Parent has been set to " + _parentTransform.gameObject.name);
         }
 
         //convert _spawnPos to a Vector3
         Vector3 _spawnPosVector3 = new Vector3(_spawnPos.X.ToFloat(), _spawnPos.Y.ToFloat(), 0f);
 
         //set position of particle system to Vector2 version of _spawnPos
-        _visualEffectObject.particleSystems[_playerNum].gameObject.transform.position = _spawnPosVector3;
+        _particleSystem.gameObject.transform.position = _spawnPosVector3;
 
         //change particle system direction based on _spawnFacingRight
         if(_spawnFacingRight == true)
         {
-            _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale = new Vector3(1f, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.y, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localScale = new Vector3(1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
         }
         else
         {
-            _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale = new Vector3(-1f, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.y, _visualEffectObject.particleSystems[_playerNum].gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localScale = new Vector3(-1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
         }
 
         //if _emissionRate is not the garbage default value,...
-        if (_emissionRate != -1f)
+        if (_emissionRate != -1f && _visualEffectObject.numParticleSystemsPerPlayer == 1)
         {
             //get the emission modular from the particle system
-            var em = _visualEffectObject.particleSystems[_playerNum].emission;
+            var em = _visualEffectObject.particleSystems[_playerNum][0].emission;
 
             //turn off emmision
-            _visualEffectObject.particleSystems[_playerNum].Stop();
+            _visualEffectObject.particleSystems[_playerNum][0].Stop();
             em.enabled = false;
 
             //set emission rate over time of the particle system to _emissionRate
@@ -247,19 +285,14 @@ public class VFX_Manager : MonoBehaviour
         if (_particleLifetime != -1f)
         {
             //set lifetime of the particle system to _particleLifetime
-            var main = _visualEffectObject.particleSystems[_playerNum].main;
+            var main = _particleSystem.main;
             main.startLifetime = _particleLifetime;
         }
 
         //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
 
         //play the visual effect
-        _visualEffectObject.particleSystems[_playerNum].Play();
-
-        //if (_nameOfVisualEffectToPlay == VisualEffects.DEMON_AURA)
-        //{
-        //    Debug.Log("VFX Manager | Player " + _playerNum + " is emitting at " + _emissionRate);
-        //}
+        _particleSystem.Play();
     }
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
@@ -287,8 +320,12 @@ public class VFX_Manager : MonoBehaviour
         //get visual effect object
         VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
-        //stop the particle effect
-        _visualEffectObject.particleSystems[_playerNum].Stop();
+        //for each particle system for this _nameOfVisualEffectToPlay and _playerNum,...
+        foreach (ParticleSystem _particleSystem in _visualEffectObject.particleSystems[_playerNum])
+        {
+            //stop playing the particle effect
+            _particleSystem.Stop();
+        }
     }
 
     public bool IsVisualEffecyPlaying(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
@@ -316,7 +353,16 @@ public class VFX_Manager : MonoBehaviour
         //get visual effect object
         VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
-        //return whether or not the particle system in question is playing
-        return _visualEffectObject.particleSystems[_playerNum].isPlaying;
+        //return true if any of the particle systems in question are playing
+        foreach (ParticleSystem _particleSystem in _visualEffectObject.particleSystems[_playerNum])
+        {
+            if (_particleSystem.isPlaying)
+            {
+                return true;
+            }
+        }
+
+        //return false if NONE of the particle systems in question are playing 
+        return false;
     }
 }

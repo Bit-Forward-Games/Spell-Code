@@ -224,10 +224,12 @@ public class TempSpellDisplay : MonoBehaviour
                 if (playerSpells[i].spellType == SpellType.Active)
                 {
                     spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                    spellSlots[i].fontSize =14;
                 }
                 else
                 {
                     spellSlots[i].text = playerSpells[i].spellName;
+                    spellSlots[i].fontSize = 8;
                 }
             }
             else

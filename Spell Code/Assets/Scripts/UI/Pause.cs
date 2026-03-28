@@ -46,12 +46,10 @@ public class Pause : MonoBehaviour
             {
                 if (paused)
                 {
-                    darkPanel.SetActive(false);
                     Resume();
                 }
                 else
                 {
-                    darkPanel.SetActive(true);
                     Pausing();
                 }
             }
@@ -64,6 +62,7 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
+        darkPanel.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(null);
 
@@ -76,6 +75,7 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
+        darkPanel.SetActive(true);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 

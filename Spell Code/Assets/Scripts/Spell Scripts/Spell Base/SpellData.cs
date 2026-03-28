@@ -143,7 +143,7 @@ public abstract class SpellData : MonoBehaviour
 
     public virtual void LoadSpell()
     {
-
+        cooldownCounter = 0;
     }
 
     /// <summary>

@@ -593,6 +593,14 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public void ResetSpellCooldowns()
+    {
+        foreach(SpellData spell in spellList)
+        {
+            spell.cooldownCounter = 0;
+        }
+    }
+
     /// MOVEMENT CODE
     public ulong GetInputs()
     {
@@ -2896,7 +2904,7 @@ public class PlayerController : MonoBehaviour
             storedCodeDuration--;
         }
 
-        if (targetInput.ButtonStates[0] == ButtonState.Released || storedCodeDuration <= 0)
+        if (targetInput.ButtonStates[0] == ButtonState.Released||targetInput.ButtonStates[0] == ButtonState.None || storedCodeDuration <= 0)
         {
 
             if (IsStorableState())

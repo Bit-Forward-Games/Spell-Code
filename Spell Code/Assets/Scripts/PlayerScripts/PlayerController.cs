@@ -70,9 +70,11 @@ public class PlayerController : MonoBehaviour
     private InputAction rightAction;
     private InputAction codeAction;
     private InputAction jumpAction;
+    private InputAction pauseAction;
     private readonly bool[] direction = new bool[4];
     private readonly bool[] codeButton = new bool[2];
     private readonly bool[] jumpButton = new bool[2];
+    private readonly bool[] pauseButton = new bool[2];
     private readonly ButtonState[] buttons = new ButtonState[2];
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
@@ -232,7 +234,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-    
+
 
 
     private void Awake()
@@ -248,6 +250,7 @@ public class PlayerController : MonoBehaviour
         rightAction = playerInputs.actionMaps[0].FindAction("Right");
         codeAction = playerInputs.actionMaps[0].FindAction("Code");
         jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
+        pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
         logicFrame = 0;
 
         //bufferInput = InputConverter.ConvertFromLong(5);
@@ -717,6 +720,26 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(ulong rawInput)
     {
+        input = InputConverter.ConvertFromLong((ulong)rawInput);
+
+        // Pause logic
+        Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
+        if (!GameManager.Instance.isOnlineMatchActive)
+        {
+            if (input.ButtonStates[2] == ButtonState.Pressed)
+            {
+                if (pause.paused)
+                {
+                    pause.Resume();
+                }
+                else
+                {
+                    pause.Pausing();
+                }
+                
+            }
+        }
+
         if (!isAlive)
         {
             if (spriteRenderer.enabled == true)
@@ -745,7 +768,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        input = InputConverter.ConvertFromLong((ulong)rawInput);
+        
 
 
         CheckHit(input);
@@ -1432,7 +1455,7 @@ public class PlayerController : MonoBehaviour
 
         if (ShouldLogDesyncFrame())
         {
-            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
+            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} b2={input.ButtonStates[2]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
         }
 
         //handle player animation
@@ -2453,12 +2476,15 @@ public class PlayerController : MonoBehaviour
 
         codeButton[0] = codeButton[1];
         jumpButton[0] = jumpButton[1];
+        pauseButton[0] = pauseButton[1];
 
         codeButton[1] = codeAction.inProgress;
         jumpButton[1] = jumpAction.inProgress;
+        pauseButton[1] = pauseAction.inProgress;
 
         buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
         buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
+        buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
     }
 
     public InputSnapshot BufferInputs(InputSnapshot targetInput)

@@ -108,6 +108,7 @@ public class InputPlayerBindings : MonoBehaviour
     private InputAction rightAction;
     private InputAction codeAction;
     private InputAction jumpAction;
+    private InputAction pauseAction;
 
     private bool[] direction = new bool[4];
     private bool[] codeButton = new bool[2];
@@ -123,6 +124,7 @@ public class InputPlayerBindings : MonoBehaviour
     public InputAction RightAction { get { return rightAction; } }
     public InputAction CodeAction { get { return codeAction; } }
     public InputAction JumpAction { get { return jumpAction; } }
+    public InputAction PauseAction { get { return pauseAction; } }
     public InputDevice InputDevice { get { return inputActionAsset.devices.Value[0]; } }
     public InputActionMap PlayerActionMap { get { return playerActionMap; } }
     public InputSnapshot CurrentSnapshop { get; private set; }
@@ -148,6 +150,7 @@ public class InputPlayerBindings : MonoBehaviour
         rightAction = playerActionMap.FindAction("Right");
         codeAction = playerActionMap.FindAction("Code");
         jumpAction = playerActionMap.FindAction("Jump");
+        pauseAction = playerActionMap.FindAction("Pause");
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -201,6 +204,7 @@ public class InputPlayerBindings : MonoBehaviour
         rightAction = playerActionMap.AddAction("Right", InputActionType.Button);
         codeAction = playerActionMap.AddAction("Code", InputActionType.Button);
         jumpAction = playerActionMap.AddAction("Jump", InputActionType.Button);
+        pauseAction = playerActionMap.AddAction("Pause", InputActionType.Button);
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -299,6 +303,7 @@ public class InputPlayerBindings : MonoBehaviour
             rightAction = playerActionMap.FindAction("Right");
             codeAction = playerActionMap.FindAction("Code");
             jumpAction = playerActionMap.FindAction("Jump");
+            pauseAction = playerActionMap.FindAction("Pause");
             IsActive = true;
         }
     }
@@ -394,6 +399,7 @@ public class InputPlayerBindings : MonoBehaviour
             rightAction?.Enable();
             codeAction?.Enable();
             jumpAction?.Enable();
+            pauseAction?.Enable();
 
             Debug.Log($"[CheckForInputs] Enabled - Actions enabled: " +
                      $"Up={upAction?.enabled}, Down={downAction?.enabled}, " +
@@ -407,6 +413,7 @@ public class InputPlayerBindings : MonoBehaviour
             rightAction?.Disable();
             codeAction?.Disable();
             jumpAction?.Disable();
+            pauseAction?.Disable();
 
             Debug.Log($"[CheckForInputs] Disabled");
         }

@@ -29,13 +29,14 @@ public struct InputSnapshot
     {
         return $"Direction: {direction}\n" +
                $"Code: {buttonStates[0].ToString()}\n" +
-               $"Jump: {buttonStates[1].ToString()}\n";
+               $"Jump: {buttonStates[1].ToString()}\n" +
+               $"Pause: {buttonStates[2].ToString()}\n";
     }
 
     public bool IsNull()
     {
         return direction == 5 && buttonStates[0] == ButtonState.None &&
-               buttonStates[1] == ButtonState.None;
+               buttonStates[1] == ButtonState.None && buttonStates[2] == ButtonState.None;
     }
 
     public void SetNull()
@@ -43,6 +44,7 @@ public struct InputSnapshot
         direction = 5;
         buttonStates[0] = ButtonState.None;
         buttonStates[1] = ButtonState.None;
+        buttonStates[2] = ButtonState.None;
     }
 
     public void SetToSnapshot(InputSnapshot snapshot)
@@ -50,6 +52,7 @@ public struct InputSnapshot
         direction = snapshot.Direction;
         buttonStates[0] = snapshot.ButtonStates[0];
         buttonStates[1] = snapshot.ButtonStates[1];
+        buttonStates[2] = snapshot.ButtonStates[2];
     }
 }
 
@@ -69,6 +72,7 @@ public static class InputConverter
 
             buttonStates[0] = (ButtonState)((byteArray[1] & 0b00000011));
             buttonStates[1] = (ButtonState)((byteArray[1] & 0b00001100) >> 2);
+            buttonStates[2] = (ButtonState)((byteArray[1] & 0b00110000) >> 4);
 
             snapshotArray[index] = new InputSnapshot(direction, buttonStates);
 
@@ -87,6 +91,7 @@ public static class InputConverter
 
         buttonStates[0] = (ButtonState)((byteArray[1] & 0b00000011));
         buttonStates[1] = (ButtonState)((byteArray[1] & 0b00001100) >> 2);
+        buttonStates[2] = (ButtonState)((byteArray[1] & 0b00110000) >> 4);
 
         snapshot = new InputSnapshot(direction, buttonStates);
 
@@ -154,6 +159,7 @@ public static class InputConverter
         ButtonState[] buttonStates = new ButtonState[4];
         buttonStates[0] = (ButtonState)((byteArray[1] & 0b00000011));
         buttonStates[1] = (ButtonState)((byteArray[1] & 0b00001100) >> 2);
+        buttonStates[2] = (ButtonState)((byteArray[1] & 0b00110000) >> 4);
         snapshot = new InputSnapshot(direction, buttonStates);
         return snapshot;
     }
@@ -168,6 +174,7 @@ public static class InputConverter
 
         buttonStates[0] = (ButtonState)((byteArray[1] & 0b00000011));
         buttonStates[1] = (ButtonState)((byteArray[1] & 0b00001100) >> 2);
+        buttonStates[2] = (ButtonState)((byteArray[1] & 0b00110000) >> 4);
 
         snapshot = new InputSnapshot(direction, buttonStates);
 

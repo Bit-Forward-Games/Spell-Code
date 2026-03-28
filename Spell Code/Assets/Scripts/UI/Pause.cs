@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameObject darkPanel;
     public GameManager gameManager;
     public bool paused;
     public bool options;
@@ -16,6 +19,9 @@ public class Pause : MonoBehaviour
     public bool shakeEnabled = true;
     public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
+
+    public GameObject _pauseMenuFirst;
+    public GameObject _optionsMenuFirst;
 
     private void Start()
     {
@@ -40,10 +46,12 @@ public class Pause : MonoBehaviour
             {
                 if (paused)
                 {
+                    darkPanel.SetActive(false);
                     Resume();
                 }
                 else
                 {
+                    darkPanel.SetActive(true);
                     Pausing();
                 }
             }
@@ -56,6 +64,9 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
+
+        EventSystem.current.SetSelectedGameObject(null);
+
         Time.timeScale = 1f;    
     }
 
@@ -65,6 +76,9 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
+
+        EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
+
         Time.timeScale = 0f;
     }
 
@@ -73,6 +87,9 @@ public class Pause : MonoBehaviour
         options = true;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
+
         Time.timeScale = 0f;
     }
 

@@ -75,7 +75,7 @@ public class PlayerController : MonoBehaviour
     private readonly bool[] codeButton = new bool[2];
     private readonly bool[] jumpButton = new bool[2];
     private readonly bool[] pauseButton = new bool[2];
-    private readonly ButtonState[] buttons = new ButtonState[2];
+    private readonly ButtonState[] buttons = new ButtonState[3];
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     //public InputSnapshot bufferInput;

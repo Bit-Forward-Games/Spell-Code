@@ -113,7 +113,9 @@ public class InputPlayerBindings : MonoBehaviour
     private bool[] direction = new bool[4];
     private bool[] codeButton = new bool[2];
     private bool[] jumpButton = new bool[2];
-    private ButtonState[] buttons = new ButtonState[2];
+
+    private bool[] pauseButton = new bool[2];
+    private ButtonState[] buttons = new ButtonState[3];
 
     InputBuffer inputBuffer = new InputBuffer();
 
@@ -329,12 +331,17 @@ public class InputPlayerBindings : MonoBehaviour
 
         codeButton[0] = codeButton[1];
         jumpButton[0] = jumpButton[1];
+        pauseButton[0] = pauseButton[1];
+        
 
         codeButton[1] = codeAction.inProgress;
         jumpButton[1] = jumpAction.inProgress;
+        pauseButton[1] = pauseAction.inProgress;
+
 
         buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
         buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
+        buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
 
         inputBuffer.Push(InputConverter.ConvertToShort(buttons, direction));
 

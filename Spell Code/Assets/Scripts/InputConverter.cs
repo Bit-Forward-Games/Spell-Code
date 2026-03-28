@@ -252,6 +252,26 @@ public static class InputConverter
                 break;
         }
 
+        switch (buttons[2])
+        {
+            case ButtonState.Pressed:
+                inputByte |= 1 << 4;
+                inputByte |= 0 << 5;
+                break;
+            case ButtonState.Held:
+                inputByte |= 1 << 4;
+                inputByte |= 1 << 5;
+                break;
+            case ButtonState.Released:
+                inputByte |= 0 << 4;
+                inputByte |= 1 << 5;
+                break;
+            case ButtonState.None:
+                inputByte |= 0 << 4;
+                inputByte |= 0 << 5;
+                break;
+        }
+
         return inputByte;
     }
 }

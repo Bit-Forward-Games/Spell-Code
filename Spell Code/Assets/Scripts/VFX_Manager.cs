@@ -225,6 +225,7 @@ public class VFX_Manager : MonoBehaviour
             //if the particle system is NOT already playing,...
             if(!_listedParticleSystem.isPlaying)
             {
+                //Debug.Log("VFX Debug | found particle system = " + _listedParticleSystem.gameObject.name);
                 //set _particleSystem to the particle system in question
                 _particleSystem = _listedParticleSystem;
 

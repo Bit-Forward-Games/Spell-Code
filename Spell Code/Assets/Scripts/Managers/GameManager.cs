@@ -1068,7 +1068,7 @@ public class GameManager : MonoBehaviour
                 if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                     || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
                 {
-                    sceneManager.Restart();
+                    sceneManager.MainMenu();
                     //RestartGame();
                     return;
                 }

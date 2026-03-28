@@ -166,6 +166,7 @@ public class PlayerController : MonoBehaviour
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
 
     public byte comboCounter = 0;
+    public ushort comboResetTimer = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
@@ -782,12 +783,22 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        //check the comboResetTimer for combo breaker Purposes
+        if(state != PlayerState.Hitstun && comboResetTimer > 0)
+        {
+            comboResetTimer--;
+            if(comboResetTimer <= 0)
+            {
+                comboCounter = 0;
+            }
+        }
+
         //check for releasing a stored code
         CheckReleaseCode(input);
 
 
 
-        //---------------------------------PLAYER UPDATE STATE MACHINE---------------------------------
+#region ---------------------------------PLAYER STATE MACHINE---------------------------------
         switch (state)
         {
             case PlayerState.Idle:
@@ -1109,7 +1120,7 @@ public class PlayerController : MonoBehaviour
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
                         if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
-                        storedCodeDuration += 2;
+                        storedCodeDuration += 3;
                         if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             lightArmor = false;
@@ -1342,13 +1353,13 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-                    SetState(input.ButtonStates[0] == ButtonState.Held ? PlayerState.CodeWeave : PlayerState.Idle);
+                    SetState(input.ButtonStates[0] == ButtonState.Held  && storedCodeDuration <=0? PlayerState.CodeWeave : PlayerState.Idle);
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
+                if (logicFrame >= 2/*CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*/)
                 {
-                    if(input.ButtonStates[0] == ButtonState.Held)
+                    if(input.ButtonStates[0] == ButtonState.Held  && storedCodeDuration <=0)
                     {
                         SetState(PlayerState.CodeWeave);
                         break;
@@ -1397,7 +1408,7 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-
+#endregion
         //Check conditions of all spells with the onupdate condition
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
@@ -1930,14 +1941,17 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight / 2;
                 break;
             case PlayerState.Hitstun:
-                ClearInputDisplay();
+                if(storedCodeDuration <= 0)//this check is because of the test of allowing store to persist
+                {
+                    ClearInputDisplay();
+                }
 
 
                 lightArmor = false;
 
                 //reset storedCode if you get hit
-                storedCode = 0;
-                storedCodeDuration = 0;
+                // storedCode = 0;
+                // storedCodeDuration = 0;
 
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
@@ -1963,14 +1977,10 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Tech:
-                hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
-                vSpd = Fixed.FromInt(5);
-                comboCounter = 0;
-                //if (isGrounded)
-                //{
-                //    position.y = StageData.Instance.floorYval + 1;
-                //    isGrounded = false;
-                //}
+                //hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
+                //vSpd = Fixed.FromInt(5);
+
+                comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
                 lightArmor = true;
@@ -2150,6 +2160,7 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
+            
             comboCounter++;
             if (comboCounter >= 4)
             {
@@ -2265,6 +2276,7 @@ public class PlayerController : MonoBehaviour
                     deathList = new List<Vector2>();
                     arenaData.deathDict[GameManager.Instance.currentStage] = deathList;
                 }
+                ClearInputDisplay();
                 deathList.Add(transform.position);
             }
 
@@ -2370,55 +2382,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// wallbounce validation
-    /// </summary>
-    //public bool CheckCameraWall(bool rightWall, bool checkOnly = false)
-    //{
-    //    float cameraHalfWidth = Camera.main.orthographicSize * Camera.main.aspect;
-    //    float cameraMidX = (position.x + opponent.position.x) * 0.5f;
-    //    float boundaryX = rightWall
-    //        ? cameraMidX + cameraHalfWidth // right edge
-    //        : cameraMidX - cameraHalfWidth; // left  edge
-    //    //─ will we cross (or are we already flush) next frame? 
-    //    const float eps = 0.0001f;
-    //    bool crossing = rightWall
-    //        ? position.x + hSpd + playerWidth * 1.5f >= boundaryX - eps
-    //        : position.x + hSpd - playerWidth * 1.5f <= boundaryX + eps;
-
-    //    if (!crossing) return false;
-    //    if (checkOnly) return true; // “peek” mode – just report
-    //    return true;
-    //}
-
-
-
-    //public void CheckCameraCollision()
-    //{
-    //    // Calculate the camera half width and average player position
-    //    float cameraHalfWidth = Camera.main.orthographicSize * Camera.main.aspect;
-    //    float avgPlayerPositionX = (position.x + opponent.position.x) / 2;
-
-    //    // Calculate the distance between players and check for camera boundary conditions
-    //    float playerDistance = Math.Abs((position.x + hSpd) - (opponent.position.x + opponent.hSpd)) + (playerWidth / 2 + opponent.playerWidth / 2);
-
-    //    if (playerDistance >= cameraHalfWidth * 2 && ((position.x < avgPlayerPositionX && hSpd < 0) || (position.x >= avgPlayerPositionX && hSpd > 0)))
-    //    {
-    //        // Stop both players' horizontal speeds
-    //        hSpd = 0;
-    //        opponent.hSpd = 0;
-
-    //        // Determine direction and adjust positions based on average position
-    //        int direction = position.x > opponent.position.x ? 1 : -1;
-    //        position.x = avgPlayerPositionX + (cameraHalfWidth - playerWidth / 2) * direction;
-    //        opponent.position.x = avgPlayerPositionX + (cameraHalfWidth - opponent.playerWidth / 2) * -direction;
-    //    }
-    //}
-
-    /// <summary>
-    /// Returns true if this player’s X-position is closer to the center of the stage
-    /// (midpoint between leftWallXval and rightWallXval) than to the nearest wall.
-    /// </summary>
     public bool IsCloserToStageCenter()
     {
         // 1) compute the absolute center of the stage
@@ -2539,6 +2502,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        bw.Write(comboResetTimer);
         bw.Write(lightArmor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
@@ -2634,6 +2599,8 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
+        comboCounter = br.ReadByte();
+        comboResetTimer = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
         basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
@@ -2926,7 +2893,6 @@ public class PlayerController : MonoBehaviour
         if (storedCodeDuration > 0 && state != PlayerState.CodeWeave)
         {
             storedCodeDuration--;
-            Debug.Log($"Stored code duration: {storedCodeDuration}");
         }
 
         if (targetInput.ButtonStates[0] == ButtonState.Released || storedCodeDuration <= 0)
@@ -2950,36 +2916,6 @@ public class PlayerController : MonoBehaviour
     {
         inputs.CheckForInputs(enable);
     }
-
-    //public void UpdateInputDisplay(int direction)
-    //{
-    //    if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
-    //    {
-    //        //down
-    //        if (direction == 2)
-    //        {
-    //            inputDisplay.text += "DOWN, ";
-    //        }
-
-    //        //left
-    //        if (direction == 4)
-    //        {
-    //            inputDisplay.text += "LEFT,  ";
-    //        }
-
-    //        //right
-    //        if (direction == 6)
-    //        {
-    //            inputDisplay.text += "RIGHT, ";
-    //        }
-
-    //        //up
-    //        if (direction == 8)
-    //        {
-    //            inputDisplay.text += "UP, ";
-    //        }
-    //    } 
-    //}
 
     public void ClearInputDisplay()
     {

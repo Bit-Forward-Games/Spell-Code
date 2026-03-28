@@ -225,7 +225,7 @@ public class VFX_Manager : MonoBehaviour
             //if the particle system is NOT already playing,...
             if(!_listedParticleSystem.isPlaying)
             {
-                if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
+                //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
                 //set _particleSystem to the particle system in question
                 _particleSystem = _listedParticleSystem;
 
@@ -239,10 +239,6 @@ public class VFX_Manager : MonoBehaviour
         {
             //use the first particle system
             _particleSystem = _visualEffectObject.particleSystems[_playerNum][0];
-
-
-            //return
-            //return;
         }
 
         //if _parentTransform has been specified,...

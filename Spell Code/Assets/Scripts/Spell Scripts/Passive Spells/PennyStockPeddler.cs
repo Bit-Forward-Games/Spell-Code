@@ -29,10 +29,10 @@ public class PennyStockPeddler : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                if (owner.stockStability != 15)
+                if (owner.stockStability != 10)
                 {
-                    convertedStockStability += (ushort)(owner.stockStability - 15);
-                    owner.stockStability = 15;
+                    convertedStockStability += (ushort)(owner.stockStability - 10);
+                    owner.stockStability = 10;
                 }
                 break;
             case ProcCondition.OnHitSpell:

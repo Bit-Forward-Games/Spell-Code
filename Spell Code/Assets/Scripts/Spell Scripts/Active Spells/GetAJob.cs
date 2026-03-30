@@ -15,15 +15,15 @@ public class GetAJob : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range lunging job application.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to increase range and damage.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Medium-range lunging job application.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to increase range and damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
         spawnOffsetX = 36;
         spawnOffsetY = 36;
     }
     public override void LoadSpell()
     {
         base.LoadSpell();
-        owner.stockStability += 15;
-        owner.SpawnToast("+15% STOCK STABILITY", Color.blue);
+        owner.stockStability += 10;
+        owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
         doesCrit = false;
     }
     public override void SpellUpdate()

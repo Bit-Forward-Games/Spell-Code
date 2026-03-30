@@ -50,7 +50,7 @@ public class PongShot_prj : BaseProjectile
                     height = 8,
                     xKnockback = 4,
                     yKnockback = 4,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 20,
                     attackLvl = 2,
                 }

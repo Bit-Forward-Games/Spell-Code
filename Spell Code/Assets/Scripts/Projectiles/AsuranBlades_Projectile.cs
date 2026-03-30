@@ -65,7 +65,7 @@ public class AsuranBlades_Projectile : BaseProjectile
                     height = 20,
                     xKnockback = 1,
                     yKnockback = 5,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
                 }

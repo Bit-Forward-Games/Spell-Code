@@ -39,7 +39,7 @@ public class BifronsBladeSpell_prj : BaseProjectile
                     height = 33*2,
                     xKnockback = 7,
                     yKnockback = 4,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 15,
                     attackLvl = 2,
                     basicAttackHitbox = true

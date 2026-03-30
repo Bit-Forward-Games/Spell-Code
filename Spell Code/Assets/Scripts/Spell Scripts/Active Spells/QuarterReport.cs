@@ -15,7 +15,7 @@ public class QuarterReport : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Medium-range shot.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to enhance range and damage.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Medium-range shot.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to enhance range and damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
     }
 
@@ -47,8 +47,8 @@ public class QuarterReport : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        owner.stockStability += 15;
-        owner.SpawnToast("+15% STOCK STABILITY", Color.blue);
+        owner.stockStability += 10;
+        owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
         doesCrit = false;
     }
 

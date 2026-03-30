@@ -15,7 +15,7 @@ public class CoinToss : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1101_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Long-range arching coin.\n50% chance of increased damage.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to guarantee damage.\nGain 15% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Long-range arching coin.\n50% chance of increased damage.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to guarantee damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[3];
     }
 
@@ -47,8 +47,8 @@ public class CoinToss : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        owner.stockStability += 15;
-        owner.SpawnToast("+15% STOCK STABILITY", Color.blue);
+        owner.stockStability += 10;
+        owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
         doesCrit = false;
     }
 

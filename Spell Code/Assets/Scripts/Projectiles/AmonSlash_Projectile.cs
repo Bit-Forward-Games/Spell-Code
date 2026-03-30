@@ -39,7 +39,7 @@ public class AmonSlash_Projectile : BaseProjectile
                     height = 24*2,
                     xKnockback = 6,
                     yKnockback = 2,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
                 }

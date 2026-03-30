@@ -37,7 +37,7 @@ public class BladeOfAres_prj : BaseProjectile
                     height = 17*2,
                     xKnockback = 1,
                     yKnockback = 8,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
                 }
@@ -52,7 +52,7 @@ public class BladeOfAres_prj : BaseProjectile
                     height = 45*2,
                     xKnockback = 5,
                     yKnockback = 5,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 20,
                     attackLvl = 2
                 }

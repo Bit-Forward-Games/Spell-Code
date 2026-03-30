@@ -31,7 +31,7 @@ public class BifronsBlade : SpellData
             case ProcCondition.ActiveOnHit:
                 if (defender.hitboxData.basicAttackHitbox) //if it is the basic attack slash, which is a basic attack hitbox, deal effect damage based on the amount of Demon Aura consumed, then consume all Demon Aura. Otherwise, gain 20 Demon Aura.
                 {
-                    defender.TakeEffectDamage(owner.demonAura/4, owner);
+                    defender.TakeEffectDamage(owner.demonAura/5, owner);
                 }
                 else //if it is the spell hitbox, gain 20 Demon Aura, but only if the player is not already at max Demon Aura
                 {

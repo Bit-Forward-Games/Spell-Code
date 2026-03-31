@@ -2655,7 +2655,7 @@ public class PlayerController : MonoBehaviour
             hitboxData.hitstun = br.ReadUInt16();
             hitboxData.xKnockback = br.ReadInt32();
             hitboxData.yKnockback = br.ReadInt32();
-            hitboxData.attackLvl = br.ReadByte();
+            hitboxData.attackLvl = br.ReadInt32();
             hitboxData.basicAttackHitbox = br.ReadBoolean();
             _pendingHitboxOwnerIndex = br.ReadInt32();
             _pendingHitboxProjectileIndex = br.ReadInt32();

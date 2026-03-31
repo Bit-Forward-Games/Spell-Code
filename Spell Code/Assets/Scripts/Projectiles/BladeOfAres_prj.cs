@@ -11,7 +11,7 @@ public class BladeOfAres_prj : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "BladeOfAres";
+        projName = "Blade Of Ares";
         lifeSpan = 45; 
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5}, false);
     }

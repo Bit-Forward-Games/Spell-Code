@@ -9,7 +9,7 @@ public class NoScopeShot : SpellData
 
     public NoScopeShot()
     {
-        spellName = "NoScopeShot";
+        spellName = "No-Scope Shot";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] {ProcCondition.OnCastBasic };

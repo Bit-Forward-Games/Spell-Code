@@ -8,7 +8,7 @@ public class MightOfZeus : SpellData
 {
     public MightOfZeus()
     {
-        spellName = "MightOfZeus";
+        spellName = "Might Of Zeus";
         brands = new Brand[]{ Brand.Killeez };
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence

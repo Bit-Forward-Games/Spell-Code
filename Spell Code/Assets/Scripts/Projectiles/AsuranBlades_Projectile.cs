@@ -10,7 +10,7 @@ public class AsuranBlades_Projectile : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "AsuranBlades";
+        projName = "Asuran Blades";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 20 logic frames

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5893221598878733181}
   - component: {fileID: 7265437768916896761}
   m_Layer: 0
-  m_Name: prj_CodeE_BasicProjectile
+  m_Name: prj_R-CadeBasicAttack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

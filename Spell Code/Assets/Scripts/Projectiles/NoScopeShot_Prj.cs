@@ -10,7 +10,7 @@ public class NoScopeShot_Prj : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "NoScopeShot";
+        projName = "No Scope Shot";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 20; // lasts for 300 logic frames

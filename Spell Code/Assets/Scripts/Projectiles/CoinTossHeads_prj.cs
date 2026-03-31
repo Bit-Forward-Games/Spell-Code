@@ -11,7 +11,7 @@ public class CoinTossHeads_prj : BaseProjectile
     
     protected override void InitializeDefaults()
     {
-        projName = "CoinTossHeads";
+        projName = "Coin Toss Heads";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
         lifeSpan = 600; // lasts for 120 logic frames

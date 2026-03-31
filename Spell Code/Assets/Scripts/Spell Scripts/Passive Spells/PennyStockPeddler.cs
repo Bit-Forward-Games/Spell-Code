@@ -11,7 +11,7 @@ public class PennyStockPeddler : SpellData
 
     public PennyStockPeddler()
     {
-        spellName = "PennyStockPeddler";
+        spellName = "Penny Stock Peddler";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };

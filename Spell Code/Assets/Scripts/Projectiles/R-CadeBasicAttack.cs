@@ -10,7 +10,7 @@ public class CodeE_BasicProjectile : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "CodeE_Basic_Projectile";
+        projName = "R-Cade Basic Attack";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 20; // lasts for 300 logic frames

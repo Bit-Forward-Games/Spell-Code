@@ -8,7 +8,7 @@ public class AsuranBlades : SpellData
 {
     public AsuranBlades()
     {
-        spellName = "AsuranBlades";
+        spellName = "Asuran Blades";
         brands = new Brand[]{ Brand.DemonX };
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence

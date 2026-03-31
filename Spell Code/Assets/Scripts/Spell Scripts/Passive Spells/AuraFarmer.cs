@@ -10,7 +10,7 @@ public class AuraFarmer : SpellData
     int demonAuraProcTimestamp = initDemonAuraTimestamp; //this is what logic frame the player has to be to gain the free demon aura
     public AuraFarmer()
     {
-        spellName = "AuraFarmer";
+        spellName = "Aura Farmer";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate};

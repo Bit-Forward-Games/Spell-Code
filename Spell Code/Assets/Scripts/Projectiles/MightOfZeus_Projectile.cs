@@ -11,7 +11,7 @@ public class MightOfZeus_Projectile : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "MightOfZeus";
+        projName = "Might Of Zeus";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 60; // lasts for 300 logic frames

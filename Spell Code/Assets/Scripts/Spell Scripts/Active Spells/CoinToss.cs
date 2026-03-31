@@ -9,7 +9,7 @@ public class CoinToss : SpellData
     public bool doesCrit = false;
     public CoinToss()
     {
-        spellName = "CoinToss";
+        spellName = "Coin Toss";
         brands = new Brand[] { Brand.BigStox };
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1101_0000_0010; // Example input sequence

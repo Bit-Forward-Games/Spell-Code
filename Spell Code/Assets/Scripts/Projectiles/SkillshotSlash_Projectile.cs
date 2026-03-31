@@ -11,7 +11,7 @@ public class SkillshotSlash_Projectile : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "SkillshotSlash";
+        projName = "Skillshot Slash";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames

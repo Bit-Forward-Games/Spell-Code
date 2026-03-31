@@ -4,7 +4,7 @@ public class PongShot : SpellData
 {
     public PongShot()
     {
-        spellName = "PongShot";
+        spellName = "Pong Shot";
         brands = new Brand[] { Brand.VWave };
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_1011_0000_0011; // Example input sequence

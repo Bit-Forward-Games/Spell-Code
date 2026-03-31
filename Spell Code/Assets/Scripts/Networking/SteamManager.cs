@@ -9,8 +9,12 @@ public class SteamManager : MonoBehaviour
     // Use 480 in the Editor, real App ID in builds.
 #if UNITY_EDITOR
     private const uint SteamAppId = 480;
-#else
+#elif STEAM_PLAYTEST
+    // Playtest App ID
     private const uint SteamAppId = 4569980;
+#else
+    // Base Game App ID
+    private const uint SteamAppId = 4500000;
 #endif
 
     private static SteamManager instance;

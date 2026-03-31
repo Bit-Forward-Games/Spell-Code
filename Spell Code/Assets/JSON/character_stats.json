@@ -2,9 +2,9 @@
   "CharacterData": [
     {
       "character": "Code-E",
-      "basicAttackProjId": "CodeE_Basic_Projectile",
+      "basicAttackProjId": "R-Cade Basic Attack",
       "startingInventory": [
-        "SkillshotSlash"
+        "Skillshot Slash"
       ],
       "runSpeed": 30,
       "slideSpeed": 40,

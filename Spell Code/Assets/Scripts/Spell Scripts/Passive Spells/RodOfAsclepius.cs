@@ -10,7 +10,7 @@ public class RodOfAsclepius : SpellData
 
     public RodOfAsclepius()
     {
-        spellName = "RodOfAsclepius";
+        spellName = "Rod Of Asclepius";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitSpell, ProcCondition.OnDeath };

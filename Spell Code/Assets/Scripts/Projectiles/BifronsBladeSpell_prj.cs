@@ -11,7 +11,7 @@ public class BifronsBladeBasic_prj : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "BifronsBladeBasic";
+        projName = "Bifrons Blade Spell";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 45; // lasts for 300 logic frames

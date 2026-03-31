@@ -4,7 +4,7 @@ public class SkillshotSlash : SpellData
 {
     public SkillshotSlash()
     {
-        spellName = "SkillshotSlash";
+        spellName = "Skillshot Slash";
         brands = new Brand[]{ Brand.VWave };
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0010; // Example input sequence

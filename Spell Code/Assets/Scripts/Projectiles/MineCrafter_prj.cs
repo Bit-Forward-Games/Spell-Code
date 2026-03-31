@@ -11,7 +11,7 @@ public class MineCrafter_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "MineCrafter";
+        projName = "Mine Crafter";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 600; // lasts for 300 logic frames

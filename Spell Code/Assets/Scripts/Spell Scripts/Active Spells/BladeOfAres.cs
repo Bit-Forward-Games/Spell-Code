@@ -4,7 +4,7 @@ public class BladeOfAres : SpellData
 {
     public BladeOfAres()
     {
-        spellName = "BladeOfAres";
+        spellName = "Blade Of Ares";
         brands = new Brand[]{ Brand.Killeez };
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0111_0000_0010; 

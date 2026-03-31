@@ -9,7 +9,7 @@ public class QuarterReport : SpellData
     public bool doesCrit = false;
     public QuarterReport()
     {
-        spellName = "QuarterReport";
+        spellName = "Quarter Report";
         brands = new Brand[] { Brand.BigStox };
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence

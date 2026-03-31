@@ -7,7 +7,7 @@ public class BifronsBlade : SpellData
 {
     public BifronsBlade()
     {
-        spellName = "BifronsBlade";
+        spellName = "Bifrons Blade";
         brands = new Brand[]{ Brand.DemonX };
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0011; // Example input sequence

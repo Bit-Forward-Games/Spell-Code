@@ -10,7 +10,7 @@ public class QuarterReport_prj : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "QuarterReport";
+        projName = "Quarter Report";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30;

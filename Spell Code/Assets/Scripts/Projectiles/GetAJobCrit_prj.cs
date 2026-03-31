@@ -11,7 +11,7 @@ public class GetAJobCrit_prj : BaseProjectile
 
     protected override void InitializeDefaults()
     {
-        projName = "GetAJobCrit";
+        projName = "Get A Job Crit";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 45; // lasts for 300 logic frames

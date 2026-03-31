@@ -4,7 +4,7 @@ public class ReloadShot : SpellData
 {
     public ReloadShot()
     {
-        spellName = "ReloadShot";
+        spellName = "Reload Shot";
         brands = new Brand[] { Brand.VWave };
         cooldown = 480;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence

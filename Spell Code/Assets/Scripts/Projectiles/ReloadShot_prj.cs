@@ -11,7 +11,7 @@ public class ReloadShot_prj : BaseProjectile
     
     protected override void InitializeDefaults()
     {
-        projName = "ReloadShot";
+        projName = "Reload Shot";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
         lifeSpan = 600; // lasts for 120 logic frames

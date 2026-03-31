@@ -8,7 +8,7 @@ public class GetAJob : SpellData
     public bool doesCrit = false;
     public GetAJob()
     {
-        spellName = "GetAJob";
+        spellName = "Get A Job";
         brands = new Brand[]{ Brand.BigStox };
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0011_0100_0000_0011; // Example input sequence

@@ -1861,42 +1861,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void GenerateStartingSpells(int index)
-    {
-        if (index == 0)
-        {
-            p1_choices = new List<string>();
-            p1_choices.Add("SkillshotSlash");
-            p1_choices.Add("MightOfZeus");
-            p1_choices.Add("AmonSlash");
-            p1_choices.Add("CoinToss");
-        }
-        if (index == 1)
-        {
-            p2_choices = new List<string>();
-            p2_choices.Add("SkillshotSlash");
-            p2_choices.Add("MightOfZeus");
-            p2_choices.Add("AmonSlash");
-            p2_choices.Add("CoinToss");
-        }
-        if (index == 2)
-        {
-            p3_choices = new List<string>();
-            p3_choices.Add("SkillshotSlash");
-            p3_choices.Add("MightOfZeus");
-            p3_choices.Add("AmonSlash");
-            p3_choices.Add("CoinToss");
-        }
-        if (index == 3)
-        {
-            p4_choices = new List<string>();
-            p4_choices.Add("SkillshotSlash");
-            p4_choices.Add("MightOfZeus");
-            p4_choices.Add("AmonSlash");
-            p4_choices.Add("CoinToss");
-        }
-    }
-
     //resets the raw stats for each player back to 0 or their base state
     public void ResetPlayerStats()
     {

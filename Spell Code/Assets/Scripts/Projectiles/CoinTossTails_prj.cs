@@ -11,7 +11,7 @@ public class CoinTossTails_prj : BaseProjectile
     
     protected override void InitializeDefaults()
     {
-        projName = "CoinTossTails";
+        projName = "Coin Toss Tails";
         lifeSpan = 600; // lasts for 120 logic frames
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 }, false);

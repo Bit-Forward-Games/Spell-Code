@@ -9,7 +9,7 @@ public class MineCrafter : SpellData
 
     public MineCrafter()
     {
-        spellName = "MineCrafter";
+        spellName = "Mine Crafter";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnSlide };

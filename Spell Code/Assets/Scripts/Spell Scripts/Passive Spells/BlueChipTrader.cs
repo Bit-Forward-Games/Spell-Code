@@ -10,7 +10,7 @@ public class BlueChipTrader : SpellData
 
     public BlueChipTrader()
     {
-        spellName = "BlueChipTrader";
+        spellName = "Blue Chip Trader";
         cooldown = 1;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell };

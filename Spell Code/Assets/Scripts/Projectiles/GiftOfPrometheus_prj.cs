@@ -11,7 +11,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
     
     protected override void InitializeDefaults()
     {
-        projName = "GiftOfPrometheus";
+        projName = "Gift Of Prometheus";
         lifeSpan = 300; // lasts for 120 logic frames
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);

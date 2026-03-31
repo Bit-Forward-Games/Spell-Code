@@ -16,7 +16,7 @@ public class PongShot_prj : BaseProjectile
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
     {
-        projName = "PongShot";
+        projName = "Pong Shot";
         lifeSpan = 240;
         deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);

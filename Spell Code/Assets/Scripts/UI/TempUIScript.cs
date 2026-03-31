@@ -103,12 +103,12 @@ public class TempUIScript : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             onPlayerUI[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "On-Player UI").gameObject;
-            if (currentScene.name == "MainMenu" || currentScene.name == "Shop")
-            {
-                onPlayerUI[i].SetActive(false);
-            }
-            else
-                onPlayerUI[i].SetActive(true);
+            // if (currentScene.name == "MainMenu" || currentScene.name == "Shop")
+            // {
+            //     onPlayerUI[i].SetActive(false);
+            // }
+            // else
+            //     onPlayerUI[i].SetActive(true);
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();

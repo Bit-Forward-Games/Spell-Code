@@ -1825,10 +1825,10 @@ public class GameManager : MonoBehaviour
 
             ResetPlayers();
 
-            if (RollbackManager.Instance != null)
-            {
-                RollbackManager.Instance.SaveState();
-            }
+            //if (RollbackManager.Instance != null)
+            //{
+            //    RollbackManager.Instance.SaveState();
+            //}
         }
 
         // Handle shop scene loading for online

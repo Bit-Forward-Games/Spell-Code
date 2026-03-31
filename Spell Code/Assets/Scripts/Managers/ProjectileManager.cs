@@ -79,6 +79,7 @@ public class ProjectileManager : MonoBehaviour
             {
                 projectilePrefabs.RemoveAt(i);
                 i--;
+                continue;
             }
             if (projectilePrefabs[i].gameObject.activeSelf)
             {

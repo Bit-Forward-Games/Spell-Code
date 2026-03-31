@@ -39,7 +39,7 @@ public class QuarterReport_prj : BaseProjectile
                     height = 18*2,
                     xKnockback = 4,
                     yKnockback = 5,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 15,
                     attackLvl = 2
                 }

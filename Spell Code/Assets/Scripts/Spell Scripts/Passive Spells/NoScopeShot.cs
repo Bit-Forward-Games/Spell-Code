@@ -14,7 +14,7 @@ public class NoScopeShot : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] {ProcCondition.OnCastBasic };
         brands = new Brand[1] { Brand.VWave };
-        description = "While in Flow State,<sprite name=\"FlowState\"> basic attack becomes long-range shot.";
+        description = "While in Flow State<sprite name=\"FlowState\">, basic attack consumes some Flow State<sprite name=\"FlowState\"> to become a long-range shot.";
 
         projectilePrefabs = new GameObject[1];
     }
@@ -29,6 +29,7 @@ public class NoScopeShot : SpellData
                 if (owner.flowState > 0)
                 {
                     owner.basicSpawnOverride = true;
+                    owner.flowState = (ushort)Mathf.Max(owner.flowState - 60,0);
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                 }
                 break;

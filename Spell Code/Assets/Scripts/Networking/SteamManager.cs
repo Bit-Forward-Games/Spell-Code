@@ -6,9 +6,12 @@ using System; // Needed for Exception
 [DefaultExecutionOrder(-100)]
 public class SteamManager : MonoBehaviour
 {
-    // Use 480 for testing/development if you don't have your own App ID yet
-    // Replace with your actual App ID for release builds.
+    // Use 480 in the Editor, real App ID in builds.
+#if UNITY_EDITOR
     private const uint SteamAppId = 480;
+#else
+    private const uint SteamAppId = 4569980;
+#endif
 
     private static SteamManager instance;
 

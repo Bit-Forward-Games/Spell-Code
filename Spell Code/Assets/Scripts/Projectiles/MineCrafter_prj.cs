@@ -40,7 +40,7 @@ public class MineCrafter_prj : BaseProjectile
                     height = 40,
                     xKnockback = 3,
                     yKnockback = 10,
-                    damage = 10,
+                    damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
                 }

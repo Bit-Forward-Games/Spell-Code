@@ -176,6 +176,27 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
     }
+
+    public void ExecuteOrder66()
+    {
+        GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
+        DontDestroyOnLoad(dontDestroyProbe);
+
+        Scene dontDestroyScene = dontDestroyProbe.scene;
+        GameObject[] persistentRoots = dontDestroyScene.GetRootGameObjects();
+
+        for (int i = 0; i < persistentRoots.Length; i++)
+        {
+            if (persistentRoots[i] != dontDestroyProbe)
+            {
+                Destroy(persistentRoots[i]);
+            }
+        }
+
+        Destroy(dontDestroyProbe);
+        Instance = null;
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -822,10 +843,10 @@ public class GameManager : MonoBehaviour
         if (rbManager == null) return;
 
 
-        if (frameNumber <= rbManager.InputDelay)
-        {
-            rbManager.SaveState();
-        }
+        //if (frameNumber <= rbManager.InputDelay)
+        //{
+        //    rbManager.SaveState();
+        //}
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
@@ -1047,7 +1068,7 @@ public class GameManager : MonoBehaviour
                 if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
                     || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
                 {
-                    sceneManager.Restart();
+                    sceneManager.MainMenu();
                     //RestartGame();
                     return;
                 }
@@ -1371,8 +1392,11 @@ public class GameManager : MonoBehaviour
                     UpdatePlayerBounties();
                 }
 
-                //respawn the dead player
-                player.SpawnPlayer(GetRandomSpawnVec2());
+                // Only consume RNG on real frames, reuse saved position during rollback
+                FixedVec2 spawnPos = isRollback
+                    ? player.position // keep existing position during rollback, it'll be overwritten by deserialization anyway
+                    : GetRandomSpawnVec2();
+                player.SpawnPlayer(spawnPos);
             }
         }
 

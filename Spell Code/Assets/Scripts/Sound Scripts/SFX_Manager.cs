@@ -24,7 +24,7 @@ public class SFX_Manager : MonoBehaviour
     [SerializeField] private GameObject audioSourcePrefab;
 
     //Object to hold the data for each sound
-    [Serializable] private class SoundObject
+    [Serializable] public class SoundObject
     {
         public Sounds soundName; //name of the sound
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
@@ -34,7 +34,7 @@ public class SFX_Manager : MonoBehaviour
     }
 
     [Header("Sounds that SFX Manager can play")]
-    [SerializeField] private List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
+    [SerializeField] public List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
 
     void Awake()
     {

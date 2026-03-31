@@ -70,10 +70,12 @@ public class PlayerController : MonoBehaviour
     private InputAction rightAction;
     private InputAction codeAction;
     private InputAction jumpAction;
+    private InputAction pauseAction;
     private readonly bool[] direction = new bool[4];
     private readonly bool[] codeButton = new bool[2];
     private readonly bool[] jumpButton = new bool[2];
-    private readonly ButtonState[] buttons = new ButtonState[2];
+    private readonly bool[] pauseButton = new bool[2];
+    private readonly ButtonState[] buttons = new ButtonState[3];
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     //public InputSnapshot bufferInput;
@@ -166,6 +168,7 @@ public class PlayerController : MonoBehaviour
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
 
     public byte comboCounter = 0;
+    public ushort comboResetTimer = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
     public bool hitstunOverride = false;
@@ -231,7 +234,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-    
+
 
 
     private void Awake()
@@ -247,6 +250,7 @@ public class PlayerController : MonoBehaviour
         rightAction = playerInputs.actionMaps[0].FindAction("Right");
         codeAction = playerInputs.actionMaps[0].FindAction("Code");
         jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
+        pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
         logicFrame = 0;
 
         //bufferInput = InputConverter.ConvertFromLong(5);
@@ -281,7 +285,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
 
         //stop playing all repeating sounds for this player
-        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
         StopHitRumble();
     }
 
@@ -592,6 +596,14 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public void ResetSpellCooldowns()
+    {
+        foreach(SpellData spell in spellList)
+        {
+            spell.cooldownCounter = 0;
+        }
+    }
+
     /// MOVEMENT CODE
     public ulong GetInputs()
     {
@@ -708,6 +720,26 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(ulong rawInput)
     {
+        input = InputConverter.ConvertFromLong((ulong)rawInput);
+
+        // Pause logic
+        Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
+        if (!GameManager.Instance.isOnlineMatchActive)
+        {
+            if (input.ButtonStates[2] == ButtonState.Pressed)
+            {
+                if (pause.paused)
+                {
+                    pause.Resume();
+                }
+                else
+                {
+                    pause.Pausing();
+                }
+                
+            }
+        }
+
         if (!isAlive)
         {
             if (spriteRenderer.enabled == true)
@@ -736,7 +768,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        input = InputConverter.ConvertFromLong((ulong)rawInput);
+        
 
 
         CheckHit(input);
@@ -782,12 +814,22 @@ public class PlayerController : MonoBehaviour
 
         }
 
+        //check the comboResetTimer for combo breaker Purposes
+        if(state != PlayerState.Hitstun && comboResetTimer > 0)
+        {
+            comboResetTimer--;
+            if(comboResetTimer <= 0)
+            {
+                comboCounter = 0;
+            }
+        }
+
         //check for releasing a stored code
         CheckReleaseCode(input);
 
 
 
-        //---------------------------------PLAYER UPDATE STATE MACHINE---------------------------------
+#region ---------------------------------PLAYER STATE MACHINE---------------------------------
         switch (state)
         {
             case PlayerState.Idle:
@@ -1109,7 +1151,7 @@ public class PlayerController : MonoBehaviour
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
                         if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
-                        storedCodeDuration += 2;
+                        storedCodeDuration += 3;
                         if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             lightArmor = false;
@@ -1189,8 +1231,9 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
-                    uint testCode = stateSpecificArg & ~(1u << 4);
-                    if (testCode == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
+                    //uint testCode = stateSpecificArg & ~(1u << 4);
+                    stateSpecificArg &= ~(1u << 4);
+                    if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
                     {
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
@@ -1205,7 +1248,7 @@ public class PlayerController : MonoBehaviour
                             secretEpicPaletteActive = false;
                         }
                     }
-                    if (testCode == 0b_0000_0000_1001_1001_1111_0000_0000_1000) //Inverse Konami Code input
+                    if (stateSpecificArg == 0b_0000_0000_1001_1001_1111_0000_0000_1000) //Inverse Konami Code input
                     {
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
@@ -1220,7 +1263,7 @@ public class PlayerController : MonoBehaviour
                             secretNormalPaletteActive = false;
                         }
                     }
-                    if (testCode == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
+                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
                     {
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
@@ -1342,13 +1385,13 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Tech:
                 if (isGrounded)
                 {
-                    SetState(input.ButtonStates[0] == ButtonState.Held ? PlayerState.CodeWeave : PlayerState.Idle);
+                    SetState(input.ButtonStates[0] == ButtonState.Held  && storedCodeDuration <=0? PlayerState.CodeWeave : PlayerState.Idle);
                     break;
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*2)
+                if (logicFrame >= 2/*CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.Tech)*/)
                 {
-                    if(input.ButtonStates[0] == ButtonState.Held)
+                    if(input.ButtonStates[0] == ButtonState.Held  && storedCodeDuration <=0)
                     {
                         SetState(PlayerState.CodeWeave);
                         break;
@@ -1397,7 +1440,7 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-
+#endregion
         //Check conditions of all spells with the onupdate condition
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnUpdate);
 
@@ -1412,7 +1455,7 @@ public class PlayerController : MonoBehaviour
 
         if (ShouldLogDesyncFrame())
         {
-            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
+            Debug.Log($"[DESYNC] f={GameManager.Instance.frameNumber} pid={pID} st={state} dir={input.Direction} b0={input.ButtonStates[0]} b1={input.ButtonStates[1]} b2={input.ButtonStates[2]} raw={rawInput} h={hSpd.RawValue} v={vSpd.RawValue} x={position.X.RawValue} y={position.Y.RawValue} g={isGrounded} plat={onPlatform} lerp={lerpDelay} lf={logicFrame}");
         }
 
         //handle player animation
@@ -1930,14 +1973,17 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight / 2;
                 break;
             case PlayerState.Hitstun:
-                ClearInputDisplay();
+                if(storedCodeDuration <= 0)//this check is because of the test of allowing store to persist
+                {
+                    ClearInputDisplay();
+                }
 
 
                 lightArmor = false;
 
                 //reset storedCode if you get hit
-                storedCode = 0;
-                storedCodeDuration = 0;
+                // storedCode = 0;
+                // storedCodeDuration = 0;
 
                 stateSpecificArg = hitboxData.hitstun;
                 Fixed xKnockback = Fixed.FromInt(hitboxData.xKnockback);
@@ -1963,14 +2009,10 @@ public class PlayerController : MonoBehaviour
                 break;
 
             case PlayerState.Tech:
-                hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
-                vSpd = Fixed.FromInt(5);
-                comboCounter = 0;
-                //if (isGrounded)
-                //{
-                //    position.y = StageData.Instance.floorYval + 1;
-                //    isGrounded = false;
-                //}
+                //hSpd = facingRight ? Fixed.FromInt(-1) : Fixed.FromInt(1);
+                //vSpd = Fixed.FromInt(5);
+
+                comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
                 lightArmor = true;
@@ -2046,7 +2088,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, null, ((float)flowState / (float)maxFlowState) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, ((float)flowState / (float)maxFlowState) * 100f);
 
             flowState--;
         }
@@ -2055,7 +2097,7 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
-        if(demonAura > 0)
+        if (demonAura > 0)
         {
             if (demonAuraLifeSpanTimer > 0)
             {
@@ -2066,36 +2108,10 @@ public class PlayerController : MonoBehaviour
                 demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
             }
 
-            //Debug.Log("Player Controller | Player " + pID + "'s Demon Aura at " + demonAura);
-
-            //if (demonAura > (ushort)0 && demonAura <= (ushort)20)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.20f * 50f);
-            //}
-            //else if (demonAura > (ushort)20 && demonAura <= (ushort)40)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.40f * 50f);
-            //}
-            //else if (demonAura > (ushort)40 && demonAura <= (ushort)60)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.60f * 50f);
-            //}
-            //else if (demonAura > (ushort)60 && demonAura <= (ushort)80)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 0.80f * 50f);
-            //}
-            //else if (demonAura > (ushort)80 && demonAura <= (ushort)100)
-            //{
-            //    //play the demon aura visual effect 
-            //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, 1.0f * 50f);
-            //}
+            //Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, null, ((float)demonAura / (float)maxDemonAura) * 50f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, this.gameObject.transform, (((float)demonAura / (float)maxDemonAura) * 50f));
         }
         else
         {
@@ -2105,7 +2121,7 @@ public class PlayerController : MonoBehaviour
         if (stockStability > 0)
         {
             //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, null, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
         }
         else
         {
@@ -2115,7 +2131,7 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, null, (float)reps * 20f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, this.gameObject.transform, (float)reps * 20f);
         }
         else
         {
@@ -2176,12 +2192,16 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
+            
             comboCounter++;
             if (comboCounter >= 4)
             {
                 SpawnToast("COMBO BREAK!!!", Color.magenta);
                 iframes = 120;
                 comboCounter = 0;
+
+                //Play the combo break VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
             }
 
 
@@ -2288,6 +2308,7 @@ public class PlayerController : MonoBehaviour
                     deathList = new List<Vector2>();
                     arenaData.deathDict[GameManager.Instance.currentStage] = deathList;
                 }
+                ClearInputDisplay();
                 deathList.Add(transform.position);
             }
 
@@ -2393,55 +2414,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// wallbounce validation
-    /// </summary>
-    //public bool CheckCameraWall(bool rightWall, bool checkOnly = false)
-    //{
-    //    float cameraHalfWidth = Camera.main.orthographicSize * Camera.main.aspect;
-    //    float cameraMidX = (position.x + opponent.position.x) * 0.5f;
-    //    float boundaryX = rightWall
-    //        ? cameraMidX + cameraHalfWidth // right edge
-    //        : cameraMidX - cameraHalfWidth; // left  edge
-    //    //─ will we cross (or are we already flush) next frame? 
-    //    const float eps = 0.0001f;
-    //    bool crossing = rightWall
-    //        ? position.x + hSpd + playerWidth * 1.5f >= boundaryX - eps
-    //        : position.x + hSpd - playerWidth * 1.5f <= boundaryX + eps;
-
-    //    if (!crossing) return false;
-    //    if (checkOnly) return true; // “peek” mode – just report
-    //    return true;
-    //}
-
-
-
-    //public void CheckCameraCollision()
-    //{
-    //    // Calculate the camera half width and average player position
-    //    float cameraHalfWidth = Camera.main.orthographicSize * Camera.main.aspect;
-    //    float avgPlayerPositionX = (position.x + opponent.position.x) / 2;
-
-    //    // Calculate the distance between players and check for camera boundary conditions
-    //    float playerDistance = Math.Abs((position.x + hSpd) - (opponent.position.x + opponent.hSpd)) + (playerWidth / 2 + opponent.playerWidth / 2);
-
-    //    if (playerDistance >= cameraHalfWidth * 2 && ((position.x < avgPlayerPositionX && hSpd < 0) || (position.x >= avgPlayerPositionX && hSpd > 0)))
-    //    {
-    //        // Stop both players' horizontal speeds
-    //        hSpd = 0;
-    //        opponent.hSpd = 0;
-
-    //        // Determine direction and adjust positions based on average position
-    //        int direction = position.x > opponent.position.x ? 1 : -1;
-    //        position.x = avgPlayerPositionX + (cameraHalfWidth - playerWidth / 2) * direction;
-    //        opponent.position.x = avgPlayerPositionX + (cameraHalfWidth - opponent.playerWidth / 2) * -direction;
-    //    }
-    //}
-
-    /// <summary>
-    /// Returns true if this player’s X-position is closer to the center of the stage
-    /// (midpoint between leftWallXval and rightWallXval) than to the nearest wall.
-    /// </summary>
     public bool IsCloserToStageCenter()
     {
         // 1) compute the absolute center of the stage
@@ -2504,12 +2476,15 @@ public class PlayerController : MonoBehaviour
 
         codeButton[0] = codeButton[1];
         jumpButton[0] = jumpButton[1];
+        pauseButton[0] = pauseButton[1];
 
         codeButton[1] = codeAction.inProgress;
         jumpButton[1] = jumpAction.inProgress;
+        pauseButton[1] = pauseAction.inProgress;
 
         buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
         buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
+        buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
     }
 
     public InputSnapshot BufferInputs(InputSnapshot targetInput)
@@ -2562,6 +2537,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        bw.Write(comboResetTimer);
         bw.Write(lightArmor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
@@ -2657,6 +2634,8 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         hitstunOverride = br.ReadBoolean();
+        comboCounter = br.ReadByte();
+        comboResetTimer = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
         basicSpawnOverride = br.ReadBoolean();
         storedCode = br.ReadUInt32();
@@ -2949,10 +2928,9 @@ public class PlayerController : MonoBehaviour
         if (storedCodeDuration > 0 && state != PlayerState.CodeWeave)
         {
             storedCodeDuration--;
-            Debug.Log($"Stored code duration: {storedCodeDuration}");
         }
 
-        if (targetInput.ButtonStates[0] == ButtonState.Released || storedCodeDuration <= 0)
+        if (targetInput.ButtonStates[0] == ButtonState.Released||targetInput.ButtonStates[0] == ButtonState.None || storedCodeDuration <= 0)
         {
 
             if (IsStorableState())
@@ -2973,36 +2951,6 @@ public class PlayerController : MonoBehaviour
     {
         inputs.CheckForInputs(enable);
     }
-
-    //public void UpdateInputDisplay(int direction)
-    //{
-    //    if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
-    //    {
-    //        //down
-    //        if (direction == 2)
-    //        {
-    //            inputDisplay.text += "DOWN, ";
-    //        }
-
-    //        //left
-    //        if (direction == 4)
-    //        {
-    //            inputDisplay.text += "LEFT,  ";
-    //        }
-
-    //        //right
-    //        if (direction == 6)
-    //        {
-    //            inputDisplay.text += "RIGHT, ";
-    //        }
-
-    //        //up
-    //        if (direction == 8)
-    //        {
-    //            inputDisplay.text += "UP, ";
-    //        }
-    //    } 
-    //}
 
     public void ClearInputDisplay()
     {

@@ -1392,8 +1392,11 @@ public class GameManager : MonoBehaviour
                     UpdatePlayerBounties();
                 }
 
-                //respawn the dead player
-                player.SpawnPlayer(GetRandomSpawnVec2());
+                // Only consume RNG on real frames, reuse saved position during rollback
+                FixedVec2 spawnPos = isRollback
+                    ? player.position // keep existing position during rollback, it'll be overwritten by deserialization anyway
+                    : GetRandomSpawnVec2();
+                player.SpawnPlayer(spawnPos);
             }
         }
 

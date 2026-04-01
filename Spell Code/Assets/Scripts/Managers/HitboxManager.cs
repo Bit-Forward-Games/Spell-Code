@@ -86,8 +86,7 @@ public class HitboxManager : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         {
             projectileList = projectileList
-                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p))
-                .ThenBy(p => p != null ? p.GetInstanceID() : 0);
+                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p));
         }
 
         foreach (BaseProjectile projectile in projectileList)

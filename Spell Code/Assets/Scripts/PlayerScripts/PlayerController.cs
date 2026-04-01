@@ -2584,6 +2584,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
         bw.Write(startingSpellAdded);
+        bw.Write(vWave);
+        bw.Write(killeez);
+        bw.Write(DemonX);
+        bw.Write(bigStox);
         bw.Write(unchecked((int)0xAABBCCDD));
 
 
@@ -2682,6 +2686,10 @@ public class PlayerController : MonoBehaviour
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();
         bool savedStartingSpellAdded = br.ReadBoolean();
+        vWave = br.ReadBoolean();
+        killeez = br.ReadBoolean();
+        DemonX = br.ReadBoolean();
+        bigStox = br.ReadBoolean();
         int markerC = br.ReadInt32();
         if (markerC != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at C: {markerC:X8}");
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());

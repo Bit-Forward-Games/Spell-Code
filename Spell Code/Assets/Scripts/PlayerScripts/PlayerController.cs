@@ -97,6 +97,7 @@ public class PlayerController : MonoBehaviour
     public bool isGrounded = false;
     public bool onPlatform = false;
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
+    public bool toggleCodeInput = false;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -1152,7 +1153,7 @@ public class PlayerController : MonoBehaviour
                         //increment the store code timer (charging up to store)
                         if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
                         storedCodeDuration += 3;
-                        if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                        if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             lightArmor = false;
                             //set the 5th bit to 0 to indicate we are no longer primed
@@ -1193,7 +1194,7 @@ public class PlayerController : MonoBehaviour
                     //reset the storedCode timer
                         storedCodeDuration = 0;
                     //code button released
-                    if (input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                    if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         lightArmor = false;
                         
@@ -1233,6 +1234,7 @@ public class PlayerController : MonoBehaviour
                 {
                     //uint testCode = stateSpecificArg & ~(1u << 4);
                     stateSpecificArg &= ~(1u << 4);
+#region Secret Dev Codes
                     if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
                     {
                         Debug.Log("Konami Code Activated!");
@@ -1263,13 +1265,21 @@ public class PlayerController : MonoBehaviour
                             secretNormalPaletteActive = false;
                         }
                     }
-                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs
+                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs for relative inputs
                     {
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
                         string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
                         SpawnToast($"RELATIVE INPUTS {activeWord}!", Color.white);
                     }
+                    if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
+                    {
+                        Debug.Log("Toggle Code Input activated!");
+                        toggleCodeInput = !toggleCodeInput;
+                        string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
+                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", Color.white);
+                    }
+#endregion
                     for (int i = 0; i < spellList.Count; i++)
                     {
                         if (spellList[i].spellInput == stateSpecificArg &&
@@ -2930,7 +2940,7 @@ public class PlayerController : MonoBehaviour
             storedCodeDuration--;
         }
 
-        if (targetInput.ButtonStates[0] == ButtonState.Released||targetInput.ButtonStates[0] == ButtonState.None || storedCodeDuration <= 0)
+        if ((toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None) || storedCodeDuration <= 0)
         {
 
             if (IsStorableState())

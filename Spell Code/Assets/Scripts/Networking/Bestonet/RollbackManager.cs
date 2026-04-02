@@ -279,7 +279,10 @@ using BestoNet.Collections; // Use BestoNet collections
             GameManager.Instance.UpdateSceneLogic(inputsForResim);
 
             GameManager.Instance.ForceSetFrame(i);
-            ClearState(i);
+
+            // Keep corrected snapshots for resimulated frames so a later packet can rollback again
+            // from the newly authoritative state instead of losing rollback history.
+            SaveState();
         }
 
         SetRollbackStatus(false);

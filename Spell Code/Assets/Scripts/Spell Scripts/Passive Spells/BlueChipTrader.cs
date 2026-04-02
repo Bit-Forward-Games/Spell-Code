@@ -41,4 +41,16 @@ public class BlueChipTrader : SpellData
                 break;
         }
     }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(storedStockStability);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        storedStockStability = br.ReadUInt16();
+    }
 }

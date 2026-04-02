@@ -229,7 +229,7 @@ public class OnboardManager : MonoBehaviour
                     p1_gambaActive = true; 
                 }
 
-                if (p1_gamba.gambaAnimator.GetBool("isActive") == false) 
+                if (gM.players[0].basicsFired > 0) 
                 { 
                     p1_atkComplete = true; 
                     Debug.Log("Atk Onboard Complete"); 
@@ -242,12 +242,19 @@ public class OnboardManager : MonoBehaviour
                 p1_atkGraphic.enabled = false;
                 p1_atkTxt.enabled = false;
 
+                p1_moveGraphic.enabled = false;
+                p1_moveTxt.enabled = false;
+                p1_jumpGraphic.enabled = false;
+                p1_jumpTxt.enabled = false;
+
             }
             //hold atk and input code to break free
             if (gM.players[0].spellList.Count>0 && !p1_glassBroken)
             {
                 p1_castTxt.enabled = true;
                 p1_castGraphic.enabled = true;
+                p1_atkGraphic.enabled = false;
+                p1_atkTxt.enabled = false;
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                 {
@@ -260,7 +267,7 @@ public class OnboardManager : MonoBehaviour
                     p1_castGraphic.sprite = atkGraphic;
                 }
 
-                if (gM.players[0].spellsFired > 0)
+                if (gM.gates[0].isOpen == true)
                 {
                     p1_glassBroken = true;
                 }
@@ -319,7 +326,7 @@ public class OnboardManager : MonoBehaviour
                     p2_gambaActive = true;
                 }
 
-                if (p2_gamba.gambaAnimator.GetBool("isActive") == false)
+                if (gM.players[1].basicsFired > 0)
                 {
                     p2_atkComplete = true;
                     Debug.Log("Atk Onboard Complete");
@@ -331,6 +338,11 @@ public class OnboardManager : MonoBehaviour
             {
                 p2_atkGraphic.enabled = false;
                 p2_atkTxt.enabled = false;
+
+                p2_moveGraphic.enabled = false;
+                p2_moveTxt.enabled = false;
+                p2_jumpGraphic.enabled = false;
+                p2_jumpTxt.enabled = false;
             }
 
             //hold atk and input code to break free
@@ -338,6 +350,8 @@ public class OnboardManager : MonoBehaviour
             {
                 p2_castTxt.enabled = true;
                 p2_castGraphic.enabled = true;
+                p2_atkGraphic.enabled = false;
+                p2_atkTxt.enabled = false;
 
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                 {
@@ -350,7 +364,7 @@ public class OnboardManager : MonoBehaviour
                     p2_castGraphic.sprite = atkGraphic;
                 }
 
-                if (gM.players[1].spellsFired > 0)
+                if (gM.gates[1].isOpen == true)
                 {
                     p2_glassBroken = true;
                     p2_castTxt.enabled = false;
@@ -409,7 +423,7 @@ public class OnboardManager : MonoBehaviour
                     p3_gambaActive = true;
                 }
 
-                if (p3_gamba.gambaAnimator.GetBool("isActive") == false)
+                if (gM.players[2].basicsFired > 0)
                 {
                     p3_atkComplete = true;
                     Debug.Log("Atk Onboard Complete");
@@ -422,6 +436,10 @@ public class OnboardManager : MonoBehaviour
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
+                p3_moveGraphic.enabled = false;
+                p3_moveTxt.enabled = false;
+                p3_jumpGraphic.enabled = false;
+                p3_jumpTxt.enabled = false;
             }
 
             //hold atk and input code to break free
@@ -429,6 +447,8 @@ public class OnboardManager : MonoBehaviour
             {
                 p3_castTxt.enabled = true;
                 p3_castGraphic.enabled = true;
+                p3_atkGraphic.enabled = false;
+                p3_atkTxt.enabled = false;
 
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                 {
@@ -441,7 +461,7 @@ public class OnboardManager : MonoBehaviour
                     p3_castGraphic.sprite = atkGraphic;
                 }
 
-                if (gM.players[2].spellsFired > 0)
+                if (gM.gates[2].isOpen == true)
                 {
                     p3_glassBroken = true;
                 }
@@ -500,7 +520,7 @@ public class OnboardManager : MonoBehaviour
                     p4_gambaActive = true;
                 }
 
-                if (p4_gamba.gambaAnimator.GetBool("isActive") == false)
+                if (gM.players[3].basicsFired > 0)
                 {
                     p4_atkComplete = true;
                     Debug.Log("Atk Onboard Complete");
@@ -513,6 +533,10 @@ public class OnboardManager : MonoBehaviour
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
 
+                p4_moveGraphic.enabled = false;
+                p4_moveTxt.enabled = false;
+                p4_jumpGraphic.enabled = false;
+                p4_jumpTxt.enabled = false;
             }
 
             //hold atk and input code to break free
@@ -520,6 +544,8 @@ public class OnboardManager : MonoBehaviour
             {
                 p4_castTxt.enabled = true;
                 p4_castGraphic.enabled = true;
+                p4_atkGraphic.enabled = false;
+                p4_atkTxt.enabled = false;
 
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                 {
@@ -532,7 +558,7 @@ public class OnboardManager : MonoBehaviour
                     p4_castGraphic.sprite = atkGraphic;
                 }
 
-                if (gM.players[3].spellsFired > 0)
+                if (gM.gates[3].isOpen == true)
                 {
                     p4_glassBroken = true;
                 }

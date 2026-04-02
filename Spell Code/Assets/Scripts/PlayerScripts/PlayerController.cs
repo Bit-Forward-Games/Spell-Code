@@ -2202,6 +2202,7 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
+            ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
             
             comboCounter++;
             if (comboCounter >= 4)

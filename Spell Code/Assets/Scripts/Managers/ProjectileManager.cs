@@ -160,6 +160,25 @@ public class ProjectileManager : MonoBehaviour
         projectilePrefabs.Clear();
     }
 
+    public void DeleteAllPlayerProjectiles(int pID)
+    {
+        PlayerController targetPlayer = GameManager.Instance.players[pID-1];
+        List<BaseProjectile> projList = new List<BaseProjectile>();
+        foreach(BaseProjectile proj in activeProjectiles)
+        {
+            if(proj.owner == targetPlayer)
+            {
+                projList.Add(proj);
+            }
+        }
+
+        foreach(BaseProjectile deletingProj in projList)
+        {
+            DeleteProjectile(deletingProj);
+        }
+
+    }
+
     public void InitializeAllProjectiles()
     {
         //first destroy all projectiles in the list then clear the list

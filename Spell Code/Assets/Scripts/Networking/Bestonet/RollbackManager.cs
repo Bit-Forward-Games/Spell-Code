@@ -387,9 +387,11 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             int frame = frameToGet ?? localFrame; // Use specified frame or current local frame
 
-            int localInputFrame = frame + InputDelay;
-            ulong localInput = clientInputs.ContainsKey(localInputFrame)
-                ? clientInputs.GetInput(localInputFrame)
+            // Inputs are stored keyed by the simulation frame they should apply to.
+            // Reading frame + InputDelay here cancels the local delay entirely and makes
+            // the local player advance earlier than the remote simulation.
+            ulong localInput = clientInputs.ContainsKey(frame)
+                ? clientInputs.GetInput(frame)
                 : 5UL; // Default to neutral (5) if missing
 
             // Get remote input (predict if necessary)

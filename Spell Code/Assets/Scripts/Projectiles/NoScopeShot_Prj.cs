@@ -40,7 +40,7 @@ public class NoScopeShot_Prj : BaseProjectile
                     xKnockback = 5,
                     yKnockback = 8,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 10,
                     attackLvl = 1,
                     basicAttackHitbox = true,
                 }

@@ -48,4 +48,16 @@ public class PennyStockPeddler : SpellData
                 break;
         }
     }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(convertedStockStability);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        convertedStockStability = br.ReadUInt16();
+    }
 }

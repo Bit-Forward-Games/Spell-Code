@@ -86,8 +86,7 @@ public class HitboxManager : MonoBehaviour
         if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         {
             projectileList = projectileList
-                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p))
-                .ThenBy(p => p != null ? p.GetInstanceID() : 0);
+                .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p));
         }
 
         foreach (BaseProjectile projectile in projectileList)
@@ -126,15 +125,7 @@ public class HitboxManager : MonoBehaviour
                             if (GameManager.Instance.isOnlineMatchActive)
                             {
                                 HitboxData bakedHitbox = hitbox.Clone();
-                                int attackerFacing = 1;
-                                if (projectile.owner != null)
-                                {
-                                    attackerFacing = projectile.owner.facingRight ? 1 : -1;
-                                }
-                                else
-                                {
-                                    attackerFacing = projectile.facingRight ? 1 : -1;
-                                }
+                                int attackerFacing = projectile.facingRight ? 1 : -1;
                                 bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
                                 defendingPlayer.hitboxData = bakedHitbox;
                             }

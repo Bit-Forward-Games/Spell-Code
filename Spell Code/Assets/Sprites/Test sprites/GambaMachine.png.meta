@@ -63,7 +63,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 0.5
+  spritePixelsToUnits: 4
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -169,10 +169,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -189,12 +189,12 @@ TextureImporter:
       name: GambaMachine_1
       rect:
         serializedVersion: 2
-        x: 32
+        x: 296
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -211,12 +211,12 @@ TextureImporter:
       name: GambaMachine_2
       rect:
         serializedVersion: 2
-        x: 64
+        x: 592
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -233,12 +233,12 @@ TextureImporter:
       name: GambaMachine_3
       rect:
         serializedVersion: 2
-        x: 96
+        x: 888
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -255,12 +255,12 @@ TextureImporter:
       name: GambaMachine_4
       rect:
         serializedVersion: 2
-        x: 128
+        x: 1184
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -277,12 +277,12 @@ TextureImporter:
       name: GambaMachine_5
       rect:
         serializedVersion: 2
-        x: 160
+        x: 1480
         y: 0
-        width: 32
-        height: 48
+        width: 296
+        height: 384
       alignment: 9
-      pivot: {x: 0.5, y: 0.1666667}
+      pivot: {x: 0.5, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []

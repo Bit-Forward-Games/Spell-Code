@@ -15,7 +15,7 @@ public class AmonSlash_Projectile : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -35,7 +35,7 @@ public class AmonSlash_Projectile : BaseProjectile
                 {
                     xOffset = -16,
                     yOffset = 12*2,
-                    width = 40*2,
+                    width = 45*2,
                     height = 24*2,
                     xKnockback = 6,
                     yKnockback = 2,
@@ -72,7 +72,7 @@ public class AmonSlash_Projectile : BaseProjectile
 
         position = new FixedVec2(newX, newY);
 
-        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(5).Sum())
+        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(4).Sum())
         {
             activeHitboxGroupIndex = 1;
         }

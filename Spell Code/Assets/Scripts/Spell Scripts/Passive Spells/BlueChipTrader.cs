@@ -15,7 +15,7 @@ public class BlueChipTrader : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "On Basic hit: gain 20% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
+        description = "On Basic hit: gain 100% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
     }
 
     public override void LoadSpell()
@@ -28,21 +28,14 @@ public class BlueChipTrader : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnHitBasic:
-                storedStockStability += 20;
-                owner.stockStability += 20;
-                if(owner.stockStability > 100)
-                {
-                    int excessStocStability = owner.stockStability - 100;
-                    owner.stockStability = 100;
-                    storedStockStability -= (ushort)excessStocStability;
-
-                }
-                owner.SpawnToast("+20% STOCK STABILITY", Color.blue);
+                storedStockStability = owner.stockStability;
+                owner.stockStability = 100;
+                owner.SpawnToast($"+{100-storedStockStability}% STOCK STABILITY", Color.blue);
                 break;
             case ProcCondition.OnCastSpell:
-                owner.stockStability -= storedStockStability;
+                owner.stockStability = storedStockStability;
                 storedStockStability = 0;
-                owner.SpawnToast($"+{storedStockStability}% STOCK STABILITY", Color.gray);
+                owner.SpawnToast($"STOCK STABILITY CONSUMED", Color.gray);
                 break;
             default:
                 break;

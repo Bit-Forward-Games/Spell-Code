@@ -61,7 +61,8 @@ public class GetAJob : SpellData
             
             case ProcCondition.ActiveOnCast:
                 doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
-                owner.lightArmor = doesCrit;
+                owner.hitstunOverride = doesCrit;
+                owner.lightArmor = !doesCrit;
                 break;
             default:
                 break;

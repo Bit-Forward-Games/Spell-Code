@@ -396,6 +396,8 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
         iframes = 180; //you get 3 sec of invul on spawn
+        storedCode = 0;
+        storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
 

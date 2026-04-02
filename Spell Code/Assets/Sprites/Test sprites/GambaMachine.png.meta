@@ -169,7 +169,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}
@@ -189,9 +189,9 @@ TextureImporter:
       name: GambaMachine_1
       rect:
         serializedVersion: 2
-        x: 256
+        x: 296
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}
@@ -211,9 +211,9 @@ TextureImporter:
       name: GambaMachine_2
       rect:
         serializedVersion: 2
-        x: 512
+        x: 592
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}
@@ -233,9 +233,9 @@ TextureImporter:
       name: GambaMachine_3
       rect:
         serializedVersion: 2
-        x: 768
+        x: 888
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}
@@ -255,9 +255,9 @@ TextureImporter:
       name: GambaMachine_4
       rect:
         serializedVersion: 2
-        x: 1024
+        x: 1184
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}
@@ -277,9 +277,9 @@ TextureImporter:
       name: GambaMachine_5
       rect:
         serializedVersion: 2
-        x: 1280
+        x: 1480
         y: 0
-        width: 256
+        width: 296
         height: 384
       alignment: 9
       pivot: {x: 0.5, y: 0.16666667}

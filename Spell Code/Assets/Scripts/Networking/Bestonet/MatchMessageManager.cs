@@ -36,6 +36,7 @@ public class MatchMessageManager : MonoBehaviour
     private bool isRunning = false;
     private bool localReadySent = false;
     private bool remoteReadyReceived = false;
+    private int highestRemoteFrameSeen = -1; // Track highest frame for out-of-order rejection
 
     private struct PendingOutboundPacket
     {
@@ -322,6 +323,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
+                    writer.Write(PACKET_TYPE_LOBBY_READY);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -551,9 +553,14 @@ public class MatchMessageManager : MonoBehaviour
 
                             if (i == inputCount - 1)
                             {
-                                RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
-                                RollbackManager.Instance.SetRemoteFrame(frame);
-                                //Debug.Log($"Updated remoteFrame to {frame}");
+                                // Only accept frame advantage from packets newer than what we've seen
+                                // to prevent out-of-order packets from corrupting frame advantage
+                                if (frame > highestRemoteFrameSeen)
+                                {
+                                    highestRemoteFrameSeen = frame;
+                                    RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
+                                    RollbackManager.Instance.SetRemoteFrame(frame);
+                                }
                             }
                         }
                     }
@@ -579,6 +586,7 @@ public class MatchMessageManager : MonoBehaviour
     {
         localReadySent = false;
         remoteReadyReceived = false;
+        highestRemoteFrameSeen = -1;
     }
 
     private void ProcessACK(int frame)

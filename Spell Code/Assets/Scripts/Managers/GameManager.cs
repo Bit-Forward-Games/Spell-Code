@@ -143,7 +143,7 @@ public class GameManager : MonoBehaviour
     public int randomSeed = 0;
     public int randomCallCount = 0;
     private uint rngState = 0;
-    private System.Random stageRandom;
+    private uint stageRngState;
 
     [Header("Debug")]
     public bool logDesyncTrace = false;
@@ -787,20 +787,16 @@ public class GameManager : MonoBehaviour
         {
             goDoorPrefab.CheckOpenDoor();
 
-            // Only run gamba logic on real frames - it spawns GameObjects and consumes RNG
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-            if (!isRollback)
+            foreach (GameObject gambaGO in gambas)
             {
-                foreach (GameObject gambaGO in gambas)
-                {
-                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-                }
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, isRollback);
+            }
 
-                if (goDoorPrefab.CheckAllPlayersReady())
-                {
-                    LoadRandomGameplayStage();
-                }
+            if (!isRollback && goDoorPrefab.CheckAllPlayersReady())
+            {
+                LoadRandomGameplayStage();
             }
             if (isOnline)
             {
@@ -887,14 +883,11 @@ public class GameManager : MonoBehaviour
             //if (onboardManager != null && !rbManager.isRollbackFrame)
             //    onboardManager.OnboardUpdate(syncedInput);
 
-            // Drive gamba machines through synced simulation
-            if (!rbManager.isRollbackFrame)
+            // Drive gamba machines through synced simulation (must run during rollback for RNG consistency)
+            foreach (GameObject gambaGO in gambas)
             {
-                foreach (GameObject gambaGO in gambas)
-                {
-                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-                }
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, rbManager.isRollbackFrame);
             }
 
             goDoorPrefab.CheckOpenDoor();
@@ -1551,7 +1544,7 @@ public class GameManager : MonoBehaviour
         randomSeed = seed;
         randomCallCount = 0;
         rngState = (uint)seed;
-        stageRandom = new System.Random((int)(seed ^ 0x9E3779B9));
+        stageRngState = (uint)(seed ^ 0x9E3779B9);
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
     }
 
@@ -1567,13 +1560,11 @@ public class GameManager : MonoBehaviour
 
     private int GetNextStageRandom(int minValue, int maxValue)
     {
-        if (stageRandom == null)
-        {
-            stageRandom = new System.Random((int)(randomSeed ^ 0x9E3779B9));
-        }
+        // Deterministic LCG, same constants as GetNextRandom but separate state
+        stageRngState = stageRngState * 1664525u + 1013904223u;
         int range = maxValue - minValue;
         if (range <= 0) return minValue;
-        return minValue + stageRandom.Next(range);
+        return minValue + (int)(stageRngState % (uint)range);
     }
 
     public FixedVec2 GetRandomSpawnVec2()
@@ -1941,6 +1932,19 @@ public class GameManager : MonoBehaviour
                 bw.Write(randomSeed);
                 bw.Write(randomCallCount);
                 bw.Write(rngState);
+                bw.Write(stageRngState);
+
+                // Serialize round state
+                bw.Write(ramNeededToWinRound);
+                bw.Write(roundEndUIShown);
+                bw.Write(lastRoundWinnerPID);
+
+                // Serialize remaining game stages as indices into master stages list
+                bw.Write(gameStages.Count);
+                foreach (StageDataSO stage in gameStages)
+                {
+                    bw.Write(stages.IndexOf(stage));
+                }
 
                 bw.Write(p1_shopIndex);
                 bw.Write(p2_shopIndex);
@@ -2057,6 +2061,24 @@ public class GameManager : MonoBehaviour
                 randomSeed = br.ReadInt32();
                 randomCallCount = br.ReadInt32();
                 rngState = br.ReadUInt32(); // Restore exact RNG state directly
+                stageRngState = br.ReadUInt32();
+
+                // Deserialize round state
+                ramNeededToWinRound = br.ReadUInt16();
+                roundEndUIShown = br.ReadBoolean();
+                lastRoundWinnerPID = br.ReadInt32();
+
+                // Deserialize remaining game stages
+                int savedStageCount = br.ReadInt32();
+                gameStages.Clear();
+                for (int i = 0; i < savedStageCount; i++)
+                {
+                    int stageIdx = br.ReadInt32();
+                    if (stageIdx >= 0 && stageIdx < stages.Count)
+                    {
+                        gameStages.Add(stages[stageIdx]);
+                    }
+                }
 
                 p1_shopIndex = br.ReadInt32();
                 p2_shopIndex = br.ReadInt32();
@@ -2256,7 +2278,7 @@ public class GameManager : MonoBehaviour
         //delete random stages from gameStages until gameStages.Length equals 9
         while (gameStages.Count > 9)
         {
-            gameStages.RemoveAt(UnityEngine.Random.Range(0, gameStages.Count));
+            gameStages.RemoveAt(GetNextStageRandom(0, gameStages.Count));
         }
 
         //Debug.Log("After culling: gameStages.Count = " + gameStages.Count);

@@ -24,9 +24,9 @@ public class DemonicDescent : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.OnUpdate:
-                owner.runSpeed = owner.demonAura >= 100 ? Fixed.FromFloat((owner.charData.runSpeed + 30)/10) : Fixed.FromFloat(owner.charData.runSpeed/10);
-                owner.jumpForce = owner.demonAura >= 100 ? Fixed.FromFloat(owner.charData.jumpForce + 2) : Fixed.FromFloat(owner.charData.jumpForce);
-                owner.slideSpeed = owner.demonAura >= 100 ? Fixed.FromFloat((owner.charData.slideSpeed + 20)/10) : Fixed.FromFloat(owner.charData.slideSpeed/10);
+                owner.runSpeed = owner.demonAura >= 100 ? Fixed.FromInt((owner.charData.runSpeed + 30)/10) : Fixed.FromInt(owner.charData.runSpeed/10);
+                owner.jumpForce = owner.demonAura >= 100 ? Fixed.FromInt(owner.charData.jumpForce + 2) : Fixed.FromInt(owner.charData.jumpForce);
+                owner.slideSpeed = owner.demonAura >= 100 ? Fixed.FromInt((owner.charData.slideSpeed + 20)/10) : Fixed.FromInt(owner.charData.slideSpeed/10);
                 break;
             //OnHitSpell: Deal Extra damage when hitting with a spell.
             case ProcCondition.OnHitSpell:

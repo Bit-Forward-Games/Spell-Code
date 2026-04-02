@@ -1975,31 +1975,40 @@ public class PlayerController : MonoBehaviour
                     returnVal = !tempPos.Equals(position);
                     break;
                 case BorderType.Loop:
-                    if (position.X.ToFloat() > stageDataSO.borderMax.x)
+                    Fixed loopMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed loopMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed loopMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed loopMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+
+                    if (position.X > loopMaxX)
                     {
-                        position = FixedVec2.FromFloat(stageDataSO.borderMin.x, position.Y.ToFloat());
+                        position = new FixedVec2(loopMinX, position.Y);
                         returnVal = true;
                     }
-                    else if (position.X.ToFloat() < stageDataSO.borderMin.x)
+                    else if (position.X < loopMinX)
                     {
-                        position = FixedVec2.FromFloat(stageDataSO.borderMax.x, position.Y.ToFloat());
+                        position = new FixedVec2(loopMaxX, position.Y);
                         returnVal = true;
                     }
 
-                    if (position.Y.ToFloat() > stageDataSO.borderMax.y)
+                    if (position.Y > loopMaxY)
                     {
-                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMin.y);
+                        position = new FixedVec2(position.X, loopMinY);
                         returnVal = true;
                     }
-                    else if (position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    else if (position.Y < loopMinY)
                     {
-                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMax.y);
+                        position = new FixedVec2(position.X, loopMaxY);
                         returnVal = true;
                     }
                     break;
                 case BorderType.DeathZone:
-                    if (position.X.ToFloat() > stageDataSO.borderMax.x || position.X.ToFloat() < stageDataSO.borderMin.x ||
-                        position.Y.ToFloat() > stageDataSO.borderMax.y || position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    Fixed dzMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed dzMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed dzMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed dzMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+                    if (position.X > dzMaxX || position.X < dzMinX ||
+                        position.Y > dzMaxY || position.Y < dzMinY)
                     {
                         //kill player and respawn at spawn point
                         currentPlayerHealth = 0;
@@ -2742,6 +2751,7 @@ public class PlayerController : MonoBehaviour
         {
             hitboxData = null;
             _pendingHitboxOwnerIndex = -1;
+            _pendingHitboxProjectileIndex = -1;
         }
 
         int markerB = br.ReadInt32();

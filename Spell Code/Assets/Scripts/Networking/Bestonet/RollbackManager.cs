@@ -265,7 +265,12 @@ using BestoNet.Collections; // Use BestoNet collections
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
 
-        LoadState(syncFrame);
+        if (!LoadState(syncFrame))
+        {
+            Debug.LogError($"Rollback ABORTED: Failed to load state for frame {syncFrame}. Game may be desynced.");
+            SetRollbackStatus(false);
+            return;
+        }
 
         // RESIMULATE HERE - ONLY WHEN ROLLBACK IS ACTUALLY NEEDED
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
@@ -462,15 +467,16 @@ using BestoNet.Collections; // Use BestoNet collections
             hash = hash
         };
 
-        if (StressTestController.Instance != null &&
-            StressTestController.Instance.IsActiveOnline &&
-            StressTestController.Instance.enableStateHashing)
+        // Always send state hashes during online matches for desync detection
+        if (matchManager != null)
         {
-            int interval = Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames);
+            int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+                ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+                : 30; // Default: send hash every 30 frames (~0.5s) in production
             if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
             {
                 lastHashSentFrame = localFrame;
-                matchManager?.SendStateHash(localFrame, hash);
+                matchManager.SendStateHash(localFrame, hash);
             }
         }
     }
@@ -494,13 +500,13 @@ using BestoNet.Collections; // Use BestoNet collections
     /// Loads a game state snapshot for the specified frame using GameManager.
     /// </summary>
     /// <param name="frame">The frame number to load.</param>
-    public void LoadState(int frame)
+    public bool LoadState(int frame)
     {
         // Ensure GameManager instance is valid
         if (GameManager.Instance == null)
         {
             Debug.LogError("GameManager instance is null during LoadState!");
-            return;
+            return false;
         }
 
         int index = frame % StateArraySize;
@@ -509,8 +515,7 @@ using BestoNet.Collections; // Use BestoNet collections
         if (states[index].frame != frame || states[index].state == null || states[index].state.Length == 0)
         {
             UnityEngine.Debug.LogError($"Missing or invalid state when attempting to load frame {frame} at index {index}. Possible desync or state saving issue.");
-            // Cannot proceed without valid state. Consider more robust error handling.
-            return;
+            return false;
         }
 
         // Get the saved byte array
@@ -521,15 +526,11 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Force the GameManager's frame number to match the loaded state
         GameManager.Instance.ForceSetFrame(frame);
+        return true;
     }
 
     public void OnRemoteStateHash(int frame, uint remoteHash)
     {
-        if (firstHashMismatchFrame >= 0)
-        {
-            return;
-        }
-
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)
         {
@@ -719,7 +720,9 @@ using BestoNet.Collections; // Use BestoNet collections
             remoteFrame = frame; // Last frame opponent confirmed sending/receiving input for
             // Predict current remote frame based on ping (needs ping calculation from MatchMessageManager)
             int pingMs = matchManager?.Ping ?? 200; // Default ping if manager missing
-            int pingFrames = Mathf.CeilToInt((pingMs / 2f) / (1000f / 60f)); // Calculate one-way ping in frames (assuming 60fps)
+            // Integer-only: one-way ping in frames = (pingMs / 2) * 60 / 1000, rounded up
+            // Equivalent to CeilToInt((pingMs/2) / 16.667) but fully deterministic
+            int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
             predictedRemoteFrame = frame + pingFrames;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
         }

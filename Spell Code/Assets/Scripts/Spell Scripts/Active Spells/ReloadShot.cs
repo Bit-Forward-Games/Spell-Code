@@ -26,9 +26,8 @@ public class ReloadShot : SpellData
                     //float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
                     //int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
                     //defender.TakeEffectDamage(damageToDeal);
-                    float percentCooldownReduced = (float)currentFlow / (float)PlayerController.maxFlowState; // 100% cooldown reduction at full flow
-
-                    cooldownCounter = (int)(cooldownCounter * percentCooldownReduced);
+                    // Integer-only cooldown reduction: (cooldown * flow) / maxFlow
+                    cooldownCounter = (int)((long)cooldownCounter * currentFlow / PlayerController.maxFlowState);
                     //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
                     if (!defender.hitboxData.sweetSpot)
                     {

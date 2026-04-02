@@ -1357,6 +1357,16 @@ public class PlayerController : MonoBehaviour
                     {
                         //Play failed code weave sound
                         SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+
+                        //Play the fail code visual effect depending on the direction the player is facing
+                        if (facingRight)
+                        {
+                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CODE_FAIL, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                        }
+                        else
+                        {
+                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CODE_FAIL, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                        }
                     }
                     else if(stateSpecificArg == 0)
                     {

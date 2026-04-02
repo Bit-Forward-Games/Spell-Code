@@ -396,6 +396,8 @@ public class PlayerController : MonoBehaviour
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
         iframes = 180; //you get 3 sec of invul on spawn
+        storedCode = 0;
+        storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
 
@@ -2595,6 +2597,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
         bw.Write(startingSpellAdded);
+        bw.Write(vWave);
+        bw.Write(killeez);
+        bw.Write(DemonX);
+        bw.Write(bigStox);
         bw.Write(unchecked((int)0xAABBCCDD));
 
 
@@ -2666,7 +2672,7 @@ public class PlayerController : MonoBehaviour
             hitboxData.hitstun = br.ReadUInt16();
             hitboxData.xKnockback = br.ReadInt32();
             hitboxData.yKnockback = br.ReadInt32();
-            hitboxData.attackLvl = br.ReadByte();
+            hitboxData.attackLvl = br.ReadInt32();
             hitboxData.basicAttackHitbox = br.ReadBoolean();
             _pendingHitboxOwnerIndex = br.ReadInt32();
             _pendingHitboxProjectileIndex = br.ReadInt32();
@@ -2693,6 +2699,10 @@ public class PlayerController : MonoBehaviour
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();
         bool savedStartingSpellAdded = br.ReadBoolean();
+        vWave = br.ReadBoolean();
+        killeez = br.ReadBoolean();
+        DemonX = br.ReadBoolean();
+        bigStox = br.ReadBoolean();
         int markerC = br.ReadInt32();
         if (markerC != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at C: {markerC:X8}");
         //bufferInput = InputConverter.ConvertFromShort(br.ReadInt16());

@@ -24,6 +24,57 @@ public class ProjectileManager : MonoBehaviour
     }
     public List<BaseProjectile> projectilePrefabs = new List<BaseProjectile>();
     public List<BaseProjectile> activeProjectiles = new List<BaseProjectile>();
+
+    public void SynchronizeActiveProjectiles()
+    {
+        activeProjectiles.Clear();
+
+        for (int i = 0; i < projectilePrefabs.Count; i++)
+        {
+            BaseProjectile projectile = projectilePrefabs[i];
+            if (projectile == null)
+            {
+                continue;
+            }
+
+            if (projectile.gameObject.activeSelf)
+            {
+                activeProjectiles.Add(projectile);
+            }
+        }
+    }
+
+    private void RegisterActiveProjectile(BaseProjectile projectile)
+    {
+        if (projectile == null || !projectile.gameObject.activeSelf)
+        {
+            return;
+        }
+
+        int prefabIndex = projectilePrefabs.IndexOf(projectile);
+        if (prefabIndex < 0)
+        {
+            return;
+        }
+
+        int insertIndex = 0;
+        while (insertIndex < activeProjectiles.Count)
+        {
+            BaseProjectile activeProjectile = activeProjectiles[insertIndex];
+            int activePrefabIndex = projectilePrefabs.IndexOf(activeProjectile);
+            if (activePrefabIndex < 0 || activePrefabIndex > prefabIndex)
+            {
+                break;
+            }
+            if (activeProjectile == projectile)
+            {
+                return;
+            }
+            insertIndex++;
+        }
+
+        activeProjectiles.Insert(insertIndex, projectile);
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -71,21 +122,17 @@ public class ProjectileManager : MonoBehaviour
 
     public void UpdateProjectiles()
     {
-
-        //activeProjectiles.Clear();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
             if(projectilePrefabs[i] == null)
             {
                 projectilePrefabs.RemoveAt(i);
                 i--;
+                continue;
             }
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
-                if (!activeProjectiles.Contains(projectilePrefabs[i]))
-                {
-                    activeProjectiles.Add(projectilePrefabs[i]);
-                }
+                RegisterActiveProjectile(projectilePrefabs[i]);
                 projectilePrefabs[i].ProjectileUpdate();
             }
             else
@@ -167,6 +214,8 @@ public class ProjectileManager : MonoBehaviour
                 }
             }
         }
+
+        SynchronizeActiveProjectiles();
     }
 
     public void SpawnProjectile(string projectileName, PlayerController owner, bool facingRight, FixedVec2 spawnOffset)
@@ -180,6 +229,7 @@ public class ProjectileManager : MonoBehaviour
                 matchingProjectiles[i].ResetValues();
                 matchingProjectiles[i].gameObject.SetActive(true);
                 matchingProjectiles[i].SpawnProjectile(facingRight, spawnOffset);
+                RegisterActiveProjectile(matchingProjectiles[i]);
                 return;
             }
 
@@ -200,6 +250,7 @@ public class ProjectileManager : MonoBehaviour
             longestLiving.ResetValues();
             longestLiving.gameObject.SetActive(true);
             longestLiving.SpawnProjectile(facingRight, spawnOffset);
+            RegisterActiveProjectile(longestLiving);
         }
 
     }
@@ -211,6 +262,7 @@ public class ProjectileManager : MonoBehaviour
             projectilePrefab.ResetValues();
             projectilePrefab.gameObject.SetActive(true);
             projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+            RegisterActiveProjectile(projectilePrefab);
             return;
         }
         else
@@ -219,6 +271,7 @@ public class ProjectileManager : MonoBehaviour
             projectilePrefab.ResetValues();
             projectilePrefab.gameObject.SetActive(true);
             projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+            RegisterActiveProjectile(projectilePrefab);
         }
     }
 

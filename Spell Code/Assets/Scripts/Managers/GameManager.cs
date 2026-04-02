@@ -842,11 +842,15 @@ public class GameManager : MonoBehaviour
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
 
-
-        //if (frameNumber <= rbManager.InputDelay)
-        //{
-        //    rbManager.SaveState();
-        //}
+        if (!rbManager.isRollbackFrame)
+        {
+            int currentFrame = frameNumber;
+            int stateIndex = currentFrame % RollbackManager.InputArraySize;
+            if (rbManager.states[stateIndex].frame != currentFrame || rbManager.states[stateIndex].state == null)
+            {
+                rbManager.SaveState();
+            }
+        }
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
@@ -1825,10 +1829,10 @@ public class GameManager : MonoBehaviour
 
             ResetPlayers();
 
-            if (RollbackManager.Instance != null)
-            {
-                RollbackManager.Instance.SaveState();
-            }
+            //if (RollbackManager.Instance != null)
+            //{
+            //    RollbackManager.Instance.SaveState();
+            //}
         }
 
         // Handle shop scene loading for online
@@ -1875,7 +1879,20 @@ public class GameManager : MonoBehaviour
 
     public void FindAllFloppyDisks()
     {
-        floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk");
+        floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk")
+            .OrderBy(go =>
+            {
+                SpellCode_FloppyDisk disk = go != null ? go.GetComponent<SpellCode_FloppyDisk>() : null;
+                return disk != null ? disk.ownerPID : int.MaxValue;
+            })
+            .ThenBy(go => go != null ? go.transform.position.x : float.MaxValue)
+            .ThenBy(go => go != null ? go.transform.position.y : float.MaxValue)
+            .ThenBy(go =>
+            {
+                SpellCode_FloppyDisk disk = go != null ? go.GetComponent<SpellCode_FloppyDisk>() : null;
+                return disk != null ? disk.diskName : string.Empty;
+            })
+            .ToArray();
     }
 
     // ---------------------------------------------------------Central State Serialization Methods-----------------------------------------
@@ -1950,7 +1967,9 @@ public class GameManager : MonoBehaviour
                     bw.Write(players[i].chosenSpell);
                 }
 
-                List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.activeProjectiles;
+                List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
+                    .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
+                    .ToList();
                 bw.Write(activeProjectiles.Count);
 
                 foreach (BaseProjectile projectile in activeProjectiles)
@@ -2056,7 +2075,9 @@ public class GameManager : MonoBehaviour
                 // Projectile State 
                 int savedProjectileCount = br.ReadInt32();
                 List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
-                List<BaseProjectile> currentlyActive = ProjectileManager.Instance.activeProjectiles.ToList(); // Copy to allow modification
+                List<BaseProjectile> currentlyActive = masterList
+                    .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
+                    .ToList();
                 List<BaseProjectile> shouldBeActive = new List<BaseProjectile>(); // Track projectiles loaded from state
 
                 // Read data and identify which projectiles should be active
@@ -2122,11 +2143,6 @@ public class GameManager : MonoBehaviour
                         // Activate from pool (Reset values first)
                         projectileInstance.ResetValues();
                         projectileInstance.gameObject.SetActive(true);
-                        // Add to active list if DeleteProjectile doesn't handle it
-                        if (!ProjectileManager.Instance.activeProjectiles.Contains(projectileInstance))
-                        {
-                            ProjectileManager.Instance.activeProjectiles.Add(projectileInstance);
-                        }
                     }
                     shouldBeActive.Add(projectileInstance); // Add to the list of projectiles to load state for
                 }
@@ -2151,6 +2167,8 @@ public class GameManager : MonoBehaviour
                         //Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
                     }
                 }
+
+                ProjectileManager.Instance.SynchronizeActiveProjectiles();
 
                 int gateCount = br.ReadInt32();
                 for (int i = 0; i < gateCount; i++)
@@ -2187,7 +2205,7 @@ public class GameManager : MonoBehaviour
                 // Resolve References
                 // Call ResolveReferences on players if they need it (unlikely for player->spell)
                 // Call ResolveReferences on all *active* projectiles
-                foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles) // Iterate over the now correct list
+                foreach (BaseProjectile projectile in ProjectileManager.Instance.projectilePrefabs.Where(p => p != null && p.gameObject.activeSelf))
                 {
                     projectile.ResolveReferences();
                 }

@@ -150,7 +150,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
     // Serialization Methods
 
-    public void Serialize(BinaryWriter bw)
+    public virtual void Serialize(BinaryWriter bw)
     {
         // Fixed-point values: Write the internal raw integer
         bw.Write(position.X.RawValue);
@@ -191,7 +191,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(spellIndex); // Write -1 if no owner spell or owner
     }
 
-    public void Deserialize(BinaryReader br)
+    public virtual void Deserialize(BinaryReader br)
     {
         // Fixed-point values: Read raw integer and reconstruct
         position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int internally

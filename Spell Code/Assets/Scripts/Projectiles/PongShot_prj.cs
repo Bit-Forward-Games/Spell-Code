@@ -295,4 +295,25 @@ public class PongShot_prj : BaseProjectile
         }
         #endregion
     }
+
+    public override void ResetValues()
+    {
+        base.ResetValues();
+        bounceCount = 0;
+        speed = 0;
+    }
+
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(bounceCount);
+        bw.Write(speed);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        bounceCount = br.ReadByte();
+        speed = br.ReadInt32();
+    }
 }

@@ -30,6 +30,7 @@ public class OnboardManager : MonoBehaviour
     public Image p1_spellSlctGraphic;
     public TextMeshProUGUI p1_castTxt;
     public Image p1_castGraphic;
+    public SpriteRenderer p1_breakWSpellcode;
 
     public GambaMachine p1_gamba;
     private bool p1_gambaActive;
@@ -50,6 +51,7 @@ public class OnboardManager : MonoBehaviour
     public Image p2_spellSlctGraphic;
     public TextMeshProUGUI p2_castTxt;
     public Image p2_castGraphic;
+    public SpriteRenderer p2_breakWSpellcode;
 
     public GambaMachine p2_gamba;
     private bool p2_gambaActive;
@@ -70,6 +72,7 @@ public class OnboardManager : MonoBehaviour
     public Image p3_spellSlctGraphic;
     public TextMeshProUGUI p3_castTxt;
     public Image p3_castGraphic;
+    public SpriteRenderer p3_breakWSpellcode;
 
     public GambaMachine p3_gamba;
     private bool p3_gambaActive;
@@ -90,6 +93,7 @@ public class OnboardManager : MonoBehaviour
     public Image p4_spellSlctGraphic;
     public TextMeshProUGUI p4_castTxt;
     public Image p4_castGraphic;
+    public SpriteRenderer p4_breakWSpellcode;
 
     public GambaMachine p4_gamba;
     private bool p4_gambaActive;
@@ -154,6 +158,7 @@ public class OnboardManager : MonoBehaviour
         p1_castGraphic.enabled = false;
         p1_castTxt.enabled = false;
         p1_gambaActive = false;
+        p1_breakWSpellcode.enabled = false;
         if (p1_gamba != null) p1_gamba.gambaAnimator.SetBool("isActive", false);
 
         p2_atkTxt.text = "Join";
@@ -165,6 +170,7 @@ public class OnboardManager : MonoBehaviour
         p2_castGraphic.enabled = false;
         p2_castTxt.enabled = false;
         p2_gambaActive = false;
+        p2_breakWSpellcode.enabled = false;
         if (p2_gamba != null) p2_gamba.gambaAnimator.SetBool("isActive", false);
 
         p3_atkTxt.text = "Join";
@@ -176,6 +182,7 @@ public class OnboardManager : MonoBehaviour
         p3_castGraphic.enabled = false;
         p3_castTxt.enabled = false;
         p3_gambaActive = false;
+        p3_breakWSpellcode.enabled = false;
         if (p3_gamba != null) p3_gamba.gambaAnimator.SetBool("isActive", false);
 
         p4_atkTxt.text = "Join";
@@ -187,6 +194,7 @@ public class OnboardManager : MonoBehaviour
         p4_castGraphic.enabled = false;
         p4_castTxt.enabled = false;
         p4_gambaActive = false;
+        p4_breakWSpellcode.enabled = false;
         if (p4_gamba != null) p4_gamba.gambaAnimator.SetBool("isActive", false);
     }
 
@@ -255,6 +263,8 @@ public class OnboardManager : MonoBehaviour
                 p1_castGraphic.enabled = true;
                 p1_atkGraphic.enabled = false;
                 p1_atkTxt.enabled = false;
+
+                p1_breakWSpellcode.enabled = true;
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                 {
@@ -353,6 +363,8 @@ public class OnboardManager : MonoBehaviour
                 p2_atkGraphic.enabled = false;
                 p2_atkTxt.enabled = false;
 
+                p2_breakWSpellcode.enabled = true;
+
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                 {
                     p2_castGraphic.sprite = inputGraphic;
@@ -450,6 +462,8 @@ public class OnboardManager : MonoBehaviour
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
+                p3_breakWSpellcode.enabled = true;
+
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                 {
                     p3_castGraphic.sprite = inputGraphic;
@@ -546,6 +560,8 @@ public class OnboardManager : MonoBehaviour
                 p4_castGraphic.enabled = true;
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
+
+                p4_breakWSpellcode.enabled = true;
 
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                 {

@@ -13,7 +13,10 @@ using TMPro;
 
 public enum VisualEffects
 {
-    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, DAMAGE, JUMP_DUST, DEATH, VWAVE_FLOPPY_SPAWN, KILLEEZ_FLOPPY_SPAWN, DEMONX_FLOPPY_SPAWN, BIGSTOX_FLOPPY_SPAWN, COMBO_BREAKER
+    DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, 
+    DAMAGE, JUMP_DUST, DEATH, 
+    VWAVE_FLOPPY_SPAWN, KILLEEZ_FLOPPY_SPAWN, DEMONX_FLOPPY_SPAWN, BIGSTOX_FLOPPY_SPAWN, 
+    COMBO_BREAKER, CODE_FAIL
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -260,10 +263,12 @@ public class VFX_Manager : MonoBehaviour
         if(_spawnFacingRight == true)
         {
             _particleSystem.gameObject.transform.localScale = new Vector3(1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localEulerAngles = new Vector3(_visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.x, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.y, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.z);
         }
         else
         {
             _particleSystem.gameObject.transform.localScale = new Vector3(-1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localEulerAngles = new Vector3(_visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.x, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.y, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.z * -1f);
         }
 
         //if _emissionRate is not the garbage default value,...

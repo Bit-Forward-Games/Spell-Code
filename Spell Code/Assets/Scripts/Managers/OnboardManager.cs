@@ -288,6 +288,8 @@ public class OnboardManager : MonoBehaviour
                 p1_castTxt.color = Color.green;
                 p1_castTxt.enabled = false;
                 p1_castGraphic.enabled = false;
+
+                p1_breakWSpellcode.enabled = false;
             }
         }
 
@@ -387,6 +389,10 @@ public class OnboardManager : MonoBehaviour
             if (p2_glassBroken)
             {
                 p2_castTxt.color = Color.green;
+                p2_castTxt.enabled = false;
+                p2_castGraphic.enabled = false;
+
+                p2_breakWSpellcode.enabled = false;
             }
         }
 
@@ -486,6 +492,8 @@ public class OnboardManager : MonoBehaviour
                 p3_castTxt.color = Color.green;
                 p3_castTxt.enabled = false;
                 p3_castGraphic.enabled = false;
+
+                p3_breakWSpellcode.enabled = false;
             }
         }
 
@@ -585,6 +593,8 @@ public class OnboardManager : MonoBehaviour
                 p4_castTxt.color = Color.green;
                 p4_castTxt.enabled = false;
                 p4_castGraphic.enabled = false;
+
+                p4_breakWSpellcode.enabled = false;
             }
         }
     }

@@ -842,11 +842,15 @@ public class GameManager : MonoBehaviour
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
 
-
-        //if (frameNumber <= rbManager.InputDelay)
-        //{
-        //    rbManager.SaveState();
-        //}
+        if (!rbManager.isRollbackFrame)
+        {
+            int currentFrame = frameNumber;
+            int stateIndex = currentFrame % RollbackManager.InputArraySize;
+            if (rbManager.states[stateIndex].frame != currentFrame || rbManager.states[stateIndex].state == null)
+            {
+                rbManager.SaveState();
+            }
+        }
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;

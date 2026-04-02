@@ -1311,6 +1311,57 @@ public class PlayerController : MonoBehaviour
                             //play successful code cast sound
                             SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
+                            //play the cast visual effect based on spell brand
+                            switch (spellList[i].brands[0])
+                            {
+                                case Brand.VWave:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.DemonX:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.BigStox:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.Killeez:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+
                             break;
                         }
 
@@ -1360,6 +1411,16 @@ public class PlayerController : MonoBehaviour
                     {
                         //Play failed code weave sound
                         SFX_Manager.Instance.PlaySound(Sounds.FAILED_EXIT_CODE_WEAVE);
+
+                        //Play the fail code visual effect depending on the direction the player is facing
+                        if (facingRight)
+                        {
+                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CODE_FAIL, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                        }
+                        else
+                        {
+                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CODE_FAIL, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                        }
                     }
                     else if(stateSpecificArg == 0)
                     {

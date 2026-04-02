@@ -540,15 +540,15 @@ using BestoNet.Collections; // Use BestoNet collections
         uint localHash = states[index].hash;
         if (localHash != remoteHash)
         {
-            firstHashMismatchFrame = frame;
             Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
 
-            if (StressTestController.Instance != null &&
-                StressTestController.Instance.IsActiveOnline &&
-                StressTestController.Instance.dumpStateOnMismatch)
+            // Always dump state on first mismatch for diagnosis
+            if (firstHashMismatchFrame < 0)
             {
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
+                LogDesyncDiagnostics(frame);
             }
+            firstHashMismatchFrame = frame;
         }
     }
 
@@ -564,6 +564,36 @@ using BestoNet.Collections; // Use BestoNet collections
         string path = Path.Combine(dir, fileName);
         File.WriteAllBytes(path, stateBytes);
         Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
+    }
+
+    private void LogDesyncDiagnostics(int frame)
+    {
+        if (GameManager.Instance == null) return;
+        var gm = GameManager.Instance;
+        string diag = $"[DESYNC DIAG] Frame {frame} | " +
+            $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
+            $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound}";
+
+        for (int i = 0; i < gm.playerCount; i++)
+        {
+            var p = gm.players[i];
+            if (p == null) continue;
+            diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) " +
+                $"hp={p.currentPlayerHealth} state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} " +
+                $"logicFrame={p.logicFrame} flow={p.flowState} demon={p.demonAura} " +
+                $"isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
+                $"roundRam={p.roundRam} totalRam={p.totalRam}";
+        }
+
+        var activeProj = ProjectileManager.Instance.activeProjectiles;
+        diag += $"\n  ActiveProjectiles={activeProj.Count}";
+        foreach (var proj in activeProj)
+        {
+            diag += $"\n    {proj.projName}: pos=({proj.position.X.RawValue},{proj.position.Y.RawValue}) " +
+                $"frame={proj.logicFrame} owner={proj.owner?.pID} ignore=[{string.Join(",", proj.playerIgnoreArr)}]";
+        }
+
+        Debug.LogError(diag);
     }
 
     private static uint ComputeFnv1a(byte[] data)

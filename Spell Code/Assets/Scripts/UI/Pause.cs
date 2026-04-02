@@ -24,12 +24,28 @@ public class Pause : MonoBehaviour
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
 
+    public Toggle relativeInputToggleGraphic;
+    public Toggle codeInputToggleGraphic;
+
     public bool UIRelativeInput
     {
-        get {return gameManager.players[playerPauseIndex].relativeInputs; }
-        set {gameManager.players[playerPauseIndex].relativeInputs = value; }
+        get { return gameManager.players[playerPauseIndex].relativeInputs; }
+        set 
+        {
+            relativeInputToggleGraphic.isOn = gameManager.players[playerPauseIndex].relativeInputs;
+            gameManager.players[playerPauseIndex].relativeInputs = value; 
+        }
     }
-    public bool UIToggleCodeInput;
+
+    public bool UIToggleCodeInput
+    {
+        get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
+        set 
+        {
+            codeInputToggleGraphic.isOn = gameManager.players[playerPauseIndex].toggleCodeInput;
+            gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+        }
+    }
 
     private void Start()
     {
@@ -47,21 +63,6 @@ public class Pause : MonoBehaviour
             
         if (sfxAudioSource == null)
             sfxAudioSource = GameObject.Find("pfb_SFX_Manager").gameObject.GetComponent<AudioSource>();
-
-        // if (!gameManager.isOnlineMatchActive)
-        // {
-        //     if (Input.GetKeyDown(KeyCode.Escape))
-        //     {
-        //         if (paused)
-        //         {
-        //             Resume();
-        //         }
-        //         else
-        //         {
-        //             Pausing();
-        //         }
-        //     }
-        // }
     }
 
     public void Resume()
@@ -97,8 +98,6 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(true);
 
         EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
-
-        UIRelativeInput = gameManager.players[playerPauseIndex].relativeInputs;
 
         Time.timeScale = 0f;
     }
@@ -145,5 +144,10 @@ public class Pause : MonoBehaviour
     public void ToggleRelativeInput()
     {
         UIRelativeInput = !UIRelativeInput;
+    }
+
+    public void ToggleCodeInput()
+    {
+        UIToggleCodeInput = !UIToggleCodeInput;
     }
 }

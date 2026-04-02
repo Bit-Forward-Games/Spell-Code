@@ -65,6 +65,11 @@ public class SceneUiManager : MonoBehaviour
 
     public void MainMenu()
     {
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.SaveToFile();
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.ExecuteOrder66();

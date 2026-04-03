@@ -855,10 +855,9 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
+        frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
-
-        frameNumber++;
 
         if (!rbManager.AllowUpdate())
         {

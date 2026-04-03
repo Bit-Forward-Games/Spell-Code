@@ -642,8 +642,6 @@ public class GameManager : MonoBehaviour
         frameNumber = 0;
         isRunning = true;
 
-        int testValue = GetNextRandom(0,100);
-        Debug.Log($"[SYNC CHECK] seededRandom test value: {testValue} | randomCallCount: {randomCallCount}");
     }
 
     // Send lobby ready signal

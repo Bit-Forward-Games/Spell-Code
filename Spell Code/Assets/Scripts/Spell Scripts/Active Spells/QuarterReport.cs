@@ -7,6 +7,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class QuarterReport : SpellData
 {
     public bool doesCrit = false;
+    private bool stockBonusGranted = false;
     public QuarterReport()
     {
         spellName = "Quarter Report";
@@ -47,8 +48,12 @@ public class QuarterReport : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        owner.stockStability += 10;
-        owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+        if (!stockBonusGranted && owner != null)
+        {
+            owner.stockStability += 10;
+            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+            stockBonusGranted = true;
+        }
         doesCrit = false;
     }
 
@@ -68,12 +73,14 @@ public class QuarterReport : SpellData
     {
         base.Serialize(bw);
         bw.Write(doesCrit);
+        bw.Write(stockBonusGranted);
     }
 
     public override void Deserialize(System.IO.BinaryReader br)
     {
         base.Deserialize(br);
         doesCrit = br.ReadBoolean();
+        stockBonusGranted = br.ReadBoolean();
     }
 
     

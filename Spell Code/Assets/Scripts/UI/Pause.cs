@@ -10,6 +10,7 @@ public class Pause : MonoBehaviour
     public GameObject optionsMenu;
     public GameObject darkPanel;
     public GameManager gameManager;
+    public int playerPauseIndex;
     public bool paused;
     public bool options;
     public Slider volumeSlider;
@@ -22,6 +23,27 @@ public class Pause : MonoBehaviour
 
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
+
+    public Toggle relativeInputToggleGraphic;
+    public Toggle codeInputToggleGraphic;
+
+    public bool UIRelativeInput
+    {
+        get { return gameManager.players[playerPauseIndex].relativeInputs; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].relativeInputs = value;
+        }
+    }
+
+    public bool UIToggleCodeInput
+    {
+        get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+        }
+    }
 
     private void Start()
     {
@@ -39,21 +61,6 @@ public class Pause : MonoBehaviour
             
         if (sfxAudioSource == null)
             sfxAudioSource = GameObject.Find("pfb_SFX_Manager").gameObject.GetComponent<AudioSource>();
-
-        if (!gameManager.isOnlineMatchActive)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (paused)
-                {
-                    Resume();
-                }
-                else
-                {
-                    Pausing();
-                }
-            }
-        }
     }
 
     public void Resume()
@@ -76,6 +83,9 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         darkPanel.SetActive(true);
+
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 
@@ -130,5 +140,15 @@ public class Pause : MonoBehaviour
     public void ToggleDynamicCamera()
     {
         dynamicCameraOverride = !dynamicCameraOverride;
+    }
+
+    public void ToggleRelativeInput()
+    {
+        UIRelativeInput = !UIRelativeInput;
+    }
+
+    public void ToggleCodeInput()
+    {
+        UIToggleCodeInput = !UIToggleCodeInput;
     }
 }

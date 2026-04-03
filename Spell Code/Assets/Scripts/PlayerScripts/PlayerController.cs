@@ -2263,6 +2263,10 @@ public class PlayerController : MonoBehaviour
             if (lightArmor && hitboxData.attackLvl < 2)
             {
                 SpawnToast($"BLOCKED!", Color.white);
+
+                //Play the blocked visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
                 return;
             }
 

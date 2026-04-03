@@ -225,6 +225,7 @@ public class PlayerController : MonoBehaviour
     public bool isSpawned;
     public string startingSpell;
     public bool startingSpellAdded = false;
+    public bool suppressSpellLoadSideEffects = false;
 
     public int pID;
 
@@ -387,6 +388,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        input = InputConverter.ConvertFromLong(5);
         position = spawnPos;
         hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
@@ -428,6 +430,7 @@ public class PlayerController : MonoBehaviour
         //slimed = false;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
+        suppressSpellLoadSideEffects = true;
         for (int i = 0; i < spellList.Count; i++)
         {
             if (spellList[i] != null)
@@ -436,6 +439,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
+        suppressSpellLoadSideEffects = false;
         GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -445,7 +449,7 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true, bool applyAcquisitionEffects = true)
+    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
     {
         if (spellList.Count >= 6)
         {
@@ -459,10 +463,6 @@ public class PlayerController : MonoBehaviour
         if (applyLoadEffects)
         {
             spellInstance.LoadSpell();
-        }
-        if (applyAcquisitionEffects)
-        {
-            ApplySpellAcquisitionEffects(spellInstance);
         }
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -2741,15 +2741,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void ApplySpellAcquisitionEffects(SpellData spell)
-    {
-        if (spell is QuarterReport)
-        {
-            stockStability += 10;
-            SpawnToast("+10% STOCK STABILITY", Color.blue);
-        }
-    }
-
     public void SerializeGameplayCoreHash(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);
@@ -2919,7 +2910,9 @@ public class PlayerController : MonoBehaviour
             if (!string.IsNullOrEmpty(startingSpell))
             {
                 //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
-                AddSpellToSpellList(startingSpell, applyLoadEffects: false, applyAcquisitionEffects: false);
+                suppressSpellLoadSideEffects = true;
+                AddSpellToSpellList(startingSpell, applyLoadEffects: true);
+                suppressSpellLoadSideEffects = false;
                 startingSpellAdded = true;
             }
         }

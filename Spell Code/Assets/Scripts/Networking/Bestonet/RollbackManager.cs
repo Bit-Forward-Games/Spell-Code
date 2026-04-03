@@ -471,8 +471,6 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
-        byte[] currentHashBytes = GameManager.Instance.SerializeHashState();
-        uint hash = ComputeFnv1a(currentHashBytes);
         uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
         uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
         uint player0Hash = 0;
@@ -485,6 +483,7 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
         }
+        uint hash = ComputeCompositeHash(sharedHash, projectileHash, player0Hash, player1Hash);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
@@ -686,6 +685,19 @@ using BestoNet.Collections; // Use BestoNet collections
     private uint ComputeProjectileHash()
     {
         return ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
+    }
+
+    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(sharedHash);
+            bw.Write(projectileHash);
+            bw.Write(player0Hash);
+            bw.Write(player1Hash);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
     }
 
     private static uint ComputeFnv1a(byte[] data)

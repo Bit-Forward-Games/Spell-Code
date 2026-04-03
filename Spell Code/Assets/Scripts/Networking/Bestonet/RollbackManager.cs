@@ -387,25 +387,13 @@ using BestoNet.Collections; // Use BestoNet collections
             // --- End Delay-Based ---
 
 
-            // --- Rollback Mode Frame Dropping (Based on Frame Advantage) ---
-            // If we are too far ahead of the last confirmed sync point AND ahead of the remote frame estimate,
-            // drop a frame locally to let the opponent catch up / reduce rollback intensity.
-            bool tooFarAheadOfSync = (currentFrame - syncFrame) >= MaxRollBackFrames; // Use >= for check
-            bool aheadOfRemote = currentFrame > remoteFrame; // Simple check if local frame > last confirmed remote frame
-
-            // Check if match ended to prevent dropping frames post-match
-            // bool matchEnded = Check if GameManager indicates match end state? (Needs implementation)
-
-            if (tooFarAheadOfSync && aheadOfRemote && !isRollbackFrame /* && !matchEnded */)
-            {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame} (Diff > {MaxRollBackFrames}). Dropping frame.");
-#endif
-                lastDroppedFrame = currentFrame; // Record dropped frame
-                consecutiveDrop++; // Increment drop counter
-                return false; // Skip simulation this tick
-            }
-            // --- End Rollback Frame Dropping ---
+            // --- Rollback Mode Frame Dropping ---
+            // We intentionally avoid local frame dropping here.
+            // In practice it was causing host-only input edge skew, where movement/jump
+            // state for the locally controlled player could diverge after a dropped tick.
+            // Rollback already corrects late remote inputs, so prefer continuous
+            // simulation over dropping local gameplay frames.
+            // --- End Rollback Mode Frame Dropping ---
 
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed

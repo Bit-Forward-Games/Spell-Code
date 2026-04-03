@@ -156,7 +156,15 @@ using BestoNet.Collections; // Use BestoNet collections
             FrameExtensionWindow = frameExtensionWindow;
             TimeoutFrames = timeoutFrames;
 
-            ClearVars();
+            bool safeToResetHistory = GameManager.Instance == null || GameManager.Instance.frameNumber == 0;
+            if (safeToResetHistory)
+            {
+                ClearVars();
+            }
+            else
+            {
+                Debug.LogWarning("Received online rollback settings after simulation started; preserved live rollback history.");
+            }
         }
 
         /// <summary>

@@ -527,7 +527,9 @@ public class GameManager : MonoBehaviour
         }
 
         // Initialize managers
-        RollbackManager.Instance.Init(opponentId.Value, 0);
+        // Keep the configured/default input delay until synchronized settings arrive
+        // instead of forcing an immediate zero-delay startup.
+        RollbackManager.Instance.Init(opponentId.Value);
 
         if (MatchMessageManager.Instance != null)
         {

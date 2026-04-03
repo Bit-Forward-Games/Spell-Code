@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1537425862657586282}
   - component: {fileID: 1002400748505547318}
   m_Layer: 0
-  m_Name: pfb_Jump Dust Particle System
+  m_Name: pfb_Blocking Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,14 +41,14 @@ ParticleSystem:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5475398249184600050}
   serializedVersion: 8
-  lengthInSec: 0.25
+  lengthInSec: 0.24
   simulationSpeed: 1
   stopAction: 0
   cullingMode: 0
   ringBufferMode: 0
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
-  looping: 0
+  looping: 1
   prewarm: 0
   playOnAwake: 0
   useUnscaledTime: 0
@@ -604,7 +604,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 256
+    maxNumParticles: 2
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -992,8 +992,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           - serializedVersion: 3
             time: 1
             value: 1
@@ -1001,8 +1001,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -1016,8 +1016,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           - serializedVersion: 3
             time: 1
             value: 1
@@ -1025,8 +1025,8 @@ ParticleSystem:
             outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0
-            outWeight: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -1545,11 +1545,11 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: -5318385019163132376, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: -4994083195939480237, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: 5575686753339795057, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: 5783041832989420543, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: -8314866025837574179, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: -6853026484796633266, guid: ff694d60acf93274691d829fa3619736, type: 3}
+    - sprite: {fileID: 8750432856029165678, guid: ff694d60acf93274691d829fa3619736, type: 3}
+    - sprite: {fileID: 5444428317868593870, guid: ff694d60acf93274691d829fa3619736, type: 3}
+    - sprite: {fileID: 4231688111904706837, guid: ff694d60acf93274691d829fa3619736, type: 3}
+    - sprite: {fileID: -7192824668789486961, guid: ff694d60acf93274691d829fa3619736, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:
@@ -4842,7 +4842,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4862,7 +4862,7 @@ ParticleSystemRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 3
-  m_SortingOrder: -1
+  m_SortingOrder: 1
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0

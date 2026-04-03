@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1537425862657586282}
   - component: {fileID: 1002400748505547318}
   m_Layer: 0
-  m_Name: pfb_Jump Dust Particle System
+  m_Name: pfb_Blocked Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
@@ -604,7 +604,7 @@ ParticleSystem:
         m_RotationOrder: 4
     randomizeRotationDirection: 0
     gravitySource: 0
-    maxNumParticles: 256
+    maxNumParticles: 1
     customEmitterVelocity: {x: 0, y: 0, z: 0}
     size3D: 0
     rotation3D: 0
@@ -814,7 +814,7 @@ ParticleSystem:
       speed:
         serializedVersion: 2
         minMaxState: 0
-        scalar: 1
+        scalar: 0
         minScalar: 1
         maxCurve:
           serializedVersion: 2
@@ -1545,11 +1545,11 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: -5318385019163132376, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: -4994083195939480237, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: 5575686753339795057, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: 5783041832989420543, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
-    - sprite: {fileID: -8314866025837574179, guid: ab235fdf1c087a64e9d07a0ede667406, type: 3}
+    - sprite: {fileID: 938860889445548997, guid: a58bd6f27c89595479de56824d71faa6, type: 3}
+    - sprite: {fileID: -5495102633796005815, guid: a58bd6f27c89595479de56824d71faa6, type: 3}
+    - sprite: {fileID: 5074456099257374091, guid: a58bd6f27c89595479de56824d71faa6, type: 3}
+    - sprite: {fileID: -3493648366815523439, guid: a58bd6f27c89595479de56824d71faa6, type: 3}
+    - sprite: {fileID: 737992943959927592, guid: a58bd6f27c89595479de56824d71faa6, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:
@@ -4842,7 +4842,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4862,7 +4862,7 @@ ParticleSystemRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1090599107
   m_SortingLayer: 3
-  m_SortingOrder: -1
+  m_SortingOrder: 2
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0

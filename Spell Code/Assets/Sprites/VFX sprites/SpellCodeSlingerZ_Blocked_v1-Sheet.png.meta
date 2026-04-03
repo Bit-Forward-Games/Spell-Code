@@ -1,0 +1,350 @@
+fileFormatVersion: 2
+guid: a58bd6f27c89595479de56824d71faa6
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 938860889445548997
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_0
+  - first:
+      213: -5495102633796005815
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_1
+  - first:
+      213: 5074456099257374091
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_2
+  - first:
+      213: -3493648366815523439
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_3
+  - first:
+      213: 737992943959927592
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_4
+  - first:
+      213: 4060607868897502735
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_5
+  - first:
+      213: -2779677818532487460
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_6
+  - first:
+      213: -5036716676252475339
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_7
+  - first:
+      213: 1042703851681713155
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_8
+  - first:
+      213: -5368311523477785634
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_9
+  - first:
+      213: 7527251901657984548
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_10
+  - first:
+      213: -3734917980448167416
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_11
+  - first:
+      213: 8704560225692289719
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_12
+  - first:
+      213: 2093013336469718037
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_13
+  - first:
+      213: -319981969060152941
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_14
+  - first:
+      213: -3183770400563602260
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_15
+  - first:
+      213: -5539227112492878
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_16
+  - first:
+      213: 4627667425587826980
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_17
+  - first:
+      213: -8261001683021823858
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_18
+  - first:
+      213: 5593553728444223713
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_19
+  - first:
+      213: 5435653915433732926
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_20
+  - first:
+      213: -870153394144525065
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_21
+  - first:
+      213: -4794671993238305911
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_22
+  - first:
+      213: 3257094308999816218
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_23
+  - first:
+      213: 6911084450989071245
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_24
+  - first:
+      213: 4115329505303164658
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_25
+  - first:
+      213: 4686234215016675817
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_26
+  - first:
+      213: -7367810947536628168
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_27
+  - first:
+      213: 1828865550482127535
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_28
+  - first:
+      213: -6434451438306681092
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_29
+  - first:
+      213: -7200493458508464833
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_30
+  - first:
+      213: -1639361762971136377
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_31
+  - first:
+      213: 7062233374780798398
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_32
+  - first:
+      213: -8347958340052421678
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_33
+  - first:
+      213: -3409747460301220977
+    second: SpellCodeSlingerZ_Blocked_v1-Sheet_34
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 485
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Blocked_v1-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c3c8e03101870d00800000000000000
+      internalID: 938860889445548997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Blocked_v1-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 1072
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9409644d4497db3b0800000000000000
+      internalID: -5495102633796005815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Blocked_v1-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 2160
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b85dc88cfe61c6640800000000000000
+      internalID: 5074456099257374091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Blocked_v1-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 3240
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19d46dd0251148fc0800000000000000
+      internalID: -3493648366815523439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Blocked_v1-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 4320
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82be9772ca0ed3a00800000000000000
+      internalID: 737992943959927592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b43ae4bff335f654298167f6a9a291a2
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SpellCodeSlingerZ_Blocked_v1-Sheet_0: 938860889445548997
+      SpellCodeSlingerZ_Blocked_v1-Sheet_1: -5495102633796005815
+      SpellCodeSlingerZ_Blocked_v1-Sheet_2: 5074456099257374091
+      SpellCodeSlingerZ_Blocked_v1-Sheet_3: -3493648366815523439
+      SpellCodeSlingerZ_Blocked_v1-Sheet_4: 737992943959927592
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

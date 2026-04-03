@@ -1816,6 +1816,15 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[2] { 5, 5 };
+            timeoutFrames = 0;
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+            }
 
             if (currentStageIndex < 0)
             {
@@ -1823,11 +1832,10 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
-
-            //if (RollbackManager.Instance != null)
-            //{
-            //    RollbackManager.Instance.SaveState();
-            //}
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.SaveState();
+            }
         }
 
         // Handle shop scene loading for online
@@ -1837,8 +1845,21 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[2] { 5, 5 };
+            timeoutFrames = 0;
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+            }
 
             ResetPlayers();
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.SaveState();
+            }
             // Ready flags are already reset in RoundEnd()
         }
     }

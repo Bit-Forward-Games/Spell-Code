@@ -1320,7 +1320,7 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    public void UpdatePlayerBounties()
+    public void UpdatePlayerBounties(bool applyVisuals = true)
     {
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
@@ -1336,6 +1336,11 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             players[i].ramBounty = (short)(((players[i].roundRam - averageRoundRam)/2) + (100*(players[i].roundsWon - averageRoundWins)));
+        }
+
+        if (!applyVisuals)
+        {
+            return;
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1386,19 +1391,14 @@ public class GameManager : MonoBehaviour
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
 
-                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                {
-                    UpdatePlayerBounties();
-                }
+                UpdatePlayerBounties(!isRollback);
 
                 // Clear lingering projectiles from the dead player so both clients respawn
                 // into the same clean state instead of carrying old shots across deaths.
                 ProjectileManager.Instance.DeleteAllPlayerProjectiles(player.pID);
 
-                // Only consume RNG on real frames, reuse saved position during rollback
-                FixedVec2 spawnPos = isRollback
-                    ? player.position // keep existing position during rollback, it'll be overwritten by deserialization anyway
-                    : GetRandomSpawnVec2();
+                // Respawn position is deterministic state and must be recomputed during rollback too.
+                FixedVec2 spawnPos = GetRandomSpawnVec2();
                 player.SpawnPlayer(spawnPos);
             }
         }

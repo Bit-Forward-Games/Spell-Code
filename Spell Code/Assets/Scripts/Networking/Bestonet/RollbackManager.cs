@@ -18,6 +18,10 @@ using BestoNet.Collections; // Use BestoNet collections
             public int frame;
             public byte[] state;
             public uint hash;
+            public uint sharedHash;
+            public uint projectileHash;
+            public uint player0Hash;
+            public uint player1Hash;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -469,6 +473,18 @@ using BestoNet.Collections; // Use BestoNet collections
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
         byte[] currentHashBytes = GameManager.Instance.SerializeHashState();
         uint hash = ComputeFnv1a(currentHashBytes);
+        uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
+        uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
+        uint player0Hash = 0;
+        uint player1Hash = 0;
+        if (GameManager.Instance.playerCount > 0 && GameManager.Instance.players[0] != null)
+        {
+            player0Hash = ComputePlayerHash(GameManager.Instance.players[0]);
+        }
+        if (GameManager.Instance.playerCount > 1 && GameManager.Instance.players[1] != null)
+        {
+            player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
+        }
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
@@ -476,7 +492,11 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             frame = localFrame,
             state = currentStateBytes, // Store the byte array from GameManager
-            hash = hash
+            hash = hash,
+            sharedHash = sharedHash,
+            projectileHash = projectileHash,
+            player0Hash = player0Hash,
+            player1Hash = player1Hash
         };
 
         // Always send state hashes during online matches for desync detection
@@ -488,7 +508,7 @@ using BestoNet.Collections; // Use BestoNet collections
             if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
             {
                 lastHashSentFrame = localFrame;
-                matchManager.SendStateHash(localFrame, hash);
+                matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash);
             }
         }
     }
@@ -541,7 +561,7 @@ using BestoNet.Collections; // Use BestoNet collections
         return true;
     }
 
-    public void OnRemoteStateHash(int frame, uint remoteHash)
+    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash)
     {
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)
@@ -553,6 +573,7 @@ using BestoNet.Collections; // Use BestoNet collections
         if (localHash != remoteHash)
         {
             Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
+            Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
 
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)

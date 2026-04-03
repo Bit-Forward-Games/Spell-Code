@@ -1942,36 +1942,43 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
 
-                // Serialize remaining game stages as indices into master stages list
-                bw.Write(gameStages.Count);
-                foreach (StageDataSO stage in gameStages)
-                {
-                    bw.Write(stages.IndexOf(stage));
-                }
+                Scene activeScene = SceneManager.GetActiveScene();
+                bool includeLobbyShopState = activeScene.name != "Gameplay";
+                bw.Write(includeLobbyShopState);
 
-                bw.Write(p1_shopIndex);
-                bw.Write(p2_shopIndex);
-
-                bw.Write(p1_lastCycleFrame);
-                bw.Write(p2_lastCycleFrame);
-
-                // Serialize shop spell choices themselves
-                if (shopManager != null)
+                if (includeLobbyShopState)
                 {
-                    SerializeStringList(bw, shopManager.GetP1Choices());
-                    SerializeStringList(bw, shopManager.GetP2Choices());
-                }
-                else
-                {
-                    // No shop active, write empty lists
-                    bw.Write(0); // p1_choices count
-                    bw.Write(0); // p2_choices count
-                }
+                    // Serialize remaining game stages as indices into master stages list
+                    bw.Write(gameStages.Count);
+                    foreach (StageDataSO stage in gameStages)
+                    {
+                        bw.Write(stages.IndexOf(stage));
+                    }
 
-                // Also serialize if players have chosen their shop spell
-                for (int i = 0; i < playerCount; i++)
-                {
-                    bw.Write(players[i].chosenSpell);
+                    bw.Write(p1_shopIndex);
+                    bw.Write(p2_shopIndex);
+
+                    bw.Write(p1_lastCycleFrame);
+                    bw.Write(p2_lastCycleFrame);
+
+                    // Serialize shop spell choices themselves
+                    if (shopManager != null)
+                    {
+                        SerializeStringList(bw, shopManager.GetP1Choices());
+                        SerializeStringList(bw, shopManager.GetP2Choices());
+                    }
+                    else
+                    {
+                        // No shop active, write empty lists
+                        bw.Write(0); // p1_choices count
+                        bw.Write(0); // p2_choices count
+                    }
+
+                    // Also serialize if players have chosen their shop spell
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        bw.Write(players[i].chosenSpell);
+                    }
                 }
 
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
@@ -1996,22 +2003,26 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                bw.Write(gates.Length);
-                foreach (var gate in gates)
+                bw.Write(includeLobbyShopState);
+                if (includeLobbyShopState)
                 {
-                    if (gate != null) gate.Serialize(bw);
-                }
+                    bw.Write(gates.Length);
+                    foreach (var gate in gates)
+                    {
+                        if (gate != null) gate.Serialize(bw);
+                    }
 
-                bw.Write(gambas.Count);
-                foreach (GameObject gambaGO in gambas)
-                {
-                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                    // Write defaults if somehow null, so byte count stays consistent
-                    bw.Write(gamba != null ? gamba.activatedCount : 0);
-                    bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
-                    bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
-                    bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
-                    bw.Write(isActive);
+                    bw.Write(gambas.Count);
+                    foreach (GameObject gambaGO in gambas)
+                    {
+                        GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                        // Write defaults if somehow null, so byte count stays consistent
+                        bw.Write(gamba != null ? gamba.activatedCount : 0);
+                        bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+                        bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+                        bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+                        bw.Write(isActive);
+                    }
                 }
 
                 return memoryStream.ToArray();
@@ -2076,30 +2087,34 @@ public class GameManager : MonoBehaviour
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
 
-                // Deserialize remaining game stages
-                int savedStageCount = br.ReadInt32();
-                gameStages.Clear();
-                for (int i = 0; i < savedStageCount; i++)
+                bool includeLobbyShopState = br.ReadBoolean();
+                if (includeLobbyShopState)
                 {
-                    int stageIdx = br.ReadInt32();
-                    if (stageIdx >= 0 && stageIdx < stages.Count)
+                    // Deserialize remaining game stages
+                    int savedStageCount = br.ReadInt32();
+                    gameStages.Clear();
+                    for (int i = 0; i < savedStageCount; i++)
                     {
-                        gameStages.Add(stages[stageIdx]);
+                        int stageIdx = br.ReadInt32();
+                        if (stageIdx >= 0 && stageIdx < stages.Count)
+                        {
+                            gameStages.Add(stages[stageIdx]);
+                        }
                     }
-                }
 
-                p1_shopIndex = br.ReadInt32();
-                p2_shopIndex = br.ReadInt32();
-                p1_lastCycleFrame = br.ReadInt32();
-                p2_lastCycleFrame = br.ReadInt32();
+                    p1_shopIndex = br.ReadInt32();
+                    p2_shopIndex = br.ReadInt32();
+                    p1_lastCycleFrame = br.ReadInt32();
+                    p2_lastCycleFrame = br.ReadInt32();
 
-                // Deserialize shop spell choices
-                List<string> savedP1Choices = DeserializeStringList(br);
-                List<string> savedP2Choices = DeserializeStringList(br);
+                    // Deserialize shop spell choices
+                    List<string> savedP1Choices = DeserializeStringList(br);
+                    List<string> savedP2Choices = DeserializeStringList(br);
 
-                for (int i = 0; i < playerCount; i++)
-                {
-                    players[i].chosenSpell = br.ReadBoolean();
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        players[i].chosenSpell = br.ReadBoolean();
+                    }
                 }
 
                 // Projectile State 
@@ -2200,33 +2215,37 @@ public class GameManager : MonoBehaviour
 
                 ProjectileManager.Instance.SynchronizeActiveProjectiles();
 
-                int gateCount = br.ReadInt32();
-                for (int i = 0; i < gateCount; i++)
+                bool hasLobbyShopTail = br.ReadBoolean();
+                if (hasLobbyShopTail)
                 {
-                    if (i < gates.Length && gates[i] != null)
+                    int gateCount = br.ReadInt32();
+                    for (int i = 0; i < gateCount; i++)
                     {
-                        gates[i].Deserialize(br);
-                    }
-                }
-
-                int gambaCount = br.ReadInt32();
-                for (int i = 0; i < gambaCount; i++)
-                {
-                    int activatedCount = br.ReadInt32();
-                    byte resetTimer = br.ReadByte();
-                    int startingSpellPos = br.ReadInt32();
-                    bool isActive = br.ReadBoolean();
-                    if (i < gambas.Count)
-                    {
-                        GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
-                        if (gamba != null)
+                        if (i < gates.Length && gates[i] != null)
                         {
-                            gamba.activatedCount = activatedCount;
-                            gamba.resetTimer = resetTimer;
-                            gamba.SetStartingSpellPos(startingSpellPos);
-                            if (gamba.gambaAnimator != null)
+                            gates[i].Deserialize(br);
+                        }
+                    }
+
+                    int gambaCount = br.ReadInt32();
+                    for (int i = 0; i < gambaCount; i++)
+                    {
+                        int activatedCount = br.ReadInt32();
+                        byte resetTimer = br.ReadByte();
+                        int startingSpellPos = br.ReadInt32();
+                        bool isActive = br.ReadBoolean();
+                        if (i < gambas.Count)
+                        {
+                            GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
+                            if (gamba != null)
                             {
-                                gamba.gambaAnimator.SetBool("isActive", isActive);
+                                gamba.activatedCount = activatedCount;
+                                gamba.resetTimer = resetTimer;
+                                gamba.SetStartingSpellPos(startingSpellPos);
+                                if (gamba.gambaAnimator != null)
+                                {
+                                    gamba.gambaAnimator.SetBool("isActive", isActive);
+                                }
                             }
                         }
                     }

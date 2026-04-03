@@ -1920,6 +1920,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundOver);
                 bw.Write(gameOver);
                 bw.Write(roundEndFrameCounter);
+                bw.Write(currentStageIndex);
 
                 // Serialize damage matrix
                 for (int i = 0; i < 4; i++)
@@ -2049,6 +2050,11 @@ public class GameManager : MonoBehaviour
                 roundOver = br.ReadBoolean();
                 gameOver = br.ReadBoolean();
                 roundEndFrameCounter = br.ReadInt32();
+                int savedStageIndex = br.ReadInt32();
+                if (savedStageIndex != currentStageIndex)
+                {
+                    SetStage(savedStageIndex);
+                }
 
                 // Deserialize damage matrix
                 for (int i = 0; i < 4; i++)

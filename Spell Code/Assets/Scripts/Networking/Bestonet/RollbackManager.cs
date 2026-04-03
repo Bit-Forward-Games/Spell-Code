@@ -582,7 +582,8 @@ using BestoNet.Collections; // Use BestoNet collections
         var gm = GameManager.Instance;
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
-            $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound}";
+            $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
+            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage}";
 
         for (int i = 0; i < gm.playerCount; i++)
         {

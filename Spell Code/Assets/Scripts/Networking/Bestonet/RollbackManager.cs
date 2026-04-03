@@ -466,7 +466,8 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
-        uint hash = ComputeFnv1a(currentStateBytes);
+        byte[] currentHashBytes = GameManager.Instance.SerializeHashState();
+        uint hash = ComputeFnv1a(currentHashBytes);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;

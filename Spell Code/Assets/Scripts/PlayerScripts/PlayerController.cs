@@ -2697,6 +2697,86 @@ public class PlayerController : MonoBehaviour
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
+    public void SerializeGameplayHash(BinaryWriter bw)
+    {
+        bw.Write(position.X.RawValue);
+        bw.Write(position.Y.RawValue);
+        bw.Write(hSpd.RawValue);
+        bw.Write(vSpd.RawValue);
+        bw.Write(facingRight);
+        bw.Write(isGrounded);
+        bw.Write(onPlatform);
+        bw.Write(relativeInputs);
+        bw.Write((byte)state);
+        bw.Write(logicFrame);
+        bw.Write(stateSpecificArg);
+        bw.Write(hitstop);
+        bw.Write(hitstopActive);
+        bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        bw.Write(comboResetTimer);
+        bw.Write(lightArmor);
+        bw.Write(basicSpawnOverride);
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
+        bw.Write(currentPlayerHealth);
+        bw.Write(isAlive);
+        bw.Write(isHit);
+        bw.Write(iframes);
+
+        bool hasHitboxData = hitboxData != null;
+        bw.Write(hasHitboxData);
+        if (hasHitboxData)
+        {
+            bw.Write(hitboxData.damage);
+            bw.Write(hitboxData.hitstun);
+            bw.Write(hitboxData.xKnockback);
+            bw.Write(hitboxData.yKnockback);
+            bw.Write(hitboxData.attackLvl);
+            bw.Write(hitboxData.basicAttackHitbox);
+            int ownerIndex = hitboxData.parentProjectile?.owner != null
+                ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
+                : -1;
+            bw.Write(ownerIndex);
+            int projPrefabIndex = hitboxData.parentProjectile != null
+                ? ProjectileManager.Instance.projectilePrefabs.IndexOf(hitboxData.parentProjectile)
+                : -1;
+            bw.Write(projPrefabIndex);
+        }
+
+        bw.Write(flowState);
+        bw.Write(stockStability);
+        bw.Write(demonAura);
+        bw.Write(demonAuraLifeSpanTimer);
+        bw.Write(reps);
+        bw.Write(isSpawned);
+        bw.Write(roundsWon);
+        bw.Write(totalRam);
+        bw.Write(roundRam);
+        bw.Write(ramBounty);
+        bw.Write(chosenStartingSpell);
+        bw.Write(startingSpellAdded);
+        bw.Write(vWave);
+        bw.Write(killeez);
+        bw.Write(DemonX);
+        bw.Write(bigStox);
+
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
 
     public void Deserialize(BinaryReader br)
     {

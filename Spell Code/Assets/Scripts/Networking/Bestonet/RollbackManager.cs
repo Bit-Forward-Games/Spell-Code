@@ -557,6 +557,7 @@ using BestoNet.Collections; // Use BestoNet collections
             if (firstHashMismatchFrame < 0)
             {
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
+                DumpLocalHashState(frame, localHash, remoteHash);
                 LogDesyncDiagnostics(frame);
             }
             firstHashMismatchFrame = frame;
@@ -577,6 +578,23 @@ using BestoNet.Collections; // Use BestoNet collections
         Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
     }
 
+    private void DumpLocalHashState(int frame, uint localHash, uint remoteHash)
+    {
+        if (GameManager.Instance == null) return;
+
+        byte[] hashBytes = GameManager.Instance.SerializeHashState();
+        if (hashBytes == null || hashBytes.Length == 0) return;
+
+        string dir = StressTestController.Instance != null
+            ? StressTestController.Instance.GetDumpDirectory()
+            : Application.persistentDataPath;
+
+        string fileName = $"desync_hashstate_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+        string path = Path.Combine(dir, fileName);
+        File.WriteAllBytes(path, hashBytes);
+        Debug.LogError($"[DESYNC HASH] Wrote local hash-state dump: {path}");
+    }
+
     private void LogDesyncDiagnostics(int frame)
     {
         if (GameManager.Instance == null) return;
@@ -590,11 +608,12 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             var p = gm.players[i];
             if (p == null) continue;
+            uint playerHash = ComputePlayerHash(p);
             diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) " +
                 $"hp={p.currentPlayerHealth} state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} " +
                 $"logicFrame={p.logicFrame} flow={p.flowState} demon={p.demonAura} " +
                 $"isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                $"roundRam={p.roundRam} totalRam={p.totalRam}";
+                $"roundRam={p.roundRam} totalRam={p.totalRam} hash={playerHash}";
         }
 
         var activeProj = ProjectileManager.Instance.activeProjectiles;
@@ -606,6 +625,16 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         Debug.LogError(diag);
+    }
+
+    private uint ComputePlayerHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplayHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
     }
 
     private static uint ComputeFnv1a(byte[] data)

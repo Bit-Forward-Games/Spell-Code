@@ -848,21 +848,22 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        timeoutFrames = 0;
-        rbManager.RollbackEvent();
-
-        if (!rbManager.AllowUpdate())
-        {
-            return;
-        }
-
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
 
+        timeoutFrames = 0;
+        rbManager.RollbackEvent();
+
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
+
+        if (!rbManager.AllowUpdate())
+        {
+            frameNumber--;
+            return;
+        }
 
         Scene activeScene = SceneManager.GetActiveScene();
 

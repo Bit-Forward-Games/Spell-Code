@@ -32,8 +32,7 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].relativeInputs; }
         set 
         {
-            relativeInputToggleGraphic.isOn = gameManager.players[playerPauseIndex].relativeInputs;
-            gameManager.players[playerPauseIndex].relativeInputs = value; 
+            gameManager.players[playerPauseIndex].relativeInputs = value;
         }
     }
 
@@ -42,7 +41,6 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
         set 
         {
-            codeInputToggleGraphic.isOn = gameManager.players[playerPauseIndex].toggleCodeInput;
             gameManager.players[playerPauseIndex].toggleCodeInput = value; 
         }
     }
@@ -85,6 +83,9 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         darkPanel.SetActive(true);
+
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 

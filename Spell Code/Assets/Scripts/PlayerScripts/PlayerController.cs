@@ -2699,6 +2699,26 @@ public class PlayerController : MonoBehaviour
 
     public void SerializeGameplayHash(BinaryWriter bw)
     {
+        SerializeGameplayCoreHash(bw);
+
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
+    public void SerializeGameplayCoreHash(BinaryWriter bw)
+    {
         bw.Write(position.X.RawValue);
         bw.Write(position.Y.RawValue);
         bw.Write(hSpd.RawValue);
@@ -2749,7 +2769,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+    }
 
+    public void SerializeGameplaySpellHash(BinaryWriter bw)
+    {
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {

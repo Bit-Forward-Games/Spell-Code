@@ -22,6 +22,10 @@ using BestoNet.Collections; // Use BestoNet collections
             public uint projectileHash;
             public uint player0Hash;
             public uint player1Hash;
+            public uint player0CoreHash;
+            public uint player1CoreHash;
+            public uint player0SpellHash;
+            public uint player1SpellHash;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -475,12 +479,20 @@ using BestoNet.Collections; // Use BestoNet collections
         uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
         uint player0Hash = 0;
         uint player1Hash = 0;
+        uint player0CoreHash = 0;
+        uint player1CoreHash = 0;
+        uint player0SpellHash = 0;
+        uint player1SpellHash = 0;
         if (GameManager.Instance.playerCount > 0 && GameManager.Instance.players[0] != null)
         {
+            player0CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[0]);
+            player0SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[0]);
             player0Hash = ComputePlayerHash(GameManager.Instance.players[0]);
         }
         if (GameManager.Instance.playerCount > 1 && GameManager.Instance.players[1] != null)
         {
+            player1CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[1]);
+            player1SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[1]);
             player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
         }
         uint hash = ComputeCompositeHash(sharedHash, projectileHash, player0Hash, player1Hash);
@@ -495,7 +507,11 @@ using BestoNet.Collections; // Use BestoNet collections
             sharedHash = sharedHash,
             projectileHash = projectileHash,
             player0Hash = player0Hash,
-            player1Hash = player1Hash
+            player1Hash = player1Hash,
+            player0CoreHash = player0CoreHash,
+            player1CoreHash = player1CoreHash,
+            player0SpellHash = player0SpellHash,
+            player1SpellHash = player1SpellHash
         };
 
         // Always send state hashes during online matches for desync detection
@@ -507,7 +523,7 @@ using BestoNet.Collections; // Use BestoNet collections
             if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
             {
                 lastHashSentFrame = localFrame;
-                matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash);
+                matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
             }
         }
     }
@@ -560,7 +576,7 @@ using BestoNet.Collections; // Use BestoNet collections
         return true;
     }
 
-    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash)
+    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)
@@ -573,6 +589,7 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
             Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
+            Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
 
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
@@ -662,6 +679,26 @@ using BestoNet.Collections; // Use BestoNet collections
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
             player.SerializeGameplayHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputePlayerCoreHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplayCoreHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputePlayerSpellHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplaySpellHash(bw);
             return ComputeFnv1a(memoryStream.ToArray());
         }
     }

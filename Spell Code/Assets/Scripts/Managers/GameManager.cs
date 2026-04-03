@@ -2091,7 +2091,6 @@ public class GameManager : MonoBehaviour
         {
             bw.Write(roundOver);
             bw.Write(gameOver);
-            bw.Write(roundEndFrameCounter);
             bw.Write(currentStageIndex);
 
             for (int i = 0; i < 4; i++)
@@ -2102,13 +2101,8 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            bw.Write(randomSeed);
-            bw.Write(randomCallCount);
             bw.Write(rngState);
-            bw.Write(stageRngState);
             bw.Write(ramNeededToWinRound);
-            bw.Write(roundEndUIShown);
-            bw.Write(lastRoundWinnerPID);
 
             return memoryStream.ToArray();
         }

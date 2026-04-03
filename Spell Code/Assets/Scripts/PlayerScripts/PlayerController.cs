@@ -364,11 +364,11 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
-        else if (pID == 2) { startingSpell = "QuarterReport"; }
-        else if (pID == 3) { startingSpell = "BladeOfAres"; }
-        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+        // Lock starter selection by PID using the actual dictionary keys.
+        if (pID == 1) { startingSpell = "Amon Slash"; }
+        else if (pID == 2) { startingSpell = "Quarter Report"; }
+        else if (pID == 3) { startingSpell = "Blade Of Ares"; }
+        else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
             FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];

@@ -1391,6 +1391,10 @@ public class GameManager : MonoBehaviour
                     UpdatePlayerBounties();
                 }
 
+                // Clear lingering projectiles from the dead player so both clients respawn
+                // into the same clean state instead of carrying old shots across deaths.
+                ProjectileManager.Instance.DeleteAllPlayerProjectiles(player.pID);
+
                 // Only consume RNG on real frames, reuse saved position during rollback
                 FixedVec2 spawnPos = isRollback
                     ? player.position // keep existing position during rollback, it'll be overwritten by deserialization anyway

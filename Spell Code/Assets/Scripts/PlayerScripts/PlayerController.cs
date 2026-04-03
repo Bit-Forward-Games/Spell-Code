@@ -445,7 +445,7 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd)
+    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true, bool applyAcquisitionEffects = true)
     {
         if (spellList.Count >= 6)
         {
@@ -453,9 +453,17 @@ public class PlayerController : MonoBehaviour
             return;
         }
         SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
-        spellList.Add(Instantiate(targetSpell));
-        spellList[spellList.Count - 1].owner = this;
-        spellList[spellList.Count - 1].LoadSpell();
+        SpellData spellInstance = Instantiate(targetSpell);
+        spellList.Add(spellInstance);
+        spellInstance.owner = this;
+        if (applyLoadEffects)
+        {
+            spellInstance.LoadSpell();
+        }
+        if (applyAcquisitionEffects)
+        {
+            ApplySpellAcquisitionEffects(spellInstance);
+        }
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -2733,6 +2741,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void ApplySpellAcquisitionEffects(SpellData spell)
+    {
+        if (spell is QuarterReport)
+        {
+            stockStability += 10;
+            SpawnToast("+10% STOCK STABILITY", Color.blue);
+        }
+    }
+
     public void SerializeGameplayCoreHash(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);
@@ -2902,7 +2919,7 @@ public class PlayerController : MonoBehaviour
             if (!string.IsNullOrEmpty(startingSpell))
             {
                 //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
-                AddSpellToSpellList(startingSpell);
+                AddSpellToSpellList(startingSpell, applyLoadEffects: false, applyAcquisitionEffects: false);
                 startingSpellAdded = true;
             }
         }

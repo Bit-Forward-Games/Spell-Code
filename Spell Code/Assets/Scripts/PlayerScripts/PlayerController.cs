@@ -2749,17 +2749,6 @@ public class PlayerController : MonoBehaviour
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
-        bw.Write(isSpawned);
-        bw.Write(roundsWon);
-        bw.Write(totalRam);
-        bw.Write(roundRam);
-        bw.Write(ramBounty);
-        bw.Write(chosenStartingSpell);
-        bw.Write(startingSpellAdded);
-        bw.Write(vWave);
-        bw.Write(killeez);
-        bw.Write(DemonX);
-        bw.Write(bigStox);
 
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)

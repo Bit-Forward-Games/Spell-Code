@@ -80,6 +80,7 @@ using BestoNet.Collections; // Use BestoNet collections
         private int consecutiveDrop = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
+        private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
@@ -87,6 +88,20 @@ using BestoNet.Collections; // Use BestoNet collections
         // Store opponent's network ID (e.g., SteamID ulong) - Must be provided during Init!
         private ulong opponentNetworkId;
         // --- End External References ---
+
+        private struct PendingRemoteHash
+        {
+            public int frame;
+            public uint remoteHash;
+            public uint remoteSharedHash;
+            public uint remoteProjectileHash;
+            public uint remotePlayer0Hash;
+            public uint remotePlayer1Hash;
+            public uint remotePlayer0CoreHash;
+            public uint remotePlayer1CoreHash;
+            public uint remotePlayer0SpellHash;
+            public uint remotePlayer1SpellHash;
+        }
 
         // --- Properties ---
         // Get local frame directly from GameManager
@@ -194,6 +209,7 @@ using BestoNet.Collections; // Use BestoNet collections
             remoteFrame = 0;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
+            pendingRemoteHashes.Clear();
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
@@ -274,6 +290,7 @@ using BestoNet.Collections; // Use BestoNet collections
 
         if (!foundDesyncedFrame)
         {
+            ProcessPendingRemoteHashes();
             return; // No rollback needed
         }
 
@@ -308,6 +325,7 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         SetRollbackStatus(false);
+        ProcessPendingRemoteHashes();
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
@@ -577,6 +595,59 @@ using BestoNet.Collections; // Use BestoNet collections
     }
 
     public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
+    {
+        if (frame > syncFrame)
+        {
+            pendingRemoteHashes[frame] = new PendingRemoteHash()
+            {
+                frame = frame,
+                remoteHash = remoteHash,
+                remoteSharedHash = remoteSharedHash,
+                remoteProjectileHash = remoteProjectileHash,
+                remotePlayer0Hash = remotePlayer0Hash,
+                remotePlayer1Hash = remotePlayer1Hash,
+                remotePlayer0CoreHash = remotePlayer0CoreHash,
+                remotePlayer1CoreHash = remotePlayer1CoreHash,
+                remotePlayer0SpellHash = remotePlayer0SpellHash,
+                remotePlayer1SpellHash = remotePlayer1SpellHash
+            };
+            return;
+        }
+
+        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayer0Hash, remotePlayer1Hash, remotePlayer0CoreHash, remotePlayer1CoreHash, remotePlayer0SpellHash, remotePlayer1SpellHash);
+    }
+
+    private void ProcessPendingRemoteHashes()
+    {
+        if (pendingRemoteHashes.Count == 0)
+        {
+            return;
+        }
+
+        List<int> readyFrames = pendingRemoteHashes.Keys
+            .Where(frame => frame <= syncFrame)
+            .OrderBy(frame => frame)
+            .ToList();
+
+        foreach (int frame in readyFrames)
+        {
+            PendingRemoteHash pending = pendingRemoteHashes[frame];
+            pendingRemoteHashes.Remove(frame);
+            EvaluateRemoteStateHash(
+                pending.frame,
+                pending.remoteHash,
+                pending.remoteSharedHash,
+                pending.remoteProjectileHash,
+                pending.remotePlayer0Hash,
+                pending.remotePlayer1Hash,
+                pending.remotePlayer0CoreHash,
+                pending.remotePlayer1CoreHash,
+                pending.remotePlayer0SpellHash,
+                pending.remotePlayer1SpellHash);
+        }
+    }
+
+    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)

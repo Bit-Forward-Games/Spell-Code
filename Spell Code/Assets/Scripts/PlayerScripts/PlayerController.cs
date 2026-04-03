@@ -235,7 +235,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-
+    public int _playerPauseIndex;
 
 
     private void Awake()
@@ -264,6 +264,8 @@ public class PlayerController : MonoBehaviour
             InitCharacter();
             ProjectileManager.Instance.InitializeAllProjectiles();
         }
+
+        _playerPauseIndex = Array.IndexOf(GameManager.Instance.players, this);
 
     }
 
@@ -731,6 +733,8 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed)
             {
+                pause.playerPauseIndex = _playerPauseIndex;
+
                 if (pause.paused)
                 {
                     pause.Resume();
@@ -739,7 +743,6 @@ public class PlayerController : MonoBehaviour
                 {
                     pause.Pausing();
                 }
-                
             }
         }
 

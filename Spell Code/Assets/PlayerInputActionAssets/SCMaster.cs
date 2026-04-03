@@ -412,7 +412,7 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""cf357d0c-67c6-445d-a4d2-e7e19a512b2b"",
-                    ""path"": ""<Keyboard>/enter"",
+                    ""path"": ""<Keyboard>/escape"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard"",

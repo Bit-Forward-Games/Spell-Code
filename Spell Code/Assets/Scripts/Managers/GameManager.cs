@@ -2080,6 +2080,56 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public byte[] SerializeSharedGameplayHashState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(roundOver);
+            bw.Write(gameOver);
+            bw.Write(roundEndFrameCounter);
+            bw.Write(currentStageIndex);
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    bw.Write(damageMatrix[i, j]);
+                }
+            }
+
+            bw.Write(randomSeed);
+            bw.Write(randomCallCount);
+            bw.Write(rngState);
+            bw.Write(stageRngState);
+            bw.Write(ramNeededToWinRound);
+            bw.Write(roundEndUIShown);
+            bw.Write(lastRoundWinnerPID);
+
+            return memoryStream.ToArray();
+        }
+    }
+
+    public byte[] SerializeProjectileHashState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
+                .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
+                .ToList();
+            bw.Write(activeProjectiles.Count);
+            foreach (BaseProjectile projectile in activeProjectiles)
+            {
+                int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
+                bw.Write(prefabIndex);
+                projectile.Serialize(bw);
+            }
+
+            return memoryStream.ToArray();
+        }
+    }
+
     /// <summary>
     /// Deserializes and applies a game state snapshot.
     /// Restores players and manages projectile activation/state.

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using BestoNet.Collections; // Use BestoNet collections
 
@@ -602,7 +603,8 @@ using BestoNet.Collections; // Use BestoNet collections
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
             $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
-            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage}";
+            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} " +
+            $"sharedHash={ComputeSharedGameplayHash(gm)} projectileHash={ComputeProjectileHash()}";
 
         for (int i = 0; i < gm.playerCount; i++)
         {
@@ -614,6 +616,13 @@ using BestoNet.Collections; // Use BestoNet collections
                 $"logicFrame={p.logicFrame} flow={p.flowState} demon={p.demonAura} " +
                 $"isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
                 $"roundRam={p.roundRam} totalRam={p.totalRam} hash={playerHash}";
+
+            for (int spellIndex = 0; spellIndex < p.spellList.Count; spellIndex++)
+            {
+                SpellData spell = p.spellList[spellIndex];
+                if (spell == null) continue;
+                diag += $"\n    Spell{spellIndex}:{spell.spellName} hash={ComputeSpellHash(spell)}";
+            }
         }
 
         var activeProj = ProjectileManager.Instance.activeProjectiles;
@@ -635,6 +644,27 @@ using BestoNet.Collections; // Use BestoNet collections
             player.SerializeGameplayHash(bw);
             return ComputeFnv1a(memoryStream.ToArray());
         }
+    }
+
+    private uint ComputeSpellHash(SpellData spell)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(spell.spellName ?? string.Empty);
+            spell.Serialize(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputeSharedGameplayHash(GameManager gm)
+    {
+        return ComputeFnv1a(gm.SerializeSharedGameplayHashState());
+    }
+
+    private uint ComputeProjectileHash()
+    {
+        return ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
     }
 
     private static uint ComputeFnv1a(byte[] data)

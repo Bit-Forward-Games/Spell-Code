@@ -933,10 +933,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (!isRealFrame)
-        {
-            return;
-        }
+        //if (!isRealFrame)
+        //{
+        //    return;
+        //}
 
         HandleRoundEndUI(isRealFrame);
 

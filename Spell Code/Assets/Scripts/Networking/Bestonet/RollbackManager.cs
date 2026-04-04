@@ -258,7 +258,7 @@ using BestoNet.Collections; // Use BestoNet collections
         int framesBeforeRollback = localFrame;
         bool foundDesyncedFrame = false;
 
-        // --- Check for Mismatched Inputs ---
+        // Check for Mismatched Inputs
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
             bool haveReceived = receivedInputs.ContainsKey(i);
@@ -272,7 +272,38 @@ using BestoNet.Collections; // Use BestoNet collections
 
                 if (received == used && states[i % StateArraySize].frame == i)
                 {
+                    // THE FRAME IS VERIFIED
                     syncFrame = i;
+
+                    // HASH SENDING 
+                    if (matchManager != null)
+                    {
+                        int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+                            ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+                            : 30; // Default: send hash every 30 frames
+
+                        if (syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                        {
+                            lastHashSentFrame = syncFrame;
+
+                            // Grab the hashes already calculated during SaveState()
+                            GameState verifiedState = states[syncFrame % StateArraySize];
+
+                            matchManager.SendStateHash(
+                                syncFrame,
+                                verifiedState.hash,
+                                verifiedState.sharedHash,
+                                verifiedState.projectileHash,
+                                verifiedState.player0Hash,
+                                verifiedState.player1Hash,
+                                verifiedState.player0CoreHash,
+                                verifiedState.player1CoreHash,
+                                verifiedState.player0SpellHash,
+                                verifiedState.player1SpellHash
+                            );
+                        }
+                    }
+                    // -----------------------------
                 }
                 else if (received != used)
                 {
@@ -533,17 +564,17 @@ using BestoNet.Collections; // Use BestoNet collections
         };
 
         // Always send state hashes during online matches for desync detection
-        if (matchManager != null)
-        {
-            int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
-                ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
-                : 30; // Default: send hash every 30 frames (~0.5s) in production
-            if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
-            {
-                lastHashSentFrame = localFrame;
-                matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
-            }
-        }
+        //if (matchManager != null)
+        //{
+        //    int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+        //        ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+        //        : 30; // Default: send hash every 30 frames (~0.5s) in production
+        //    if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
+        //    {
+        //        lastHashSentFrame = localFrame;
+        //        matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
+        //    }
+        //}
     }
 
     /// <summary>

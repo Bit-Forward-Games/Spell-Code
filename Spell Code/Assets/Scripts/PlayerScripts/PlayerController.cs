@@ -423,7 +423,7 @@ public class PlayerController : MonoBehaviour
 
         //initialize resources
         flowState = 0;
-        stockStability = 0;
+        stockStability = GetPersistentStockStabilityFromSpellList();
         demonAura = 0;
         reps = 0;
         //momentum = 0;
@@ -493,6 +493,29 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Player has unlocked BigStox passives");
             }
         }
+    }
+
+    private ushort GetPersistentStockStabilityFromSpellList()
+    {
+        ushort totalStockStability = 0;
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null) continue;
+
+            switch (spell.spellName)
+            {
+                case "Quarter Report":
+                case "Coin Toss":
+                case "Get A Job":
+                case "Penny Stock Peddler":
+                    totalStockStability += 10;
+                    break;
+            }
+        }
+
+        return totalStockStability;
     }
 
 

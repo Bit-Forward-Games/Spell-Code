@@ -8,11 +8,13 @@ public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameObject controlsMenu;
     public GameObject darkPanel;
     public GameManager gameManager;
     public int playerPauseIndex;
     public bool paused;
     public bool options;
+    public bool controls;
     public Slider volumeSlider;
     public Slider sfxSlider;
     public AudioSource musicAudioSource;
@@ -23,6 +25,7 @@ public class Pause : MonoBehaviour
 
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
+    public GameObject _controlsMenuFirst;
 
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
@@ -69,6 +72,7 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(null);
@@ -80,8 +84,10 @@ public class Pause : MonoBehaviour
     {
         paused = true;
         options = false;
+        controls = false;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
@@ -95,10 +101,25 @@ public class Pause : MonoBehaviour
     public void Options()
     {
         options = true;
+        controls = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
+        controlsMenu.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
+
+        Time.timeScale = 0f;
+    }
+
+    public void Controls()
+    {
+        controls = true;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
 
         Time.timeScale = 0f;
     }

@@ -41,7 +41,7 @@ ParticleSystem:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5475398249184600050}
   serializedVersion: 8
-  lengthInSec: 0.24
+  lengthInSec: 0.62
   simulationSpeed: 1
   stopAction: 0
   cullingMode: 0
@@ -116,7 +116,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.25
+      scalar: 0.5
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -1545,11 +1545,13 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: -6853026484796633266, guid: ff694d60acf93274691d829fa3619736, type: 3}
-    - sprite: {fileID: 8750432856029165678, guid: ff694d60acf93274691d829fa3619736, type: 3}
-    - sprite: {fileID: 5444428317868593870, guid: ff694d60acf93274691d829fa3619736, type: 3}
-    - sprite: {fileID: 4231688111904706837, guid: ff694d60acf93274691d829fa3619736, type: 3}
-    - sprite: {fileID: -7192824668789486961, guid: ff694d60acf93274691d829fa3619736, type: 3}
+    - sprite: {fileID: -6162587749282746840, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: 9094035612799438076, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: -1410287477395381371, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: -7846098617525907306, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: -3983373713875948149, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: -6013006228868995846, guid: 74a46dfe2ff668a4f8bb2bddb05f2134, type: 3}
+    - sprite: {fileID: 0}
     flipU: 0
     flipV: 0
   VelocityModule:

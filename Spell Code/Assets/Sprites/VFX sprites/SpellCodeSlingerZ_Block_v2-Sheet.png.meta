@@ -1,112 +1,25 @@
 fileFormatVersion: 2
-guid: a58bd6f27c89595479de56824d71faa6
+guid: 74a46dfe2ff668a4f8bb2bddb05f2134
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 938860889445548997
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_0
+      213: -6162587749282746840
+    second: SpellCodeSlingerZ_Block_v2-Sheet_0
   - first:
-      213: -5495102633796005815
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_1
+      213: 9094035612799438076
+    second: SpellCodeSlingerZ_Block_v2-Sheet_1
   - first:
-      213: 5074456099257374091
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_2
+      213: -1410287477395381371
+    second: SpellCodeSlingerZ_Block_v2-Sheet_2
   - first:
-      213: -3493648366815523439
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_3
+      213: -7846098617525907306
+    second: SpellCodeSlingerZ_Block_v2-Sheet_3
   - first:
-      213: 737992943959927592
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_4
+      213: -3983373713875948149
+    second: SpellCodeSlingerZ_Block_v2-Sheet_4
   - first:
-      213: 4060607868897502735
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_5
-  - first:
-      213: -2779677818532487460
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_6
-  - first:
-      213: -5036716676252475339
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_7
-  - first:
-      213: 1042703851681713155
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_8
-  - first:
-      213: -5368311523477785634
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_9
-  - first:
-      213: 7527251901657984548
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_10
-  - first:
-      213: -3734917980448167416
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_11
-  - first:
-      213: 8704560225692289719
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_12
-  - first:
-      213: 2093013336469718037
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_13
-  - first:
-      213: -319981969060152941
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_14
-  - first:
-      213: -3183770400563602260
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_15
-  - first:
-      213: -5539227112492878
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_16
-  - first:
-      213: 4627667425587826980
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_17
-  - first:
-      213: -8261001683021823858
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_18
-  - first:
-      213: 5593553728444223713
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_19
-  - first:
-      213: 5435653915433732926
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_20
-  - first:
-      213: -870153394144525065
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_21
-  - first:
-      213: -4794671993238305911
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_22
-  - first:
-      213: 3257094308999816218
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_23
-  - first:
-      213: 6911084450989071245
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_24
-  - first:
-      213: 4115329505303164658
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_25
-  - first:
-      213: 4686234215016675817
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_26
-  - first:
-      213: -7367810947536628168
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_27
-  - first:
-      213: 1828865550482127535
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_28
-  - first:
-      213: -6434451438306681092
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_29
-  - first:
-      213: -7200493458508464833
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_30
-  - first:
-      213: -1639361762971136377
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_31
-  - first:
-      213: 7062233374780798398
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_32
-  - first:
-      213: -8347958340052421678
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_33
-  - first:
-      213: -3409747460301220977
-    second: SpellCodeSlingerZ_Blocked_v1-Sheet_34
+      213: -6013006228868995846
+    second: SpellCodeSlingerZ_Block_v2-Sheet_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -215,7 +128,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Blocked_v1-Sheet_0
+      name: SpellCodeSlingerZ_Block_v2-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
@@ -230,17 +143,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5c3c8e03101870d00800000000000000
-      internalID: 938860889445548997
+      spriteID: 82ee3d2c7171a7aa0800000000000000
+      internalID: -6162587749282746840
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Blocked_v1-Sheet_1
+      name: SpellCodeSlingerZ_Block_v2-Sheet_1
       rect:
         serializedVersion: 2
-        x: 1072
+        x: 1080
         y: 0
         width: 1080
         height: 1280
@@ -252,14 +165,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9409644d4497db3b0800000000000000
-      internalID: -5495102633796005815
+      spriteID: cfc89a32531843e70800000000000000
+      internalID: 9094035612799438076
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Blocked_v1-Sheet_2
+      name: SpellCodeSlingerZ_Block_v2-Sheet_2
       rect:
         serializedVersion: 2
         x: 2160
@@ -274,14 +187,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b85dc88cfe61c6640800000000000000
-      internalID: 5074456099257374091
+      spriteID: 583aaa6e207ad6ce0800000000000000
+      internalID: -1410287477395381371
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Blocked_v1-Sheet_3
+      name: SpellCodeSlingerZ_Block_v2-Sheet_3
       rect:
         serializedVersion: 2
         x: 3240
@@ -296,14 +209,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 19d46dd0251148fc0800000000000000
-      internalID: -3493648366815523439
+      spriteID: 6905fa5b0ee0d1390800000000000000
+      internalID: -7846098617525907306
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Blocked_v1-Sheet_4
+      name: SpellCodeSlingerZ_Block_v2-Sheet_4
       rect:
         serializedVersion: 2
         x: 4320
@@ -318,8 +231,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 82be9772ca0ed3a00800000000000000
-      internalID: 737992943959927592
+      spriteID: b8dabc846b638b8c0800000000000000
+      internalID: -3983373713875948149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpellCodeSlingerZ_Block_v2-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 5400
+        y: 0
+        width: 1080
+        height: 1280
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af46d0071b28d8ca0800000000000000
+      internalID: -6013006228868995846
       vertices: []
       indices: 
       edges: []
@@ -328,7 +263,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: b43ae4bff335f654298167f6a9a291a2
+    spriteID: 25a5514ac004e74498daae6c6ddbc924
     internalID: 0
     vertices: []
     indices: 
@@ -338,11 +273,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      SpellCodeSlingerZ_Blocked_v1-Sheet_0: 938860889445548997
-      SpellCodeSlingerZ_Blocked_v1-Sheet_1: -5495102633796005815
-      SpellCodeSlingerZ_Blocked_v1-Sheet_2: 5074456099257374091
-      SpellCodeSlingerZ_Blocked_v1-Sheet_3: -3493648366815523439
-      SpellCodeSlingerZ_Blocked_v1-Sheet_4: 737992943959927592
+      SpellCodeSlingerZ_Block_v2-Sheet_0: -6162587749282746840
+      SpellCodeSlingerZ_Block_v2-Sheet_1: 9094035612799438076
+      SpellCodeSlingerZ_Block_v2-Sheet_2: -1410287477395381371
+      SpellCodeSlingerZ_Block_v2-Sheet_3: -7846098617525907306
+      SpellCodeSlingerZ_Block_v2-Sheet_4: -3983373713875948149
+      SpellCodeSlingerZ_Block_v2-Sheet_5: -6013006228868995846
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

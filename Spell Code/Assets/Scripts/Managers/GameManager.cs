@@ -785,6 +785,7 @@ public class GameManager : MonoBehaviour
 
             if (isOnline)
             {
+                shopImage.enabled = false;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
@@ -805,12 +806,18 @@ public class GameManager : MonoBehaviour
             }
             if (isOnline)
             {
+                shopImage.enabled = true;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
         else if (activeScene.name == "Gameplay")
         {
             CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+
+            if (isOnline)
+            {
+                shopImage.enabled = false;
+            }
         }
     }
 

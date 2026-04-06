@@ -89,6 +89,7 @@ public class GameManager : MonoBehaviour
     private int roundEndFrameCounter = 0;
     private bool roundEndUIShown = false;
     private int lastRoundWinnerPID = -1;
+    private bool roundTransitionPending = false;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -930,13 +931,9 @@ public class GameManager : MonoBehaviour
         if (!roundOver)
         {
             roundEndFrameCounter = 0;
+            roundTransitionPending = false;
             return;
         }
-
-        //if (!isRealFrame)
-        //{
-        //    return;
-        //}
 
         HandleRoundEndUI(isRealFrame);
 
@@ -944,6 +941,12 @@ public class GameManager : MonoBehaviour
         if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
         {
             roundEndFrameCounter = 0;
+            roundTransitionPending = true;
+        }
+
+        if (isRealFrame && roundTransitionPending)
+        {
+            roundTransitionPending = false;
             PerformRoundTransition();
         }
     }
@@ -960,6 +963,7 @@ public class GameManager : MonoBehaviour
             roundOver = false;
             roundEndUIShown = false;
             lastRoundWinnerPID = -1;
+            roundTransitionPending = false;
             return;
         }
 
@@ -983,6 +987,7 @@ public class GameManager : MonoBehaviour
             roundOver = false;
             roundEndUIShown = false;
             lastRoundWinnerPID = -1;
+            roundTransitionPending = false;
             return;
         }
 
@@ -991,6 +996,7 @@ public class GameManager : MonoBehaviour
         roundOver = false;
         roundEndUIShown = false;
         lastRoundWinnerPID = -1;
+        roundTransitionPending = false;
     }
 
     private void HandleRoundEndUI(bool isRealFrame)

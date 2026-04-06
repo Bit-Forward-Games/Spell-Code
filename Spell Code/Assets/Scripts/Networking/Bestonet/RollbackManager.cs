@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using BestoNet.Collections; // Use BestoNet collections
 
@@ -17,6 +18,14 @@ using BestoNet.Collections; // Use BestoNet collections
             public int frame;
             public byte[] state;
             public uint hash;
+            public uint sharedHash;
+            public uint projectileHash;
+            public uint player0Hash;
+            public uint player1Hash;
+            public uint player0CoreHash;
+            public uint player1CoreHash;
+            public uint player0SpellHash;
+            public uint player1SpellHash;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -71,6 +80,7 @@ using BestoNet.Collections; // Use BestoNet collections
         private int consecutiveDrop = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
+        private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
@@ -78,6 +88,20 @@ using BestoNet.Collections; // Use BestoNet collections
         // Store opponent's network ID (e.g., SteamID ulong) - Must be provided during Init!
         private ulong opponentNetworkId;
         // --- End External References ---
+
+        private struct PendingRemoteHash
+        {
+            public int frame;
+            public uint remoteHash;
+            public uint remoteSharedHash;
+            public uint remoteProjectileHash;
+            public uint remotePlayer0Hash;
+            public uint remotePlayer1Hash;
+            public uint remotePlayer0CoreHash;
+            public uint remotePlayer1CoreHash;
+            public uint remotePlayer0SpellHash;
+            public uint remotePlayer1SpellHash;
+        }
 
         // --- Properties ---
         // Get local frame directly from GameManager
@@ -185,6 +209,7 @@ using BestoNet.Collections; // Use BestoNet collections
             remoteFrame = 0;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
+            pendingRemoteHashes.Clear();
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
@@ -233,7 +258,7 @@ using BestoNet.Collections; // Use BestoNet collections
         int framesBeforeRollback = localFrame;
         bool foundDesyncedFrame = false;
 
-        // --- Check for Mismatched Inputs ---
+        // Check for Mismatched Inputs
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
             bool haveReceived = receivedInputs.ContainsKey(i);
@@ -247,7 +272,38 @@ using BestoNet.Collections; // Use BestoNet collections
 
                 if (received == used && states[i % StateArraySize].frame == i)
                 {
+                    // THE FRAME IS VERIFIED
                     syncFrame = i;
+
+                    // HASH SENDING 
+                    if (matchManager != null)
+                    {
+                        int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+                            ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+                            : 30; // Default: send hash every 30 frames
+
+                        if (syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                        {
+                            lastHashSentFrame = syncFrame;
+
+                            // Grab the hashes already calculated during SaveState()
+                            GameState verifiedState = states[syncFrame % StateArraySize];
+
+                            matchManager.SendStateHash(
+                                syncFrame,
+                                verifiedState.hash,
+                                verifiedState.sharedHash,
+                                verifiedState.projectileHash,
+                                verifiedState.player0Hash,
+                                verifiedState.player1Hash,
+                                verifiedState.player0CoreHash,
+                                verifiedState.player1CoreHash,
+                                verifiedState.player0SpellHash,
+                                verifiedState.player1SpellHash
+                            );
+                        }
+                    }
+                    // -----------------------------
                 }
                 else if (received != used)
                 {
@@ -265,6 +321,7 @@ using BestoNet.Collections; // Use BestoNet collections
 
         if (!foundDesyncedFrame)
         {
+            ProcessPendingRemoteHashes();
             return; // No rollback needed
         }
 
@@ -299,6 +356,7 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         SetRollbackStatus(false);
+        ProcessPendingRemoteHashes();
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
@@ -466,7 +524,27 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
-        uint hash = ComputeFnv1a(currentStateBytes);
+        uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
+        uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
+        uint player0Hash = 0;
+        uint player1Hash = 0;
+        uint player0CoreHash = 0;
+        uint player1CoreHash = 0;
+        uint player0SpellHash = 0;
+        uint player1SpellHash = 0;
+        if (GameManager.Instance.playerCount > 0 && GameManager.Instance.players[0] != null)
+        {
+            player0CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[0]);
+            player0SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[0]);
+            player0Hash = ComputePlayerHash(GameManager.Instance.players[0]);
+        }
+        if (GameManager.Instance.playerCount > 1 && GameManager.Instance.players[1] != null)
+        {
+            player1CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[1]);
+            player1SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[1]);
+            player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
+        }
+        uint hash = ComputeCompositeHash(sharedHash, projectileHash, player0Hash, player1Hash);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
@@ -474,21 +552,29 @@ using BestoNet.Collections; // Use BestoNet collections
         {
             frame = localFrame,
             state = currentStateBytes, // Store the byte array from GameManager
-            hash = hash
+            hash = hash,
+            sharedHash = sharedHash,
+            projectileHash = projectileHash,
+            player0Hash = player0Hash,
+            player1Hash = player1Hash,
+            player0CoreHash = player0CoreHash,
+            player1CoreHash = player1CoreHash,
+            player0SpellHash = player0SpellHash,
+            player1SpellHash = player1SpellHash
         };
 
         // Always send state hashes during online matches for desync detection
-        if (matchManager != null)
-        {
-            int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
-                ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
-                : 30; // Default: send hash every 30 frames (~0.5s) in production
-            if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
-            {
-                lastHashSentFrame = localFrame;
-                matchManager.SendStateHash(localFrame, hash);
-            }
-        }
+        //if (matchManager != null)
+        //{
+        //    int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+        //        ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+        //        : 30; // Default: send hash every 30 frames (~0.5s) in production
+        //    if (localFrame % interval == 0 && localFrame != lastHashSentFrame)
+        //    {
+        //        lastHashSentFrame = localFrame;
+        //        matchManager.SendStateHash(localFrame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
+        //    }
+        //}
     }
 
     /// <summary>
@@ -539,7 +625,60 @@ using BestoNet.Collections; // Use BestoNet collections
         return true;
     }
 
-    public void OnRemoteStateHash(int frame, uint remoteHash)
+    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
+    {
+        if (frame > syncFrame)
+        {
+            pendingRemoteHashes[frame] = new PendingRemoteHash()
+            {
+                frame = frame,
+                remoteHash = remoteHash,
+                remoteSharedHash = remoteSharedHash,
+                remoteProjectileHash = remoteProjectileHash,
+                remotePlayer0Hash = remotePlayer0Hash,
+                remotePlayer1Hash = remotePlayer1Hash,
+                remotePlayer0CoreHash = remotePlayer0CoreHash,
+                remotePlayer1CoreHash = remotePlayer1CoreHash,
+                remotePlayer0SpellHash = remotePlayer0SpellHash,
+                remotePlayer1SpellHash = remotePlayer1SpellHash
+            };
+            return;
+        }
+
+        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayer0Hash, remotePlayer1Hash, remotePlayer0CoreHash, remotePlayer1CoreHash, remotePlayer0SpellHash, remotePlayer1SpellHash);
+    }
+
+    private void ProcessPendingRemoteHashes()
+    {
+        if (pendingRemoteHashes.Count == 0)
+        {
+            return;
+        }
+
+        List<int> readyFrames = pendingRemoteHashes.Keys
+            .Where(frame => frame <= syncFrame)
+            .OrderBy(frame => frame)
+            .ToList();
+
+        foreach (int frame in readyFrames)
+        {
+            PendingRemoteHash pending = pendingRemoteHashes[frame];
+            pendingRemoteHashes.Remove(frame);
+            EvaluateRemoteStateHash(
+                pending.frame,
+                pending.remoteHash,
+                pending.remoteSharedHash,
+                pending.remoteProjectileHash,
+                pending.remotePlayer0Hash,
+                pending.remotePlayer1Hash,
+                pending.remotePlayer0CoreHash,
+                pending.remotePlayer1CoreHash,
+                pending.remotePlayer0SpellHash,
+                pending.remotePlayer1SpellHash);
+        }
+    }
+
+    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)
@@ -551,11 +690,14 @@ using BestoNet.Collections; // Use BestoNet collections
         if (localHash != remoteHash)
         {
             Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
+            Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
+            Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
 
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
             {
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
+                DumpLocalHashState(frame, localHash, remoteHash);
                 LogDesyncDiagnostics(frame);
             }
             firstHashMismatchFrame = frame;
@@ -576,6 +718,23 @@ using BestoNet.Collections; // Use BestoNet collections
         Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
     }
 
+    private void DumpLocalHashState(int frame, uint localHash, uint remoteHash)
+    {
+        if (GameManager.Instance == null) return;
+
+        byte[] hashBytes = GameManager.Instance.SerializeHashState();
+        if (hashBytes == null || hashBytes.Length == 0) return;
+
+        string dir = StressTestController.Instance != null
+            ? StressTestController.Instance.GetDumpDirectory()
+            : Application.persistentDataPath;
+
+        string fileName = $"desync_hashstate_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+        string path = Path.Combine(dir, fileName);
+        File.WriteAllBytes(path, hashBytes);
+        Debug.LogError($"[DESYNC HASH] Wrote local hash-state dump: {path}");
+    }
+
     private void LogDesyncDiagnostics(int frame)
     {
         if (GameManager.Instance == null) return;
@@ -583,17 +742,26 @@ using BestoNet.Collections; // Use BestoNet collections
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
             $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
-            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage}";
+            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} " +
+            $"sharedHash={ComputeSharedGameplayHash(gm)} projectileHash={ComputeProjectileHash()}";
 
         for (int i = 0; i < gm.playerCount; i++)
         {
             var p = gm.players[i];
             if (p == null) continue;
+            uint playerHash = ComputePlayerHash(p);
             diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) " +
                 $"hp={p.currentPlayerHealth} state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} " +
                 $"logicFrame={p.logicFrame} flow={p.flowState} demon={p.demonAura} " +
                 $"isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                $"roundRam={p.roundRam} totalRam={p.totalRam}";
+                $"roundRam={p.roundRam} totalRam={p.totalRam} hash={playerHash}";
+
+            for (int spellIndex = 0; spellIndex < p.spellList.Count; spellIndex++)
+            {
+                SpellData spell = p.spellList[spellIndex];
+                if (spell == null) continue;
+                diag += $"\n    Spell{spellIndex}:{spell.spellName} hash={ComputeSpellHash(spell)}";
+            }
         }
 
         var activeProj = ProjectileManager.Instance.activeProjectiles;
@@ -605,6 +773,70 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         Debug.LogError(diag);
+    }
+
+    private uint ComputePlayerHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplayHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputePlayerCoreHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplayCoreHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputePlayerSpellHash(PlayerController player)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            player.SerializeGameplaySpellHash(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputeSpellHash(SpellData spell)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(spell.spellName ?? string.Empty);
+            spell.Serialize(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
+    private uint ComputeSharedGameplayHash(GameManager gm)
+    {
+        return ComputeFnv1a(gm.SerializeSharedGameplayHashState());
+    }
+
+    private uint ComputeProjectileHash()
+    {
+        return ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
+    }
+
+    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(sharedHash);
+            bw.Write(projectileHash);
+            bw.Write(player0Hash);
+            bw.Write(player1Hash);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
     }
 
     private static uint ComputeFnv1a(byte[] data)

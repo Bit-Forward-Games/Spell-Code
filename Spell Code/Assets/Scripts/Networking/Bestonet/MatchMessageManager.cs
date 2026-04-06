@@ -500,7 +500,15 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         int frame = reader.ReadInt32();
                         uint hash = reader.ReadUInt32();
-                        RollbackManager.Instance.OnRemoteStateHash(frame, hash);
+                        uint sharedHash = reader.ReadUInt32();
+                        uint projectileHash = reader.ReadUInt32();
+                        uint player0Hash = reader.ReadUInt32();
+                        uint player1Hash = reader.ReadUInt32();
+                        uint player0CoreHash = reader.ReadUInt32();
+                        uint player1CoreHash = reader.ReadUInt32();
+                        uint player0SpellHash = reader.ReadUInt32();
+                        uint player1SpellHash = reader.ReadUInt32();
+                        RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
                         return;
                     }
                     
@@ -688,7 +696,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStateHash(int frame, uint hash)
+    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash, uint player0CoreHash, uint player1CoreHash, uint player0SpellHash, uint player1SpellHash)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -703,6 +711,14 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(PACKET_TYPE_STATE_HASH);
                 writer.Write(frame);
                 writer.Write(hash);
+                writer.Write(sharedHash);
+                writer.Write(projectileHash);
+                writer.Write(player0Hash);
+                writer.Write(player1Hash);
+                writer.Write(player0CoreHash);
+                writer.Write(player1CoreHash);
+                writer.Write(player0SpellHash);
+                writer.Write(player1SpellHash);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);

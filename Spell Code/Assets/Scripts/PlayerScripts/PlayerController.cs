@@ -225,6 +225,7 @@ public class PlayerController : MonoBehaviour
     public bool isSpawned;
     public string startingSpell;
     public bool startingSpellAdded = false;
+    public bool suppressSpellLoadSideEffects = false;
 
     public int pID;
 
@@ -363,11 +364,11 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
-        else if (pID == 2) { startingSpell = "QuarterReport"; }
-        else if (pID == 3) { startingSpell = "BladeOfAres"; }
-        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+        // Lock starter selection by PID using the actual dictionary keys.
+        if (pID == 1) { startingSpell = "Amon Slash"; }
+        else if (pID == 2) { startingSpell = "Quarter Report"; }
+        else if (pID == 3) { startingSpell = "Blade Of Ares"; }
+        else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
             FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
@@ -387,10 +388,27 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        input = InputConverter.ConvertFromLong(5);
         position = spawnPos;
         hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
+        gravity = Fixed.FromFloat(0.75f);
+        facingRight = spawnPos.X.RawValue <= 0;
+        isGrounded = false;
+        onPlatform = false;
+        prevState = PlayerState.Idle;
+        animationFrame = 0;
+        lerpDelay = 0;
         stateSpecificArg = 0;
+        hitstop = 0;
+        hitstopActive = false;
+        hitstunOverride = false;
+        comboCounter = 0;
+        comboResetTimer = 0;
+        lightArmor = false;
+        basicSpawnOverride = false;
+        isHit = false;
+        hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
@@ -405,13 +423,14 @@ public class PlayerController : MonoBehaviour
 
         //initialize resources
         flowState = 0;
-        stockStability = 0;
+        stockStability = GetPersistentStockStabilityFromSpellList();
         demonAura = 0;
         reps = 0;
         //momentum = 0;
         //slimed = false;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
+        suppressSpellLoadSideEffects = true;
         for (int i = 0; i < spellList.Count; i++)
         {
             if (spellList[i] != null)
@@ -420,6 +439,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
+        suppressSpellLoadSideEffects = false;
         GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -429,7 +449,7 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd)
+    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
     {
         if (spellList.Count >= 6)
         {
@@ -437,9 +457,13 @@ public class PlayerController : MonoBehaviour
             return;
         }
         SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
-        spellList.Add(Instantiate(targetSpell));
-        spellList[spellList.Count - 1].owner = this;
-        spellList[spellList.Count - 1].LoadSpell();
+        SpellData spellInstance = Instantiate(targetSpell);
+        spellList.Add(spellInstance);
+        spellInstance.owner = this;
+        if (applyLoadEffects)
+        {
+            spellInstance.LoadSpell();
+        }
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -469,6 +493,29 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Player has unlocked BigStox passives");
             }
         }
+    }
+
+    private ushort GetPersistentStockStabilityFromSpellList()
+    {
+        ushort totalStockStability = 0;
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null) continue;
+
+            switch (spell.spellName)
+            {
+                case "Quarter Report":
+                case "Coin Toss":
+                case "Get A Job":
+                case "Penny Stock Peddler":
+                    totalStockStability += 10;
+                    break;
+            }
+        }
+
+        return totalStockStability;
     }
 
 
@@ -2721,6 +2768,98 @@ public class PlayerController : MonoBehaviour
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
+    public void SerializeGameplayHash(BinaryWriter bw)
+    {
+        SerializeGameplayCoreHash(bw);
+
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
+    public void SerializeGameplayCoreHash(BinaryWriter bw)
+    {
+        bw.Write(position.X.RawValue);
+        bw.Write(position.Y.RawValue);
+        bw.Write(hSpd.RawValue);
+        bw.Write(vSpd.RawValue);
+        bw.Write(facingRight);
+        bw.Write(isGrounded);
+        bw.Write(onPlatform);
+        bw.Write(relativeInputs);
+        bw.Write((byte)state);
+        bw.Write(logicFrame);
+        bw.Write(stateSpecificArg);
+        bw.Write(hitstop);
+        bw.Write(hitstopActive);
+        bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        bw.Write(comboResetTimer);
+        bw.Write(lightArmor);
+        bw.Write(basicSpawnOverride);
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
+        bw.Write(currentPlayerHealth);
+        bw.Write(isAlive);
+        bw.Write(isHit);
+        bw.Write(iframes);
+
+        bool hasHitboxData = hitboxData != null;
+        bw.Write(hasHitboxData);
+        if (hasHitboxData)
+        {
+            bw.Write(hitboxData.damage);
+            bw.Write(hitboxData.hitstun);
+            bw.Write(hitboxData.xKnockback);
+            bw.Write(hitboxData.yKnockback);
+            bw.Write(hitboxData.attackLvl);
+            bw.Write(hitboxData.basicAttackHitbox);
+            int ownerIndex = hitboxData.parentProjectile?.owner != null
+                ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
+                : -1;
+            bw.Write(ownerIndex);
+            int projPrefabIndex = hitboxData.parentProjectile != null
+                ? ProjectileManager.Instance.projectilePrefabs.IndexOf(hitboxData.parentProjectile)
+                : -1;
+            bw.Write(projPrefabIndex);
+        }
+
+        bw.Write(flowState);
+        bw.Write(stockStability);
+        bw.Write(demonAura);
+        bw.Write(demonAuraLifeSpanTimer);
+        bw.Write(reps);
+    }
+
+    public void SerializeGameplaySpellHash(BinaryWriter bw)
+    {
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
 
     public void Deserialize(BinaryReader br)
     {
@@ -2818,7 +2957,9 @@ public class PlayerController : MonoBehaviour
             if (!string.IsNullOrEmpty(startingSpell))
             {
                 //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
-                AddSpellToSpellList(startingSpell);
+                suppressSpellLoadSideEffects = true;
+                AddSpellToSpellList(startingSpell, applyLoadEffects: true);
+                suppressSpellLoadSideEffects = false;
                 startingSpellAdded = true;
             }
         }

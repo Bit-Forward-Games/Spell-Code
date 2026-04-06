@@ -2992,23 +2992,35 @@ public class PlayerController : MonoBehaviour
             RebuildSpellListFromSaved(savedSpells);
         }
 
-        // Deserialize spell state into matching instances
+        // Deserialize spell state by saved order so duplicate spell names restore deterministically.
         for (int i = 0; i < savedSpells.Count; i++)
         {
             string spellName = savedSpells[i].name;
             byte[] spellBytes = savedSpells[i].data;
-            SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
-            if (spellInstance != null)
+
+            if (i >= spellList.Count || spellList[i] == null)
             {
-                using (MemoryStream tempStream = new MemoryStream(spellBytes))
-                using (BinaryReader tempReader = new BinaryReader(tempStream))
-                {
-                    spellInstance.Deserialize(tempReader);
-                }
+                Debug.LogWarning($"Spell slot {i} missing while restoring '{spellName}' - skipped {spellBytes.Length} bytes");
+                continue;
             }
-            else
+
+            SpellData spellInstance = spellList[i];
+            if (spellInstance.spellName != spellName)
             {
-                Debug.LogWarning($"Spell '{spellName}' not found after rebuild - skipped {spellBytes.Length} bytes");
+                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected '{spellName}', found '{spellInstance.spellName}'. Rebuilding from saved order.");
+                RebuildSpellListFromSaved(savedSpells);
+                if (i >= spellList.Count || spellList[i] == null)
+                {
+                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for '{spellName}' - skipped {spellBytes.Length} bytes");
+                    continue;
+                }
+                spellInstance = spellList[i];
+            }
+
+            using (MemoryStream tempStream = new MemoryStream(spellBytes))
+            using (BinaryReader tempReader = new BinaryReader(tempStream))
+            {
+                spellInstance.Deserialize(tempReader);
             }
         }
     }

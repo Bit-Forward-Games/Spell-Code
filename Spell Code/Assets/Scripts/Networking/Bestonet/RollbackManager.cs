@@ -3,10 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using BestoNet.Collections; // Use BestoNet collections
 
     public class RollbackManager : MonoBehaviour
     {
+        private static bool IsStableGameplayHashFrame()
+        {
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                return false;
+            }
+
+            return SceneManager.GetActiveScene().name == "Gameplay";
+        }
+
         // --- Singleton Instance ---
         public static RollbackManager Instance { get; private set; }
         // --- End Singleton ---
@@ -282,7 +293,7 @@ using BestoNet.Collections; // Use BestoNet collections
                             ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
                             : 30; // Default: send hash every 30 frames
 
-                        if (syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                        if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
                         {
                             lastHashSentFrame = syncFrame;
 
@@ -680,6 +691,11 @@ using BestoNet.Collections; // Use BestoNet collections
 
     private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
+        if (!IsStableGameplayHashFrame())
+        {
+            return;
+        }
+
         int index = frame % StateArraySize;
         if (states[index].frame != frame || states[index].state == null)
         {

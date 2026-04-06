@@ -200,6 +200,11 @@ public class SFX_Manager : MonoBehaviour
             return;
         }
 
+        if (_playerIndex < 0 || _playerIndex >= _soundObject.audioSources.Length)
+        {
+            return;
+        }
+
         //sanity check to make sure that StartRepeatingSound was not already called for _soundName
         if (_soundObject.audioSources[_playerIndex].isPlaying == true)
         {
@@ -247,6 +252,11 @@ public class SFX_Manager : MonoBehaviour
             return;
         }
 
+        if (_playerIndex < 0 || _playerIndex >= _soundObject.audioSources.Length)
+        {
+            return;
+        }
+
         //sanity check to make sure that audioSource is real
         if (_soundObject.audioSources.Length > 0 && _soundObject.audioSources[_playerIndex] == null)
         {
@@ -271,6 +281,11 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_playerIndex"> Player index of player that is playing this sound. Note that player 1 is _playerIndex == 0 and so on</param>
     public void StopRepeatingPlayerSounds(int _playerIndex)
     {
+        if (_playerIndex < 0)
+        {
+            return;
+        }
+
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
         {

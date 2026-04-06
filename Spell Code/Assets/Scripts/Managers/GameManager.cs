@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
 
+    public SpriteRenderer shopImage;
+
 
     [NonSerialized]
     /// <summary>
@@ -175,7 +177,7 @@ public class GameManager : MonoBehaviour
             Instance = this;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
-            //Screen.SetResolution(1920,1080,true,60);
+            
         }
 
     }
@@ -1081,12 +1083,17 @@ public class GameManager : MonoBehaviour
         ///shop specific update
         if (activeScene.name == "Shop")
         {
+            shopImage.enabled = true;
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
             }
+        }
+        else
+        {
+            shopImage.enabled = false;
         }
 
 

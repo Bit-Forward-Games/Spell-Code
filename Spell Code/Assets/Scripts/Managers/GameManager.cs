@@ -175,7 +175,9 @@ public class GameManager : MonoBehaviour
             Instance = this;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
+            //Screen.SetResolution(1920,1080,true,60);
         }
+
     }
 
     public void ExecuteOrder66()

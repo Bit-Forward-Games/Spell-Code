@@ -791,6 +791,10 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Shop")
         {
+            for (int i = 0; i < playerCount; i++)
+            {
+                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+            }
             goDoorPrefab.CheckOpenDoor();
 
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
@@ -1090,6 +1094,10 @@ public class GameManager : MonoBehaviour
         ///shop specific update
         if (activeScene.name == "Shop")
         {
+            for (int i = 0; i < playerCount; i++)
+            {
+                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+            }
             shopImage.enabled = true;
             goDoorPrefab.CheckOpenDoor();
 
@@ -1450,7 +1458,7 @@ public class GameManager : MonoBehaviour
 
                         for (int i = 0; i < playerCount; i++)
                         {
-                            players[i].roundRam = 0;
+                            //players[i].roundRam = 0;
                             if (!isRollback)
                             {
                                 players[i].playerNum.enabled = false;

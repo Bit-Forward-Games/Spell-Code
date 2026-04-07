@@ -15,7 +15,10 @@ using BestoNet.Collections; // Use BestoNet collections
                 return false;
             }
 
-            return SceneManager.GetActiveScene().name == "Gameplay";
+            return SceneManager.GetActiveScene().name == "Gameplay"
+                && !GameManager.Instance.roundOver
+                && !GameManager.Instance.isTransitioning
+                && GameManager.Instance.currentStageIndex >= 0;
         }
 
         // --- Singleton Instance ---

@@ -443,11 +443,20 @@ using BestoNet.Collections; // Use BestoNet collections
 
             if (tooFarAheadOfSync && aheadOfRemote && !isRollbackFrame /* && !matchEnded */)
             {
-#if UNITY_EDITOR
-                Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame} (Diff > {MaxRollBackFrames}). Dropping frame.");
-#endif
-                lastDroppedFrame = currentFrame; // Record dropped frame
                 consecutiveDrop++; // Increment drop counter
+
+                // Avoid getting stuck in a permanent local freeze if the remote frame estimate
+                // stops advancing in a real network environment. After a short burst of drops,
+                // allow one simulation frame through and let rollback correct later.
+                if (consecutiveDrop > 2)
+                {
+                    Debug.LogWarning($"Frame Drop Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Allowing update to prevent stall.");
+                    consecutiveDrop = 0;
+                    return true;
+                }
+
+                Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Dropping frame.");
+                lastDroppedFrame = currentFrame; // Record dropped frame
                 return false; // Skip simulation this tick
             }
             // --- End Rollback Frame Dropping ---

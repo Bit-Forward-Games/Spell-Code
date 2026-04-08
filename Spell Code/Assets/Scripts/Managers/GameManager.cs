@@ -1883,7 +1883,6 @@ public class GameManager : MonoBehaviour
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -1925,7 +1924,6 @@ public class GameManager : MonoBehaviour
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };

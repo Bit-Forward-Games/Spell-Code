@@ -715,9 +715,26 @@ using BestoNet.Collections; // Use BestoNet collections
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
             {
+                string diag = BuildDesyncDiagnostics(frame);
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
-                LogDesyncDiagnostics(frame);
+                WriteDesyncTextReport(
+                    frame,
+                    localHash,
+                    remoteHash,
+                    remoteSharedHash,
+                    remoteProjectileHash,
+                    remotePlayer0Hash,
+                    remotePlayer1Hash,
+                    remotePlayer0CoreHash,
+                    remotePlayer1CoreHash,
+                    remotePlayer0SpellHash,
+                    remotePlayer1SpellHash,
+                    diag);
+                if (!string.IsNullOrEmpty(diag))
+                {
+                    Debug.LogError(diag);
+                }
             }
             firstHashMismatchFrame = frame;
         }
@@ -754,9 +771,58 @@ using BestoNet.Collections; // Use BestoNet collections
         Debug.LogError($"[DESYNC HASH] Wrote local hash-state dump: {path}");
     }
 
-    private void LogDesyncDiagnostics(int frame)
+    private void WriteDesyncTextReport(
+        int frame,
+        uint localHash,
+        uint remoteHash,
+        uint remoteSharedHash,
+        uint remoteProjectileHash,
+        uint remotePlayer0Hash,
+        uint remotePlayer1Hash,
+        uint remotePlayer0CoreHash,
+        uint remotePlayer1CoreHash,
+        uint remotePlayer0SpellHash,
+        uint remotePlayer1SpellHash,
+        string diag)
     {
         if (GameManager.Instance == null) return;
+
+        int index = frame % StateArraySize;
+        string dir = StressTestController.Instance != null
+            ? StressTestController.Instance.GetDumpDirectory()
+            : Application.persistentDataPath;
+
+        string fileName = $"desync_report_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+        string path = Path.Combine(dir, fileName);
+
+        List<string> lines = new List<string>
+        {
+            $"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}",
+            $"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}",
+            $"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}"
+        };
+
+        if (!string.IsNullOrEmpty(diag))
+        {
+            lines.Add(diag);
+        }
+
+        File.WriteAllLines(path, lines);
+        Debug.LogError($"[DESYNC HASH] Wrote desync report: {path}");
+    }
+
+    private void LogDesyncDiagnostics(int frame)
+    {
+        string diag = BuildDesyncDiagnostics(frame);
+        if (!string.IsNullOrEmpty(diag))
+        {
+            Debug.LogError(diag);
+        }
+    }
+
+    private string BuildDesyncDiagnostics(int frame)
+    {
+        if (GameManager.Instance == null) return string.Empty;
         var gm = GameManager.Instance;
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
@@ -766,32 +832,33 @@ using BestoNet.Collections; // Use BestoNet collections
 
         for (int i = 0; i < gm.playerCount; i++)
         {
-            var p = gm.players[i];
+            PlayerController p = gm.players[i];
             if (p == null) continue;
-            uint playerHash = ComputePlayerHash(p);
-            diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) " +
-                $"hp={p.currentPlayerHealth} state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} " +
-                $"logicFrame={p.logicFrame} flow={p.flowState} demon={p.demonAura} " +
-                $"isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                $"roundRam={p.roundRam} totalRam={p.totalRam} hash={playerHash}";
+            diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
+                    $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
+                    $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
+                    $"roundRam={p.roundRam} totalRam={p.totalRam} hash={ComputePlayerHash(p)}";
 
-            for (int spellIndex = 0; spellIndex < p.spellList.Count; spellIndex++)
+            for (int s = 0; s < p.spellList.Count; s++)
             {
-                SpellData spell = p.spellList[spellIndex];
+                SpellData spell = p.spellList[s];
                 if (spell == null) continue;
-                diag += $"\n    Spell{spellIndex}:{spell.spellName} hash={ComputeSpellHash(spell)}";
+                diag += $"\n    Spell{s}:{spell.spellName} hash={ComputeSpellHash(spell)}";
             }
         }
 
-        var activeProj = ProjectileManager.Instance.activeProjectiles;
-        diag += $"\n  ActiveProjectiles={activeProj.Count}";
-        foreach (var proj in activeProj)
+        var activeProjectiles = ProjectileManager.Instance.activeProjectiles
+            .OrderBy(proj => ProjectileManager.Instance.projectilePrefabs.IndexOf(proj))
+            .ToList();
+        diag += $"\n  ActiveProjectiles={activeProjectiles.Count}";
+        foreach (BaseProjectile projectile in activeProjectiles)
         {
-            diag += $"\n    {proj.projName}: pos=({proj.position.X.RawValue},{proj.position.Y.RawValue}) " +
-                $"frame={proj.logicFrame} owner={proj.owner?.pID} ignore=[{string.Join(",", proj.playerIgnoreArr)}]";
+            int ownerPid = projectile.owner != null ? projectile.owner.pID : -1;
+            string ignoreText = projectile.playerIgnoreArr != null ? string.Join(",", projectile.playerIgnoreArr) : "null";
+            diag += $"\n    {projectile.projName}: pos=({projectile.position.X.RawValue},{projectile.position.Y.RawValue}) frame={projectile.logicFrame} owner={ownerPid} ignore=[{ignoreText}]";
         }
 
-        Debug.LogError(diag);
+        return diag;
     }
 
     private uint ComputePlayerHash(PlayerController player)

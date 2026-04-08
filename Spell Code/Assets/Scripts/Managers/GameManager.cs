@@ -707,6 +707,8 @@ public class GameManager : MonoBehaviour
         if (localSceneTransitionReady && remoteSceneTransitionReady)
         {
             isTransitioning = false;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
         }
     }
 
@@ -1654,7 +1656,6 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = true;
             localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
             // Reset ready flags for next shop phase
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
@@ -1693,7 +1694,6 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = true;
             localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
         }
         else
         {
@@ -1775,7 +1775,6 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = true;
             localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
         }
 
         sceneManager.LoadScene("Gameplay");
@@ -1820,7 +1819,6 @@ public class GameManager : MonoBehaviour
         SetStage(stageIndex);
         isTransitioning = true;
         localSceneTransitionReady = false;
-        remoteSceneTransitionReady = false;
         sceneManager.LoadScene("Gameplay");
     }
 

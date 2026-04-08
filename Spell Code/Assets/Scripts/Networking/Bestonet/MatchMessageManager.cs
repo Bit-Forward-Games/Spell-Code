@@ -578,9 +578,9 @@ public class MatchMessageManager : MonoBehaviour
                     // Handle input packets
                     if (packetType == 0)
                     {
-                        if (GameManager.Instance != null && (GameManager.Instance.isWaitingForOpponent || GameManager.Instance.isTransitioning))
+                        if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
                         {
-                            Debug.LogWarning("Received input packet during wait/transition state - ignoring");
+                            Debug.LogWarning("Received input packet during wait state - ignoring");
                             return;
                         }
 

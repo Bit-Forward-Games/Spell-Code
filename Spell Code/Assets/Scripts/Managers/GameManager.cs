@@ -673,16 +673,15 @@ public class GameManager : MonoBehaviour
     // Receive lobby ready signal
     public void OnOpponentReadyForGameplay()
     {
-        if (isTransitioning)
-        {
-            remoteSceneTransitionReady = true;
-            CheckSceneTransitionReady();
-            return;
-        }
-
         //Debug.Log("Opponent is ready for gameplay transition");
         remotePlayerReadyForGameplay = true;
         CheckBothPlayersReadyForGameplay();
+    }
+
+    public void OnOpponentSceneTransitionReady()
+    {
+        remoteSceneTransitionReady = true;
+        CheckSceneTransitionReady();
     }
 
     // Check if both players are ready to transition
@@ -1912,7 +1911,7 @@ public class GameManager : MonoBehaviour
             localSceneTransitionReady = true;
             if (MatchMessageManager.Instance != null)
             {
-                MatchMessageManager.Instance.SendLobbyReadySignal();
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal();
             }
             CheckSceneTransitionReady();
         }
@@ -1947,7 +1946,7 @@ public class GameManager : MonoBehaviour
             localSceneTransitionReady = true;
             if (MatchMessageManager.Instance != null)
             {
-                MatchMessageManager.Instance.SendLobbyReadySignal();
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal();
             }
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()

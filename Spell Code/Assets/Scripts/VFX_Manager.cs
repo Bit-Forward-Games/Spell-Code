@@ -47,6 +47,50 @@ public class VFX_Manager : MonoBehaviour
     [SerializeField] private List<VisualEffectObject> playerVisualEffectObjects; //list of visual effects for players that the VFX Manager can play
     [SerializeField] private List<VisualEffectObject> spellVisualEffectObjects; //list of visual effects for spells that the VFX Manager can play
 
+    private bool TryGetVisualEffectObject(VisualEffects effectName, int playerNum, out VisualEffectObject visualEffectObject)
+    {
+        visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == effectName);
+        if (visualEffectObject == null)
+        {
+            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + effectName + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script.");
+            return false;
+        }
+
+        if (playerNum < 0 || playerNum >= DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT)
+        {
+            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + playerNum + "\" is not valid. Please make sure that _playerNum is either 0, 1, 2, 3, or 4");
+            return false;
+        }
+
+        if (visualEffectObject.particleSystems == null ||
+            playerNum >= visualEffectObject.particleSystems.Length ||
+            visualEffectObject.particleSystems[playerNum] == null ||
+            visualEffectObject.particleSystems[playerNum].Count == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private ParticleSystem GetFirstValidParticleSystem(List<ParticleSystem> particleSystems)
+    {
+        if (particleSystems == null)
+        {
+            return null;
+        }
+
+        foreach (ParticleSystem particleSystem in particleSystems)
+        {
+            if (particleSystem != null)
+            {
+                return particleSystem;
+            }
+        }
+
+        return null;
+    }
+
     void Awake()
     {
         //if there is an instance of VFX_Manager that is NOT this one,...
@@ -198,28 +242,10 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_particleLifetime"> How long (in seconds) each particle emitted by the particle system will last for. By default, set to -1 which indicates that the particles will last for their default lifetime.</param>
     public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f, float _particleLifetime = -1f)
     {
-        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
-        if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
+        if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script. Please specify a song that exists with playerVisualEffectObjects");
-
-            //return
             return;
         }
-
-        //sanity check to make sure that _playerNum is valid (always 0, 1, 2, 3, or 4)
-        if(_playerNum < 0 && _playerNum > 4)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + _playerNum + "\" is not valid. Please make sure thet _playerNum is either 0, 1, 2, 3, or 4");
-
-            //return
-            return;
-        }
-
-        //get visual effect object
-        VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
         //Debug.Log("PlayerNum = " + _playerNum + ". And particleSystems has size = " + _visualEffectObject.particleSystems.Length);
 
@@ -227,6 +253,10 @@ public class VFX_Manager : MonoBehaviour
         ParticleSystem _particleSystem = null;
         foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
         {
+            if (_listedParticleSystem == null)
+            {
+                continue;
+            }
             //if the particle system is NOT already playing,...
             if(!_listedParticleSystem.isPlaying)
             {
@@ -242,8 +272,11 @@ public class VFX_Manager : MonoBehaviour
         //if no available particle system was found,...
         if(_particleSystem == null)
         {
-            //use the first particle system
-            _particleSystem = _visualEffectObject.particleSystems[_playerNum][0];
+            _particleSystem = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
+            if (_particleSystem == null)
+            {
+                return;
+            }
         }
 
         //if _parentTransform has been specified,...
@@ -276,11 +309,16 @@ public class VFX_Manager : MonoBehaviour
         //if _emissionRate is not the garbage default value,...
         if (_emissionRate != -1f && _visualEffectObject.numParticleSystemsPerPlayer == 1)
         {
-            //get the emission modular from the particle system
-            var em = _visualEffectObject.particleSystems[_playerNum][0].emission;
+            ParticleSystem emissionTarget = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
+            if (emissionTarget == null)
+            {
+                return;
+            }
+
+            var em = emissionTarget.emission;
 
             //turn off emmision
-            _visualEffectObject.particleSystems[_playerNum][0].Stop();
+            emissionTarget.Stop();
             em.enabled = false;
 
             //set emission rate over time of the particle system to _emissionRate
@@ -304,32 +342,18 @@ public class VFX_Manager : MonoBehaviour
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {
-        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
-        if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
+        if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script. Please specify a song that exists with playerVisualEffectObjects");
-
-            //return
             return;
         }
-
-        //sanity check to make sure that _playerNum is valid (always 0, 1, 2, 3, or 4)
-        if (_playerNum < 0 && _playerNum > 4)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + _playerNum + "\" is not valid. Please make sure thet _playerNum is either 0, 1, 2, 3, or 4");
-
-            //return
-            return;
-        }
-
-        //get visual effect object
-        VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
         //for each particle system for this _nameOfVisualEffectToPlay and _playerNum,...
         foreach (ParticleSystem _particleSystem in _visualEffectObject.particleSystems[_playerNum])
         {
+            if (_particleSystem == null)
+            {
+                continue;
+            }
             //stop playing the particle effect
             _particleSystem.Stop();
         }
@@ -337,32 +361,18 @@ public class VFX_Manager : MonoBehaviour
 
     public bool IsVisualEffecyPlaying(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {
-        //sanity check to make sure that there is a visual effect with name equal to _nameOfVisualEffectToPlay that exists within playerVisualEffectObjects
-        if (playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay) == null)
+        if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + _nameOfVisualEffectToPlay + "\" does not exist within playerVisualEffectObjects of the VFX_Manager script. Please specify a song that exists with playerVisualEffectObjects");
-
-            //return false
             return false;
         }
-
-        //sanity check to make sure that _playerNum is valid (always 0, 1, 2, 3, or 4)
-        if (_playerNum < 0 && _playerNum > 4)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + _playerNum + "\" is not valid. Please make sure thet _playerNum is either 0, 1, 2, 3, or 4");
-
-            //return false
-            return false;
-        }
-
-        //get visual effect object
-        VisualEffectObject _visualEffectObject = playerVisualEffectObjects.Find(x => x.visualEffectName == _nameOfVisualEffectToPlay);
 
         //return true if any of the particle systems in question are playing
         foreach (ParticleSystem _particleSystem in _visualEffectObject.particleSystems[_playerNum])
         {
+            if (_particleSystem == null)
+            {
+                continue;
+            }
             if (_particleSystem.isPlaying)
             {
                 return true;

@@ -155,6 +155,8 @@ public class GameManager : MonoBehaviour
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
     public bool remotePlayerReadyForGameplay = false;
+    private bool localSceneTransitionReady = false;
+    private bool remoteSceneTransitionReady = false;
     [HideInInspector]
     public int p1_shopIndex = 0;
     [HideInInspector]
@@ -209,6 +211,8 @@ public class GameManager : MonoBehaviour
         isWaitingForOpponent = false;
         opponentIsReady = false;
         isTransitioning = false;
+        localSceneTransitionReady = false;
+        remoteSceneTransitionReady = false;
         frameNumber = 0;
 
         isRunning = true;
@@ -456,6 +460,8 @@ public class GameManager : MonoBehaviour
         isTransitioning = false;
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
+        localSceneTransitionReady = false;
+        remoteSceneTransitionReady = false;
 
         // Disable PlayerInputManager
         if (playerInputManager != null)
@@ -667,6 +673,13 @@ public class GameManager : MonoBehaviour
     // Receive lobby ready signal
     public void OnOpponentReadyForGameplay()
     {
+        if (isTransitioning)
+        {
+            remoteSceneTransitionReady = true;
+            CheckSceneTransitionReady();
+            return;
+        }
+
         //Debug.Log("Opponent is ready for gameplay transition");
         remotePlayerReadyForGameplay = true;
         CheckBothPlayersReadyForGameplay();
@@ -679,7 +692,22 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Both players ready - transitioning to Gameplay");
             isTransitioning = true;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
             LoadRandomGameplayStage();
+        }
+    }
+
+    private void CheckSceneTransitionReady()
+    {
+        if (!isTransitioning)
+        {
+            return;
+        }
+
+        if (localSceneTransitionReady && remoteSceneTransitionReady)
+        {
+            isTransitioning = false;
         }
     }
 
@@ -716,6 +744,8 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
 
             // Reset frame counter
             frameNumber = 0;
@@ -1624,6 +1654,8 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             isTransitioning = true;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
             // Reset ready flags for next shop phase
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
@@ -1661,6 +1693,8 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             isTransitioning = true;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
         }
         else
         {
@@ -1741,6 +1775,8 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             isTransitioning = true;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
         }
 
         sceneManager.LoadScene("Gameplay");
@@ -1784,6 +1820,8 @@ public class GameManager : MonoBehaviour
 
         SetStage(stageIndex);
         isTransitioning = true;
+        localSceneTransitionReady = false;
+        remoteSceneTransitionReady = false;
         sceneManager.LoadScene("Gameplay");
     }
 
@@ -1842,9 +1880,10 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
-            isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -1870,15 +1909,23 @@ public class GameManager : MonoBehaviour
             {
                 RollbackManager.Instance.SaveState();
             }
+
+            localSceneTransitionReady = true;
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendLobbyReadySignal();
+            }
+            CheckSceneTransitionReady();
         }
 
         // Handle shop scene loading for online
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
-            isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localSceneTransitionReady = false;
+            remoteSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -1899,6 +1946,12 @@ public class GameManager : MonoBehaviour
             {
                 RollbackManager.Instance.SaveState();
             }
+            localSceneTransitionReady = true;
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendLobbyReadySignal();
+            }
+            CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()
         }
     }

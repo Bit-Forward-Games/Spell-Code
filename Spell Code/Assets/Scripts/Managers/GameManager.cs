@@ -1850,6 +1850,11 @@ public class GameManager : MonoBehaviour
             syncedInput = new ulong[2] { 5, 5 };
             timeoutFrames = 0;
 
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.ResetFrameSyncForSceneTransition();
+            }
+
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.ClearVars();
@@ -1878,6 +1883,11 @@ public class GameManager : MonoBehaviour
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
             timeoutFrames = 0;
+
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.ResetFrameSyncForSceneTransition();
+            }
 
             if (RollbackManager.Instance != null)
             {

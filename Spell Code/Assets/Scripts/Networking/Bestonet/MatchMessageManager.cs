@@ -536,15 +536,25 @@ public class MatchMessageManager : MonoBehaviour
                     // Handle input packets
                     if (packetType == 0)
                     {
-                        if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
+                        if (GameManager.Instance != null && (GameManager.Instance.isWaitingForOpponent || GameManager.Instance.isTransitioning))
                         {
-                            Debug.LogWarning("Received input packet while still in lobby - ignoring");
+                            Debug.LogWarning("Received input packet during wait/transition state - ignoring");
                             return;
                         }
 
                         int remoteFrameAdvantage = reader.ReadInt32();
                         int startFrame = reader.ReadInt32();
                         int inputCount = reader.ReadByte();
+
+                        if (GameManager.Instance != null)
+                        {
+                            int currentLocalFrame = GameManager.Instance.frameNumber;
+                            if (currentLocalFrame < 60 && startFrame > currentLocalFrame + 60)
+                            {
+                                Debug.LogWarning($"Ignoring stale input packet after scene transition. LocalFrame={currentLocalFrame}, StartFrame={startFrame}, Count={inputCount}");
+                                return;
+                            }
+                        }
 
                         //Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
 
@@ -595,6 +605,14 @@ public class MatchMessageManager : MonoBehaviour
         localReadySent = false;
         remoteReadyReceived = false;
         highestRemoteFrameSeen = -1;
+    }
+
+    public void ResetFrameSyncForSceneTransition()
+    {
+        highestRemoteFrameSeen = -1;
+        sentFrameTimes.Clear();
+        outboundQueue.Clear();
+        inboundQueue.Clear();
     }
 
     private void ProcessACK(int frame)

@@ -53,8 +53,8 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
-  spriteExtrude: 1
-  spriteMeshType: 1
+  spriteExtrude: 3
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 3
@@ -162,9 +162,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 2000
         width: 285
-        height: 855
+        height: 1000
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -183,10 +183,10 @@ TextureImporter:
       name: FightSign-Sheet_1
       rect:
         serializedVersion: 2
-        x: 285
-        y: 0
+        x: 0
+        y: 1000
         width: 285
-        height: 855
+        height: 1000
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -205,10 +205,10 @@ TextureImporter:
       name: FightSign-Sheet_2
       rect:
         serializedVersion: 2
-        x: 570
-        y: 0
+        x: 285
+        y: 1000
         width: 285
-        height: 855
+        height: 1000
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -219,6 +219,138 @@ TextureImporter:
       bones: []
       spriteID: 14487e1cdcbb36d60800000000000000
       internalID: 7882350265224365121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 570
+        y: 1000
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 36f864b2c95363345a37f5d372594846
+      internalID: 1146024725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 1000
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1aceeb0f994bb774e94e612ad201cf36
+      internalID: -1938526497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb381b0f6bd96994fa129365dc0d5de1
+      internalID: -1443012108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 0
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04a20f780697b1545b43e04878d62ee5
+      internalID: -234375146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 570
+        y: 0
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 455035d0a4200034ebd0b920d8ff31f2
+      internalID: 1394430181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: FightSign-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 0
+        width: 285
+        height: 1000
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a71955bcecfb8044abd92f79caf82845
+      internalID: 1778476882
       vertices: []
       indices: 
       edges: []
@@ -240,6 +372,12 @@ TextureImporter:
       FightSign-Sheet_0: 8532629486874678165
       FightSign-Sheet_1: 2255652988862163399
       FightSign-Sheet_2: 7882350265224365121
+      FightSign-Sheet_3: 1146024725
+      FightSign-Sheet_4: -1938526497
+      FightSign-Sheet_5: -1443012108
+      FightSign-Sheet_6: -234375146
+      FightSign-Sheet_7: 1394430181
+      FightSign-Sheet_8: 1778476882
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

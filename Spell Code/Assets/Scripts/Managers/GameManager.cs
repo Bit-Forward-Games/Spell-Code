@@ -1962,6 +1962,7 @@ public class GameManager : MonoBehaviour
                 RollbackManager.Instance.ClearVars();
             }
 
+            InitializeOnlineShopSceneState();
             ResetPlayers();
             if (RollbackManager.Instance != null)
             {
@@ -1984,6 +1985,30 @@ public class GameManager : MonoBehaviour
             tempMapGOs[i].SetActive(false);
         }
         lobbyMapGO.SetActive(false);
+    }
+
+    private void InitializeOnlineShopSceneState()
+    {
+        foreach (GameObject gambaGO in gambas)
+        {
+            if (gambaGO == null) continue;
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba == null) continue;
+
+            gamba.resetTimer = 0;
+            gamba.activatedCount = 0;
+            if (gamba.gambaAnimator != null)
+            {
+                gamba.gambaAnimator.SetBool("isActive", true);
+            }
+        }
+
+        foreach (SpellCode_Gate gate in gates)
+        {
+            if (gate == null) continue;
+            gate.isOpen = false;
+            gate.SetOpen(false);
+        }
     }
 
     public void SetMenuActive(bool isActive)

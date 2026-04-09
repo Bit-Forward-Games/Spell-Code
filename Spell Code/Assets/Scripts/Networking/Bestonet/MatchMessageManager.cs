@@ -21,6 +21,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
     private const byte PACKET_TYPE_SCENE_READY = 11; // For post-scene-load transition barrier
+    private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
@@ -378,6 +379,37 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    public void SendShopTransitionSignal()
+    {
+        if (!opponentSteamId.IsValid || !isRunning)
+        {
+            Debug.LogWarning("Cannot send shop transition signal - not connected");
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(memoryStream))
+                {
+                    writer.Write(PACKET_TYPE_SHOP_TRANSITION);
+                    byte[] data = memoryStream.ToArray();
+
+                    bool success = SendPacket(data, P2PSend.Reliable);
+                    if (!success)
+                    {
+                        Debug.LogError("Failed to send SHOP_TRANSITION signal");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending shop transition signal: {e}");
+        }
+    }
+
     public void StartMatch(SteamId opponentId)
     {
         //Debug.Log($"StartMatch called with opponent: {opponentId}");
@@ -571,6 +603,15 @@ public class MatchMessageManager : MonoBehaviour
                         if (GameManager.Instance != null)
                         {
                             GameManager.Instance.OnOpponentSceneTransitionReady();
+                        }
+                        return;
+                    }
+
+                    if (packetType == PACKET_TYPE_SHOP_TRANSITION)
+                    {
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.OnOpponentShopTransition();
                         }
                         return;
                     }

@@ -1654,16 +1654,42 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
-            isTransitioning = true;
-            localSceneTransitionReady = false;
-            // Reset ready flags for next shop phase
-            localPlayerReadyForGameplay = false;
-            remotePlayerReadyForGameplay = false;
+            if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendShopTransitionSignal();
+            }
+            BeginOnlineShopTransition();
+            return;
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();
+    }
+
+    private void BeginOnlineShopTransition()
+    {
+        if (isTransitioning && SceneManager.GetActiveScene().name == "Shop")
+        {
+            return;
+        }
+
+        isTransitioning = true;
+        localSceneTransitionReady = false;
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
+        sceneManager.LoadScene("Shop");
+        SetStage(-1);
+    }
+
+    public void OnOpponentShopTransition()
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        BeginOnlineShopTransition();
     }
 
     /// <summary>

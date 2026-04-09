@@ -1855,6 +1855,8 @@ public class GameManager : MonoBehaviour
     {
         //Debug.Log($"Scene loaded: {scene.name}");
 
+        RefreshSceneObjectReferences();
+
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         int roundsPlayed = 0;
@@ -2008,6 +2010,26 @@ public class GameManager : MonoBehaviour
             if (gate == null) continue;
             gate.isOpen = false;
             gate.SetOpen(false);
+        }
+    }
+
+    private void RefreshSceneObjectReferences()
+    {
+        GambaMachine[] sceneGambas = FindObjectsByType<GambaMachine>(FindObjectsSortMode.None);
+        if (sceneGambas != null && sceneGambas.Length > 0)
+        {
+            gambas = sceneGambas
+                .OrderBy(gamba => gamba.ownerPID)
+                .Select(gamba => gamba.gameObject)
+                .ToList();
+        }
+
+        SpellCode_Gate[] sceneGates = FindObjectsByType<SpellCode_Gate>(FindObjectsSortMode.None);
+        if (sceneGates != null && sceneGates.Length > 0)
+        {
+            gates = sceneGates
+                .OrderBy(gate => gate.name, StringComparer.Ordinal)
+                .ToArray();
         }
     }
 

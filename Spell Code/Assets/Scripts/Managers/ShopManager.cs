@@ -65,10 +65,29 @@ public class ShopManager : MonoBehaviour
         gameManager = GameManager.Instance;
         dataManager = DataManager.Instance;
 
-        foreach (GameObject gamba in gameManager.gambas)
+        if (gameManager != null && gameManager.isOnlineMatchActive)
         {
-            gamba.GetComponent<GambaMachine>().activatedCount = 0;
-            gamba.GetComponent<GambaMachine>().gambaAnimator.SetBool("isActive", true);
+            foreach (GameObject gamba in gameManager.gambas)
+            {
+                if (gamba == null) continue;
+
+                GambaMachine gambaMachine = gamba.GetComponent<GambaMachine>();
+                if (gambaMachine == null) continue;
+
+                bool hasActiveOwner = gambaMachine.ownerPID > 0
+                    && gambaMachine.ownerPID <= gameManager.playerCount
+                    && gameManager.players[gambaMachine.ownerPID - 1] != null;
+                int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
+                bool ownerCanUseShop = hasActiveOwner
+                    && gameManager.players[gambaMachine.ownerPID - 1].spellList != null
+                    && gameManager.players[gambaMachine.ownerPID - 1].spellList.Count < roundsPlayed + 1;
+
+                gambaMachine.activatedCount = ownerCanUseShop ? 0 : 3;
+                if (gambaMachine.gambaAnimator != null)
+                {
+                    gambaMachine.gambaAnimator.SetBool("isActive", ownerCanUseShop);
+                }
+            }
         }
 
         foreach (SpellCode_Gate gate in gameManager.gates) { gate.isOpen = false; }

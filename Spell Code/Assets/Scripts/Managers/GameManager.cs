@@ -92,6 +92,7 @@ public class GameManager : MonoBehaviour
     private bool roundEndUIShown = false;
     private int lastRoundWinnerPID = -1;
     private bool roundTransitionPending = false;
+    private bool onlineRoundAdvanceApplied = false;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -437,8 +438,9 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        foreach (GameObject gambaGO in gambas)
+        foreach (GameObject gambaGO in GetValidGambaObjects())
         {
+            if (gambaGO == null) continue;
             GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
             if (gamba != null)
             {
@@ -799,6 +801,22 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
     }
 
+    private List<GameObject> GetValidGambaObjects(bool refreshIfNeeded = false)
+    {
+        if (gambas == null)
+        {
+            gambas = new List<GameObject>();
+        }
+
+        if (refreshIfNeeded && (gambas.Count == 0 || gambas.Any(gambaGO => gambaGO == null)))
+        {
+            RefreshSceneObjectReferences();
+        }
+
+        gambas = gambas.Where(gambaGO => gambaGO != null).ToList();
+        return gambas;
+    }
+
     public void UpdateSceneLogic(ulong[] inputs)
     {
         Scene activeScene = SceneManager.GetActiveScene();
@@ -829,8 +847,9 @@ public class GameManager : MonoBehaviour
             goDoorPrefab.CheckOpenDoor();
 
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
-            foreach (GameObject gambaGO in gambas)
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
             {
+                if (gambaGO == null) continue;
                 GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
                 if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, isRollback);
             }
@@ -930,8 +949,9 @@ public class GameManager : MonoBehaviour
             //    onboardManager.OnboardUpdate(syncedInput);
 
             // Drive gamba machines through synced simulation (must run during rollback for RNG consistency)
-            foreach (GameObject gambaGO in gambas)
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
             {
+                if (gambaGO == null) continue;
                 GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
                 if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, rbManager.isRollbackFrame);
             }
@@ -1003,7 +1023,7 @@ public class GameManager : MonoBehaviour
         if (gameOver)
         {
             playerWinText.enabled = false;
-            dataManager.totalRoundsPlayed += 1;
+            AdvanceRoundCountOnce();
             GameEnd();
             roundOver = false;
             roundEndUIShown = false;
@@ -1013,7 +1033,7 @@ public class GameManager : MonoBehaviour
         }
 
         playerWinText.enabled = false;
-        dataManager.totalRoundsPlayed += 1;
+        AdvanceRoundCountOnce();
 
         bool hasMaxSpells = playerCount > 0
             && players[0] != null
@@ -1689,7 +1709,33 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        AdvanceRoundCountOnce();
         BeginOnlineShopTransition();
+    }
+
+    private void AdvanceRoundCountOnce()
+    {
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager == null)
+        {
+            return;
+        }
+
+        if (isOnlineMatchActive)
+        {
+            if (onlineRoundAdvanceApplied)
+            {
+                return;
+            }
+
+            onlineRoundAdvanceApplied = true;
+        }
+
+        dataManager.totalRoundsPlayed += 1;
     }
 
     /// <summary>
@@ -1905,6 +1951,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
+            onlineRoundAdvanceApplied = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localSceneTransitionReady = false;
@@ -1991,17 +2038,24 @@ public class GameManager : MonoBehaviour
 
     private void InitializeOnlineShopSceneState()
     {
-        foreach (GameObject gambaGO in gambas)
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
         {
             if (gambaGO == null) continue;
             GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
             if (gamba == null) continue;
 
             gamba.resetTimer = 0;
-            gamba.activatedCount = 0;
+            bool hasActiveOwner = gamba.ownerPID > 0 && gamba.ownerPID <= playerCount && players[gamba.ownerPID - 1] != null;
+            int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
+            bool ownerCanUseShop = hasActiveOwner
+                && players[gamba.ownerPID - 1].spellList != null
+                && players[gamba.ownerPID - 1].spellList.Count < roundsPlayed + 1;
+
+            gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
+            gamba.activatedCount = ownerCanUseShop ? 0 : 3;
             if (gamba.gambaAnimator != null)
             {
-                gamba.gambaAnimator.SetBool("isActive", true);
+                gamba.gambaAnimator.SetBool("isActive", ownerCanUseShop);
             }
         }
 
@@ -2016,21 +2070,19 @@ public class GameManager : MonoBehaviour
     private void RefreshSceneObjectReferences()
     {
         GambaMachine[] sceneGambas = FindObjectsByType<GambaMachine>(FindObjectsSortMode.None);
-        if (sceneGambas != null && sceneGambas.Length > 0)
-        {
-            gambas = sceneGambas
-                .OrderBy(gamba => gamba.ownerPID)
-                .Select(gamba => gamba.gameObject)
-                .ToList();
-        }
+        gambas = sceneGambas?
+            .Where(gamba => gamba != null && gamba.gameObject != null)
+            .OrderBy(gamba => gamba.ownerPID)
+            .Select(gamba => gamba.gameObject)
+            .ToList()
+            ?? new List<GameObject>();
 
         SpellCode_Gate[] sceneGates = FindObjectsByType<SpellCode_Gate>(FindObjectsSortMode.None);
-        if (sceneGates != null && sceneGates.Length > 0)
-        {
-            gates = sceneGates
-                .OrderBy(gate => gate.name, StringComparer.Ordinal)
-                .ToArray();
-        }
+        gates = sceneGates?
+            .Where(gate => gate != null)
+            .OrderBy(gate => gate.name, StringComparer.Ordinal)
+            .ToArray()
+            ?? Array.Empty<SpellCode_Gate>();
     }
 
     public void SetMenuActive(bool isActive)
@@ -2196,9 +2248,18 @@ public class GameManager : MonoBehaviour
                         if (gate != null) gate.Serialize(bw);
                     }
 
-                    bw.Write(gambas.Count);
-                    foreach (GameObject gambaGO in gambas)
+                    List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
+                    bw.Write(validGambas.Count);
+                    foreach (GameObject gambaGO in validGambas)
                     {
+                        if (gambaGO == null)
+                        {
+                            bw.Write(0);
+                            bw.Write((byte)0);
+                            bw.Write(0);
+                            bw.Write(false);
+                            continue;
+                        }
                         GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
                         // Write defaults if somehow null, so byte count stays consistent
                         bw.Write(gamba != null ? gamba.activatedCount : 0);

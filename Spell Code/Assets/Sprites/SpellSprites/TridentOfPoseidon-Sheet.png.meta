@@ -55,7 +55,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -69,7 +69,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -93,7 +93,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -173,12 +173,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 206
-        width: 59
-        height: 47
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 140
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -195,12 +195,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_1
       rect:
         serializedVersion: 2
-        x: 99
-        y: 193
-        width: 76
-        height: 53
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 92
+        y: 140
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -217,12 +217,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_2
       rect:
         serializedVersion: 2
-        x: 233
-        y: 142
-        width: 43
-        height: 98
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 184
+        y: 140
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -239,12 +239,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_3
       rect:
         serializedVersion: 2
-        x: 63
-        y: 6
-        width: 22
-        height: 89
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -261,12 +261,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_4
       rect:
         serializedVersion: 2
-        x: 155
-        y: 5
-        width: 22
-        height: 89
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 92
+        y: 0
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -283,12 +283,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_5
       rect:
         serializedVersion: 2
-        x: 247
-        y: 6
-        width: 22
-        height: 89
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 184
+        y: 0
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -305,12 +305,12 @@ TextureImporter:
       name: TridentOfPoseidon-Sheet_6
       rect:
         serializedVersion: 2
-        x: 339
-        y: 7
-        width: 22
-        height: 89
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 276
+        y: 0
+        width: 92
+        height: 140
+      alignment: 9
+      pivot: {x: 0.8043478, y: 0.4}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -327,7 +327,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 361e79061f385d14bb62243ba6875afa
     internalID: 0
     vertices: []
     indices: 

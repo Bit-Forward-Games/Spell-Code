@@ -2770,6 +2770,9 @@ public class PlayerController : MonoBehaviour
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+        bw.Write(tapJump);
+        bw.Write(jumpCount);
+        bw.Write(maxJumpCount);
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
@@ -2878,6 +2881,9 @@ public class PlayerController : MonoBehaviour
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+        bw.Write(tapJump);
+        bw.Write(jumpCount);
+        bw.Write(maxJumpCount);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -2965,6 +2971,9 @@ public class PlayerController : MonoBehaviour
         demonAura = br.ReadUInt16();
         demonAuraLifeSpanTimer = br.ReadUInt16();
         reps = br.ReadUInt16();
+        tapJump = br.ReadBoolean();
+        jumpCount = br.ReadByte();
+        maxJumpCount = br.ReadByte();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();

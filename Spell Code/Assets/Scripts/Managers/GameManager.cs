@@ -154,6 +154,8 @@ public class GameManager : MonoBehaviour
     public int randomCallCount = 0;
     private uint rngState = 0;
     private uint stageRngState;
+    public uint CurrentRngState => rngState;
+    public uint CurrentStageRngState => stageRngState;
 
     [Header("Debug")]
     public bool logDesyncTrace = false;

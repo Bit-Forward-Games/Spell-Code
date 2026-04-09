@@ -836,8 +836,9 @@ using BestoNet.Collections; // Use BestoNet collections
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
             $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
-            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} " +
+            $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} rngState={gm.CurrentRngState} stageRngState={gm.CurrentStageRngState} " +
             $"sharedHash={ComputeSharedGameplayHash(gm)} projectileHash={ComputeProjectileHash()}";
+        diag += $"\n  DamageMatrix=[{FormatDamageMatrix(gm.damageMatrix)}]";
 
         for (int i = 0; i < gm.playerCount; i++)
         {
@@ -868,6 +869,29 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         return diag;
+    }
+
+    private string FormatDamageMatrix(byte[,] matrix)
+    {
+        if (matrix == null)
+        {
+            return "null";
+        }
+
+        List<string> rows = new List<string>();
+        int rowCount = matrix.GetLength(0);
+        int colCount = matrix.GetLength(1);
+        for (int i = 0; i < rowCount; i++)
+        {
+            List<string> cols = new List<string>();
+            for (int j = 0; j < colCount; j++)
+            {
+                cols.Add(matrix[i, j].ToString());
+            }
+            rows.Add(string.Join(",", cols));
+        }
+
+        return string.Join(" | ", rows);
     }
 
     private uint ComputePlayerHash(PlayerController player)

@@ -514,6 +514,7 @@ public class PlayerController : MonoBehaviour
                 case "Coin Toss":
                 case "Get A Job":
                 case "Penny Stock Peddler":
+                case "Cash Out":
                     totalStockStability += 10;
                     break;
             }

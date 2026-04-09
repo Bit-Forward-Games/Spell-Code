@@ -65,7 +65,7 @@ public class ShopManager : MonoBehaviour
         gameManager = GameManager.Instance;
         dataManager = DataManager.Instance;
 
-        if (gameManager != null && gameManager.isOnlineMatchActive)
+        if (gameManager != null)
         {
             foreach (GameObject gamba in gameManager.gambas)
             {
@@ -83,6 +83,7 @@ public class ShopManager : MonoBehaviour
                     && gameManager.players[gambaMachine.ownerPID - 1].spellList.Count < roundsPlayed + 1;
 
                 gambaMachine.activatedCount = ownerCanUseShop ? 0 : 3;
+                gambaMachine.ownerPlayer = hasActiveOwner ? gameManager.players[gambaMachine.ownerPID - 1] : null;
                 if (gambaMachine.gambaAnimator != null)
                 {
                     gambaMachine.gambaAnimator.SetBool("isActive", ownerCanUseShop);

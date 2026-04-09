@@ -10,20 +10,20 @@ using DG.Tweening.Core.Easing;
 
 public class TrickshotAlley_prj : BaseProjectile
 {
-    public const int slowSpeed = 2;
+    public const int slowSpeed = 1;
     public const int fastSpeed = 6;
 
-    public const int highBounce = 5;
+    public const int highBounce = 6;
     public const int lowBounce = 2;
 
     public byte bounceCount = 0;
     
     public HurtboxData hurtbox = new HurtboxData
     {
-        xOffset = -10,
-        yOffset = 10,
-        width =20,
-        height = 20,
+        xOffset = -12,
+        yOffset = 12,
+        width =24,
+        height = 24,
     };
     protected override void InitializeDefaults()
     {
@@ -32,7 +32,7 @@ public class TrickshotAlley_prj : BaseProjectile
         vSpeed = Fixed.FromInt(0);
         lifeSpan = 600; // lasts for 120 logic frames
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5,}, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -57,10 +57,10 @@ public class TrickshotAlley_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -8,
-                    yOffset = 8,
-                    width =16,
-                    height = 16,
+                    xOffset = -12,
+                    yOffset = 12,
+                    width =24,
+                    height = 24,
                     xKnockback = 4,
                     yKnockback = 4,
                     damage = 15,
@@ -78,10 +78,10 @@ public class TrickshotAlley_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -8,
-                    yOffset = 8,
-                    width =16,
-                    height = 16,
+                    xOffset = -12,
+                    yOffset = 12,
+                    width =24,
+                    height = 24,
                     xKnockback = 5,
                     yKnockback = 5,
                     damage = 20,
@@ -100,11 +100,11 @@ public class TrickshotAlley_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        
+        ProcessTrickshotCollisisons();
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(16).Sum() || logicFrame >= animFrames.frameLengths.Sum()|| bounceCount >=3)
+        if (logicFrame == animFrames.frameLengths.Take(16).Sum() || logicFrame >= animFrames.frameLengths.Sum()|| bounceCount >=6)
         {
             bounceCount = 0; //reset bounce count for safety in case of any weird edge cases with the projectile sticking around after the end of the animation
             ProjectileManager.Instance.DeleteProjectile(this);
@@ -113,8 +113,8 @@ public class TrickshotAlley_prj : BaseProjectile
 
         activeHitboxGroupIndex = (byte)(logicFrame > animFrames.frameLengths.Take(16).Sum()? 1:0);
         
-        vSpeed -= owner.gravity/Fixed.FromFloat(2f); // Apply gravity to the vertical speed
-        if(owner.flowState > 0)
+        vSpeed -= owner.gravity/Fixed.FromFloat(4f); // Apply gravity to the vertical speed
+        if(owner.flowState > 0 && logicFrame > animFrames.frameLengths.Take(16).Sum())
         {
             CheckStageDataSOCollision();
             
@@ -124,7 +124,7 @@ public class TrickshotAlley_prj : BaseProjectile
     public void ProcessTrickshotCollisisons()
     {
         List<BaseProjectile> myProjectiles = ProjectileManager.Instance.activeProjectiles
-        .Where(projectile => projectile != null && projectile.owner == owner)
+        .Where(projectile => projectile != null && projectile.owner == owner && projectile != this)
         .ToList();
 
         foreach(BaseProjectile proj in myProjectiles)
@@ -192,6 +192,7 @@ public class TrickshotAlley_prj : BaseProjectile
                         continue;
                     }
                     bounceCount++;
+                    logicFrame = enhanced? animFrames.frameLengths.Take(16).Sum()+1:0;
                     //Check if owner is in flowstate, and if not, just delete the projectile
                     if(owner.flowState <= 0)
                     {

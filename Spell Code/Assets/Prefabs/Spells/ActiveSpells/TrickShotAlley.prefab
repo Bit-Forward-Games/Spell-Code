@@ -45,8 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projectilePrefabs:
-  - {fileID: 6525691430353523285}
+  - {fileID: 7323394407539773554, guid: 81b319da4b8624f4a95d8c0d74ae14d3, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 0}
-  notReadyIcon: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: 8f33ec60125e52745bf1f598a189defe, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 4e68493251df99644bc07927dff7af0e, type: 3}

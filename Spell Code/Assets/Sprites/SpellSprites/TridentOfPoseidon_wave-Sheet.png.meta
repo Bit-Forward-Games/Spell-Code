@@ -165,7 +165,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 32
         width: 32
         height: 32
       alignment: 7
@@ -187,7 +187,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 32
-        y: 0
+        y: 32
         width: 32
         height: 32
       alignment: 7
@@ -209,7 +209,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 64
-        y: 0
+        y: 32
         width: 32
         height: 32
       alignment: 7
@@ -231,7 +231,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 96
-        y: 0
+        y: 32
         width: 32
         height: 32
       alignment: 7
@@ -244,6 +244,94 @@ TextureImporter:
       bones: []
       spriteID: f5cf28dc4bfa774c0800000000000000
       internalID: -4289766928970220449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TridentOfPoseidon_wave-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0885214ec22977c4d80c76e12a262fca
+      internalID: -579601569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TridentOfPoseidon_wave-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f67786d347c14a4d9aefa7c91a5da40
+      internalID: 1372321539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TridentOfPoseidon_wave-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92ba529545d432b41b643f92194481f8
+      internalID: -839029155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TridentOfPoseidon_wave-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9345f1a23252e80469fcd9c5257955ed
+      internalID: -1674986390
       vertices: []
       indices: 
       edges: []
@@ -266,6 +354,10 @@ TextureImporter:
       TridentOfPoseidon_wave-Sheet_1: 5650278726632927090
       TridentOfPoseidon_wave-Sheet_2: 8147027918734014566
       TridentOfPoseidon_wave-Sheet_3: -4289766928970220449
+      TridentOfPoseidon_wave-Sheet_4: -579601569
+      TridentOfPoseidon_wave-Sheet_5: 1372321539
+      TridentOfPoseidon_wave-Sheet_6: -839029155
+      TridentOfPoseidon_wave-Sheet_7: -1674986390
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

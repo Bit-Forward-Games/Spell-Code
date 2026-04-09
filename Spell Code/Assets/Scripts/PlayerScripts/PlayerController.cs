@@ -216,7 +216,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
-    public bool basicSpawnOverride = false; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
+    public string basicSpawnOverride = ""; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -410,7 +410,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         lightArmor = false;
-        basicSpawnOverride = false;
+        basicSpawnOverride = "";
         isHit = false;
         hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
@@ -703,76 +703,76 @@ public class PlayerController : MonoBehaviour
     /// Gets keyboard input directly using Unity's old Input API.
     /// This bypasses the Input System entirely.
     /// </summary>
-    private ulong GetRawKeyboardInput()
-    {
-        // DEBUG: Check if ANY key is being pressed
-        if (UnityEngine.Input.anyKey)
-        {
-            //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
-            // Log specific keys
-            //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
-            //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
-            //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
-            //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
-        }
+    // private ulong GetRawKeyboardInput()
+    // {
+    //     // DEBUG: Check if ANY key is being pressed
+    //     if (UnityEngine.Input.anyKey)
+    //     {
+    //         //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+    //         // Log specific keys
+    //         //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+    //         //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+    //         //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+    //         //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+    //     }
 
-        // Direction input (using numpad notation: 5 = neutral)
-        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+    //     // Direction input (using numpad notation: 5 = neutral)
+    //     bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+    //     bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+    //     bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+    //     bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Button states (need to track previous state for Pressed/Released detection)
-        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+    //     // Button states (need to track previous state for Pressed/Released detection)
+    //     bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+    //     bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Store previous button states (you might need to add these as class fields)
-        bool codePrev = codePrevFrame;
-        bool jumpPrev = jumpPrevFrame;
+    //     // Store previous button states (you might need to add these as class fields)
+    //     bool codePrev = codePrevFrame;
+    //     bool jumpPrev = jumpPrevFrame;
 
-        // Update for next frame
-        codePrevFrame = codeNow;
-        jumpPrevFrame = jumpNow;
+    //     // Update for next frame
+    //     codePrevFrame = codeNow;
+    //     jumpPrevFrame = jumpNow;
 
-        // Calculate direction (numpad notation)
-        byte direction = 5; // neutral
+    //     // Calculate direction (numpad notation)
+    //     byte direction = 5; // neutral
 
-        if (up && right) direction = 9;
-        else if (up && left) direction = 7;
-        else if (down && right) direction = 3;
-        else if (down && left) direction = 1;
-        else if (up) direction = 8;
-        else if (down) direction = 2;
-        else if (left) direction = 4;
-        else if (right) direction = 6;
+    //     if (up && right) direction = 9;
+    //     else if (up && left) direction = 7;
+    //     else if (down && right) direction = 3;
+    //     else if (down && left) direction = 1;
+    //     else if (up) direction = 8;
+    //     else if (down) direction = 2;
+    //     else if (left) direction = 4;
+    //     else if (right) direction = 6;
 
-        // Calculate button states
-        ButtonState codeState = GetButtonState(codePrev, codeNow);
-        ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
+    //     // Calculate button states
+    //     ButtonState codeState = GetButtonState(codePrev, codeNow);
+    //     ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
 
-        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-        bool[] dirs = new bool[4] { up, down, left, right };
+    //     ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+    //     bool[] dirs = new bool[4] { up, down, left, right };
 
-        //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+    //     //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
 
-        // Convert to ulong using your existing converter
-        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    }
+    //     // Convert to ulong using your existing converter
+    //     return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    // }
 
-    private bool codePrevFrame = false;
-    private bool jumpPrevFrame = false;
+    // private bool codePrevFrame = false;
+    // private bool jumpPrevFrame = false;
 
-    private ButtonState GetButtonState(bool previous, bool current)
-    {
-        if (!previous && !current)
-            return ButtonState.None;
-        else if (current && !previous)
-            return ButtonState.Pressed;
-        else if (current && previous)
-            return ButtonState.Held;
-        else
-            return ButtonState.Released;
-    }
+    // private ButtonState GetButtonState(bool previous, bool current)
+    // {
+    //     if (!previous && !current)
+    //         return ButtonState.None;
+    //     else if (current && !previous)
+    //         return ButtonState.Pressed;
+    //     else if (current && previous)
+    //         return ButtonState.Held;
+    //     else
+    //         return ButtonState.Released;
+    // }
 
     public void PlayerUpdate(ulong rawInput)
     {
@@ -1472,7 +1472,7 @@ public class PlayerController : MonoBehaviour
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
 
-                    if (!basicSpawnOverride)
+                    if (basicSpawnOverride == "")
                     {
                         //create an instance of your basic spell here
                         BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
@@ -1481,7 +1481,7 @@ public class PlayerController : MonoBehaviour
                     }
                     else
                     {
-                        basicSpawnOverride = false;
+                        basicSpawnOverride = "";
                     }
 
                         //basic spell is fired
@@ -2928,7 +2928,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
-        basicSpawnOverride = br.ReadBoolean();
+        basicSpawnOverride = br.ReadString();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();

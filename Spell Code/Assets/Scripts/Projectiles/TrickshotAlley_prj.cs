@@ -131,7 +131,7 @@ public class TrickshotAlley_prj : BaseProjectile
         {
             if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, facingRight))
             {
-                hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * fastSpeed); 
+                hSpeed = Fixed.FromInt((proj.facingRight ? 1 : -1) * fastSpeed); 
                 vSpeed = Fixed.FromInt(lowBounce); 
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
             }

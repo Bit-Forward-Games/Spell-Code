@@ -33,10 +33,10 @@ public class AbaddonUppercut_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -10,
+                    xOffset = -30,
                     yOffset = 42,
-                    width = 25*2,
-                    height = 34*2,
+                    width = 35*2,
+                    height = 42*2,
                     xKnockback = 1,
                     yKnockback = 10,
                     damage = 15,

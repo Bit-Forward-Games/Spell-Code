@@ -115,6 +115,8 @@ public class GameManager : MonoBehaviour
     [Header("Online UI")]
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
+    public GameObject networkInfo;
+    public TextMeshProUGUI networkInfoText;
 
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
@@ -234,6 +236,15 @@ public class GameManager : MonoBehaviour
 
 
         SetStage(-1);
+
+        if (isOnlineMatchActive)
+        {
+            networkInfo.SetActive(true);
+        }
+        else
+        {
+            networkInfo.SetActive(false);
+        }
         //StartCoroutine(End());
 
         //play a new main menu song
@@ -260,6 +271,8 @@ public class GameManager : MonoBehaviour
             {
                 playerInputManager.enabled = false;
             }
+
+            networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
         }
 
 

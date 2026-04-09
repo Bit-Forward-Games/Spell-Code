@@ -17239,6 +17239,7 @@ MonoBehaviour:
   - {fileID: 8096247294648040472}
   - {fileID: 1643359071032336497}
   - {fileID: 3880294729842161754}
+  gameManager: {fileID: 0}
   playerStoreBar: []
   followPlayerHpBar:
   - {fileID: 0}
@@ -17333,6 +17334,7 @@ MonoBehaviour:
   textBoxUI: {fileID: 0}
   textBoxAnim: {fileID: 0}
   announcer: []
+  ramIncreaseGlow: []
   transitionScreenDisplayed: 0
   shopScreenDisplayed: 0
   textSpeed: 0
@@ -17350,10 +17352,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pausemenu: {fileID: 5082351888015928739}
   optionsMenu: {fileID: 0}
+  controlsMenu: {fileID: 0}
   darkPanel: {fileID: 0}
   gameManager: {fileID: 0}
+  playerPauseIndex: 0
   paused: 0
   options: 0
+  controls: 0
   volumeSlider: {fileID: 0}
   sfxSlider: {fileID: 0}
   musicAudioSource: {fileID: 0}
@@ -17362,6 +17367,9 @@ MonoBehaviour:
   dynamicCameraOverride: 1
   _pauseMenuFirst: {fileID: 0}
   _optionsMenuFirst: {fileID: 0}
+  _controlsMenuFirst: {fileID: 0}
+  relativeInputToggleGraphic: {fileID: 0}
+  codeInputToggleGraphic: {fileID: 0}
 --- !u!1 &3890255476723258006
 GameObject:
   m_ObjectHideFlags: 0
@@ -22608,7 +22616,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 23.399971}
+  m_AnchoredPosition: {x: 0, y: 23.400024}
   m_SizeDelta: {x: -554.70276, y: -184.80005}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7909981427205180060
@@ -30671,7 +30679,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 79.36, y: -12.1796}
+  m_AnchoredPosition: {x: 79.359985, y: -12.179565}
   m_SizeDelta: {x: 143.92, y: 25.3591}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &389799592933149543
@@ -30854,7 +30862,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -68, y: -11.559021}
+  m_AnchoredPosition: {x: -68, y: -11.559082}
   m_SizeDelta: {x: 129.1015, y: 24.119}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2850758130429483224
@@ -32329,7 +32337,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4604439582011021907}
   m_Layer: 0
-  m_Name: Passive List
+  m_Name: Resources
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

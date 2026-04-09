@@ -196,7 +196,7 @@ public class TempUIScript : MonoBehaviour
 
             // stockStabilityVals[i].enabled = true;
             // stockStabilityIcons[i].enabled = true;
-            stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString();
+            stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString() + "%";
 
             // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;

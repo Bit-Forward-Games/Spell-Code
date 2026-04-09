@@ -857,7 +857,17 @@ public class GameManager : MonoBehaviour
 
             if (!isRollback && goDoorPrefab.CheckAllPlayersReady())
             {
-                LoadRandomGameplayStage();
+                if (isOnlineMatchActive)
+                {
+                    if (!localPlayerReadyForGameplay)
+                    {
+                        SendLobbyReadyForGameplay();
+                    }
+                }
+                else
+                {
+                    LoadRandomGameplayStage();
+                }
             }
             if (isOnline)
             {

@@ -5,12 +5,12 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class OnlineHostDoor : MonoBehaviour
 {
-    private Animator animator;
+    //private Animator animator;
     private bool isOpen;
 
     [SerializeField] private float colliderRadius = 32f;
     [SerializeField] private bool requireSoloPlayer = true;
-    [SerializeField] private bool requireButtonPress = true;
+    [SerializeField] private bool requireButtonPress = false;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private float triggerCooldownSeconds = 0.5f;
     [SerializeField] private bool debugLogs = false;
@@ -19,7 +19,7 @@ public class OnlineHostDoor : MonoBehaviour
 
     private void Start()
     {
-        animator = GetComponent<Animator>();
+        //animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -63,10 +63,10 @@ public class OnlineHostDoor : MonoBehaviour
             Debug.Log($"[OnlineHostDoor] Open={isOpen} OnlineActive={GameManager.Instance.isOnlineMatchActive} Players={GameManager.Instance.playerCount}");
         }
 
-        if (animator != null && animator.GetBool("open") != isOpen)
-        {
-            animator.SetBool("open", isOpen);
-        }
+        // if (animator != null && animator.GetBool("open") != isOpen)
+        // {
+        //     animator.SetBool("open", isOpen);
+        // }
 
         return isOpen;
     }

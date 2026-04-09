@@ -37,7 +37,7 @@ public class NoScopeShot : SpellData
 
                 if (owner.flowState > 0 && cooldownCounter <= 0)
                 {
-                    owner.basicSpawnOverride = true;
+                    owner.basicSpawnOverride = spellName;
                     owner.flowState = (ushort)Mathf.Max(owner.flowState - 60,0);
                     cooldownCounter = cooldown;
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));

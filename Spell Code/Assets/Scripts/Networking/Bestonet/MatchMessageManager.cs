@@ -36,6 +36,7 @@ public class MatchMessageManager : MonoBehaviour
     private bool isRunning = false;
     private bool localReadySent = false;
     private bool remoteReadyReceived = false;
+    private int highestRemoteFrameSeen = -1; // Track highest frame for out-of-order rejection
 
     private struct PendingOutboundPacket
     {
@@ -322,6 +323,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
+                    writer.Write(PACKET_TYPE_LOBBY_READY);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -498,7 +500,15 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         int frame = reader.ReadInt32();
                         uint hash = reader.ReadUInt32();
-                        RollbackManager.Instance.OnRemoteStateHash(frame, hash);
+                        uint sharedHash = reader.ReadUInt32();
+                        uint projectileHash = reader.ReadUInt32();
+                        uint player0Hash = reader.ReadUInt32();
+                        uint player1Hash = reader.ReadUInt32();
+                        uint player0CoreHash = reader.ReadUInt32();
+                        uint player1CoreHash = reader.ReadUInt32();
+                        uint player0SpellHash = reader.ReadUInt32();
+                        uint player1SpellHash = reader.ReadUInt32();
+                        RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
                         return;
                     }
                     
@@ -551,9 +561,14 @@ public class MatchMessageManager : MonoBehaviour
 
                             if (i == inputCount - 1)
                             {
-                                RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
-                                RollbackManager.Instance.SetRemoteFrame(frame);
-                                //Debug.Log($"Updated remoteFrame to {frame}");
+                                // Only accept frame advantage from packets newer than what we've seen
+                                // to prevent out-of-order packets from corrupting frame advantage
+                                if (frame > highestRemoteFrameSeen)
+                                {
+                                    highestRemoteFrameSeen = frame;
+                                    RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
+                                    RollbackManager.Instance.SetRemoteFrame(frame);
+                                }
                             }
                         }
                     }
@@ -579,6 +594,7 @@ public class MatchMessageManager : MonoBehaviour
     {
         localReadySent = false;
         remoteReadyReceived = false;
+        highestRemoteFrameSeen = -1;
     }
 
     private void ProcessACK(int frame)
@@ -680,7 +696,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStateHash(int frame, uint hash)
+    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash, uint player0CoreHash, uint player1CoreHash, uint player0SpellHash, uint player1SpellHash)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -695,6 +711,14 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(PACKET_TYPE_STATE_HASH);
                 writer.Write(frame);
                 writer.Write(hash);
+                writer.Write(sharedHash);
+                writer.Write(projectileHash);
+                writer.Write(player0Hash);
+                writer.Write(player1Hash);
+                writer.Write(player0CoreHash);
+                writer.Write(player1CoreHash);
+                writer.Write(player0SpellHash);
+                writer.Write(player1SpellHash);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);

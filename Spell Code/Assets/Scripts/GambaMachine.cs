@@ -238,7 +238,7 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
-    public void SimulateOnline(int ownerPlayerIndex)
+    public void SimulateOnline(int ownerPlayerIndex, bool isRollback = false)
     {
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
@@ -249,23 +249,23 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer.spellList.Count > 0)
             {
                 gambaAnimator.SetBool("isActive", false);
-                ClearFloppysForPID(ownerPID);
+                if (!isRollback) ClearFloppysForPID(ownerPID);
             }
 
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
                 gambaAnimator.SetBool("isActive", false);
-                SpawnFloppysForOwnerOnline();
+                SpawnFloppysForOwnerOnline(isRollback);
             }
         }
         else if (activeScene.name == "Shop")
         {
-            SimulateShopOnline();
+            SimulateShopOnline(isRollback);
         }
 
         if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
         {
-            Debug.Log("GAMBA RESET TIMER GOING");
+            if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 120)
@@ -276,7 +276,7 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
-    private void SimulateShopOnline()
+    private void SimulateShopOnline(bool isRollback = false)
     {
         if (ownerPlayer == null) return;
 
@@ -284,21 +284,21 @@ public class GambaMachine : MonoBehaviour
         {
             activatedCount = 3;
             gambaAnimator.SetBool("isActive", false);
-            ClearFloppysForPID(ownerPID);
+            if (!isRollback) ClearFloppysForPID(ownerPID);
         }
 
         if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
         {
-            Debug.Log("SHOP GAMBA ONLINE");
+            if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             gambaAnimator.SetBool("isActive", false);
             activatedCount++;
 
-            ClearFloppysForPID(ownerPID);
+            if (!isRollback) ClearFloppysForPID(ownerPID);
 
-            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2]);
-            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5]);
-            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8]);
-            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11]);
+            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
+            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
+            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
+            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
         }
 
         if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
@@ -327,30 +327,34 @@ public class GambaMachine : MonoBehaviour
         return p4_floppys;
     }
 
-    private void SpawnFloppysForOwnerOnline()
+    private void SpawnFloppysForOwnerOnline(bool isRollback = false)
     {
         if (activeScene.name != "MainMenu") return;
 
-        if (ownerPID == 1)
+        if (!isRollback)
         {
-            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-            p1_floppys.Clear();
-            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
+            if (ownerPID == 1)
+            {
+                foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                p1_floppys.Clear();
+                SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
+            }
+            if (ownerPID == 2)
+            {
+                foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                p2_floppys.Clear();
+                SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
+            }
+            if (ownerPID == 3)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
+            }
+            if (ownerPID == 4)
+            {
+                SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+            }
         }
-        if (ownerPID == 2)
-        {
-            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-            p2_floppys.Clear();
-            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
-        }
-        if (ownerPID == 3)
-        {
-            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
-        }
-        if (ownerPID == 4)
-        {
-            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
-        }
+        // No RNG consumed in this path (named spell), so no rollback RNG needed
 
         startingSpellPos++;
         if (startingSpellPos > 3)
@@ -673,7 +677,7 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
-    private void SpawnThreeFloppysOnline(int pid, Vector2 loc1, Vector2 loc2, Vector2 loc3)
+    private void SpawnThreeFloppysOnline(int pid, Vector2 loc1, Vector2 loc2, Vector2 loc3, bool isRollback = false)
     {
         // Build pool once, removing already-spawned spells
         spells = new List<string>();
@@ -702,6 +706,7 @@ public class GambaMachine : MonoBehaviour
             spells.Remove(s);
 
         // Pick 3 unique spells with single RNG calls each, no recursion
+        // RNG must be consumed identically during rollback to keep state in sync
         List<string> chosen = new List<string>();
         List<Vector2> locations = new List<Vector2> { loc1, loc2, loc3 };
 
@@ -714,7 +719,10 @@ public class GambaMachine : MonoBehaviour
             string spellToAdd = available[randomInt];
             chosen.Add(spellToAdd);
 
-            SpawnFloppyDisk(pid, locations[i], spellToAdd); // use the named overload, no RNG
+            if (!isRollback)
+            {
+                SpawnFloppyDisk(pid, locations[i], spellToAdd); // use the named overload, no RNG
+            }
         }
     }
 }

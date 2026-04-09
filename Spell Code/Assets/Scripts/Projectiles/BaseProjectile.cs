@@ -114,6 +114,7 @@ public abstract class BaseProjectile : MonoBehaviour
         if (logicFrame >= lifeSpan)
         {
             ProjectileManager.Instance.DeleteProjectile(this);
+            return;
         }
 
         //check if the projectile hit something and if it did, delete if necessary
@@ -122,6 +123,7 @@ public abstract class BaseProjectile : MonoBehaviour
             if (playerIgnoreArr.Any(ignore => ignore))
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
+                return;
             }
         }
 
@@ -135,7 +137,8 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         int accumulatedLength = 0;
         int totalAnimationLength = frameLengths.Sum();
-        int animFrame = loopAnim ? (logicFrame % totalAnimationLength) : Mathf.Clamp(logicFrame, 0, totalAnimationLength - 1);
+        if (totalAnimationLength <= 0) return 0;
+        int animFrame = loopAnim ? (logicFrame % totalAnimationLength) : Math.Clamp(logicFrame, 0, totalAnimationLength - 1);
 
         for (ushort i = 0; i < frameLengths.Count; i++)
         {

@@ -90,4 +90,22 @@ MonoBehaviour:
   - visualEffectName: 14
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 637346d9c9b07804790596cbd1d64cc2, type: 3}
     numParticleSystemsPerPlayer: 1
+  - visualEffectName: 15
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: cdb8613663093474eab53bbc1c65d142, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 17
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 78448be233b70984e8da8eadbae15ea9, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 18
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: e0479ef73a2466c4d93641663b1434f9, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 16
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 868d5ac7134757c4ca25136ef194fce3, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 19
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: ded98e9b7f1d61643b7295f18469e7e3, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 20
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: e1ac2de9662dc844aa980ec63134f2ed, type: 3}
+    numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []

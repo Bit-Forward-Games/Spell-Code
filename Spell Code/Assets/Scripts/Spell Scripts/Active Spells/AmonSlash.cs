@@ -59,13 +59,14 @@ public class AmonSlash : SpellData
             case ProcCondition.OnHitBasic:
                 if (owner.demonAura > 0)
                 {
-                    int damageToDeal = (int)(Mathf.Pow(owner.demonAura/10,2)/2);
+                    int demonDiv = owner.demonAura / 10;
+                    int damageToDeal = (demonDiv * demonDiv) / 2;
                     defender.TakeEffectDamage(damageToDeal, owner);
                     owner.demonAura = 0;
                 }
                 break;
             case ProcCondition.ActiveOnCast:
-                owner.hitstunOverride = true;
+                owner.lightArmor = true;
                 break;
             default:
                 break;

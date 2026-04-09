@@ -8,10 +8,13 @@ public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameObject controlsMenu;
     public GameObject darkPanel;
     public GameManager gameManager;
+    public int playerPauseIndex;
     public bool paused;
     public bool options;
+    public bool controls;
     public Slider volumeSlider;
     public Slider sfxSlider;
     public AudioSource musicAudioSource;
@@ -22,6 +25,28 @@ public class Pause : MonoBehaviour
 
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
+    public GameObject _controlsMenuFirst;
+
+    public Toggle relativeInputToggleGraphic;
+    public Toggle codeInputToggleGraphic;
+
+    public bool UIRelativeInput
+    {
+        get { return gameManager.players[playerPauseIndex].relativeInputs; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].relativeInputs = value;
+        }
+    }
+
+    public bool UIToggleCodeInput
+    {
+        get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+        }
+    }
 
     private void Start()
     {
@@ -39,21 +64,6 @@ public class Pause : MonoBehaviour
             
         if (sfxAudioSource == null)
             sfxAudioSource = GameObject.Find("pfb_SFX_Manager").gameObject.GetComponent<AudioSource>();
-
-        if (!gameManager.isOnlineMatchActive)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (paused)
-                {
-                    Resume();
-                }
-                else
-                {
-                    Pausing();
-                }
-            }
-        }
     }
 
     public void Resume()
@@ -62,6 +72,7 @@ public class Pause : MonoBehaviour
         options = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(null);
@@ -73,9 +84,14 @@ public class Pause : MonoBehaviour
     {
         paused = true;
         options = false;
+        controls = false;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
         darkPanel.SetActive(true);
+
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 
@@ -85,10 +101,25 @@ public class Pause : MonoBehaviour
     public void Options()
     {
         options = true;
+        controls = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
+        controlsMenu.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
+
+        Time.timeScale = 0f;
+    }
+
+    public void Controls()
+    {
+        controls = true;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
 
         Time.timeScale = 0f;
     }
@@ -130,5 +161,15 @@ public class Pause : MonoBehaviour
     public void ToggleDynamicCamera()
     {
         dynamicCameraOverride = !dynamicCameraOverride;
+    }
+
+    public void ToggleRelativeInput()
+    {
+        UIRelativeInput = !UIRelativeInput;
+    }
+
+    public void ToggleCodeInput()
+    {
+        UIToggleCodeInput = !UIToggleCodeInput;
     }
 }

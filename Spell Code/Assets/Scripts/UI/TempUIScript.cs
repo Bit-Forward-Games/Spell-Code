@@ -9,6 +9,7 @@ using DG.Tweening;
 public class TempUIScript : MonoBehaviour
 {
     public TextMeshProUGUI[] playerRamVals;
+    public GameManager gameManager;
     public Image[] playerStoreBar;
     public Image[] followPlayerHpBar;
     public Image[] followPlayerDamageBar;
@@ -40,12 +41,16 @@ public class TempUIScript : MonoBehaviour
     public Animator textBoxAnim;
     public GameObject[] announcer;
 
+    public Transform[] ramIncreaseGlow;
+
     public bool transitionScreenDisplayed;
     public bool shopScreenDisplayed;
 
     public float textSpeed;
     private int i = 0;
-    
+
+    private int[] previousRamVals = new int[4];
+
     void Start()
     {
         followPlayerHpBar = new Image[4];
@@ -53,6 +58,11 @@ public class TempUIScript : MonoBehaviour
         playerStoreBar = new Image[4];
         onPlayerUI = new GameObject[4];
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
+        gameManager = GameManager.Instance;
+
+        previousRamVals = new int[4];
+        for (int i = 0; i < gameManager.playerCount; i++)
+            previousRamVals[i] = gameManager.players[i]?.totalRam ?? 0;
     }
 
     void OnEnable()
@@ -112,7 +122,21 @@ public class TempUIScript : MonoBehaviour
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
-            // playerRamVals[i].text = $"P{i + 1}  Total RAM: {GameManager.Instance.players[i].totalRam}\nRound RAM: {GameManager.Instance.players[i].roundRam} \nWins: {GameManager.Instance.players[i].roundsWon}";
+
+            int _ramIncrease = GameManager.Instance.players[i].totalRam;
+
+            // Initialize tracking for newly joined players
+            if (previousRamVals[i] == 0 && _ramIncrease != 0)
+                previousRamVals[i] = _ramIncrease;
+
+            if (_ramIncrease != previousRamVals[i])
+            {
+                Image glowImage = ramIncreaseGlow[i].GetComponent<Image>();
+                Sequence fadeSequence = DOTween.Sequence();
+                fadeSequence.Append(glowImage.DOFade(1f, 0.2f));
+                fadeSequence.Append(glowImage.DOFade(0f, 0.3f));
+                previousRamVals[i] = _ramIncrease;
+            }
 
             if (GameManager.Instance.players[i].isHit)
             {

@@ -98,6 +98,7 @@ public class PlayerController : MonoBehaviour
     public bool onPlatform = false;
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
+    public bool tapJump = false;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -118,6 +119,8 @@ public class PlayerController : MonoBehaviour
     public Fixed jumpForce = Fixed.FromInt(10);
     public Fixed runSpeed = Fixed.FromInt(0);
     public Fixed slideSpeed = Fixed.FromInt(0);
+    public byte jumpCount = 0;
+    public byte maxJumpCount = 0;
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
@@ -194,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 1f;
+    private float toastLifetime = 1.5f;
     //[SerializeField]
     private float toastFadeDuration = 0.35f;
     //[SerializeField]
@@ -213,7 +216,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
-    public bool basicSpawnOverride = false; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
+    public string basicSpawnOverride = ""; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -225,6 +228,7 @@ public class PlayerController : MonoBehaviour
     public bool isSpawned;
     public string startingSpell;
     public bool startingSpellAdded = false;
+    public bool suppressSpellLoadSideEffects = false;
 
     public int pID;
 
@@ -235,7 +239,7 @@ public class PlayerController : MonoBehaviour
     public bool DemonX = false;
     public bool bigStox = false;
 
-
+    public int _playerPauseIndex;
 
 
     private void Awake()
@@ -264,6 +268,8 @@ public class PlayerController : MonoBehaviour
             InitCharacter();
             ProjectileManager.Instance.InitializeAllProjectiles();
         }
+
+        _playerPauseIndex = Array.IndexOf(GameManager.Instance.players, this);
 
     }
 
@@ -307,6 +313,7 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+        maxJumpCount = (byte)charData.jumpCount;
         jumpForce = Fixed.FromInt(charData.jumpForce);
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
@@ -361,11 +368,11 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        //DELETE THIS LATER, JUST TO LOCK STARTING SPELL TO PID
-        if (pID == 1) { startingSpell = "AmonSlash"; }
-        else if (pID == 2) { startingSpell = "QuarterReport"; }
-        else if (pID == 3) { startingSpell = "BladeOfAres"; }
-        else if (pID == 4) { startingSpell = "SkillshotSlash"; }
+        // Lock starter selection by PID using the actual dictionary keys.
+        if (pID == 1) { startingSpell = "Amon Slash"; }
+        else if (pID == 2) { startingSpell = "Quarter Report"; }
+        else if (pID == 3) { startingSpell = "Blade Of Ares"; }
+        else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
             FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
@@ -385,10 +392,27 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         isAlive = true;
         gameObject.GetComponent<SpriteRenderer>().enabled = true;
+        input = InputConverter.ConvertFromLong(5);
         position = spawnPos;
         hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
+        gravity = Fixed.FromFloat(0.75f);
+        facingRight = spawnPos.X.RawValue <= 0;
+        isGrounded = false;
+        onPlatform = false;
+        prevState = PlayerState.Idle;
+        animationFrame = 0;
+        lerpDelay = 0;
         stateSpecificArg = 0;
+        hitstop = 0;
+        hitstopActive = false;
+        hitstunOverride = false;
+        comboCounter = 0;
+        comboResetTimer = 0;
+        lightArmor = false;
+        basicSpawnOverride = "";
+        isHit = false;
+        hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
@@ -403,13 +427,14 @@ public class PlayerController : MonoBehaviour
 
         //initialize resources
         flowState = 0;
-        stockStability = 0;
+        stockStability = GetPersistentStockStabilityFromSpellList();
         demonAura = 0;
         reps = 0;
         //momentum = 0;
         //slimed = false;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
+        suppressSpellLoadSideEffects = true;
         for (int i = 0; i < spellList.Count; i++)
         {
             if (spellList[i] != null)
@@ -418,6 +443,7 @@ public class PlayerController : MonoBehaviour
                 spellList[i].LoadSpell();
             }
         }
+        suppressSpellLoadSideEffects = false;
         GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
         //ProjectileManager.Instance.InitializeAllProjectiles();
@@ -427,7 +453,7 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd)
+    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
     {
         if (spellList.Count >= 6)
         {
@@ -435,9 +461,13 @@ public class PlayerController : MonoBehaviour
             return;
         }
         SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
-        spellList.Add(Instantiate(targetSpell));
-        spellList[spellList.Count - 1].owner = this;
-        spellList[spellList.Count - 1].LoadSpell();
+        SpellData spellInstance = Instantiate(targetSpell);
+        spellList.Add(spellInstance);
+        spellInstance.owner = this;
+        if (applyLoadEffects)
+        {
+            spellInstance.LoadSpell();
+        }
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -467,6 +497,30 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Player has unlocked BigStox passives");
             }
         }
+    }
+
+    private ushort GetPersistentStockStabilityFromSpellList()
+    {
+        ushort totalStockStability = 0;
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null) continue;
+
+            switch (spell.spellName)
+            {
+                case "Quarter Report":
+                case "Coin Toss":
+                case "Get A Job":
+                case "Penny Stock Peddler":
+                case "Cash Out":
+                    totalStockStability += 10;
+                    break;
+            }
+        }
+
+        return totalStockStability;
     }
 
 
@@ -650,76 +704,76 @@ public class PlayerController : MonoBehaviour
     /// Gets keyboard input directly using Unity's old Input API.
     /// This bypasses the Input System entirely.
     /// </summary>
-    private ulong GetRawKeyboardInput()
-    {
-        // DEBUG: Check if ANY key is being pressed
-        if (UnityEngine.Input.anyKey)
-        {
-            //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
-            // Log specific keys
-            //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
-            //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
-            //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
-            //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
-        }
+    // private ulong GetRawKeyboardInput()
+    // {
+    //     // DEBUG: Check if ANY key is being pressed
+    //     if (UnityEngine.Input.anyKey)
+    //     {
+    //         //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
+    //         // Log specific keys
+    //         //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
+    //         //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
+    //         //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
+    //         //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
+    //     }
 
-        // Direction input (using numpad notation: 5 = neutral)
-        bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-        bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-        bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-        bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+    //     // Direction input (using numpad notation: 5 = neutral)
+    //     bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
+    //     bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
+    //     bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
+    //     bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
 
-        // Button states (need to track previous state for Pressed/Released detection)
-        bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-        bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
+    //     // Button states (need to track previous state for Pressed/Released detection)
+    //     bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
+    //     bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
 
-        // Store previous button states (you might need to add these as class fields)
-        bool codePrev = codePrevFrame;
-        bool jumpPrev = jumpPrevFrame;
+    //     // Store previous button states (you might need to add these as class fields)
+    //     bool codePrev = codePrevFrame;
+    //     bool jumpPrev = jumpPrevFrame;
 
-        // Update for next frame
-        codePrevFrame = codeNow;
-        jumpPrevFrame = jumpNow;
+    //     // Update for next frame
+    //     codePrevFrame = codeNow;
+    //     jumpPrevFrame = jumpNow;
 
-        // Calculate direction (numpad notation)
-        byte direction = 5; // neutral
+    //     // Calculate direction (numpad notation)
+    //     byte direction = 5; // neutral
 
-        if (up && right) direction = 9;
-        else if (up && left) direction = 7;
-        else if (down && right) direction = 3;
-        else if (down && left) direction = 1;
-        else if (up) direction = 8;
-        else if (down) direction = 2;
-        else if (left) direction = 4;
-        else if (right) direction = 6;
+    //     if (up && right) direction = 9;
+    //     else if (up && left) direction = 7;
+    //     else if (down && right) direction = 3;
+    //     else if (down && left) direction = 1;
+    //     else if (up) direction = 8;
+    //     else if (down) direction = 2;
+    //     else if (left) direction = 4;
+    //     else if (right) direction = 6;
 
-        // Calculate button states
-        ButtonState codeState = GetButtonState(codePrev, codeNow);
-        ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
+    //     // Calculate button states
+    //     ButtonState codeState = GetButtonState(codePrev, codeNow);
+    //     ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
 
-        ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-        bool[] dirs = new bool[4] { up, down, left, right };
+    //     ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
+    //     bool[] dirs = new bool[4] { up, down, left, right };
 
-        //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
+    //     //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
 
-        // Convert to ulong using your existing converter
-        return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    }
+    //     // Convert to ulong using your existing converter
+    //     return (ulong)InputConverter.ConvertToLong(buttons, dirs);
+    // }
 
-    private bool codePrevFrame = false;
-    private bool jumpPrevFrame = false;
+    // private bool codePrevFrame = false;
+    // private bool jumpPrevFrame = false;
 
-    private ButtonState GetButtonState(bool previous, bool current)
-    {
-        if (!previous && !current)
-            return ButtonState.None;
-        else if (current && !previous)
-            return ButtonState.Pressed;
-        else if (current && previous)
-            return ButtonState.Held;
-        else
-            return ButtonState.Released;
-    }
+    // private ButtonState GetButtonState(bool previous, bool current)
+    // {
+    //     if (!previous && !current)
+    //         return ButtonState.None;
+    //     else if (current && !previous)
+    //         return ButtonState.Pressed;
+    //     else if (current && previous)
+    //         return ButtonState.Held;
+    //     else
+    //         return ButtonState.Released;
+    // }
 
     public void PlayerUpdate(ulong rawInput)
     {
@@ -731,6 +785,8 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed)
             {
+                pause.playerPauseIndex = _playerPauseIndex;
+
                 if (pause.paused)
                 {
                     pause.Resume();
@@ -739,7 +795,6 @@ public class PlayerController : MonoBehaviour
                 {
                     pause.Pausing();
                 }
-                
             }
         }
 
@@ -816,6 +871,11 @@ public class PlayerController : MonoBehaviour
             }
 
         }
+        else
+        {
+            //if you are grounded, reset your jump count
+            jumpCount = maxJumpCount;
+        }
 
         //check the comboResetTimer for combo breaker Purposes
         if(state != PlayerState.Hitstun && comboResetTimer > 0)
@@ -873,9 +933,10 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
 
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
@@ -920,9 +981,10 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
 
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
@@ -979,10 +1041,23 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
+                
+
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
+                    break;
+                }
+                //air jump input check
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                {
+                    
+                    vSpd = jumpForce;
+                    jumpCount--;
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+                    SetState(PlayerState.Jump);
                     break;
                 }
 
@@ -1158,6 +1233,10 @@ public class PlayerController : MonoBehaviour
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             lightArmor = false;
+
+                            //stop playing the blocking visual effect
+                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
 
@@ -1172,6 +1251,10 @@ public class PlayerController : MonoBehaviour
                         if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
                             lightArmor = false;
+
+                            //stop playing the blocking visual effect
+                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
                             //if the current code is a valid spell code, store it for later use
@@ -1199,7 +1282,10 @@ public class PlayerController : MonoBehaviour
                     if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         lightArmor = false;
-                        
+
+                        //stop playing the blocking visual effect
+                        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+
                         SetState(PlayerState.CodeRelease, stateSpecificArg);
 
                         break;
@@ -1308,6 +1394,57 @@ public class PlayerController : MonoBehaviour
                             //play successful code cast sound
                             SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
 
+                            //play the cast visual effect based on spell brand
+                            switch (spellList[i].brands[0])
+                            {
+                                case Brand.VWave:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.DemonX:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.BigStox:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.Killeez:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+
                             break;
                         }
 
@@ -1336,7 +1473,7 @@ public class PlayerController : MonoBehaviour
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
 
-                    if (!basicSpawnOverride)
+                    if (basicSpawnOverride == "")
                     {
                         //create an instance of your basic spell here
                         BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
@@ -1345,7 +1482,7 @@ public class PlayerController : MonoBehaviour
                     }
                     else
                     {
-                        basicSpawnOverride = false;
+                        basicSpawnOverride = "";
                     }
 
                         //basic spell is fired
@@ -1428,9 +1565,12 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -1924,31 +2064,40 @@ public class PlayerController : MonoBehaviour
                     returnVal = !tempPos.Equals(position);
                     break;
                 case BorderType.Loop:
-                    if (position.X.ToFloat() > stageDataSO.borderMax.x)
+                    Fixed loopMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed loopMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed loopMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed loopMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+
+                    if (position.X > loopMaxX)
                     {
-                        position = FixedVec2.FromFloat(stageDataSO.borderMin.x, position.Y.ToFloat());
+                        position = new FixedVec2(loopMinX, position.Y);
                         returnVal = true;
                     }
-                    else if (position.X.ToFloat() < stageDataSO.borderMin.x)
+                    else if (position.X < loopMinX)
                     {
-                        position = FixedVec2.FromFloat(stageDataSO.borderMax.x, position.Y.ToFloat());
+                        position = new FixedVec2(loopMaxX, position.Y);
                         returnVal = true;
                     }
 
-                    if (position.Y.ToFloat() > stageDataSO.borderMax.y)
+                    if (position.Y > loopMaxY)
                     {
-                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMin.y);
+                        position = new FixedVec2(position.X, loopMinY);
                         returnVal = true;
                     }
-                    else if (position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    else if (position.Y < loopMinY)
                     {
-                        position = FixedVec2.FromFloat(position.X.ToFloat(), stageDataSO.borderMax.y);
+                        position = new FixedVec2(position.X, loopMaxY);
                         returnVal = true;
                     }
                     break;
                 case BorderType.DeathZone:
-                    if (position.X.ToFloat() > stageDataSO.borderMax.x || position.X.ToFloat() < stageDataSO.borderMin.x ||
-                        position.Y.ToFloat() > stageDataSO.borderMax.y || position.Y.ToFloat() < stageDataSO.borderMin.y)
+                    Fixed dzMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed dzMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed dzMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed dzMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+                    if (position.X > dzMaxX || position.X < dzMinX ||
+                        position.Y > dzMaxY || position.Y < dzMinY)
                     {
                         //kill player and respawn at spawn point
                         currentPlayerHealth = 0;
@@ -2003,6 +2152,9 @@ public class PlayerController : MonoBehaviour
 
                 lightArmor = false;
 
+                //stop playing the blocking visual effect
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+
                 //reset storedCode if you get hit
                 // storedCode = 0;
                 // storedCodeDuration = 0;
@@ -2043,6 +2195,9 @@ public class PlayerController : MonoBehaviour
 
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
+
+                //begin to play the blobking visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
 
                 if (!isGrounded)
                 {
@@ -2085,8 +2240,11 @@ public class PlayerController : MonoBehaviour
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
-                //begin to continuously play the code weave sound
+                //stop continuously playing the code weave sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
+
+                //stop playing the blocking visual effect
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 lightArmor = false;
@@ -2197,10 +2355,24 @@ public class PlayerController : MonoBehaviour
             }
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (lightArmor && hitboxData.attackLvl < 2)
+            if (lightArmor)
             {
-                SpawnToast($"BLOCKED!", Color.white);
-                return;
+                if(hitboxData.attackLvl < 2)
+                {
+                    SpawnToast($"ARMORED!", Color.white);
+
+                    //Play the blocked visual effect
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
+                    return;
+                }
+                else
+                {
+                    SpawnToast($"ARMOR BREAK!", Color.white);
+
+                    //----------------------------------------------@Max White Put the armor shatter vfx here-------------------------------------------------
+                    //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position, pID, facingRight);
+                }
             }
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
@@ -2208,6 +2380,7 @@ public class PlayerController : MonoBehaviour
             if (GameManager.Instance.currentStageIndex < 0)
             {
                 //don't take damage in the lobby
+                SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
                 return;
             }
 
@@ -2634,6 +2807,98 @@ public class PlayerController : MonoBehaviour
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
+    public void SerializeGameplayHash(BinaryWriter bw)
+    {
+        SerializeGameplayCoreHash(bw);
+
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
+    public void SerializeGameplayCoreHash(BinaryWriter bw)
+    {
+        bw.Write(position.X.RawValue);
+        bw.Write(position.Y.RawValue);
+        bw.Write(hSpd.RawValue);
+        bw.Write(vSpd.RawValue);
+        bw.Write(facingRight);
+        bw.Write(isGrounded);
+        bw.Write(onPlatform);
+        bw.Write(relativeInputs);
+        bw.Write((byte)state);
+        bw.Write(logicFrame);
+        bw.Write(stateSpecificArg);
+        bw.Write(hitstop);
+        bw.Write(hitstopActive);
+        bw.Write(hitstunOverride);
+        bw.Write(comboCounter);
+        bw.Write(comboResetTimer);
+        bw.Write(lightArmor);
+        bw.Write(basicSpawnOverride);
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
+        bw.Write(currentPlayerHealth);
+        bw.Write(isAlive);
+        bw.Write(isHit);
+        bw.Write(iframes);
+
+        bool hasHitboxData = hitboxData != null;
+        bw.Write(hasHitboxData);
+        if (hasHitboxData)
+        {
+            bw.Write(hitboxData.damage);
+            bw.Write(hitboxData.hitstun);
+            bw.Write(hitboxData.xKnockback);
+            bw.Write(hitboxData.yKnockback);
+            bw.Write(hitboxData.attackLvl);
+            bw.Write(hitboxData.basicAttackHitbox);
+            int ownerIndex = hitboxData.parentProjectile?.owner != null
+                ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
+                : -1;
+            bw.Write(ownerIndex);
+            int projPrefabIndex = hitboxData.parentProjectile != null
+                ? ProjectileManager.Instance.projectilePrefabs.IndexOf(hitboxData.parentProjectile)
+                : -1;
+            bw.Write(projPrefabIndex);
+        }
+
+        bw.Write(flowState);
+        bw.Write(stockStability);
+        bw.Write(demonAura);
+        bw.Write(demonAuraLifeSpanTimer);
+        bw.Write(reps);
+    }
+
+    public void SerializeGameplaySpellHash(BinaryWriter bw)
+    {
+        bw.Write(spellList.Count);
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            bw.Write(spellList[i].spellName);
+
+            using (MemoryStream tempStream = new MemoryStream())
+            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
+            {
+                spellList[i].Serialize(tempWriter);
+                byte[] spellBytes = tempStream.ToArray();
+                bw.Write(spellBytes.Length);
+                bw.Write(spellBytes);
+            }
+        }
+    }
+
 
     public void Deserialize(BinaryReader br)
     {
@@ -2664,7 +2929,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         lightArmor = br.ReadBoolean();
-        basicSpawnOverride = br.ReadBoolean();
+        basicSpawnOverride = br.ReadString();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
@@ -2691,6 +2956,7 @@ public class PlayerController : MonoBehaviour
         {
             hitboxData = null;
             _pendingHitboxOwnerIndex = -1;
+            _pendingHitboxProjectileIndex = -1;
         }
 
         int markerB = br.ReadInt32();
@@ -2730,7 +2996,9 @@ public class PlayerController : MonoBehaviour
             if (!string.IsNullOrEmpty(startingSpell))
             {
                 //Debug.Log($"[ROLLBACK] Re-adding starting spell: {startingSpell}");
-                AddSpellToSpellList(startingSpell);
+                suppressSpellLoadSideEffects = true;
+                AddSpellToSpellList(startingSpell, applyLoadEffects: true);
+                suppressSpellLoadSideEffects = false;
                 startingSpellAdded = true;
             }
         }
@@ -2763,23 +3031,35 @@ public class PlayerController : MonoBehaviour
             RebuildSpellListFromSaved(savedSpells);
         }
 
-        // Deserialize spell state into matching instances
+        // Deserialize spell state by saved order so duplicate spell names restore deterministically.
         for (int i = 0; i < savedSpells.Count; i++)
         {
             string spellName = savedSpells[i].name;
             byte[] spellBytes = savedSpells[i].data;
-            SpellData spellInstance = spellList.FirstOrDefault(s => s.spellName == spellName);
-            if (spellInstance != null)
+
+            if (i >= spellList.Count || spellList[i] == null)
             {
-                using (MemoryStream tempStream = new MemoryStream(spellBytes))
-                using (BinaryReader tempReader = new BinaryReader(tempStream))
-                {
-                    spellInstance.Deserialize(tempReader);
-                }
+                Debug.LogWarning($"Spell slot {i} missing while restoring '{spellName}' - skipped {spellBytes.Length} bytes");
+                continue;
             }
-            else
+
+            SpellData spellInstance = spellList[i];
+            if (spellInstance.spellName != spellName)
             {
-                Debug.LogWarning($"Spell '{spellName}' not found after rebuild - skipped {spellBytes.Length} bytes");
+                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected '{spellName}', found '{spellInstance.spellName}'. Rebuilding from saved order.");
+                RebuildSpellListFromSaved(savedSpells);
+                if (i >= spellList.Count || spellList[i] == null)
+                {
+                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for '{spellName}' - skipped {spellBytes.Length} bytes");
+                    continue;
+                }
+                spellInstance = spellList[i];
+            }
+
+            using (MemoryStream tempStream = new MemoryStream(spellBytes))
+            using (BinaryReader tempReader = new BinaryReader(tempStream))
+            {
+                spellInstance.Deserialize(tempReader);
             }
         }
     }

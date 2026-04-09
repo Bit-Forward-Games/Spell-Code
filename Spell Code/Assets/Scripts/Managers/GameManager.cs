@@ -33,6 +33,9 @@ public class GameManager : MonoBehaviour
 
     public SpriteRenderer shopImage;
 
+    [NonSerialized]
+    public PlayerController bigWinner = null;
+
 
     [NonSerialized]
     /// <summary>
@@ -1079,6 +1082,7 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "End")
         {
+            tempUI.gameObject.SetActive(false);
             for (int i = 0; i < inputs.Length; ++i)
             {
                 InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
@@ -1464,7 +1468,12 @@ public class GameManager : MonoBehaviour
                                 players[i].playerNum.enabled = false;
                                 players[i].inputDisplay.enabled = false;
                             }
-                            if (players[i].roundsWon >= 3) { gameOver = true; }
+                            if (players[i].roundsWon >= 3) 
+                            { 
+                                gameOver = true;
+                                bigWinner = winner;
+                            }
+
                         }
                         if (!isRollback)
                         {

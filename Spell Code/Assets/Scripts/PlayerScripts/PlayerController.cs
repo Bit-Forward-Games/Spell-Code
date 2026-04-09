@@ -2472,6 +2472,12 @@ public class PlayerController : MonoBehaviour
             TriggerHitRumble(0.2f, 0.6f, 0.12f);
         }
 
+        // Damage attribution is deterministic match state and must update during rollback replays too.
+        if (hasAttacker && damageAmount > 0)
+        {
+            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
+        }
+
         if (DataManager.Instance != null &&
             DataManager.Instance.gameData != null &&
             DataManager.Instance.gameData.arenaData != null)
@@ -2483,12 +2489,6 @@ public class PlayerController : MonoBehaviour
                 arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
             }
             hitList.Add(transform.position);
-
-            //update the damage matrix the attacker attacking this player
-            if (!isRollback && hasAttacker)
-            {
-                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-            }
         }
 
         //checking for death

@@ -580,16 +580,16 @@ public class MatchMessageManager : MonoBehaviour
                     
                     if (packetType == PACKET_TYPE_STAGE_SELECT)
                     {
+                        byte packetSceneType = reader.ReadByte();
                         int packetSceneSignature = reader.ReadInt32();
                         int stageIndex = reader.ReadInt32();
                         if (GameManager.Instance != null)
                         {
+                            byte currentSceneType = GameManager.Instance.GetNetworkSceneTypeCode();
                             int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
-                            int packetScenePhase = packetSceneSignature / 100000;
-                            int currentScenePhase = currentSceneSignature / 100000;
-                            if (packetScenePhase != currentScenePhase)
+                            if (packetSceneType != currentSceneType)
                             {
-                                Debug.LogWarning($"Ignoring stale stage select packet. PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
+                                Debug.LogWarning($"Ignoring stale stage select packet. PacketSceneType={packetSceneType}, LocalSceneType={currentSceneType}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
                                 return;
                             }
 
@@ -867,6 +867,7 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_STAGE_SELECT);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
 

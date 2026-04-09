@@ -1965,6 +1965,19 @@ public class GameManager : MonoBehaviour
         return sceneBase + currentStageIndex;
     }
 
+    public byte GetNetworkSceneTypeCode()
+    {
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        return activeSceneName switch
+        {
+            "Gameplay" => 1,
+            "Shop" => 2,
+            "MainMenu" => 3,
+            "End" => 4,
+            _ => 0
+        };
+    }
+
     public void LoadRandomGameplayStage()
     {
         if (isOnlineMatchActive)

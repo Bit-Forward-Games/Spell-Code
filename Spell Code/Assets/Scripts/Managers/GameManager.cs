@@ -2077,6 +2077,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(ramNeededToWinRound);
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
+                bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
 
                 Scene activeScene = SceneManager.GetActiveScene();
                 bool includeLobbyShopState = activeScene.name != "Gameplay";
@@ -2316,6 +2317,15 @@ public class GameManager : MonoBehaviour
                 ramNeededToWinRound = br.ReadUInt16();
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
+                int savedTotalRoundsPlayed = br.ReadInt32();
+                if (dataManager == null)
+                {
+                    dataManager = DataManager.Instance;
+                }
+                if (dataManager != null)
+                {
+                    dataManager.totalRoundsPlayed = savedTotalRoundsPlayed;
+                }
 
                 bool includeLobbyShopState = br.ReadBoolean();
                 if (includeLobbyShopState)

@@ -159,6 +159,14 @@ public class GameManager : MonoBehaviour
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
     public bool remotePlayerReadyForGameplay = false;
+    private enum GameplayReadyContext
+    {
+        None,
+        Lobby,
+        Shop
+    }
+    private GameplayReadyContext localGameplayReadyContext = GameplayReadyContext.None;
+    private GameplayReadyContext remoteGameplayReadyContext = GameplayReadyContext.None;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     [HideInInspector]
@@ -476,6 +484,8 @@ public class GameManager : MonoBehaviour
         isTransitioning = false;
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
 
@@ -677,20 +687,47 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive || MatchMessageManager.Instance == null)
             return;
 
+        GameplayReadyContext readyContext = GetCurrentGameplayReadyContext();
+        if (readyContext == GameplayReadyContext.None)
+        {
+            return;
+        }
+
         localPlayerReadyForGameplay = true;
+        localGameplayReadyContext = readyContext;
         //Debug.Log("Local player ready for gameplay transition - sending signal");
 
-        // Send via MatchMessageManager
-        MatchMessageManager.Instance.SendLobbyReadySignal();
+        if (readyContext == GameplayReadyContext.Shop)
+        {
+            MatchMessageManager.Instance.SendShopReadySignal();
+        }
+        else
+        {
+            MatchMessageManager.Instance.SendLobbyReadySignal();
+        }
 
         CheckBothPlayersReadyForGameplay();
     }
 
-    // Receive lobby ready signal
-    public void OnOpponentReadyForGameplay()
+    public void OnOpponentReadyForGameplayFromLobby()
     {
-        //Debug.Log("Opponent is ready for gameplay transition");
+        OnOpponentReadyForGameplay(GameplayReadyContext.Lobby);
+    }
+
+    public void OnOpponentReadyForGameplayFromShop()
+    {
+        OnOpponentReadyForGameplay(GameplayReadyContext.Shop);
+    }
+
+    private void OnOpponentReadyForGameplay(GameplayReadyContext readyContext)
+    {
+        if (GetCurrentGameplayReadyContext() != readyContext)
+        {
+            return;
+        }
+
         remotePlayerReadyForGameplay = true;
+        remoteGameplayReadyContext = readyContext;
         CheckBothPlayersReadyForGameplay();
     }
 
@@ -703,7 +740,16 @@ public class GameManager : MonoBehaviour
     // Check if both players are ready to transition
     private void CheckBothPlayersReadyForGameplay()
     {
-        if (localPlayerReadyForGameplay && remotePlayerReadyForGameplay)
+        GameplayReadyContext currentReadyContext = GetCurrentGameplayReadyContext();
+        if (currentReadyContext == GameplayReadyContext.None || isTransitioning)
+        {
+            return;
+        }
+
+        if (localPlayerReadyForGameplay
+            && remotePlayerReadyForGameplay
+            && localGameplayReadyContext == currentReadyContext
+            && remoteGameplayReadyContext == currentReadyContext)
         {
             //Debug.Log("Both players ready - transitioning to Gameplay");
             isTransitioning = true;
@@ -726,6 +772,22 @@ public class GameManager : MonoBehaviour
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
         }
+    }
+
+    private GameplayReadyContext GetCurrentGameplayReadyContext()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.name == "MainMenu")
+        {
+            return GameplayReadyContext.Lobby;
+        }
+
+        if (activeScene.name == "Shop")
+        {
+            return GameplayReadyContext.Shop;
+        }
+
+        return GameplayReadyContext.None;
     }
 
     /// <summary>
@@ -761,6 +823,8 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
 
@@ -1078,6 +1142,8 @@ public class GameManager : MonoBehaviour
             {
                 localPlayerReadyForGameplay = false;
                 remotePlayerReadyForGameplay = false;
+                localGameplayReadyContext = GameplayReadyContext.None;
+                remoteGameplayReadyContext = GameplayReadyContext.None;
             }
             LoadRandomGameplayStage();
             ResetPlayers();
@@ -1730,6 +1796,8 @@ public class GameManager : MonoBehaviour
         localSceneTransitionReady = false;
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
         sceneManager.LoadScene("Shop");
         SetStage(-1);
     }
@@ -2033,6 +2101,8 @@ public class GameManager : MonoBehaviour
             pendingOpponentShopTransition = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
@@ -2075,6 +2145,8 @@ public class GameManager : MonoBehaviour
             pendingOpponentShopTransition = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            localGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;

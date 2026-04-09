@@ -22,6 +22,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
     private const byte PACKET_TYPE_SCENE_READY = 11; // For post-scene-load transition barrier
     private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
+    private const byte PACKET_TYPE_SHOP_READY = 14; // For shop->gameplay transition
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
@@ -325,7 +326,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
-                    writer.Write(PACKET_TYPE_LOBBY_READY);
+                    writer.Write(PACKET_TYPE_SHOP_READY);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -579,9 +580,17 @@ public class MatchMessageManager : MonoBehaviour
                     
                     if (packetType == PACKET_TYPE_STAGE_SELECT)
                     {
+                        int packetSceneSignature = reader.ReadInt32();
                         int stageIndex = reader.ReadInt32();
                         if (GameManager.Instance != null)
                         {
+                            int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
+                            if (packetSceneSignature != currentSceneSignature)
+                            {
+                                Debug.LogWarning($"Ignoring stale stage select packet. PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
+                                return;
+                            }
+
                             GameManager.Instance.ApplyOnlineStageSelection(stageIndex);
                         }
                         return;
@@ -593,7 +602,16 @@ public class MatchMessageManager : MonoBehaviour
                         //Debug.Log("Received LOBBY_READY signal from opponent");
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.OnOpponentReadyForGameplay();
+                            GameManager.Instance.OnOpponentReadyForGameplayFromLobby();
+                        }
+                        return;
+                    }
+
+                    if (packetType == PACKET_TYPE_SHOP_READY)
+                    {
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.OnOpponentReadyForGameplayFromShop();
                         }
                         return;
                     }
@@ -847,6 +865,7 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_STAGE_SELECT);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
 
                 byte[] data = memoryStream.ToArray();

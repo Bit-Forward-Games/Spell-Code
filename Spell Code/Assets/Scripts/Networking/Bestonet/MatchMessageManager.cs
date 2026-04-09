@@ -625,16 +625,18 @@ public class MatchMessageManager : MonoBehaviour
                             return;
                         }
 
+                        int packetSceneSignature = reader.ReadInt32();
                         int remoteFrameAdvantage = reader.ReadInt32();
                         int startFrame = reader.ReadInt32();
                         int inputCount = reader.ReadByte();
 
                         if (GameManager.Instance != null)
                         {
-                            int currentLocalFrame = GameManager.Instance.frameNumber;
-                            if (currentLocalFrame < 60 && startFrame > currentLocalFrame + 60)
+                            int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
+                            if (packetSceneSignature != currentSceneSignature)
                             {
-                                Debug.LogWarning($"Ignoring stale input packet after scene transition. LocalFrame={currentLocalFrame}, StartFrame={startFrame}, Count={inputCount}");
+                                int currentLocalFrame = GameManager.Instance.frameNumber;
+                                Debug.LogWarning($"Ignoring stale input packet after scene transition. LocalFrame={currentLocalFrame}, StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}");
                                 return;
                             }
                         }
@@ -741,6 +743,7 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write((byte)0);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                     writer.Write(RollbackManager.Instance.localFrameAdvantage);
                     writer.Write(firstFrameToSend);
                     writer.Write((byte)inputCount);

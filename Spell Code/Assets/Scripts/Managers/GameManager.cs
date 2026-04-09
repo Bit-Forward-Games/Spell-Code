@@ -1848,6 +1848,33 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int GetNetworkSceneSignature()
+    {
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        int sceneBase;
+
+        switch (activeSceneName)
+        {
+            case "Gameplay":
+                sceneBase = 100000;
+                break;
+            case "Shop":
+                sceneBase = 200000;
+                break;
+            case "MainMenu":
+                sceneBase = 300000;
+                break;
+            case "End":
+                sceneBase = 400000;
+                break;
+            default:
+                sceneBase = 500000;
+                break;
+        }
+
+        return sceneBase + currentStageIndex;
+    }
+
     public void LoadRandomGameplayStage()
     {
         if (isOnlineMatchActive)

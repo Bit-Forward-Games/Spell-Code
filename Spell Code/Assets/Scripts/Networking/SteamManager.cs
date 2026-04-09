@@ -94,6 +94,13 @@ public class SteamManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
+        // Leave any active Steam lobby before shutdown so the next launch
+        // doesn't inherit a stale host/invite session after an Alt+F4.
+        if (SteamLobbyManager.Instance != null)
+        {
+            SteamLobbyManager.Instance.LeaveLobby();
+        }
+
         // Shut down Steamworks when the game closes
         if (SteamClient.IsValid)
         {

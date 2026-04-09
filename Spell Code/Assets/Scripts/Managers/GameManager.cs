@@ -171,6 +171,10 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext localGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext remoteGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+    private bool hasPendingStageSelect = false;
+    private byte pendingStageSelectSceneType = 0;
+    private int pendingStageSelectSceneSignature = 0;
+    private int pendingStageSelectIndex = -1;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     [HideInInspector]
@@ -491,6 +495,10 @@ public class GameManager : MonoBehaviour
         localGameplayReadyContext = GameplayReadyContext.None;
         remoteGameplayReadyContext = GameplayReadyContext.None;
         pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        hasPendingStageSelect = false;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
 
@@ -815,6 +823,56 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
+    public bool HandleOnlineStageSelect(byte packetSceneType, int packetSceneSignature, int stageIndex)
+    {
+        byte currentSceneType = GetNetworkSceneTypeCode();
+        int currentSceneSignature = GetNetworkSceneSignature();
+
+        if (packetSceneType == currentSceneType)
+        {
+            ApplyOnlineStageSelection(stageIndex);
+            return true;
+        }
+
+        bool isTransientSceneState = isTransitioning
+            || currentSceneType == 0
+            || currentSceneSignature == 99999
+            || currentSceneSignature == 199999
+            || currentSceneSignature == 299999;
+
+        if (isTransientSceneState)
+        {
+            hasPendingStageSelect = true;
+            pendingStageSelectSceneType = packetSceneType;
+            pendingStageSelectSceneSignature = packetSceneSignature;
+            pendingStageSelectIndex = stageIndex;
+            return true;
+        }
+
+        Debug.LogWarning($"Ignoring stale stage select packet. PacketSceneType={packetSceneType}, LocalSceneType={currentSceneType}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
+        return false;
+    }
+
+    private void ApplyPendingStageSelectIfAvailable()
+    {
+        if (!hasPendingStageSelect)
+        {
+            return;
+        }
+
+        if (pendingStageSelectSceneType != GetNetworkSceneTypeCode())
+        {
+            return;
+        }
+
+        hasPendingStageSelect = false;
+        int pendingIndex = pendingStageSelectIndex;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
+        ApplyOnlineStageSelection(pendingIndex);
+    }
+
     /// <summary>
     /// Stops the currently running match (local or online).
     /// </summary>
@@ -851,6 +909,10 @@ public class GameManager : MonoBehaviour
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            hasPendingStageSelect = false;
+            pendingStageSelectSceneType = 0;
+            pendingStageSelectSceneSignature = 0;
+            pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
 
@@ -929,6 +991,7 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
+            ApplyPendingStageSelectIfAvailable();
             ApplyPendingGameplayReadyIfAvailable();
             goDoorPrefab?.CheckOpenDoor();
 
@@ -945,6 +1008,7 @@ public class GameManager : MonoBehaviour
         }
         else if (activeScene.name == "Shop")
         {
+            ApplyPendingStageSelectIfAvailable();
             ApplyPendingGameplayReadyIfAvailable();
             for (int i = 0; i < playerCount; i++)
             {
@@ -1173,6 +1237,10 @@ public class GameManager : MonoBehaviour
                 localGameplayReadyContext = GameplayReadyContext.None;
                 remoteGameplayReadyContext = GameplayReadyContext.None;
                 pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+                hasPendingStageSelect = false;
+                pendingStageSelectSceneType = 0;
+                pendingStageSelectSceneSignature = 0;
+                pendingStageSelectIndex = -1;
             }
             LoadRandomGameplayStage();
             ResetPlayers();
@@ -1834,6 +1902,10 @@ public class GameManager : MonoBehaviour
         localGameplayReadyContext = GameplayReadyContext.None;
         remoteGameplayReadyContext = GameplayReadyContext.None;
         pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        hasPendingStageSelect = false;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
         sceneManager.LoadScene("Shop");
         SetStage(-1);
     }
@@ -2153,6 +2225,10 @@ public class GameManager : MonoBehaviour
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            hasPendingStageSelect = false;
+            pendingStageSelectSceneType = 0;
+            pendingStageSelectSceneSignature = 0;
+            pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
@@ -2198,6 +2274,10 @@ public class GameManager : MonoBehaviour
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            hasPendingStageSelect = false;
+            pendingStageSelectSceneType = 0;
+            pendingStageSelectSceneSignature = 0;
+            pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;

@@ -585,15 +585,7 @@ public class MatchMessageManager : MonoBehaviour
                         int stageIndex = reader.ReadInt32();
                         if (GameManager.Instance != null)
                         {
-                            byte currentSceneType = GameManager.Instance.GetNetworkSceneTypeCode();
-                            int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
-                            if (packetSceneType != currentSceneType)
-                            {
-                                Debug.LogWarning($"Ignoring stale stage select packet. PacketSceneType={packetSceneType}, LocalSceneType={currentSceneType}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
-                                return;
-                            }
-
-                            GameManager.Instance.ApplyOnlineStageSelection(stageIndex);
+                            GameManager.Instance.HandleOnlineStageSelect(packetSceneType, packetSceneSignature, stageIndex);
                         }
                         return;
                     }

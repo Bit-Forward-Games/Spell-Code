@@ -585,7 +585,9 @@ public class MatchMessageManager : MonoBehaviour
                         if (GameManager.Instance != null)
                         {
                             int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
-                            if (packetSceneSignature != currentSceneSignature)
+                            int packetScenePhase = packetSceneSignature / 100000;
+                            int currentScenePhase = currentSceneSignature / 100000;
+                            if (packetScenePhase != currentScenePhase)
                             {
                                 Debug.LogWarning($"Ignoring stale stage select packet. PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
                                 return;

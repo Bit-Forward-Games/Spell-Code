@@ -98,6 +98,7 @@ public class PlayerController : MonoBehaviour
     public bool onPlatform = false;
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
+    public bool tapJump = false;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -118,6 +119,8 @@ public class PlayerController : MonoBehaviour
     public Fixed jumpForce = Fixed.FromInt(10);
     public Fixed runSpeed = Fixed.FromInt(0);
     public Fixed slideSpeed = Fixed.FromInt(0);
+    public byte jumpCount = 0;
+    public byte maxJumpCount = 0;
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
@@ -194,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 1f;
+    private float toastLifetime = 1.5f;
     //[SerializeField]
     private float toastFadeDuration = 0.35f;
     //[SerializeField]
@@ -310,6 +313,7 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+        maxJumpCount = (byte)charData.jumpCount;
         jumpForce = Fixed.FromInt(charData.jumpForce);
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
@@ -866,6 +870,11 @@ public class PlayerController : MonoBehaviour
             }
 
         }
+        else
+        {
+            //if you are grounded, reset your jump count
+            jumpCount = maxJumpCount;
+        }
 
         //check the comboResetTimer for combo breaker Purposes
         if(state != PlayerState.Hitstun && comboResetTimer > 0)
@@ -923,9 +932,10 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
 
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
@@ -970,9 +980,10 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
 
                     //play the jump sound
                     SFX_Manager.Instance.PlaySound(Sounds.JUMP);
@@ -1029,10 +1040,23 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
 
+                
+
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
+                    break;
+                }
+                //air jump input check
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                {
+                    
+                    vSpd = jumpForce;
+                    jumpCount--;
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+                    SetState(PlayerState.Jump);
                     break;
                 }
 
@@ -1540,9 +1564,12 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                else if (input.ButtonStates[1] == ButtonState.Pressed)   //jump out of slide only on the ground
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
                     vSpd = jumpForce;
+                    jumpCount--;
+                    //play the jump dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
                     SetState(PlayerState.Jump);
                     break;
                 }
@@ -2327,14 +2354,24 @@ public class PlayerController : MonoBehaviour
             }
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (lightArmor && hitboxData.attackLvl < 2)
+            if (lightArmor)
             {
-                SpawnToast($"BLOCKED!", Color.white);
+                if(hitboxData.attackLvl < 2)
+                {
+                    SpawnToast($"ARMORED!", Color.white);
 
-                //Play the blocked visual effect
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+                    //Play the blocked visual effect
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
-                return;
+                    return;
+                }
+                else
+                {
+                    SpawnToast($"ARMOR BREAK!", Color.white);
+
+                    //----------------------------------------------@Max White Put the armor shatter vfx here-------------------------------------------------
+                    //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position, pID, facingRight);
+                }
             }
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
@@ -2342,6 +2379,7 @@ public class PlayerController : MonoBehaviour
             if (GameManager.Instance.currentStageIndex < 0)
             {
                 //don't take damage in the lobby
+                SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
                 return;
             }
 

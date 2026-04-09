@@ -1048,6 +1048,7 @@ GameObject:
   - component: {fileID: 8887101072570620987}
   - component: {fileID: 8219335073837037833}
   - component: {fileID: 2073745163053996702}
+  - component: {fileID: 2212921169824715940}
   m_Layer: 0
   m_Name: pfb_PlayerController
   m_TagString: Untagged
@@ -1089,15 +1090,21 @@ MonoBehaviour:
   inputs: {fileID: 8219335073837037833}
   playerInputs: {fileID: -944628639613478452, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   characterName: Code-E
+  enableHitRumble: 1
+  hitRumbleLow: 0.2
+  hitRumbleHigh: 0.6
+  hitRumbleDuration: 0.12
   facingRight: 1
   isGrounded: 0
   onPlatform: 0
   relativeInputs: 0
+  toggleCodeInput: 0
   logicFrame: 0
   animationFrame: 0
   state: 0
   prevState: 0
   spriteRenderer: {fileID: -1293374541561941338}
+  jumpCount: 0
   flowState: 0
   stockStability: 0
   demonAura: 0
@@ -1130,6 +1137,7 @@ MonoBehaviour:
   storedCodeMaxDuration: 0
   storedCodeDuration: 0
   comboCounter: 0
+  comboResetTimer: 0
   hitstop: 0
   hitstopActive: 0
   hitstunOverride: 0
@@ -1156,11 +1164,14 @@ MonoBehaviour:
   chosenStartingSpell: 0
   isSpawned: 0
   startingSpell: 
+  startingSpellAdded: 0
+  suppressSpellLoadSideEffects: 0
   pID: 0
   vWave: 0
   killeez: 0
   DemonX: 0
   bigStox: 0
+  _playerPauseIndex: 0
 --- !u!212 &-1293374541561941338
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1318,6 +1329,61 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerHealth: {fileID: 0}
   healthBar: {fileID: 0}
+--- !u!331 &2212921169824715940
+SpriteMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8711063744521862629}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 15d0c3709176029428a0da2f8cecf0b5, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
+  m_MaskAlphaCutoff: 0.2
+  m_FrontSortingLayerID: 0
+  m_BackSortingLayerID: 0
+  m_FrontSortingLayer: 0
+  m_BackSortingLayer: 0
+  m_FrontSortingOrder: 0
+  m_BackSortingOrder: 0
+  m_IsCustomRangeActive: 0
+  m_SpriteSortPoint: 0
+  m_MaskSource: 1
 --- !u!1 &8879918758412812615
 GameObject:
   m_ObjectHideFlags: 0

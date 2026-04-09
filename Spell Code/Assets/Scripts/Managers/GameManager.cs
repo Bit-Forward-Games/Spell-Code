@@ -93,6 +93,7 @@ public class GameManager : MonoBehaviour
     private int lastRoundWinnerPID = -1;
     private bool roundTransitionPending = false;
     private bool onlineRoundAdvanceApplied = false;
+    private bool pendingOpponentShopTransition = false;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -867,6 +868,14 @@ public class GameManager : MonoBehaviour
         else if (activeScene.name == "Gameplay")
         {
             CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+
+            if (isOnlineMatchActive && pendingOpponentShopTransition && roundOver && !isTransitioning)
+            {
+                pendingOpponentShopTransition = false;
+                AdvanceRoundCountOnce();
+                BeginOnlineShopTransition();
+                return;
+            }
 
             if (isOnline)
             {
@@ -1709,6 +1718,25 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        if (activeSceneName == "Shop")
+        {
+            return;
+        }
+
+        if (activeSceneName != "Gameplay")
+        {
+            pendingOpponentShopTransition = true;
+            return;
+        }
+
+        if (!roundOver && !isTransitioning)
+        {
+            pendingOpponentShopTransition = true;
+            return;
+        }
+
+        pendingOpponentShopTransition = false;
         AdvanceRoundCountOnce();
         BeginOnlineShopTransition();
     }
@@ -1952,6 +1980,7 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             onlineRoundAdvanceApplied = false;
+            pendingOpponentShopTransition = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localSceneTransitionReady = false;
@@ -1993,6 +2022,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            pendingOpponentShopTransition = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localSceneTransitionReady = false;

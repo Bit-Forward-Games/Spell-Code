@@ -254,7 +254,7 @@ public class CharacterData
     public int slideSpeed;
     public int slideFriction;
     public int jumpForce;
-    public int jumpCounter;
+    public int jumpCount;
     //public ushort[] projectileIds; //projectile Manager needs to be able to access this
     public ushort playerHealth;
     public int playerWidth;

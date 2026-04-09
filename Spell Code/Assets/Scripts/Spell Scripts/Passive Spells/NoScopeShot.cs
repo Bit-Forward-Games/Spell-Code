@@ -10,7 +10,7 @@ public class NoScopeShot : SpellData
     public NoScopeShot()
     {
         spellName = "No-Scope Shot";
-        cooldown = 1;
+        cooldown = 60;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] {ProcCondition.OnCastBasic };
         brands = new Brand[1] { Brand.VWave };
@@ -19,17 +19,27 @@ public class NoScopeShot : SpellData
         projectilePrefabs = new GameObject[1];
     }
 
+    public override void SpellUpdate()
+    {
+        //basic cooldown handling
+        if (cooldownCounter > 0)
+        {
+            cooldownCounter--;
+            return;
+        }
 
+    }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
         switch (targetProcCon)
         {
             case ProcCondition.OnCastBasic:
 
-                if (owner.flowState > 0)
+                if (owner.flowState > 0 && cooldownCounter <= 0)
                 {
-                    owner.basicSpawnOverride = true;
+                    owner.basicSpawnOverride = spellName;
                     owner.flowState = (ushort)Mathf.Max(owner.flowState - 60,0);
+                    cooldownCounter = cooldown;
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                 }
                 break;

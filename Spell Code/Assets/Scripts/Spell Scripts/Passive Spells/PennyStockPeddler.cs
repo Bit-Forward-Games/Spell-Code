@@ -23,8 +23,11 @@ public class PennyStockPeddler : SpellData
     {
         base.LoadSpell();
         convertedStockStability = 0;
-        owner.stockStability += 10;
-        owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+        if (owner != null && !owner.suppressSpellLoadSideEffects)
+        {
+            owner.stockStability += 10;
+            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+        }
     }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {

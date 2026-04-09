@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
 
+    public SpriteRenderer shopImage;
+
 
     [NonSerialized]
     /// <summary>
@@ -89,6 +91,7 @@ public class GameManager : MonoBehaviour
     private int roundEndFrameCounter = 0;
     private bool roundEndUIShown = false;
     private int lastRoundWinnerPID = -1;
+    private bool roundTransitionPending = false;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -174,7 +177,9 @@ public class GameManager : MonoBehaviour
             Instance = this;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
+            
         }
+
     }
 
     public void ExecuteOrder66()
@@ -642,8 +647,6 @@ public class GameManager : MonoBehaviour
         frameNumber = 0;
         isRunning = true;
 
-        int testValue = GetNextRandom(0,100);
-        Debug.Log($"[SYNC CHECK] seededRandom test value: {testValue} | randomCallCount: {randomCallCount}");
     }
 
     // Send lobby ready signal
@@ -782,11 +785,16 @@ public class GameManager : MonoBehaviour
 
             if (isOnline)
             {
+                shopImage.enabled = false;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
         else if (activeScene.name == "Shop")
         {
+            for (int i = 0; i < playerCount; i++)
+            {
+                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+            }
             goDoorPrefab.CheckOpenDoor();
 
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
@@ -802,12 +810,18 @@ public class GameManager : MonoBehaviour
             }
             if (isOnline)
             {
+                shopImage.enabled = true;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
         else if (activeScene.name == "Gameplay")
         {
             CheckDeathsAndRoundEnd(GetActivePlayerControllers());
+
+            if (isOnline)
+            {
+                shopImage.enabled = false;
+            }
         }
     }
 
@@ -850,22 +864,21 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        timeoutFrames = 0;
+        rbManager.RollbackEvent();
+
+        if (!rbManager.AllowUpdate())
+        {
+            return;
+        }
+
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
 
-        timeoutFrames = 0;
-        rbManager.RollbackEvent();
-
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
-
-        if (!rbManager.AllowUpdate())
-        {
-            frameNumber--;
-            return;
-        }
 
         Scene activeScene = SceneManager.GetActiveScene();
 
@@ -932,11 +945,7 @@ public class GameManager : MonoBehaviour
         if (!roundOver)
         {
             roundEndFrameCounter = 0;
-            return;
-        }
-
-        if (!isRealFrame)
-        {
+            roundTransitionPending = false;
             return;
         }
 
@@ -946,6 +955,12 @@ public class GameManager : MonoBehaviour
         if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
         {
             roundEndFrameCounter = 0;
+            roundTransitionPending = true;
+        }
+
+        if (isRealFrame && roundTransitionPending)
+        {
+            roundTransitionPending = false;
             PerformRoundTransition();
         }
     }
@@ -962,6 +977,7 @@ public class GameManager : MonoBehaviour
             roundOver = false;
             roundEndUIShown = false;
             lastRoundWinnerPID = -1;
+            roundTransitionPending = false;
             return;
         }
 
@@ -985,6 +1001,7 @@ public class GameManager : MonoBehaviour
             roundOver = false;
             roundEndUIShown = false;
             lastRoundWinnerPID = -1;
+            roundTransitionPending = false;
             return;
         }
 
@@ -993,6 +1010,7 @@ public class GameManager : MonoBehaviour
         roundOver = false;
         roundEndUIShown = false;
         lastRoundWinnerPID = -1;
+        roundTransitionPending = false;
     }
 
     private void HandleRoundEndUI(bool isRealFrame)
@@ -1076,12 +1094,21 @@ public class GameManager : MonoBehaviour
         ///shop specific update
         if (activeScene.name == "Shop")
         {
+            for (int i = 0; i < playerCount; i++)
+            {
+                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+            }
+            shopImage.enabled = true;
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
             }
+        }
+        else
+        {
+            shopImage.enabled = false;
         }
 
 
@@ -1320,7 +1347,7 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    public void UpdatePlayerBounties()
+    public void UpdatePlayerBounties(bool applyVisuals = true)
     {
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
@@ -1336,6 +1363,11 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             players[i].ramBounty = (short)(((players[i].roundRam - averageRoundRam)/2) + (100*(players[i].roundsWon - averageRoundWins)));
+        }
+
+        if (!applyVisuals)
+        {
+            return;
         }
 
         //give the player with the highest bounty the bounty aura VFX
@@ -1386,15 +1418,14 @@ public class GameManager : MonoBehaviour
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
 
-                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                {
-                    UpdatePlayerBounties();
-                }
+                UpdatePlayerBounties(!isRollback);
 
-                // Only consume RNG on real frames, reuse saved position during rollback
-                FixedVec2 spawnPos = isRollback
-                    ? player.position // keep existing position during rollback, it'll be overwritten by deserialization anyway
-                    : GetRandomSpawnVec2();
+                // Clear lingering projectiles from the dead player so both clients respawn
+                // into the same clean state instead of carrying old shots across deaths.
+                ProjectileManager.Instance.DeleteAllPlayerProjectiles(player.pID);
+
+                // Respawn position is deterministic state and must be recomputed during rollback too.
+                FixedVec2 spawnPos = GetRandomSpawnVec2();
                 player.SpawnPlayer(spawnPos);
             }
         }
@@ -1427,7 +1458,7 @@ public class GameManager : MonoBehaviour
 
                         for (int i = 0; i < playerCount; i++)
                         {
-                            players[i].roundRam = 0;
+                            //players[i].roundRam = 0;
                             if (!isRollback)
                             {
                                 players[i].playerNum.enabled = false;
@@ -1814,6 +1845,15 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[2] { 5, 5 };
+            timeoutFrames = 0;
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+            }
 
             if (currentStageIndex < 0)
             {
@@ -1821,11 +1861,10 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
-
-            //if (RollbackManager.Instance != null)
-            //{
-            //    RollbackManager.Instance.SaveState();
-            //}
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.SaveState();
+            }
         }
 
         // Handle shop scene loading for online
@@ -1835,8 +1874,21 @@ public class GameManager : MonoBehaviour
             isTransitioning = false;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[2] { 5, 5 };
+            timeoutFrames = 0;
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+            }
 
             ResetPlayers();
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.SaveState();
+            }
             // Ready flags are already reset in RoundEnd()
         }
     }
@@ -1942,36 +1994,43 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
 
-                // Serialize remaining game stages as indices into master stages list
-                bw.Write(gameStages.Count);
-                foreach (StageDataSO stage in gameStages)
-                {
-                    bw.Write(stages.IndexOf(stage));
-                }
+                Scene activeScene = SceneManager.GetActiveScene();
+                bool includeLobbyShopState = activeScene.name != "Gameplay";
+                bw.Write(includeLobbyShopState);
 
-                bw.Write(p1_shopIndex);
-                bw.Write(p2_shopIndex);
-
-                bw.Write(p1_lastCycleFrame);
-                bw.Write(p2_lastCycleFrame);
-
-                // Serialize shop spell choices themselves
-                if (shopManager != null)
+                if (includeLobbyShopState)
                 {
-                    SerializeStringList(bw, shopManager.GetP1Choices());
-                    SerializeStringList(bw, shopManager.GetP2Choices());
-                }
-                else
-                {
-                    // No shop active, write empty lists
-                    bw.Write(0); // p1_choices count
-                    bw.Write(0); // p2_choices count
-                }
+                    // Serialize remaining game stages as indices into master stages list
+                    bw.Write(gameStages.Count);
+                    foreach (StageDataSO stage in gameStages)
+                    {
+                        bw.Write(stages.IndexOf(stage));
+                    }
 
-                // Also serialize if players have chosen their shop spell
-                for (int i = 0; i < playerCount; i++)
-                {
-                    bw.Write(players[i].chosenSpell);
+                    bw.Write(p1_shopIndex);
+                    bw.Write(p2_shopIndex);
+
+                    bw.Write(p1_lastCycleFrame);
+                    bw.Write(p2_lastCycleFrame);
+
+                    // Serialize shop spell choices themselves
+                    if (shopManager != null)
+                    {
+                        SerializeStringList(bw, shopManager.GetP1Choices());
+                        SerializeStringList(bw, shopManager.GetP2Choices());
+                    }
+                    else
+                    {
+                        // No shop active, write empty lists
+                        bw.Write(0); // p1_choices count
+                        bw.Write(0); // p2_choices count
+                    }
+
+                    // Also serialize if players have chosen their shop spell
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        bw.Write(players[i].chosenSpell);
+                    }
                 }
 
                 List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
@@ -1996,26 +2055,124 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                bw.Write(gates.Length);
-                foreach (var gate in gates)
+                bw.Write(includeLobbyShopState);
+                if (includeLobbyShopState)
                 {
-                    if (gate != null) gate.Serialize(bw);
-                }
+                    bw.Write(gates.Length);
+                    foreach (var gate in gates)
+                    {
+                        if (gate != null) gate.Serialize(bw);
+                    }
 
-                bw.Write(gambas.Count);
-                foreach (GameObject gambaGO in gambas)
-                {
-                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                    // Write defaults if somehow null, so byte count stays consistent
-                    bw.Write(gamba != null ? gamba.activatedCount : 0);
-                    bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
-                    bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
-                    bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
-                    bw.Write(isActive);
+                    bw.Write(gambas.Count);
+                    foreach (GameObject gambaGO in gambas)
+                    {
+                        GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                        // Write defaults if somehow null, so byte count stays consistent
+                        bw.Write(gamba != null ? gamba.activatedCount : 0);
+                        bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+                        bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+                        bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+                        bw.Write(isActive);
+                    }
                 }
 
                 return memoryStream.ToArray();
             }
+        }
+    }
+
+    public byte[] SerializeHashState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(playerCount);
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (players[i] != null)
+                {
+                    players[i].SerializeGameplayHash(bw);
+                }
+            }
+
+            bw.Write(roundOver);
+            bw.Write(gameOver);
+            bw.Write(roundEndFrameCounter);
+            bw.Write(currentStageIndex);
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    bw.Write(damageMatrix[i, j]);
+                }
+            }
+
+            bw.Write(randomSeed);
+            bw.Write(randomCallCount);
+            bw.Write(rngState);
+            bw.Write(stageRngState);
+            bw.Write(ramNeededToWinRound);
+            bw.Write(roundEndUIShown);
+            bw.Write(lastRoundWinnerPID);
+
+            List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
+                .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
+                .ToList();
+            bw.Write(activeProjectiles.Count);
+            foreach (BaseProjectile projectile in activeProjectiles)
+            {
+                int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
+                bw.Write(prefabIndex);
+                projectile.Serialize(bw);
+            }
+
+            return memoryStream.ToArray();
+        }
+    }
+
+    public byte[] SerializeSharedGameplayHashState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            bw.Write(roundOver);
+            bw.Write(gameOver);
+            bw.Write(currentStageIndex);
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    bw.Write(damageMatrix[i, j]);
+                }
+            }
+
+            bw.Write(rngState);
+            bw.Write(ramNeededToWinRound);
+
+            return memoryStream.ToArray();
+        }
+    }
+
+    public byte[] SerializeProjectileHashState()
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
+                .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
+                .ToList();
+            bw.Write(activeProjectiles.Count);
+            foreach (BaseProjectile projectile in activeProjectiles)
+            {
+                int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
+                bw.Write(prefabIndex);
+                projectile.Serialize(bw);
+            }
+
+            return memoryStream.ToArray();
         }
     }
 
@@ -2076,30 +2233,34 @@ public class GameManager : MonoBehaviour
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
 
-                // Deserialize remaining game stages
-                int savedStageCount = br.ReadInt32();
-                gameStages.Clear();
-                for (int i = 0; i < savedStageCount; i++)
+                bool includeLobbyShopState = br.ReadBoolean();
+                if (includeLobbyShopState)
                 {
-                    int stageIdx = br.ReadInt32();
-                    if (stageIdx >= 0 && stageIdx < stages.Count)
+                    // Deserialize remaining game stages
+                    int savedStageCount = br.ReadInt32();
+                    gameStages.Clear();
+                    for (int i = 0; i < savedStageCount; i++)
                     {
-                        gameStages.Add(stages[stageIdx]);
+                        int stageIdx = br.ReadInt32();
+                        if (stageIdx >= 0 && stageIdx < stages.Count)
+                        {
+                            gameStages.Add(stages[stageIdx]);
+                        }
                     }
-                }
 
-                p1_shopIndex = br.ReadInt32();
-                p2_shopIndex = br.ReadInt32();
-                p1_lastCycleFrame = br.ReadInt32();
-                p2_lastCycleFrame = br.ReadInt32();
+                    p1_shopIndex = br.ReadInt32();
+                    p2_shopIndex = br.ReadInt32();
+                    p1_lastCycleFrame = br.ReadInt32();
+                    p2_lastCycleFrame = br.ReadInt32();
 
-                // Deserialize shop spell choices
-                List<string> savedP1Choices = DeserializeStringList(br);
-                List<string> savedP2Choices = DeserializeStringList(br);
+                    // Deserialize shop spell choices
+                    List<string> savedP1Choices = DeserializeStringList(br);
+                    List<string> savedP2Choices = DeserializeStringList(br);
 
-                for (int i = 0; i < playerCount; i++)
-                {
-                    players[i].chosenSpell = br.ReadBoolean();
+                    for (int i = 0; i < playerCount; i++)
+                    {
+                        players[i].chosenSpell = br.ReadBoolean();
+                    }
                 }
 
                 // Projectile State 
@@ -2200,33 +2361,37 @@ public class GameManager : MonoBehaviour
 
                 ProjectileManager.Instance.SynchronizeActiveProjectiles();
 
-                int gateCount = br.ReadInt32();
-                for (int i = 0; i < gateCount; i++)
+                bool hasLobbyShopTail = br.ReadBoolean();
+                if (hasLobbyShopTail)
                 {
-                    if (i < gates.Length && gates[i] != null)
+                    int gateCount = br.ReadInt32();
+                    for (int i = 0; i < gateCount; i++)
                     {
-                        gates[i].Deserialize(br);
-                    }
-                }
-
-                int gambaCount = br.ReadInt32();
-                for (int i = 0; i < gambaCount; i++)
-                {
-                    int activatedCount = br.ReadInt32();
-                    byte resetTimer = br.ReadByte();
-                    int startingSpellPos = br.ReadInt32();
-                    bool isActive = br.ReadBoolean();
-                    if (i < gambas.Count)
-                    {
-                        GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
-                        if (gamba != null)
+                        if (i < gates.Length && gates[i] != null)
                         {
-                            gamba.activatedCount = activatedCount;
-                            gamba.resetTimer = resetTimer;
-                            gamba.SetStartingSpellPos(startingSpellPos);
-                            if (gamba.gambaAnimator != null)
+                            gates[i].Deserialize(br);
+                        }
+                    }
+
+                    int gambaCount = br.ReadInt32();
+                    for (int i = 0; i < gambaCount; i++)
+                    {
+                        int activatedCount = br.ReadInt32();
+                        byte resetTimer = br.ReadByte();
+                        int startingSpellPos = br.ReadInt32();
+                        bool isActive = br.ReadBoolean();
+                        if (i < gambas.Count)
+                        {
+                            GambaMachine gamba = gambas[i].GetComponent<GambaMachine>();
+                            if (gamba != null)
                             {
-                                gamba.gambaAnimator.SetBool("isActive", isActive);
+                                gamba.activatedCount = activatedCount;
+                                gamba.resetTimer = resetTimer;
+                                gamba.SetStartingSpellPos(startingSpellPos);
+                                if (gamba.gambaAnimator != null)
+                                {
+                                    gamba.gambaAnimator.SetBool("isActive", isActive);
+                                }
                             }
                         }
                     }

@@ -28,14 +28,20 @@ public class BlueChipTrader : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnHitBasic:
+                if(storedStockStability == 0)
+                {
                 storedStockStability = owner.stockStability;
                 owner.stockStability = 100;
                 owner.SpawnToast($"+{100-storedStockStability}% STOCK STABILITY", Color.blue);
+                }
                 break;
             case ProcCondition.OnCastSpell:
+                if(storedStockStability > 0)
+                {
                 owner.stockStability = storedStockStability;
                 storedStockStability = 0;
                 owner.SpawnToast($"STOCK STABILITY CONSUMED", Color.gray);
+                }
                 break;
             default:
                 break;

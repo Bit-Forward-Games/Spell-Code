@@ -24,10 +24,26 @@ public class SpellCode_Gate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            SetOpen(isOpen);
+            return;
+        }
+
         if (!isOpen)
         {
             CheckGateBroken();
         }
+        SetOpen(isOpen);
+    }
+
+    public void SimulateOnline()
+    {
+        if (!isOpen)
+        {
+            CheckGateBroken();
+        }
+
         SetOpen(isOpen);
     }
 

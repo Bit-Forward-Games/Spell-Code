@@ -1301,6 +1301,14 @@ public class GameManager : MonoBehaviour
         // ONLINE LOBBY LOGIC (MainMenu scene)
         if (activeScene.name == "MainMenu")
         {
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline();
+                }
+            }
+
             // Handle spell selection for online players (only local and remote)
             //HandleOnlineSpellSelection();
 
@@ -1332,6 +1340,16 @@ public class GameManager : MonoBehaviour
         else if (activeScene.name == "Gameplay")
         {
             TickRoundEndTransition(!rbManager.isRollbackFrame);
+        }
+        else if (activeScene.name == "Shop")
+        {
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline();
+                }
+            }
         }
         //else if (activeScene.name == "Shop")
         //{

@@ -214,7 +214,59 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             
         }
+    }
 
+    private void SetResolution()
+    {
+        Vector2Int displaySize = GetActiveDisplaySize();
+        if (displaySize.x <= 0 || displaySize.y <= 0)
+        {
+            return;
+        }
+
+        const float targetAspect = 16f / 9f;
+        float displayAspect = (float)displaySize.x / displaySize.y;
+
+        int targetWidth;
+        int targetHeight;
+
+        if (displayAspect >= targetAspect)
+        {
+            targetHeight = displaySize.y;
+            targetWidth = Mathf.RoundToInt(targetHeight * targetAspect);
+        }
+        else
+        {
+            targetWidth = displaySize.x;
+            targetHeight = Mathf.RoundToInt(targetWidth / targetAspect);
+        }
+
+        targetWidth = Mathf.Max(1, targetWidth);
+        targetHeight = Mathf.Max(1, targetHeight);
+
+        Screen.SetResolution(targetWidth, targetHeight, Screen.fullScreenMode);
+    }
+
+    private Vector2Int GetActiveDisplaySize()
+    {
+        DisplayInfo displayInfo = Screen.mainWindowDisplayInfo;
+        if (displayInfo.width > 0 && displayInfo.height > 0)
+        {
+            return new Vector2Int(displayInfo.width, displayInfo.height);
+        }
+
+        Resolution currentResolution = Screen.currentResolution;
+        if (currentResolution.width > 0 && currentResolution.height > 0)
+        {
+            return new Vector2Int(currentResolution.width, currentResolution.height);
+        }
+
+        if (Display.main != null && Display.main.systemWidth > 0 && Display.main.systemHeight > 0)
+        {
+            return new Vector2Int(Display.main.systemWidth, Display.main.systemHeight);
+        }
+
+        return new Vector2Int(Screen.width, Screen.height);
     }
 
     public void ExecuteOrder66()
@@ -240,6 +292,8 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        SetResolution();
+
         isOnlineMatchActive = false;
         isWaitingForOpponent = false;
         opponentIsReady = false;

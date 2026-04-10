@@ -50,6 +50,9 @@ public class TempUIScript : MonoBehaviour
     private int i = 0;
 
     private int[] previousRamVals = new int[4];
+    private int activeTransitionRequestId = 0;
+    private Coroutine activeTypeCoroutine;
+    private Coroutine activeReverseTypeCoroutine;
 
     void Start()
     {
@@ -255,10 +258,15 @@ public class TempUIScript : MonoBehaviour
 
     public IEnumerator DisplayTransitionScreen(float transitionTime, string text)
     {
+        int requestId = ++activeTransitionRequestId;
+
+        StopTransitionTextCoroutines();
         textBoxUI.SetActive(true);
+        textBoxAnim.SetInteger("Reverse", 0);
 
         foreach (var item in announcer)
         {
+            item.transform.DOKill();
             item.transform.localScale = Vector3.zero;
         }
 
@@ -276,21 +284,39 @@ public class TempUIScript : MonoBehaviour
         if (screenText != null)
         {
             screenText.text = "";
-            StartCoroutine(TypeLine(screenText, text, false));
+            activeTypeCoroutine = StartCoroutine(TypeLine(screenText, text, false));
         }
         
         yield return new WaitForSeconds(transitionTime);
+
+        if (requestId != activeTransitionRequestId)
+            yield break;
+
+        StopTransitionTextCoroutines();
 
         textBoxAnim.SetInteger("Reverse", 1);
 
         foreach (var item in announcer)
         {
+            item.transform.DOKill();
             item.transform.DOScale(0f, 1f).SetEase(Ease.InOutQuint);
         }
 
-        StartCoroutine(TypeLine(screenText, text, true));
+        if (screenText != null)
+        {
+            screenText.text = text;
+            activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true));
+            yield return activeReverseTypeCoroutine;
+            activeReverseTypeCoroutine = null;
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
 
-        yield return new WaitForSeconds(0.5f);
+        if (requestId != activeTransitionRequestId)
+            yield break;
+
         textBoxAnim.SetInteger("Reverse", 0);
         textBoxUI.SetActive(false);
     }
@@ -312,6 +338,21 @@ public class TempUIScript : MonoBehaviour
                 screenText.text = screenText.text.Substring(0, screenText.text.Length - 1);
                 yield return new WaitForSeconds(textSpeed);
             }
+        }
+    }
+
+    private void StopTransitionTextCoroutines()
+    {
+        if (activeTypeCoroutine != null)
+        {
+            StopCoroutine(activeTypeCoroutine);
+            activeTypeCoroutine = null;
+        }
+
+        if (activeReverseTypeCoroutine != null)
+        {
+            StopCoroutine(activeReverseTypeCoroutine);
+            activeReverseTypeCoroutine = null;
         }
     }
 

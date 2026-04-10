@@ -113,14 +113,15 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
     public void SimulateOnline(ulong[] inputs, bool isRealFrame)
     {
-        if (!isRealFrame) return;
-
         colliding = (CheckPlayerCollision() != null);
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
-            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
-            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
+            if (isRealFrame)
+            {
+                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
+            }
 
             InputSnapshot inputSnapshot = InputConverter.ConvertFromLong(5);
             int ownerIndex = ownerPID - 1;
@@ -141,17 +142,36 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             if (selectHoldCounter >= 60)
             {
                 overlappingPlayer.AddSpellToSpellList(diskName);
-                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                if (isRealFrame)
+                {
+                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                }
                 Destroy(gameObject);
             }
         }
         else
         {
             selectHoldCounter = 0;
-            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+            if (isRealFrame)
+            {
+                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+            }
         }
 
-        diskDisplay.selectFill.fillAmount = GetFillPercent();
+        if (isRealFrame)
+        {
+            diskDisplay.selectFill.fillAmount = GetFillPercent();
+        }
+    }
+
+    public byte GetSelectHoldCounter()
+    {
+        return selectHoldCounter;
+    }
+
+    public void SetSelectHoldCounter(byte value)
+    {
+        selectHoldCounter = value;
     }
 
     private float GetFillPercent()

@@ -1067,7 +1067,6 @@ public class GameManager : MonoBehaviour
 
     private void SimulateOnlineFloppies(ulong[] inputs, bool isRealFrame)
     {
-        if (!isRealFrame) return;
         if (floppyObjects == null || floppyObjects.Length == 0)
         {
             FindAllFloppyDisks();
@@ -1204,6 +1203,97 @@ public class GameManager : MonoBehaviour
             roundTransitionPending = false;
             PerformRoundTransition();
         }
+    }
+
+    private void SerializeFloppyState(BinaryWriter bw)
+    {
+        FindAllFloppyDisks();
+
+        GameObject[] activeFloppies = floppyObjects ?? Array.Empty<GameObject>();
+        bw.Write(activeFloppies.Length);
+
+        for (int i = 0; i < activeFloppies.Length; i++)
+        {
+            GameObject floppy = activeFloppies[i];
+            SpellCode_FloppyDisk disk = floppy != null ? floppy.GetComponent<SpellCode_FloppyDisk>() : null;
+            if (floppy == null || disk == null)
+            {
+                bw.Write(0);
+                bw.Write(string.Empty);
+                bw.Write(0f);
+                bw.Write(0f);
+                bw.Write((byte)0);
+                continue;
+            }
+
+            bw.Write(disk.ownerPID);
+            bw.Write(disk.diskName ?? string.Empty);
+            bw.Write(floppy.transform.position.x);
+            bw.Write(floppy.transform.position.y);
+            bw.Write(disk.GetSelectHoldCounter());
+        }
+    }
+
+    private void DeserializeFloppyState(BinaryReader br)
+    {
+        int floppyCount = br.ReadInt32();
+        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter)> savedFloppies = new List<(int, string, Vector2, byte)>(floppyCount);
+
+        for (int i = 0; i < floppyCount; i++)
+        {
+            int ownerPid = br.ReadInt32();
+            string diskName = br.ReadString();
+            float posX = br.ReadSingle();
+            float posY = br.ReadSingle();
+            byte holdCounter = br.ReadByte();
+            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter));
+        }
+
+        FindAllFloppyDisks();
+        if (floppyObjects != null)
+        {
+            for (int i = 0; i < floppyObjects.Length; i++)
+            {
+                GameObject floppy = floppyObjects[i];
+                if (floppy == null) continue;
+                floppy.SetActive(false);
+                Destroy(floppy);
+            }
+        }
+
+        List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
+        foreach (var savedFloppy in savedFloppies)
+        {
+            if (savedFloppy.ownerPid <= 0 || string.IsNullOrEmpty(savedFloppy.diskName))
+            {
+                continue;
+            }
+
+            for (int i = 0; i < validGambas.Count; i++)
+            {
+                GameObject gambaGO = validGambas[i];
+                if (gambaGO == null) continue;
+
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba == null || gamba.ownerPID != savedFloppy.ownerPid)
+                {
+                    continue;
+                }
+
+                GameObject restoredDisk = gamba.SpawnFloppyDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.diskName, false, false);
+                if (restoredDisk != null)
+                {
+                    SpellCode_FloppyDisk disk = restoredDisk.GetComponent<SpellCode_FloppyDisk>();
+                    if (disk != null)
+                    {
+                        disk.SetSelectHoldCounter(savedFloppy.holdCounter);
+                    }
+                }
+                break;
+            }
+        }
+
+        FindAllFloppyDisks();
     }
 
     private void PerformRoundTransition()
@@ -2553,6 +2643,8 @@ public class GameManager : MonoBehaviour
                         bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
                         bw.Write(isActive);
                     }
+
+                    SerializeFloppyState(bw);
                 }
 
                 return memoryStream.ToArray();
@@ -2882,6 +2974,8 @@ public class GameManager : MonoBehaviour
                             }
                         }
                     }
+
+                    DeserializeFloppyState(br);
                 }
 
                 // Resolve References

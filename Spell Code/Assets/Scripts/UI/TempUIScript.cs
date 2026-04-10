@@ -263,6 +263,10 @@ public class TempUIScript : MonoBehaviour
         StopTransitionTextCoroutines();
         textBoxUI.SetActive(true);
         textBoxAnim.SetInteger("Reverse", 0);
+        textBoxAnim.Rebind();
+        textBoxAnim.Update(0f);
+        textBoxAnim.Play("Anim_TextBox", 0, 0f);
+        textBoxAnim.Play("Anim_TextBoxShadow", 1, 0f);
 
         foreach (var item in announcer)
         {

@@ -406,7 +406,7 @@ public class GambaMachine : MonoBehaviour
             true);
     }
 
-    public void SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "")
+    public GameObject SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "", bool playVfx = true, bool logChoice = true)
     {
         List<GameObject> floppys = new List<GameObject>();
         //random spell
@@ -512,8 +512,7 @@ public class GambaMachine : MonoBehaviour
                     if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd) 
                     {
                         Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        SpawnFloppyDisk(ownerPID, location);
-                        return;
+                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
                     }
                 }
             }
@@ -524,8 +523,7 @@ public class GambaMachine : MonoBehaviour
                     if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
                     {
                         Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        SpawnFloppyDisk(ownerPID, location);
-                        return;
+                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
                     }
                 }
             }
@@ -536,8 +534,7 @@ public class GambaMachine : MonoBehaviour
                     if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
                     {
                         Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        SpawnFloppyDisk(ownerPID, location);
-                        return;
+                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
                     }
                 }
             }
@@ -548,8 +545,7 @@ public class GambaMachine : MonoBehaviour
                     if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
                     {
                         Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        SpawnFloppyDisk(ownerPID, location);
-                        return;
+                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
                     }
                 }
             }
@@ -565,52 +561,51 @@ public class GambaMachine : MonoBehaviour
             }
 
             //play the floppy disk VFX depending on the disk brand
-            switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+            if (playVfx)
             {
-                //if the disk's brand is VWave,...
-                case Brand.VWave:
-                    //play the VWave floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is DemonX,...
-                case Brand.DemonX:
-                    //play the DemonX floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is Killeez,...
-                case Brand.Killeez:
-                    //play the Killeez floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is BigStox,...
-                case Brand.BigStox:
-                    //play the BigStox floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //by default, play the VWave floppy spawn VFX
-                default:
-                    //play the VWave floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
+                switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+                {
+                    case Brand.VWave:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.DemonX:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.Killeez:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.BigStox:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    default:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                }
             }
 
             if (ownerPID == 1) 
-            { 
-                p1_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+            {
+                p1_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
             }
             
             if (ownerPID == 2) 
             {
-                p2_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                p2_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
             }
             if (ownerPID == 3) 
             {
-                p3_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                p3_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
             }
             if (ownerPID == 4) 
             {
-                p4_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                p4_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
             }
+
+            return disk;
         }
 
         //case where spell name is specified
@@ -628,52 +623,51 @@ public class GambaMachine : MonoBehaviour
             }
 
             //play the floppy disk VFX depending on the disk brand
-            switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+            if (playVfx)
             {
-                //if the disk's brand is VWave,...
-                case Brand.VWave:
-                    //play the VWave floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is DemonX,...
-                case Brand.DemonX:
-                    //play the DemonX floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is Killeez,...
-                case Brand.Killeez:
-                    //play the Killeez floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //if the disk's brand is BigStox,...
-                case Brand.BigStox:
-                    //play the BigStox floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
-                //by default, play the VWave floppy spawn VFX
-                default:
-                    //play the VWave floppy spawn VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
-                    break;
+                switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
+                {
+                    case Brand.VWave:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.DemonX:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.Killeez:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    case Brand.BigStox:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                    default:
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        break;
+                }
             }
 
             if (ownerPID == 1)
             {
-                p1_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                p1_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
             }
 
             if (ownerPID == 2)
             {
-                p2_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                p2_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
             }
             if (ownerPID == 3)
             {
-                p3_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                p3_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
             }
             if (ownerPID == 4)
             {
-                p4_floppys.Add(disk); Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                p4_floppys.Add(disk);
+                if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
             }
+
+            return disk;
         }
     }
 

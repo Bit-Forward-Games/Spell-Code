@@ -1364,18 +1364,20 @@ public class GameManager : MonoBehaviour
 
         HandleRoundEndUI(isRealFrame);
 
-        roundEndFrameCounter++;
-        if (roundEndFrameCounter >= RoundEndTransitionFrameThreshold)
+        if (roundEndFrameCounter < RoundEndTransitionFrameThreshold)
         {
-            roundEndFrameCounter = 0;
-            roundTransitionPending = true;
+            roundEndFrameCounter++;
         }
 
-        if (isRealFrame && roundTransitionPending)
+        if (!isRealFrame || roundEndFrameCounter < RoundEndTransitionFrameThreshold)
         {
-            roundTransitionPending = false;
-            PerformRoundTransition();
+            roundTransitionPending = roundEndFrameCounter >= RoundEndTransitionFrameThreshold;
+            return;
         }
+
+        roundTransitionPending = false;
+        roundEndFrameCounter = 0;
+        PerformRoundTransition();
     }
 
     private void SerializeFloppyState(BinaryWriter bw)

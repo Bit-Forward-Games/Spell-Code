@@ -2343,6 +2343,7 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
+            ProjectileManager.Instance.InitializeAllProjectiles();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();
@@ -2388,6 +2389,7 @@ public class GameManager : MonoBehaviour
 
             InitializeOnlineShopSceneState();
             ResetPlayers();
+            ProjectileManager.Instance.InitializeAllProjectiles();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();

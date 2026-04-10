@@ -9,6 +9,8 @@ public class SteamLobbyManager : MonoBehaviour
 
     private Lobby? currentLobby;
     private bool isHostingFlow;
+    private bool pendingInviteOverlay;
+    private bool hasHostedLobbyThisSession;
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
 
@@ -19,20 +21,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     public bool TryOpenInviteOverlay()
     {
-        if (!SteamClient.IsValid || !currentLobby.HasValue)
+        if (!CanOpenInviteOverlayForCurrentLobby())
         {
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] TryOpenInviteOverlay blocked. SteamValid={SteamClient.IsValid} HasLobby={currentLobby.HasValue}");
-            }
-            return false;
-        }
-
-        if (currentLobby.Value.Owner.Id != SteamClient.SteamId)
-        {
-            if (debugLogs)
-            {
-                Debug.Log("[SteamLobbyManager] TryOpenInviteOverlay blocked. Not lobby owner.");
+                Debug.Log($"[SteamLobbyManager] TryOpenInviteOverlay blocked. SteamValid={SteamClient.IsValid} HasLobby={currentLobby.HasValue} HostedThisSession={hasHostedLobbyThisSession}");
             }
             return false;
         }
@@ -87,7 +80,19 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = true;
-        LeaveLobbyInternal();
+        pendingInviteOverlay = true;
+
+        if (CanOpenInviteOverlayForCurrentLobby())
+        {
+            TryOpenInviteOverlay();
+            isHostingFlow = false;
+            pendingInviteOverlay = false;
+            return;
+        }
+
+        LeaveLobbyInternal(clearHostSession: false);
+        lastLobbyCreateResult = Result.None;
+        lastLobbyCreated = null;
 
         try
         {
@@ -122,13 +127,13 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetFriendsOnly();
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
-
-            SteamFriends.OpenGameInviteOverlay(currentLobby.Value.Id);
+            hasHostedLobbyThisSession = true;
         }
         catch (Exception e)
         {
             Debug.LogError($"Exception while creating lobby: {e.Message}");
             isHostingFlow = false;
+            pendingInviteOverlay = false;
         }
     }
 
@@ -137,7 +142,7 @@ public class SteamLobbyManager : MonoBehaviour
         LeaveLobbyInternal();
     }
 
-    private void LeaveLobbyInternal()
+    private void LeaveLobbyInternal(bool clearHostSession = true)
     {
         if (currentLobby.HasValue)
         {
@@ -145,6 +150,12 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby = null;
         }
 
+        if (clearHostSession)
+        {
+            hasHostedLobbyThisSession = false;
+        }
+
+        pendingInviteOverlay = false;
         isHostingFlow = false;
     }
 
@@ -173,6 +184,20 @@ public class SteamLobbyManager : MonoBehaviour
     {
         currentLobby = lobby;
 
+        if (lobby.Owner.Id == SteamClient.SteamId)
+        {
+            hasHostedLobbyThisSession = true;
+
+            if (pendingInviteOverlay)
+            {
+                pendingInviteOverlay = false;
+                TryOpenInviteOverlay();
+            }
+
+            isHostingFlow = false;
+            return;
+        }
+
         if (GameManager.Instance == null)
         {
             Debug.LogWarning("GameManager not found; cannot start online match.");
@@ -180,11 +205,6 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         if (GameManager.Instance.isOnlineMatchActive)
-        {
-            return;
-        }
-
-        if (lobby.Owner.Id == SteamClient.SteamId)
         {
             return;
         }
@@ -234,5 +254,20 @@ public class SteamLobbyManager : MonoBehaviour
         {
             Debug.Log($"[SteamLobbyManager] Lobby created callback. Result={result} LobbyId={lobby.Id.Value}");
         }
+    }
+
+    private bool CanOpenInviteOverlayForCurrentLobby()
+    {
+        if (!SteamClient.IsValid || !currentLobby.HasValue)
+        {
+            return false;
+        }
+
+        if (currentLobby.Value.Owner.Id != SteamClient.SteamId)
+        {
+            return false;
+        }
+
+        return hasHostedLobbyThisSession;
     }
 }

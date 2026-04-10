@@ -16,6 +16,7 @@ public class OnlineHostDoor : MonoBehaviour
     [SerializeField] private bool debugLogs = false;
     private float nextTriggerTime;
     private bool interactPressedThisFrame;
+    private bool wasPlayerInRangeLastFrame;
 
     private void Start()
     {
@@ -75,6 +76,7 @@ public class OnlineHostDoor : MonoBehaviour
     {
         if (!isOpen)
         {
+            wasPlayerInRangeLastFrame = false;
             return false;
         }
 
@@ -97,6 +99,8 @@ public class OnlineHostDoor : MonoBehaviour
             return false;
         }
 
+        bool playerInRange = false;
+
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             PlayerController player = GameManager.Instance.players[i];
@@ -107,8 +111,16 @@ public class OnlineHostDoor : MonoBehaviour
 
             if (IsPlayerInRange(player))
             {
+                playerInRange = true;
+
+                if (!requireButtonPress && wasPlayerInRangeLastFrame)
+                {
+                    continue;
+                }
+
                 if (requireButtonPress && !interactPressedThisFrame)
                 {
+                    wasPlayerInRangeLastFrame = true;
                     return false;
                 }
 
@@ -118,22 +130,13 @@ public class OnlineHostDoor : MonoBehaviour
                 }
                 nextTriggerTime = Time.unscaledTime + Mathf.Max(0.1f, triggerCooldownSeconds);
 
-                if (SteamLobbyManager.Instance.IsInLobby)
-                {
-                    bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
-                    if (!opened)
-                    {
-                        SteamLobbyManager.Instance.HostAndInvite();
-                    }
-                }
-                else
-                {
-                    SteamLobbyManager.Instance.HostAndInvite();
-                }
+                SteamLobbyManager.Instance.HostAndInvite();
+                wasPlayerInRangeLastFrame = true;
                 return true;
             }
         }
 
+        wasPlayerInRangeLastFrame = playerInRange;
         return false;
     }
 

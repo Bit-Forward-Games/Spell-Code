@@ -274,7 +274,7 @@ public class MatchMessageManager : MonoBehaviour
     }
 
     // Send lobby ready for gameplay signal
-    public void SendLobbyReadySignal()
+    public void SendLobbyReadySignal(int transitionId)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -289,6 +289,7 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write(PACKET_TYPE_LOBBY_READY);
+                    writer.Write(transitionId);
 
                     byte[] data = memoryStream.ToArray();
 
@@ -312,7 +313,7 @@ public class MatchMessageManager : MonoBehaviour
     }
 
     // Send shop ready for gameplay signal
-    public void SendShopReadySignal()
+    public void SendShopReadySignal(int transitionId)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -327,6 +328,7 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write(PACKET_TYPE_SHOP_READY);
+                    writer.Write(transitionId);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -348,7 +350,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendSceneTransitionReadySignal()
+    public void SendSceneTransitionReadySignal(int transitionId)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -363,6 +365,9 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write(PACKET_TYPE_SCENE_READY);
+                    writer.Write(transitionId);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -380,7 +385,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendShopTransitionSignal()
+    public void SendShopTransitionSignal(int transitionId)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -395,6 +400,9 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write(PACKET_TYPE_SHOP_TRANSITION);
+                    writer.Write(transitionId);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                     byte[] data = memoryStream.ToArray();
 
                     bool success = SendPacket(data, P2PSend.Reliable);
@@ -580,12 +588,13 @@ public class MatchMessageManager : MonoBehaviour
                     
                     if (packetType == PACKET_TYPE_STAGE_SELECT)
                     {
+                        int transitionId = reader.ReadInt32();
                         byte packetSceneType = reader.ReadByte();
                         int packetSceneSignature = reader.ReadInt32();
                         int stageIndex = reader.ReadInt32();
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.HandleOnlineStageSelect(packetSceneType, packetSceneSignature, stageIndex);
+                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex);
                         }
                         return;
                     }
@@ -596,7 +605,8 @@ public class MatchMessageManager : MonoBehaviour
                         //Debug.Log("Received LOBBY_READY signal from opponent");
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.OnOpponentReadyForGameplayFromLobby();
+                            int transitionId = reader.ReadInt32();
+                            GameManager.Instance.OnOpponentReadyForGameplayFromLobby(transitionId);
                         }
                         return;
                     }
@@ -605,7 +615,8 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.OnOpponentReadyForGameplayFromShop();
+                            int transitionId = reader.ReadInt32();
+                            GameManager.Instance.OnOpponentReadyForGameplayFromShop(transitionId);
                         }
                         return;
                     }
@@ -614,7 +625,10 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.OnOpponentSceneTransitionReady();
+                            int transitionId = reader.ReadInt32();
+                            byte sceneType = reader.ReadByte();
+                            int sceneSignature = reader.ReadInt32();
+                            GameManager.Instance.OnOpponentSceneTransitionReady(transitionId, sceneType, sceneSignature);
                         }
                         return;
                     }
@@ -623,7 +637,10 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.OnOpponentShopTransition();
+                            int transitionId = reader.ReadInt32();
+                            byte sceneType = reader.ReadByte();
+                            int sceneSignature = reader.ReadInt32();
+                            GameManager.Instance.OnOpponentShopTransition(transitionId, sceneType, sceneSignature);
                         }
                         return;
                     }
@@ -846,7 +863,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStageSelect(int stageIndex)
+    public void SendStageSelect(int transitionId, int stageIndex)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -859,6 +876,7 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_STAGE_SELECT);
+                writer.Write(transitionId);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);

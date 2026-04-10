@@ -173,12 +173,23 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext localGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext remoteGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+    private int onlineTransitionSequence = 0;
+    private int activeOnlineTransitionId = 0;
+    private int localGameplayReadyTransitionId = 0;
+    private int remoteGameplayReadyTransitionId = 0;
+    private int pendingRemoteGameplayReadyTransitionId = 0;
     private bool hasPendingStageSelect = false;
+    private int pendingStageSelectTransitionId = 0;
     private byte pendingStageSelectSceneType = 0;
     private int pendingStageSelectSceneSignature = 0;
     private int pendingStageSelectIndex = -1;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
+    private bool hasPendingRemoteSceneReady = false;
+    private int pendingRemoteSceneReadyTransitionId = 0;
+    private byte pendingRemoteSceneReadyType = 0;
+    private int pendingRemoteSceneReadySignature = 0;
+    private int pendingOpponentShopTransitionId = 0;
     [HideInInspector]
     public int p1_shopIndex = 0;
     [HideInInspector]
@@ -235,6 +246,9 @@ public class GameManager : MonoBehaviour
         isTransitioning = false;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
+        hasPendingRemoteSceneReady = false;
+        pendingRemoteSceneReadyType = 0;
+        pendingRemoteSceneReadySignature = 0;
         frameNumber = 0;
 
         isRunning = true;
@@ -503,6 +517,10 @@ public class GameManager : MonoBehaviour
         pendingStageSelectIndex = -1;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
+        hasPendingRemoteSceneReady = false;
+        ResetOnlineTransitionTracking();
+        pendingRemoteSceneReadyType = 0;
+        pendingRemoteSceneReadySignature = 0;
 
         // Disable PlayerInputManager
         if (playerInputManager != null)
@@ -693,7 +711,63 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.InitializeAllProjectiles();
         frameNumber = 0;
         isRunning = true;
+        ResetOnlineTransitionTracking();
 
+    }
+
+    private int GetExpectedOnlineTransitionId()
+    {
+        return activeOnlineTransitionId > 0 ? activeOnlineTransitionId : onlineTransitionSequence + 1;
+    }
+
+    private void ResetOnlineTransitionTracking()
+    {
+        onlineTransitionSequence = 0;
+        activeOnlineTransitionId = 0;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        pendingStageSelectTransitionId = 0;
+        pendingRemoteSceneReadyTransitionId = 0;
+        pendingOpponentShopTransitionId = 0;
+    }
+
+    private void BeginTrackedOnlineTransition(int transitionId)
+    {
+        activeOnlineTransitionId = transitionId;
+        isTransitioning = true;
+        localSceneTransitionReady = false;
+        remoteSceneTransitionReady = false;
+        hasPendingRemoteSceneReady = false;
+        pendingRemoteSceneReadyTransitionId = 0;
+        pendingRemoteSceneReadyType = 0;
+        pendingRemoteSceneReadySignature = 0;
+    }
+
+    private void CompleteTrackedOnlineTransition()
+    {
+        if (activeOnlineTransitionId > 0)
+        {
+            onlineTransitionSequence = Mathf.Max(onlineTransitionSequence, activeOnlineTransitionId);
+        }
+
+        activeOnlineTransitionId = 0;
+        localSceneTransitionReady = false;
+        remoteSceneTransitionReady = false;
+        hasPendingRemoteSceneReady = false;
+        pendingRemoteSceneReadyTransitionId = 0;
+        pendingRemoteSceneReadyType = 0;
+        pendingRemoteSceneReadySignature = 0;
+
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        hasPendingStageSelect = false;
+        pendingStageSelectTransitionId = 0;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
+        pendingOpponentShopTransitionId = 0;
     }
 
     // Send lobby ready signal
@@ -710,47 +784,82 @@ public class GameManager : MonoBehaviour
 
         localPlayerReadyForGameplay = true;
         localGameplayReadyContext = readyContext;
+        localGameplayReadyTransitionId = GetExpectedOnlineTransitionId();
         //Debug.Log("Local player ready for gameplay transition - sending signal");
 
         if (readyContext == GameplayReadyContext.Shop)
         {
-            MatchMessageManager.Instance.SendShopReadySignal();
+            MatchMessageManager.Instance.SendShopReadySignal(localGameplayReadyTransitionId);
         }
         else
         {
-            MatchMessageManager.Instance.SendLobbyReadySignal();
+            MatchMessageManager.Instance.SendLobbyReadySignal(localGameplayReadyTransitionId);
         }
 
         CheckBothPlayersReadyForGameplay();
     }
 
-    public void OnOpponentReadyForGameplayFromLobby()
+    public void OnOpponentReadyForGameplayFromLobby(int transitionId)
     {
-        OnOpponentReadyForGameplay(GameplayReadyContext.Lobby);
+        OnOpponentReadyForGameplay(GameplayReadyContext.Lobby, transitionId);
     }
 
-    public void OnOpponentReadyForGameplayFromShop()
+    public void OnOpponentReadyForGameplayFromShop(int transitionId)
     {
-        OnOpponentReadyForGameplay(GameplayReadyContext.Shop);
+        OnOpponentReadyForGameplay(GameplayReadyContext.Shop, transitionId);
     }
 
-    private void OnOpponentReadyForGameplay(GameplayReadyContext readyContext)
+    private void OnOpponentReadyForGameplay(GameplayReadyContext readyContext, int transitionId)
     {
-        if (GetCurrentGameplayReadyContext() != readyContext)
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (transitionId < expectedTransitionId)
+        {
+            return;
+        }
+
+        if (transitionId > expectedTransitionId || GetCurrentGameplayReadyContext() != readyContext)
         {
             pendingRemoteGameplayReadyContext = readyContext;
+            pendingRemoteGameplayReadyTransitionId = transitionId;
             return;
         }
 
         remotePlayerReadyForGameplay = true;
         remoteGameplayReadyContext = readyContext;
+        remoteGameplayReadyTransitionId = transitionId;
         CheckBothPlayersReadyForGameplay();
     }
 
-    public void OnOpponentSceneTransitionReady()
+    public void OnOpponentSceneTransitionReady(int transitionId, byte sceneType, int sceneSignature)
     {
-        remoteSceneTransitionReady = true;
-        CheckSceneTransitionReady();
+        if (!isTransitioning)
+        {
+            return;
+        }
+
+        if (transitionId != activeOnlineTransitionId)
+        {
+            if (transitionId > activeOnlineTransitionId)
+            {
+                hasPendingRemoteSceneReady = true;
+                pendingRemoteSceneReadyTransitionId = transitionId;
+                pendingRemoteSceneReadyType = sceneType;
+                pendingRemoteSceneReadySignature = sceneSignature;
+            }
+            return;
+        }
+
+        if (sceneType == GetNetworkSceneTypeCode() && sceneSignature == GetNetworkSceneSignature())
+        {
+            remoteSceneTransitionReady = true;
+            CheckSceneTransitionReady();
+            return;
+        }
+
+        hasPendingRemoteSceneReady = true;
+        pendingRemoteSceneReadyTransitionId = transitionId;
+        pendingRemoteSceneReadyType = sceneType;
+        pendingRemoteSceneReadySignature = sceneSignature;
     }
 
     // Check if both players are ready to transition
@@ -764,13 +873,13 @@ public class GameManager : MonoBehaviour
 
         if (localPlayerReadyForGameplay
             && remotePlayerReadyForGameplay
+            && localGameplayReadyTransitionId == GetExpectedOnlineTransitionId()
+            && remoteGameplayReadyTransitionId == GetExpectedOnlineTransitionId()
             && localGameplayReadyContext == currentReadyContext
             && remoteGameplayReadyContext == currentReadyContext)
         {
             //Debug.Log("Both players ready - transitioning to Gameplay");
-            isTransitioning = true;
-            localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
+            BeginTrackedOnlineTransition(GetExpectedOnlineTransitionId());
             LoadRandomGameplayStage();
         }
     }
@@ -785,9 +894,30 @@ public class GameManager : MonoBehaviour
         if (localSceneTransitionReady && remoteSceneTransitionReady)
         {
             isTransitioning = false;
-            localSceneTransitionReady = false;
-            remoteSceneTransitionReady = false;
+            CompleteTrackedOnlineTransition();
         }
+    }
+
+    private void ApplyPendingSceneTransitionReadyIfAvailable()
+    {
+        if (!isTransitioning || !hasPendingRemoteSceneReady)
+        {
+            return;
+        }
+
+        if (pendingRemoteSceneReadyTransitionId != activeOnlineTransitionId
+            || pendingRemoteSceneReadyType != GetNetworkSceneTypeCode()
+            || pendingRemoteSceneReadySignature != GetNetworkSceneSignature())
+        {
+            return;
+        }
+
+        hasPendingRemoteSceneReady = false;
+        pendingRemoteSceneReadyTransitionId = 0;
+        pendingRemoteSceneReadyType = 0;
+        pendingRemoteSceneReadySignature = 0;
+        remoteSceneTransitionReady = true;
+        CheckSceneTransitionReady();
     }
 
     private GameplayReadyContext GetCurrentGameplayReadyContext()
@@ -814,24 +944,50 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (pendingRemoteGameplayReadyContext != currentReadyContext)
+        if (pendingRemoteGameplayReadyContext != currentReadyContext
+            || pendingRemoteGameplayReadyTransitionId != GetExpectedOnlineTransitionId())
         {
             return;
         }
 
         pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        pendingRemoteGameplayReadyTransitionId = 0;
         remotePlayerReadyForGameplay = true;
         remoteGameplayReadyContext = currentReadyContext;
+        remoteGameplayReadyTransitionId = GetExpectedOnlineTransitionId();
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(byte packetSceneType, int packetSceneSignature, int stageIndex)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex)
     {
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (transitionId < expectedTransitionId)
+        {
+            return false;
+        }
+
+        if (activeOnlineTransitionId > 0 && transitionId != activeOnlineTransitionId)
+        {
+            if (transitionId > activeOnlineTransitionId)
+            {
+                hasPendingStageSelect = true;
+                pendingStageSelectTransitionId = transitionId;
+                pendingStageSelectSceneType = packetSceneType;
+                pendingStageSelectSceneSignature = packetSceneSignature;
+                pendingStageSelectIndex = stageIndex;
+            }
+            return false;
+        }
+
         byte currentSceneType = GetNetworkSceneTypeCode();
         int currentSceneSignature = GetNetworkSceneSignature();
 
         if (packetSceneType == currentSceneType)
         {
+            if (activeOnlineTransitionId == 0)
+            {
+                BeginTrackedOnlineTransition(transitionId);
+            }
             ApplyOnlineStageSelection(stageIndex);
             return true;
         }
@@ -845,6 +1001,7 @@ public class GameManager : MonoBehaviour
         if (isTransientSceneState)
         {
             hasPendingStageSelect = true;
+            pendingStageSelectTransitionId = transitionId;
             pendingStageSelectSceneType = packetSceneType;
             pendingStageSelectSceneSignature = packetSceneSignature;
             pendingStageSelectIndex = stageIndex;
@@ -862,13 +1019,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (pendingStageSelectSceneType != GetNetworkSceneTypeCode())
+        if (pendingStageSelectTransitionId != GetExpectedOnlineTransitionId()
+            || pendingStageSelectSceneType != GetNetworkSceneTypeCode())
         {
             return;
         }
 
         hasPendingStageSelect = false;
+        if (activeOnlineTransitionId == 0)
+        {
+            BeginTrackedOnlineTransition(pendingStageSelectTransitionId);
+        }
         int pendingIndex = pendingStageSelectIndex;
+        pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
@@ -888,6 +1051,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             //Debug.Log("Cleaning up online match state...");
+            ResetOnlineTransitionTracking();
 
             // Clean up rollback manager
             if (RollbackManager.Instance != null)
@@ -911,12 +1075,20 @@ public class GameManager : MonoBehaviour
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyTransitionId = 0;
             hasPendingStageSelect = false;
+            pendingStageSelectTransitionId = 0;
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
+            hasPendingRemoteSceneReady = false;
+            pendingRemoteSceneReadyTransitionId = 0;
+            pendingRemoteSceneReadyType = 0;
+            pendingRemoteSceneReadySignature = 0;
 
             // Reset frame counter
             frameNumber = 0;
@@ -1054,7 +1226,8 @@ public class GameManager : MonoBehaviour
             {
                 pendingOpponentShopTransition = false;
                 AdvanceRoundCountOnce();
-                BeginOnlineShopTransition();
+                BeginOnlineShopTransition(pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId());
+                pendingOpponentShopTransitionId = 0;
                 return;
             }
 
@@ -1329,7 +1502,11 @@ public class GameManager : MonoBehaviour
                 localGameplayReadyContext = GameplayReadyContext.None;
                 remoteGameplayReadyContext = GameplayReadyContext.None;
                 pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+                localGameplayReadyTransitionId = 0;
+                remoteGameplayReadyTransitionId = 0;
+                pendingRemoteGameplayReadyTransitionId = 0;
                 hasPendingStageSelect = false;
+                pendingStageSelectTransitionId = 0;
                 pendingStageSelectSceneType = 0;
                 pendingStageSelectSceneSignature = 0;
                 pendingStageSelectIndex = -1;
@@ -1967,11 +2144,12 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
+            int transitionId = GetExpectedOnlineTransitionId();
             if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
             {
-                MatchMessageManager.Instance.SendShopTransitionSignal();
+                MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
             }
-            BeginOnlineShopTransition();
+            BeginOnlineShopTransition(transitionId);
             return;
         }
         sceneManager.LoadScene("Shop");
@@ -1980,21 +2158,24 @@ public class GameManager : MonoBehaviour
          //BGM_Manager.Instance.StartAndPlaySong();
     }
 
-    private void BeginOnlineShopTransition()
+    private void BeginOnlineShopTransition(int transitionId)
     {
         if (isTransitioning && SceneManager.GetActiveScene().name == "Shop")
         {
             return;
         }
 
-        isTransitioning = true;
-        localSceneTransitionReady = false;
+        BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
         localGameplayReadyContext = GameplayReadyContext.None;
         remoteGameplayReadyContext = GameplayReadyContext.None;
         pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
         hasPendingStageSelect = false;
+        pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
@@ -2002,14 +2183,34 @@ public class GameManager : MonoBehaviour
         SetStage(-1);
     }
 
-    public void OnOpponentShopTransition()
+    public void OnOpponentShopTransition(int transitionId, byte sceneType, int sceneSignature)
     {
         if (!isOnlineMatchActive)
         {
             return;
         }
 
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (transitionId < expectedTransitionId)
+        {
+            return;
+        }
+
         string activeSceneName = SceneManager.GetActiveScene().name;
+        byte currentSceneType = GetNetworkSceneTypeCode();
+        int currentSceneSignature = GetNetworkSceneSignature();
+
+        if (sceneType != 1)
+        {
+            return;
+        }
+
+        if (activeSceneName == "Gameplay"
+            && (sceneType != currentSceneType || sceneSignature != currentSceneSignature))
+        {
+            return;
+        }
+
         if (activeSceneName == "Shop")
         {
             return;
@@ -2018,18 +2219,21 @@ public class GameManager : MonoBehaviour
         if (activeSceneName != "Gameplay")
         {
             pendingOpponentShopTransition = true;
+            pendingOpponentShopTransitionId = transitionId;
             return;
         }
 
         if (!roundOver && !isTransitioning)
         {
             pendingOpponentShopTransition = true;
+            pendingOpponentShopTransitionId = transitionId;
             return;
         }
 
         pendingOpponentShopTransition = false;
+        pendingOpponentShopTransitionId = 0;
         AdvanceRoundCountOnce();
-        BeginOnlineShopTransition();
+        BeginOnlineShopTransition(transitionId);
     }
 
     private void AdvanceRoundCountOnce()
@@ -2175,7 +2379,7 @@ public class GameManager : MonoBehaviour
         {
             if (localPlayerIndex == 0)
             {
-                SelectAndBroadcastStage();
+                SelectAndBroadcastStage(activeOnlineTransitionId > 0 ? activeOnlineTransitionId : GetExpectedOnlineTransitionId());
             }
             return;
         }
@@ -2212,7 +2416,7 @@ public class GameManager : MonoBehaviour
         // DON'T call ResetPlayers() here - do it in OnSceneLoaded
     }
 
-    private void SelectAndBroadcastStage()
+    private void SelectAndBroadcastStage(int transitionId)
     {
         if (gameStages.Count <= 0)
         {
@@ -2221,11 +2425,15 @@ public class GameManager : MonoBehaviour
 
         int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
         int newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+        if (activeOnlineTransitionId == 0)
+        {
+            BeginTrackedOnlineTransition(transitionId);
+        }
         ApplyOnlineStageSelection(newStageIndex);
 
         if (MatchMessageManager.Instance != null)
         {
-            MatchMessageManager.Instance.SendStageSelect(newStageIndex);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex);
         }
     }
 
@@ -2312,12 +2520,17 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             onlineRoundAdvanceApplied = false;
             pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyTransitionId = 0;
             hasPendingStageSelect = false;
+            pendingStageSelectTransitionId = 0;
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
@@ -2350,9 +2563,10 @@ public class GameManager : MonoBehaviour
             }
 
             localSceneTransitionReady = true;
+            ApplyPendingSceneTransitionReadyIfAvailable();
             if (MatchMessageManager.Instance != null)
             {
-                MatchMessageManager.Instance.SendSceneTransitionReadySignal();
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
             }
             CheckSceneTransitionReady();
         }
@@ -2362,12 +2576,17 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
             pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;
             remoteGameplayReadyContext = GameplayReadyContext.None;
             pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyTransitionId = 0;
             hasPendingStageSelect = false;
+            pendingStageSelectTransitionId = 0;
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
@@ -2395,9 +2614,10 @@ public class GameManager : MonoBehaviour
                 RollbackManager.Instance.SaveState();
             }
             localSceneTransitionReady = true;
+            ApplyPendingSceneTransitionReadyIfAvailable();
             if (MatchMessageManager.Instance != null)
             {
-                MatchMessageManager.Instance.SendSceneTransitionReadySignal();
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
             }
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()

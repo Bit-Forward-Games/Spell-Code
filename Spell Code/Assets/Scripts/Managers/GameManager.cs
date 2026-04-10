@@ -463,6 +463,12 @@ public class GameManager : MonoBehaviour
             //Debug.LogError("Cannot start online match: RollbackManager not found!");
             return;
         }
+
+        // Public internet matches were staying correct but rollback-heavy with a 2-frame baseline delay.
+        // Clamp the live online setting here so both peers negotiate the same safer value without
+        // touching offline simulation or relying on stale inspector defaults.
+        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
+
         if (!opponentId.IsValid)
         {
             //Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");

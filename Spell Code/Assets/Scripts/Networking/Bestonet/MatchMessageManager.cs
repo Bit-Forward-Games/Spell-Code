@@ -752,13 +752,13 @@ public class MatchMessageManager : MonoBehaviour
 
         int currentLocalFrame = GameManager.Instance.frameNumber;
         int latestTargetFrame = currentLocalFrame + RollbackManager.Instance.InputDelay;
-        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(0, EXTRA_RESEND_FRAMES);
+        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(14, EXTRA_RESEND_FRAMES);
         int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 
         int inputCount = latestTargetFrame - firstFrameToSend + 1;
         if (inputCount <= 0) return;
 
-        int maxInputsPerPacket = Mathf.Max(1, MAX_INPUTS_PER_PACKET);
+        int maxInputsPerPacket = Mathf.Max(32, MAX_INPUTS_PER_PACKET);
         if (inputCount > maxInputsPerPacket)
         {
             firstFrameToSend = latestTargetFrame - maxInputsPerPacket + 1;

@@ -7,13 +7,13 @@ public class GameEndScreen : MonoBehaviour
 {
     public SpriteRenderer winnerImage = new SpriteRenderer();
     public TextMeshProUGUI winnerText = new TextMeshProUGUI();
-    public Vector3 startingLocation = new Vector3(-2000f,77f,0f);
-    public Vector3 targetLocation = new Vector3(380f,77f,0f);
+    public Vector3 startingLocation = new Vector3(-15f,-1f,0f);
+    public Vector3 targetLocation = new Vector3(3f,-1f,0f);
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         //make the player
-        if(GameManager.Instance.bigWinner != null)
+        if(GameManager.Instance != null &&GameManager.Instance.bigWinner != null)
         {
             if(winnerText != null)
             {
@@ -43,14 +43,24 @@ public class GameEndScreen : MonoBehaviour
 
             
         }
-        // if (winnerImage != null)
-        // {
-        //     winnerImage.transform.position = startingLocation;
-        //     winnerImage.transform.DOMoveX(targetLocation.x, 5);
-        // }
+        if (winnerImage != null)
+        {
+            winnerImage.transform.position = startingLocation;
+            winnerImage.transform
+                .DOMoveX(targetLocation.x, 2)
+                .OnComplete(EnableRestartInput);
+        }
 
     }
 
+    public void EnableRestartInput()
+    {
+
+        if(GameManager.Instance != null)
+        {
+            GameManager.Instance.endInputEnabled = true;
+        }
+    }
     // Update is called once per frame
     void Update()
     {

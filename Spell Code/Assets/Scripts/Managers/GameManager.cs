@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
 
     [NonSerialized]
     public PlayerController bigWinner = null;
-
+    public bool endInputEnabled = false;
 
     [NonSerialized]
     /// <summary>
@@ -1624,8 +1624,8 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < inputs.Length; ++i)
             {
                 InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
-                if ((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
-                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
+                if (endInputEnabled &&((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
+                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)))
                 {
                     sceneManager.MainMenu();
                     //RestartGame();

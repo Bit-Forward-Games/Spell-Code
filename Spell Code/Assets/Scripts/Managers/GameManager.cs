@@ -2519,6 +2519,13 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
             onlineRoundAdvanceApplied = false;
+            roundOver = false;
+            gameOver = false;
+            roundEndFrameCounter = 0;
+            roundEndTimer = 0f;
+            roundTransitionPending = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
             pendingOpponentShopTransition = false;
             pendingOpponentShopTransitionId = 0;
             localPlayerReadyForGameplay = false;
@@ -2575,6 +2582,13 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            roundOver = false;
+            gameOver = false;
+            roundEndFrameCounter = 0;
+            roundEndTimer = 0f;
+            roundTransitionPending = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
             pendingOpponentShopTransition = false;
             pendingOpponentShopTransitionId = 0;
             localPlayerReadyForGameplay = false;

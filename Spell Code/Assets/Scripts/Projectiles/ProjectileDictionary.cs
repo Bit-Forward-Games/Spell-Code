@@ -12,7 +12,22 @@ public class ProjectileDictionary : NonPersistantSingleton<ProjectileDictionary>
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        EnsureInitialized();
+    }
 
+    public void EnsureInitialized()
+    {
+        if (projectileDict == null)
+        {
+            projectileDict = new Dictionary<string, BaseProjectile>();
+        }
+
+        if (projectileDict.Count > 0)
+        {
+            return;
+        }
+
+        projectileDict.Clear();
         for (ushort i = 0; i < projectileList.Count; i++)
         {
             //make sure each projectile has a BaseProjectile type component
@@ -41,5 +56,4 @@ public class ProjectileDictionary : NonPersistantSingleton<ProjectileDictionary>
             }
         }
     }
-
 }

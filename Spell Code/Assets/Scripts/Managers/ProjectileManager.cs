@@ -183,12 +183,29 @@ public class ProjectileManager : MonoBehaviour
     {
         //first destroy all projectiles in the list then clear the list
         DeleteAllProjectiles();
+
+        if (ProjectileDictionary.Instance == null)
+        {
+            Debug.LogError("ProjectileManager.InitializeAllProjectiles: ProjectileDictionary is missing.");
+            return;
+        }
+
+        ProjectileDictionary.Instance.EnsureInitialized();
         //loop through all players
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            if (GameManager.Instance.players[i] == null || GameManager.Instance.players[i].charData == null)
+            {
+                continue;
+            }
 
+            if (!ProjectileDictionary.Instance.projectileDict.TryGetValue(GameManager.Instance.players[i].charData.basicAttackProjId, out BaseProjectile basicProjectileTemplate) || basicProjectileTemplate == null)
+            {
+                Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Missing basic projectile '{GameManager.Instance.players[i].charData.basicAttackProjId}' for player {i + 1}.");
+                continue;
+            }
 
-            GameObject spawnedBaseProjectile = Instantiate(ProjectileDictionary.Instance.projectileDict[GameManager.Instance.players[i].charData.basicAttackProjId].gameObject);
+            GameObject spawnedBaseProjectile = Instantiate(basicProjectileTemplate.gameObject);
             spawnedBaseProjectile.GetComponent<BaseProjectile>().LoadProjectile();
             projectilePrefabs.Add(spawnedBaseProjectile.GetComponent<BaseProjectile>());
             spawnedBaseProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.players[i];

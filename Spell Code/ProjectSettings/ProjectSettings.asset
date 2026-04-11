@@ -142,7 +142,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.13.3
+  bundleVersion: 0.13.6
   preloadedAssets:
   - {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   metroInputSource: 0
@@ -786,7 +786,7 @@ PlayerSettings:
     PS4: DOTWEEN;DOTWEEN_UITOOLKIT
     PS5: DOTWEEN;DOTWEEN_UITOOLKIT
     QNX: DOTWEEN;DOTWEEN_UITOOLKIT
-    Standalone: DOTWEEN;DOTWEEN_UITOOLKIT;STEAM_PLAYTEST
+    Standalone: DOTWEEN;DOTWEEN_UITOOLKIT
     VisionOS: DOTWEEN;DOTWEEN_UITOOLKIT
     WebGL: DOTWEEN;DOTWEEN_UITOOLKIT
     Windows Store Apps: DOTWEEN;DOTWEEN_UITOOLKIT

@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.Audio;
 
 public class Pause : MonoBehaviour
 {
@@ -15,10 +16,11 @@ public class Pause : MonoBehaviour
     public bool paused;
     public bool options;
     public bool controls;
-    public Slider volumeSlider;
-    public Slider sfxSlider;
-    public AudioSource musicAudioSource;
-    public AudioSource sfxAudioSource;
+    public AudioMixer masterAudioMixer;
+    public AudioMixer musicAudioMixer;
+    public AudioMixer sfxAudioMixer;
+    public Slider musicVolumeSlider;
+    public Slider sfxVolumeSlider;
     public bool shakeEnabled = true;
     public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
@@ -29,6 +31,7 @@ public class Pause : MonoBehaviour
 
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
+    public Toggle tapJumpToggleGraphic;
 
     public bool UIRelativeInput
     {
@@ -47,6 +50,15 @@ public class Pause : MonoBehaviour
             gameManager.players[playerPauseIndex].toggleCodeInput = value; 
         }
     }
+    
+    public bool UITapJump
+    {
+        get { return gameManager.players[playerPauseIndex].tapJump; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].tapJump = value; 
+        }
+    }
 
     private void Start()
     {
@@ -54,16 +66,6 @@ public class Pause : MonoBehaviour
         //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
         Resume();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (musicAudioSource == null)
-            musicAudioSource = GameObject.Find("pfb_BGM_Manager").gameObject.GetComponent<AudioSource>();
-            
-        if (sfxAudioSource == null)
-            sfxAudioSource = GameObject.Find("pfb_SFX_Manager").gameObject.GetComponent<AudioSource>();
     }
 
     public void Resume()
@@ -145,12 +147,12 @@ public class Pause : MonoBehaviour
 
     public void MusicVolume()
     {
-        musicAudioSource.volume = volumeSlider.value;
+        musicAudioMixer.SetFloat("MusicVolume", Mathf.Log10(musicVolumeSlider.value) * 20f);
     }
 
     public void SFXVolume()
     {
-        sfxAudioSource.volume = sfxSlider.value;
+        musicAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
     }
 
     public void ToggleCameraShake()
@@ -171,5 +173,10 @@ public class Pause : MonoBehaviour
     public void ToggleCodeInput()
     {
         UIToggleCodeInput = !UIToggleCodeInput;
+    }
+
+    public void ToggleTapJump()
+    {
+        UITapJump = !UITapJump;
     }
 }

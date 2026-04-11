@@ -17359,10 +17359,11 @@ MonoBehaviour:
   paused: 0
   options: 0
   controls: 0
-  volumeSlider: {fileID: 0}
-  sfxSlider: {fileID: 0}
-  musicAudioSource: {fileID: 0}
-  sfxAudioSource: {fileID: 0}
+  masterAudioMixer: {fileID: 24100000, guid: b6810bb5be8e14c41a9bb2415473b898, type: 2}
+  musicAudioMixer: {fileID: 24100000, guid: b6810bb5be8e14c41a9bb2415473b898, type: 2}
+  sfxAudioMixer: {fileID: 24100000, guid: b6810bb5be8e14c41a9bb2415473b898, type: 2}
+  musicVolumeSlider: {fileID: 0}
+  sfxVolumeSlider: {fileID: 0}
   shakeEnabled: 1
   dynamicCameraOverride: 1
   _pauseMenuFirst: {fileID: 0}

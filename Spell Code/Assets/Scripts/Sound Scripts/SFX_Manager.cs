@@ -91,6 +91,9 @@ public class SFX_Manager : MonoBehaviour
                     //assign the audio source of the audio source object
                     _soundObject.audioSources[i] = audioSourceObject.GetComponent<AudioSource>();
 
+                    //assign the mixer output channel to the SFX mixer channel
+                    _soundObject.audioSources[i].outputAudioMixerGroup = sfxAudioSource.outputAudioMixerGroup;
+
                     //give the audio source object a unique name
                     audioSourceObject.name = _soundObject.possibleSounds[0].name + " Audio Source #" + (i + 1).ToString();
                 }

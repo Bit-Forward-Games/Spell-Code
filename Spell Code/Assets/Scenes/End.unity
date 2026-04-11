@@ -973,11 +973,11 @@ Transform:
   m_GameObject: {fileID: 966007785}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2000, y: -77, z: 0}
-  m_LocalScale: {x: 53, y: 53, z: 53}
+  m_LocalPosition: {x: -15, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 2065674528}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!222 &966007788
 CanvasRenderer:
@@ -1616,7 +1616,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 573602017}
-  - {fileID: 966007786}
   - {fileID: 329477665}
   - {fileID: 516062233}
   m_Father: {fileID: 0}
@@ -1635,18 +1634,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 2065674524}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0477e24d21b298f48ba6ecac1dbc6a25, type: 3}
+  m_Script: {fileID: 11500000, guid: 50c7586400281427d9ff1ba458d8849c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   winnerImage: {fileID: 966007789}
   winnerText: {fileID: 967670169}
-  startingLocation: {x: 380, y: 77, z: 0}
-  targetLocation: {x: 380, y: 77, z: 0}
+  startingLocation: {x: -15, y: -1, z: 0}
+  targetLocation: {x: 3, y: -1, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 471537864}
+  - {fileID: 966007786}
   - {fileID: 2065674528}
   - {fileID: 1254925697}
   - {fileID: 1166882668}

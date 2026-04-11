@@ -31,6 +31,7 @@ public class Pause : MonoBehaviour
 
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
+    public Toggle tapJumpToggleGraphic;
 
     public bool UIRelativeInput
     {
@@ -47,6 +48,15 @@ public class Pause : MonoBehaviour
         set 
         {
             gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+        }
+    }
+    
+    public bool UITapJump
+    {
+        get { return gameManager.players[playerPauseIndex].tapJump; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].tapJump = value; 
         }
     }
 
@@ -163,5 +173,10 @@ public class Pause : MonoBehaviour
     public void ToggleCodeInput()
     {
         UIToggleCodeInput = !UIToggleCodeInput;
+    }
+
+    public void ToggleTapJump()
+    {
+        UITapJump = !UITapJump;
     }
 }

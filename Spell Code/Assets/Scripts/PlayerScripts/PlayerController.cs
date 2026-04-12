@@ -1027,7 +1027,7 @@ public class PlayerController : MonoBehaviour
 
                     break;
                 }
-                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None && (tapJump?input.Direction <=6:true))
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);

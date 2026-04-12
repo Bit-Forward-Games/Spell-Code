@@ -27,7 +27,7 @@ public class GameEndScreen : MonoBehaviour
                 if (winnerImage.sharedMaterial != null && winnerImage.sharedMaterial.HasProperty("_PaletteTex"))
                 {
                     // Assign the palette texture to the property block
-                    propertyBlock.SetTexture("_PaletteTex", GameManager.Instance.bigWinner.matchPalette[0]);
+                    propertyBlock.SetTexture("_PaletteTex", GameManager.Instance.bigWinner.matchPalette[GameManager.Instance.bigWinner.pID-1]);
                     // Apply the updated property block back to the SpriteRenderer
                     winnerImage.SetPropertyBlock(propertyBlock);
                 }

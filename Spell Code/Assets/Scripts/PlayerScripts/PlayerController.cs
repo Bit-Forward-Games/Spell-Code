@@ -464,6 +464,10 @@ public class PlayerController : MonoBehaviour
         SpellData spellInstance = Instantiate(targetSpell);
         spellList.Add(spellInstance);
         spellInstance.owner = this;
+        if (!string.IsNullOrEmpty(startingSpell) && spellToAdd == startingSpell)
+        {
+            startingSpellAdded = true;
+        }
         if (applyLoadEffects)
         {
             spellInstance.LoadSpell();
@@ -539,6 +543,7 @@ public class PlayerController : MonoBehaviour
 
         // Remove all references from the list
         spellList.Clear();
+        startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -553,6 +558,8 @@ public class PlayerController : MonoBehaviour
             {
                 Destroy(spellList[i]);
                 spellList.RemoveAt(i);
+                startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
+                    && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
                 ProjectileManager.Instance.InitializeAllProjectiles();
 
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -3226,6 +3233,9 @@ public class PlayerController : MonoBehaviour
         {
             ProjectileManager.Instance.InitializeAllProjectiles();
         }
+
+        startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
+            && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
 
         // Update UI if available
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);

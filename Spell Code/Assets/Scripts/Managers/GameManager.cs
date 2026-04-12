@@ -36,6 +36,10 @@ public class GameManager : MonoBehaviour
     [NonSerialized]
     public PlayerController bigWinner = null;
     public bool endInputEnabled = false;
+    [NonSerialized]
+    public int endWinnerPid = -1;
+    [NonSerialized]
+    public Texture2D endWinnerPalette = null;
 
     [NonSerialized]
     /// <summary>
@@ -1674,15 +1678,16 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "End")
         {
-            tempUI.gameObject.SetActive(false);
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
             for (int i = 0; i < inputs.Length; ++i)
             {
                 InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
-                if (endInputEnabled &&((inputSnap.ButtonStates[0] is ButtonState.Pressed or ButtonState.Held)
-                    || (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held)))
+                if (endInputEnabled && (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
                 {
                     sceneManager.MainMenu();
-                    //RestartGame();
                     return;
                 }
             }
@@ -2064,6 +2069,12 @@ public class GameManager : MonoBehaviour
                             { 
                                 gameOver = true;
                                 bigWinner = winner;
+                                endWinnerPid = winner.pID;
+                                endWinnerPalette = winner.matchPalette != null
+                                    && winner.pID - 1 >= 0
+                                    && winner.pID - 1 < winner.matchPalette.Length
+                                    ? winner.matchPalette[winner.pID - 1]
+                                    : null;
                             }
 
                         }
@@ -2352,6 +2363,8 @@ public class GameManager : MonoBehaviour
             isSaved = true;
         }
 
+        endInputEnabled = false;
+
         //reset all ram values for players so they don't carry over to the end screen or next match
         for (int i = 0; i < playerCount; i++)
         {
@@ -2550,6 +2563,22 @@ public class GameManager : MonoBehaviour
 
         RefreshSceneObjectReferences();
 
+        if (scene.name == "End")
+        {
+            endInputEnabled = false;
+            HidePersistentUiForEndScene();
+        }
+        else
+        {
+            endInputEnabled = false;
+            if (scene.name == "MainMenu")
+            {
+                endWinnerPid = -1;
+                endWinnerPalette = null;
+                bigWinner = null;
+            }
+        }
+
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         int roundsPlayed = 0;
@@ -2725,6 +2754,39 @@ public class GameManager : MonoBehaviour
             tempMapGOs[i].SetActive(false);
         }
         lobbyMapGO.SetActive(false);
+    }
+
+    private void HidePersistentUiForEndScene()
+    {
+        if (tempUI != null)
+        {
+            tempUI.gameObject.SetActive(false);
+        }
+
+        if (shopImage != null)
+        {
+            shopImage.enabled = false;
+        }
+
+        if (playerWinText != null)
+        {
+            playerWinText.enabled = false;
+        }
+
+        if (roundEndedText != null)
+        {
+            roundEndedText.enabled = false;
+        }
+
+        if (onlineMenuUI != null)
+        {
+            onlineMenuUI.SetActive(false);
+        }
+
+        if (networkInfo != null)
+        {
+            networkInfo.SetActive(false);
+        }
     }
 
     private void InitializeOnlineShopSceneState()

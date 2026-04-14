@@ -1013,6 +1013,7 @@ public class GameManager : MonoBehaviour
         {
             pendingOpponentShopTransition = false;
             pendingOpponentShopTransitionId = 0;
+            AdvanceRoundCountOnce();
             BeginOnlineShopTransition(expectedTransitionId);
         }
     }

@@ -2739,14 +2739,6 @@ public class GameManager : MonoBehaviour
                 SetStage(1);
             }
 
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (players[i] != null)
-                {
-                    players[i].roundRam = 0;
-                }
-            }
-
             ResetPlayers();
             ProjectileManager.Instance.InitializeAllProjectiles();
             if (RollbackManager.Instance != null)
@@ -2807,14 +2799,6 @@ public class GameManager : MonoBehaviour
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.ClearVars();
-            }
-
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (players[i] != null)
-                {
-                    players[i].roundRam = 0;
-                }
             }
 
             InitializeOnlineShopSceneState();

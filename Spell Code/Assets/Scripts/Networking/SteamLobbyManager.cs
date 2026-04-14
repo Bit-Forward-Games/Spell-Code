@@ -9,6 +9,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private Lobby? currentLobby;
     private bool isHostingFlow;
+    private bool isJoiningFromInvite;
     private bool isShuttingDown;
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
@@ -89,6 +90,7 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = true;
+        isJoiningFromInvite = false;
         isShuttingDown = false;
         hostFlowVersion++;
         uint currentHostFlowVersion = hostFlowVersion;
@@ -110,20 +112,6 @@ public class SteamLobbyManager : MonoBehaviour
                 }
                 isHostingFlow = false;
                 return;
-            }
-
-            if (!lobby.HasValue)
-            {
-                if (lastLobbyCreateResult == Result.OK && lastLobbyCreated.HasValue)
-                {
-                    lobby = lastLobbyCreated;
-                }
-                else
-                {
-                    Debug.LogError($"Failed to create Steam lobby. Result={lastLobbyCreateResult}");
-                    isHostingFlow = false;
-                    return;
-                }
             }
 
             if (!lobby.HasValue)
@@ -171,6 +159,9 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = false;
+        isJoiningFromInvite = false;
+        lastLobbyCreateResult = Result.None;
+        lastLobbyCreated = null;
     }
 
     private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
@@ -182,6 +173,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         try
         {
+            isJoiningFromInvite = true;
             Lobby? joined = await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
             if (joined.HasValue)
             {
@@ -192,6 +184,13 @@ public class SteamLobbyManager : MonoBehaviour
         {
             Debug.LogError($"Failed to join lobby: {e.Message}");
         }
+        finally
+        {
+            if (!currentLobby.HasValue || currentLobby.Value.Id != lobby.Id)
+            {
+                isJoiningFromInvite = false;
+            }
+        }
     }
 
     private void HandleLobbyEntered(Lobby lobby)
@@ -199,6 +198,28 @@ public class SteamLobbyManager : MonoBehaviour
         if (isShuttingDown)
         {
             lobby.Leave();
+            return;
+        }
+
+        if (lobby.Owner.Id == SteamClient.SteamId && !isHostingFlow)
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Leaving stale self-owned lobby {lobby.Id.Value} because no host flow is active.");
+            }
+            lobby.Leave();
+            currentLobby = null;
+            return;
+        }
+
+        if (lobby.Owner.Id != SteamClient.SteamId && !isJoiningFromInvite)
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Leaving unexpected external lobby {lobby.Id.Value} because no join flow is active.");
+            }
+            lobby.Leave();
+            currentLobby = null;
             return;
         }
 
@@ -221,6 +242,7 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         SteamId hostId = lobby.Owner.Id;
+        isJoiningFromInvite = false;
         GameManager.Instance.StartOnlineMatch(localIndex: 1, remoteIndex: 0, opponentId: hostId);
     }
 

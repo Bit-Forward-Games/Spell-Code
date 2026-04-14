@@ -17,6 +17,7 @@ public class OnlineHostDoor : MonoBehaviour
     private float nextTriggerTime;
     private bool interactPressedThisFrame;
     private bool hasTriggeredSincePlayerEnteredRange;
+    private bool hasInitializedRangeState;
 
     private void Start()
     {
@@ -77,6 +78,7 @@ public class OnlineHostDoor : MonoBehaviour
         if (!isOpen)
         {
             hasTriggeredSincePlayerEnteredRange = false;
+            hasInitializedRangeState = false;
             return false;
         }
 
@@ -118,7 +120,15 @@ public class OnlineHostDoor : MonoBehaviour
 
         if (!playerInRange)
         {
+            hasInitializedRangeState = true;
             hasTriggeredSincePlayerEnteredRange = false;
+            return false;
+        }
+
+        if (!hasInitializedRangeState)
+        {
+            hasInitializedRangeState = true;
+            hasTriggeredSincePlayerEnteredRange = true;
             return false;
         }
 

@@ -1141,6 +1141,11 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Cleaning up online match state...");
             ResetOnlineTransitionTracking();
 
+            if (SteamLobbyManager.Instance != null)
+            {
+                SteamLobbyManager.Instance.LeaveLobby();
+            }
+
             // Clean up rollback manager
             if (RollbackManager.Instance != null)
             {

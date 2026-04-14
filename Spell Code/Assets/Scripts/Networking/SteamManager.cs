@@ -18,6 +18,7 @@ public class SteamManager : MonoBehaviour
 #endif
 
     private static SteamManager instance;
+    private bool hasShutDownSteam;
 
     void Awake()
     {
@@ -94,14 +95,32 @@ public class SteamManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        // Leave any active Steam lobby before shutdown so the next launch
-        // doesn't inherit a stale host/invite session after an Alt+F4.
-        if (SteamLobbyManager.Instance != null)
+        ShutdownSteam();
+    }
+
+    void OnDestroy()
+    {
+        if (instance == this)
         {
-            SteamLobbyManager.Instance.LeaveLobby();
+            ShutdownSteam();
+            instance = null;
+        }
+    }
+
+    private void ShutdownSteam()
+    {
+        if (hasShutDownSteam)
+        {
+            return;
         }
 
-        // Shut down Steamworks when the game closes
+        hasShutDownSteam = true;
+
+        if (SteamLobbyManager.Instance != null)
+        {
+            SteamLobbyManager.Instance.Shutdown();
+        }
+
         if (SteamClient.IsValid)
         {
             Debug.Log("Shutting down Steamworks...");

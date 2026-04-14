@@ -3,6 +3,8 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class GameEndScreen : MonoBehaviour
 {
@@ -10,10 +12,13 @@ public class GameEndScreen : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerText;
     public Vector3 startingLocation = new Vector3(-15f, -1f, 0f);
     public Vector3 targetLocation = new Vector3(3f, -1f, 0f);
+    private bool useOnlineEndFlow;
+    private bool restartTriggered;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        bool useOnlineEndFlow = GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive;
+        useOnlineEndFlow = GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive;
+        restartTriggered = false;
         if (useOnlineEndFlow)
         {
             Time.timeScale = 1f;
@@ -38,6 +43,30 @@ public class GameEndScreen : MonoBehaviour
             }
         }
 
+    }
+
+    private void Update()
+    {
+        if (!useOnlineEndFlow || restartTriggered || GameManager.Instance == null || !GameManager.Instance.endInputEnabled)
+        {
+            return;
+        }
+
+        if (!WasJumpPressedThisFrame())
+        {
+            return;
+        }
+
+        restartTriggered = true;
+        GameManager.Instance.endInputEnabled = false;
+
+        if (GameManager.Instance.sceneManager != null)
+        {
+            GameManager.Instance.sceneManager.MainMenu();
+            return;
+        }
+
+        SceneManager.LoadScene("MainMenu");
     }
 
     private void ApplyWinnerPresentation(bool useOnlineEndFlow)
@@ -111,5 +140,24 @@ public class GameEndScreen : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(2.1f);
         EnableRestartInput();
+    }
+
+    private bool WasJumpPressedThisFrame()
+    {
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < Gamepad.all.Count; i++)
+        {
+            Gamepad gamepad = Gamepad.all[i];
+            if (gamepad != null && gamepad.buttonSouth.wasPressedThisFrame)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -2566,7 +2566,10 @@ public class GameManager : MonoBehaviour
         if (scene.name == "End")
         {
             endInputEnabled = false;
-            HidePersistentUiForEndScene();
+            if (isOnlineMatchActive)
+            {
+                HidePersistentUiForEndScene();
+            }
         }
         else
         {

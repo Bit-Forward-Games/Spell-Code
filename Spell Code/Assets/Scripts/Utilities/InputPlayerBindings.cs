@@ -372,30 +372,36 @@ public class InputPlayerBindings : MonoBehaviour
 
     public void CheckForInputs(bool enable)
     {
+        CheckForInputs(enable, true);
+    }
+
+    public void CheckForInputs(bool enable, bool assignKeyboardOnly)
+    {
         IsActive = enable;
         if (enable)
         {
-            // Ensure keyboard is assigned to the input action asset
-            var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            if (keyboard != null && inputActionAsset != null)
+            if (assignKeyboardOnly)
             {
-                // Assign keyboard to the action asset
-                inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { keyboard });
-                Debug.Log($"[CheckForInputs] Assigned keyboard '{keyboard.name}' to inputActionAsset");
-
-                // Also check if actions have bindings
-                Debug.Log($"[CheckForInputs] Up action bindings: {upAction?.bindings.Count ?? 0}");
-                if (upAction != null && upAction.bindings.Count > 0)
+                // Offline split-screen relies on keyboard staying scoped to a single local player.
+                var keyboard = UnityEngine.InputSystem.Keyboard.current;
+                if (keyboard != null && inputActionAsset != null)
                 {
-                    foreach (var binding in upAction.bindings)
+                    inputActionAsset.devices = new ReadOnlyArray<InputDevice>(new InputDevice[] { keyboard });
+                    Debug.Log($"[CheckForInputs] Assigned keyboard '{keyboard.name}' to inputActionAsset");
+
+                    Debug.Log($"[CheckForInputs] Up action bindings: {upAction?.bindings.Count ?? 0}");
+                    if (upAction != null && upAction.bindings.Count > 0)
                     {
-                        Debug.Log($"  Binding: {binding.effectivePath}");
+                        foreach (var binding in upAction.bindings)
+                        {
+                            Debug.Log($"  Binding: {binding.effectivePath}");
+                        }
                     }
                 }
-            }
-            else
-            {
-                Debug.LogError("[CheckForInputs] Keyboard or inputActionAsset is null!");
+                else
+                {
+                    Debug.LogError("[CheckForInputs] Keyboard or inputActionAsset is null!");
+                }
             }
 
             // Enable all actions
@@ -424,5 +430,25 @@ public class InputPlayerBindings : MonoBehaviour
 
             Debug.Log($"[CheckForInputs] Disabled");
         }
+    }
+
+    public void ConfigureInputDevices(params InputDevice[] devices)
+    {
+        if (inputActionAsset == null)
+        {
+            return;
+        }
+
+        InputDevice[] validDevices = devices?
+            .Where(device => device != null && InputDeviceManager.IsValidInput(device))
+            .Distinct()
+            .ToArray();
+
+        if (validDevices == null || validDevices.Length == 0)
+        {
+            return;
+        }
+
+        inputActionAsset.devices = new ReadOnlyArray<InputDevice>(validDevices);
     }
 }

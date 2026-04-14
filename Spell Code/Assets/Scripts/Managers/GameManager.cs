@@ -465,6 +465,34 @@ public class GameManager : MonoBehaviour
         //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
     }
 
+    private InputDevice[] GetOnlineSharedInputDevices()
+    {
+        return InputSystem.devices
+            .Where(InputDeviceManager.IsValidInput)
+            .Distinct()
+            .ToArray();
+    }
+
+    private void ConfigureOnlineLocalPlayerInput(PlayerInput playerInput, InputPlayerBindings bindings)
+    {
+        InputDevice[] sharedDevices = GetOnlineSharedInputDevices();
+
+        if (playerInput != null)
+        {
+            playerInput.ActivateInput();
+
+            if (playerInput.user.valid)
+            {
+                foreach (InputDevice device in sharedDevices)
+                {
+                    InputUser.PerformPairingWithDevice(device, playerInput.user);
+                }
+            }
+        }
+
+        bindings?.ConfigureInputDevices(sharedDevices);
+    }
+
     //private ulong GatherRawInput()
     //{
     //    // Direction
@@ -635,20 +663,9 @@ public class GameManager : MonoBehaviour
             }
             else if (i == localIndex)
             {
-                if (pInput != null)
-                {
-                    pInput.ActivateInput();
-                    if (pInput.user.valid && UnityEngine.InputSystem.Keyboard.current != null)
-                    {
-                        UnityEngine.InputSystem.Users.InputUser.PerformPairingWithDevice(
-                            UnityEngine.InputSystem.Keyboard.current,
-                            pInput.user
-                        );
-                    }
-                }
-
                 players[i].inputs.AssignInputDevice(null);
-                players[i].CheckForInputs(true);
+                ConfigureOnlineLocalPlayerInput(pInput, players[i].inputs);
+                players[i].CheckForInputs(true, false);
             }
         }
 

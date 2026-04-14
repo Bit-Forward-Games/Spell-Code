@@ -3282,6 +3282,11 @@ public class PlayerController : MonoBehaviour
         inputs.CheckForInputs(enable);
     }
 
+    public void CheckForInputs(bool enable, bool assignKeyboardOnly)
+    {
+        inputs.CheckForInputs(enable, assignKeyboardOnly);
+    }
+
     public void ClearInputDisplay()
     {
         if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)

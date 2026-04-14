@@ -451,4 +451,17 @@ public class InputPlayerBindings : MonoBehaviour
 
         inputActionAsset.devices = new ReadOnlyArray<InputDevice>(validDevices);
     }
+
+    public void AllowAllBindingGroups()
+    {
+        if (inputActionAsset != null)
+        {
+            inputActionAsset.bindingMask = null;
+        }
+
+        if (playerActionMap != null)
+        {
+            playerActionMap.bindingMask = null;
+        }
+    }
 }

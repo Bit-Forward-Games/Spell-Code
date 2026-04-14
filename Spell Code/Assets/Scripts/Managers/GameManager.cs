@@ -480,6 +480,12 @@ public class GameManager : MonoBehaviour
         if (playerInput != null)
         {
             playerInput.ActivateInput();
+            playerInput.actions.bindingMask = null;
+
+            if (playerInput.currentActionMap != null)
+            {
+                playerInput.currentActionMap.bindingMask = null;
+            }
 
             if (playerInput.user.valid)
             {
@@ -490,6 +496,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        bindings?.AllowAllBindingGroups();
         bindings?.ConfigureInputDevices(sharedDevices);
     }
 

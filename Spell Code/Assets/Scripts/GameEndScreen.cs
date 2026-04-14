@@ -144,6 +144,25 @@ public class GameEndScreen : MonoBehaviour
 
     private bool WasJumpPressedThisFrame()
     {
+        if (GameManager.Instance != null
+            && GameManager.Instance.localPlayerIndex >= 0
+            && GameManager.Instance.localPlayerIndex < GameManager.Instance.players.Length)
+        {
+            PlayerController localPlayer = GameManager.Instance.players[GameManager.Instance.localPlayerIndex];
+            if (localPlayer != null
+                && localPlayer.inputs != null
+                && localPlayer.inputs.JumpAction != null
+                && localPlayer.inputs.JumpAction.WasPressedThisFrame())
+            {
+                return true;
+            }
+        }
+
+        if (Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame)
+        {
+            return true;
+        }
+
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             return true;

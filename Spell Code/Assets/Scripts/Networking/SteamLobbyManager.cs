@@ -9,8 +9,10 @@ public class SteamLobbyManager : MonoBehaviour
 
     private Lobby? currentLobby;
     private bool isHostingFlow;
+    private bool isShuttingDown;
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
+    private uint hostFlowVersion;
 
     [SerializeField] private bool debugLogs = true;
 
@@ -19,11 +21,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     public bool TryOpenInviteOverlay()
     {
-        if (!SteamClient.IsValid || !currentLobby.HasValue)
+        if (isShuttingDown || !SteamClient.IsValid || !currentLobby.HasValue)
         {
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] TryOpenInviteOverlay blocked. SteamValid={SteamClient.IsValid} HasLobby={currentLobby.HasValue}");
+                Debug.Log($"[SteamLobbyManager] TryOpenInviteOverlay blocked. ShuttingDown={isShuttingDown} SteamValid={SteamClient.IsValid} HasLobby={currentLobby.HasValue}");
             }
             return false;
         }
@@ -75,9 +77,9 @@ public class SteamLobbyManager : MonoBehaviour
 
     public async void HostAndInvite()
     {
-        if (!SteamClient.IsValid)
+        if (isShuttingDown || !SteamClient.IsValid)
         {
-            Debug.LogError("Steam is not running. Cannot host online match.");
+            Debug.LogError("Steam is not running or is shutting down. Cannot host online match.");
             return;
         }
 
@@ -87,6 +89,9 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = true;
+        isShuttingDown = false;
+        hostFlowVersion++;
+        uint currentHostFlowVersion = hostFlowVersion;
         LeaveLobbyInternal();
 
         try
@@ -97,6 +102,16 @@ public class SteamLobbyManager : MonoBehaviour
             }
 
             Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(2);
+            if (isShuttingDown || currentHostFlowVersion != hostFlowVersion || !SteamClient.IsValid)
+            {
+                if (lobby.HasValue)
+                {
+                    lobby.Value.Leave();
+                }
+                isHostingFlow = false;
+                return;
+            }
+
             if (!lobby.HasValue)
             {
                 if (lastLobbyCreateResult == Result.OK && lastLobbyCreated.HasValue)
@@ -123,7 +138,10 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
 
-            SteamFriends.OpenGameInviteOverlay(currentLobby.Value.Id);
+            if (!isShuttingDown)
+            {
+                SteamFriends.OpenGameInviteOverlay(currentLobby.Value.Id);
+            }
         }
         catch (Exception e)
         {
@@ -134,6 +152,13 @@ public class SteamLobbyManager : MonoBehaviour
 
     public void LeaveLobby()
     {
+        LeaveLobbyInternal();
+    }
+
+    public void Shutdown()
+    {
+        isShuttingDown = true;
+        hostFlowVersion++;
         LeaveLobbyInternal();
     }
 
@@ -150,7 +175,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
     {
-        if (!SteamClient.IsValid)
+        if (isShuttingDown || !SteamClient.IsValid)
         {
             return;
         }
@@ -171,6 +196,12 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void HandleLobbyEntered(Lobby lobby)
     {
+        if (isShuttingDown)
+        {
+            lobby.Leave();
+            return;
+        }
+
         currentLobby = lobby;
 
         if (GameManager.Instance == null)
@@ -195,6 +226,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void HandleLobbyMemberJoined(Lobby lobby, Friend friend)
     {
+        if (isShuttingDown)
+        {
+            return;
+        }
+
         if (!currentLobby.HasValue || lobby.Id != currentLobby.Value.Id)
         {
             return;
@@ -233,6 +269,20 @@ public class SteamLobbyManager : MonoBehaviour
         if (debugLogs)
         {
             Debug.Log($"[SteamLobbyManager] Lobby created callback. Result={result} LobbyId={lobby.Id.Value}");
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        Shutdown();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Shutdown();
+            Instance = null;
         }
     }
 }

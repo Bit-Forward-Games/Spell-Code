@@ -1,67 +1,74 @@
 using UnityEngine;
 using DG.Tweening;
 using TMPro;
+using UnityEngine.UI;
+using System.Collections;
 
 public class GameEndScreen : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer winnerImage;
     [SerializeField] private TextMeshProUGUI winnerText;
-    [SerializeField] private Vector3 startingLocation = new Vector3(-15f, -1f, 0f);
-    [SerializeField] private Vector3 targetLocation = new Vector3(3f, -1f, 0f);
-
-    private void Start()
+    public Vector3 startingLocation = new Vector3(-15f, -1f, 0f);
+    public Vector3 targetLocation = new Vector3(3f, -1f, 0f);
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
     {
-        DisableEndSceneUi();
-        ApplyWinnerSnapshot();
-
-        if (winnerImage == null)
+        bool useOnlineEndFlow = GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive;
+        if (useOnlineEndFlow)
         {
-            return;
+            Time.timeScale = 1f;
+            DisableOnlineEndUi();
         }
 
-        winnerImage.transform.position = startingLocation;
-        winnerImage.transform
-            .DOMoveX(targetLocation.x, 2f)
-            .OnComplete(EnableRestartInput);
-    }
+        ApplyWinnerPresentation(useOnlineEndFlow);
 
-    private void DisableEndSceneUi()
-    {
-        Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        for (int i = 0; i < canvases.Length; i++)
+        if (winnerImage != null)
         {
-            Canvas canvas = canvases[i];
-            if (canvas != null)
+            winnerImage.transform.position = startingLocation;
+            Tween tween = winnerImage.transform.DOMoveX(targetLocation.x, 2f);
+            if (useOnlineEndFlow)
             {
-                canvas.enabled = false;
+                tween.SetUpdate(true);
+                tween.OnComplete(EnableRestartInput);
+                StartCoroutine(EnableRestartInputFallback());
+            }
+            else
+            {
+                tween.OnComplete(EnableRestartInput);
             }
         }
 
-        if (winnerText != null)
-        {
-            winnerText.gameObject.SetActive(false);
-        }
     }
 
-    private void ApplyWinnerSnapshot()
+    private void ApplyWinnerPresentation(bool useOnlineEndFlow)
     {
         if (GameManager.Instance == null)
         {
             return;
         }
 
-        if (winnerText != null && GameManager.Instance.endWinnerPid > 0)
+        int winnerPid = useOnlineEndFlow ? GameManager.Instance.endWinnerPid : (GameManager.Instance.bigWinner != null ? GameManager.Instance.bigWinner.pID : -1);
+        Texture2D paletteTexture = useOnlineEndFlow
+            ? GameManager.Instance.endWinnerPalette
+            : (GameManager.Instance.bigWinner != null
+                && GameManager.Instance.bigWinner.matchPalette != null
+                && GameManager.Instance.bigWinner.pID - 1 >= 0
+                && GameManager.Instance.bigWinner.pID - 1 < GameManager.Instance.bigWinner.matchPalette.Length
+                    ? GameManager.Instance.bigWinner.matchPalette[GameManager.Instance.bigWinner.pID - 1]
+                    : null);
+
+        if (winnerText != null && winnerPid > 0)
         {
-            winnerText.text = $"Player {GameManager.Instance.endWinnerPid} WINS!";
+            winnerText.text = $"Player {winnerPid} WINS!";
+            winnerText.gameObject.SetActive(true);
         }
 
         if (winnerImage == null)
         {
-            Debug.LogError("GameEndScreen is missing winnerImage.");
+            Debug.LogError("SpriteRenderer is not assigned.");
             return;
         }
 
-        Texture2D paletteTexture = GameManager.Instance.endWinnerPalette;
         if (paletteTexture == null)
         {
             return;
@@ -69,7 +76,6 @@ public class GameEndScreen : MonoBehaviour
 
         MaterialPropertyBlock propertyBlock = new();
         winnerImage.GetPropertyBlock(propertyBlock);
-
         if (winnerImage.sharedMaterial != null && winnerImage.sharedMaterial.HasProperty("_PaletteTex"))
         {
             propertyBlock.SetTexture("_PaletteTex", paletteTexture);
@@ -81,11 +87,29 @@ public class GameEndScreen : MonoBehaviour
         }
     }
 
-    private void EnableRestartInput()
+    private void DisableOnlineEndUi()
+    {
+        Selectable[] selectables = FindObjectsByType<Selectable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < selectables.Length; i++)
+        {
+            if (selectables[i] != null)
+            {
+                selectables[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void EnableRestartInput()
     {
         if (GameManager.Instance != null)
         {
             GameManager.Instance.endInputEnabled = true;
         }
+    }
+
+    private IEnumerator EnableRestartInputFallback()
+    {
+        yield return new WaitForSecondsRealtime(2.1f);
+        EnableRestartInput();
     }
 }

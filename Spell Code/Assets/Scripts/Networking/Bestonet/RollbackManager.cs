@@ -438,6 +438,15 @@ using BestoNet.Collections; // Use BestoNet collections
             bool tooFarAheadOfSync = (currentFrame - syncFrame) >= MaxRollBackFrames; // Use >= for check
             bool aheadOfRemote = currentFrame > remoteFrame; // Simple check if local frame > last confirmed remote frame
 
+            // After a scene transition, remoteFrame is intentionally reset back to 0. Give the
+            // new-scene input stream a short grace window to arrive before frame dropping kicks in,
+            // otherwise one client can spiral into a startup stall while the other is still warming up.
+            if (remoteFrame == 0 && currentFrame < 60)
+            {
+                consecutiveDrop = 0;
+                return true;
+            }
+
             // Check if match ended to prevent dropping frames post-match
             // bool matchEnded = Check if GameManager indicates match end state? (Needs implementation)
 

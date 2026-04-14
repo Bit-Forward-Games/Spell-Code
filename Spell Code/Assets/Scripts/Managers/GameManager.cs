@@ -179,6 +179,10 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
+    private bool localPlayerReadyForShop = false;
+    private bool remotePlayerReadyForShop = false;
+    private int localShopReadyTransitionId = 0;
+    private int remoteShopReadyTransitionId = 0;
     private int localGameplayReadyTransitionId = 0;
     private int remoteGameplayReadyTransitionId = 0;
     private int pendingRemoteGameplayReadyTransitionId = 0;
@@ -812,6 +816,10 @@ public class GameManager : MonoBehaviour
     {
         onlineTransitionSequence = 0;
         activeOnlineTransitionId = 0;
+        localPlayerReadyForShop = false;
+        remotePlayerReadyForShop = false;
+        localShopReadyTransitionId = 0;
+        remoteShopReadyTransitionId = 0;
         localGameplayReadyTransitionId = 0;
         remoteGameplayReadyTransitionId = 0;
         pendingRemoteGameplayReadyTransitionId = 0;
@@ -840,6 +848,10 @@ public class GameManager : MonoBehaviour
         }
 
         activeOnlineTransitionId = 0;
+        localPlayerReadyForShop = false;
+        remotePlayerReadyForShop = false;
+        localShopReadyTransitionId = 0;
+        remoteShopReadyTransitionId = 0;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
         hasPendingRemoteSceneReady = false;
@@ -983,6 +995,26 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = false;
             CompleteTrackedOnlineTransition();
+        }
+    }
+
+    private void CheckBothPlayersReadyForShop()
+    {
+        if (!isOnlineMatchActive || isTransitioning || SceneManager.GetActiveScene().name != "Gameplay" || !roundOver)
+        {
+            return;
+        }
+
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (localPlayerReadyForShop
+            && remotePlayerReadyForShop
+            && localShopReadyTransitionId == expectedTransitionId
+            && remoteShopReadyTransitionId == expectedTransitionId)
+        {
+            pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
+            AdvanceRoundCountOnce();
+            BeginOnlineShopTransition(expectedTransitionId);
         }
     }
 
@@ -1312,10 +1344,9 @@ public class GameManager : MonoBehaviour
 
             if (isOnlineMatchActive && pendingOpponentShopTransition && roundOver && !isTransitioning)
             {
-                pendingOpponentShopTransition = false;
-                AdvanceRoundCountOnce();
-                BeginOnlineShopTransition(pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId());
-                pendingOpponentShopTransitionId = 0;
+                remotePlayerReadyForShop = true;
+                remoteShopReadyTransitionId = pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId();
+                CheckBothPlayersReadyForShop();
                 return;
             }
 
@@ -2260,11 +2291,14 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             int transitionId = GetExpectedOnlineTransitionId();
-            if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
+            localPlayerReadyForShop = true;
+            localShopReadyTransitionId = transitionId;
+
+            if (MatchMessageManager.Instance != null)
             {
                 MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
             }
-            BeginOnlineShopTransition(transitionId);
+            CheckBothPlayersReadyForShop();
             return;
         }
         sceneManager.LoadScene("Shop");
@@ -2281,6 +2315,10 @@ public class GameManager : MonoBehaviour
         }
 
         BeginTrackedOnlineTransition(transitionId);
+        localPlayerReadyForShop = false;
+        remotePlayerReadyForShop = false;
+        localShopReadyTransitionId = 0;
+        remoteShopReadyTransitionId = 0;
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
         localGameplayReadyContext = GameplayReadyContext.None;
@@ -2338,6 +2376,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        remotePlayerReadyForShop = true;
+        remoteShopReadyTransitionId = transitionId;
+
         if (!roundOver && !isTransitioning)
         {
             pendingOpponentShopTransition = true;
@@ -2345,10 +2386,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        pendingOpponentShopTransition = false;
-        pendingOpponentShopTransitionId = 0;
-        AdvanceRoundCountOnce();
-        BeginOnlineShopTransition(transitionId);
+        CheckBothPlayersReadyForShop();
     }
 
     private void AdvanceRoundCountOnce()
@@ -2664,6 +2702,10 @@ public class GameManager : MonoBehaviour
             lastRoundWinnerPID = -1;
             pendingOpponentShopTransition = false;
             pendingOpponentShopTransitionId = 0;
+            localPlayerReadyForShop = false;
+            remotePlayerReadyForShop = false;
+            localShopReadyTransitionId = 0;
+            remoteShopReadyTransitionId = 0;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;
@@ -2727,6 +2769,10 @@ public class GameManager : MonoBehaviour
             lastRoundWinnerPID = -1;
             pendingOpponentShopTransition = false;
             pendingOpponentShopTransitionId = 0;
+            localPlayerReadyForShop = false;
+            remotePlayerReadyForShop = false;
+            localShopReadyTransitionId = 0;
+            remoteShopReadyTransitionId = 0;
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;

@@ -39,6 +39,28 @@ public class ShopManager : MonoBehaviour
 
     public List<string> GetP1Choices() => p1_choices;
     public List<string> GetP2Choices() => p2_choices;
+    public List<string> GetP3Choices() => p3_choices;
+    public List<string> GetP4Choices() => p4_choices;
+
+    public void SetChoicesForPlayer(int playerIndex, List<string> choices)
+    {
+        List<string> copy = choices != null ? new List<string>(choices) : new List<string>();
+        switch (playerIndex)
+        {
+            case 0:
+                p1_choices = copy;
+                break;
+            case 1:
+                p2_choices = copy;
+                break;
+            case 2:
+                p3_choices = copy;
+                break;
+            case 3:
+                p4_choices = copy;
+                break;
+        }
+    }
 
     private int p1_index
     {
@@ -52,8 +74,17 @@ public class ShopManager : MonoBehaviour
         set => gameManager.p2_shopIndex = value;
     }
 
-    private int p3_index = 0;
-    private int p4_index = 0;
+    private int p3_index
+    {
+        get => gameManager.p3_shopIndex;
+        set => gameManager.p3_shopIndex = value;
+    }
+
+    private int p4_index
+    {
+        get => gameManager.p4_shopIndex;
+        set => gameManager.p4_shopIndex = value;
+    }
 
     public TextMeshProUGUI p1_spellText;
     public TextMeshProUGUI p2_spellText;

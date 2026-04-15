@@ -295,10 +295,10 @@ public class GambaMachine : MonoBehaviour
 
             if (!isRollback) ClearFloppysForPID(ownerPID);
 
-            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
-            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
-            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
-            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            if (TryGetShopDiskLocations(ownerPID, out Vector2 loc1, out Vector2 loc2, out Vector2 loc3))
+            {
+                SpawnThreeFloppysOnline(ownerPID, loc1, loc2, loc3, isRollback);
+            }
         }
 
         if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
@@ -327,31 +327,40 @@ public class GambaMachine : MonoBehaviour
         return p4_floppys;
     }
 
+    private bool TryGetLobbyDiskLocation(int pid, out Vector2 location)
+    {
+        location = Vector2.zero;
+        if (pid == 1) { location = diskLocations[2]; return true; }
+        if (pid == 2) { location = diskLocations[3]; return true; }
+        if (pid == 3) { location = diskLocations[8]; return true; }
+        if (pid == 4) { location = diskLocations[9]; return true; }
+        return false;
+    }
+
+    private bool TryGetShopDiskLocations(int pid, out Vector2 loc1, out Vector2 loc2, out Vector2 loc3)
+    {
+        loc1 = Vector2.zero;
+        loc2 = Vector2.zero;
+        loc3 = Vector2.zero;
+
+        if (pid == 1) { loc1 = diskLocations[0]; loc2 = diskLocations[1]; loc3 = diskLocations[2]; return true; }
+        if (pid == 2) { loc1 = diskLocations[3]; loc2 = diskLocations[4]; loc3 = diskLocations[5]; return true; }
+        if (pid == 3) { loc1 = diskLocations[6]; loc2 = diskLocations[7]; loc3 = diskLocations[8]; return true; }
+        if (pid == 4) { loc1 = diskLocations[9]; loc2 = diskLocations[10]; loc3 = diskLocations[11]; return true; }
+
+        return false;
+    }
+
     private void SpawnFloppysForOwnerOnline(bool isRollback = false)
     {
         if (activeScene.name != "MainMenu") return;
 
         if (!isRollback)
         {
-            if (ownerPID == 1)
+            ClearFloppysForPID(ownerPID);
+            if (TryGetLobbyDiskLocation(ownerPID, out Vector2 spawnLocation))
             {
-                foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                p1_floppys.Clear();
-                SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 2)
-            {
-                foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                p2_floppys.Clear();
-                SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 3)
-            {
-                SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 4)
-            {
-                SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+                SpawnFloppyDisk(ownerPID, spawnLocation, startingSpells[startingSpellPos]); // real starter
             }
         }
         // No RNG consumed in this path (named spell), so no rollback RNG needed

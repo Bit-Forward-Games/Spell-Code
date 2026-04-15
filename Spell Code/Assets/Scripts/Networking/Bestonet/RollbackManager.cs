@@ -34,12 +34,9 @@ using BestoNet.Collections; // Use BestoNet collections
             public uint hash;
             public uint sharedHash;
             public uint projectileHash;
-            public uint player0Hash;
-            public uint player1Hash;
-            public uint player0CoreHash;
-            public uint player1CoreHash;
-            public uint player0SpellHash;
-            public uint player1SpellHash;
+            public uint[] playerHashes;
+            public uint[] playerCoreHashes;
+            public uint[] playerSpellHashes;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -50,11 +47,14 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // FrameMetadataArray inherits from BestoNet.Collections.CircularArray<FrameMetadata>
         // Adjust namespace if needed.
-        public FrameMetadataArray receivedInputs { get; private set; }
-        public FrameMetadataArray opponentInputs { get; private set; }
         public FrameMetadataArray clientInputs { get; private set; }
-        public CircularArray<int> remoteFrameAdvantages { get; private set; }
         public CircularArray<int> localFrameAdvantages { get; private set; }
+        private readonly Dictionary<int, FrameMetadataArray> receivedInputsBySlot = new Dictionary<int, FrameMetadataArray>();
+        private readonly Dictionary<int, FrameMetadataArray> usedInputsBySlot = new Dictionary<int, FrameMetadataArray>();
+        private readonly Dictionary<int, CircularArray<int>> remoteFrameAdvantagesBySlot = new Dictionary<int, CircularArray<int>>();
+        private readonly Dictionary<int, int> remoteFrameBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> predictedRemoteFrameBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, ulong> remoteLastAppliedInputBySlot = new Dictionary<int, ulong>();
         public GameState[] states;
         // --- End Core Data Structures ---
 
@@ -83,10 +83,9 @@ using BestoNet.Collections; // Use BestoNet collections
         public int RollbackFrames { get; private set; } = 0; // How many frames rolled back last time
         // public int RollbackFramesUI { get; private set; } = 0; // Removed UI specific variable
         public bool isRollbackFrame { get; private set; } = false; // True if currently resimulating
-        private ulong opponentLastAppliedInput = 0; // For prediction
         private int totalConsecutiveFrameExtensions = 0;
-        public int remoteFrame { get; private set; } = 0; // Latest frame confirmed by remote client
-        public int predictedRemoteFrame { get; private set; } = 0; // Estimated remote frame based on ping
+        public int remoteFrame { get; private set; } = 0; // Latest frame confirmed by the slowest remote client
+        public int predictedRemoteFrame { get; private set; } = 0; // Estimated frame of the slowest remote client
         public int syncFrame { get; private set; } = 0; // Last frame where inputs matched
         public int localFrameAdvantage { get; private set; } = 0;
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
@@ -99,22 +98,19 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // --- External References (Set via Inspector or Init) ---
         private MatchMessageManager matchManager; // Reference to the message manager
-        // Store opponent's network ID (e.g., SteamID ulong) - Must be provided during Init!
-        private ulong opponentNetworkId;
+        private OnlineMatchRoster onlineRoster;
         // --- End External References ---
 
         private struct PendingRemoteHash
         {
+            public int playerSlot;
             public int frame;
             public uint remoteHash;
             public uint remoteSharedHash;
             public uint remoteProjectileHash;
-            public uint remotePlayer0Hash;
-            public uint remotePlayer1Hash;
-            public uint remotePlayer0CoreHash;
-            public uint remotePlayer1CoreHash;
-            public uint remotePlayer0SpellHash;
-            public uint remotePlayer1SpellHash;
+            public uint[] remotePlayerHashes;
+            public uint[] remotePlayerCoreHashes;
+            public uint[] remotePlayerSpellHashes;
         }
 
         // --- Properties ---
@@ -139,10 +135,7 @@ using BestoNet.Collections; // Use BestoNet collections
 
             // --- Initialize Collections ---
             // Ensure FrameMetadataArray constructor is accessible or adjust instantiation
-            receivedInputs = new FrameMetadataArray(InputArraySize);
-            opponentInputs = new FrameMetadataArray(InputArraySize);
             clientInputs = new FrameMetadataArray(InputArraySize);
-            remoteFrameAdvantages = new CircularArray<int>(FrameAdvantageArraySize);
             localFrameAdvantages = new CircularArray<int>(FrameAdvantageArraySize);
             states = new GameState[StateArraySize];
             // --- End Initialize ---
@@ -155,12 +148,33 @@ using BestoNet.Collections; // Use BestoNet collections
         /// <param name="inputDelayFrames">Optional override for input delay.</param>
         public void Init(ulong opponentNetId, int? inputDelayFrames = null)
         {
-            //Debug.Log("Initializing Rollback Connection...");
-            this.opponentNetworkId = opponentNetId;
+            OnlineMatchRoster roster = new OnlineMatchRoster
+            {
+                LocalPlayerSlot = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : 0
+            };
 
-        // Find MatchMessageManager instance
-        matchManager = FindFirstObjectByType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
-        if (matchManager == null)
+            roster.Peers.Add(new OnlineMatchPeerInfo
+            {
+                SteamId = Steamworks.SteamClient.SteamId,
+                PlayerSlot = roster.LocalPlayerSlot
+            });
+            roster.Peers.Add(new OnlineMatchPeerInfo
+            {
+                SteamId = opponentNetId,
+                PlayerSlot = roster.LocalPlayerSlot == 0 ? 1 : 0
+            });
+
+            Init(roster, inputDelayFrames);
+        }
+
+        public void Init(OnlineMatchRoster roster, int? inputDelayFrames = null)
+        {
+            //Debug.Log("Initializing Rollback Connection...");
+            onlineRoster = roster;
+
+            // Find MatchMessageManager instance
+            matchManager = FindFirstObjectByType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
+            if (matchManager == null)
             {
                 Debug.LogError("MatchMessageManager not found!");
                 // Handle error appropriately
@@ -210,11 +224,14 @@ using BestoNet.Collections; // Use BestoNet collections
         /// </summary>
         public void ClearVars()
         {
-            receivedInputs.Clear();
-            opponentInputs.Clear();
             clientInputs.Clear();
-            remoteFrameAdvantages.Clear();
             localFrameAdvantages.Clear();
+            receivedInputsBySlot.Clear();
+            usedInputsBySlot.Clear();
+            remoteFrameAdvantagesBySlot.Clear();
+            remoteFrameBySlot.Clear();
+            predictedRemoteFrameBySlot.Clear();
+            remoteLastAppliedInputBySlot.Clear();
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
@@ -226,7 +243,6 @@ using BestoNet.Collections; // Use BestoNet collections
             pendingRemoteHashes.Clear();
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
-            opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
 
@@ -243,15 +259,23 @@ using BestoNet.Collections; // Use BestoNet collections
             {
                 var neutralFrame = new FrameMetadata() { frame = i, input = 5 };
                 clientInputs.Insert(i, neutralFrame);
-                opponentInputs.Insert(i, neutralFrame);
-                receivedInputs.Insert(i, neutralFrame); // Can also be empty, prediction handles missing keys
+                foreach (int slot in GetRemotePlayerSlots())
+                {
+                    EnsureRemoteSlotState(slot);
+                    usedInputsBySlot[slot].Insert(i, neutralFrame);
+                    receivedInputsBySlot[slot].Insert(i, neutralFrame);
+                }
             }
 
             // Initialize frame advantage arrays
             for (int i = 0; i < FrameAdvantageArraySize; i++)
             {
-                remoteFrameAdvantages.Insert(i, 0);
                 localFrameAdvantages.Insert(i, 0);
+                foreach (int slot in GetRemotePlayerSlots())
+                {
+                    EnsureRemoteSlotState(slot);
+                    remoteFrameAdvantagesBySlot[slot].Insert(i, 0);
+                }
             }
 
             isRollbackFrame = false; // Ensure rollback status is reset
@@ -262,73 +286,83 @@ using BestoNet.Collections; // Use BestoNet collections
     /// Checks for input mismatches and triggers a rollback if necessary.
     /// Should be called once per frame before simulation.
     /// </summary>
-    public void RollbackEvent()
-    {
-        if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning)
+        public void RollbackEvent()
         {
-            return;
+            if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning)
+            {
+                return;
         }
 
         int framesBeforeRollback = localFrame;
         bool foundDesyncedFrame = false;
+        List<int> remoteSlots = GetRemotePlayerSlots();
 
         // Check for Mismatched Inputs
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
-            bool haveReceived = receivedInputs.ContainsKey(i);
-            bool haveUsed = opponentInputs.ContainsKey(i);
+            bool verifiedFrame = true;
+            bool mismatchedFrame = false;
 
-            // ONLY CHECK - DON'T RESIMULATE HERE
-            if (haveReceived && haveUsed)
+            for (int slotIndex = 0; slotIndex < remoteSlots.Count; slotIndex++)
             {
-                ulong received = receivedInputs.GetInput(i);
-                ulong used = opponentInputs.GetInput(i);
+                int remoteSlot = remoteSlots[slotIndex];
+                EnsureRemoteSlotState(remoteSlot);
+                bool haveReceived = receivedInputsBySlot[remoteSlot].ContainsKey(i);
+                bool haveUsed = usedInputsBySlot[remoteSlot].ContainsKey(i);
 
-                if (received == used && states[i % StateArraySize].frame == i)
+                if (haveReceived && haveUsed)
                 {
-                    // THE FRAME IS VERIFIED
-                    syncFrame = i;
+                    ulong received = receivedInputsBySlot[remoteSlot].GetInput(i);
+                    ulong used = usedInputsBySlot[remoteSlot].GetInput(i);
 
-                    // HASH SENDING 
-                    if (matchManager != null)
+                    if (received != used)
                     {
-                        int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
-                            ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
-                            : 30; // Default: send hash every 30 frames
-
-                        if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
-                        {
-                            lastHashSentFrame = syncFrame;
-
-                            // Grab the hashes already calculated during SaveState()
-                            GameState verifiedState = states[syncFrame % StateArraySize];
-
-                            matchManager.SendStateHash(
-                                syncFrame,
-                                verifiedState.hash,
-                                verifiedState.sharedHash,
-                                verifiedState.projectileHash,
-                                verifiedState.player0Hash,
-                                verifiedState.player1Hash,
-                                verifiedState.player0CoreHash,
-                                verifiedState.player1CoreHash,
-                                verifiedState.player0SpellHash,
-                                verifiedState.player1SpellHash
-                            );
-                        }
+                        mismatchedFrame = true;
+                        break;
                     }
-                    // -----------------------------
                 }
-                else if (received != used)
+                else if (haveReceived && !haveUsed)
                 {
-                    foundDesyncedFrame = true;
+                    mismatchedFrame = true;
                     break;
                 }
+
+                verifiedFrame &= haveReceived && haveUsed;
             }
-            else if (haveReceived && !haveUsed)
+
+            if (mismatchedFrame)
             {
                 foundDesyncedFrame = true;
                 break;
+            }
+
+            if (verifiedFrame && states[i % StateArraySize].frame == i)
+            {
+                syncFrame = i;
+
+                if (matchManager != null)
+                {
+                    int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+                        ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+                        : 30;
+
+                    if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                    {
+                        lastHashSentFrame = syncFrame;
+
+                        GameState verifiedState = states[syncFrame % StateArraySize];
+
+                        matchManager.SendStateHash(
+                            syncFrame,
+                            verifiedState.hash,
+                            verifiedState.sharedHash,
+                            verifiedState.projectileHash,
+                            verifiedState.playerHashes,
+                            verifiedState.playerCoreHashes,
+                            verifiedState.playerSpellHashes
+                        );
+                    }
+                }
             }
         }
         // --- End Mismatch Check ---
@@ -380,8 +414,7 @@ using BestoNet.Collections; // Use BestoNet collections
     /// <param name="input">The local player's input for the current frame.</param>
     public bool SendLocalInput(ulong input)
     {
-            // Check if opponent ID is set and we have a match manager
-            if (opponentNetworkId == 0 || matchManager == null || GameManager.Instance == null) return false;
+            if (matchManager == null || GameManager.Instance == null || onlineRoster == null || onlineRoster.PlayerCount <= 1) return false;
 
             // Don't send inputs during the initial frames before the input delay buffer is filled? Optional.
             // if (localFrame < InputDelay) return true;
@@ -416,10 +449,19 @@ using BestoNet.Collections; // Use BestoNet collections
             // --- Delay-Based Mode Logic (If enabled) ---
             if (DelayBased)
             {
-                // In delay-based mode, wait until inputs for the *current* frame are received
-                if (!receivedInputs.ContainsKey(currentFrame))
+                bool allRemoteInputsReady = true;
+                foreach (int remoteSlot in GetRemotePlayerSlots())
                 {
-                    // Debug.Log($"DelayBased: Waiting for input frame {currentFrame}");
+                    EnsureRemoteSlotState(remoteSlot);
+                    if (!receivedInputsBySlot[remoteSlot].ContainsKey(currentFrame))
+                    {
+                        allRemoteInputsReady = false;
+                        break;
+                    }
+                }
+
+                if (!allRemoteInputsReady)
+                {
                     consecutiveDrop++; // Increment drop counter while waiting
                     return false; // Stall the simulation
                 }
@@ -480,7 +522,7 @@ using BestoNet.Collections; // Use BestoNet collections
         /// Uses received remote input if available, otherwise predicts.
         /// </summary>
         /// <param name="frameToGet">Optional: Specify frame number (used during rollback resimulation).</param>
-        /// <returns>A ulong[2] array with inputs for Player 0 and Player 1.</returns>
+        /// <returns>A ulong array with one input per active player slot.</returns>
         public ulong[] SynchronizeInput(int? frameToGet = null)
         {
             int frame = frameToGet ?? localFrame; // Use specified frame or current local frame
@@ -492,25 +534,26 @@ using BestoNet.Collections; // Use BestoNet collections
                 ? clientInputs.GetInput(frame)
                 : 5UL; // Default to neutral (5) if missing
 
-            // Get remote input (predict if necessary)
-            ulong remoteInput = PredictOpponentInput(frame);
+            int playerCount = Mathf.Max(1, GameManager.Instance.GetOnlinePlayerCount());
+            ulong[] inputs = new ulong[playerCount];
 
-            // Arrange inputs based on local player index
-            ulong[] inputs = new ulong[2]; // Assuming 2 players for online
-            int localIdx = GameManager.Instance.localPlayerIndex; // Get local player's index (0 or 1)
-            int remoteIdx = GameManager.Instance.remotePlayerIndex; // Get remote player's index (0 or 1)
+            for (int i = 0; i < playerCount; i++)
+            {
+                inputs[i] = 5UL;
+            }
 
-            if (localIdx >= 0 && localIdx < 2 && remoteIdx >= 0 && remoteIdx < 2)
+            int localIdx = GameManager.Instance.localPlayerIndex;
+            if (localIdx >= 0 && localIdx < playerCount)
             {
                 inputs[localIdx] = localInput;
-                inputs[remoteIdx] = remoteInput;
             }
-            else
+
+            foreach (int remoteSlot in GetRemotePlayerSlots())
             {
-                Debug.LogError($"Invalid player indices during SynchronizeInput! Local: {localIdx}, Remote: {remoteIdx}");
-                // Default assignment (might be wrong)
-                inputs[0] = localInput;
-                inputs[1] = remoteInput;
+                if (remoteSlot >= 0 && remoteSlot < playerCount)
+                {
+                    inputs[remoteSlot] = PredictRemoteInput(remoteSlot, frame);
+                }
             }
 
             return inputs;
@@ -522,24 +565,21 @@ using BestoNet.Collections; // Use BestoNet collections
         /// </summary>
         /// <param name="frame">The frame to get opponent input for.</param>
         /// <returns>The received or predicted opponent input.</returns>
-        private ulong PredictOpponentInput(int frame)
+        private ulong PredictRemoteInput(int playerSlot, int frame)
         {
-            // If we have the actual received input for this frame, use it
-            if (receivedInputs.ContainsKey(frame))
+            EnsureRemoteSlotState(playerSlot);
+
+            if (receivedInputsBySlot[playerSlot].ContainsKey(frame))
             {
-                ulong actualInput = receivedInputs.GetInput(frame);
-                opponentLastAppliedInput = actualInput; // Update last known input
-                // Store the *actual* input we are using for this frame's simulation
-                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
+                ulong actualInput = receivedInputsBySlot[playerSlot].GetInput(frame);
+                remoteLastAppliedInputBySlot[playerSlot] = actualInput;
+                usedInputsBySlot[playerSlot].Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
                 return actualInput;
             }
-            else
-            {
-                // Simple prediction: reuse the last known input
-                // Store the *predicted* input we are using for this frame's simulation
-                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = opponentLastAppliedInput });
-                return opponentLastAppliedInput;
-            }
+
+            ulong predictedInput = remoteLastAppliedInputBySlot[playerSlot];
+            usedInputsBySlot[playerSlot].Insert(frame, new FrameMetadata() { frame = frame, input = predictedInput });
+            return predictedInput;
         }
 
     //// <summary>
@@ -558,25 +598,23 @@ using BestoNet.Collections; // Use BestoNet collections
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
         uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
         uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
-        uint player0Hash = 0;
-        uint player1Hash = 0;
-        uint player0CoreHash = 0;
-        uint player1CoreHash = 0;
-        uint player0SpellHash = 0;
-        uint player1SpellHash = 0;
-        if (GameManager.Instance.playerCount > 0 && GameManager.Instance.players[0] != null)
+        int playerCount = Mathf.Max(0, GameManager.Instance.playerCount);
+        uint[] playerHashes = new uint[playerCount];
+        uint[] playerCoreHashes = new uint[playerCount];
+        uint[] playerSpellHashes = new uint[playerCount];
+
+        for (int i = 0; i < playerCount; i++)
         {
-            player0CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[0]);
-            player0SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[0]);
-            player0Hash = ComputePlayerHash(GameManager.Instance.players[0]);
+            if (GameManager.Instance.players[i] == null)
+            {
+                continue;
+            }
+
+            playerCoreHashes[i] = ComputePlayerCoreHash(GameManager.Instance.players[i]);
+            playerSpellHashes[i] = ComputePlayerSpellHash(GameManager.Instance.players[i]);
+            playerHashes[i] = ComputePlayerHash(GameManager.Instance.players[i]);
         }
-        if (GameManager.Instance.playerCount > 1 && GameManager.Instance.players[1] != null)
-        {
-            player1CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[1]);
-            player1SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[1]);
-            player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
-        }
-        uint hash = ComputeCompositeHash(sharedHash, projectileHash, player0Hash, player1Hash);
+        uint hash = ComputeCompositeHash(sharedHash, projectileHash, playerHashes);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
@@ -587,12 +625,9 @@ using BestoNet.Collections; // Use BestoNet collections
             hash = hash,
             sharedHash = sharedHash,
             projectileHash = projectileHash,
-            player0Hash = player0Hash,
-            player1Hash = player1Hash,
-            player0CoreHash = player0CoreHash,
-            player1CoreHash = player1CoreHash,
-            player0SpellHash = player0SpellHash,
-            player1SpellHash = player1SpellHash
+            playerHashes = playerHashes,
+            playerCoreHashes = playerCoreHashes,
+            playerSpellHashes = playerSpellHashes
         };
 
         // Always send state hashes during online matches for desync detection
@@ -657,27 +692,25 @@ using BestoNet.Collections; // Use BestoNet collections
         return true;
     }
 
-    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
+    public void OnRemoteStateHash(int playerSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
     {
         if (frame > syncFrame)
         {
-            pendingRemoteHashes[frame] = new PendingRemoteHash()
+            pendingRemoteHashes[(playerSlot * 1000000) + frame] = new PendingRemoteHash()
             {
+                playerSlot = playerSlot,
                 frame = frame,
                 remoteHash = remoteHash,
                 remoteSharedHash = remoteSharedHash,
                 remoteProjectileHash = remoteProjectileHash,
-                remotePlayer0Hash = remotePlayer0Hash,
-                remotePlayer1Hash = remotePlayer1Hash,
-                remotePlayer0CoreHash = remotePlayer0CoreHash,
-                remotePlayer1CoreHash = remotePlayer1CoreHash,
-                remotePlayer0SpellHash = remotePlayer0SpellHash,
-                remotePlayer1SpellHash = remotePlayer1SpellHash
+                remotePlayerHashes = remotePlayerHashes,
+                remotePlayerCoreHashes = remotePlayerCoreHashes,
+                remotePlayerSpellHashes = remotePlayerSpellHashes
             };
             return;
         }
 
-        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayer0Hash, remotePlayer1Hash, remotePlayer0CoreHash, remotePlayer1CoreHash, remotePlayer0SpellHash, remotePlayer1SpellHash);
+        EvaluateRemoteStateHash(playerSlot, frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes);
     }
 
     private void ProcessPendingRemoteHashes()
@@ -687,30 +720,29 @@ using BestoNet.Collections; // Use BestoNet collections
             return;
         }
 
-        List<int> readyFrames = pendingRemoteHashes.Keys
-            .Where(frame => frame <= syncFrame)
-            .OrderBy(frame => frame)
+        List<int> readyFrames = pendingRemoteHashes
+            .Where(entry => entry.Value.frame <= syncFrame)
+            .OrderBy(entry => entry.Value.frame)
+            .Select(entry => entry.Key)
             .ToList();
 
-        foreach (int frame in readyFrames)
+        foreach (int pendingKey in readyFrames)
         {
-            PendingRemoteHash pending = pendingRemoteHashes[frame];
-            pendingRemoteHashes.Remove(frame);
+            PendingRemoteHash pending = pendingRemoteHashes[pendingKey];
+            pendingRemoteHashes.Remove(pendingKey);
             EvaluateRemoteStateHash(
+                pending.playerSlot,
                 pending.frame,
                 pending.remoteHash,
                 pending.remoteSharedHash,
                 pending.remoteProjectileHash,
-                pending.remotePlayer0Hash,
-                pending.remotePlayer1Hash,
-                pending.remotePlayer0CoreHash,
-                pending.remotePlayer1CoreHash,
-                pending.remotePlayer0SpellHash,
-                pending.remotePlayer1SpellHash);
+                pending.remotePlayerHashes,
+                pending.remotePlayerCoreHashes,
+                pending.remotePlayerSpellHashes);
         }
     }
 
-    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
+    private void EvaluateRemoteStateHash(int playerSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
     {
         if (!IsStableGameplayHashFrame())
         {
@@ -726,9 +758,9 @@ using BestoNet.Collections; // Use BestoNet collections
         uint localHash = states[index].hash;
         if (localHash != remoteHash)
         {
-            Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
-            Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
-            Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
+            Debug.LogError($"[DESYNC HASH] Frame {frame} from slot {playerSlot} local={localHash} remote={remoteHash}");
+            Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | players {FormatPlayerHashComparison(states[index].playerHashes, remotePlayerHashes)}");
+            Debug.LogError($"[DESYNC HASH] PlayerComponents core {FormatPlayerHashComparison(states[index].playerCoreHashes, remotePlayerCoreHashes)} | spell {FormatPlayerHashComparison(states[index].playerSpellHashes, remotePlayerSpellHashes)}");
 
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
@@ -737,17 +769,15 @@ using BestoNet.Collections; // Use BestoNet collections
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
                 WriteDesyncTextReport(
+                    playerSlot,
                     frame,
                     localHash,
                     remoteHash,
                     remoteSharedHash,
                     remoteProjectileHash,
-                    remotePlayer0Hash,
-                    remotePlayer1Hash,
-                    remotePlayer0CoreHash,
-                    remotePlayer1CoreHash,
-                    remotePlayer0SpellHash,
-                    remotePlayer1SpellHash,
+                    remotePlayerHashes,
+                    remotePlayerCoreHashes,
+                    remotePlayerSpellHashes,
                     diag);
                 if (!string.IsNullOrEmpty(diag))
                 {
@@ -790,17 +820,15 @@ using BestoNet.Collections; // Use BestoNet collections
     }
 
     private void WriteDesyncTextReport(
+        int playerSlot,
         int frame,
         uint localHash,
         uint remoteHash,
         uint remoteSharedHash,
         uint remoteProjectileHash,
-        uint remotePlayer0Hash,
-        uint remotePlayer1Hash,
-        uint remotePlayer0CoreHash,
-        uint remotePlayer1CoreHash,
-        uint remotePlayer0SpellHash,
-        uint remotePlayer1SpellHash,
+        uint[] remotePlayerHashes,
+        uint[] remotePlayerCoreHashes,
+        uint[] remotePlayerSpellHashes,
         string diag)
     {
         if (GameManager.Instance == null) return;
@@ -815,9 +843,9 @@ using BestoNet.Collections; // Use BestoNet collections
 
         List<string> lines = new List<string>
         {
-            $"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}",
-            $"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}",
-            $"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}"
+            $"[DESYNC HASH] Frame {frame} from slot {playerSlot} local={localHash} remote={remoteHash}",
+            $"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | players {FormatPlayerHashComparison(states[index].playerHashes, remotePlayerHashes)}",
+            $"[DESYNC HASH] PlayerComponents core {FormatPlayerHashComparison(states[index].playerCoreHashes, remotePlayerCoreHashes)} | spell {FormatPlayerHashComparison(states[index].playerSpellHashes, remotePlayerSpellHashes)}"
         };
 
         if (!string.IsNullOrEmpty(diag))
@@ -903,6 +931,20 @@ using BestoNet.Collections; // Use BestoNet collections
         return string.Join(" | ", rows);
     }
 
+    private string FormatPlayerHashComparison(uint[] localValues, uint[] remoteValues)
+    {
+        int count = Mathf.Max(localValues != null ? localValues.Length : 0, remoteValues != null ? remoteValues.Length : 0);
+        List<string> pairs = new List<string>(count);
+        for (int i = 0; i < count; i++)
+        {
+            uint local = localValues != null && i < localValues.Length ? localValues[i] : 0;
+            uint remote = remoteValues != null && i < remoteValues.Length ? remoteValues[i] : 0;
+            pairs.Add($"p{i} local={local} remote={remote}");
+        }
+
+        return string.Join(" | ", pairs);
+    }
+
     private uint ComputePlayerHash(PlayerController player)
     {
         using (MemoryStream memoryStream = new MemoryStream())
@@ -954,15 +996,19 @@ using BestoNet.Collections; // Use BestoNet collections
         return ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
     }
 
-    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash)
+    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint[] playerHashes)
     {
         using (MemoryStream memoryStream = new MemoryStream())
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
             bw.Write(sharedHash);
             bw.Write(projectileHash);
-            bw.Write(player0Hash);
-            bw.Write(player1Hash);
+            int playerCount = playerHashes != null ? playerHashes.Length : 0;
+            bw.Write(playerCount);
+            for (int i = 0; i < playerCount; i++)
+            {
+                bw.Write(playerHashes[i]);
+            }
             return ComputeFnv1a(memoryStream.ToArray());
         }
     }
@@ -1091,22 +1137,68 @@ using BestoNet.Collections; // Use BestoNet collections
             clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
-        /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>
-        public void SetOpponentInput(int frame, ulong input)
+        private void EnsureRemoteSlotState(int playerSlot)
         {
-            // Optional: Add logging if input for a frame is received multiple times with different values (potential issue)
-            // if (receivedInputs.ContainsKey(frame) && receivedInputs.GetInput(frame) != input) {
-            //     Debug.LogWarning($"Received conflicting input for frame {frame}. Old: {receivedInputs.GetInput(frame)}, New: {input}");
-            // }
-            receivedInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
-            // Update syncFrame if this input confirms a previously predicted frame?
-            // Handled within RollbackEvent check now.
+            if (!receivedInputsBySlot.ContainsKey(playerSlot))
+            {
+                receivedInputsBySlot[playerSlot] = new FrameMetadataArray(InputArraySize);
+            }
+            if (!usedInputsBySlot.ContainsKey(playerSlot))
+            {
+                usedInputsBySlot[playerSlot] = new FrameMetadataArray(InputArraySize);
+            }
+            if (!remoteFrameAdvantagesBySlot.ContainsKey(playerSlot))
+            {
+                remoteFrameAdvantagesBySlot[playerSlot] = new CircularArray<int>(FrameAdvantageArraySize);
+            }
+            if (!remoteLastAppliedInputBySlot.ContainsKey(playerSlot))
+            {
+                remoteLastAppliedInputBySlot[playerSlot] = 5UL;
+            }
+            if (!remoteFrameBySlot.ContainsKey(playerSlot))
+            {
+                remoteFrameBySlot[playerSlot] = 0;
+            }
+            if (!predictedRemoteFrameBySlot.ContainsKey(playerSlot))
+            {
+                predictedRemoteFrameBySlot[playerSlot] = 0;
+            }
         }
 
-        /// <summary> Stores the frame advantage reported by the remote client. Called by MatchMessageManager. </summary>
-        public void SetRemoteFrameAdvantage(int frame, int advantage)
+        private List<int> GetRemotePlayerSlots()
         {
-            remoteFrameAdvantages.Insert(frame, advantage);
+            List<int> remoteSlots = new List<int>();
+            int localSlot = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : 0;
+            int playerCount = GameManager.Instance != null ? GameManager.Instance.GetOnlinePlayerCount() : 0;
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (i != localSlot)
+                {
+                    remoteSlots.Add(i);
+                }
+            }
+
+            return remoteSlots;
+        }
+
+        public bool HasRemoteInput(int playerSlot, int frame)
+        {
+            return receivedInputsBySlot.ContainsKey(playerSlot) && receivedInputsBySlot[playerSlot].ContainsKey(frame);
+        }
+
+        /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>
+        public void SetRemoteInput(int playerSlot, int frame, ulong input)
+        {
+            EnsureRemoteSlotState(playerSlot);
+            receivedInputsBySlot[playerSlot].Insert(frame, new FrameMetadata() { frame = frame, input = input });
+        }
+
+        /// <summary> Stores the frame advantage reported by a remote client. Called by MatchMessageManager. </summary>
+        public void SetRemoteFrameAdvantage(int playerSlot, int frame, int advantage)
+        {
+            EnsureRemoteSlotState(playerSlot);
+            remoteFrameAdvantagesBySlot[playerSlot].Insert(frame, advantage);
         }
 
         /// <summary> Stores the calculated local frame advantage for the current frame. </summary>
@@ -1116,16 +1208,16 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         /// <summary> Updates the latest known frame from the opponent and estimates their current frame. Called by MatchMessageManager. </summary>
-        public void SetRemoteFrame(int frame)
+        public void SetRemoteFrame(int playerSlot, int frame)
         {
-            remoteFrame = frame; // Last frame opponent confirmed sending/receiving input for
-            // Predict current remote frame based on ping (needs ping calculation from MatchMessageManager)
+            EnsureRemoteSlotState(playerSlot);
+            remoteFrameBySlot[playerSlot] = frame;
             int pingMs = matchManager?.Ping ?? 200; // Default ping if manager missing
-            // Integer-only: one-way ping in frames = (pingMs / 2) * 60 / 1000, rounded up
-            // Equivalent to CeilToInt((pingMs/2) / 16.667) but fully deterministic
             int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
-            predictedRemoteFrame = frame + pingFrames;
-            // Optional: Clamp predictedRemoteFrame to reasonable bounds?
+            predictedRemoteFrameBySlot[playerSlot] = frame + pingFrames;
+
+            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : 0;
+            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : 0;
         }
 
         /// <summary> Calculates the average frame advantage difference over a window. </summary>
@@ -1135,7 +1227,28 @@ using BestoNet.Collections; // Use BestoNet collections
             long localSum = 0; // Use long for sum to avoid potential overflow
             long remoteSum = 0;
             int[] localValues = localFrameAdvantages.GetValues(); // Get underlying array
-            int[] remoteValues = remoteFrameAdvantages.GetValues(); // Get underlying array
+            int[] remoteValues = new int[FrameAdvantageArraySize];
+
+            if (remoteFrameAdvantagesBySlot.Count > 0)
+            {
+                int slotIndex = 0;
+                foreach (CircularArray<int> remoteHistory in remoteFrameAdvantagesBySlot.Values)
+                {
+                    int[] slotValues = remoteHistory.GetValues();
+                    if (slotIndex == 0)
+                    {
+                        Array.Copy(slotValues, remoteValues, FrameAdvantageArraySize);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < FrameAdvantageArraySize; i++)
+                        {
+                            remoteValues[i] = Math.Min(remoteValues[i], slotValues[i]);
+                        }
+                    }
+                    slotIndex++;
+                }
+            }
 
             // Sum directly from arrays (might be slightly faster than repeated Get)
             for (int i = 0; i < FrameAdvantageArraySize; i++)

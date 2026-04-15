@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Steamworks;
 using Steamworks.Data;
 
 public class SteamLobbyManager : MonoBehaviour
 {
+    private const int TargetOnlineLobbySize = 4;
+
     public static SteamLobbyManager Instance { get; private set; }
 
     private Lobby? currentLobby;
@@ -101,7 +104,7 @@ public class SteamLobbyManager : MonoBehaviour
                 Debug.Log($"[SteamLobbyManager] Creating lobby. SteamId={SteamClient.SteamId.Value} AppId={SteamClient.AppId} OverlayEnabled={SteamUtils.IsOverlayEnabled}");
             }
 
-            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(2);
+            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(TargetOnlineLobbySize);
             if (isShuttingDown || currentHostFlowVersion != hostFlowVersion || !SteamClient.IsValid)
             {
                 if (lobby.HasValue)
@@ -137,6 +140,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetFriendsOnly();
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
 
             if (!isShuttingDown)
             {
@@ -204,24 +208,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         currentLobby = lobby;
 
-        if (GameManager.Instance == null)
-        {
-            Debug.LogWarning("GameManager not found; cannot start online match.");
-            return;
-        }
-
-        if (GameManager.Instance.isOnlineMatchActive)
-        {
-            return;
-        }
-
-        if (lobby.Owner.Id == SteamClient.SteamId)
-        {
-            return;
-        }
-
-        SteamId hostId = lobby.Owner.Id;
-        GameManager.Instance.StartOnlineMatch(localIndex: 1, remoteIndex: 0, opponentId: hostId);
+        TryStartOnlineMatchFromLobby(lobby);
     }
 
     private void HandleLobbyMemberJoined(Lobby lobby, Friend friend)
@@ -246,6 +233,11 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        TryStartOnlineMatchFromLobby(lobby);
+    }
+
+    private void TryStartOnlineMatchFromLobby(Lobby lobby)
+    {
         if (GameManager.Instance == null)
         {
             Debug.LogWarning("GameManager not found; cannot start online match.");
@@ -257,8 +249,58 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        GameManager.Instance.StartOnlineMatch(localIndex: 0, remoteIndex: 1, opponentId: friend.Id);
+        OnlineMatchRoster roster = BuildRoster(lobby);
+        if (roster == null || roster.PlayerCount < TargetOnlineLobbySize)
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Waiting for lobby to fill before starting. Members={roster?.PlayerCount ?? 0}/{TargetOnlineLobbySize}");
+            }
+            return;
+        }
+
+        GameManager.Instance.StartOnlineMatch(roster);
         isHostingFlow = false;
+    }
+
+    private OnlineMatchRoster BuildRoster(Lobby lobby)
+    {
+        List<SteamId> members = new List<SteamId>();
+        foreach (Friend member in lobby.Members)
+        {
+            if (member.Id.IsValid)
+            {
+                members.Add(member.Id);
+            }
+        }
+
+        members.Sort((a, b) => a.Value.CompareTo(b.Value));
+        if (members.Count == 0)
+        {
+            return null;
+        }
+
+        OnlineMatchRoster roster = new OnlineMatchRoster
+        {
+            HostSteamId = lobby.Owner.Id
+        };
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            SteamId memberId = members[i];
+            roster.Peers.Add(new OnlineMatchPeerInfo
+            {
+                SteamId = memberId,
+                PlayerSlot = i
+            });
+
+            if (memberId == SteamClient.SteamId)
+            {
+                roster.LocalPlayerSlot = i;
+            }
+        }
+
+        return roster;
     }
 
     private void HandleLobbyCreated(Result result, Lobby lobby)

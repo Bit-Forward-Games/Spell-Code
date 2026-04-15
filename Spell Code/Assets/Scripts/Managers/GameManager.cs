@@ -150,9 +150,12 @@ public class GameManager : MonoBehaviour
     public int frameNumber { get; private set; } = 0; // Master frame counter
     public bool isOnlineMatchActive = false;
     private ulong localPlayerInput = 0; // Stores local input for the current frame
-    private ulong[] syncedInput = new ulong[2] { 0, 0 }; // Inputs for both players this frame
+    private ulong[] syncedInput = new ulong[4] { 0, 0, 0, 0 }; // Inputs for all active online players this frame
     public int localPlayerIndex = 0; // Set this before starting online match
-    public int remotePlayerIndex = 1; // Set this before starting online match
+    public int remotePlayerIndex = 1; // Legacy 1v1 helper; online roster should be used for new logic
+    private OnlineMatchRoster onlineRoster = null;
+    private readonly Dictionary<int, Steamworks.SteamId> onlineSlotToSteamId = new();
+    private readonly Dictionary<Steamworks.SteamId, int> onlineSteamIdToSlot = new();
     private int timeoutFrames = 0; // Timeout counter
     public int randomSeed = 0;
     public int randomCallCount = 0;
@@ -168,6 +171,8 @@ public class GameManager : MonoBehaviour
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
     public bool remotePlayerReadyForGameplay = false;
+    private readonly HashSet<int> readyForGameplaySlots = new();
+    private readonly HashSet<int> sceneTransitionReadySlots = new();
     private enum GameplayReadyContext
     {
         None,
@@ -177,6 +182,8 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext localGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext remoteGameplayReadyContext = GameplayReadyContext.None;
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+    private readonly Dictionary<int, GameplayReadyContext> pendingGameplayReadyContextBySlot = new();
+    private readonly Dictionary<int, int> pendingGameplayReadyTransitionBySlot = new();
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
     private int localGameplayReadyTransitionId = 0;
@@ -190,17 +197,28 @@ public class GameManager : MonoBehaviour
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     private bool hasPendingRemoteSceneReady = false;
+    private readonly Dictionary<int, int> pendingSceneReadyTransitionBySlot = new();
+    private readonly Dictionary<int, byte> pendingSceneReadyTypeBySlot = new();
+    private readonly Dictionary<int, int> pendingSceneReadySignatureBySlot = new();
     private int pendingRemoteSceneReadyTransitionId = 0;
     private byte pendingRemoteSceneReadyType = 0;
     private int pendingRemoteSceneReadySignature = 0;
     private int pendingOpponentShopTransitionId = 0;
+    private readonly Dictionary<int, int> pendingShopTransitionBySlot = new();
+    private readonly HashSet<int> shopTransitionReadySlots = new();
     [HideInInspector]
     public int p1_shopIndex = 0;
     [HideInInspector]
     public int p2_shopIndex = 0;
+    [HideInInspector]
+    public int p3_shopIndex = 0;
+    [HideInInspector]
+    public int p4_shopIndex = 0;
 
     private int p1_lastCycleFrame = -999;
     private int p2_lastCycleFrame = -999;
+    private int p3_lastCycleFrame = -999;
+    private int p4_lastCycleFrame = -999;
     private const int CYCLE_COOLDOWN_FRAMES = 15; // Prevent cycling for 15 frames (~0.25 seconds)
 
     private void Awake()
@@ -362,7 +380,10 @@ public class GameManager : MonoBehaviour
                 playerInputManager.enabled = false;
             }
 
-            networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+            int peerCount = MatchMessageManager.Instance.ConnectedPeerCount;
+            int avgPing = MatchMessageManager.Instance.GetAveragePeerPing();
+            int maxPing = MatchMessageManager.Instance.GetMaxPeerPing();
+            networkInfoText.SetText($"Peers: {peerCount} Avg RTT: {avgPing} Max RTT: {maxPing} Rollback: {RollbackManager.Instance.RollbackFrames}");
         }
 
 
@@ -415,7 +436,7 @@ public class GameManager : MonoBehaviour
             if (waitTime > LOBBY_TIMEOUT)
             {
                 //Debug.LogError("Lobby timeout - opponent didn't join in time");
-                StopMatch("Opponent failed to connect");
+                StopMatch("Online lobby timed out before all players connected");
                 // Return to menu or show error UI
                 return;
             }
@@ -424,9 +445,9 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive && isRunning)
         {
-            if (!CheckNetworkHealth())
+            if (!CheckNetworkHealth(out string networkFailureReason))
             {
-                StopMatch("Network timeout - connection lost");
+                StopMatch(string.IsNullOrEmpty(networkFailureReason) ? "Network timeout - connection lost" : networkFailureReason);
                 return;
             }
         }
@@ -548,6 +569,27 @@ public class GameManager : MonoBehaviour
     /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
+        OnlineMatchRoster roster = new OnlineMatchRoster
+        {
+            HostSteamId = localIndex == 0 ? Steamworks.SteamClient.SteamId : opponentId,
+            LocalPlayerSlot = localIndex
+        };
+        roster.Peers.Add(new OnlineMatchPeerInfo
+        {
+            SteamId = localIndex == 0 ? Steamworks.SteamClient.SteamId : opponentId,
+            PlayerSlot = 0
+        });
+        roster.Peers.Add(new OnlineMatchPeerInfo
+        {
+            SteamId = localIndex == 0 ? opponentId : Steamworks.SteamClient.SteamId,
+            PlayerSlot = 1
+        });
+
+        StartOnlineMatch(roster);
+    }
+
+    public void StartOnlineMatch(OnlineMatchRoster roster)
+    {
         onboardManager = null;
 
         //Debug.Log("Starting Online Match...");
@@ -562,9 +604,42 @@ public class GameManager : MonoBehaviour
         // touching offline simulation or relying on stale inspector defaults.
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
 
-        if (!opponentId.IsValid)
+        if (roster == null || roster.PlayerCount <= 0)
         {
-            //Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
+            return;
+        }
+
+        Steamworks.SteamId hostId = roster.HostSteamId;
+        Steamworks.SteamId localSteamId = Steamworks.SteamClient.SteamId;
+        Steamworks.SteamId primaryRemotePeer = default;
+
+        onlineRoster = roster;
+        onlineSlotToSteamId.Clear();
+        onlineSteamIdToSlot.Clear();
+        foreach (OnlineMatchPeerInfo peer in roster.Peers)
+        {
+            onlineSlotToSteamId[peer.PlayerSlot] = peer.SteamId;
+            onlineSteamIdToSlot[peer.SteamId] = peer.PlayerSlot;
+
+            if (peer.SteamId != localSteamId && !primaryRemotePeer.IsValid)
+            {
+                primaryRemotePeer = peer.SteamId;
+            }
+        }
+
+        localPlayerIndex = roster.LocalPlayerSlot;
+        remotePlayerIndex = -1;
+        foreach (OnlineMatchPeerInfo peer in roster.Peers)
+        {
+            if (peer.SteamId != localSteamId)
+            {
+                remotePlayerIndex = peer.PlayerSlot;
+                break;
+            }
+        }
+
+        if (!primaryRemotePeer.IsValid)
+        {
             return;
         }
 
@@ -632,12 +707,11 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         lastPacketReceivedTime = 0f;
 
-        localPlayerIndex = localIndex;
-        remotePlayerIndex = remoteIndex;
         ResetMatchState();
 
         ClearPlayerObjects();
-        this.playerCount = 2;
+        this.playerCount = Mathf.Clamp(roster.PlayerCount, 0, players.Length);
+        syncedInput = new ulong[Mathf.Max(1, this.playerCount)];
 
         if (playerPrefab == null)
         {
@@ -646,7 +720,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Create players but don't start simulation
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < playerCount; i++)
         {
             GameObject p = Instantiate(playerPrefab);
             players[i] = p.GetComponent<PlayerController>();
@@ -659,7 +733,9 @@ public class GameManager : MonoBehaviour
 
             var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
 
-            if (i == remotePlayerIndex)
+            bool isLocalSlot = i == localPlayerIndex;
+
+            if (!isLocalSlot)
             {
                 if (pInput != null)
                 {
@@ -668,7 +744,7 @@ public class GameManager : MonoBehaviour
                 }
                 players[i].CheckForInputs(false);
             }
-            else if (i == localIndex)
+            else
             {
                 players[i].inputs.AssignInputDevice(null);
                 ConfigureOnlineLocalPlayerInput(pInput, players[i].inputs);
@@ -687,7 +763,7 @@ public class GameManager : MonoBehaviour
         // Initialize managers
         // Keep the configured/default input delay until synchronized settings arrive
         // instead of forcing an immediate zero-delay startup.
-        RollbackManager.Instance.Init(opponentId.Value);
+        RollbackManager.Instance.Init(roster);
 
         if (MatchMessageManager.Instance != null)
         {
@@ -695,7 +771,7 @@ public class GameManager : MonoBehaviour
             {
                 StressTestController.Instance.ResetForNewMatch();
             }
-            MatchMessageManager.Instance.StartMatch(opponentId);
+            MatchMessageManager.Instance.StartMatch(roster);
             // Send ready signal to opponent
             MatchMessageManager.Instance.SendReadySignal();
         }
@@ -723,11 +799,48 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
     }
 
-    private bool CheckNetworkHealth()
+    public bool TryGetOnlinePlayerSlotForPeer(Steamworks.SteamId steamId, out int slot)
     {
+        return onlineSteamIdToSlot.TryGetValue(steamId, out slot);
+    }
+
+    public bool IsLocalOnlinePeer(Steamworks.SteamId steamId)
+    {
+        return steamId == Steamworks.SteamClient.SteamId;
+    }
+
+    public int GetOnlinePlayerCount()
+    {
+        return playerCount;
+    }
+
+    public int GetExpectedRemotePeerCount()
+    {
+        return Mathf.Max(0, playerCount - 1);
+    }
+
+    public OnlineMatchRoster GetOnlineRoster()
+    {
+        return onlineRoster;
+    }
+
+    private bool CheckNetworkHealth(out string failureReason)
+    {
+        failureReason = null;
+
         // Don't check during lobby phase
         if (isWaitingForOpponent)
             return true;
+
+        if (isOnlineMatchActive && MatchMessageManager.Instance != null)
+        {
+            int expectedPeerCount = GetExpectedRemotePeerCount();
+            if (expectedPeerCount > 0 && MatchMessageManager.Instance.ConnectedPeerCount < expectedPeerCount)
+            {
+                failureReason = $"Peer connection dropped ({MatchMessageManager.Instance.ConnectedPeerCount}/{expectedPeerCount} remotes connected)";
+                return false;
+            }
+        }
 
         // If we haven't received ANY packets yet, give it more time
         if (lastPacketReceivedTime == 0f)
@@ -735,7 +848,7 @@ public class GameManager : MonoBehaviour
             // Give 15 seconds for initial connection
             if (UnityEngine.Time.unscaledTime - lobbyWaitStartTime > 15f)
             {
-                //Debug.LogError("Network timeout - no packets received after 15 seconds");
+                failureReason = "Network timeout - no packets received after startup";
                 return false;
             }
             return true;
@@ -746,7 +859,7 @@ public class GameManager : MonoBehaviour
 
         if (timeSinceLastPacket > NETWORK_TIMEOUT)
         {
-            //Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
+            failureReason = $"Network timeout - no packets for {timeSinceLastPacket:F1} seconds";
             return false;
         }
 
@@ -761,11 +874,26 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentReady()
     {
+        OnOpponentReady(default);
+    }
+
+    public void OnOpponentReady(Steamworks.SteamId senderSteamId)
+    {
         //Debug.Log("Received opponent ready signal");
 
         if (!isOnlineMatchActive || !isWaitingForOpponent) return;
 
-        opponentIsReady = true;
+        if (senderSteamId.IsValid && TryGetOnlinePlayerSlotForPeer(senderSteamId, out int readySlot))
+        {
+            readyForGameplaySlots.Add(readySlot);
+        }
+
+        opponentIsReady = readyForGameplaySlots.Count >= Mathf.Max(1, GetOnlinePlayerCount() - 1);
+        if (!opponentIsReady)
+        {
+            return;
+        }
+
         if (localPlayerIndex == 0) // Host generates and sends seed
         {
             MatchMessageManager.Instance.SendRollbackSettings();
@@ -818,6 +946,13 @@ public class GameManager : MonoBehaviour
         pendingStageSelectTransitionId = 0;
         pendingRemoteSceneReadyTransitionId = 0;
         pendingOpponentShopTransitionId = 0;
+        pendingGameplayReadyContextBySlot.Clear();
+        pendingGameplayReadyTransitionBySlot.Clear();
+        pendingSceneReadyTransitionBySlot.Clear();
+        pendingSceneReadyTypeBySlot.Clear();
+        pendingSceneReadySignatureBySlot.Clear();
+        pendingShopTransitionBySlot.Clear();
+        shopTransitionReadySlots.Clear();
     }
 
     private void BeginTrackedOnlineTransition(int transitionId)
@@ -830,6 +965,7 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
         pendingRemoteSceneReadySignature = 0;
+        sceneTransitionReadySlots.Clear();
     }
 
     private void CompleteTrackedOnlineTransition()
@@ -856,6 +992,15 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
         pendingOpponentShopTransitionId = 0;
+        readyForGameplaySlots.Clear();
+        sceneTransitionReadySlots.Clear();
+        pendingGameplayReadyContextBySlot.Clear();
+        pendingGameplayReadyTransitionBySlot.Clear();
+        pendingSceneReadyTransitionBySlot.Clear();
+        pendingSceneReadyTypeBySlot.Clear();
+        pendingSceneReadySignatureBySlot.Clear();
+        pendingShopTransitionBySlot.Clear();
+        shopTransitionReadySlots.Clear();
     }
 
     // Send lobby ready signal
@@ -889,16 +1034,31 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentReadyForGameplayFromLobby(int transitionId)
     {
-        OnOpponentReadyForGameplay(GameplayReadyContext.Lobby, transitionId);
+        OnOpponentReadyForGameplayFromLobby(default, transitionId);
+    }
+
+    public void OnOpponentReadyForGameplayFromLobby(Steamworks.SteamId senderSteamId, int transitionId)
+    {
+        OnOpponentReadyForGameplay(GameplayReadyContext.Lobby, senderSteamId, transitionId);
     }
 
     public void OnOpponentReadyForGameplayFromShop(int transitionId)
     {
-        OnOpponentReadyForGameplay(GameplayReadyContext.Shop, transitionId);
+        OnOpponentReadyForGameplayFromShop(default, transitionId);
     }
 
-    private void OnOpponentReadyForGameplay(GameplayReadyContext readyContext, int transitionId)
+    public void OnOpponentReadyForGameplayFromShop(Steamworks.SteamId senderSteamId, int transitionId)
     {
+        OnOpponentReadyForGameplay(GameplayReadyContext.Shop, senderSteamId, transitionId);
+    }
+
+    private void OnOpponentReadyForGameplay(GameplayReadyContext readyContext, Steamworks.SteamId senderSteamId, int transitionId)
+    {
+        if (!senderSteamId.IsValid || !TryGetOnlinePlayerSlotForPeer(senderSteamId, out int readySlot))
+        {
+            return;
+        }
+
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
         {
@@ -909,17 +1069,30 @@ public class GameManager : MonoBehaviour
         {
             pendingRemoteGameplayReadyContext = readyContext;
             pendingRemoteGameplayReadyTransitionId = transitionId;
+            pendingGameplayReadyContextBySlot[readySlot] = readyContext;
+            pendingGameplayReadyTransitionBySlot[readySlot] = transitionId;
             return;
         }
 
         remotePlayerReadyForGameplay = true;
         remoteGameplayReadyContext = readyContext;
         remoteGameplayReadyTransitionId = transitionId;
+        readyForGameplaySlots.Add(readySlot);
         CheckBothPlayersReadyForGameplay();
     }
 
     public void OnOpponentSceneTransitionReady(int transitionId, byte sceneType, int sceneSignature)
     {
+        OnOpponentSceneTransitionReady(default, transitionId, sceneType, sceneSignature);
+    }
+
+    public void OnOpponentSceneTransitionReady(Steamworks.SteamId senderSteamId, int transitionId, byte sceneType, int sceneSignature)
+    {
+        if (!senderSteamId.IsValid || !TryGetOnlinePlayerSlotForPeer(senderSteamId, out int readySlot))
+        {
+            return;
+        }
+
         if (!isTransitioning)
         {
             return;
@@ -933,6 +1106,9 @@ public class GameManager : MonoBehaviour
                 pendingRemoteSceneReadyTransitionId = transitionId;
                 pendingRemoteSceneReadyType = sceneType;
                 pendingRemoteSceneReadySignature = sceneSignature;
+                pendingSceneReadyTransitionBySlot[readySlot] = transitionId;
+                pendingSceneReadyTypeBySlot[readySlot] = sceneType;
+                pendingSceneReadySignatureBySlot[readySlot] = sceneSignature;
             }
             return;
         }
@@ -940,6 +1116,7 @@ public class GameManager : MonoBehaviour
         if (sceneType == GetNetworkSceneTypeCode() && sceneSignature == GetNetworkSceneSignature())
         {
             remoteSceneTransitionReady = true;
+            sceneTransitionReadySlots.Add(readySlot);
             CheckSceneTransitionReady();
             return;
         }
@@ -948,6 +1125,9 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = transitionId;
         pendingRemoteSceneReadyType = sceneType;
         pendingRemoteSceneReadySignature = sceneSignature;
+        pendingSceneReadyTransitionBySlot[readySlot] = transitionId;
+        pendingSceneReadyTypeBySlot[readySlot] = sceneType;
+        pendingSceneReadySignatureBySlot[readySlot] = sceneSignature;
     }
 
     // Check if both players are ready to transition
@@ -959,12 +1139,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        readyForGameplaySlots.Add(localPlayerIndex);
+
         if (localPlayerReadyForGameplay
-            && remotePlayerReadyForGameplay
+            && readyForGameplaySlots.Count >= Mathf.Max(1, playerCount)
             && localGameplayReadyTransitionId == GetExpectedOnlineTransitionId()
-            && remoteGameplayReadyTransitionId == GetExpectedOnlineTransitionId()
-            && localGameplayReadyContext == currentReadyContext
-            && remoteGameplayReadyContext == currentReadyContext)
+            && localGameplayReadyContext == currentReadyContext)
         {
             //Debug.Log("Both players ready - transitioning to Gameplay");
             BeginTrackedOnlineTransition(GetExpectedOnlineTransitionId());
@@ -979,7 +1159,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (localSceneTransitionReady && remoteSceneTransitionReady)
+        if (localSceneTransitionReady)
+        {
+            sceneTransitionReadySlots.Add(localPlayerIndex);
+        }
+
+        if (sceneTransitionReadySlots.Count >= Mathf.Max(1, playerCount))
         {
             isTransitioning = false;
             CompleteTrackedOnlineTransition();
@@ -1004,7 +1189,22 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
         pendingRemoteSceneReadySignature = 0;
-        remoteSceneTransitionReady = true;
+        foreach (KeyValuePair<int, int> entry in pendingSceneReadyTransitionBySlot.ToList())
+        {
+            int slot = entry.Key;
+            if (entry.Value == activeOnlineTransitionId
+                && pendingSceneReadyTypeBySlot.TryGetValue(slot, out byte pendingType)
+                && pendingSceneReadySignatureBySlot.TryGetValue(slot, out int pendingSignature)
+                && pendingType == GetNetworkSceneTypeCode()
+                && pendingSignature == GetNetworkSceneSignature())
+            {
+                sceneTransitionReadySlots.Add(slot);
+                pendingSceneReadyTransitionBySlot.Remove(slot);
+                pendingSceneReadyTypeBySlot.Remove(slot);
+                pendingSceneReadySignatureBySlot.Remove(slot);
+            }
+        }
+        remoteSceneTransitionReady = sceneTransitionReadySlots.Count > 0;
         CheckSceneTransitionReady();
     }
 
@@ -1035,12 +1235,27 @@ public class GameManager : MonoBehaviour
         if (pendingRemoteGameplayReadyContext != currentReadyContext
             || pendingRemoteGameplayReadyTransitionId != GetExpectedOnlineTransitionId())
         {
-            return;
+            if (pendingGameplayReadyTransitionBySlot.Count == 0)
+            {
+                return;
+            }
         }
 
         pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
         pendingRemoteGameplayReadyTransitionId = 0;
-        remotePlayerReadyForGameplay = true;
+        foreach (KeyValuePair<int, int> entry in pendingGameplayReadyTransitionBySlot.ToList())
+        {
+            int slot = entry.Key;
+            if (entry.Value == GetExpectedOnlineTransitionId()
+                && pendingGameplayReadyContextBySlot.TryGetValue(slot, out GameplayReadyContext pendingContext)
+                && pendingContext == currentReadyContext)
+            {
+                readyForGameplaySlots.Add(slot);
+                pendingGameplayReadyTransitionBySlot.Remove(slot);
+                pendingGameplayReadyContextBySlot.Remove(slot);
+            }
+        }
+        remotePlayerReadyForGameplay = readyForGameplaySlots.Count > 1;
         remoteGameplayReadyContext = currentReadyContext;
         remoteGameplayReadyTransitionId = GetExpectedOnlineTransitionId();
         CheckBothPlayersReadyForGameplay();
@@ -1133,6 +1348,7 @@ public class GameManager : MonoBehaviour
     public void StopMatch(string reason = "Match Ended")
     {
         //Debug.Log($"Stopping Match: {reason}");
+        Debug.LogWarning($"[OnlineMatch] StopMatch: {reason}");
 
         isRunning = false;
 
@@ -1182,6 +1398,21 @@ public class GameManager : MonoBehaviour
             pendingRemoteSceneReadyTransitionId = 0;
             pendingRemoteSceneReadyType = 0;
             pendingRemoteSceneReadySignature = 0;
+            pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
+            onlineRoster = null;
+            onlineSlotToSteamId.Clear();
+            onlineSteamIdToSlot.Clear();
+            readyForGameplaySlots.Clear();
+            sceneTransitionReadySlots.Clear();
+            pendingGameplayReadyContextBySlot.Clear();
+            pendingGameplayReadyTransitionBySlot.Clear();
+            pendingSceneReadyTransitionBySlot.Clear();
+            pendingSceneReadyTypeBySlot.Clear();
+            pendingSceneReadySignatureBySlot.Clear();
+            pendingShopTransitionBySlot.Clear();
+            shopTransitionReadySlots.Clear();
+            syncedInput = new ulong[4] { 0, 0, 0, 0 };
 
             // Reset frame counter
             frameNumber = 0;
@@ -1195,6 +1426,11 @@ public class GameManager : MonoBehaviour
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
                 //Debug.Log("PlayerInputManager re-enabled for offline play");
+            }
+
+            if (networkInfoText != null)
+            {
+                networkInfoText.SetText(reason);
             }
         }
 
@@ -1230,8 +1466,10 @@ public class GameManager : MonoBehaviour
     {
         frameNumber = 0;
         localPlayerInput = 0;
-        syncedInput = new ulong[2] { 0, 0 };
+        syncedInput = new ulong[Mathf.Max(1, playerCount > 0 ? playerCount : 4)];
         timeoutFrames = 0;
+        readyForGameplaySlots.Clear();
+        sceneTransitionReadySlots.Clear();
     }
 
     private List<GameObject> GetValidGambaObjects(bool refreshIfNeeded = false)
@@ -1315,9 +1553,10 @@ public class GameManager : MonoBehaviour
         {
             CheckDeathsAndRoundEnd(GetActivePlayerControllers());
 
-            if (isOnlineMatchActive && pendingOpponentShopTransition && roundOver && !isTransitioning)
+            if (isOnlineMatchActive && shopTransitionReadySlots.Count >= Mathf.Max(1, playerCount - 1) && roundOver && !isTransitioning)
             {
                 pendingOpponentShopTransition = false;
+                shopTransitionReadySlots.Clear();
                 AdvanceRoundCountOnce();
                 BeginOnlineShopTransition(pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId());
                 pendingOpponentShopTransitionId = 0;
@@ -2305,7 +2544,17 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentShopTransition(int transitionId, byte sceneType, int sceneSignature)
     {
+        OnOpponentShopTransition(default, transitionId, sceneType, sceneSignature);
+    }
+
+    public void OnOpponentShopTransition(Steamworks.SteamId senderSteamId, int transitionId, byte sceneType, int sceneSignature)
+    {
         if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        if (!senderSteamId.IsValid || !TryGetOnlinePlayerSlotForPeer(senderSteamId, out int remoteSlot))
         {
             return;
         }
@@ -2340,6 +2589,7 @@ public class GameManager : MonoBehaviour
         {
             pendingOpponentShopTransition = true;
             pendingOpponentShopTransitionId = transitionId;
+            pendingShopTransitionBySlot[remoteSlot] = transitionId;
             return;
         }
 
@@ -2347,11 +2597,31 @@ public class GameManager : MonoBehaviour
         {
             pendingOpponentShopTransition = true;
             pendingOpponentShopTransitionId = transitionId;
+            pendingShopTransitionBySlot[remoteSlot] = transitionId;
             return;
         }
 
         pendingOpponentShopTransition = false;
         pendingOpponentShopTransitionId = 0;
+        shopTransitionReadySlots.Add(remoteSlot);
+
+        foreach (KeyValuePair<int, int> entry in pendingShopTransitionBySlot.ToList())
+        {
+            if (entry.Value == transitionId)
+            {
+                shopTransitionReadySlots.Add(entry.Key);
+                pendingShopTransitionBySlot.Remove(entry.Key);
+            }
+        }
+
+        if (shopTransitionReadySlots.Count < Mathf.Max(1, playerCount - 1))
+        {
+            pendingOpponentShopTransition = true;
+            pendingOpponentShopTransitionId = transitionId;
+            return;
+        }
+
+        shopTransitionReadySlots.Clear();
         AdvanceRoundCountOnce();
         BeginOnlineShopTransition(transitionId);
     }
@@ -2683,9 +2953,19 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
+            readyForGameplaySlots.Clear();
+            sceneTransitionReadySlots.Clear();
+            pendingGameplayReadyContextBySlot.Clear();
+            pendingGameplayReadyTransitionBySlot.Clear();
+            pendingSceneReadyTransitionBySlot.Clear();
+            pendingSceneReadyTypeBySlot.Clear();
+            pendingSceneReadySignatureBySlot.Clear();
+            pendingShopTransitionBySlot.Clear();
+            shopTransitionReadySlots.Clear();
             frameNumber = 0;
             localPlayerInput = 5;
-            syncedInput = new ulong[2] { 5, 5 };
+            syncedInput = new ulong[Mathf.Max(1, playerCount)];
+            for (int i = 0; i < syncedInput.Length; i++) syncedInput[i] = 5;
             timeoutFrames = 0;
 
             if (MatchMessageManager.Instance != null)
@@ -2746,9 +3026,19 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
+            readyForGameplaySlots.Clear();
+            sceneTransitionReadySlots.Clear();
+            pendingGameplayReadyContextBySlot.Clear();
+            pendingGameplayReadyTransitionBySlot.Clear();
+            pendingSceneReadyTransitionBySlot.Clear();
+            pendingSceneReadyTypeBySlot.Clear();
+            pendingSceneReadySignatureBySlot.Clear();
+            pendingShopTransitionBySlot.Clear();
+            shopTransitionReadySlots.Clear();
             frameNumber = 0;
             localPlayerInput = 5;
-            syncedInput = new ulong[2] { 5, 5 };
+            syncedInput = new ulong[Mathf.Max(1, playerCount)];
+            for (int i = 0; i < syncedInput.Length; i++) syncedInput[i] = 5;
             timeoutFrames = 0;
 
             if (MatchMessageManager.Instance != null)
@@ -2978,21 +3268,29 @@ public class GameManager : MonoBehaviour
 
                     bw.Write(p1_shopIndex);
                     bw.Write(p2_shopIndex);
+                    bw.Write(p3_shopIndex);
+                    bw.Write(p4_shopIndex);
 
                     bw.Write(p1_lastCycleFrame);
                     bw.Write(p2_lastCycleFrame);
+                    bw.Write(p3_lastCycleFrame);
+                    bw.Write(p4_lastCycleFrame);
 
                     // Serialize shop spell choices themselves
                     if (shopManager != null)
                     {
                         SerializeStringList(bw, shopManager.GetP1Choices());
                         SerializeStringList(bw, shopManager.GetP2Choices());
+                        SerializeStringList(bw, shopManager.GetP3Choices());
+                        SerializeStringList(bw, shopManager.GetP4Choices());
                     }
                     else
                     {
                         // No shop active, write empty lists
                         bw.Write(0); // p1_choices count
                         bw.Write(0); // p2_choices count
+                        bw.Write(0); // p3_choices count
+                        bw.Write(0); // p4_choices count
                     }
 
                     // Also serialize if players have chosen their shop spell
@@ -3239,12 +3537,26 @@ public class GameManager : MonoBehaviour
 
                     p1_shopIndex = br.ReadInt32();
                     p2_shopIndex = br.ReadInt32();
+                    p3_shopIndex = br.ReadInt32();
+                    p4_shopIndex = br.ReadInt32();
                     p1_lastCycleFrame = br.ReadInt32();
                     p2_lastCycleFrame = br.ReadInt32();
+                    p3_lastCycleFrame = br.ReadInt32();
+                    p4_lastCycleFrame = br.ReadInt32();
 
                     // Deserialize shop spell choices
                     List<string> savedP1Choices = DeserializeStringList(br);
                     List<string> savedP2Choices = DeserializeStringList(br);
+                    List<string> savedP3Choices = DeserializeStringList(br);
+                    List<string> savedP4Choices = DeserializeStringList(br);
+
+                    if (shopManager != null)
+                    {
+                        shopManager.SetChoicesForPlayer(0, savedP1Choices);
+                        shopManager.SetChoicesForPlayer(1, savedP2Choices);
+                        shopManager.SetChoicesForPlayer(2, savedP3Choices);
+                        shopManager.SetChoicesForPlayer(3, savedP4Choices);
+                    }
 
                     for (int i = 0; i < playerCount; i++)
                     {

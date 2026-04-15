@@ -464,6 +464,10 @@ public class PlayerController : MonoBehaviour
         SpellData spellInstance = Instantiate(targetSpell);
         spellList.Add(spellInstance);
         spellInstance.owner = this;
+        if (!string.IsNullOrEmpty(startingSpell) && spellToAdd == startingSpell)
+        {
+            startingSpellAdded = true;
+        }
         if (applyLoadEffects)
         {
             spellInstance.LoadSpell();
@@ -539,6 +543,7 @@ public class PlayerController : MonoBehaviour
 
         // Remove all references from the list
         spellList.Clear();
+        startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -553,6 +558,8 @@ public class PlayerController : MonoBehaviour
             {
                 Destroy(spellList[i]);
                 spellList.RemoveAt(i);
+                startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
+                    && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
                 ProjectileManager.Instance.InitializeAllProjectiles();
 
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -1027,7 +1034,7 @@ public class PlayerController : MonoBehaviour
 
                     break;
                 }
-                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None)
+                if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None && (tapJump?input.Direction <=6:true))
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);
@@ -3227,6 +3234,9 @@ public class PlayerController : MonoBehaviour
             ProjectileManager.Instance.InitializeAllProjectiles();
         }
 
+        startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
+            && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
+
         // Update UI if available
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         if (playerIndex >= 0 && GameManager.Instance.tempSpellDisplays != null &&
@@ -3270,6 +3280,11 @@ public class PlayerController : MonoBehaviour
     public void CheckForInputs(bool enable)
     {
         inputs.CheckForInputs(enable);
+    }
+
+    public void CheckForInputs(bool enable, bool assignKeyboardOnly)
+    {
+        inputs.CheckForInputs(enable, assignKeyboardOnly);
     }
 
     public void ClearInputDisplay()

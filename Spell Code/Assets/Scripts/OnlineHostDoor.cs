@@ -16,6 +16,7 @@ public class OnlineHostDoor : MonoBehaviour
     [SerializeField] private bool debugLogs = false;
     private float nextTriggerTime;
     private bool interactPressedThisFrame;
+    private bool hasTriggeredSincePlayerEnteredRange;
 
     private void Start()
     {
@@ -75,6 +76,7 @@ public class OnlineHostDoor : MonoBehaviour
     {
         if (!isOpen)
         {
+            hasTriggeredSincePlayerEnteredRange = false;
             return false;
         }
 
@@ -97,6 +99,8 @@ public class OnlineHostDoor : MonoBehaviour
             return false;
         }
 
+        bool playerInRange = false;
+
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             PlayerController player = GameManager.Instance.players[i];
@@ -107,34 +111,48 @@ public class OnlineHostDoor : MonoBehaviour
 
             if (IsPlayerInRange(player))
             {
-                if (requireButtonPress && !interactPressedThisFrame)
-                {
-                    return false;
-                }
-
-                if (debugLogs)
-                {
-                    Debug.Log("[OnlineHostDoor] Player in range. Starting host flow.");
-                }
-                nextTriggerTime = Time.unscaledTime + Mathf.Max(0.1f, triggerCooldownSeconds);
-
-                if (SteamLobbyManager.Instance.IsInLobby)
-                {
-                    bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
-                    if (!opened)
-                    {
-                        SteamLobbyManager.Instance.HostAndInvite();
-                    }
-                }
-                else
-                {
-                    SteamLobbyManager.Instance.HostAndInvite();
-                }
-                return true;
+                playerInRange = true;
+                break;
             }
         }
 
-        return false;
+        if (!playerInRange)
+        {
+            hasTriggeredSincePlayerEnteredRange = false;
+            return false;
+        }
+
+        if (requireButtonPress && !interactPressedThisFrame)
+        {
+            return false;
+        }
+
+        if (hasTriggeredSincePlayerEnteredRange)
+        {
+            return false;
+        }
+
+        hasTriggeredSincePlayerEnteredRange = true;
+
+        if (debugLogs)
+        {
+            Debug.Log("[OnlineHostDoor] Player entered range. Starting host flow.");
+        }
+        nextTriggerTime = Time.unscaledTime + Mathf.Max(0.1f, triggerCooldownSeconds);
+
+        if (SteamLobbyManager.Instance.IsInLobby)
+        {
+            bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
+            if (!opened)
+            {
+                SteamLobbyManager.Instance.HostAndInvite();
+            }
+        }
+        else
+        {
+            SteamLobbyManager.Instance.HostAndInvite();
+        }
+        return true;
     }
 
     private bool IsPlayerInRange(PlayerController player)

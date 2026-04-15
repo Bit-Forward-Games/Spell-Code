@@ -1833,6 +1833,10 @@ public class GameManager : MonoBehaviour
                     }
                     else if (players[0].spellList.Count >= 6)
                     {
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0; // reset round RAM
+                        }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         LoadRandomGameplayStage();

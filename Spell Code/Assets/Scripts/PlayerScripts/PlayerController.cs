@@ -11,6 +11,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 using UnityEngine.UI;
@@ -424,6 +425,8 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
+        //stop playing blocking VFX
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
         //initialize resources
         flowState = 0;

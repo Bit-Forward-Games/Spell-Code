@@ -123,7 +123,8 @@ public class GameManager : MonoBehaviour
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
     public GameObject networkInfo;
-    public TextMeshProUGUI networkInfoText;
+    public TextMeshProUGUI pingText;
+    public TextMeshProUGUI rollbackFramesText;
 
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
@@ -327,14 +328,7 @@ public class GameManager : MonoBehaviour
 
         SetStage(-1);
 
-        if (isOnlineMatchActive)
-        {
-            networkInfo.SetActive(true);
-        }
-        else
-        {
-            networkInfo.SetActive(false);
-        }
+        SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
 
         //play a new main menu song
@@ -353,6 +347,7 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+            SetNetworkInfoVisible(false);
         }
         else
         {
@@ -362,7 +357,16 @@ public class GameManager : MonoBehaviour
                 playerInputManager.enabled = false;
             }
 
-            networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+            SetNetworkInfoVisible(true);
+            if (pingText != null && MatchMessageManager.Instance != null)
+            {
+                pingText.SetText($"RTT: {MatchMessageManager.Instance.Ping}");
+            }
+
+            if (rollbackFramesText != null && RollbackManager.Instance != null)
+            {
+                rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+            }
         }
 
 
@@ -538,6 +542,51 @@ public class GameManager : MonoBehaviour
             return ButtonState.Released;
     }
 
+    private void ResolveNetworkInfoReferences()
+    {
+        if (networkInfo == null)
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in children)
+            {
+                if (child.name == "NetworkInfo")
+                {
+                    networkInfo = child.gameObject;
+                    break;
+                }
+            }
+        }
+
+        if (networkInfo == null)
+        {
+            return;
+        }
+
+        TextMeshProUGUI[] texts = networkInfo.GetComponentsInChildren<TextMeshProUGUI>(true);
+
+        foreach (TextMeshProUGUI text in texts)
+        {
+            if (text.name == "PingText")
+            {
+                pingText = text;
+            }
+            else if (text.name == "RollbackFramesText")
+            {
+                rollbackFramesText = text;
+            }
+        }
+    }
+
+    private void SetNetworkInfoVisible(bool isVisible)
+    {
+        ResolveNetworkInfoReferences();
+
+        if (networkInfo != null && networkInfo.activeSelf != isVisible)
+        {
+            networkInfo.SetActive(isVisible);
+        }
+    }
+
     // Match Control Methods
 
 
@@ -707,6 +756,7 @@ public class GameManager : MonoBehaviour
         // Set up online state but DON'T start simulation yet
         isOnlineMatchActive = true;
         isWaitingForOpponent = true; // Enter lobby wait state
+        SetNetworkInfoVisible(true);
 
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -1163,6 +1213,7 @@ public class GameManager : MonoBehaviour
             isWaitingForOpponent = false;
             opponentIsReady = false;
             isTransitioning = false;
+            SetNetworkInfoVisible(false);
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;
@@ -2008,17 +2059,22 @@ public class GameManager : MonoBehaviour
         int playerWithHighestBountyIndex = 0;
         for (int i = 0; i < playerCount; i++)
         {
+            //remove the bounty VFX from this player
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+
             if (players[i].ramBounty > players[playerWithHighestBountyIndex].ramBounty)
             {
                 playerWithHighestBountyIndex = i;
             }
-            else
-            {
-                //remove the bounty VFX from this player
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
-            }
+            //else
+            //{
+            //    //remove the bounty VFX from this player
+            //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+            //}
+
+            //Debug.Log("Bounty VFX | Player " + (i + 1) + " has a bounty of " + players[i].ramBounty);
         }
-        //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
+        //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
         //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);

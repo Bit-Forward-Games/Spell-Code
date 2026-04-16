@@ -11,6 +11,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 using UnityEngine.UI;
@@ -424,6 +425,8 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
+        //stop playing blocking VFX
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
         //initialize resources
         flowState = 0;
@@ -453,14 +456,93 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
+    public static int GetSpellInputLength(SpellData spell)
+    {
+        if (spell == null || spell.spellType != SpellType.Active)
+        {
+            return 0;
+        }
+
+        return (int)(spell.spellInput & 0xF);
+    }
+
+    public static int GetMaxCopiesForSpell(SpellData spell)
+    {
+        if (spell == null)
+        {
+            return 0;
+        }
+
+        if (spell.spellType == SpellType.Passive)
+        {
+            return 1;
+        }
+
+        int inputLength = Mathf.Max(1, GetSpellInputLength(spell));
+        return Mathf.Max(1, 5 - inputLength);
+    }
+
+    public int GetSpellCountByName(string spellName)
+    {
+        int spellCount = 0;
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellName == spellName)
+            {
+                spellCount++;
+            }
+        }
+
+        return spellCount;
+    }
+
+    public bool HasReachedSpellCopyLimit(string spellName)
+    {
+        if (SpellDictionary.Instance == null ||
+            SpellDictionary.Instance.spellDict == null ||
+            !SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData spellData) ||
+            spellData == null)
+        {
+            return false;
+        }
+
+        return GetSpellCountByName(spellName) >= GetMaxCopiesForSpell(spellData);
+    }
+
+    public bool CanAddSpellToSpellList(string spellToAdd)
+    {
+        if (spellList.Count >= 6)
+        {
+            return false;
+        }
+
+        return !HasReachedSpellCopyLimit(spellToAdd);
+    }
+
+    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
     {
         if (spellList.Count >= 6)
         {
             Debug.LogWarning("Spell List Full, cannot add more spells!");
-            return;
+            return false;
         }
-        SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
+
+        if (SpellDictionary.Instance == null ||
+            SpellDictionary.Instance.spellDict == null ||
+            !SpellDictionary.Instance.spellDict.TryGetValue(spellToAdd, out SpellData targetSpell) ||
+            targetSpell == null)
+        {
+            Debug.LogWarning("Spell not found in dictionary, cannot add!");
+            return false;
+        }
+
+        if (HasReachedSpellCopyLimit(spellToAdd))
+        {
+            Debug.LogWarning($"Spell copy limit reached for {spellToAdd}, cannot add more copies!");
+            return false;
+        }
+
         SpellData spellInstance = Instantiate(targetSpell);
         spellList.Add(spellInstance);
         spellInstance.owner = this;
@@ -501,6 +583,8 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Player has unlocked BigStox passives");
             }
         }
+
+        return true;
     }
 
     private ushort GetPersistentStockStabilityFromSpellList()
@@ -1239,7 +1323,7 @@ public class PlayerController : MonoBehaviour
                         storedCodeDuration += 3;
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
-                            lightArmor = false;
+                            //lightArmor = false;
 
                             //stop playing the blocking visual effect
                             VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
@@ -1492,8 +1576,8 @@ public class PlayerController : MonoBehaviour
                         basicSpawnOverride = "";
                     }
 
-                        //basic spell is fired
-                        basicsFired++;
+                    //basic spell is fired
+                    basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
 

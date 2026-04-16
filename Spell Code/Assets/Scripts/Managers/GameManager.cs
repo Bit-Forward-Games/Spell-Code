@@ -2008,17 +2008,22 @@ public class GameManager : MonoBehaviour
         int playerWithHighestBountyIndex = 0;
         for (int i = 0; i < playerCount; i++)
         {
+            //remove the bounty VFX from this player
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+
             if (players[i].ramBounty > players[playerWithHighestBountyIndex].ramBounty)
             {
                 playerWithHighestBountyIndex = i;
             }
-            else
-            {
-                //remove the bounty VFX from this player
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
-            }
+            //else
+            //{
+            //    //remove the bounty VFX from this player
+            //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+            //}
+
+            //Debug.Log("Bounty VFX | Player " + (i + 1) + " has a bounty of " + players[i].ramBounty);
         }
-        //Debug.Log("Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
+        //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
         //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);

@@ -1323,7 +1323,7 @@ public class PlayerController : MonoBehaviour
                         storedCodeDuration += 3;
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
-                            lightArmor = false;
+                            //lightArmor = false;
 
                             //stop playing the blocking visual effect
                             VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
@@ -1576,8 +1576,8 @@ public class PlayerController : MonoBehaviour
                         basicSpawnOverride = "";
                     }
 
-                        //basic spell is fired
-                        basicsFired++;
+                    //basic spell is fired
+                    basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
 

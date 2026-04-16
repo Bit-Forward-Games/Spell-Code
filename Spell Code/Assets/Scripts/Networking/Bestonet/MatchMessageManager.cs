@@ -31,7 +31,6 @@ public class MatchMessageManager : MonoBehaviour
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
     public int Ping { get; private set; } = 100;
-    public bool HasPingSample { get; private set; } = false;
 
     // Make opponent ID accessible
     private SteamId opponentSteamId;
@@ -193,14 +192,6 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(RollbackManager.Instance.TimeoutFrames);
                 writer.Write(RollbackManager.Instance.SoftFramePacingThreshold);
                 writer.Write(RollbackManager.Instance.MaxConsecutiveFrameDrops);
-                writer.Write(RollbackManager.Instance.AdaptiveInputDelay);
-                writer.Write(RollbackManager.Instance.MaxAdaptiveInputDelay);
-                writer.Write(RollbackManager.Instance.ZeroDelayMaxPingMs);
-                writer.Write(RollbackManager.Instance.OneDelayMaxPingMs);
-                writer.Write(RollbackManager.Instance.TwoDelayMaxPingMs);
-                writer.Write(RollbackManager.Instance.ThreeDelayMaxPingMs);
-                writer.Write(RollbackManager.Instance.RollbackPressureFrameThreshold);
-                writer.Write(RollbackManager.Instance.RollbackPressureIncreaseScore);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);
@@ -439,7 +430,6 @@ public class MatchMessageManager : MonoBehaviour
             this.opponentSteamId = opponentId;
             this.isRunning = true;
             Ping = 100;
-            HasPingSample = false;
             sentFrameTimes.Clear();
             outboundQueue.Clear();
             inboundQueue.Clear();
@@ -572,14 +562,6 @@ public class MatchMessageManager : MonoBehaviour
                         int timeoutFrames = reader.ReadInt32();
                         int softFramePacingThreshold = reader.ReadInt32();
                         int maxConsecutiveFrameDrops = reader.ReadInt32();
-                        bool adaptiveInputDelay = reader.ReadBoolean();
-                        int maxAdaptiveInputDelay = reader.ReadInt32();
-                        int zeroDelayMaxPingMs = reader.ReadInt32();
-                        int oneDelayMaxPingMs = reader.ReadInt32();
-                        int twoDelayMaxPingMs = reader.ReadInt32();
-                        int threeDelayMaxPingMs = reader.ReadInt32();
-                        int rollbackPressureFrameThreshold = reader.ReadInt32();
-                        int rollbackPressureIncreaseScore = reader.ReadInt32();
 
                         RollbackManager.Instance.ApplyOnlineSettings(
                             inputDelay,
@@ -590,15 +572,7 @@ public class MatchMessageManager : MonoBehaviour
                             frameExtensionWindow,
                             timeoutFrames,
                             softFramePacingThreshold,
-                            maxConsecutiveFrameDrops,
-                            adaptiveInputDelay,
-                            maxAdaptiveInputDelay,
-                            zeroDelayMaxPingMs,
-                            oneDelayMaxPingMs,
-                            twoDelayMaxPingMs,
-                            threeDelayMaxPingMs,
-                            rollbackPressureFrameThreshold,
-                            rollbackPressureIncreaseScore);
+                            maxConsecutiveFrameDrops);
                         return;
                     }
 
@@ -769,7 +743,6 @@ public class MatchMessageManager : MonoBehaviour
         {
             int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
             Ping = (int)Mathf.Lerp(Ping, rttMs, 0.1f);
-            HasPingSample = true;
             sentFrameTimes.Insert(frame, 0f);
         }
     }

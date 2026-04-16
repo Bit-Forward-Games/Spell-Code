@@ -63,21 +63,10 @@ using BestoNet.Collections; // Use BestoNet collections
         [Header("Rollback Settings")]
         [SerializeField] public int InputDelay = 0; // Default input delay frames
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
-        [SerializeField] public int MaxRollBackFrames = 15; // Max frames to rollback
-        [SerializeField] public int FrameAdvantageLimit = 8; // Threshold to start dropping frames locally
-        [SerializeField] public int SoftFramePacingThreshold = 6; // Start gently pacing before rollback pressure gets severe
-        [SerializeField] public int MaxConsecutiveFrameDrops = 3; // Pulse frame holds instead of hard-stalling forever
-
-        [Header("Adaptive Input Delay")]
-        [SerializeField] public bool AdaptiveInputDelay = true;
-        [SerializeField] public int MaxAdaptiveInputDelay = 4;
-        [SerializeField] public int ZeroDelayMaxPingMs = 80;
-        [SerializeField] public int OneDelayMaxPingMs = 120;
-        [SerializeField] public int TwoDelayMaxPingMs = 160;
-        [SerializeField] public int ThreeDelayMaxPingMs = 220;
-        [SerializeField] public int RollbackPressureFrameThreshold = 5;
-        [SerializeField] public int RollbackPressureIncreaseScore = 5;
-        [SerializeField] public int RollbackPressureDecreaseScore = 360;
+        [SerializeField] public int MaxRollBackFrames = 4; // BestoNet default: keep rollback corrections tight
+        [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
+        [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
+        [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
 
         [Header("Timing & Sync")]
         // [SerializeField] public int SleepTimeMicro = 1500; // Used by FPSLock, removed for now
@@ -105,9 +94,6 @@ using BestoNet.Collections; // Use BestoNet collections
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
-        private int rollbackPressureScore = 0;
-        private int lowRollbackPressureScore = 0;
-        private int adaptiveDelayCooldownFrames = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
@@ -202,15 +188,7 @@ using BestoNet.Collections; // Use BestoNet collections
             int frameExtensionWindow,
             int timeoutFrames,
             int softFramePacingThreshold,
-            int maxConsecutiveFrameDrops,
-            bool adaptiveInputDelay,
-            int maxAdaptiveInputDelay,
-            int zeroDelayMaxPingMs,
-            int oneDelayMaxPingMs,
-            int twoDelayMaxPingMs,
-            int threeDelayMaxPingMs,
-            int rollbackPressureFrameThreshold,
-            int rollbackPressureIncreaseScore)
+            int maxConsecutiveFrameDrops)
         {
             InputDelay = inputDelay;
             DelayBased = delayBased;
@@ -221,14 +199,6 @@ using BestoNet.Collections; // Use BestoNet collections
             TimeoutFrames = timeoutFrames;
             SoftFramePacingThreshold = softFramePacingThreshold;
             MaxConsecutiveFrameDrops = maxConsecutiveFrameDrops;
-            AdaptiveInputDelay = adaptiveInputDelay;
-            MaxAdaptiveInputDelay = maxAdaptiveInputDelay;
-            ZeroDelayMaxPingMs = zeroDelayMaxPingMs;
-            OneDelayMaxPingMs = oneDelayMaxPingMs;
-            TwoDelayMaxPingMs = twoDelayMaxPingMs;
-            ThreeDelayMaxPingMs = threeDelayMaxPingMs;
-            RollbackPressureFrameThreshold = rollbackPressureFrameThreshold;
-            RollbackPressureIncreaseScore = rollbackPressureIncreaseScore;
 
             bool safeToResetHistory = GameManager.Instance == null || GameManager.Instance.frameNumber == 0;
             if (safeToResetHistory)
@@ -254,9 +224,6 @@ using BestoNet.Collections; // Use BestoNet collections
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
-            rollbackPressureScore = 0;
-            lowRollbackPressureScore = 0;
-            adaptiveDelayCooldownFrames = 0;
             syncFrame = 0;
             predictedRemoteFrame = 0;
             remoteFrame = 0;
@@ -434,76 +401,6 @@ using BestoNet.Collections; // Use BestoNet collections
             matchManager.SendInputs(); // Send target frame and input
             return true;
     }
-
-        public void UpdateAdaptiveInputDelay()
-        {
-            if (!AdaptiveInputDelay || DelayBased || GameManager.Instance == null || matchManager == null || !matchManager.HasPingSample)
-            {
-                return;
-            }
-
-            if (adaptiveDelayCooldownFrames > 0)
-            {
-                adaptiveDelayCooldownFrames--;
-            }
-
-            int pingTarget = GetInputDelayForPing(matchManager.Ping);
-            int maxDelay = Mathf.Max(0, MaxAdaptiveInputDelay);
-            int rollbackThreshold = Mathf.Max(3, RollbackPressureFrameThreshold);
-
-            if (RollbackFrames >= rollbackThreshold)
-            {
-                rollbackPressureScore++;
-                lowRollbackPressureScore = 0;
-            }
-            else if (RollbackFrames <= 2)
-            {
-                lowRollbackPressureScore++;
-                rollbackPressureScore = Mathf.Max(0, rollbackPressureScore - 1);
-            }
-
-            int targetDelay = Mathf.Clamp(pingTarget, 0, maxDelay);
-
-            // If the ping is good but jitter/packet cadence still causes visible rollback,
-            // allow a temporary safety bump. This should be rare under 80ms, but it keeps
-            // the game playable when the route quality is worse than the RTT suggests.
-            if (rollbackPressureScore >= RollbackPressureIncreaseScore && adaptiveDelayCooldownFrames == 0)
-            {
-                targetDelay = Mathf.Min(maxDelay, Mathf.Max(targetDelay, InputDelay + 1));
-            }
-
-            // Decrease slowly. Dropping delay too fast feels inconsistent, so require a
-            // long calm window and never go below the current ping baseline.
-            targetDelay = Mathf.Clamp(targetDelay, 0, maxDelay);
-            if (targetDelay < InputDelay)
-            {
-                // Lowering delay can collide with inputs already scheduled for future frames.
-                // Keep decreases for future safe transition points instead of changing mid-round.
-                return;
-            }
-
-            if (targetDelay == InputDelay)
-            {
-                return;
-            }
-
-            int previousDelay = InputDelay;
-            InputDelay = targetDelay;
-            rollbackPressureScore = 0;
-            lowRollbackPressureScore = 0;
-            adaptiveDelayCooldownFrames = 180;
-            Debug.Log($"[ADAPTIVE DELAY] ping={matchManager.Ping}ms rollback={RollbackFrames} delay {previousDelay}->{InputDelay} baseline={pingTarget}");
-        }
-
-        private int GetInputDelayForPing(int pingMs)
-        {
-            if (pingMs <= ZeroDelayMaxPingMs) return 0;
-            if (pingMs <= OneDelayMaxPingMs) return 1;
-            if (pingMs <= TwoDelayMaxPingMs) return 2;
-            if (pingMs <= ThreeDelayMaxPingMs) return 3;
-            return 4;
-        }
-
 
         /// <summary>
         /// Determines if the simulation should run this frame based on input availability (for delay-based)

@@ -1433,10 +1433,16 @@ public class GameManager : MonoBehaviour
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
 
+        if (!rbManager.CheckTimeSync(out float frameAdvantageDifference))
+        {
+            rbManager.StartFrameExtensions(frameAdvantageDifference);
+        }
+
         // Match BestoNet's flow: still send/resend local input before holding a
         // frame for pacing, otherwise a frame hold can also starve the opponent.
         if (!rbManager.AllowUpdate())
         {
+            rbManager.ExtendFrame();
             frameNumber--;
             return;
         }
@@ -1516,6 +1522,8 @@ public class GameManager : MonoBehaviour
         {
             rbManager.SaveState();
         }
+
+        rbManager.ExtendFrame();
     }
 
     private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));

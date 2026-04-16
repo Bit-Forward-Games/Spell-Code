@@ -127,7 +127,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI rollbackFramesText;
 
     [Header("Online Match State")]
-    [SerializeField] private int minimumOnlineInputDelay = 1;
+    [SerializeField] private int minimumOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineRollbackFrames = 15;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
@@ -1425,6 +1425,7 @@ public class GameManager : MonoBehaviour
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();
+        rbManager.UpdateAdaptiveInputDelay();
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;

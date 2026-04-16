@@ -1426,11 +1426,6 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
-        if (!rbManager.AllowUpdate())
-        {
-            return;
-        }
-
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
@@ -1438,6 +1433,14 @@ public class GameManager : MonoBehaviour
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
+
+        // Match BestoNet's flow: still send/resend local input before holding a
+        // frame for pacing, otherwise a frame hold can also starve the opponent.
+        if (!rbManager.AllowUpdate())
+        {
+            frameNumber--;
+            return;
+        }
 
         Scene activeScene = SceneManager.GetActiveScene();
 

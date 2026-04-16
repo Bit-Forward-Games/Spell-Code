@@ -128,7 +128,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Online Match State")]
     [SerializeField] private int minimumOnlineInputDelay = 0;
-    [SerializeField] private int minimumOnlineRollbackFrames = 15;
+    [SerializeField] private int minimumOnlineRollbackFrames = 4;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;
@@ -608,9 +608,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Public internet matches need rollback headroom to absorb 70-80ms routes.
-        // Clamp the live online setting here so both peers negotiate the same safer values without
-        // touching offline simulation or relying on stale inspector defaults.
+        // Keep online defaults aligned with the original BestoNet/Idol-style rollback profile
+        // without touching offline simulation or relying on stale inspector defaults.
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, minimumOnlineInputDelay);
         RollbackManager.Instance.MaxRollBackFrames = Mathf.Max(RollbackManager.Instance.MaxRollBackFrames, minimumOnlineRollbackFrames);
 
@@ -1425,7 +1424,6 @@ public class GameManager : MonoBehaviour
 
         timeoutFrames = 0;
         rbManager.RollbackEvent();
-        rbManager.UpdateAdaptiveInputDelay();
 
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;

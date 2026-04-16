@@ -263,7 +263,7 @@ public class GambaMachine : MonoBehaviour
             SimulateShopOnline(isRollback);
         }
 
-        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        if (activeScene.name != "Shop" && gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
         {
             if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;

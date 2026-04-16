@@ -327,14 +327,7 @@ public class GameManager : MonoBehaviour
 
         SetStage(-1);
 
-        if (isOnlineMatchActive)
-        {
-            networkInfo.SetActive(true);
-        }
-        else
-        {
-            networkInfo.SetActive(false);
-        }
+        SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
 
         //play a new main menu song
@@ -353,6 +346,7 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+            SetNetworkInfoVisible(false);
         }
         else
         {
@@ -362,7 +356,11 @@ public class GameManager : MonoBehaviour
                 playerInputManager.enabled = false;
             }
 
-            networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+            SetNetworkInfoVisible(true);
+            if (networkInfoText != null && MatchMessageManager.Instance != null && RollbackManager.Instance != null)
+            {
+                networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+            }
         }
 
 
@@ -538,6 +536,37 @@ public class GameManager : MonoBehaviour
             return ButtonState.Released;
     }
 
+    private void ResolveNetworkInfoReferences()
+    {
+        if (networkInfo == null)
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in children)
+            {
+                if (child.name == "NetworkInfo")
+                {
+                    networkInfo = child.gameObject;
+                    break;
+                }
+            }
+        }
+
+        if (networkInfoText == null && networkInfo != null)
+        {
+            networkInfoText = networkInfo.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+    }
+
+    private void SetNetworkInfoVisible(bool isVisible)
+    {
+        ResolveNetworkInfoReferences();
+
+        if (networkInfo != null && networkInfo.activeSelf != isVisible)
+        {
+            networkInfo.SetActive(isVisible);
+        }
+    }
+
     // Match Control Methods
 
 
@@ -707,6 +736,7 @@ public class GameManager : MonoBehaviour
         // Set up online state but DON'T start simulation yet
         isOnlineMatchActive = true;
         isWaitingForOpponent = true; // Enter lobby wait state
+        SetNetworkInfoVisible(true);
 
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -1163,6 +1193,7 @@ public class GameManager : MonoBehaviour
             isWaitingForOpponent = false;
             opponentIsReady = false;
             isTransitioning = false;
+            SetNetworkInfoVisible(false);
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
             localGameplayReadyContext = GameplayReadyContext.None;

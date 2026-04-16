@@ -61,10 +61,10 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // --- Configuration (Set these in Inspector or via code) ---
         [Header("Rollback Settings")]
-        [SerializeField] public int InputDelay = 2; // Default input delay frames
+        [SerializeField] public int InputDelay = 1; // Default input delay frames
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
-        [SerializeField] public int MaxRollBackFrames = 7; // Max frames to rollback
-        [SerializeField] public int FrameAdvantageLimit = 4; // Threshold to start dropping frames locally
+        [SerializeField] public int MaxRollBackFrames = 15; // Max frames to rollback
+        [SerializeField] public int FrameAdvantageLimit = 8; // Threshold to start dropping frames locally
 
         [Header("Timing & Sync")]
         // [SerializeField] public int SleepTimeMicro = 1500; // Used by FPSLock, removed for now
@@ -74,8 +74,8 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // --- Constants ---
         // Make array sizes configurable or keep as constants
-        private const int StateArraySize = 60;
-        public const int InputArraySize = 60; // Should match StateArraySize generally
+        private const int StateArraySize = 180;
+        public const int InputArraySize = 180; // Should match StateArraySize generally
         private const int FrameAdvantageArraySize = 32;
         // --- End Constants ---
 
@@ -453,16 +453,6 @@ using BestoNet.Collections; // Use BestoNet collections
             if (tooFarAheadOfSync && aheadOfRemote && !isRollbackFrame /* && !matchEnded */)
             {
                 consecutiveDrop++; // Increment drop counter
-
-                // Avoid getting stuck in a permanent local freeze if the remote frame estimate
-                // stops advancing in a real network environment. After a short burst of drops,
-                // allow one simulation frame through and let rollback correct later.
-                if (consecutiveDrop > 2)
-                {
-                    Debug.LogWarning($"Frame Drop Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Allowing update to prevent stall.");
-                    consecutiveDrop = 0;
-                    return true;
-                }
 
                 Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Dropping frame.");
                 lastDroppedFrame = currentFrame; // Record dropped frame

@@ -90,10 +90,16 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
                 if (selectHoldCounter >= 60)
                 {
-                    overlappingPlayer.AddSpellToSpellList(diskName);
-                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
-                    //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
-                    Destroy(gameObject);
+                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    {
+                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                        //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                        Destroy(gameObject);
+                    }
+                    else
+                    {
+                        selectHoldCounter = 0;
+                    }
                 }
             }
             else
@@ -141,18 +147,19 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
             if (selectHoldCounter >= 60)
             {
-                if (HasOwnerAlreadyChosenOnlineSpell())
+                if (overlappingPlayer.AddSpellToSpellList(diskName))
+                {
+                    if (isRealFrame)
+                    {
+                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                    }
+
+                    Destroy(gameObject);
+                }
+                else
                 {
                     selectHoldCounter = 0;
-                    return;
                 }
-
-                overlappingPlayer.AddSpellToSpellList(diskName);
-                if (isRealFrame)
-                {
-                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
-                }
-                Destroy(gameObject);
             }
         }
         else
@@ -168,29 +175,6 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             diskDisplay.selectFill.fillAmount = GetFillPercent();
         }
-    }
-
-    private bool HasOwnerAlreadyChosenOnlineSpell()
-    {
-        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive || overlappingPlayer == null)
-        {
-            return false;
-        }
-
-        Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name == "MainMenu")
-        {
-            return overlappingPlayer.spellList.Count > 0;
-        }
-
-        if (activeScene.name == "Shop")
-        {
-            DataManager dataManager = DataManager.Instance;
-            int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
-            return overlappingPlayer.spellList.Count >= roundsPlayed + 1;
-        }
-
-        return false;
     }
 
     public byte GetSelectHoldCounter()

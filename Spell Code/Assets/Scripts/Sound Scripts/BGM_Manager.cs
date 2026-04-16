@@ -20,7 +20,7 @@ public class BGM_Manager : MonoBehaviour
     {
         public string sceneName; //name of the scene
         public List<AudioClip> availableSongs; //list of songs that can play in the scene with name = sceneName
-        public AudioClip previousSong; //the last played song within the scene with name = sceneName
+        [HideInInspector] public AudioClip previousSong; //the last played song within the scene with name = sceneName
     }
 
     //[Header("List of songs that have a chance to play in this scene")]
@@ -133,9 +133,6 @@ public class BGM_Manager : MonoBehaviour
     {
         //stop playing the current song
         StopSong();
-
-        //
-
 
         //traverse through sceneAudioObjects until the correct scene is found,...
         int sceneAudioIndex;

@@ -90,10 +90,16 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
                 if (selectHoldCounter >= 60)
                 {
-                    overlappingPlayer.AddSpellToSpellList(diskName);
-                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
-                    //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
-                    Destroy(gameObject);
+                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    {
+                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                        //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                        Destroy(gameObject);
+                    }
+                    else
+                    {
+                        selectHoldCounter = 0;
+                    }
                 }
             }
             else

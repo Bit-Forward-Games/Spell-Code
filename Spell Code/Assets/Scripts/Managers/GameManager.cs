@@ -127,6 +127,8 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI rollbackFramesText;
 
     [Header("Online Match State")]
+    [SerializeField] private int minimumOnlineInputDelay = 1;
+    [SerializeField] private int minimumOnlineRollbackFrames = 15;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;
@@ -606,10 +608,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Public internet matches were staying correct but rollback-heavy with a 2-frame baseline delay.
-        // Clamp the live online setting here so both peers negotiate the same safer value without
+        // Public internet matches need rollback headroom to absorb 70-80ms routes.
+        // Clamp the live online setting here so both peers negotiate the same safer values without
         // touching offline simulation or relying on stale inspector defaults.
-        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
+        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, minimumOnlineInputDelay);
+        RollbackManager.Instance.MaxRollBackFrames = Mathf.Max(RollbackManager.Instance.MaxRollBackFrames, minimumOnlineRollbackFrames);
 
         if (!opponentId.IsValid)
         {

@@ -123,7 +123,8 @@ public class GameManager : MonoBehaviour
     public GameObject onlineMenuUI;
     public KeyCode toggleOnlineMenuKey = KeyCode.F5;
     public GameObject networkInfo;
-    public TextMeshProUGUI networkInfoText;
+    public TextMeshProUGUI pingText;
+    public TextMeshProUGUI rollbackFramesText;
 
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
@@ -357,9 +358,14 @@ public class GameManager : MonoBehaviour
             }
 
             SetNetworkInfoVisible(true);
-            if (networkInfoText != null && MatchMessageManager.Instance != null && RollbackManager.Instance != null)
+            if (pingText != null && MatchMessageManager.Instance != null)
             {
-                networkInfoText.SetText($"RTT: {MatchMessageManager.Instance.Ping} Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+                pingText.SetText($"RTT: {MatchMessageManager.Instance.Ping}");
+            }
+
+            if (rollbackFramesText != null && RollbackManager.Instance != null)
+            {
+                rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
             }
         }
 
@@ -551,9 +557,23 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (networkInfoText == null && networkInfo != null)
+        if (networkInfo == null)
         {
-            networkInfoText = networkInfo.GetComponentInChildren<TextMeshProUGUI>(true);
+            return;
+        }
+
+        TextMeshProUGUI[] texts = networkInfo.GetComponentsInChildren<TextMeshProUGUI>(true);
+
+        foreach (TextMeshProUGUI text in texts)
+        {
+            if (text.name == "PingText")
+            {
+                pingText = text;
+            }
+            else if (text.name == "RollbackFramesText")
+            {
+                rollbackFramesText = text;
+            }
         }
     }
 

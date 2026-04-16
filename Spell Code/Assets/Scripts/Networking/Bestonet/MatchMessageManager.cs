@@ -187,6 +187,8 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(RollbackManager.Instance.DelayBased);
                 writer.Write(RollbackManager.Instance.MaxRollBackFrames);
                 writer.Write(RollbackManager.Instance.FrameAdvantageLimit);
+                writer.Write(RollbackManager.Instance.EnableFrameExtension);
+                writer.Write(RollbackManager.Instance.SleepTimeMicro);
                 writer.Write(RollbackManager.Instance.FrameExtensionLimit);
                 writer.Write(RollbackManager.Instance.FrameExtensionWindow);
                 writer.Write(RollbackManager.Instance.TimeoutFrames);
@@ -557,6 +559,8 @@ public class MatchMessageManager : MonoBehaviour
                         bool delayBased = reader.ReadBoolean();
                         int maxRollback = reader.ReadInt32();
                         int frameAdvLimit = reader.ReadInt32();
+                        bool enableFrameExtension = reader.ReadBoolean();
+                        int sleepTimeMicro = reader.ReadInt32();
                         float frameExtensionLimit = reader.ReadSingle();
                         int frameExtensionWindow = reader.ReadInt32();
                         int timeoutFrames = reader.ReadInt32();
@@ -568,6 +572,8 @@ public class MatchMessageManager : MonoBehaviour
                             delayBased,
                             maxRollback,
                             frameAdvLimit,
+                            enableFrameExtension,
+                            sleepTimeMicro,
                             frameExtensionLimit,
                             frameExtensionWindow,
                             timeoutFrames,

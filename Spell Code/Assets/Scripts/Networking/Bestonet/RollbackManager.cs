@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using BestoNet.Collections; // Use BestoNet collections
+using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
     public class RollbackManager : MonoBehaviour
     {
@@ -69,7 +71,8 @@ using BestoNet.Collections; // Use BestoNet collections
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
 
         [Header("Timing & Sync")]
-        // [SerializeField] public int SleepTimeMicro = 1500; // Used by FPSLock, removed for now
+        [SerializeField] public bool EnableFrameExtension = true;
+        [SerializeField] public int SleepTimeMicro = 1500; // BestoNet FPSLock-style local frame extension
         [SerializeField] public float FrameExtensionLimit = 1.5f; // Threshold to start extending frames locally
         [SerializeField] public int FrameExtensionWindow = 7; // Frames over which extensions are averaged/limited
         [SerializeField] public int TimeoutFrames = 60; // Frames without sync before timeout
@@ -94,6 +97,7 @@ using BestoNet.Collections; // Use BestoNet collections
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
+        private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
@@ -184,6 +188,8 @@ using BestoNet.Collections; // Use BestoNet collections
             bool delayBased,
             int maxRollbackFrames,
             int frameAdvantageLimit,
+            bool enableFrameExtension,
+            int sleepTimeMicro,
             float frameExtensionLimit,
             int frameExtensionWindow,
             int timeoutFrames,
@@ -194,6 +200,8 @@ using BestoNet.Collections; // Use BestoNet collections
             DelayBased = delayBased;
             MaxRollBackFrames = maxRollbackFrames;
             FrameAdvantageLimit = frameAdvantageLimit;
+            EnableFrameExtension = enableFrameExtension;
+            SleepTimeMicro = sleepTimeMicro;
             FrameExtensionLimit = frameExtensionLimit;
             FrameExtensionWindow = frameExtensionWindow;
             TimeoutFrames = timeoutFrames;
@@ -234,9 +242,8 @@ using BestoNet.Collections; // Use BestoNet collections
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
+            currentFrameExtensionMicro = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
-
-            // FPSLock integration removed
 
             // Initialize states array
             for (int i = 0; i < StateArraySize; i++)
@@ -994,56 +1001,77 @@ using BestoNet.Collections; // Use BestoNet collections
 
 
     // --- Frame Timing / Advantage Methods ---
-    // NOTE: These methods depended on an 'FPSLock' component which was removed.
-    // They are provided here for reference but will cause errors or have no effect
-    // without reimplementing a similar frame rate/timing control mechanism.
+    // BestoNet's original FPSLock extends local frame time when a client is ahead.
+    // This local wait is intentionally outside serialized simulation state.
 
     /// <summary>
-    /// [Requires FPSLock] Manages frame extensions based on network conditions.
+    /// Applies the active BestoNet FPSLock-style local frame extension.
     /// </summary>
     public void ExtendFrame()
     {
-        /* // Original logic requiring FPSLock:
-        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        if (!EnableFrameExtension || currentFrameExtensionMicro <= 0)
         {
             return;
         }
 
-        if (totalConsecutiveFrameExtensions < FrameExtensionWindow)
+        int extensionWindow = Mathf.Max(1, FrameExtensionWindow);
+        if (totalConsecutiveFrameExtensions < extensionWindow)
         {
             totalConsecutiveFrameExtensions++;
+            WaitMicroseconds(currentFrameExtensionMicro);
+            return;
         }
-        else
-        {
-            FPSLock.Instance.SetFrameExtension(0); // Stop extending
-        }
-        */
-        Debug.LogWarning("ExtendFrame called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+
+        currentFrameExtensionMicro = 0;
     }
 
     /// <summary>
-    /// [Requires FPSLock] Initiates frame extensions if frame advantage is too high.
+    /// Starts a short local frame extension window when this client is running ahead.
+    /// This mirrors BestoNet's FPSLock.SetFrameExtension behavior without touching simulation state.
     /// </summary>
     /// <param name="frameAdvantageDifference">The calculated frame advantage difference.</param>
     public void StartFrameExtensions(float frameAdvantageDifference)
     {
-        /* // Original logic requiring FPSLock:
-        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        if (!EnableFrameExtension || frameAdvantageDifference <= FrameExtensionLimit)
         {
             return;
         }
 
-        // Only start extending if we haven't done so recently (within the window)
-        if (totalConsecutiveFrameExtensions >= FrameExtensionWindow) // Use >= for check
+        int extensionWindow = Mathf.Max(1, FrameExtensionWindow);
+        if (totalConsecutiveFrameExtensions < extensionWindow)
         {
-            #if UNITY_EDITOR
-            Debug.Log($"Starting Frame Extensions: Local frame {localFrame}, Frame Advantage Diff {frameAdvantageDifference}");
-            #endif
-            FPSLock.Instance.SetFrameExtension(SleepTimeMicro); // Start extending
-            totalConsecutiveFrameExtensions = 0; // Reset window counter
+            return;
         }
-        */
-        Debug.LogWarning("StartFrameExtensions called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+
+        currentFrameExtensionMicro = Mathf.Max(0, SleepTimeMicro);
+        totalConsecutiveFrameExtensions = 0;
+    }
+
+    private static void WaitMicroseconds(int microseconds)
+    {
+        if (microseconds <= 0)
+        {
+            return;
+        }
+
+        int milliseconds = microseconds / 1000;
+        if (milliseconds > 0)
+        {
+            Thread.Sleep(milliseconds);
+        }
+
+        int remainingMicroseconds = microseconds - (milliseconds * 1000);
+        if (remainingMicroseconds <= 0)
+        {
+            return;
+        }
+
+        long targetTicks = (DiagnosticsStopwatch.Frequency * remainingMicroseconds) / 1000000L;
+        long startTicks = DiagnosticsStopwatch.GetTimestamp();
+        while (DiagnosticsStopwatch.GetTimestamp() - startTicks < targetTicks)
+        {
+            Thread.SpinWait(10);
+        }
     }
 
     /// <summary>

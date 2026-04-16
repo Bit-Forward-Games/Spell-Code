@@ -190,6 +190,8 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(RollbackManager.Instance.FrameExtensionLimit);
                 writer.Write(RollbackManager.Instance.FrameExtensionWindow);
                 writer.Write(RollbackManager.Instance.TimeoutFrames);
+                writer.Write(RollbackManager.Instance.SoftFramePacingThreshold);
+                writer.Write(RollbackManager.Instance.MaxConsecutiveFrameDrops);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);
@@ -558,6 +560,8 @@ public class MatchMessageManager : MonoBehaviour
                         float frameExtensionLimit = reader.ReadSingle();
                         int frameExtensionWindow = reader.ReadInt32();
                         int timeoutFrames = reader.ReadInt32();
+                        int softFramePacingThreshold = reader.ReadInt32();
+                        int maxConsecutiveFrameDrops = reader.ReadInt32();
 
                         RollbackManager.Instance.ApplyOnlineSettings(
                             inputDelay,
@@ -566,7 +570,9 @@ public class MatchMessageManager : MonoBehaviour
                             frameAdvLimit,
                             frameExtensionLimit,
                             frameExtensionWindow,
-                            timeoutFrames);
+                            timeoutFrames,
+                            softFramePacingThreshold,
+                            maxConsecutiveFrameDrops);
                         return;
                     }
 

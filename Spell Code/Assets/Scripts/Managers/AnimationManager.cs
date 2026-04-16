@@ -32,7 +32,14 @@ public class AnimationManager : MonoBehaviour
     public Texture2D[] paletteTextures;
     [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;
     [SerializeField] public  PlayerController[] fighters;
+    [Header("Online Rollback Presentation")]
+    [SerializeField] private bool smoothOnlineRemoteVisuals = true;
+    [SerializeField] private float onlineRemotePlayerSmoothing = 28f;
+    [SerializeField] private float onlineRemoteProjectileSmoothing = 40f;
+    [SerializeField] private float onlineVisualSnapDistance = 64f;
 
+    private readonly Dictionary<PlayerController, Vector3> playerRenderPositions = new();
+    private readonly Dictionary<BaseProjectile, Vector3> projectileRenderPositions = new();
 
 
 
@@ -192,11 +199,12 @@ public class AnimationManager : MonoBehaviour
             }
 
             // Update position with new z-index
-            player.transform.position = new Vector3(
+            Vector3 targetPosition = new Vector3(
                 player.position.X.ToFloat(), // Corrected: Uppercase X, ToFloat()
                 player.position.Y.ToFloat(), // Corrected: Uppercase Y, ToFloat()
                 zIndex
             );
+            player.transform.position = GetPlayerRenderPosition(player, targetPosition, i);
         }
 
         for(int i = 0; i < ProjectileManager.Instance.projectilePrefabs.Count; i++)
@@ -225,9 +233,61 @@ public class AnimationManager : MonoBehaviour
                 {
                     proj.gameObject.GetComponent<SpriteRenderer>().sprite = proj.sprites[proj.animationFrame];
                     proj.gameObject.GetComponent<SpriteRenderer>().flipX = !proj.facingRight;
-                    proj.transform.position = new Vector3(proj.position.X.ToFloat(), proj.position.Y.ToFloat()/*, zindex*/);
+                    Vector3 targetPosition = new Vector3(proj.position.X.ToFloat(), proj.position.Y.ToFloat()/*, zindex*/);
+                    proj.transform.position = GetProjectileRenderPosition(proj, targetPosition);
                 }
             }
         }
+    }
+
+    private Vector3 GetPlayerRenderPosition(PlayerController player, Vector3 targetPosition, int playerIndex)
+    {
+        bool shouldSmooth = ShouldSmoothOnlineObject(playerIndex);
+        return GetSmoothedRenderPosition(playerRenderPositions, player, targetPosition, shouldSmooth, onlineRemotePlayerSmoothing);
+    }
+
+    private Vector3 GetProjectileRenderPosition(BaseProjectile projectile, Vector3 targetPosition)
+    {
+        int ownerIndex = projectile.owner != null ? Array.IndexOf(GameManager.Instance.players, projectile.owner) : -1;
+        bool shouldSmooth = ShouldSmoothOnlineObject(ownerIndex);
+        return GetSmoothedRenderPosition(projectileRenderPositions, projectile, targetPosition, shouldSmooth, onlineRemoteProjectileSmoothing);
+    }
+
+    private bool ShouldSmoothOnlineObject(int ownerIndex)
+    {
+        if (!smoothOnlineRemoteVisuals || GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+        {
+            return false;
+        }
+
+        if (RollbackManager.Instance == null || RollbackManager.Instance.isRollbackFrame)
+        {
+            return false;
+        }
+
+        return ownerIndex >= 0 && ownerIndex == GameManager.Instance.remotePlayerIndex;
+    }
+
+    private Vector3 GetSmoothedRenderPosition<T>(Dictionary<T, Vector3> positions, T key, Vector3 targetPosition, bool shouldSmooth, float smoothing)
+    {
+        if (!shouldSmooth || !positions.TryGetValue(key, out Vector3 currentPosition))
+        {
+            positions[key] = targetPosition;
+            return targetPosition;
+        }
+
+        Vector2 current = new Vector2(currentPosition.x, currentPosition.y);
+        Vector2 target = new Vector2(targetPosition.x, targetPosition.y);
+        if (Vector2.Distance(current, target) > onlineVisualSnapDistance)
+        {
+            positions[key] = targetPosition;
+            return targetPosition;
+        }
+
+        float t = 1f - Mathf.Exp(-Mathf.Max(0.01f, smoothing) * Time.unscaledDeltaTime);
+        Vector3 smoothed = Vector3.Lerp(currentPosition, targetPosition, t);
+        smoothed.z = targetPosition.z;
+        positions[key] = smoothed;
+        return smoothed;
     }
 }

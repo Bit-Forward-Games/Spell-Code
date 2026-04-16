@@ -65,6 +65,8 @@ using BestoNet.Collections; // Use BestoNet collections
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
         [SerializeField] public int MaxRollBackFrames = 15; // Max frames to rollback
         [SerializeField] public int FrameAdvantageLimit = 8; // Threshold to start dropping frames locally
+        [SerializeField] public int SoftFramePacingThreshold = 6; // Start gently pacing before rollback pressure gets severe
+        [SerializeField] public int MaxConsecutiveFrameDrops = 3; // Pulse frame holds instead of hard-stalling forever
 
         [Header("Timing & Sync")]
         // [SerializeField] public int SleepTimeMicro = 1500; // Used by FPSLock, removed for now
@@ -184,7 +186,9 @@ using BestoNet.Collections; // Use BestoNet collections
             int frameAdvantageLimit,
             float frameExtensionLimit,
             int frameExtensionWindow,
-            int timeoutFrames)
+            int timeoutFrames,
+            int softFramePacingThreshold,
+            int maxConsecutiveFrameDrops)
         {
             InputDelay = inputDelay;
             DelayBased = delayBased;
@@ -193,6 +197,8 @@ using BestoNet.Collections; // Use BestoNet collections
             FrameExtensionLimit = frameExtensionLimit;
             FrameExtensionWindow = frameExtensionWindow;
             TimeoutFrames = timeoutFrames;
+            SoftFramePacingThreshold = softFramePacingThreshold;
+            MaxConsecutiveFrameDrops = maxConsecutiveFrameDrops;
 
             bool safeToResetHistory = GameManager.Instance == null || GameManager.Instance.frameNumber == 0;
             if (safeToResetHistory)
@@ -432,11 +438,16 @@ using BestoNet.Collections; // Use BestoNet collections
             // --- End Delay-Based ---
 
 
-            // --- Rollback Mode Frame Dropping (Based on Frame Advantage) ---
-            // If we are too far ahead of the last confirmed sync point AND ahead of the remote frame estimate,
-            // drop a frame locally to let the opponent catch up / reduce rollback intensity.
-            bool tooFarAheadOfSync = (currentFrame - syncFrame) >= MaxRollBackFrames; // Use >= for check
-            bool aheadOfRemote = currentFrame > remoteFrame; // Simple check if local frame > last confirmed remote frame
+            // --- Rollback Mode Frame Pacing ---
+            // Smooth rollback games pace before reaching the hard rollback limit. If we only
+            // stop at MaxRollBackFrames, corrections become large and visible. Pulse the holds
+            // so transitions can still make progress and the match cannot deadlock at the limit.
+            int syncGap = currentFrame - syncFrame;
+            int remoteGap = currentFrame - remoteFrame;
+            int softThreshold = Mathf.Clamp(SoftFramePacingThreshold, InputDelay + 2, MaxRollBackFrames);
+            int maxDropPulse = Mathf.Max(1, MaxConsecutiveFrameDrops);
+            int allowedDropPulse = syncGap >= MaxRollBackFrames ? maxDropPulse : 1;
+            bool shouldPace = syncGap >= softThreshold && remoteGap > InputDelay && !isRollbackFrame;
 
             // After a scene transition, remoteFrame is intentionally reset back to 0. Give the
             // new-scene input stream a short grace window to arrive before frame dropping kicks in,
@@ -450,13 +461,23 @@ using BestoNet.Collections; // Use BestoNet collections
             // Check if match ended to prevent dropping frames post-match
             // bool matchEnded = Check if GameManager indicates match end state? (Needs implementation)
 
-            if (tooFarAheadOfSync && aheadOfRemote && !isRollbackFrame /* && !matchEnded */)
+            if (shouldPace /* && !matchEnded */)
             {
                 consecutiveDrop++; // Increment drop counter
 
-                Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Dropping frame.");
-                lastDroppedFrame = currentFrame; // Record dropped frame
-                return false; // Skip simulation this tick
+                if (consecutiveDrop <= allowedDropPulse)
+                {
+                    Debug.LogWarning($"Frame Pace: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, Gap {syncGap}, ConsecutiveDrops {consecutiveDrop}. Holding frame.");
+                    lastDroppedFrame = currentFrame; // Record dropped frame
+                    return false; // Skip simulation this tick
+                }
+
+                // Recovery pulse: allow one simulation step even under pressure. This avoids the
+                // previous permanent stall when scene/transition packets were also waiting on frames.
+                Debug.LogWarning($"Frame Pace Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, Gap {syncGap}. Allowing one frame.");
+                consecutiveDrop = 0;
+                lastDroppedFrame = currentFrame;
+                return true;
             }
             // --- End Rollback Frame Dropping ---
 

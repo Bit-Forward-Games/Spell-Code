@@ -13,7 +13,7 @@ public class BladeOfAres_prj : BaseProjectile
     {
         projName = "Blade Of Ares";
         lifeSpan = 45; 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 5, 5, 5}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

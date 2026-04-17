@@ -693,8 +693,18 @@ public class MatchMessageManager : MonoBehaviour
                             if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                             {
                                 RollbackManager.Instance.SetOpponentInput(frame, input);
-                                SendMessageACK(frame);
                             }
+                            else
+                            {
+                                ulong existingInput = RollbackManager.Instance.receivedInputs.GetInput(frame);
+                                if (existingInput != input && frame > RollbackManager.Instance.syncFrame)
+                                {
+                                    Debug.LogWarning($"Correcting remote input for unverified frame {frame}: {existingInput} -> {input}");
+                                    RollbackManager.Instance.SetOpponentInput(frame, input);
+                                }
+                            }
+
+                            SendMessageACK(frame);
 
                             if (i == inputCount - 1)
                             {

@@ -413,11 +413,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// Determines if the simulation should run this frame based on input availability (for delay-based)
         /// or frame advantage limits (for rollback).
         /// </summary>
-        public bool AllowUpdate()
+        public bool AllowUpdate(int? frameOverride = null)
         {
             if (GameManager.Instance == null) return false;
 
-            int currentFrame = localFrame; // Use cached frame number
+            int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
 
             // Timeout Check (moved here for early exit)
             if (consecutiveDrop > TimeoutFrames) // Use TimeoutFrames config

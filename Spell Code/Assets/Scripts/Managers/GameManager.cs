@@ -1448,6 +1448,18 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
+        // Match BestoNet's flow: still send/resend local input before holding a
+        // frame for pacing, otherwise a frame hold can also starve the opponent.
+        // Do not sample/insert a new input until the frame is definitely going
+        // to simulate; otherwise a held frame can leak conflicting inputs.
+        int nextSimulationFrame = frameNumber + 1;
+        if (!rbManager.AllowUpdate(nextSimulationFrame))
+        {
+            MatchMessageManager.Instance?.SendInputs();
+            rbManager.ExtendFrame();
+            return;
+        }
+
         localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
@@ -1459,15 +1471,6 @@ public class GameManager : MonoBehaviour
         if (!rbManager.CheckTimeSync(out float frameAdvantageDifference))
         {
             rbManager.StartFrameExtensions(frameAdvantageDifference);
-        }
-
-        // Match BestoNet's flow: still send/resend local input before holding a
-        // frame for pacing, otherwise a frame hold can also starve the opponent.
-        if (!rbManager.AllowUpdate())
-        {
-            rbManager.ExtendFrame();
-            frameNumber--;
-            return;
         }
 
         Scene activeScene = SceneManager.GetActiveScene();

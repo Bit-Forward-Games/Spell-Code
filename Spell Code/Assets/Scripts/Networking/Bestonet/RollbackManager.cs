@@ -456,18 +456,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int allowedDropPulse = syncGap >= MaxRollBackFrames ? maxDropPulse : 1;
             bool shouldPace = syncGap >= softThreshold && remoteGap > InputDelay && !isRollbackFrame;
 
-            // After a scene transition, both clients reset frame sync. Keep sending local
-            // inputs, but do not let simulation advance until a current-scene remote input
-            // packet establishes the new remote frame baseline.
+            // After a scene transition, both clients reset frame sync. Briefly hold for a
+            // current-scene remote input, but pulse forward if it has not arrived yet.
+            // A hard startup hold can deadlock both sides immediately after scene load.
             if (remoteFrame == 0 && currentFrame > InputDelay + 1)
             {
-                consecutiveDrop = 0;
-                if (lastDroppedFrame != currentFrame)
+                consecutiveDrop++;
+                if (consecutiveDrop <= maxDropPulse)
                 {
-                    Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Waiting for current-scene remote input.");
-                    lastDroppedFrame = currentFrame;
+                    if (lastDroppedFrame != currentFrame)
+                    {
+                        Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Waiting for current-scene remote input.");
+                        lastDroppedFrame = currentFrame;
+                    }
+                    return false;
                 }
-                return false;
+
+                Debug.LogWarning($"Frame Pace Startup Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Allowing one startup frame.");
+                consecutiveDrop = 0;
+                lastDroppedFrame = currentFrame;
+                return true;
             }
 
             // Check if match ended to prevent dropping frames post-match

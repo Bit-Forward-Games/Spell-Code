@@ -381,6 +381,19 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
+    public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
+    {
+        ownerPlayer = activeOwner;
+        resetTimer = 0;
+        activatedCount = ownerCanUseShop ? 0 : 3;
+        ClearFloppysForPID(ownerPID);
+
+        if (gambaAnimator != null)
+        {
+            gambaAnimator.SetBool("isActive", ownerCanUseShop);
+        }
+    }
+
     public int GetStartingSpellPos()
     {
         return startingSpellPos;

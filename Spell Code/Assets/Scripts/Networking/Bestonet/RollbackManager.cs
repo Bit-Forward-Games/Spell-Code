@@ -456,13 +456,18 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int allowedDropPulse = syncGap >= MaxRollBackFrames ? maxDropPulse : 1;
             bool shouldPace = syncGap >= softThreshold && remoteGap > InputDelay && !isRollbackFrame;
 
-            // After a scene transition, remoteFrame is intentionally reset back to 0. Give the
-            // new-scene input stream a short grace window to arrive before frame dropping kicks in,
-            // otherwise one client can spiral into a startup stall while the other is still warming up.
-            if (remoteFrame == 0 && currentFrame < 60)
+            // After a scene transition, both clients reset frame sync. Keep sending local
+            // inputs, but do not let simulation advance until a current-scene remote input
+            // packet establishes the new remote frame baseline.
+            if (remoteFrame == 0 && currentFrame > InputDelay + 1)
             {
                 consecutiveDrop = 0;
-                return true;
+                if (lastDroppedFrame != currentFrame)
+                {
+                    Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Waiting for current-scene remote input.");
+                    lastDroppedFrame = currentFrame;
+                }
+                return false;
             }
 
             // Check if match ended to prevent dropping frames post-match

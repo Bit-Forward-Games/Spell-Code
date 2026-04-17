@@ -3012,25 +3012,21 @@ public class GameManager : MonoBehaviour
 
     private void InitializeOnlineShopSceneState()
     {
+        RefreshSceneObjectReferences();
+
         foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
         {
             if (gambaGO == null) continue;
             GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
             if (gamba == null) continue;
 
-            gamba.resetTimer = 0;
             bool hasActiveOwner = gamba.ownerPID > 0 && gamba.ownerPID <= playerCount && players[gamba.ownerPID - 1] != null;
             int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
             bool ownerCanUseShop = hasActiveOwner
                 && players[gamba.ownerPID - 1].spellList != null
                 && players[gamba.ownerPID - 1].spellList.Count < roundsPlayed + 1;
 
-            gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
-            gamba.activatedCount = ownerCanUseShop ? 0 : 3;
-            if (gamba.gambaAnimator != null)
-            {
-                gamba.gambaAnimator.SetBool("isActive", ownerCanUseShop);
-            }
+            gamba.ResetShopState(hasActiveOwner ? players[gamba.ownerPID - 1] : null, ownerCanUseShop);
         }
 
         foreach (SpellCode_Gate gate in gates)

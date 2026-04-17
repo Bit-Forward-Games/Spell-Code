@@ -3257,14 +3257,30 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 940491606846688129, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 2681202021317024657, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -125.19995
+      objectReference: {fileID: 0}
+    - target: {fileID: 3869790085205704437, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 11.300049
+      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 4929813730496797648, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 13.400024
+      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3313,6 +3329,10 @@ PrefabInstance:
       propertyPath: onboardManager
       value: 
       objectReference: {fileID: 312826359}
+    - target: {fileID: 7248365544465720508, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -14.599976
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

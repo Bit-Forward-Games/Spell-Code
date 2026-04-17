@@ -101,6 +101,10 @@ public class GameManager : MonoBehaviour
     private bool roundTransitionPending = false;
     private bool onlineRoundAdvanceApplied = false;
     private bool pendingOpponentShopTransition = false;
+    private bool localShopTransitionReady = false;
+    private bool remoteShopTransitionReady = false;
+    private int localShopTransitionReadyId = 0;
+    private int remoteShopTransitionReadyId = 0;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -870,6 +874,10 @@ public class GameManager : MonoBehaviour
         pendingStageSelectTransitionId = 0;
         pendingRemoteSceneReadyTransitionId = 0;
         pendingOpponentShopTransitionId = 0;
+        localShopTransitionReady = false;
+        remoteShopTransitionReady = false;
+        localShopTransitionReadyId = 0;
+        remoteShopTransitionReadyId = 0;
     }
 
     private void BeginTrackedOnlineTransition(int transitionId)
@@ -908,6 +916,10 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
         pendingOpponentShopTransitionId = 0;
+        localShopTransitionReady = false;
+        remoteShopTransitionReady = false;
+        localShopTransitionReadyId = 0;
+        remoteShopTransitionReadyId = 0;
     }
 
     // Send lobby ready signal
@@ -1370,10 +1382,13 @@ public class GameManager : MonoBehaviour
 
             if (isOnlineMatchActive && pendingOpponentShopTransition && roundOver && !isTransitioning)
             {
+                int pendingTransitionId = pendingOpponentShopTransitionId > 0
+                    ? pendingOpponentShopTransitionId
+                    : GetExpectedOnlineTransitionId();
+
                 pendingOpponentShopTransition = false;
-                AdvanceRoundCountOnce();
-                BeginOnlineShopTransition(pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId());
                 pendingOpponentShopTransitionId = 0;
+                MarkRemoteReadyForShopTransition(pendingTransitionId);
                 return;
             }
 
@@ -1648,10 +1663,9 @@ public class GameManager : MonoBehaviour
 
     private void PerformRoundTransition()
     {
-        ClearStages();
-
         if (gameOver)
         {
+            ClearStages();
             playerWinText.enabled = false;
             AdvanceRoundCountOnce();
             GameEnd();
@@ -1663,7 +1677,6 @@ public class GameManager : MonoBehaviour
         }
 
         playerWinText.enabled = false;
-        AdvanceRoundCountOnce();
 
         bool hasMaxSpells = playerCount > 0
             && players[0] != null
@@ -1672,6 +1685,9 @@ public class GameManager : MonoBehaviour
 
         if (hasMaxSpells)
         {
+            ClearStages();
+            AdvanceRoundCountOnce();
+
             if (isOnlineMatchActive)
             {
                 localPlayerReadyForGameplay = false;
@@ -1697,6 +1713,14 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (isOnlineMatchActive)
+        {
+            RoundEnd();
+            return;
+        }
+
+        ClearStages();
+        AdvanceRoundCountOnce();
         RoundEnd();
         ResetPlayers();
         roundOver = false;
@@ -2337,18 +2361,83 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
-            int transitionId = GetExpectedOnlineTransitionId();
-            if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
-            {
-                MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
-            }
-            BeginOnlineShopTransition(transitionId);
+            MarkLocalReadyForShopTransition(GetExpectedOnlineTransitionId());
             return;
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();
+    }
+
+    private void MarkLocalReadyForShopTransition(int transitionId)
+    {
+        if (!isOnlineMatchActive || isTransitioning)
+        {
+            return;
+        }
+
+        if (!localShopTransitionReady || localShopTransitionReadyId != transitionId)
+        {
+            localShopTransitionReady = true;
+            localShopTransitionReadyId = transitionId;
+
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
+            }
+        }
+
+        CheckBothPlayersReadyForShopTransition();
+    }
+
+    private void MarkRemoteReadyForShopTransition(int transitionId)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        remoteShopTransitionReady = true;
+        remoteShopTransitionReadyId = transitionId;
+        CheckBothPlayersReadyForShopTransition();
+    }
+
+    private void CheckBothPlayersReadyForShopTransition()
+    {
+        if (!isOnlineMatchActive || isTransitioning)
+        {
+            return;
+        }
+
+        if (!localShopTransitionReady || !remoteShopTransitionReady)
+        {
+            return;
+        }
+
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (localShopTransitionReadyId != expectedTransitionId || remoteShopTransitionReadyId != expectedTransitionId)
+        {
+            return;
+        }
+
+        localShopTransitionReady = false;
+        remoteShopTransitionReady = false;
+        localShopTransitionReadyId = 0;
+        remoteShopTransitionReadyId = 0;
+        pendingOpponentShopTransition = false;
+        pendingOpponentShopTransitionId = 0;
+
+        AdvanceRoundCountOnce();
+        roundOver = false;
+        roundEndFrameCounter = 0;
+        roundEndTimer = 0f;
+        roundEndUIShown = false;
+        lastRoundWinnerPID = -1;
+        roundTransitionPending = false;
+
+        ClearStages();
+        BeginOnlineShopTransition(expectedTransitionId);
     }
 
     private void BeginOnlineShopTransition(int transitionId)
@@ -2372,6 +2461,10 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        localShopTransitionReady = false;
+        remoteShopTransitionReady = false;
+        localShopTransitionReadyId = 0;
+        remoteShopTransitionReadyId = 0;
         sceneManager.LoadScene("Shop");
         SetStage(-1);
     }
@@ -2386,6 +2479,13 @@ public class GameManager : MonoBehaviour
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
         {
+            return;
+        }
+
+        if (transitionId > expectedTransitionId)
+        {
+            pendingOpponentShopTransition = true;
+            pendingOpponentShopTransitionId = transitionId;
             return;
         }
 
@@ -2416,17 +2516,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (!roundOver && !isTransitioning)
-        {
-            pendingOpponentShopTransition = true;
-            pendingOpponentShopTransitionId = transitionId;
-            return;
-        }
-
         pendingOpponentShopTransition = false;
         pendingOpponentShopTransitionId = 0;
-        AdvanceRoundCountOnce();
-        BeginOnlineShopTransition(transitionId);
+        MarkRemoteReadyForShopTransition(transitionId);
     }
 
     private void AdvanceRoundCountOnce()
@@ -2756,6 +2848,10 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
+            localShopTransitionReady = false;
+            remoteShopTransitionReady = false;
+            localShopTransitionReadyId = 0;
+            remoteShopTransitionReadyId = 0;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -2819,6 +2915,10 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
             localSceneTransitionReady = false;
+            localShopTransitionReady = false;
+            remoteShopTransitionReady = false;
+            localShopTransitionReadyId = 0;
+            remoteShopTransitionReadyId = 0;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };

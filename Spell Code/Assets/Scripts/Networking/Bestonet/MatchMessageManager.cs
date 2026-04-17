@@ -604,9 +604,10 @@ public class MatchMessageManager : MonoBehaviour
                         byte packetSceneType = reader.ReadByte();
                         int packetSceneSignature = reader.ReadInt32();
                         int stageIndex = reader.ReadInt32();
+                        uint stageRngState = reader.ReadUInt32();
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex);
+                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
                         }
                         return;
                     }
@@ -875,7 +876,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStageSelect(int transitionId, int stageIndex)
+    public void SendStageSelect(int transitionId, int stageIndex, uint stageRngState)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -892,6 +893,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
+                writer.Write(stageRngState);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);

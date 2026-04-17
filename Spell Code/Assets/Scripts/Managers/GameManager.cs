@@ -2479,7 +2479,6 @@ public class GameManager : MonoBehaviour
         localShopTransitionReadyId = 0;
         remoteShopTransitionReadyId = 0;
         sceneManager.LoadScene("Shop");
-        SetStage(-1);
     }
 
     public void OnOpponentShopTransition(int transitionId, byte sceneType, int sceneSignature)
@@ -2641,23 +2640,19 @@ public class GameManager : MonoBehaviour
         switch (activeSceneName)
         {
             case "Gameplay":
-                sceneBase = 100000;
-                break;
+                return 100000 + currentStageIndex;
             case "Shop":
-                sceneBase = 200000;
-                break;
+                return 200000;
             case "MainMenu":
-                sceneBase = 300000;
-                break;
+                return 300000;
             case "End":
-                sceneBase = 400000;
-                break;
+                return 400000;
             default:
                 sceneBase = 500000;
                 break;
         }
 
-        return sceneBase + currentStageIndex;
+        return sceneBase;
     }
 
     public byte GetNetworkSceneTypeCode()
@@ -2911,6 +2906,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            SetStage(-1);
             roundOver = false;
             gameOver = false;
             roundEndFrameCounter = 0;

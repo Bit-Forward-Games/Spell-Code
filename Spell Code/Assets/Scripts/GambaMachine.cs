@@ -249,7 +249,7 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer.spellList.Count > 0)
             {
                 gambaAnimator.SetBool("isActive", false);
-                if (!isRollback) ClearFloppysForPID(ownerPID);
+                ClearFloppysForPID(ownerPID);
             }
 
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
@@ -284,7 +284,7 @@ public class GambaMachine : MonoBehaviour
         {
             activatedCount = 3;
             gambaAnimator.SetBool("isActive", false);
-            if (!isRollback) ClearFloppysForPID(ownerPID);
+            ClearFloppysForPID(ownerPID);
         }
 
         if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
@@ -293,7 +293,7 @@ public class GambaMachine : MonoBehaviour
             gambaAnimator.SetBool("isActive", false);
             activatedCount++;
 
-            if (!isRollback) ClearFloppysForPID(ownerPID);
+            ClearFloppysForPID(ownerPID);
 
             if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
             if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
@@ -315,8 +315,21 @@ public class GambaMachine : MonoBehaviour
     private void ClearFloppysForPID(int pid)
     {
         List<GameObject> list = GetFloppyListForPID(pid);
-        foreach (GameObject flop in list) { Destroy(flop); }
+        foreach (GameObject flop in list)
+        {
+            if (flop == null) continue;
+            flop.SetActive(false);
+            Destroy(flop);
+        }
         list.Clear();
+    }
+
+    public void ClearTrackedFloppyReferences()
+    {
+        p1_floppys.Clear();
+        p2_floppys.Clear();
+        p3_floppys.Clear();
+        p4_floppys.Clear();
     }
 
     private List<GameObject> GetFloppyListForPID(int pid)
@@ -331,28 +344,28 @@ public class GambaMachine : MonoBehaviour
     {
         if (activeScene.name != "MainMenu") return;
 
-        if (!isRollback)
+        bool playVfx = !isRollback;
+        bool logChoice = !isRollback;
+
+        if (ownerPID == 1)
         {
-            if (ownerPID == 1)
-            {
-                foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                p1_floppys.Clear();
-                SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 2)
-            {
-                foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                p2_floppys.Clear();
-                SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 3)
-            {
-                SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
-            }
-            if (ownerPID == 4)
-            {
-                SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
-            }
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 2)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 3)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 4)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         // No RNG consumed in this path (named spell), so no rollback RNG needed
 
@@ -676,10 +689,7 @@ public class GambaMachine : MonoBehaviour
             string spellToAdd = available[randomInt];
             chosen.Add(spellToAdd);
 
-            if (!isRollback)
-            {
-                SpawnFloppyDisk(pid, locations[i], spellToAdd); // use the named overload, no RNG
-            }
+            SpawnFloppyDisk(pid, locations[i], spellToAdd, !isRollback, !isRollback); // use the named overload, no RNG
         }
     }
 }

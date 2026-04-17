@@ -97,6 +97,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
+        private int lastRemoteFrameForTimeout = 0;
+        private int remoteFrameStallTicks = 0;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
@@ -235,6 +237,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             syncFrame = 0;
             predictedRemoteFrame = 0;
             remoteFrame = 0;
+            lastRemoteFrameForTimeout = 0;
+            remoteFrameStallTicks = 0;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
@@ -419,8 +423,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
 
-            // Timeout Check (moved here for early exit)
-            if (consecutiveDrop > TimeoutFrames) // Use TimeoutFrames config
+            if (remoteFrame != lastRemoteFrameForTimeout)
+            {
+                lastRemoteFrameForTimeout = remoteFrame;
+                remoteFrameStallTicks = 0;
+            }
+            else if (currentFrame > InputDelay + 1)
+            {
+                remoteFrameStallTicks++;
+            }
+
+            // Timeout only when remote input packets stop advancing. Recovery pulses should
+            // not hide a real network stall, and syncFrame lag is normal rollback behavior.
+            if (remoteFrameStallTicks > TimeoutFrames)
             {
                 TriggerMatchTimeout(); // Handle timeout disconnect
                 return false; // Don't allow update if timed out
@@ -445,16 +460,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // --- End Delay-Based ---
 
 
-            // --- Rollback Mode Frame Pacing ---
-            // Smooth rollback games pace before reaching the hard rollback limit. If we only
-            // stop at MaxRollBackFrames, corrections become large and visible. Pulse the holds
-            // so transitions can still make progress and the match cannot deadlock at the limit.
-            int syncGap = currentFrame - syncFrame;
-            int remoteGap = currentFrame - remoteFrame;
-            int softThreshold = Mathf.Clamp(SoftFramePacingThreshold, InputDelay + 2, MaxRollBackFrames);
             int maxDropPulse = Mathf.Max(1, MaxConsecutiveFrameDrops);
-            int allowedDropPulse = syncGap >= MaxRollBackFrames ? maxDropPulse : 1;
-            bool shouldPace = syncGap >= softThreshold && remoteGap > InputDelay && !isRollbackFrame;
 
             // After a scene transition, both clients reset frame sync. Briefly hold for a
             // current-scene remote input, but pulse forward if it has not arrived yet.
@@ -477,29 +483,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 lastDroppedFrame = currentFrame;
                 return true;
             }
-
-            // Check if match ended to prevent dropping frames post-match
-            // bool matchEnded = Check if GameManager indicates match end state? (Needs implementation)
-
-            if (shouldPace /* && !matchEnded */)
-            {
-                consecutiveDrop++; // Increment drop counter
-
-                if (consecutiveDrop <= allowedDropPulse)
-                {
-                    Debug.LogWarning($"Frame Pace: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, Gap {syncGap}, ConsecutiveDrops {consecutiveDrop}. Holding frame.");
-                    lastDroppedFrame = currentFrame; // Record dropped frame
-                    return false; // Skip simulation this tick
-                }
-
-                // Recovery pulse: allow one simulation step even under pressure. This avoids the
-                // previous permanent stall when scene/transition packets were also waiting on frames.
-                Debug.LogWarning($"Frame Pace Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, Gap {syncGap}. Allowing one frame.");
-                consecutiveDrop = 0;
-                lastDroppedFrame = currentFrame;
-                return true;
-            }
-            // --- End Rollback Frame Dropping ---
 
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed

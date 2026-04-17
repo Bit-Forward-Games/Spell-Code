@@ -194,6 +194,7 @@ public class GameManager : MonoBehaviour
     private byte pendingStageSelectSceneType = 0;
     private int pendingStageSelectSceneSignature = 0;
     private int pendingStageSelectIndex = -1;
+    private uint pendingStageSelectRngState = 0;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     private bool hasPendingRemoteSceneReady = false;
@@ -669,6 +670,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
         hasPendingRemoteSceneReady = false;
@@ -915,6 +917,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         pendingOpponentShopTransitionId = 0;
         localShopTransitionReady = false;
         remoteShopTransitionReady = false;
@@ -1110,7 +1113,7 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
@@ -1127,6 +1130,7 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = packetSceneType;
                 pendingStageSelectSceneSignature = packetSceneSignature;
                 pendingStageSelectIndex = stageIndex;
+                pendingStageSelectRngState = hostStageRngState;
             }
             return false;
         }
@@ -1140,7 +1144,7 @@ public class GameManager : MonoBehaviour
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
-            ApplyOnlineStageSelection(stageIndex);
+            ApplyOnlineStageSelection(stageIndex, hostStageRngState);
             return true;
         }
 
@@ -1157,6 +1161,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = packetSceneType;
             pendingStageSelectSceneSignature = packetSceneSignature;
             pendingStageSelectIndex = stageIndex;
+            pendingStageSelectRngState = hostStageRngState;
             return true;
         }
 
@@ -1183,11 +1188,13 @@ public class GameManager : MonoBehaviour
             BeginTrackedOnlineTransition(pendingStageSelectTransitionId);
         }
         int pendingIndex = pendingStageSelectIndex;
+        uint pendingRngState = pendingStageSelectRngState;
         pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        ApplyOnlineStageSelection(pendingIndex);
+        pendingStageSelectRngState = 0;
+        ApplyOnlineStageSelection(pendingIndex, pendingRngState);
     }
 
     /// <summary>
@@ -1241,6 +1248,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
             hasPendingRemoteSceneReady = false;
@@ -1703,6 +1711,7 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = 0;
                 pendingStageSelectSceneSignature = 0;
                 pendingStageSelectIndex = -1;
+                pendingStageSelectRngState = 0;
             }
             LoadRandomGameplayStage();
             ResetPlayers();
@@ -2461,6 +2470,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         localShopTransitionReady = false;
         remoteShopTransitionReady = false;
         localShopTransitionReadyId = 0;
@@ -2720,12 +2730,17 @@ public class GameManager : MonoBehaviour
 
         if (MatchMessageManager.Instance != null)
         {
-            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex, stageRngState);
         }
     }
 
-    public void ApplyOnlineStageSelection(int stageIndex)
+    public void ApplyOnlineStageSelection(int stageIndex, uint? syncedStageRngState = null)
     {
+        if (syncedStageRngState.HasValue)
+        {
+            stageRngState = syncedStageRngState.Value;
+        }
+
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
@@ -2847,6 +2862,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             localShopTransitionReady = false;
             remoteShopTransitionReady = false;
@@ -2914,6 +2930,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             localShopTransitionReady = false;
             remoteShopTransitionReady = false;

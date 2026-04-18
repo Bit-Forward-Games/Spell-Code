@@ -1,0 +1,1080 @@
+{
+  "dateTime": "4/18/2026 12:06:13 AM",
+  "matchData": [
+    {
+      "matchNum": 1,
+      "matchLength": 5.516667,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 1,
+          "basicsFired": 1,
+          "codesHit": 1,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 33852
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 33852
+            }
+          ],
+          "spellList": [
+            "Quarter Report"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 2,
+      "matchLength": 4.133333,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Quarter Report"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Quarter Report",
+            "Skillshot Slash"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 3,
+      "matchLength": 42.2666664,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": false,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Quarter Report"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 14,
+          "basicsFired": 9,
+          "codesHit": 21,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 49920
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 31668
+            },
+            {
+              "RawValue": 62244
+            },
+            {
+              "RawValue": 61152
+            },
+            {
+              "RawValue": 37128
+            },
+            {
+              "RawValue": 68796
+            },
+            {
+              "RawValue": 33852
+            },
+            {
+              "RawValue": 65520
+            },
+            {
+              "RawValue": 66612
+            },
+            {
+              "RawValue": 48048
+            },
+            {
+              "RawValue": 28392
+            },
+            {
+              "RawValue": 41496
+            },
+            {
+              "RawValue": 27300
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 93912
+            }
+          ],
+          "spellList": [
+            "Quarter Report",
+            "Skillshot Slash"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 4,
+      "matchLength": 36.7,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": false,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Quarter Report"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 15,
+          "basicsFired": 8,
+          "codesHit": 23,
+          "synthesizer": "Code-E",
+          "accuracy": 1.0,
+          "avgTimeToCast": {
+            "RawValue": 58167
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 30576
+            },
+            {
+              "RawValue": 27300
+            },
+            {
+              "RawValue": 85176
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 69888
+            },
+            {
+              "RawValue": 123396
+            },
+            {
+              "RawValue": 27300
+            },
+            {
+              "RawValue": 127764
+            },
+            {
+              "RawValue": 36036
+            },
+            {
+              "RawValue": 38220
+            },
+            {
+              "RawValue": 58968
+            },
+            {
+              "RawValue": 90636
+            },
+            {
+              "RawValue": 24024
+            },
+            {
+              "RawValue": 72072
+            },
+            {
+              "RawValue": 28392
+            }
+          ],
+          "spellList": [
+            "Quarter Report",
+            "Skillshot Slash"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 5,
+      "matchLength": 20.85,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 6,
+          "basicsFired": 2,
+          "codesHit": 7,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 44044
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 26208
+            },
+            {
+              "RawValue": 33852
+            },
+            {
+              "RawValue": 29484
+            },
+            {
+              "RawValue": 57876
+            },
+            {
+              "RawValue": 36036
+            },
+            {
+              "RawValue": 80808
+            }
+          ],
+          "spellList": [
+            "Amon Slash",
+            "Quarter Report"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": false,
+          "times": [],
+          "spellList": [
+            "Quarter Report",
+            "Skillshot Slash"
+          ]
+        }
+      ]
+    }
+  ],
+  "arenaData": {
+    "deathDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        }
+      ],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        }
+      ],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7858711,
+            "y": -0.6183904,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 310.4835,
+          "sqrMagnitude": 96400.0
+        }
+      ],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "TwoValve_Arena": []
+    },
+    "hitDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -336.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.96152395,
+            "y": 0.274721116,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 349.445282,
+          "sqrMagnitude": 122112.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -336.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.96152395,
+            "y": 0.274721116,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 349.445282,
+          "sqrMagnitude": 122112.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        },
+        {
+          "x": -356.0,
+          "y": 96.0,
+          "normalized": {
+            "x": -0.9655109,
+            "y": 0.2603625,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 368.7167,
+          "sqrMagnitude": 135952.0
+        }
+      ],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [
+        {
+          "x": 192.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.863778949,
+            "y": 0.503871,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 222.2791,
+          "sqrMagnitude": 49408.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        },
+        {
+          "x": 244.0,
+          "y": 112.0,
+          "normalized": {
+            "x": 0.90882957,
+            "y": 0.4171677,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 268.477173,
+          "sqrMagnitude": 72080.0
+        }
+      ],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [
+        {
+          "x": -224.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 224.0,
+          "sqrMagnitude": 50176.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": -1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 224.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 224.0,
+          "sqrMagnitude": 50176.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": 244.0,
+          "y": 0.0,
+          "normalized": {
+            "x": 1.0,
+            "y": 0.0,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 244.0,
+          "sqrMagnitude": 59536.0
+        },
+        {
+          "x": -224.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7592566,
+            "y": -0.650791347,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 295.025421,
+          "sqrMagnitude": 87040.0
+        },
+        {
+          "x": -224.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7592566,
+            "y": -0.650791347,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 295.025421,
+          "sqrMagnitude": 87040.0
+        },
+        {
+          "x": -224.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7592566,
+            "y": -0.650791347,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 295.025421,
+          "sqrMagnitude": 87040.0
+        },
+        {
+          "x": -244.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7858711,
+            "y": -0.6183904,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 310.4835,
+          "sqrMagnitude": 96400.0
+        },
+        {
+          "x": -244.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7858711,
+            "y": -0.6183904,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 310.4835,
+          "sqrMagnitude": 96400.0
+        },
+        {
+          "x": -244.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7858711,
+            "y": -0.6183904,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 310.4835,
+          "sqrMagnitude": 96400.0
+        },
+        {
+          "x": -244.0,
+          "y": -192.0,
+          "normalized": {
+            "x": -0.7858711,
+            "y": -0.6183904,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 310.4835,
+          "sqrMagnitude": 96400.0
+        }
+      ],
+      "Familiar_Arena": [],
+      "Flower_Arena": [
+        {
+          "x": -144.0,
+          "y": 48.0,
+          "normalized": {
+            "x": -0.9486833,
+            "y": 0.316227764,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 151.789322,
+          "sqrMagnitude": 23040.0
+        }
+      ],
+      "Shattered_Arena": [],
+      "TwoValve_Arena": []
+    }
+  }
+}

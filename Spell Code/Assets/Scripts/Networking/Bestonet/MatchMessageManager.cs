@@ -795,7 +795,9 @@ public class MatchMessageManager : MonoBehaviour
         }
 
         int currentLocalFrame = GameManager.Instance.frameNumber;
-        int latestTargetFrame = currentLocalFrame + RollbackManager.Instance.InputDelay;
+        int latestTargetFrame = Mathf.Max(
+            currentLocalFrame + RollbackManager.Instance.InputDelay,
+            RollbackManager.Instance.GetLatestClientInputFrame());
         int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(14, EXTRA_RESEND_FRAMES);
         int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 

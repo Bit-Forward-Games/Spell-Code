@@ -129,6 +129,7 @@ public class GameManager : MonoBehaviour
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
     public TextMeshProUGUI rollbackFramesText;
+    public TextMeshProUGUI packetLossText;
 
     [Header("Online Match State")]
     [SerializeField] private int minimumOnlineInputDelay = 0;
@@ -371,6 +372,11 @@ public class GameManager : MonoBehaviour
                 pingText.SetText($"RTT: {MatchMessageManager.Instance.Ping}");
             }
 
+            if (packetLossText != null && MatchMessageManager.Instance != null)
+            {
+                packetLossText.SetText($"Loss: {MatchMessageManager.Instance.PacketLossPercent:0}%");
+            }
+
             if (rollbackFramesText != null && RollbackManager.Instance != null)
             {
                 rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
@@ -581,6 +587,10 @@ public class GameManager : MonoBehaviour
             else if (text.name == "RollbackFramesText")
             {
                 rollbackFramesText = text;
+            }
+            else if (text.name == "PacketLossText")
+            {
+                packetLossText = text;
             }
         }
     }

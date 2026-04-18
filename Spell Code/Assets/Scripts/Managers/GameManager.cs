@@ -133,6 +133,7 @@ public class GameManager : MonoBehaviour
     [Header("Online Match State")]
     [SerializeField] private int minimumOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineRollbackFrames = 4;
+    [SerializeField] private int minimumOnlineTimeoutFrames = 180;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;
@@ -617,6 +618,7 @@ public class GameManager : MonoBehaviour
         // without touching offline simulation or relying on stale inspector defaults.
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, minimumOnlineInputDelay);
         RollbackManager.Instance.MaxRollBackFrames = Mathf.Max(RollbackManager.Instance.MaxRollBackFrames, minimumOnlineRollbackFrames);
+        RollbackManager.Instance.TimeoutFrames = Mathf.Max(RollbackManager.Instance.TimeoutFrames, minimumOnlineTimeoutFrames);
 
         if (!opponentId.IsValid)
         {

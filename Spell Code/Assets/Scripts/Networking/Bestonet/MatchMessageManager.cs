@@ -15,8 +15,10 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
-    [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
-    [SerializeField] private int MAX_INPUTS_PER_PACKET = 64;
+    [SerializeField] private int EXTRA_RESEND_FRAMES = 90;
+    [SerializeField] private int MAX_INPUTS_PER_PACKET = 120;
+    [SerializeField] private int REDUNDANT_INPUT_SENDS = 2;
+    [SerializeField] private int RELIABLE_INPUT_BACKUP_INTERVAL = 8;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
@@ -812,9 +814,18 @@ public class MatchMessageManager : MonoBehaviour
                     }
 
                     byte[] data = memoryStream.ToArray();
-                    int dataSize = data.Length;
 
-                    bool success = SendPacket(data, INPUT_SEND_TYPE);
+                    int redundantSends = Mathf.Max(1, REDUNDANT_INPUT_SENDS);
+                    for (int i = 0; i < redundantSends; i++)
+                    {
+                        SendPacket(data, INPUT_SEND_TYPE);
+                    }
+
+                    int reliableBackupInterval = Mathf.Max(0, RELIABLE_INPUT_BACKUP_INTERVAL);
+                    if (reliableBackupInterval > 0 && currentLocalFrame % reliableBackupInterval == 0)
+                    {
+                        SendPacket(data, P2PSend.Reliable);
+                    }
                 }
             }
         }

@@ -425,6 +425,9 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
+        //play the spawning VFX
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
@@ -2605,8 +2608,24 @@ public class PlayerController : MonoBehaviour
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
-            //play the death visual effect
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+            //if all player bounties are 0,...
+            if(GameManager.Instance.AllBountiesAreZero())
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }
+            //else if this player is the one with the highest bounty,...
+            else if(GameManager.Instance.GetPlayerWithHighestBounty() + 1 == pID)
+            {
+                //play the bounty death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }
+            //else this player is NOT the one with the highest bounty,...
+            else
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }    
 
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 

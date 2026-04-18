@@ -2152,6 +2152,49 @@ public class GameManager : MonoBehaviour
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
+    //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
+    public int GetPlayerWithHighestBounty()
+    {
+        //if all bounties are 0,...
+        if(AllBountiesAreZero())
+        {
+            //return -1
+            return -1;
+        }
+
+        //create a variable to hold the index of the player with the highest bounty
+        int _playerWithHighestBountyIndex = 0;
+
+        //iterate through players list and find the player with the highest bounty      
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i].ramBounty > players[_playerWithHighestBountyIndex].ramBounty)
+            {
+                _playerWithHighestBountyIndex = i;
+            }
+        }
+
+        //return the player index with the highest bounty
+        return _playerWithHighestBountyIndex;
+    }
+
+    public bool AllBountiesAreZero()
+    {
+        //iterate through players array
+        for (int i = 0; i < playerCount; i++)
+        {
+            //if any player bounty is NOT 0,...
+            if (players[i].ramBounty != 0)
+            {
+                //return false
+                return false;
+            }
+        }
+
+        //if all player bounties were 0, return true
+        return true;
+    }
+
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
     {
 

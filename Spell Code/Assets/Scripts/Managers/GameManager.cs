@@ -3540,6 +3540,15 @@ public class GameManager : MonoBehaviour
         //copy all stages from stages into gameStages
         gameStages = new List<StageDataSO>(stages);
 
+        if (playerCount == 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
+        }
+        else if (playerCount > 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+        }
+
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 
         //delete random stages from gameStages until gameStages.Length equals 9

@@ -70,6 +70,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
+        [SerializeField] public bool EnableAdaptiveInputDelay = true;
+        [SerializeField] public int MaxAdaptiveInputDelay = 6;
+        [SerializeField] public int AdaptiveDelayIncreaseRollbackThreshold = 12;
+        [SerializeField] public int AdaptiveDelayDecreaseRollbackThreshold = 3;
+        [SerializeField] public int AdaptiveDelayPressureSamples = 2;
+        [SerializeField] public int AdaptiveDelayCalmFrames = 240;
+        [SerializeField] public int AdaptiveDelayCooldownFrames = 120;
 
         [Header("Timing & Sync")]
         [SerializeField] public bool EnableFrameExtension = true;
@@ -103,6 +110,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
+        private int baselineInputDelay = 0;
+        private int adaptiveDelayPressureCount = 0;
+        private int adaptiveDelayCalmCount = 0;
+        private int adaptiveDelayCooldown = 0;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
         // --- End Runtime State ---
 
@@ -166,6 +177,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             //Debug.Log("Initializing Rollback Connection...");
             this.opponentNetworkId = opponentNetId;
+            baselineInputDelay = InputDelay;
 
         // Find MatchMessageManager instance
         matchManager = FindFirstObjectByType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
@@ -179,6 +191,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (inputDelayFrames.HasValue)
             {
                 InputDelay = inputDelayFrames.Value;
+                baselineInputDelay = InputDelay;
             }
             // AutosetDelay logic removed, handle delay negotiation elsewhere if needed
 
@@ -200,6 +213,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int maxConsecutiveFrameDrops)
         {
             InputDelay = inputDelay;
+            baselineInputDelay = inputDelay;
             DelayBased = delayBased;
             MaxRollBackFrames = maxRollbackFrames;
             FrameAdvantageLimit = frameAdvantageLimit;
@@ -220,6 +234,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 Debug.LogWarning("Received online rollback settings after simulation started; preserved live rollback history.");
             }
+        }
+
+        public void ResetAdaptiveInputDelay(int baseDelay)
+        {
+            baselineInputDelay = Mathf.Max(0, baseDelay);
+            InputDelay = baselineInputDelay;
+            adaptiveDelayPressureCount = 0;
+            adaptiveDelayCalmCount = 0;
+            adaptiveDelayCooldown = 0;
         }
 
         /// <summary>
@@ -248,6 +271,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             currentFrameExtensionMicro = 0;
+            adaptiveDelayPressureCount = 0;
+            adaptiveDelayCalmCount = 0;
+            adaptiveDelayCooldown = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
 
             // Initialize states array
@@ -354,6 +380,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         if (!foundDesyncedFrame)
         {
+            UpdateAdaptiveInputDelay(0);
             ProcessPendingRemoteHashes();
             return; // No rollback needed
         }
@@ -398,8 +425,69 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         SetRollbackStatus(false);
+        UpdateAdaptiveInputDelay(RollbackFrames);
         ProcessPendingRemoteHashes();
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
+    }
+
+    private void UpdateAdaptiveInputDelay(int resimulatedFrames)
+    {
+        if (!EnableAdaptiveInputDelay ||
+            DelayBased ||
+            GameManager.Instance == null ||
+            !GameManager.Instance.isOnlineMatchActive)
+        {
+            return;
+        }
+
+        int maxAdaptiveDelay = Mathf.Max(baselineInputDelay, MaxAdaptiveInputDelay);
+        int increaseThreshold = Mathf.Max(1, AdaptiveDelayIncreaseRollbackThreshold);
+        int decreaseThreshold = Mathf.Max(0, AdaptiveDelayDecreaseRollbackThreshold);
+        int pressureSamplesNeeded = Mathf.Max(1, AdaptiveDelayPressureSamples);
+        int calmFramesNeeded = Mathf.Max(1, AdaptiveDelayCalmFrames);
+
+        if (adaptiveDelayCooldown > 0)
+        {
+            adaptiveDelayCooldown--;
+        }
+
+        if (resimulatedFrames >= increaseThreshold)
+        {
+            adaptiveDelayPressureCount++;
+            adaptiveDelayCalmCount = 0;
+
+            if (adaptiveDelayPressureCount >= pressureSamplesNeeded &&
+                adaptiveDelayCooldown <= 0 &&
+                InputDelay < maxAdaptiveDelay)
+            {
+                InputDelay++;
+                adaptiveDelayPressureCount = 0;
+                adaptiveDelayCooldown = Mathf.Max(1, AdaptiveDelayCooldownFrames);
+                Debug.LogWarning($"Adaptive input delay increased to {InputDelay} after {resimulatedFrames} rollback frames.");
+            }
+
+            return;
+        }
+
+        adaptiveDelayPressureCount = 0;
+
+        if (resimulatedFrames <= decreaseThreshold)
+        {
+            adaptiveDelayCalmCount++;
+            if (adaptiveDelayCalmCount >= calmFramesNeeded &&
+                adaptiveDelayCooldown <= 0 &&
+                InputDelay > baselineInputDelay)
+            {
+                InputDelay--;
+                adaptiveDelayCalmCount = 0;
+                adaptiveDelayCooldown = Mathf.Max(1, AdaptiveDelayCooldownFrames / 2);
+                Debug.Log($"Adaptive input delay decreased to {InputDelay} after stable network frames.");
+            }
+        }
+        else
+        {
+            adaptiveDelayCalmCount = 0;
+        }
     }
 
     /// <summary>

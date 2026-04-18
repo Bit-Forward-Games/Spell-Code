@@ -132,6 +132,7 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI packetLossText;
 
     [Header("Online Match State")]
+    [SerializeField] private int baseOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineRollbackFrames = 4;
     [SerializeField] private int minimumOnlineTimeoutFrames = 90;
@@ -379,7 +380,7 @@ public class GameManager : MonoBehaviour
 
             if (rollbackFramesText != null && RollbackManager.Instance != null)
             {
-                rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
+                rollbackFramesText.SetText($"Delay: {RollbackManager.Instance.InputDelay} | Rb Frames: {RollbackManager.Instance.RollbackFrames}");
             }
         }
 
@@ -626,7 +627,8 @@ public class GameManager : MonoBehaviour
 
         // Keep online defaults aligned with the original BestoNet/Idol-style rollback profile
         // without touching offline simulation or relying on stale inspector defaults.
-        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, minimumOnlineInputDelay);
+        int onlineInputDelay = Mathf.Max(0, baseOnlineInputDelay, minimumOnlineInputDelay);
+        RollbackManager.Instance.ResetAdaptiveInputDelay(onlineInputDelay);
         RollbackManager.Instance.MaxRollBackFrames = Mathf.Max(RollbackManager.Instance.MaxRollBackFrames, minimumOnlineRollbackFrames);
         RollbackManager.Instance.TimeoutFrames = Mathf.Max(RollbackManager.Instance.TimeoutFrames, minimumOnlineTimeoutFrames);
 

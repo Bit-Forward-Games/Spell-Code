@@ -2605,8 +2605,24 @@ public class PlayerController : MonoBehaviour
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
-            //play the death visual effect
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+            //if all player bounties are 0,...
+            if(GameManager.Instance.AllBountiesAreZero())
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+            }
+            //else if this player is the one with the highest bounty,...
+            else if(GameManager.Instance.GetPlayerWithHighestBounty() + 1 == pID)
+            {
+                //play the bounty death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_DEATH, position, pID);
+            }
+            //else this player is NOT the one with the highest bounty,...
+            else
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+            }    
 
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 

@@ -2663,32 +2663,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.
-    /// </summary>
-    /// <param name="rightWall"></param>
-    /// <param name="checkOnly"></param>
-    /// <returns></returns>
-    public bool CheckWall(bool rightWall, bool checkOnly = false)
-    {
-        Fixed wallXval = Fixed.FromInt(rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval);
-        Fixed offset = rightWall ? playerWidth / Fixed.FromInt(2) : -playerWidth / Fixed.FromInt(2);
-
-        // Check if the player has hit the wall and adjust position and speed
-        if ((rightWall && position.X + hSpd + playerWidth / Fixed.FromInt(2) >= wallXval) ||
-            (!rightWall && position.X + hSpd - playerWidth / Fixed.FromInt(2) <= wallXval))
-        {
-            if (checkOnly)
-            {
-                return true;
-            }
-            position = new FixedVec2(wallXval - offset, position.Y);
-            hSpd = Fixed.FromInt(0);
-            return true;
-        }
-
-        return false;
-    }
+    
 
     public void ResolveReferences()
     {
@@ -2718,25 +2693,6 @@ public class PlayerController : MonoBehaviour
             _pendingHitboxOwnerIndex = -1;
             _pendingHitboxProjectileIndex = -1;
         }
-    }
-
-    public bool IsCloserToStageCenter()
-    {
-        // 1) compute the absolute center of the stage
-        Fixed leftWall = Fixed.FromInt(StageData.Instance.leftWallXval);
-        Fixed rightWall = Fixed.FromInt(StageData.Instance.rightWallXval);
-        Fixed stageCenter = (leftWall + rightWall) / Fixed.FromInt(2);
-
-        // 2) distance from player to center
-        Fixed distToCenter = Fixed.Abs(position.X - stageCenter);
-
-        // 3) distance to the nearest wall
-        Fixed distToLeft = Fixed.Abs(position.X - leftWall);
-        Fixed distToRight = Fixed.Abs(position.X - rightWall);
-        Fixed distToWall = Fixed.Min(distToLeft, distToRight);
-
-        // 4) are we closer to center than to the wall?
-        return distToCenter < distToWall;
     }
 
 

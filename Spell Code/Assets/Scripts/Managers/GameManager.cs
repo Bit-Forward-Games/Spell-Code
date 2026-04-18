@@ -101,10 +101,6 @@ public class GameManager : MonoBehaviour
     private bool roundTransitionPending = false;
     private bool onlineRoundAdvanceApplied = false;
     private bool pendingOpponentShopTransition = false;
-    private bool localShopTransitionReady = false;
-    private bool remoteShopTransitionReady = false;
-    private int localShopTransitionReadyId = 0;
-    private int remoteShopTransitionReadyId = 0;
     public TextMeshProUGUI playerWinText;
     public TextMeshProUGUI roundEndedText;
 
@@ -131,8 +127,6 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI rollbackFramesText;
 
     [Header("Online Match State")]
-    [SerializeField] private int minimumOnlineInputDelay = 0;
-    [SerializeField] private int minimumOnlineRollbackFrames = 4;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;
@@ -194,7 +188,6 @@ public class GameManager : MonoBehaviour
     private byte pendingStageSelectSceneType = 0;
     private int pendingStageSelectSceneSignature = 0;
     private int pendingStageSelectIndex = -1;
-    private uint pendingStageSelectRngState = 0;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     private bool hasPendingRemoteSceneReady = false;
@@ -613,10 +606,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Keep online defaults aligned with the original BestoNet/Idol-style rollback profile
-        // without touching offline simulation or relying on stale inspector defaults.
-        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, minimumOnlineInputDelay);
-        RollbackManager.Instance.MaxRollBackFrames = Mathf.Max(RollbackManager.Instance.MaxRollBackFrames, minimumOnlineRollbackFrames);
+        // Public internet matches were staying correct but rollback-heavy with a 2-frame baseline delay.
+        // Clamp the live online setting here so both peers negotiate the same safer value without
+        // touching offline simulation or relying on stale inspector defaults.
+        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
 
         if (!opponentId.IsValid)
         {
@@ -670,7 +663,6 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        pendingStageSelectRngState = 0;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
         hasPendingRemoteSceneReady = false;
@@ -876,10 +868,6 @@ public class GameManager : MonoBehaviour
         pendingStageSelectTransitionId = 0;
         pendingRemoteSceneReadyTransitionId = 0;
         pendingOpponentShopTransitionId = 0;
-        localShopTransitionReady = false;
-        remoteShopTransitionReady = false;
-        localShopTransitionReadyId = 0;
-        remoteShopTransitionReadyId = 0;
     }
 
     private void BeginTrackedOnlineTransition(int transitionId)
@@ -917,12 +905,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        pendingStageSelectRngState = 0;
         pendingOpponentShopTransitionId = 0;
-        localShopTransitionReady = false;
-        remoteShopTransitionReady = false;
-        localShopTransitionReadyId = 0;
-        remoteShopTransitionReadyId = 0;
     }
 
     // Send lobby ready signal
@@ -1113,7 +1096,7 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
@@ -1130,7 +1113,6 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = packetSceneType;
                 pendingStageSelectSceneSignature = packetSceneSignature;
                 pendingStageSelectIndex = stageIndex;
-                pendingStageSelectRngState = hostStageRngState;
             }
             return false;
         }
@@ -1144,7 +1126,7 @@ public class GameManager : MonoBehaviour
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
-            ApplyOnlineStageSelection(stageIndex, hostStageRngState);
+            ApplyOnlineStageSelection(stageIndex);
             return true;
         }
 
@@ -1161,7 +1143,6 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = packetSceneType;
             pendingStageSelectSceneSignature = packetSceneSignature;
             pendingStageSelectIndex = stageIndex;
-            pendingStageSelectRngState = hostStageRngState;
             return true;
         }
 
@@ -1188,13 +1169,11 @@ public class GameManager : MonoBehaviour
             BeginTrackedOnlineTransition(pendingStageSelectTransitionId);
         }
         int pendingIndex = pendingStageSelectIndex;
-        uint pendingRngState = pendingStageSelectRngState;
         pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        pendingStageSelectRngState = 0;
-        ApplyOnlineStageSelection(pendingIndex, pendingRngState);
+        ApplyOnlineStageSelection(pendingIndex);
     }
 
     /// <summary>
@@ -1248,7 +1227,6 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
-            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
             hasPendingRemoteSceneReady = false;
@@ -1390,13 +1368,10 @@ public class GameManager : MonoBehaviour
 
             if (isOnlineMatchActive && pendingOpponentShopTransition && roundOver && !isTransitioning)
             {
-                int pendingTransitionId = pendingOpponentShopTransitionId > 0
-                    ? pendingOpponentShopTransitionId
-                    : GetExpectedOnlineTransitionId();
-
                 pendingOpponentShopTransition = false;
+                AdvanceRoundCountOnce();
+                BeginOnlineShopTransition(pendingOpponentShopTransitionId > 0 ? pendingOpponentShopTransitionId : GetExpectedOnlineTransitionId());
                 pendingOpponentShopTransitionId = 0;
-                MarkRemoteReadyForShopTransition(pendingTransitionId);
                 return;
             }
 
@@ -1448,15 +1423,8 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
-        // Match BestoNet's flow: still send/resend local input before holding a
-        // frame for pacing, otherwise a frame hold can also starve the opponent.
-        // Do not sample/insert a new input until the frame is definitely going
-        // to simulate; otherwise a held frame can leak conflicting inputs.
-        int nextSimulationFrame = frameNumber + 1;
-        if (!rbManager.AllowUpdate(nextSimulationFrame))
+        if (!rbManager.AllowUpdate())
         {
-            MatchMessageManager.Instance?.SendInputs();
-            rbManager.ExtendFrame();
             return;
         }
 
@@ -1467,11 +1435,6 @@ public class GameManager : MonoBehaviour
         frameNumber++;
         rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
-
-        if (!rbManager.CheckTimeSync(out float frameAdvantageDifference))
-        {
-            rbManager.StartFrameExtensions(frameAdvantageDifference);
-        }
 
         Scene activeScene = SceneManager.GetActiveScene();
 
@@ -1548,8 +1511,6 @@ public class GameManager : MonoBehaviour
         {
             rbManager.SaveState();
         }
-
-        rbManager.ExtendFrame();
     }
 
     private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));
@@ -1638,16 +1599,6 @@ public class GameManager : MonoBehaviour
         }
 
         List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
-        foreach (GameObject gambaGO in validGambas)
-        {
-            if (gambaGO == null) continue;
-            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-            if (gamba != null)
-            {
-                gamba.ClearTrackedFloppyReferences();
-            }
-        }
-
         foreach (var savedFloppy in savedFloppies)
         {
             if (savedFloppy.ownerPid <= 0 || string.IsNullOrEmpty(savedFloppy.diskName))
@@ -1684,9 +1635,10 @@ public class GameManager : MonoBehaviour
 
     private void PerformRoundTransition()
     {
+        ClearStages();
+
         if (gameOver)
         {
-            ClearStages();
             playerWinText.enabled = false;
             AdvanceRoundCountOnce();
             GameEnd();
@@ -1698,6 +1650,7 @@ public class GameManager : MonoBehaviour
         }
 
         playerWinText.enabled = false;
+        AdvanceRoundCountOnce();
 
         bool hasMaxSpells = playerCount > 0
             && players[0] != null
@@ -1706,9 +1659,6 @@ public class GameManager : MonoBehaviour
 
         if (hasMaxSpells)
         {
-            ClearStages();
-            AdvanceRoundCountOnce();
-
             if (isOnlineMatchActive)
             {
                 localPlayerReadyForGameplay = false;
@@ -1724,7 +1674,6 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = 0;
                 pendingStageSelectSceneSignature = 0;
                 pendingStageSelectIndex = -1;
-                pendingStageSelectRngState = 0;
             }
             LoadRandomGameplayStage();
             ResetPlayers();
@@ -1735,14 +1684,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (isOnlineMatchActive)
-        {
-            RoundEnd();
-            return;
-        }
-
-        ClearStages();
-        AdvanceRoundCountOnce();
         RoundEnd();
         ResetPlayers();
         roundOver = false;
@@ -2426,83 +2367,18 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
-            MarkLocalReadyForShopTransition(GetExpectedOnlineTransitionId());
+            int transitionId = GetExpectedOnlineTransitionId();
+            if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
+            }
+            BeginOnlineShopTransition(transitionId);
             return;
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
          //play a new shop song
          //BGM_Manager.Instance.StartAndPlaySong();
-    }
-
-    private void MarkLocalReadyForShopTransition(int transitionId)
-    {
-        if (!isOnlineMatchActive || isTransitioning)
-        {
-            return;
-        }
-
-        if (!localShopTransitionReady || localShopTransitionReadyId != transitionId)
-        {
-            localShopTransitionReady = true;
-            localShopTransitionReadyId = transitionId;
-
-            if (MatchMessageManager.Instance != null)
-            {
-                MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
-            }
-        }
-
-        CheckBothPlayersReadyForShopTransition();
-    }
-
-    private void MarkRemoteReadyForShopTransition(int transitionId)
-    {
-        if (!isOnlineMatchActive)
-        {
-            return;
-        }
-
-        remoteShopTransitionReady = true;
-        remoteShopTransitionReadyId = transitionId;
-        CheckBothPlayersReadyForShopTransition();
-    }
-
-    private void CheckBothPlayersReadyForShopTransition()
-    {
-        if (!isOnlineMatchActive || isTransitioning)
-        {
-            return;
-        }
-
-        if (!localShopTransitionReady || !remoteShopTransitionReady)
-        {
-            return;
-        }
-
-        int expectedTransitionId = GetExpectedOnlineTransitionId();
-        if (localShopTransitionReadyId != expectedTransitionId || remoteShopTransitionReadyId != expectedTransitionId)
-        {
-            return;
-        }
-
-        localShopTransitionReady = false;
-        remoteShopTransitionReady = false;
-        localShopTransitionReadyId = 0;
-        remoteShopTransitionReadyId = 0;
-        pendingOpponentShopTransition = false;
-        pendingOpponentShopTransitionId = 0;
-
-        AdvanceRoundCountOnce();
-        roundOver = false;
-        roundEndFrameCounter = 0;
-        roundEndTimer = 0f;
-        roundEndUIShown = false;
-        lastRoundWinnerPID = -1;
-        roundTransitionPending = false;
-
-        ClearStages();
-        BeginOnlineShopTransition(expectedTransitionId);
     }
 
     private void BeginOnlineShopTransition(int transitionId)
@@ -2526,12 +2402,8 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        pendingStageSelectRngState = 0;
-        localShopTransitionReady = false;
-        remoteShopTransitionReady = false;
-        localShopTransitionReadyId = 0;
-        remoteShopTransitionReadyId = 0;
         sceneManager.LoadScene("Shop");
+        SetStage(-1);
     }
 
     public void OnOpponentShopTransition(int transitionId, byte sceneType, int sceneSignature)
@@ -2544,13 +2416,6 @@ public class GameManager : MonoBehaviour
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
         {
-            return;
-        }
-
-        if (transitionId > expectedTransitionId)
-        {
-            pendingOpponentShopTransition = true;
-            pendingOpponentShopTransitionId = transitionId;
             return;
         }
 
@@ -2581,9 +2446,17 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (!roundOver && !isTransitioning)
+        {
+            pendingOpponentShopTransition = true;
+            pendingOpponentShopTransitionId = transitionId;
+            return;
+        }
+
         pendingOpponentShopTransition = false;
         pendingOpponentShopTransitionId = 0;
-        MarkRemoteReadyForShopTransition(transitionId);
+        AdvanceRoundCountOnce();
+        BeginOnlineShopTransition(transitionId);
     }
 
     private void AdvanceRoundCountOnce()
@@ -2693,19 +2566,23 @@ public class GameManager : MonoBehaviour
         switch (activeSceneName)
         {
             case "Gameplay":
-                return 100000 + currentStageIndex;
+                sceneBase = 100000;
+                break;
             case "Shop":
-                return 200000;
+                sceneBase = 200000;
+                break;
             case "MainMenu":
-                return 300000;
+                sceneBase = 300000;
+                break;
             case "End":
-                return 400000;
+                sceneBase = 400000;
+                break;
             default:
                 sceneBase = 500000;
                 break;
         }
 
-        return sceneBase;
+        return sceneBase + currentStageIndex;
     }
 
     public byte GetNetworkSceneTypeCode()
@@ -2781,17 +2658,12 @@ public class GameManager : MonoBehaviour
 
         if (MatchMessageManager.Instance != null)
         {
-            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex, stageRngState);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex);
         }
     }
 
-    public void ApplyOnlineStageSelection(int stageIndex, uint? syncedStageRngState = null)
+    public void ApplyOnlineStageSelection(int stageIndex)
     {
-        if (syncedStageRngState.HasValue)
-        {
-            stageRngState = syncedStageRngState.Value;
-        }
-
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
@@ -2913,12 +2785,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
-            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
-            localShopTransitionReady = false;
-            remoteShopTransitionReady = false;
-            localShopTransitionReadyId = 0;
-            remoteShopTransitionReadyId = 0;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -2959,7 +2826,6 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
-            SetStage(-1);
             roundOver = false;
             gameOver = false;
             roundEndFrameCounter = 0;
@@ -2982,12 +2848,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
-            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
-            localShopTransitionReady = false;
-            remoteShopTransitionReady = false;
-            localShopTransitionReadyId = 0;
-            remoteShopTransitionReadyId = 0;
             frameNumber = 0;
             localPlayerInput = 5;
             syncedInput = new ulong[2] { 5, 5 };
@@ -3065,21 +2926,25 @@ public class GameManager : MonoBehaviour
 
     private void InitializeOnlineShopSceneState()
     {
-        RefreshSceneObjectReferences();
-
         foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
         {
             if (gambaGO == null) continue;
             GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
             if (gamba == null) continue;
 
+            gamba.resetTimer = 0;
             bool hasActiveOwner = gamba.ownerPID > 0 && gamba.ownerPID <= playerCount && players[gamba.ownerPID - 1] != null;
             int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
             bool ownerCanUseShop = hasActiveOwner
                 && players[gamba.ownerPID - 1].spellList != null
                 && players[gamba.ownerPID - 1].spellList.Count < roundsPlayed + 1;
 
-            gamba.ResetShopState(hasActiveOwner ? players[gamba.ownerPID - 1] : null, ownerCanUseShop);
+            gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
+            gamba.activatedCount = ownerCanUseShop ? 0 : 3;
+            if (gamba.gambaAnimator != null)
+            {
+                gamba.gambaAnimator.SetBool("isActive", ownerCanUseShop);
+            }
         }
 
         foreach (SpellCode_Gate gate in gates)
@@ -3674,6 +3539,15 @@ public class GameManager : MonoBehaviour
     {
         //copy all stages from stages into gameStages
         gameStages = new List<StageDataSO>(stages);
+
+        if (playerCount == 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
+        }
+        else if (playerCount > 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+        }
 
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 

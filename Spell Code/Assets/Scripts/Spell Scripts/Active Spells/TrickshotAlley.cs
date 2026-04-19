@@ -11,7 +11,7 @@ public class TrickshotAlley : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[1];
-        description = "Lobbing Grenade.\nHit sweet-spot: Enter Flow State<sprite name=\"FlowState\">.\nHit the grenade with a spell to launch it.\nDeals increased when in Flow State <sprite name=\"FlowState\">.";
+        description = "Lobbing Grenade.\nHit sweet-spot: Enter Flow State<sprite name=\"FlowState\">.\nHit the grenade with a spell to launch it.\nDeals increased damage when in Flow State <sprite name=\"FlowState\">.";
 
     }
 

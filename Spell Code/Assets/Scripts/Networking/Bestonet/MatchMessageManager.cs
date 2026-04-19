@@ -15,9 +15,9 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
-    [SerializeField] private int EXTRA_RESEND_FRAMES = 60;
+    [SerializeField] private int EXTRA_RESEND_FRAMES = 90;
     [SerializeField] private int MAX_INPUTS_PER_PACKET = 96;
-    [SerializeField] private int REDUNDANT_INPUT_SENDS = 2;
+    [SerializeField] private int REDUNDANT_INPUT_SENDS = 3;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
@@ -798,7 +798,21 @@ public class MatchMessageManager : MonoBehaviour
         int latestTargetFrame = Mathf.Max(
             currentLocalFrame + RollbackManager.Instance.InputDelay,
             RollbackManager.Instance.GetLatestClientInputFrame());
-        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(14, EXTRA_RESEND_FRAMES);
+        int recoveryWindow = Mathf.Max(14, EXTRA_RESEND_FRAMES);
+        if (Ping >= 120)
+        {
+            recoveryWindow += 12;
+        }
+        if (PacketLossPercent >= 2f)
+        {
+            recoveryWindow += 12;
+        }
+        if (PacketLossPercent >= 6f)
+        {
+            recoveryWindow += 12;
+        }
+
+        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + recoveryWindow;
         int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 
         int inputCount = latestTargetFrame - firstFrameToSend + 1;
@@ -838,6 +852,20 @@ public class MatchMessageManager : MonoBehaviour
                     byte[] data = memoryStream.ToArray();
 
                     int redundantSends = Mathf.Max(1, REDUNDANT_INPUT_SENDS);
+                    if (Ping >= 120)
+                    {
+                        redundantSends++;
+                    }
+                    if (PacketLossPercent >= 2f)
+                    {
+                        redundantSends++;
+                    }
+                    if (PacketLossPercent >= 6f)
+                    {
+                        redundantSends++;
+                    }
+
+                    redundantSends = Mathf.Clamp(redundantSends, 1, 5);
                     for (int i = 0; i < redundantSends; i++)
                     {
                         SendPacket(data, INPUT_SEND_TYPE);

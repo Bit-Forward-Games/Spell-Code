@@ -132,9 +132,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI packetLossText;
 
     [Header("Online Match State")]
-    [SerializeField] private int baseOnlineInputDelay = 0;
-    [SerializeField] private int minimumOnlineInputDelay = 0;
-    [SerializeField] private int minimumOnlineRollbackFrames = 4;
+    [SerializeField] private int baseOnlineInputDelay = 2;
+    [SerializeField] private int minimumOnlineInputDelay = 2;
+    [SerializeField] private int minimumOnlineRollbackFrames = 6;
     [SerializeField] private int minimumOnlineTimeoutFrames = 90;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;

@@ -63,16 +63,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         // --- Configuration (Set these in Inspector or via code) ---
         [Header("Rollback Settings")]
-        [SerializeField] public int InputDelay = 0; // Default input delay frames
+        [SerializeField] public int InputDelay = 2; // Default input delay frames
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
-        [SerializeField] public int MaxRollBackFrames = 4; // BestoNet default: keep rollback corrections tight
+        [SerializeField] public int MaxRollBackFrames = 6; // Slightly wider rollback budget for unstable Wi-Fi bursts
         [SerializeField] public int MaxPlayableRollbackFrames = 45; // Fail fast before rollback becomes an unplayable spiral
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public bool EnableAdaptiveInputDelay = true;
-        [SerializeField] public int MaxAdaptiveInputDelay = 4;
-        [SerializeField] public int AdaptiveDelayIncreaseRollbackThreshold = 8;
+        [SerializeField] public int MaxAdaptiveInputDelay = 6;
+        [SerializeField] public int AdaptiveDelayIncreaseRollbackThreshold = 6;
         [SerializeField] public int AdaptiveDelayDecreaseRollbackThreshold = 3;
         [SerializeField] public int AdaptiveDelayPressureSamples = 1;
         [SerializeField] public int AdaptiveDelayCalmFrames = 180;
@@ -449,7 +449,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return;
         }
 
-        const int HardMaxAdaptiveInputDelay = 4;
+        const int HardMaxAdaptiveInputDelay = 6;
         int maxAdaptiveDelay = Mathf.Clamp(MaxAdaptiveInputDelay, baselineInputDelay, HardMaxAdaptiveInputDelay);
         int increaseThreshold = Mathf.Max(1, AdaptiveDelayIncreaseRollbackThreshold);
         int decreaseThreshold = Mathf.Max(0, AdaptiveDelayDecreaseRollbackThreshold);
@@ -587,10 +587,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // After a scene transition, both clients reset frame sync. Briefly hold for a
             // current-scene remote input, but pulse forward if it has not arrived yet.
             // A hard startup hold can deadlock both sides immediately after scene load.
-            if (remoteFrame == 0 && currentFrame > InputDelay + 1)
-            {
-                consecutiveDrop++;
-                if (consecutiveDrop <= maxDropPulse)
+        if (remoteFrame == 0 && currentFrame > InputDelay + 1)
+        {
+            consecutiveDrop++;
+            if (consecutiveDrop <= maxDropPulse)
                 {
                     if (lastDroppedFrame != currentFrame)
                     {
@@ -602,12 +602,37 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                 Debug.LogWarning($"Frame Pace Startup Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Allowing one startup frame.");
                 consecutiveDrop = 0;
-                lastDroppedFrame = currentFrame;
-                return true;
+            lastDroppedFrame = currentFrame;
+            return true;
+        }
+
+        int currentFrameAdvantage = currentFrame - predictedRemoteFrame;
+        int softPacingThreshold = Mathf.Max(1, SoftFramePacingThreshold);
+        int hardPacingThreshold = Mathf.Max(softPacingThreshold + 1, FrameAdvantageLimit);
+
+        if (!isRollbackFrame && remoteFrame > 0 && currentFrameAdvantage > softPacingThreshold)
+        {
+            consecutiveDrop++;
+
+            bool shouldHoldFrame = currentFrameAdvantage > hardPacingThreshold || consecutiveDrop <= maxDropPulse;
+            if (shouldHoldFrame)
+            {
+                if (lastDroppedFrame != currentFrame)
+                {
+                    Debug.LogWarning($"Frame Pace Hold: Local {currentFrame}, PredictedRemote {predictedRemoteFrame}, Advantage {currentFrameAdvantage}. Yielding to reduce one-sided rollback.");
+                    lastDroppedFrame = currentFrame;
+                }
+                return false;
             }
 
-            // If no conditions met to drop/stall, allow the update
-            consecutiveDrop = 0; // Reset drop counter if update is allowed
+            Debug.LogWarning($"Frame Pace Recovery: Local {currentFrame}, PredictedRemote {predictedRemoteFrame}, Advantage {currentFrameAdvantage}. Allowing one frame to avoid deadlock.");
+            consecutiveDrop = 0;
+            lastDroppedFrame = currentFrame;
+            return true;
+        }
+
+        // If no conditions met to drop/stall, allow the update
+        consecutiveDrop = 0; // Reset drop counter if update is allowed
             return true;
         }
 

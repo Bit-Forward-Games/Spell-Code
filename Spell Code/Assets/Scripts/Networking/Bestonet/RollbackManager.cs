@@ -66,7 +66,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int InputDelay = 0; // Default input delay frames
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
         [SerializeField] public int MaxRollBackFrames = 4; // BestoNet default: keep rollback corrections tight
-        [SerializeField] public int MaxPlayableRollbackFrames = 45; // Fail fast before rollback becomes an unplayable spiral
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
@@ -389,20 +388,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
-        int maxPlayableRollback = Mathf.Clamp(MaxPlayableRollbackFrames, MaxRollBackFrames, StateArraySize - 2);
-        if (RollbackFrames > maxPlayableRollback)
-        {
-            Debug.LogError($"Rollback exceeded playable limit: {RollbackFrames} frames (limit {maxPlayableRollback}). Timing out instead of entering a rollback spiral.");
-            SetRollbackStatus(false);
-            TriggerMatchTimeout();
-            return;
-        }
 
         if (!LoadState(syncFrame))
         {
             Debug.LogError($"Rollback ABORTED: Failed to load state for frame {syncFrame}. Game may be desynced.");
             SetRollbackStatus(false);
-            TriggerMatchTimeout();
             return;
         }
 

@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int baseOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineInputDelay = 0;
     [SerializeField] private int minimumOnlineRollbackFrames = 4;
-    [SerializeField] private int minimumOnlineTimeoutFrames = 90;
+    [SerializeField] private int minimumOnlineTimeoutFrames = 180;
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
     private float lobbyWaitStartTime = 0f;

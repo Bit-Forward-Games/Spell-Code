@@ -1096,7 +1096,7 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
@@ -2645,7 +2645,7 @@ public class GameManager : MonoBehaviour
     {
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
@@ -2658,7 +2658,7 @@ public class GameManager : MonoBehaviour
 
         if (MatchMessageManager.Instance != null)
         {
-            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex, stageRngState);
         }
     }
 
@@ -2672,7 +2672,7 @@ public class GameManager : MonoBehaviour
 
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         if (stageIndex >= 0 && stageIndex < stages.Count)
@@ -3533,12 +3533,28 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Build the available stage pool for this match based on player count.
+    /// </summary>
+    private void FillGameStages()
+    {
+        gameStages = new List<StageDataSO>(stages);
+
+        if (playerCount == 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
+        }
+        else if (playerCount > 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+        }
+    }
+
+    /// <summary>
     /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
     /// </summary>
     private void RandomizeGameStages()
     {
-        //copy all stages from stages into gameStages
-        gameStages = new List<StageDataSO>(stages);
+        FillGameStages();
 
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 

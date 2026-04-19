@@ -85,5 +85,8 @@ MonoBehaviour:
   activatableSolidExtent: []
   borderMin: {x: -654, y: -520, z: 0}
   borderMax: {x: 654, y: 520, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0
+  stageType: 2
   dynamicCamera: 1

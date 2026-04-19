@@ -1423,16 +1423,15 @@ public class GameManager : MonoBehaviour
 
     private void SimulateOnlineFloppies(ulong[] inputs, bool isRealFrame)
     {
-        if (floppyObjects == null || floppyObjects.Length == 0)
-        {
-            FindAllFloppyDisks();
-        }
+        // Online rollback can destroy and respawn shop choices in the same
+        // simulation step. Refresh every pass so we never simulate stale disks.
+        FindAllFloppyDisks();
         if (floppyObjects == null) return;
 
         for (int i = 0; i < floppyObjects.Length; i++)
         {
             GameObject floppy = floppyObjects[i];
-            if (floppy == null) continue;
+            if (floppy == null || !floppy.activeInHierarchy) continue;
             SpellCode_FloppyDisk disk = floppy.GetComponent<SpellCode_FloppyDisk>();
             if (disk != null)
             {

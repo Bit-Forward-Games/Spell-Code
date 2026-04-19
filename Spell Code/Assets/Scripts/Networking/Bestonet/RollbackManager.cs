@@ -70,6 +70,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
 
+        [Header("Packet Loss Smoothing")]
+        // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
+        // shrinking the prediction window so visible rollback corrections (teleports) stay small.
+        // Disable to revert to baseline rollback behavior.
+        [SerializeField] public bool EnablePacketLossSmoothing = true;
+        // Sticky weight added to the loss signal each time a gap in remote inputs is observed.
+        [SerializeField] public int PacketLossEventWeight = 4;
+        // Loss signal must reach this level before any holds happen. Filters single late packets.
+        [SerializeField] public int PacketLossHoldThreshold = 6;
+        // Hard cap on consecutive holds caused by packet loss, to bound added latency.
+        [SerializeField] public int MaxLossAwareHolds = 2;
+        // How quickly the loss signal decays each tick when no new losses arrive.
+        [SerializeField] public int PacketLossDecayPerTick = 1;
+
         [Header("Timing & Sync")]
         [SerializeField] public bool EnableFrameExtension = true;
         [SerializeField] public int SleepTimeMicro = 1500; // BestoNet FPSLock-style local frame extension
@@ -99,6 +113,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int consecutiveDrop = 0;
         private int lastRemoteFrameForTimeout = 0;
         private int remoteFrameStallTicks = 0;
+        // Packet-loss smoothing runtime state. All zero/-1 when no loss is happening,
+        // so the AllowUpdate fast path stays free of overhead.
+        private int packetLossSignal = 0;            // Decaying score; rises on detected gaps
+        private int highestRemoteInputFrameSeen = -1; // Highest frame number ever inserted into receivedInputs
+        private int lossAwareHoldsThisStreak = 0;     // Bounded by MaxLossAwareHolds
+        private int lastLossAwareHoldFrame = -1;      // Last local frame we held due to loss
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
@@ -239,6 +259,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrame = 0;
             lastRemoteFrameForTimeout = 0;
             remoteFrameStallTicks = 0;
+            packetLossSignal = 0;
+            highestRemoteInputFrameSeen = -1;
+            lossAwareHoldsThisStreak = 0;
+            lastLossAwareHoldFrame = -1;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
@@ -483,6 +507,44 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 lastDroppedFrame = currentFrame;
                 return true;
             }
+
+            // --- Packet-Loss-Aware Soft Hold ---
+            // Decay the loss signal each tick. Costs a single int subtract when no loss is happening.
+            if (packetLossSignal > 0)
+            {
+                packetLossSignal = Mathf.Max(0, packetLossSignal - PacketLossDecayPerTick);
+            }
+
+            // Reset the per-streak hold counter once we move past the held frame, so repeated
+            // loss spikes can each get their own bounded hold.
+            if (lastLossAwareHoldFrame >= 0 && currentFrame > lastLossAwareHoldFrame + 1)
+            {
+                lossAwareHoldsThisStreak = 0;
+            }
+
+            if (EnablePacketLossSmoothing
+                && packetLossSignal >= PacketLossHoldThreshold
+                && lossAwareHoldsThisStreak < MaxLossAwareHolds
+                && !isRollbackFrame)
+            {
+                // We only hold when the frame we are about to simulate would actually have to be
+                // predicted (its remote input is missing) AND we are already deep into the
+                // prediction window. This keeps the hold from firing when packets arrive in time.
+                int frameToSimulate = currentFrame;
+                int predictionDepth = frameToSimulate - syncFrame;
+                int holdCeiling = Mathf.Max(1, MaxRollBackFrames - 1);
+                bool predictingThisFrame = !receivedInputs.ContainsKey(frameToSimulate);
+
+                if (predictingThisFrame && predictionDepth >= holdCeiling)
+                {
+                    lossAwareHoldsThisStreak++;
+                    lastLossAwareHoldFrame = currentFrame;
+                    // Pay a small fraction of the hold against the signal so it cannot loop forever.
+                    packetLossSignal = Mathf.Max(0, packetLossSignal - PacketLossHoldThreshold);
+                    return false; // One frame of hold; bounded by MaxLossAwareHolds.
+                }
+            }
+            // --- End Packet-Loss-Aware Soft Hold ---
 
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
@@ -1133,7 +1195,35 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // if (receivedInputs.ContainsKey(frame) && receivedInputs.GetInput(frame) != input) {
             //     Debug.LogWarning($"Received conflicting input for frame {frame}. Old: {receivedInputs.GetInput(frame)}, New: {input}");
             // }
+            bool isNewFrame = !receivedInputs.ContainsKey(frame);
             receivedInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
+
+            if (EnablePacketLossSmoothing && isNewFrame)
+            {
+                // The Bestonet input transport (UnreliableNoDelay + resend window) means a frame
+                // arriving "fresh" after a higher one has already arrived is a recovered loss,
+                // and a brand-new highest frame that skips frames over the previous high-water
+                // mark indicates one or more dropped earlier packets we haven't recovered yet.
+                if (highestRemoteInputFrameSeen < 0)
+                {
+                    highestRemoteInputFrameSeen = frame;
+                }
+                else if (frame > highestRemoteInputFrameSeen)
+                {
+                    int skipped = frame - highestRemoteInputFrameSeen - 1;
+                    highestRemoteInputFrameSeen = frame;
+                    if (skipped > 0)
+                    {
+                        // Multiple gaps in a single forward jump weight more heavily.
+                        packetLossSignal = Mathf.Min(packetLossSignal + skipped * PacketLossEventWeight, PacketLossHoldThreshold * 4);
+                    }
+                }
+                else
+                {
+                    // A late packet that filled an earlier gap. Treat as a recovered loss event.
+                    packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
+                }
+            }
             // Update syncFrame if this input confirms a previously predicted frame?
             // Handled within RollbackEvent check now.
         }

@@ -2781,7 +2781,7 @@ public class GameManager : MonoBehaviour
     {
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
@@ -2813,7 +2813,7 @@ public class GameManager : MonoBehaviour
 
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         if (stageIndex >= 0 && stageIndex < stages.Count)
@@ -3681,11 +3681,10 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
+    /// Build the available stage pool for this match based on player count.
     /// </summary>
-    private void RandomizeGameStages()
+    private void FillGameStages()
     {
-        //copy all stages from stages into gameStages
         gameStages = new List<StageDataSO>(stages);
 
         if (playerCount == 2)
@@ -3696,6 +3695,14 @@ public class GameManager : MonoBehaviour
         {
             gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
         }
+    }
+
+    /// <summary>
+    /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
+    /// </summary>
+    private void RandomizeGameStages()
+    {
+        FillGameStages();
 
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 

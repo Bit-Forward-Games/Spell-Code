@@ -56,7 +56,7 @@ public class GambaMachine : MonoBehaviour
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
 
-        startingSpells = new string[4] { "Cash Out", "Quarter Report", "Blade Of Ares", "Skillshot Slash" };
+        startingSpells = new string[4] { "Amon Slash", "Quarter Report", "Blade Of Ares", "Skillshot Slash" };
         ResetLobbyState();
     }
 

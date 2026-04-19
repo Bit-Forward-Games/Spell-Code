@@ -380,7 +380,7 @@ public class GameManager : MonoBehaviour
 
             if (rollbackFramesText != null && RollbackManager.Instance != null)
             {
-                rollbackFramesText.SetText($"Delay: {RollbackManager.Instance.InputDelay}f | Rb Frames: {RollbackManager.Instance.RollbackFrames}f");
+                rollbackFramesText.SetText($"Delay: {RollbackManager.Instance.InputDelay} | Rb Frames: {RollbackManager.Instance.RollbackFrames}");
             }
         }
 

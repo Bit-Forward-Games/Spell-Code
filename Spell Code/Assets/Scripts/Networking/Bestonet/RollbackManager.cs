@@ -71,12 +71,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public bool EnableAdaptiveInputDelay = true;
-        [SerializeField] public int MaxAdaptiveInputDelay = 4;
-        [SerializeField] public int AdaptiveDelayIncreaseRollbackThreshold = 8;
+        [SerializeField] public int MaxAdaptiveInputDelay = 6;
+        [SerializeField] public int AdaptiveDelayIncreaseRollbackThreshold = 12;
         [SerializeField] public int AdaptiveDelayDecreaseRollbackThreshold = 3;
-        [SerializeField] public int AdaptiveDelayPressureSamples = 1;
-        [SerializeField] public int AdaptiveDelayCalmFrames = 180;
-        [SerializeField] public int AdaptiveDelayCooldownFrames = 60;
+        [SerializeField] public int AdaptiveDelayPressureSamples = 2;
+        [SerializeField] public int AdaptiveDelayCalmFrames = 240;
+        [SerializeField] public int AdaptiveDelayCooldownFrames = 120;
 
         [Header("Timing & Sync")]
         [SerializeField] public bool EnableFrameExtension = true;
@@ -114,8 +114,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int adaptiveDelayPressureCount = 0;
         private int adaptiveDelayCalmCount = 0;
         private int adaptiveDelayCooldown = 0;
-        private int lastClientInputFrame = -1;
-        private ulong lastClientInput = 5;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
         // --- End Runtime State ---
 
@@ -247,11 +245,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             adaptiveDelayCooldown = 0;
         }
 
-        public int GetLatestClientInputFrame()
-        {
-            return lastClientInputFrame;
-        }
-
         /// <summary>
         /// Resets all runtime state variables for a new match or disconnect.
         /// </summary>
@@ -281,8 +274,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             adaptiveDelayPressureCount = 0;
             adaptiveDelayCalmCount = 0;
             adaptiveDelayCooldown = 0;
-            lastClientInputFrame = -1;
-            lastClientInput = 5;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
 
             // Initialize states array
@@ -449,8 +440,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return;
         }
 
-        const int HardMaxAdaptiveInputDelay = 4;
-        int maxAdaptiveDelay = Mathf.Clamp(MaxAdaptiveInputDelay, baselineInputDelay, HardMaxAdaptiveInputDelay);
+        int maxAdaptiveDelay = Mathf.Max(baselineInputDelay, MaxAdaptiveInputDelay);
         int increaseThreshold = Mathf.Max(1, AdaptiveDelayIncreaseRollbackThreshold);
         int decreaseThreshold = Mathf.Max(0, AdaptiveDelayDecreaseRollbackThreshold);
         int pressureSamplesNeeded = Mathf.Max(1, AdaptiveDelayPressureSamples);
@@ -513,22 +503,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // if (localFrame < InputDelay) return true;
 
             // Store the input locally for the frame it corresponds to (current frame + delay)
-            int requestedTargetFrame = localFrame + InputDelay;
-            int targetFrame = lastClientInputFrame >= 0
-                ? Math.Max(requestedTargetFrame, lastClientInputFrame + 1)
-                : requestedTargetFrame;
-
-            for (int frame = lastClientInputFrame + 1; frame < targetFrame; frame++)
-            {
-                if (frame >= 0 && !clientInputs.ContainsKey(frame))
-                {
-                    SetClientInput(frame, lastClientInput);
-                }
-            }
-
+            int targetFrame = localFrame + InputDelay;
             SetClientInput(targetFrame, input);
-            lastClientInputFrame = targetFrame;
-            lastClientInput = input;
 
             // Send input packet via MatchMessageManager
             matchManager.SendInputs(); // Send target frame and input

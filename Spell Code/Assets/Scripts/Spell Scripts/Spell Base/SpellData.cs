@@ -178,4 +178,47 @@ public abstract class SpellData : MonoBehaviour
         activateFlag = br.ReadBoolean();
         // Derived classes should call base.Deserialize(br) then read their own state.
     }
+
+    public virtual void ShareHitIgnoreList()
+    {
+        if (projectileInstances == null || projectileInstances.Count <= 1) return;
+
+        Dictionary<string, bool[]> sharedIgnoreMap = new Dictionary<string, bool[]>();
+
+        for (int i = 0; i < projectileInstances.Count; i++)
+        {
+            GameObject projectileInstance = projectileInstances[i];
+            if (projectileInstance == null) continue;
+
+            BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
+            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerIgnoreArr == null) continue;
+
+            if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr))
+            {
+                mergedIgnoreArr = new bool[projectile.playerIgnoreArr.Length];
+                sharedIgnoreMap.Add(projectile.projName, mergedIgnoreArr);
+            }
+
+            for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
+            {
+                mergedIgnoreArr[playerIndex] |= projectile.playerIgnoreArr[playerIndex];
+            }
+        }
+
+        for (int i = 0; i < projectileInstances.Count; i++)
+        {
+            GameObject projectileInstance = projectileInstances[i];
+            if (projectileInstance == null) continue;
+
+            BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
+            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerIgnoreArr == null) continue;
+
+            if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr)) continue;
+
+            for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
+            {
+                projectile.playerIgnoreArr[playerIndex] = mergedIgnoreArr[playerIndex];
+            }
+        }
+    }
 }

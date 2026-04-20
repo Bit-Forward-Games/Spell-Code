@@ -657,7 +657,7 @@ public class PlayerController : MonoBehaviour
         Debug.LogWarning("Spell not found in spell list, cannot remove!");
     }
 
-    public void AdjustBrightnessForIframes()
+    public void AdjustIframeAndArmorVFX()
     {
         float targetBrightness = IsInvincible() ? 0.128f : 1.0f;
         MaterialPropertyBlock propertyBlock = new();
@@ -666,6 +666,19 @@ public class PlayerController : MonoBehaviour
         {
             propertyBlock.SetFloat("_Brightness", targetBrightness);
             spriteRenderer.SetPropertyBlock(propertyBlock);
+        }
+
+        //if the player does not have light armor,...
+        if (!lightArmor)
+        {
+            //disable blocking VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+        }
+        //else the player does have light armer,...
+        else
+        {
+            //begin to play the blobking visual effect
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
         }
     }
 
@@ -1328,9 +1341,6 @@ public class PlayerController : MonoBehaviour
                         {
                             //lightArmor = false;
 
-                            //stop playing the blocking visual effect
-                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
-
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
 
@@ -1345,9 +1355,6 @@ public class PlayerController : MonoBehaviour
                         if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
                             lightArmor = false;
-
-                            //stop playing the blocking visual effect
-                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
@@ -1376,9 +1383,6 @@ public class PlayerController : MonoBehaviour
                     if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         lightArmor = false;
-
-                        //stop playing the blocking visual effect
-                        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                         SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -1722,9 +1726,7 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
 
         //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
-        AdjustBrightnessForIframes();
-
-
+        AdjustIframeAndArmorVFX();
 
         //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
         Scene activeScene = SceneManager.GetActiveScene();
@@ -2246,9 +2248,6 @@ public class PlayerController : MonoBehaviour
 
                 lightArmor = false;
 
-                //stop playing the blocking visual effect
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
-
                 //reset storedCode if you get hit
                 // storedCode = 0;
                 // storedCodeDuration = 0;
@@ -2289,9 +2288,6 @@ public class PlayerController : MonoBehaviour
 
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
-
-                //begin to play the blobking visual effect
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
 
                 if (!isGrounded)
                 {
@@ -2336,9 +2332,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
                 //stop continuously playing the code weave sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
-
-                //stop playing the blocking visual effect
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 lightArmor = false;

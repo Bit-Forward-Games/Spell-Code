@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: Snake_ArenaStageDataSO
+  m_EditorClassIdentifier: 
+  platformCenter:
+  - {x: 168, y: -4}
+  - {x: -168, y: -4}
+  - {x: 0, y: 156}
+  - {x: 224, y: 92}
+  - {x: 16, y: 60}
+  - {x: -168, y: 92}
+  - {x: 168, y: -100}
+  - {x: 0, y: -132}
+  - {x: -16, y: -196}
+  - {x: -224, y: -100}
+  platformExtent:
+  - {x: 88, y: 4}
+  - {x: 88, y: 4}
+  - {x: 32, y: 4}
+  - {x: 32, y: 4}
+  - {x: 48, y: 4}
+  - {x: 88, y: 4}
+  - {x: 88, y: 4}
+  - {x: 32, y: 4}
+  - {x: 48, y: 4}
+  - {x: 32, y: 4}
+  solidCenter:
+  - {x: 56, y: -112}
+  - {x: -56, y: 96}
+  - {x: -320, y: -112}
+  - {x: 0, y: -16}
+  - {x: 320, y: 136}
+  - {x: 164, y: 208}
+  - {x: -172, y: 208}
+  - {x: 172, y: -208}
+  - {x: -164, y: -208}
+  - {x: -320, y: 136}
+  solidExtent:
+  - {x: 24, y: 112}
+  - {x: 24, y: 128}
+  - {x: 64, y: 112}
+  - {x: 32, y: 16}
+  - {x: 64, y: 88}
+  - {x: 100, y: 16}
+  - {x: 92, y: 16}
+  - {x: 92, y: 16}
+  - {x: 100, y: 16}
+  - {x: 64, y: 88}
+  playerSpawnTransform:
+  - {x: -224, y: 96, z: 0}
+  - {x: 224, y: 96, z: 0}
+  - {x: -120, y: -192, z: 0}
+  - {x: 168, y: -96, z: 0}
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: 0, y: 0, z: 0}
+  borderMax: {x: 0, y: 0, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
+  borderType: 0
+  stageType: 0
+  dynamicCamera: 0

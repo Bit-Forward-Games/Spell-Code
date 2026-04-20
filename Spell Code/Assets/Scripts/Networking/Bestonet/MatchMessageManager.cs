@@ -15,10 +15,8 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
-    [SerializeField] private int EXTRA_RESEND_FRAMES = 90;
-    [SerializeField] private int MAX_INPUTS_PER_PACKET = 120;
-    [SerializeField] private int REDUNDANT_INPUT_SENDS = 2;
-    [SerializeField] private int RELIABLE_INPUT_BACKUP_INTERVAL = 8;
+    [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
+    [SerializeField] private int MAX_INPUTS_PER_PACKET = 64;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
@@ -33,13 +31,6 @@ public class MatchMessageManager : MonoBehaviour
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
     public int Ping { get; private set; } = 100;
-    public float PacketLossPercent { get; private set; } = 0f;
-    private const int PACKET_LOSS_SAMPLE_WINDOW = 120;
-    private const float MIN_ACK_TIMEOUT_SECONDS = 0.75f;
-    private readonly Dictionary<int, float> pendingInputAckTimes = new Dictionary<int, float>();
-    private readonly List<int> timedOutAckFrames = new List<int>();
-    private readonly Queue<bool> recentPacketLossSamples = new Queue<bool>();
-    private int recentLostPacketSamples = 0;
 
     // Make opponent ID accessible
     private SteamId opponentSteamId;
@@ -162,7 +153,6 @@ public class MatchMessageManager : MonoBehaviour
             }
         }
 
-        UpdatePacketLossEstimate();
         ProcessOutboundQueue();
         ProcessInboundQueue();
     }
@@ -442,9 +432,7 @@ public class MatchMessageManager : MonoBehaviour
             this.opponentSteamId = opponentId;
             this.isRunning = true;
             Ping = 100;
-            PacketLossPercent = 0f;
             sentFrameTimes.Clear();
-            ClearPacketLossTracking();
             outboundQueue.Clear();
             inboundQueue.Clear();
 
@@ -489,10 +477,6 @@ public class MatchMessageManager : MonoBehaviour
     {
         this.isRunning = false;
         this.opponentSteamId = default;
-        sentFrameTimes.Clear();
-        ClearPacketLossTracking();
-        outboundQueue.Clear();
-        inboundQueue.Clear();
         //Debug.Log("MatchMessageManager stopped.");
     }
 
@@ -764,7 +748,6 @@ public class MatchMessageManager : MonoBehaviour
     {
         highestRemoteFrameSeen = -1;
         sentFrameTimes.Clear();
-        ClearPacketLossTracking();
         outboundQueue.Clear();
         inboundQueue.Clear();
     }
@@ -778,11 +761,6 @@ public class MatchMessageManager : MonoBehaviour
             int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
             Ping = (int)Mathf.Lerp(Ping, rttMs, 0.1f);
             sentFrameTimes.Insert(frame, 0f);
-        }
-
-        if (pendingInputAckTimes.Remove(frame))
-        {
-            RegisterPacketLossSample(false);
         }
     }
 
@@ -823,7 +801,6 @@ public class MatchMessageManager : MonoBehaviour
                     writer.Write((byte)inputCount);
 
                     sentFrameTimes.Insert(latestTargetFrame, Time.unscaledTime);
-                    pendingInputAckTimes[latestTargetFrame] = Time.unscaledTime;
 
                     for (int i = 0; i < inputCount; i++)
                     {
@@ -835,18 +812,9 @@ public class MatchMessageManager : MonoBehaviour
                     }
 
                     byte[] data = memoryStream.ToArray();
+                    int dataSize = data.Length;
 
-                    int redundantSends = Mathf.Max(1, REDUNDANT_INPUT_SENDS);
-                    for (int i = 0; i < redundantSends; i++)
-                    {
-                        SendPacket(data, INPUT_SEND_TYPE);
-                    }
-
-                    int reliableBackupInterval = Mathf.Max(0, RELIABLE_INPUT_BACKUP_INTERVAL);
-                    if (reliableBackupInterval > 0 && currentLocalFrame % reliableBackupInterval == 0)
-                    {
-                        SendPacket(data, P2PSend.Reliable);
-                    }
+                    bool success = SendPacket(data, INPUT_SEND_TYPE);
                 }
             }
         }
@@ -1066,65 +1034,5 @@ public class MatchMessageManager : MonoBehaviour
                 ProcessPacket(packet.data);
             }
         }
-    }
-
-    private void UpdatePacketLossEstimate()
-    {
-        if (pendingInputAckTimes.Count == 0)
-        {
-            return;
-        }
-
-        float now = Time.unscaledTime;
-        float timeoutSeconds = Mathf.Max(MIN_ACK_TIMEOUT_SECONDS, Ping * 0.003f);
-        timedOutAckFrames.Clear();
-
-        foreach (KeyValuePair<int, float> pendingAck in pendingInputAckTimes)
-        {
-            if (now - pendingAck.Value >= timeoutSeconds)
-            {
-                timedOutAckFrames.Add(pendingAck.Key);
-            }
-        }
-
-        for (int i = 0; i < timedOutAckFrames.Count; i++)
-        {
-            int frame = timedOutAckFrames[i];
-            if (pendingInputAckTimes.Remove(frame))
-            {
-                sentFrameTimes.Insert(frame, 0f);
-                RegisterPacketLossSample(true);
-            }
-        }
-    }
-
-    private void RegisterPacketLossSample(bool wasLost)
-    {
-        recentPacketLossSamples.Enqueue(wasLost);
-        if (wasLost)
-        {
-            recentLostPacketSamples++;
-        }
-
-        while (recentPacketLossSamples.Count > PACKET_LOSS_SAMPLE_WINDOW)
-        {
-            if (recentPacketLossSamples.Dequeue())
-            {
-                recentLostPacketSamples--;
-            }
-        }
-
-        PacketLossPercent = recentPacketLossSamples.Count > 0
-            ? (recentLostPacketSamples / (float)recentPacketLossSamples.Count) * 100f
-            : 0f;
-    }
-
-    private void ClearPacketLossTracking()
-    {
-        pendingInputAckTimes.Clear();
-        timedOutAckFrames.Clear();
-        recentPacketLossSamples.Clear();
-        recentLostPacketSamples = 0;
-        PacketLossPercent = 0f;
     }
 }

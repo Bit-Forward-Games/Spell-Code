@@ -2060,7 +2060,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             //remove the bounty VFX from this player
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1, true);
 
             if (players[i].ramBounty > players[playerWithHighestBountyIndex].ramBounty)
             {

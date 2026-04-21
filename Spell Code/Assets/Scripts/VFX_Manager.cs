@@ -341,7 +341,7 @@ public class VFX_Manager : MonoBehaviour
         _particleSystem.Play();
     }
 
-    public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
+    public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
@@ -355,8 +355,16 @@ public class VFX_Manager : MonoBehaviour
             {
                 continue;
             }
+
             //stop playing the particle effect
             _particleSystem.Stop();
+
+            //if this particle system should clear all emitted particles,...
+            if (clearParticles)
+            {
+                //clear all emitted particles
+                _particleSystem.Clear();
+            }
         }
     }
 

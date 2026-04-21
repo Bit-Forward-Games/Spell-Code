@@ -19,7 +19,7 @@ public enum VisualEffects
     COMBO_BREAKER, CODE_FAIL,
     VWAVE_CAST, KILLEEZ_CAST, DEMONX_CAST, BIGSTOX_CAST,
     BLOCKED, BLOCKING,
-    SPAWN
+    SPAWN, GLASS_BREAK, ARMOR_BREAK
 }
 public class VFX_Manager : MonoBehaviour
 {

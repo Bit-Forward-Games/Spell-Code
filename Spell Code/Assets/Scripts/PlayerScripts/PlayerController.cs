@@ -429,7 +429,7 @@ public class PlayerController : MonoBehaviour
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
 
         //stop playing blocking VFX
-        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
 
         //initialize resources
         flowState = 0;
@@ -672,7 +672,7 @@ public class PlayerController : MonoBehaviour
         if (!lightArmor)
         {
             //disable blocking VFX
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
         }
         //else the player does have light armer,...
         else

@@ -47,6 +47,11 @@ public class StageCamera : MonoBehaviour
             pause = GameObject.Find("TempUI").gameObject.GetComponent<Pause>();
 
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+       
+       //check if camborders are set and if not, just use the default border
+        Vector3 camBorderMax = stageDataSO.camBorderMax == Vector3.zero? stageDataSO.borderMax: stageDataSO.camBorderMax;
+        Vector3 camBorderMin = stageDataSO.camBorderMin == Vector3.zero? stageDataSO.borderMin: stageDataSO.camBorderMin;
+
         lockCamera = !stageDataSO.dynamicCamera;
         // If camera is locked, set to hard zoom and return
         if (lockCamera || !pause.dynamicCameraOverride)
@@ -80,16 +85,16 @@ public class StageCamera : MonoBehaviour
             float requiredSize = Mathf.Max(requiredFromHeight, requiredFromWidth, minZoom);
 
             //clamp required size to make sure the camera doesnt zoom out past the stage bounds
-            float maxSizeFromStageBoundsX = (stageDataSO.borderMax.x - stageDataSO.borderMin.x) * 0.5f / Mathf.Max(0.0001f, aspect);
-            float maxSizeFromStageBoundsY = (stageDataSO.borderMax.y - stageDataSO.borderMin.y) * 0.5f;
+            float maxSizeFromStageBoundsX = (camBorderMax.x - camBorderMin.x) * 0.5f / Mathf.Max(0.0001f, aspect);
+            float maxSizeFromStageBoundsY = (camBorderMax.y - camBorderMin.y) * 0.5f;
             float maxSizeFromStageBounds = Mathf.Min(maxSizeFromStageBoundsX, maxSizeFromStageBoundsY)/*-screenEdgeBuffer*/;
             requiredSize = Mathf.Min(requiredSize, maxSizeFromStageBounds, maxZoom);
 
             float newZoom = Mathf.Clamp(requiredSize, minZoom, maxZoom);
 
             //clamp target to stage bounds
-            target.x = Mathf.Clamp(target.x, stageDataSO.borderMin.x + cam.orthographicSize * aspect, stageDataSO.borderMax.x - cam.orthographicSize * aspect);
-            target.y = Mathf.Clamp(target.y, stageDataSO.borderMin.y + cam.orthographicSize, stageDataSO.borderMax.y - cam.orthographicSize);
+            target.x = Mathf.Clamp(target.x, camBorderMin.x + cam.orthographicSize * aspect, camBorderMax.x - cam.orthographicSize * aspect);
+            target.y = Mathf.Clamp(target.y, camBorderMin.y + cam.orthographicSize, camBorderMax.y - cam.orthographicSize);
 
 
 

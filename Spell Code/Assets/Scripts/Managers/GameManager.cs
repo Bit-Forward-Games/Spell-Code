@@ -1096,7 +1096,7 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
@@ -2081,6 +2081,49 @@ public class GameManager : MonoBehaviour
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
+    //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
+    public int GetPlayerWithHighestBounty()
+    {
+        //if all bounties are 0,...
+        if(AllBountiesAreZero())
+        {
+            //return -1
+            return -1;
+        }
+
+        //create a variable to hold the index of the player with the highest bounty
+        int _playerWithHighestBountyIndex = 0;
+
+        //iterate through players list and find the player with the highest bounty      
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i].ramBounty > players[_playerWithHighestBountyIndex].ramBounty)
+            {
+                _playerWithHighestBountyIndex = i;
+            }
+        }
+
+        //return the player index with the highest bounty
+        return _playerWithHighestBountyIndex;
+    }
+
+    public bool AllBountiesAreZero()
+    {
+        //iterate through players array
+        for (int i = 0; i < playerCount; i++)
+        {
+            //if any player bounty is NOT 0,...
+            if (players[i].ramBounty != 0)
+            {
+                //return false
+                return false;
+            }
+        }
+
+        //if all player bounties were 0, return true
+        return true;
+    }
+
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
     {
 
@@ -2602,7 +2645,7 @@ public class GameManager : MonoBehaviour
     {
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
@@ -2615,7 +2658,7 @@ public class GameManager : MonoBehaviour
 
         if (MatchMessageManager.Instance != null)
         {
-            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, newStageIndex, stageRngState);
         }
     }
 
@@ -2629,7 +2672,7 @@ public class GameManager : MonoBehaviour
 
         if (gameStages.Count <= 0)
         {
-            gameStages = new List<StageDataSO>(stages);
+            FillGameStages();
         }
 
         if (stageIndex >= 0 && stageIndex < stages.Count)
@@ -3490,12 +3533,28 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Build the available stage pool for this match based on player count.
+    /// </summary>
+    private void FillGameStages()
+    {
+        gameStages = new List<StageDataSO>(stages);
+
+        if (playerCount == 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
+        }
+        else if (playerCount > 2)
+        {
+            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+        }
+    }
+
+    /// <summary>
     /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
     /// </summary>
     private void RandomizeGameStages()
     {
-        //copy all stages from stages into gameStages
-        gameStages = new List<StageDataSO>(stages);
+        FillGameStages();
 
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 

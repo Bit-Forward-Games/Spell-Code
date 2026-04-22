@@ -140,6 +140,7 @@ public class HitboxManager : MonoBehaviour
                             //}
                             cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
+                            projectile.ownerSpell?.ShareHitIgnoreList();
                             projectile.owner.spellsHit++;
                         }
                     }

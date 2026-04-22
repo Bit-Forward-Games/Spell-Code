@@ -72,40 +72,46 @@ MonoBehaviour:
   - visualEffectName: 7
     particleSystemPrefab: {fileID: 5475398249184600050, guid: ed0097c4fd5eb7648af883140eb652a4, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 9
+  - visualEffectName: 10
     particleSystemPrefab: {fileID: 5475398249184600050, guid: cf1a4ec86db264146a31376d7f6804a8, type: 3}
     numParticleSystemsPerPlayer: 3
-  - visualEffectName: 10
+  - visualEffectName: 11
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 4c424583f3d8b7b46b21ddb56aa7602f, type: 3}
     numParticleSystemsPerPlayer: 3
-  - visualEffectName: 11
+  - visualEffectName: 12
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 67f9c280e364e1b47a1328d893d6cc05, type: 3}
     numParticleSystemsPerPlayer: 3
-  - visualEffectName: 12
+  - visualEffectName: 13
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 39021a632c012114b80000478a10ad2a, type: 3}
     numParticleSystemsPerPlayer: 3
-  - visualEffectName: 13
+  - visualEffectName: 14
     particleSystemPrefab: {fileID: 5475398249184600050, guid: c896e9074d21cd4488d67ddee48bdc1e, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 14
+  - visualEffectName: 15
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 637346d9c9b07804790596cbd1d64cc2, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 15
+  - visualEffectName: 16
     particleSystemPrefab: {fileID: 5475398249184600050, guid: cdb8613663093474eab53bbc1c65d142, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 17
+  - visualEffectName: 18
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 78448be233b70984e8da8eadbae15ea9, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 18
+  - visualEffectName: 19
     particleSystemPrefab: {fileID: 5475398249184600050, guid: e0479ef73a2466c4d93641663b1434f9, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 16
+  - visualEffectName: 17
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 868d5ac7134757c4ca25136ef194fce3, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 19
+  - visualEffectName: 20
     particleSystemPrefab: {fileID: 5475398249184600050, guid: ded98e9b7f1d61643b7295f18469e7e3, type: 3}
     numParticleSystemsPerPlayer: 1
-  - visualEffectName: 20
+  - visualEffectName: 21
     particleSystemPrefab: {fileID: 5475398249184600050, guid: e1ac2de9662dc844aa980ec63134f2ed, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 9
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 2b4c01cbb4642a34282c796e284d78bf, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 22
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 6674d1b41d22be94cabb477e9053bf9c, type: 3}
     numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []

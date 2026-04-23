@@ -80,7 +80,7 @@ public class SpellCode_Gate : MonoBehaviour
                         isOpen = true;
 
                         //Play the glass break visual effect at the gate position
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID);
+                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
 
                         return;
                     }

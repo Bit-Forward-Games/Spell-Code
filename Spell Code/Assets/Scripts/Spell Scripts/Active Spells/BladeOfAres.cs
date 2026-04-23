@@ -9,7 +9,7 @@ public class BladeOfAres : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0111_0000_0010; 
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
+        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
         description = "Short-range slash.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nDeals increased damage based on Reps<sprite name=\"Reps\">.";
 
@@ -25,6 +25,9 @@ public class BladeOfAres : SpellData
                 owner.reps += 1;
                 owner.SpawnToast("+1 REP", Color.yellow);
                 defender.TakeEffectDamage(owner.reps * 2, owner);
+                break;
+            case ProcCondition.ActiveOnCast:
+                owner.lightArmor = true;
                 break;
             default:
                 break;

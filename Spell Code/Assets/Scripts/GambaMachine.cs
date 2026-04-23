@@ -227,7 +227,7 @@ public class GambaMachine : MonoBehaviour
         //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
         if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
         {
-            Debug.Log("GAMBA RESET TIMER GOING");
+            //Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 60)
@@ -249,7 +249,7 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer.spellList.Count > 0)
             {
                 gambaAnimator.SetBool("isActive", false);
-                if (!isRollback) ClearFloppysForPID(ownerPID);
+                ClearFloppysForPID(ownerPID);
             }
 
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
@@ -263,7 +263,7 @@ public class GambaMachine : MonoBehaviour
             SimulateShopOnline(isRollback);
         }
 
-        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        if (activeScene.name != "Shop" && gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
         {
             if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
@@ -284,7 +284,7 @@ public class GambaMachine : MonoBehaviour
         {
             activatedCount = 3;
             gambaAnimator.SetBool("isActive", false);
-            if (!isRollback) ClearFloppysForPID(ownerPID);
+            ClearFloppysForPID(ownerPID);
         }
 
         if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
@@ -293,12 +293,12 @@ public class GambaMachine : MonoBehaviour
             gambaAnimator.SetBool("isActive", false);
             activatedCount++;
 
-            if (!isRollback) ClearFloppysForPID(ownerPID);
+            ClearFloppysForPID(ownerPID);
 
-            if (TryGetShopDiskLocations(ownerPID, out Vector2 loc1, out Vector2 loc2, out Vector2 loc3))
-            {
-                SpawnThreeFloppysOnline(ownerPID, loc1, loc2, loc3, isRollback);
-            }
+            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
+            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
+            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
+            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
         }
 
         if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
@@ -315,8 +315,21 @@ public class GambaMachine : MonoBehaviour
     private void ClearFloppysForPID(int pid)
     {
         List<GameObject> list = GetFloppyListForPID(pid);
-        foreach (GameObject flop in list) { Destroy(flop); }
+        foreach (GameObject flop in list)
+        {
+            if (flop == null) continue;
+            flop.SetActive(false);
+            Destroy(flop);
+        }
         list.Clear();
+    }
+
+    public void ClearTrackedFloppyReferences()
+    {
+        p1_floppys.Clear();
+        p2_floppys.Clear();
+        p3_floppys.Clear();
+        p4_floppys.Clear();
     }
 
     private List<GameObject> GetFloppyListForPID(int pid)
@@ -327,41 +340,32 @@ public class GambaMachine : MonoBehaviour
         return p4_floppys;
     }
 
-    private bool TryGetLobbyDiskLocation(int pid, out Vector2 location)
-    {
-        location = Vector2.zero;
-        if (pid == 1) { location = diskLocations[2]; return true; }
-        if (pid == 2) { location = diskLocations[3]; return true; }
-        if (pid == 3) { location = diskLocations[8]; return true; }
-        if (pid == 4) { location = diskLocations[9]; return true; }
-        return false;
-    }
-
-    private bool TryGetShopDiskLocations(int pid, out Vector2 loc1, out Vector2 loc2, out Vector2 loc3)
-    {
-        loc1 = Vector2.zero;
-        loc2 = Vector2.zero;
-        loc3 = Vector2.zero;
-
-        if (pid == 1) { loc1 = diskLocations[0]; loc2 = diskLocations[1]; loc3 = diskLocations[2]; return true; }
-        if (pid == 2) { loc1 = diskLocations[3]; loc2 = diskLocations[4]; loc3 = diskLocations[5]; return true; }
-        if (pid == 3) { loc1 = diskLocations[6]; loc2 = diskLocations[7]; loc3 = diskLocations[8]; return true; }
-        if (pid == 4) { loc1 = diskLocations[9]; loc2 = diskLocations[10]; loc3 = diskLocations[11]; return true; }
-
-        return false;
-    }
-
     private void SpawnFloppysForOwnerOnline(bool isRollback = false)
     {
         if (activeScene.name != "MainMenu") return;
 
-        if (!isRollback)
+        bool playVfx = !isRollback;
+        bool logChoice = !isRollback;
+
+        if (ownerPID == 1)
         {
             ClearFloppysForPID(ownerPID);
-            if (TryGetLobbyDiskLocation(ownerPID, out Vector2 spawnLocation))
-            {
-                SpawnFloppyDisk(ownerPID, spawnLocation, startingSpells[startingSpellPos]); // real starter
-            }
+            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 2)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 3)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
+        }
+        if (ownerPID == 4)
+        {
+            ClearFloppysForPID(ownerPID);
+            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         // No RNG consumed in this path (named spell), so no rollback RNG needed
 
@@ -390,6 +394,19 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
+    public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
+    {
+        ownerPlayer = activeOwner;
+        resetTimer = 0;
+        activatedCount = ownerCanUseShop ? 0 : 3;
+        ClearFloppysForPID(ownerPID);
+
+        if (gambaAnimator != null)
+        {
+            gambaAnimator.SetBool("isActive", ownerCanUseShop);
+        }
+    }
+
     public int GetStartingSpellPos()
     {
         return startingSpellPos;
@@ -415,149 +432,122 @@ public class GambaMachine : MonoBehaviour
             true);
     }
 
+    private List<string> BuildAvailableSpellPool(int pid)
+    {
+        spells = new List<string>();
+
+        if (SpellDictionary.Instance == null || SpellDictionary.Instance.spellDict == null)
+        {
+            return spells;
+        }
+
+        PlayerController player = gameManager.players[pid - 1];
+        foreach (var item in SpellDictionary.Instance.spellDict)
+        {
+            if (!ShouldRemoveSpellFromPool(player, item.Key))
+            {
+                spells.Add(item.Key);
+            }
+        }
+
+        if (gameManager != null && gameManager.isOnlineMatchActive)
+        {
+            spells.Sort(StringComparer.Ordinal);
+        }
+
+        return spells;
+    }
+
+    private bool ShouldRemoveSpellFromPool(PlayerController player, string spellName)
+    {
+        if (player == null ||
+            SpellDictionary.Instance == null ||
+            SpellDictionary.Instance.spellDict == null ||
+            !SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData spellData) ||
+            spellData == null)
+        {
+            return false;
+        }
+
+        if (player.HasReachedSpellCopyLimit(spellName))
+        {
+            Debug.Log("Copy cap reached: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (spellData.spellType != SpellType.Passive)
+        {
+            return false;
+        }
+
+        Brand primaryBrand = spellData.brands != null && spellData.brands.Length > 0
+            ? spellData.brands[0]
+            : Brand.None;
+
+        if (!player.vWave && primaryBrand == Brand.VWave)
+        {
+            Debug.Log("VWave passive: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (!player.killeez && primaryBrand == Brand.Killeez)
+        {
+            Debug.Log("Killeez passive: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (!player.DemonX && primaryBrand == Brand.DemonX)
+        {
+            Debug.Log("DemonX passive: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (!player.bigStox && primaryBrand == Brand.BigStox)
+        {
+            Debug.Log("BigStox passive: " + spellName + " has been removed");
+            return true;
+        }
+
+        return false;
+    }
+
+    private void RemoveAlreadySpawnedChoicesFromPool(int pid)
+    {
+        List<GameObject> floppyList = GetFloppyListForPID(pid);
+        for (int i = 0; i < floppyList.Count; i++)
+        {
+            GameObject floppyDisk = floppyList[i];
+            if (floppyDisk == null)
+            {
+                continue;
+            }
+
+            SpellCode_FloppyDisk diskInfo = floppyDisk.GetComponent<SpellCode_FloppyDisk>();
+            if (diskInfo != null)
+            {
+                spells.Remove(diskInfo.diskName);
+            }
+        }
+    }
+
     public GameObject SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "", bool playVfx = true, bool logChoice = true)
     {
         List<GameObject> floppys = new List<GameObject>();
         //random spell
         if (name == "")
         {
-            spells = new List<string>();
+            BuildAvailableSpellPool(ownerPID);
+            RemoveAlreadySpawnedChoicesFromPool(ownerPID);
 
-            //list of spells in player[ownerPID]'s spellbook
-            List<string> playerSpells = new List<string>();
-            List<string> removedSpells = new List<string>();
-
-            //fill list of all spells in dictionary
-            foreach (var item in SpellDictionary.Instance.spellDict)
+            if (spells.Count == 0)
             {
-                spells.Add(item.Key);
-            }
-            if (gameManager != null && gameManager.isOnlineMatchActive)
-            {
-                spells.Sort(StringComparer.Ordinal);
-            }
-
-            //fill list of specific player's spells
-            for (int i = 0; i < gameManager.players[ownerPID - 1].spellList.Count; i++)
-            {
-                playerSpells.Add(gameManager.players[ownerPID - 1].spellList[i].spellName);
-            }
-
-            //remove possible dupes of various reasons
-            foreach (var spell in playerSpells)
-            {
-                //remove passive spell if the player has it
-                if (SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
-                {
-                    Debug.Log("Dupe Passive: " + spell + " has been removed");
-                    removedSpells.Add(spell);
-                }
-
-                
-            }
-
-            //remove passives from the pool if the player has no active for them
-            foreach (var spell in spells)
-            {
-                if (!gameManager.players[ownerPID - 1].vWave)
-                {
-                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.VWave && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
-                    {
-                        if (!removedSpells.Contains(spell))
-                        {
-                            removedSpells.Add(spell);
-                            Debug.Log("VWave passive: " + spell + " has been removed");
-                        }
-                    }
-                }
-                if (!gameManager.players[ownerPID - 1].killeez)
-                {
-                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.Killeez && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
-                    {
-                        if (!removedSpells.Contains(spell))
-                        {
-                            removedSpells.Add(spell);
-                            Debug.Log("Killeez passive: " + spell + " has been removed");
-                        }
-                    }
-                }
-                if (!gameManager.players[ownerPID - 1].DemonX)
-                {
-                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.DemonX && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
-                    {
-                        if (!removedSpells.Contains(spell))
-                        {
-                            removedSpells.Add(spell);
-                            Debug.Log("DemonX passive: " + spell + " has been removed");
-                        }
-                    }
-                }
-                if (!gameManager.players[ownerPID - 1].bigStox)
-                {
-                    if (SpellDictionary.Instance.spellDict[spell].brands[0] == Brand.BigStox && SpellDictionary.Instance.spellDict[spell].spellType == SpellType.Passive)
-                    {
-                        if (!removedSpells.Contains(spell))
-                        {
-                            removedSpells.Add(spell);
-                            Debug.Log("BigStox passive: " + spell + " has been removed");
-                        }
-                    }
-                }
-            }
-
-            foreach (string spell in removedSpells)
-            {
-                if (spells.Contains(spell)) { spells.Remove(spell); }
+                Debug.LogWarning("No valid spells left in the pool for this player.");
+                return null;
             }
 
             //get a random spell
             int randomInt = GameManager.Instance.GetNextRandom(0, spells.Count);
             string spellToAdd = spells[randomInt];
-
-            if (ownerPID == 1)
-            {
-                foreach (GameObject flop in p1_floppys)
-                {
-                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd) 
-                    {
-                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
-                    }
-                }
-            }
-            if (ownerPID == 2)
-            {
-                foreach (GameObject flop in p2_floppys)
-                {
-                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
-                    {
-                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
-                    }
-                }
-            }
-            if (ownerPID == 3)
-            {
-                foreach (GameObject flop in p3_floppys)
-                {
-                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
-                    {
-                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
-                    }
-                }
-            }
-            if (ownerPID == 4)
-            {
-                foreach (GameObject flop in p4_floppys)
-                {
-                    if (flop.GetComponent<SpellCode_FloppyDisk>().diskName == spellToAdd)
-                    {
-                        Debug.Log("Player #" + ownerPID + " Duplicate disk:" + spellToAdd + ", rerolling");
-                        return SpawnFloppyDisk(ownerPID, location, "", playVfx, logChoice);
-                    }
-                }
-            }
 
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
             SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
@@ -683,30 +673,7 @@ public class GambaMachine : MonoBehaviour
     private void SpawnThreeFloppysOnline(int pid, Vector2 loc1, Vector2 loc2, Vector2 loc3, bool isRollback = false)
     {
         // Build pool once, removing already-spawned spells
-        spells = new List<string>();
-        foreach (var item in SpellDictionary.Instance.spellDict)
-            spells.Add(item.Key);
-        spells.Sort(StringComparer.Ordinal); // deterministic order for online
-
-        // Remove passives the player doesn't qualify for
-        List<string> removedSpells = new List<string>();
-        PlayerController player = gameManager.players[pid - 1];
-        foreach (var spell in spells)
-        {
-            SpellData data = SpellDictionary.Instance.spellDict[spell];
-            if (data.spellType == SpellType.Passive && player.spellList.Any(s => s.spellName == spell))
-                removedSpells.Add(spell);
-            if (!player.vWave && data.brands[0] == Brand.VWave && data.spellType == SpellType.Passive)
-                removedSpells.Add(spell);
-            if (!player.killeez && data.brands[0] == Brand.Killeez && data.spellType == SpellType.Passive)
-                removedSpells.Add(spell);
-            if (!player.DemonX && data.brands[0] == Brand.DemonX && data.spellType == SpellType.Passive)
-                removedSpells.Add(spell);
-            if (!player.bigStox && data.brands[0] == Brand.BigStox && data.spellType == SpellType.Passive)
-                removedSpells.Add(spell);
-        }
-        foreach (string s in removedSpells)
-            spells.Remove(s);
+        BuildAvailableSpellPool(pid);
 
         // Pick 3 unique spells with single RNG calls each, no recursion
         // RNG must be consumed identically during rollback to keep state in sync
@@ -722,10 +689,7 @@ public class GambaMachine : MonoBehaviour
             string spellToAdd = available[randomInt];
             chosen.Add(spellToAdd);
 
-            if (!isRollback)
-            {
-                SpawnFloppyDisk(pid, locations[i], spellToAdd); // use the named overload, no RNG
-            }
+            SpawnFloppyDisk(pid, locations[i], spellToAdd, !isRollback, !isRollback); // use the named overload, no RNG
         }
     }
 }

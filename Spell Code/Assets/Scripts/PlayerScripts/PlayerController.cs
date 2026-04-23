@@ -11,6 +11,7 @@ using TMPro;
 //using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.U2D;
 using UnityEngine.UI;
@@ -424,6 +425,11 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
+        //play the spawning VFX
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+
+        //stop playing blocking VFX
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
 
         //initialize resources
         flowState = 0;
@@ -453,14 +459,93 @@ public class PlayerController : MonoBehaviour
 
     
 
-    public void AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
+    public static int GetSpellInputLength(SpellData spell)
+    {
+        if (spell == null || spell.spellType != SpellType.Active)
+        {
+            return 0;
+        }
+
+        return (int)(spell.spellInput & 0xF);
+    }
+
+    public static int GetMaxCopiesForSpell(SpellData spell)
+    {
+        if (spell == null)
+        {
+            return 0;
+        }
+
+        if (spell.spellType == SpellType.Passive)
+        {
+            return 1;
+        }
+
+        int inputLength = Mathf.Max(1, GetSpellInputLength(spell));
+        return Mathf.Max(1, 5 - inputLength);
+    }
+
+    public int GetSpellCountByName(string spellName)
+    {
+        int spellCount = 0;
+
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellName == spellName)
+            {
+                spellCount++;
+            }
+        }
+
+        return spellCount;
+    }
+
+    public bool HasReachedSpellCopyLimit(string spellName)
+    {
+        if (SpellDictionary.Instance == null ||
+            SpellDictionary.Instance.spellDict == null ||
+            !SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData spellData) ||
+            spellData == null)
+        {
+            return false;
+        }
+
+        return GetSpellCountByName(spellName) >= GetMaxCopiesForSpell(spellData);
+    }
+
+    public bool CanAddSpellToSpellList(string spellToAdd)
+    {
+        if (spellList.Count >= 6)
+        {
+            return false;
+        }
+
+        return !HasReachedSpellCopyLimit(spellToAdd);
+    }
+
+    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
     {
         if (spellList.Count >= 6)
         {
             Debug.LogWarning("Spell List Full, cannot add more spells!");
-            return;
+            return false;
         }
-        SpellData targetSpell = (SpellData)SpellDictionary.Instance.spellDict[spellToAdd];
+
+        if (SpellDictionary.Instance == null ||
+            SpellDictionary.Instance.spellDict == null ||
+            !SpellDictionary.Instance.spellDict.TryGetValue(spellToAdd, out SpellData targetSpell) ||
+            targetSpell == null)
+        {
+            Debug.LogWarning("Spell not found in dictionary, cannot add!");
+            return false;
+        }
+
+        if (HasReachedSpellCopyLimit(spellToAdd))
+        {
+            Debug.LogWarning($"Spell copy limit reached for {spellToAdd}, cannot add more copies!");
+            return false;
+        }
+
         SpellData spellInstance = Instantiate(targetSpell);
         spellList.Add(spellInstance);
         spellInstance.owner = this;
@@ -501,6 +586,8 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Player has unlocked BigStox passives");
             }
         }
+
+        return true;
     }
 
     private ushort GetPersistentStockStabilityFromSpellList()
@@ -570,7 +657,7 @@ public class PlayerController : MonoBehaviour
         Debug.LogWarning("Spell not found in spell list, cannot remove!");
     }
 
-    public void AdjustBrightnessForIframes()
+    public void AdjustIframeAndArmorVFX()
     {
         float targetBrightness = IsInvincible() ? 0.128f : 1.0f;
         MaterialPropertyBlock propertyBlock = new();
@@ -579,6 +666,19 @@ public class PlayerController : MonoBehaviour
         {
             propertyBlock.SetFloat("_Brightness", targetBrightness);
             spriteRenderer.SetPropertyBlock(propertyBlock);
+        }
+
+        //if the player does not have light armor,...
+        if (!lightArmor)
+        {
+            //disable blocking VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
+        }
+        //else the player does have light armer,...
+        else
+        {
+            //begin to play the blobking visual effect
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
         }
     }
 
@@ -1239,10 +1339,7 @@ public class PlayerController : MonoBehaviour
                         storedCodeDuration += 3;
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
-                            lightArmor = false;
-
-                            //stop playing the blocking visual effect
-                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
+                            //lightArmor = false;
 
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
@@ -1258,9 +1355,6 @@ public class PlayerController : MonoBehaviour
                         if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
                             lightArmor = false;
-
-                            //stop playing the blocking visual effect
-                            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
@@ -1289,9 +1383,6 @@ public class PlayerController : MonoBehaviour
                     if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         lightArmor = false;
-
-                        //stop playing the blocking visual effect
-                        VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                         SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -1492,8 +1583,8 @@ public class PlayerController : MonoBehaviour
                         basicSpawnOverride = "";
                     }
 
-                        //basic spell is fired
-                        basicsFired++;
+                    //basic spell is fired
+                    basicsFired++;
 
                     //make input display flash red to indicate incorrect sequence
 
@@ -1635,9 +1726,7 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
 
         //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
-        AdjustBrightnessForIframes();
-
-
+        AdjustIframeAndArmorVFX();
 
         //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
         Scene activeScene = SceneManager.GetActiveScene();
@@ -2159,9 +2248,6 @@ public class PlayerController : MonoBehaviour
 
                 lightArmor = false;
 
-                //stop playing the blocking visual effect
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
-
                 //reset storedCode if you get hit
                 // storedCode = 0;
                 // storedCodeDuration = 0;
@@ -2202,9 +2288,6 @@ public class PlayerController : MonoBehaviour
 
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
-
-                //begin to play the blobking visual effect
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
 
                 if (!isGrounded)
                 {
@@ -2249,9 +2332,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
                 //stop continuously playing the code weave sound
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
-
-                //stop playing the blocking visual effect
-                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID);
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 lightArmor = false;
@@ -2377,8 +2457,9 @@ public class PlayerController : MonoBehaviour
                 {
                     SpawnToast($"ARMOR BREAK!", Color.white);
 
-                    //----------------------------------------------@Max White Put the armor shatter vfx here-------------------------------------------------
-                    //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position, pID, facingRight);
+                    //play armor shatter visual effect
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.ARMOR_BREAK, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
+
                 }
             }
 
@@ -2394,7 +2475,7 @@ public class PlayerController : MonoBehaviour
             
 
             HandleDamage(attacker, hitboxData.damage);
-            ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+            //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
             
             comboCounter++;
             if (comboCounter >= 4)
@@ -2521,8 +2602,24 @@ public class PlayerController : MonoBehaviour
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
-            //play the death visual effect
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position, pID);
+            //if all player bounties are 0,...
+            if(GameManager.Instance.AllBountiesAreZero())
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }
+            //else if this player is the one with the highest bounty,...
+            else if(GameManager.Instance.GetPlayerWithHighestBounty() + 1 == pID)
+            {
+                //play the bounty death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }
+            //else this player is NOT the one with the highest bounty,...
+            else
+            {
+                //play the death visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
+            }    
 
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 
@@ -2560,32 +2657,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// This function checks for wall bound collisions and adjusts the player's position and speed accordingly.
-    /// </summary>
-    /// <param name="rightWall"></param>
-    /// <param name="checkOnly"></param>
-    /// <returns></returns>
-    public bool CheckWall(bool rightWall, bool checkOnly = false)
-    {
-        Fixed wallXval = Fixed.FromInt(rightWall ? StageData.Instance.rightWallXval : StageData.Instance.leftWallXval);
-        Fixed offset = rightWall ? playerWidth / Fixed.FromInt(2) : -playerWidth / Fixed.FromInt(2);
-
-        // Check if the player has hit the wall and adjust position and speed
-        if ((rightWall && position.X + hSpd + playerWidth / Fixed.FromInt(2) >= wallXval) ||
-            (!rightWall && position.X + hSpd - playerWidth / Fixed.FromInt(2) <= wallXval))
-        {
-            if (checkOnly)
-            {
-                return true;
-            }
-            position = new FixedVec2(wallXval - offset, position.Y);
-            hSpd = Fixed.FromInt(0);
-            return true;
-        }
-
-        return false;
-    }
+    
 
     public void ResolveReferences()
     {
@@ -2615,25 +2687,6 @@ public class PlayerController : MonoBehaviour
             _pendingHitboxOwnerIndex = -1;
             _pendingHitboxProjectileIndex = -1;
         }
-    }
-
-    public bool IsCloserToStageCenter()
-    {
-        // 1) compute the absolute center of the stage
-        Fixed leftWall = Fixed.FromInt(StageData.Instance.leftWallXval);
-        Fixed rightWall = Fixed.FromInt(StageData.Instance.rightWallXval);
-        Fixed stageCenter = (leftWall + rightWall) / Fixed.FromInt(2);
-
-        // 2) distance from player to center
-        Fixed distToCenter = Fixed.Abs(position.X - stageCenter);
-
-        // 3) distance to the nearest wall
-        Fixed distToLeft = Fixed.Abs(position.X - leftWall);
-        Fixed distToRight = Fixed.Abs(position.X - rightWall);
-        Fixed distToWall = Fixed.Min(distToLeft, distToRight);
-
-        // 4) are we closer to center than to the wall?
-        return distToCenter < distToWall;
     }
 
 

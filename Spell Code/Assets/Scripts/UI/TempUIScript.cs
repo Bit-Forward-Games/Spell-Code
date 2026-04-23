@@ -14,6 +14,8 @@ public class TempUIScript : MonoBehaviour
     public Image[] followPlayerHpBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
+    public RectTransform[] SpellInputBorder;
+    public TextMeshPro[] SpellInputs;
     public GameObject[] onPlayerUI;
     public GameObject[] emptyQuadrants;
     public Sprite[] spellOnCooldownIcon;
@@ -54,11 +56,17 @@ public class TempUIScript : MonoBehaviour
     private Coroutine activeTypeCoroutine;
     private Coroutine activeReverseTypeCoroutine;
 
+    public float baseScale = 0f;
+    public float scalePerChar = 0.05f;
+    public float maxScale = 2f;
+
     void Start()
     {
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
+        SpellInputBorder = new RectTransform[4];
+        SpellInputs = new TextMeshPro[4];
         onPlayerUI = new GameObject[4];
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
         gameManager = GameManager.Instance;
@@ -125,6 +133,16 @@ public class TempUIScript : MonoBehaviour
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
+            SpellInputBorder[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell Input Border").GetComponent<RectTransform>();
+            SpellInputs[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell_Inputs").GetComponent<TextMeshPro>();
+
+            int charCount = SpellInputs[i].text.Length;
+            float targetScale = Mathf.Clamp(baseScale + (charCount * scalePerChar), baseScale, maxScale);
+
+            // Smoothly lerp toward target scale
+            Vector3 currentScale = SpellInputBorder[i].localScale;
+            float smoothedScale = Mathf.Lerp(currentScale.x, targetScale, Time.deltaTime * 10f);
+            SpellInputBorder[i].localScale = new Vector3(smoothedScale, 0.025f, 1f);
 
             int _ramIncrease = GameManager.Instance.players[i].totalRam;
 

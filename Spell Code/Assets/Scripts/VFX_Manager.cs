@@ -14,11 +14,12 @@ using TMPro;
 public enum VisualEffects
 {
     DASH_DUST, BOUNTY_AURA, DEMON_AURA, STOCK_AURA, FLOW_STATE_AURA, REPS_AURA, 
-    DAMAGE, JUMP_DUST, DEATH, 
+    DAMAGE, JUMP_DUST, DEATH, BOUNTY_DEATH,
     VWAVE_FLOPPY_SPAWN, KILLEEZ_FLOPPY_SPAWN, DEMONX_FLOPPY_SPAWN, BIGSTOX_FLOPPY_SPAWN, 
     COMBO_BREAKER, CODE_FAIL,
     VWAVE_CAST, KILLEEZ_CAST, DEMONX_CAST, BIGSTOX_CAST,
-    BLOCKED, BLOCKING
+    BLOCKED, BLOCKING,
+    SPAWN, GLASS_BREAK, ARMOR_BREAK
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -340,7 +341,7 @@ public class VFX_Manager : MonoBehaviour
         _particleSystem.Play();
     }
 
-    public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
+    public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
@@ -354,8 +355,16 @@ public class VFX_Manager : MonoBehaviour
             {
                 continue;
             }
+
             //stop playing the particle effect
             _particleSystem.Stop();
+
+            //if this particle system should clear all emitted particles,...
+            if (clearParticles)
+            {
+                //clear all emitted particles
+                _particleSystem.Clear();
+            }
         }
     }
 

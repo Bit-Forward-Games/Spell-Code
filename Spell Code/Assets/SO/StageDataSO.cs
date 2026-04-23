@@ -9,6 +9,13 @@ public enum BorderType
     DeathZone
 }
 
+public enum StageType
+{
+    General,
+    Duel,
+    Party
+}
+
 
 [CreateAssetMenu(fileName = "StageDataSO", menuName = "Scriptable Objects/StageDataSO")]
 public class StageDataSO : ScriptableObject
@@ -22,7 +29,10 @@ public class StageDataSO : ScriptableObject
     public Vector3[] activatableSolidExtent;
     public Vector3 borderMin;
     public Vector3 borderMax;
+    public Vector3 camBorderMin;
+    public Vector3 camBorderMax;
     public BorderType borderType;
+    public StageType stageType;
     public bool dynamicCamera;
 }
 

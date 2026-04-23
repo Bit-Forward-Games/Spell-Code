@@ -114,4 +114,10 @@ MonoBehaviour:
   - visualEffectName: 22
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 6674d1b41d22be94cabb477e9053bf9c, type: 3}
     numParticleSystemsPerPlayer: 1
+  - visualEffectName: 23
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 85f797cb427c6404aa05b5c2c5279485, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 24
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 341ff42390635ab49abee441d29359c3, type: 3}
+    numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []

@@ -50,7 +50,7 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
                     yKnockback = 3,
                     damage = 15,
                     hitstun = 10,
-                    attackLvl = 2,
+                    attackLvl = 1,
                 }
             },
             hitbox2 = new List<HitboxData>(),

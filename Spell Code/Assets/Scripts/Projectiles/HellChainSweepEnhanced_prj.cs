@@ -6,12 +6,12 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class AsuranBladesSlide_Projectile : BaseProjectile
+public class HellChainSweepEnhanced_prj : BaseProjectile
 {
 
     protected override void InitializeDefaults()
     {
-        projName = "Asuran Blades Slide";
+        projName = "Hell-Chain Sweep Enhanced";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 300 logic frames
@@ -36,12 +36,12 @@ public class AsuranBladesSlide_Projectile : BaseProjectile
                     xOffset = 0,
                     yOffset = 16,
                     width = 38,
-                    height = 16,
+                    height = 20,
                     xKnockback = 5,
                     yKnockback = 1,
-                    damage = 15,
+                    damage =  20,
                     hitstun = 30,
-                    attackLvl = 1,
+                    attackLvl = 2,
                 }
             },
             hitbox2 = new List<HitboxData>(),

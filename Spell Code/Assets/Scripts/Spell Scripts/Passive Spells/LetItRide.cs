@@ -5,11 +5,11 @@ using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using System.Linq;
 
-public class PennyStockPeddler : SpellData
+public class LetItRide : SpellData
 {
     public ushort convertedStockStability = 0;
 
-    public PennyStockPeddler()
+    public LetItRide()
     {
         spellName = "Let It Ride";
         cooldown = 1;

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 151233401115657828}
   - component: {fileID: -4971000813473237039}
   m_Layer: 0
-  m_Name: PennyStockPeddler
+  m_Name: LetItRide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

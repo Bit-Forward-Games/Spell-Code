@@ -16,7 +16,7 @@ public class AsuranBlades : SpellData
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];
 
-        description = "Throw 3 shurikens downward.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, slide deals damage.";
+        description = "Throw 3 shurikens downward.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, throw more shurikens.";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;
@@ -59,7 +59,12 @@ public class AsuranBlades : SpellData
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY-2)));
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY + 2)));
-
+                if(owner.demonAura >= 50)
+                {
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX+1), Fixed.FromInt(spawnOffsetY+2)));
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX+3), Fixed.FromInt(spawnOffsetY+2)));
+                
+                }
             }
             cooldownCounter = cooldown;
         }
@@ -76,13 +81,12 @@ public class AsuranBlades : SpellData
                 owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                 owner.SpawnToast("+20 DEMON AURA", Color.red);
                 break;
-            //OnHitBasic: Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
-            case ProcCondition.OnSlide:
-                if (owner.demonAura >= 50)
-                {
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(0)));
-                }
-                break;
+            // case ProcCondition.OnSlide:
+            //     if (owner.demonAura >= 50)
+            //     {
+            //         ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(0)));
+            //     }
+            //     break;
             default:
                 break;
         }

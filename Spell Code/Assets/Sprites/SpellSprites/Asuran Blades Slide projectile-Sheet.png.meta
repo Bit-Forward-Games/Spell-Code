@@ -162,7 +162,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 16
         width: 48
         height: 16
       alignment: 9
@@ -184,7 +184,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 48
-        y: 0
+        y: 16
         width: 48
         height: 16
       alignment: 9
@@ -206,7 +206,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 96
-        y: 0
+        y: 16
         width: 48
         height: 16
       alignment: 9
@@ -228,7 +228,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 144
-        y: 0
+        y: 16
         width: 48
         height: 16
       alignment: 9
@@ -241,6 +241,94 @@ TextureImporter:
       bones: []
       spriteID: bcad9f8778b59724fbc90244e7546d39
       internalID: 679130325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Asuran Blades Slide projectile-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fa504f6dc134e0c41a845cb6af70eed6
+      internalID: 1538675152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Asuran Blades Slide projectile-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 547ece85d25fa674090b62cb7157bd15
+      internalID: -567268181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Asuran Blades Slide projectile-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39bcfddcce5cf0e48a97b796f6e68435
+      internalID: -1188245532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Asuran Blades Slide projectile-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 0
+        width: 48
+        height: 16
+      alignment: 9
+      pivot: {x: 0.375, y: 0.25}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3cf53fee175b0ad42864a5b901752242
+      internalID: -2048252164
       vertices: []
       indices: 
       edges: []
@@ -263,6 +351,10 @@ TextureImporter:
       Asuran Blades Slide projectile-Sheet_1: 5051752532787065996
       Asuran Blades Slide projectile-Sheet_2: -3341605398538894058
       Asuran Blades Slide projectile-Sheet_3: 679130325
+      Asuran Blades Slide projectile-Sheet_4: 1538675152
+      Asuran Blades Slide projectile-Sheet_5: -567268181
+      Asuran Blades Slide projectile-Sheet_6: -1188245532
+      Asuran Blades Slide projectile-Sheet_7: -2048252164
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

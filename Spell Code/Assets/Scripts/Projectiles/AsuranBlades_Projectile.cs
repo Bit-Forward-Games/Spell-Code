@@ -47,7 +47,14 @@ public class AsuranBlades_Projectile : BaseProjectile
             this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * fixedSpeed);
         }
         
-        
+        if(spawnOffset.X.ToFloat() - ownerSpell.spawnOffsetX > 1)
+        {
+            this.vSpeed = Fixed.FromInt(-fixedSpeed/2);
+        }
+        else if(spawnOffset.X.ToFloat() - ownerSpell.spawnOffsetX > 0)
+        {
+            this.vSpeed = Fixed.FromInt(0);
+        }
     }
 
     public override void LoadProjectile()

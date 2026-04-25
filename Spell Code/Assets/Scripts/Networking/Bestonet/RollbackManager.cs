@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using BestoNet.Collections; // Use BestoNet collections
+using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
     public class RollbackManager : MonoBehaviour
     {
@@ -61,21 +63,24 @@ using BestoNet.Collections; // Use BestoNet collections
 
         // --- Configuration (Set these in Inspector or via code) ---
         [Header("Rollback Settings")]
-        [SerializeField] public int InputDelay = 2; // Default input delay frames
+        [SerializeField] public int InputDelay = 0; // Default input delay frames
         [SerializeField] public bool DelayBased = false; // Use delay-based netcode instead of rollback? (Usually false)
-        [SerializeField] public int MaxRollBackFrames = 7; // Max frames to rollback
-        [SerializeField] public int FrameAdvantageLimit = 4; // Threshold to start dropping frames locally
+        [SerializeField] public int MaxRollBackFrames = 4; // BestoNet default: keep rollback corrections tight
+        [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
+        [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
+        [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
 
         [Header("Timing & Sync")]
-        // [SerializeField] public int SleepTimeMicro = 1500; // Used by FPSLock, removed for now
+        [SerializeField] public bool EnableFrameExtension = true;
+        [SerializeField] public int SleepTimeMicro = 1500; // BestoNet FPSLock-style local frame extension
         [SerializeField] public float FrameExtensionLimit = 1.5f; // Threshold to start extending frames locally
         [SerializeField] public int FrameExtensionWindow = 7; // Frames over which extensions are averaged/limited
         [SerializeField] public int TimeoutFrames = 60; // Frames without sync before timeout
 
         // --- Constants ---
         // Make array sizes configurable or keep as constants
-        private const int StateArraySize = 60;
-        public const int InputArraySize = 60; // Should match StateArraySize generally
+        private const int StateArraySize = 180;
+        public const int InputArraySize = 180; // Should match StateArraySize generally
         private const int FrameAdvantageArraySize = 32;
         // --- End Constants ---
 
@@ -92,6 +97,9 @@ using BestoNet.Collections; // Use BestoNet collections
         // public int remoteFrameAdvantage { get; private set;} = 0; // Set via SetRemoteFrameAdvantage
         private int lastDroppedFrame = -1;
         private int consecutiveDrop = 0;
+        private int lastRemoteFrameForTimeout = 0;
+        private int remoteFrameStallTicks = 0;
+        private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
@@ -182,17 +190,25 @@ using BestoNet.Collections; // Use BestoNet collections
             bool delayBased,
             int maxRollbackFrames,
             int frameAdvantageLimit,
+            bool enableFrameExtension,
+            int sleepTimeMicro,
             float frameExtensionLimit,
             int frameExtensionWindow,
-            int timeoutFrames)
+            int timeoutFrames,
+            int softFramePacingThreshold,
+            int maxConsecutiveFrameDrops)
         {
             InputDelay = inputDelay;
             DelayBased = delayBased;
             MaxRollBackFrames = maxRollbackFrames;
             FrameAdvantageLimit = frameAdvantageLimit;
+            EnableFrameExtension = enableFrameExtension;
+            SleepTimeMicro = sleepTimeMicro;
             FrameExtensionLimit = frameExtensionLimit;
             FrameExtensionWindow = frameExtensionWindow;
             TimeoutFrames = timeoutFrames;
+            SoftFramePacingThreshold = softFramePacingThreshold;
+            MaxConsecutiveFrameDrops = maxConsecutiveFrameDrops;
 
             bool safeToResetHistory = GameManager.Instance == null || GameManager.Instance.frameNumber == 0;
             if (safeToResetHistory)
@@ -221,6 +237,8 @@ using BestoNet.Collections; // Use BestoNet collections
             syncFrame = 0;
             predictedRemoteFrame = 0;
             remoteFrame = 0;
+            lastRemoteFrameForTimeout = 0;
+            remoteFrameStallTicks = 0;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
@@ -228,9 +246,8 @@ using BestoNet.Collections; // Use BestoNet collections
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
+            currentFrameExtensionMicro = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
-
-            // FPSLock integration removed
 
             // Initialize states array
             for (int i = 0; i < StateArraySize; i++)
@@ -270,6 +287,7 @@ using BestoNet.Collections; // Use BestoNet collections
         }
 
         int framesBeforeRollback = localFrame;
+        RollbackFrames = 0;
         bool foundDesyncedFrame = false;
 
         // Check for Mismatched Inputs
@@ -378,8 +396,8 @@ using BestoNet.Collections; // Use BestoNet collections
     /// Sends the local player's input for the current frame (plus delay) to the opponent.
     /// </summary>
     /// <param name="input">The local player's input for the current frame.</param>
-    public bool SendLocalInput(ulong input)
-    {
+        public bool SendLocalInput(ulong input)
+        {
             // Check if opponent ID is set and we have a match manager
             if (opponentNetworkId == 0 || matchManager == null || GameManager.Instance == null) return false;
 
@@ -395,19 +413,29 @@ using BestoNet.Collections; // Use BestoNet collections
             return true;
     }
 
-
         /// <summary>
         /// Determines if the simulation should run this frame based on input availability (for delay-based)
         /// or frame advantage limits (for rollback).
         /// </summary>
-        public bool AllowUpdate()
+        public bool AllowUpdate(int? frameOverride = null)
         {
             if (GameManager.Instance == null) return false;
 
-            int currentFrame = localFrame; // Use cached frame number
+            int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
 
-            // Timeout Check (moved here for early exit)
-            if (consecutiveDrop > TimeoutFrames) // Use TimeoutFrames config
+            if (remoteFrame != lastRemoteFrameForTimeout)
+            {
+                lastRemoteFrameForTimeout = remoteFrame;
+                remoteFrameStallTicks = 0;
+            }
+            else if (currentFrame > InputDelay + 1)
+            {
+                remoteFrameStallTicks++;
+            }
+
+            // Timeout only when remote input packets stop advancing. Recovery pulses should
+            // not hide a real network stall, and syncFrame lag is normal rollback behavior.
+            if (remoteFrameStallTicks > TimeoutFrames)
             {
                 TriggerMatchTimeout(); // Handle timeout disconnect
                 return false; // Don't allow update if timed out
@@ -432,43 +460,29 @@ using BestoNet.Collections; // Use BestoNet collections
             // --- End Delay-Based ---
 
 
-            // --- Rollback Mode Frame Dropping (Based on Frame Advantage) ---
-            // If we are too far ahead of the last confirmed sync point AND ahead of the remote frame estimate,
-            // drop a frame locally to let the opponent catch up / reduce rollback intensity.
-            bool tooFarAheadOfSync = (currentFrame - syncFrame) >= MaxRollBackFrames; // Use >= for check
-            bool aheadOfRemote = currentFrame > remoteFrame; // Simple check if local frame > last confirmed remote frame
+            int maxDropPulse = Mathf.Max(1, MaxConsecutiveFrameDrops);
 
-            // After a scene transition, remoteFrame is intentionally reset back to 0. Give the
-            // new-scene input stream a short grace window to arrive before frame dropping kicks in,
-            // otherwise one client can spiral into a startup stall while the other is still warming up.
-            if (remoteFrame == 0 && currentFrame < 60)
+            // After a scene transition, both clients reset frame sync. Briefly hold for a
+            // current-scene remote input, but pulse forward if it has not arrived yet.
+            // A hard startup hold can deadlock both sides immediately after scene load.
+            if (remoteFrame == 0 && currentFrame > InputDelay + 1)
             {
-                consecutiveDrop = 0;
-                return true;
-            }
-
-            // Check if match ended to prevent dropping frames post-match
-            // bool matchEnded = Check if GameManager indicates match end state? (Needs implementation)
-
-            if (tooFarAheadOfSync && aheadOfRemote && !isRollbackFrame /* && !matchEnded */)
-            {
-                consecutiveDrop++; // Increment drop counter
-
-                // Avoid getting stuck in a permanent local freeze if the remote frame estimate
-                // stops advancing in a real network environment. After a short burst of drops,
-                // allow one simulation frame through and let rollback correct later.
-                if (consecutiveDrop > 2)
+                consecutiveDrop++;
+                if (consecutiveDrop <= maxDropPulse)
                 {
-                    Debug.LogWarning($"Frame Drop Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Allowing update to prevent stall.");
-                    consecutiveDrop = 0;
-                    return true;
+                    if (lastDroppedFrame != currentFrame)
+                    {
+                        Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Waiting for current-scene remote input.");
+                        lastDroppedFrame = currentFrame;
+                    }
+                    return false;
                 }
 
-                Debug.LogWarning($"Frame Drop: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}, ConsecutiveDrops {consecutiveDrop}. Dropping frame.");
-                lastDroppedFrame = currentFrame; // Record dropped frame
-                return false; // Skip simulation this tick
+                Debug.LogWarning($"Frame Pace Startup Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Allowing one startup frame.");
+                consecutiveDrop = 0;
+                lastDroppedFrame = currentFrame;
+                return true;
             }
-            // --- End Rollback Frame Dropping ---
 
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
@@ -983,56 +997,77 @@ using BestoNet.Collections; // Use BestoNet collections
 
 
     // --- Frame Timing / Advantage Methods ---
-    // NOTE: These methods depended on an 'FPSLock' component which was removed.
-    // They are provided here for reference but will cause errors or have no effect
-    // without reimplementing a similar frame rate/timing control mechanism.
+    // BestoNet's original FPSLock extends local frame time when a client is ahead.
+    // This local wait is intentionally outside serialized simulation state.
 
     /// <summary>
-    /// [Requires FPSLock] Manages frame extensions based on network conditions.
+    /// Applies the active BestoNet FPSLock-style local frame extension.
     /// </summary>
     public void ExtendFrame()
     {
-        /* // Original logic requiring FPSLock:
-        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        if (!EnableFrameExtension || currentFrameExtensionMicro <= 0)
         {
             return;
         }
 
-        if (totalConsecutiveFrameExtensions < FrameExtensionWindow)
+        int extensionWindow = Mathf.Max(1, FrameExtensionWindow);
+        if (totalConsecutiveFrameExtensions < extensionWindow)
         {
             totalConsecutiveFrameExtensions++;
+            WaitMicroseconds(currentFrameExtensionMicro);
+            return;
         }
-        else
-        {
-            FPSLock.Instance.SetFrameExtension(0); // Stop extending
-        }
-        */
-        Debug.LogWarning("ExtendFrame called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+
+        currentFrameExtensionMicro = 0;
     }
 
     /// <summary>
-    /// [Requires FPSLock] Initiates frame extensions if frame advantage is too high.
+    /// Starts a short local frame extension window when this client is running ahead.
+    /// This mirrors BestoNet's FPSLock.SetFrameExtension behavior without touching simulation state.
     /// </summary>
     /// <param name="frameAdvantageDifference">The calculated frame advantage difference.</param>
     public void StartFrameExtensions(float frameAdvantageDifference)
     {
-        /* // Original logic requiring FPSLock:
-        if (FPSLock.Instance == null || !FPSLock.Instance.EnableRateLock)
+        if (!EnableFrameExtension || frameAdvantageDifference <= FrameExtensionLimit)
         {
             return;
         }
 
-        // Only start extending if we haven't done so recently (within the window)
-        if (totalConsecutiveFrameExtensions >= FrameExtensionWindow) // Use >= for check
+        int extensionWindow = Mathf.Max(1, FrameExtensionWindow);
+        if (totalConsecutiveFrameExtensions < extensionWindow)
         {
-            #if UNITY_EDITOR
-            Debug.Log($"Starting Frame Extensions: Local frame {localFrame}, Frame Advantage Diff {frameAdvantageDifference}");
-            #endif
-            FPSLock.Instance.SetFrameExtension(SleepTimeMicro); // Start extending
-            totalConsecutiveFrameExtensions = 0; // Reset window counter
+            return;
         }
-        */
-        Debug.LogWarning("StartFrameExtensions called, but FPSLock dependency was removed. Frame timing will not be adjusted.");
+
+        currentFrameExtensionMicro = Mathf.Max(0, SleepTimeMicro);
+        totalConsecutiveFrameExtensions = 0;
+    }
+
+    private static void WaitMicroseconds(int microseconds)
+    {
+        if (microseconds <= 0)
+        {
+            return;
+        }
+
+        int milliseconds = microseconds / 1000;
+        if (milliseconds > 0)
+        {
+            Thread.Sleep(milliseconds);
+        }
+
+        int remainingMicroseconds = microseconds - (milliseconds * 1000);
+        if (remainingMicroseconds <= 0)
+        {
+            return;
+        }
+
+        long targetTicks = (DiagnosticsStopwatch.Frequency * remainingMicroseconds) / 1000000L;
+        long startTicks = DiagnosticsStopwatch.GetTimestamp();
+        while (DiagnosticsStopwatch.GetTimestamp() - startTicks < targetTicks)
+        {
+            Thread.SpinWait(10);
+        }
     }
 
     /// <summary>

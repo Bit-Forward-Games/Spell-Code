@@ -15,8 +15,8 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
-    [SerializeField] private int EXTRA_RESEND_FRAMES = 10;
-    [SerializeField] private int MAX_INPUTS_PER_PACKET = 25;
+    [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
+    [SerializeField] private int MAX_INPUTS_PER_PACKET = 64;
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
     private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
@@ -187,9 +187,13 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(RollbackManager.Instance.DelayBased);
                 writer.Write(RollbackManager.Instance.MaxRollBackFrames);
                 writer.Write(RollbackManager.Instance.FrameAdvantageLimit);
+                writer.Write(RollbackManager.Instance.EnableFrameExtension);
+                writer.Write(RollbackManager.Instance.SleepTimeMicro);
                 writer.Write(RollbackManager.Instance.FrameExtensionLimit);
                 writer.Write(RollbackManager.Instance.FrameExtensionWindow);
                 writer.Write(RollbackManager.Instance.TimeoutFrames);
+                writer.Write(RollbackManager.Instance.SoftFramePacingThreshold);
+                writer.Write(RollbackManager.Instance.MaxConsecutiveFrameDrops);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);
@@ -555,18 +559,26 @@ public class MatchMessageManager : MonoBehaviour
                         bool delayBased = reader.ReadBoolean();
                         int maxRollback = reader.ReadInt32();
                         int frameAdvLimit = reader.ReadInt32();
+                        bool enableFrameExtension = reader.ReadBoolean();
+                        int sleepTimeMicro = reader.ReadInt32();
                         float frameExtensionLimit = reader.ReadSingle();
                         int frameExtensionWindow = reader.ReadInt32();
                         int timeoutFrames = reader.ReadInt32();
+                        int softFramePacingThreshold = reader.ReadInt32();
+                        int maxConsecutiveFrameDrops = reader.ReadInt32();
 
                         RollbackManager.Instance.ApplyOnlineSettings(
                             inputDelay,
                             delayBased,
                             maxRollback,
                             frameAdvLimit,
+                            enableFrameExtension,
+                            sleepTimeMicro,
                             frameExtensionLimit,
                             frameExtensionWindow,
-                            timeoutFrames);
+                            timeoutFrames,
+                            softFramePacingThreshold,
+                            maxConsecutiveFrameDrops);
                         return;
                     }
 
@@ -592,9 +604,10 @@ public class MatchMessageManager : MonoBehaviour
                         byte packetSceneType = reader.ReadByte();
                         int packetSceneSignature = reader.ReadInt32();
                         int stageIndex = reader.ReadInt32();
+                        uint stageRngState = reader.ReadUInt32();
                         if (GameManager.Instance != null)
                         {
-                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex);
+                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
                         }
                         return;
                     }
@@ -680,8 +693,18 @@ public class MatchMessageManager : MonoBehaviour
                             if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                             {
                                 RollbackManager.Instance.SetOpponentInput(frame, input);
-                                SendMessageACK(frame);
                             }
+                            else
+                            {
+                                ulong existingInput = RollbackManager.Instance.receivedInputs.GetInput(frame);
+                                if (existingInput != input && frame > RollbackManager.Instance.syncFrame)
+                                {
+                                    Debug.LogWarning($"Correcting remote input for unverified frame {frame}: {existingInput} -> {input}");
+                                    RollbackManager.Instance.SetOpponentInput(frame, input);
+                                }
+                            }
+
+                            SendMessageACK(frame);
 
                             if (i == inputCount - 1)
                             {
@@ -863,7 +886,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStageSelect(int transitionId, int stageIndex)
+    public void SendStageSelect(int transitionId, int stageIndex, uint stageRngState)
     {
         if (!opponentSteamId.IsValid || !isRunning)
         {
@@ -880,6 +903,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
+                writer.Write(stageRngState);
 
                 byte[] data = memoryStream.ToArray();
                 SendPacket(data, P2PSend.Reliable);

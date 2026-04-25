@@ -1,11 +1,61 @@
-﻿using System;
-using System.IO;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Steamworks;
 using Steamworks.Data;
 using UnityEngine;
 using BestoNet.Collections;
 
+public class OnlineMatchPeerInfo
+{
+    public SteamId SteamId;
+    public int PlayerSlot;
+}
+
+public class OnlineMatchRoster
+{
+    public SteamId HostSteamId;
+    public int LocalPlayerSlot;
+    public List<OnlineMatchPeerInfo> Peers = new List<OnlineMatchPeerInfo>();
+
+    public int PlayerCount => Peers?.Count ?? 0;
+
+    public bool TryGetSteamIdForSlot(int slot, out SteamId steamId)
+    {
+        if (Peers != null)
+        {
+            for (int i = 0; i < Peers.Count; i++)
+            {
+                if (Peers[i] != null && Peers[i].PlayerSlot == slot)
+                {
+                    steamId = Peers[i].SteamId;
+                    return true;
+                }
+            }
+        }
+
+        steamId = default;
+        return false;
+    }
+
+    public bool TryGetSlotForSteamId(SteamId steamId, out int slot)
+    {
+        if (Peers != null)
+        {
+            for (int i = 0; i < Peers.Count; i++)
+            {
+                if (Peers[i] != null && Peers[i].SteamId == steamId)
+                {
+                    slot = Peers[i].PlayerSlot;
+                    return true;
+                }
+            }
+        }
+
+        slot = -1;
+        return false;
+    }
+}
 
 public class MatchMessageManager : MonoBehaviour
 {
@@ -17,13 +67,14 @@ public class MatchMessageManager : MonoBehaviour
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
     [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
     [SerializeField] private int MAX_INPUTS_PER_PACKET = 64;
+
     private const byte PACKET_TYPE_READY = 2;
     private const byte PACKET_TYPE_MATCH_START = 3;
-    private const byte PACKET_TYPE_LOBBY_READY = 10; // For lobby->gameplay transition
-    private const byte PACKET_TYPE_SCENE_READY = 11; // For post-scene-load transition barrier
-    private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
-    private const byte PACKET_TYPE_SHOP_READY = 14; // For shop->gameplay transition
+    private const byte PACKET_TYPE_LOBBY_READY = 10;
+    private const byte PACKET_TYPE_SCENE_READY = 11;
     private const byte PACKET_TYPE_SEED = 12;
+    private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
+    private const byte PACKET_TYPE_SHOP_READY = 14;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
@@ -32,17 +83,21 @@ public class MatchMessageManager : MonoBehaviour
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
     public int Ping { get; private set; } = 100;
 
-    // Make opponent ID accessible
     private SteamId opponentSteamId;
     public SteamId GetOpponentSteamId() => opponentSteamId;
 
-    private bool isRunning = false;
-    private bool localReadySent = false;
-    private bool remoteReadyReceived = false;
-    private int highestRemoteFrameSeen = -1; // Track highest frame for out-of-order rejection
+    private bool isRunning;
+    private bool localReadySent;
+    private int highestRemoteFrameSeen = -1;
+    private readonly HashSet<SteamId> remoteReadyReceived = new HashSet<SteamId>();
+    private OnlineMatchRoster activeRoster;
+    private readonly Dictionary<SteamId, int> peerHighestRemoteFrameSeen = new Dictionary<SteamId, int>();
+    private readonly Dictionary<SteamId, int> peerPingMs = new Dictionary<SteamId, int>();
+    private readonly HashSet<SteamId> connectedPeers = new HashSet<SteamId>();
 
     private struct PendingOutboundPacket
     {
+        public SteamId peerId;
         public byte[] data;
         public P2PSend sendType;
         public float deliverTime;
@@ -50,6 +105,7 @@ public class MatchMessageManager : MonoBehaviour
 
     private struct PendingInboundPacket
     {
+        public SteamId peerId;
         public byte[] data;
         public float deliverTime;
     }
@@ -87,16 +143,13 @@ public class MatchMessageManager : MonoBehaviour
 
     private void OnP2PSessionRequest(SteamId steamId)
     {
-        //Debug.Log($"P2P Session request from {steamId}");
-
-        if (steamId == opponentSteamId || opponentSteamId == default)
+        if (IsKnownPeer(steamId) || (!opponentSteamId.IsValid && activeRoster == null))
         {
-            //Debug.Log($"Accepting P2P session from {steamId}");
-
-            if (opponentSteamId == default)
+            if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = steamId;
             }
+            connectedPeers.Add(steamId);
         }
         else
         {
@@ -107,75 +160,166 @@ public class MatchMessageManager : MonoBehaviour
     private void OnP2PConnectionFailed(SteamId steamId, P2PSessionError error)
     {
         Debug.LogError($"P2P Connection failed with {steamId}: {error}");
+        if (connectedPeers.Contains(steamId))
+        {
+            GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+        }
     }
 
-    void Update()
+    private void Update()
     {
         if (!isRunning || !SteamClient.IsValid)
         {
             return;
         }
 
-        if (SteamNetworking.OnP2PSessionRequest == null)
-        {
-            Debug.LogWarning("OnP2PSessionRequest callback is NULL!");
-        }
-
         while (SteamNetworking.IsP2PPacketAvailable(MATCH_MESSAGE_CHANNEL))
         {
             P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
-            if (packet.HasValue && packet.Value.SteamId == opponentSteamId)
+            if (!packet.HasValue)
             {
-                try
-                {
-                    if (IsChaosActive() && StressTestController.Instance.affectInbound && StressTestController.Instance.ShouldDropInbound())
-                    {
-                        continue;
-                    }
-
-                    if (IsChaosActive() && StressTestController.Instance.affectInbound)
-                    {
-                        EnqueueInbound(packet.Value.Data, GetChaosDelaySeconds());
-                    }
-                    else
-                    {
-                        ProcessPacket(packet.Value.Data);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Error processing packet: {e}");
-                }
+                continue;
             }
-            else
+
+            if (!IsKnownPeer(packet.Value.SteamId))
             {
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
+                continue;
+            }
+
+            connectedPeers.Add(packet.Value.SteamId);
+
+            try
+            {
+                if (IsChaosActive() && StressTestController.Instance.affectInbound && StressTestController.Instance.ShouldDropInbound())
+                {
+                    continue;
+                }
+
+                if (IsChaosActive() && StressTestController.Instance.affectInbound)
+                {
+                    EnqueueInbound(packet.Value.SteamId, packet.Value.Data, GetChaosDelaySeconds());
+                }
+                else
+                {
+                    ProcessPacket(packet.Value.SteamId, packet.Value.Data);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error processing packet: {e}");
             }
         }
 
         ProcessOutboundQueue();
         ProcessInboundQueue();
+        RefreshAggregatePing();
+    }
+
+    public int GetConnectedPeerCount()
+    {
+        return connectedPeers.Count;
+    }
+
+    public void StartMatch(SteamId opponentId)
+    {
+        OnlineMatchRoster roster = new OnlineMatchRoster
+        {
+            HostSteamId = SteamClient.SteamId,
+            LocalPlayerSlot = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : 0
+        };
+        roster.Peers.Add(new OnlineMatchPeerInfo { SteamId = SteamClient.SteamId, PlayerSlot = roster.LocalPlayerSlot });
+        int remoteSlot = GameManager.Instance != null ? GameManager.Instance.remotePlayerIndex : 1;
+        roster.Peers.Add(new OnlineMatchPeerInfo { SteamId = opponentId, PlayerSlot = remoteSlot });
+        StartMatch(roster);
+    }
+
+    public void StartMatch(OnlineMatchRoster roster)
+    {
+        if (roster == null || roster.PlayerCount <= 1)
+        {
+            Debug.LogError("MatchMessageManager: invalid roster provided.");
+            isRunning = false;
+            return;
+        }
+
+        activeRoster = roster;
+        isRunning = true;
+        Ping = 100;
+        sentFrameTimes.Clear();
+        outboundQueue.Clear();
+        inboundQueue.Clear();
+        connectedPeers.Clear();
+        peerHighestRemoteFrameSeen.Clear();
+        peerPingMs.Clear();
+        ResetReadyFlags();
+        SteamNetworking.AllowP2PPacketRelay(true);
+
+        opponentSteamId = default;
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            {
+                continue;
+            }
+
+            connectedPeers.Add(peer.SteamId);
+            peerHighestRemoteFrameSeen[peer.SteamId] = -1;
+            peerPingMs[peer.SteamId] = Ping;
+            if (!opponentSteamId.IsValid)
+            {
+                opponentSteamId = peer.SteamId;
+            }
+        }
+
+        SendHandshake();
+    }
+
+    public void StopMatch()
+    {
+        isRunning = false;
+        opponentSteamId = default;
+        activeRoster = null;
+        connectedPeers.Clear();
+        remoteReadyReceived.Clear();
+        peerHighestRemoteFrameSeen.Clear();
+        peerPingMs.Clear();
+    }
+
+    public void ResetReadyFlags()
+    {
+        localReadySent = false;
+        remoteReadyReceived.Clear();
+        highestRemoteFrameSeen = -1;
+        peerHighestRemoteFrameSeen.Clear();
+    }
+
+    public void ResetFrameSyncForSceneTransition()
+    {
+        highestRemoteFrameSeen = -1;
+        sentFrameTimes.Clear();
+        outboundQueue.Clear();
+        inboundQueue.Clear();
+        peerHighestRemoteFrameSeen.Clear();
     }
 
     public void SendSeed(int seed)
     {
-        if (!opponentSteamId.IsValid || !isRunning) return;
+        if (!HasRemotePeers()) return;
 
         using (MemoryStream ms = new MemoryStream())
         using (BinaryWriter writer = new BinaryWriter(ms))
         {
             writer.Write(PACKET_TYPE_SEED);
             writer.Write(seed);
-            byte[] data = ms.ToArray();
-            SendPacket(data, P2PSend.Reliable);
-            Debug.Log($"Sent seed: {seed}");
+            SendPacketToAll(ms.ToArray(), P2PSend.Reliable);
         }
     }
 
     public void SendRollbackSettings()
     {
-        if (!opponentSteamId.IsValid || !isRunning) return;
-        if (RollbackManager.Instance == null) return;
+        if (!HasRemotePeers() || RollbackManager.Instance == null) return;
 
         try
         {
@@ -194,9 +338,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(RollbackManager.Instance.TimeoutFrames);
                 writer.Write(RollbackManager.Instance.SoftFramePacingThreshold);
                 writer.Write(RollbackManager.Instance.MaxConsecutiveFrameDrops);
-
-                byte[] data = memoryStream.ToArray();
-                SendPacket(data, P2PSend.Reliable);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -207,40 +349,21 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendReadySignal()
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers() || localReadySent)
         {
-            Debug.LogWarning("Cannot send ready signal - not connected");
-            return;
-        }
-
-        if (localReadySent)
-        {
-            //Debug.Log("Ready signal already sent - skipping");
             return;
         }
 
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
+                writer.Write(PACKET_TYPE_READY);
+                writer.Write(SteamClient.SteamId.Value);
+                if (SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable))
                 {
-                    writer.Write(PACKET_TYPE_READY);
-                    writer.Write(SteamClient.SteamId.Value);
-
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-
-                    if (success)
-                    {
-                        localReadySent = true;
-                        //Debug.Log($"Sent READY signal to {opponentSteamId}");
-                    }
-                    else
-                    {
-                        Debug.LogError("Failed to send READY signal");
-                    }
+                    localReadySent = true;
                 }
             }
         }
@@ -252,135 +375,36 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendMatchStartConfirm()
     {
-        if (!opponentSteamId.IsValid || !isRunning)
-            return;
-
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write(PACKET_TYPE_MATCH_START);
-
-                    byte[] data = memoryStream.ToArray();
-
-                    SendPacket(data, P2PSend.Reliable);
-
-                    //Debug.Log("Sent MATCH START confirmation");
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error sending match start: {e}");
-        }
+        SendSimplePacket(PACKET_TYPE_MATCH_START);
     }
 
-    // Send lobby ready for gameplay signal
     public void SendLobbyReadySignal(int transitionId)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
-        {
-            Debug.LogWarning("Cannot send lobby ready signal - not connected");
-            return;
-        }
-
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write(PACKET_TYPE_LOBBY_READY);
-                    writer.Write(transitionId);
-
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-
-                    if (success)
-                    {
-                        //Debug.Log($"Sent LOBBY_READY signal to {opponentSteamId}");
-                    }
-                    else
-                    {
-                        Debug.LogError("Failed to send LOBBY_READY signal");
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error sending lobby ready signal: {e}");
-        }
+        SendTransitionPacket(PACKET_TYPE_LOBBY_READY, transitionId);
     }
 
-    // Send shop ready for gameplay signal
     public void SendShopReadySignal(int transitionId)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
-        {
-            Debug.LogWarning("Cannot send shop ready signal - not connected");
-            return;
-        }
-
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write(PACKET_TYPE_SHOP_READY);
-                    writer.Write(transitionId);
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-
-                    if (success)
-                    {
-                        //Debug.Log($"Sent SHOP_READY signal to {opponentSteamId}");
-                    }
-                    else
-                    {
-                        Debug.LogError("Failed to send SHOP_READY signal");
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error sending shop ready signal: {e}");
-        }
+        SendTransitionPacket(PACKET_TYPE_SHOP_READY, transitionId);
     }
 
     public void SendSceneTransitionReadySignal(int transitionId)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers())
         {
-            Debug.LogWarning("Cannot send scene transition ready signal - not connected");
             return;
         }
 
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write(PACKET_TYPE_SCENE_READY);
-                    writer.Write(transitionId);
-                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
-                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-
-                    if (!success)
-                    {
-                        Debug.LogError("Failed to send SCENE_READY signal");
-                    }
-                }
+                writer.Write(PACKET_TYPE_SCENE_READY);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -391,30 +415,21 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendShopTransitionSignal(int transitionId)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers())
         {
-            Debug.LogWarning("Cannot send shop transition signal - not connected");
             return;
         }
 
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write(PACKET_TYPE_SHOP_TRANSITION);
-                    writer.Write(transitionId);
-                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
-                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-                    if (!success)
-                    {
-                        Debug.LogError("Failed to send SHOP_TRANSITION signal");
-                    }
-                }
+                writer.Write(PACKET_TYPE_SHOP_TRANSITION);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -423,353 +438,10 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void StartMatch(SteamId opponentId)
-    {
-        //Debug.Log($"StartMatch called with opponent: {opponentId}");
-
-        if (opponentId.IsValid)
-        {
-            this.opponentSteamId = opponentId;
-            this.isRunning = true;
-            Ping = 100;
-            sentFrameTimes.Clear();
-            outboundQueue.Clear();
-            inboundQueue.Clear();
-
-            ResetReadyFlags();
-            SteamNetworking.AllowP2PPacketRelay(true);
-
-            //Debug.Log($"MatchMessageManager started. Opponent: {opponentSteamId}");
-
-            SendHandshake();
-        }
-        else
-        {
-            Debug.LogError("MatchMessageManager: Invalid opponent SteamId provided.");
-            this.isRunning = false;
-        }
-    }
-
-    private void SendHandshake()
-    {
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write((byte)0xFF);
-                    writer.Write("HANDSHAKE");
-
-                    byte[] data = memoryStream.ToArray();
-
-                    bool success = SendPacket(data, P2PSend.Reliable);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error sending handshake: {e}");
-        }
-    }
-
-    public void StopMatch()
-    {
-        this.isRunning = false;
-        this.opponentSteamId = default;
-        //Debug.Log("MatchMessageManager stopped.");
-    }
-
-    private void ProcessPacket(byte[] messageData)
-    {
-        if (RollbackManager.Instance == null)
-        {
-            Debug.LogWarning("RollbackManager is null, cannot process packet");
-            return;
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnPacketReceived();
-        }
-
-        try
-        {
-            using (MemoryStream memoryStream = new MemoryStream(messageData))
-            {
-                using (BinaryReader reader = new BinaryReader(memoryStream))
-                {
-                    byte packetType = reader.ReadByte();
-
-                    // Handle handshake
-                    if (packetType == 0xFF)
-                    {
-                        string message = reader.ReadString();
-                        //Debug.Log($"Received handshake: {message}");
-                        SendHandshake();
-                        return;
-                    }
-
-                    // Handle ready signal
-                    if (packetType == PACKET_TYPE_READY)
-                    {
-                        ulong senderSteamId = reader.ReadUInt64();
-                        //Debug.Log($"Received READY signal from {senderSteamId}");
-
-                        if (remoteReadyReceived)
-                        {
-                           //Debug.Log("Remote ready already processed - skipping");
-                            return;
-                        }
-
-                        remoteReadyReceived = true;
-
-                        if (GameManager.Instance != null)
-                        {
-                            GameManager.Instance.OnOpponentReady();
-                        }
-
-                        if (!localReadySent)
-                        {
-                            SendReadySignal();
-                        }
-
-                        return;
-                    }
-
-                    // Handle match start confirmation
-                    if (packetType == PACKET_TYPE_MATCH_START)
-                    {
-                        //Debug.Log("Received MATCH START confirmation");
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_SEED)
-                    {
-                        int receivedSeed = reader.ReadInt32();
-                        Debug.Log($"Received seed: {receivedSeed}");
-                        GameManager.Instance.InitializeWithSeed(receivedSeed);
-                        GameManager.Instance.StartLobbySimulation(); // Client triggers lobby start after receiving seed
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_SETTINGS)
-                    {
-                        int inputDelay = reader.ReadInt32();
-                        bool delayBased = reader.ReadBoolean();
-                        int maxRollback = reader.ReadInt32();
-                        int frameAdvLimit = reader.ReadInt32();
-                        bool enableFrameExtension = reader.ReadBoolean();
-                        int sleepTimeMicro = reader.ReadInt32();
-                        float frameExtensionLimit = reader.ReadSingle();
-                        int frameExtensionWindow = reader.ReadInt32();
-                        int timeoutFrames = reader.ReadInt32();
-                        int softFramePacingThreshold = reader.ReadInt32();
-                        int maxConsecutiveFrameDrops = reader.ReadInt32();
-
-                        RollbackManager.Instance.ApplyOnlineSettings(
-                            inputDelay,
-                            delayBased,
-                            maxRollback,
-                            frameAdvLimit,
-                            enableFrameExtension,
-                            sleepTimeMicro,
-                            frameExtensionLimit,
-                            frameExtensionWindow,
-                            timeoutFrames,
-                            softFramePacingThreshold,
-                            maxConsecutiveFrameDrops);
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_STATE_HASH)
-                    {
-                        int frame = reader.ReadInt32();
-                        uint hash = reader.ReadUInt32();
-                        uint sharedHash = reader.ReadUInt32();
-                        uint projectileHash = reader.ReadUInt32();
-                        uint player0Hash = reader.ReadUInt32();
-                        uint player1Hash = reader.ReadUInt32();
-                        uint player0CoreHash = reader.ReadUInt32();
-                        uint player1CoreHash = reader.ReadUInt32();
-                        uint player0SpellHash = reader.ReadUInt32();
-                        uint player1SpellHash = reader.ReadUInt32();
-                        RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, player0Hash, player1Hash, player0CoreHash, player1CoreHash, player0SpellHash, player1SpellHash);
-                        return;
-                    }
-                    
-                    if (packetType == PACKET_TYPE_STAGE_SELECT)
-                    {
-                        int transitionId = reader.ReadInt32();
-                        byte packetSceneType = reader.ReadByte();
-                        int packetSceneSignature = reader.ReadInt32();
-                        int stageIndex = reader.ReadInt32();
-                        uint stageRngState = reader.ReadUInt32();
-                        if (GameManager.Instance != null)
-                        {
-                            GameManager.Instance.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
-                        }
-                        return;
-                    }
-
-                    // Handle lobby ready for gameplay
-                    if (packetType == PACKET_TYPE_LOBBY_READY)
-                    {
-                        //Debug.Log("Received LOBBY_READY signal from opponent");
-                        if (GameManager.Instance != null)
-                        {
-                            int transitionId = reader.ReadInt32();
-                            GameManager.Instance.OnOpponentReadyForGameplayFromLobby(transitionId);
-                        }
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_SHOP_READY)
-                    {
-                        if (GameManager.Instance != null)
-                        {
-                            int transitionId = reader.ReadInt32();
-                            GameManager.Instance.OnOpponentReadyForGameplayFromShop(transitionId);
-                        }
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_SCENE_READY)
-                    {
-                        if (GameManager.Instance != null)
-                        {
-                            int transitionId = reader.ReadInt32();
-                            byte sceneType = reader.ReadByte();
-                            int sceneSignature = reader.ReadInt32();
-                            GameManager.Instance.OnOpponentSceneTransitionReady(transitionId, sceneType, sceneSignature);
-                        }
-                        return;
-                    }
-
-                    if (packetType == PACKET_TYPE_SHOP_TRANSITION)
-                    {
-                        if (GameManager.Instance != null)
-                        {
-                            int transitionId = reader.ReadInt32();
-                            byte sceneType = reader.ReadByte();
-                            int sceneSignature = reader.ReadInt32();
-                            GameManager.Instance.OnOpponentShopTransition(transitionId, sceneType, sceneSignature);
-                        }
-                        return;
-                    }
-
-                    // Handle input packets
-                    if (packetType == 0)
-                    {
-                        if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
-                        {
-                            Debug.LogWarning("Received input packet during wait state - ignoring");
-                            return;
-                        }
-
-                        int packetSceneSignature = reader.ReadInt32();
-                        int remoteFrameAdvantage = reader.ReadInt32();
-                        int startFrame = reader.ReadInt32();
-                        int inputCount = reader.ReadByte();
-
-                        if (GameManager.Instance != null)
-                        {
-                            int currentSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
-                            if (packetSceneSignature != currentSceneSignature)
-                            {
-                                int currentLocalFrame = GameManager.Instance.frameNumber;
-                                Debug.LogWarning($"Ignoring stale input packet after scene transition. LocalFrame={currentLocalFrame}, StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}");
-                                return;
-                            }
-                        }
-
-                        //Debug.Log($"Received Input Packet: StartFrame={startFrame}, Count={inputCount}");
-
-                        for (int i = 0; i < inputCount; i++)
-                        {
-                            int frame = startFrame + i;
-                            ulong input = reader.ReadUInt64();
-
-                            if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
-                            {
-                                RollbackManager.Instance.SetOpponentInput(frame, input);
-                            }
-                            else
-                            {
-                                ulong existingInput = RollbackManager.Instance.receivedInputs.GetInput(frame);
-                                if (existingInput != input && frame > RollbackManager.Instance.syncFrame)
-                                {
-                                    Debug.LogWarning($"Correcting remote input for unverified frame {frame}: {existingInput} -> {input}");
-                                    RollbackManager.Instance.SetOpponentInput(frame, input);
-                                }
-                            }
-
-                            SendMessageACK(frame);
-
-                            if (i == inputCount - 1)
-                            {
-                                // Only accept frame advantage from packets newer than what we've seen
-                                // to prevent out-of-order packets from corrupting frame advantage
-                                if (frame > highestRemoteFrameSeen)
-                                {
-                                    highestRemoteFrameSeen = frame;
-                                    RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
-                                    RollbackManager.Instance.SetRemoteFrame(frame);
-                                }
-                            }
-                        }
-                    }
-                    else if (packetType == 1) // ACK
-                    {
-                        int ackFrame = reader.ReadInt32();
-                        ProcessACK(ackFrame);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Received unknown packet type: {packetType}");
-                    }
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Packet processing error: {e}");
-        }
-    }
-
-    public void ResetReadyFlags()
-    {
-        localReadySent = false;
-        remoteReadyReceived = false;
-        highestRemoteFrameSeen = -1;
-    }
-
-    public void ResetFrameSyncForSceneTransition()
-    {
-        highestRemoteFrameSeen = -1;
-        sentFrameTimes.Clear();
-        outboundQueue.Clear();
-        inboundQueue.Clear();
-    }
-
-    private void ProcessACK(int frame)
-    {
-        float sentTime = sentFrameTimes.Get(frame);
-
-        if (sentTime > 0f)
-        {
-            int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
-            Ping = (int)Mathf.Lerp(Ping, rttMs, 0.1f);
-            sentFrameTimes.Insert(frame, 0f);
-        }
-    }
-
     public void SendInputs()
     {
-        if (RollbackManager.Instance == null || !opponentSteamId.IsValid || !isRunning)
+        if (RollbackManager.Instance == null || !HasRemotePeers() || !isRunning)
         {
-            Debug.LogError($"SendInputs BLOCKED: RBM={RollbackManager.Instance != null}, " +
-                      $"OpponentValid={opponentSteamId.IsValid}, isRunning={isRunning}");
             return;
         }
 
@@ -779,7 +451,10 @@ public class MatchMessageManager : MonoBehaviour
         int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 
         int inputCount = latestTargetFrame - firstFrameToSend + 1;
-        if (inputCount <= 0) return;
+        if (inputCount <= 0)
+        {
+            return;
+        }
 
         int maxInputsPerPacket = Mathf.Max(32, MAX_INPUTS_PER_PACKET);
         if (inputCount > maxInputsPerPacket)
@@ -791,31 +466,25 @@ public class MatchMessageManager : MonoBehaviour
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
+                writer.Write((byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(RollbackManager.Instance.localFrameAdvantage);
+                writer.Write(firstFrameToSend);
+                writer.Write((byte)inputCount);
+
+                sentFrameTimes.Insert(latestTargetFrame, Time.unscaledTime);
+                for (int i = 0; i < inputCount; i++)
                 {
-                    writer.Write((byte)0);
-                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
-                    writer.Write(RollbackManager.Instance.localFrameAdvantage);
-                    writer.Write(firstFrameToSend);
-                    writer.Write((byte)inputCount);
-
-                    sentFrameTimes.Insert(latestTargetFrame, Time.unscaledTime);
-
-                    for (int i = 0; i < inputCount; i++)
-                    {
-                        int frame = firstFrameToSend + i;
-                        ulong inputToSend = RollbackManager.Instance.clientInputs.ContainsKey(frame)
-                                            ? RollbackManager.Instance.clientInputs.GetInput(frame)
-                                            : 5UL;
-                        writer.Write(inputToSend);
-                    }
-
-                    byte[] data = memoryStream.ToArray();
-                    int dataSize = data.Length;
-
-                    bool success = SendPacket(data, INPUT_SEND_TYPE);
+                    int frame = firstFrameToSend + i;
+                    ulong inputToSend = RollbackManager.Instance.clientInputs.ContainsKey(frame)
+                        ? RollbackManager.Instance.clientInputs.GetInput(frame)
+                        : 5UL;
+                    writer.Write(inputToSend);
                 }
+
+                SendPacketToAll(memoryStream.ToArray(), INPUT_SEND_TYPE);
             }
         }
         catch (Exception e)
@@ -826,7 +495,7 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendMessageACK(int frameToAck)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers() || !isRunning)
         {
             return;
         }
@@ -834,16 +503,11 @@ public class MatchMessageManager : MonoBehaviour
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream))
-                {
-                    writer.Write((byte)1);
-                    writer.Write(frameToAck);
-
-                    byte[] data = memoryStream.ToArray();
-                    int dataSize = data.Length;
-                    bool success = SendPacket(data, ACK_SEND_TYPE);
-                }
+                writer.Write((byte)1);
+                writer.Write(frameToAck);
+                SendPacketToAll(memoryStream.ToArray(), ACK_SEND_TYPE);
             }
         }
         catch (Exception e)
@@ -852,9 +516,9 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash, uint player0CoreHash, uint player1CoreHash, uint player0SpellHash, uint player1SpellHash)
+    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint[] playerHashes, uint[] playerCoreHashes, uint[] playerSpellHashes)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers())
         {
             return;
         }
@@ -869,15 +533,10 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(hash);
                 writer.Write(sharedHash);
                 writer.Write(projectileHash);
-                writer.Write(player0Hash);
-                writer.Write(player1Hash);
-                writer.Write(player0CoreHash);
-                writer.Write(player1CoreHash);
-                writer.Write(player0SpellHash);
-                writer.Write(player1SpellHash);
-
-                byte[] data = memoryStream.ToArray();
-                SendPacket(data, P2PSend.Reliable);
+                WriteUIntArray(writer, playerHashes);
+                WriteUIntArray(writer, playerCoreHashes);
+                WriteUIntArray(writer, playerSpellHashes);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -888,7 +547,7 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendStageSelect(int transitionId, int stageIndex, uint stageRngState)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers())
         {
             return;
         }
@@ -904,9 +563,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
                 writer.Write(stageRngState);
-
-                byte[] data = memoryStream.ToArray();
-                SendPacket(data, P2PSend.Reliable);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -915,9 +572,394 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    private bool SendPacket(byte[] data, P2PSend sendType)
+    private void SendSimplePacket(byte packetType)
     {
-        if (!opponentSteamId.IsValid || !isRunning)
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(packetType);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending packet type {packetType}: {e}");
+        }
+    }
+
+    private void SendTransitionPacket(byte packetType, int transitionId)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(packetType);
+                writer.Write(transitionId);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending transition packet {packetType}: {e}");
+        }
+    }
+
+    private void SendHandshake()
+    {
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write((byte)0xFF);
+                writer.Write("HANDSHAKE");
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending handshake: {e}");
+        }
+    }
+
+    private void ProcessPacket(SteamId senderSteamId, byte[] messageData)
+    {
+        if (RollbackManager.Instance == null)
+        {
+            return;
+        }
+
+        GameManager.Instance?.OnPacketReceived();
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream(messageData))
+            using (BinaryReader reader = new BinaryReader(memoryStream))
+            {
+                byte packetType = reader.ReadByte();
+                int senderSlot = ResolveSlot(senderSteamId);
+
+                if (packetType == 0xFF)
+                {
+                    reader.ReadString();
+                    SendHandshakeToPeer(senderSteamId);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_READY)
+                {
+                    reader.ReadUInt64();
+                    if (!remoteReadyReceived.Add(senderSteamId))
+                    {
+                        return;
+                    }
+
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerReady(senderSlot);
+                    }
+
+                    if (!localReadySent)
+                    {
+                        SendReadySignal();
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_MATCH_START)
+                {
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_SEED)
+                {
+                    int receivedSeed = reader.ReadInt32();
+                    GameManager.Instance.InitializeWithSeed(receivedSeed);
+                    GameManager.Instance.StartLobbySimulation();
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_SETTINGS)
+                {
+                    int inputDelay = reader.ReadInt32();
+                    bool delayBased = reader.ReadBoolean();
+                    int maxRollback = reader.ReadInt32();
+                    int frameAdvLimit = reader.ReadInt32();
+                    bool enableFrameExtension = reader.ReadBoolean();
+                    int sleepTimeMicro = reader.ReadInt32();
+                    float frameExtensionLimit = reader.ReadSingle();
+                    int frameExtensionWindow = reader.ReadInt32();
+                    int timeoutFrames = reader.ReadInt32();
+                    int softFramePacingThreshold = reader.ReadInt32();
+                    int maxConsecutiveFrameDrops = reader.ReadInt32();
+
+                    RollbackManager.Instance.ApplyOnlineSettings(
+                        inputDelay,
+                        delayBased,
+                        maxRollback,
+                        frameAdvLimit,
+                        enableFrameExtension,
+                        sleepTimeMicro,
+                        frameExtensionLimit,
+                        frameExtensionWindow,
+                        timeoutFrames,
+                        softFramePacingThreshold,
+                        maxConsecutiveFrameDrops);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_STATE_HASH)
+                {
+                    int frame = reader.ReadInt32();
+                    uint hash = reader.ReadUInt32();
+                    uint sharedHash = reader.ReadUInt32();
+                    uint projectileHash = reader.ReadUInt32();
+                    uint[] playerHashes = ReadUIntArray(reader);
+                    uint[] playerCoreHashes = ReadUIntArray(reader);
+                    uint[] playerSpellHashes = ReadUIntArray(reader);
+                    RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_STAGE_SELECT)
+                {
+                    int transitionId = reader.ReadInt32();
+                    byte packetSceneType = reader.ReadByte();
+                    int packetSceneSignature = reader.ReadInt32();
+                    int stageIndex = reader.ReadInt32();
+                    uint stageRngState = reader.ReadUInt32();
+                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_LOBBY_READY)
+                {
+                    int transitionId = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerReadyForGameplayFromLobby(senderSlot, transitionId);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_SHOP_READY)
+                {
+                    int transitionId = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerReadyForGameplayFromShop(senderSlot, transitionId);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_SCENE_READY)
+                {
+                    int transitionId = reader.ReadInt32();
+                    byte sceneType = reader.ReadByte();
+                    int sceneSignature = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerSceneTransitionReady(senderSlot, transitionId, sceneType, sceneSignature);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_SHOP_TRANSITION)
+                {
+                    int transitionId = reader.ReadInt32();
+                    byte sceneType = reader.ReadByte();
+                    int sceneSignature = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerShopTransition(senderSlot, transitionId, sceneType, sceneSignature);
+                    }
+                    return;
+                }
+
+                if (packetType == 0)
+                {
+                    if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
+                    {
+                        return;
+                    }
+
+                    int packetSceneSignature = reader.ReadInt32();
+                    int remoteFrameAdvantage = reader.ReadInt32();
+                    int startFrame = reader.ReadInt32();
+                    int inputCount = reader.ReadByte();
+
+                    if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
+                    {
+                        Debug.LogWarning($"Ignoring stale input packet after scene transition. StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={GameManager.Instance.GetNetworkSceneSignature()}");
+                        return;
+                    }
+
+                    for (int i = 0; i < inputCount; i++)
+                    {
+                        int frame = startFrame + i;
+                        ulong input = reader.ReadUInt64();
+
+                        if (senderSlot >= 0)
+                        {
+                            RollbackManager.Instance.SetRemoteInput(senderSlot, frame, input);
+                        }
+                        else if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
+                        {
+                            RollbackManager.Instance.SetOpponentInput(frame, input);
+                        }
+                        else
+                        {
+                            ulong existingInput = RollbackManager.Instance.receivedInputs.GetInput(frame);
+                            if (existingInput != input && frame > RollbackManager.Instance.syncFrame)
+                            {
+                                RollbackManager.Instance.SetOpponentInput(frame, input);
+                            }
+                        }
+
+                        SendMessageACK(frame);
+
+                        if (i == inputCount - 1)
+                        {
+                            int highestSeen = peerHighestRemoteFrameSeen.TryGetValue(senderSteamId, out int seen) ? seen : -1;
+                            if (frame > highestSeen)
+                            {
+                                peerHighestRemoteFrameSeen[senderSteamId] = frame;
+                                highestRemoteFrameSeen = Mathf.Max(highestRemoteFrameSeen, frame);
+                                if (senderSlot >= 0)
+                                {
+                                    RollbackManager.Instance.SetRemoteFrameAdvantage(senderSlot, frame, remoteFrameAdvantage);
+                                    RollbackManager.Instance.SetRemoteFrame(senderSlot, frame);
+                                }
+                                else
+                                {
+                                    RollbackManager.Instance.SetRemoteFrameAdvantage(frame, remoteFrameAdvantage);
+                                    RollbackManager.Instance.SetRemoteFrame(frame);
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                if (packetType == 1)
+                {
+                    ProcessACK(senderSteamId, reader.ReadInt32());
+                    return;
+                }
+
+                Debug.LogWarning($"Received unknown packet type: {packetType}");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Packet processing error: {e}");
+        }
+    }
+
+    private void ProcessACK(SteamId senderSteamId, int frame)
+    {
+        float sentTime = sentFrameTimes.Get(frame);
+        if (sentTime <= 0f)
+        {
+            return;
+        }
+
+        int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
+        peerPingMs[senderSteamId] = rttMs;
+        sentFrameTimes.Insert(frame, 0f);
+    }
+
+    private void RefreshAggregatePing()
+    {
+        if (peerPingMs.Count == 0)
+        {
+            return;
+        }
+
+        int total = 0;
+        foreach (int ping in peerPingMs.Values)
+        {
+            total += ping;
+        }
+
+        Ping = Mathf.RoundToInt((float)total / peerPingMs.Count);
+    }
+
+    private bool HasRemotePeers()
+    {
+        return isRunning && activeRoster != null && activeRoster.PlayerCount > 1;
+    }
+
+    private bool IsKnownPeer(SteamId steamId)
+    {
+        if (activeRoster != null)
+        {
+            return activeRoster.TryGetSlotForSteamId(steamId, out int slot) && slot != activeRoster.LocalPlayerSlot;
+        }
+
+        return steamId == opponentSteamId;
+    }
+
+    private int ResolveSlot(SteamId steamId)
+    {
+        if (activeRoster != null && activeRoster.TryGetSlotForSteamId(steamId, out int slot))
+        {
+            return slot;
+        }
+
+        return GameManager.Instance != null && steamId == opponentSteamId ? GameManager.Instance.remotePlayerIndex : -1;
+    }
+
+    private bool SendPacketToAll(byte[] data, P2PSend sendType)
+    {
+        bool any = false;
+        foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+        {
+            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            {
+                continue;
+            }
+
+            any |= SendPacket(peer.SteamId, data, sendType);
+        }
+
+        return any;
+    }
+
+    private void SendHandshakeToPeer(SteamId peerId)
+    {
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write((byte)0xFF);
+                writer.Write("HANDSHAKE");
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending handshake: {e}");
+        }
+    }
+
+    private bool SendPacket(SteamId peerId, byte[] data, P2PSend sendType)
+    {
+        if (!peerId.IsValid || !isRunning)
         {
             return false;
         }
@@ -929,17 +971,11 @@ public class MatchMessageManager : MonoBehaviour
                 return false;
             }
 
-            EnqueueOutbound(data, sendType, GetChaosDelaySeconds());
+            EnqueueOutbound(peerId, data, sendType, GetChaosDelaySeconds());
             return true;
         }
 
-        return SteamNetworking.SendP2PPacket(
-            opponentSteamId,
-            data,
-            data.Length,
-            MATCH_MESSAGE_CHANNEL,
-            sendType
-        );
+        return SteamNetworking.SendP2PPacket(peerId, data, data.Length, MATCH_MESSAGE_CHANNEL, sendType);
     }
 
     private bool IsChaosActive()
@@ -955,13 +991,14 @@ public class MatchMessageManager : MonoBehaviour
         return Mathf.Max(0f, delayMs / 1000f);
     }
 
-    private void EnqueueOutbound(byte[] data, P2PSend sendType, float delaySeconds)
+    private void EnqueueOutbound(SteamId peerId, byte[] data, P2PSend sendType, float delaySeconds)
     {
         byte[] copy = new byte[data.Length];
         Buffer.BlockCopy(data, 0, copy, 0, data.Length);
 
         PendingOutboundPacket packet = new PendingOutboundPacket
         {
+            peerId = peerId,
             data = copy,
             sendType = sendType,
             deliverTime = Time.unscaledTime + delaySeconds
@@ -977,13 +1014,14 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    private void EnqueueInbound(byte[] data, float delaySeconds)
+    private void EnqueueInbound(SteamId peerId, byte[] data, float delaySeconds)
     {
         byte[] copy = new byte[data.Length];
         Buffer.BlockCopy(data, 0, copy, 0, data.Length);
 
         PendingInboundPacket packet = new PendingInboundPacket
         {
+            peerId = peerId,
             data = copy,
             deliverTime = Time.unscaledTime + delaySeconds
         };
@@ -1009,13 +1047,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 PendingOutboundPacket packet = outboundQueue[i];
                 outboundQueue.RemoveAt(i);
-                SteamNetworking.SendP2PPacket(
-                    opponentSteamId,
-                    packet.data,
-                    packet.data.Length,
-                    MATCH_MESSAGE_CHANNEL,
-                    packet.sendType
-                );
+                SteamNetworking.SendP2PPacket(packet.peerId, packet.data, packet.data.Length, MATCH_MESSAGE_CHANNEL, packet.sendType);
             }
         }
     }
@@ -1031,8 +1063,29 @@ public class MatchMessageManager : MonoBehaviour
             {
                 PendingInboundPacket packet = inboundQueue[i];
                 inboundQueue.RemoveAt(i);
-                ProcessPacket(packet.data);
+                ProcessPacket(packet.peerId, packet.data);
             }
         }
+    }
+
+    private static void WriteUIntArray(BinaryWriter writer, uint[] values)
+    {
+        int count = values?.Length ?? 0;
+        writer.Write(count);
+        for (int i = 0; i < count; i++)
+        {
+            writer.Write(values[i]);
+        }
+    }
+
+    private static uint[] ReadUIntArray(BinaryReader reader)
+    {
+        int count = reader.ReadInt32();
+        uint[] values = new uint[count];
+        for (int i = 0; i < count; i++)
+        {
+            values[i] = reader.ReadUInt32();
+        }
+        return values;
     }
 }

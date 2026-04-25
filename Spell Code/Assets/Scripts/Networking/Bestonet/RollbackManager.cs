@@ -42,6 +42,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             public uint player1CoreHash;
             public uint player0SpellHash;
             public uint player1SpellHash;
+            public uint[] playerHashes;
+            public uint[] playerCoreHashes;
+            public uint[] playerSpellHashes;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -58,6 +61,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public CircularArray<int> remoteFrameAdvantages { get; private set; }
         public CircularArray<int> localFrameAdvantages { get; private set; }
         public GameState[] states;
+        private readonly Dictionary<int, FrameMetadataArray> receivedInputsBySlot = new Dictionary<int, FrameMetadataArray>();
+        private readonly Dictionary<int, FrameMetadataArray> usedInputsBySlot = new Dictionary<int, FrameMetadataArray>();
+        private readonly Dictionary<int, CircularArray<int>> remoteFrameAdvantagesBySlot = new Dictionary<int, CircularArray<int>>();
+        private readonly Dictionary<int, ulong> remoteLastAppliedInputBySlot = new Dictionary<int, ulong>();
+        private readonly Dictionary<int, int> remoteFrameBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> predictedRemoteFrameBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> highestRemoteInputFrameSeenBySlot = new Dictionary<int, int>();
+        private readonly List<int> remotePlayerSlots = new List<int>();
+        private bool usePeerRoster = false;
+        private OnlineMatchRoster activeRoster;
         // --- End Core Data Structures ---
 
 
@@ -185,6 +198,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             //Debug.Log("Initializing Rollback Connection...");
             this.opponentNetworkId = opponentNetId;
+            usePeerRoster = false;
+            activeRoster = null;
+            remotePlayerSlots.Clear();
 
         // Find MatchMessageManager instance
         matchManager = FindFirstObjectByType<MatchMessageManager>(); // Or use singleton: MatchMessageManager.Instance;
@@ -203,6 +219,40 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             ClearVars(); // Reset state variables
             //Debug.Log("Rollback Connection Initialized.");
+        }
+
+        public void Init(OnlineMatchRoster roster, int? inputDelayFrames = null)
+        {
+            activeRoster = roster;
+            usePeerRoster = roster != null && roster.PlayerCount > 2;
+            opponentNetworkId = 0;
+            remotePlayerSlots.Clear();
+
+            matchManager = FindFirstObjectByType<MatchMessageManager>();
+            if (matchManager == null)
+            {
+                Debug.LogError("MatchMessageManager not found!");
+                return;
+            }
+
+            if (inputDelayFrames.HasValue)
+            {
+                InputDelay = inputDelayFrames.Value;
+            }
+
+            if (roster != null)
+            {
+                for (int i = 0; i < roster.Peers.Count; i++)
+                {
+                    OnlineMatchPeerInfo peer = roster.Peers[i];
+                    if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                    {
+                        remotePlayerSlots.Add(peer.PlayerSlot);
+                    }
+                }
+            }
+
+            ClearVars();
         }
 
         public void ApplyOnlineSettings(
@@ -251,6 +301,22 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             clientInputs.Clear();
             remoteFrameAdvantages.Clear();
             localFrameAdvantages.Clear();
+            foreach (FrameMetadataArray inputs in receivedInputsBySlot.Values)
+            {
+                inputs.Clear();
+            }
+            foreach (FrameMetadataArray inputs in usedInputsBySlot.Values)
+            {
+                inputs.Clear();
+            }
+            foreach (CircularArray<int> frameAdvantages in remoteFrameAdvantagesBySlot.Values)
+            {
+                frameAdvantages.Clear();
+            }
+            remoteLastAppliedInputBySlot.Clear();
+            remoteFrameBySlot.Clear();
+            predictedRemoteFrameBySlot.Clear();
+            highestRemoteInputFrameSeenBySlot.Clear();
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
@@ -288,6 +354,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 receivedInputs.Insert(i, neutralFrame); // Can also be empty, prediction handles missing keys
             }
 
+            EnsureRemoteCollectionsInitialized();
+            foreach (int slot in remotePlayerSlots)
+            {
+                FrameMetadata neutralFrame = new FrameMetadata() { frame = 0, input = 5 };
+                for (int i = 0; i <= InputDelay; i++)
+                {
+                    neutralFrame.frame = i;
+                    receivedInputsBySlot[slot].Insert(i, neutralFrame);
+                    usedInputsBySlot[slot].Insert(i, neutralFrame);
+                }
+
+                for (int i = 0; i < FrameAdvantageArraySize; i++)
+                {
+                    remoteFrameAdvantagesBySlot[slot].Insert(i, 0);
+                }
+
+                remoteLastAppliedInputBySlot[slot] = 5;
+                remoteFrameBySlot[slot] = 0;
+                predictedRemoteFrameBySlot[slot] = 0;
+                highestRemoteInputFrameSeenBySlot[slot] = -1;
+            }
+
             // Initialize frame advantage arrays
             for (int i = 0; i < FrameAdvantageArraySize; i++)
             {
@@ -297,6 +385,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             isRollbackFrame = false; // Ensure rollback status is reset
             //Debug.Log("Rollback variables cleared.");
+        }
+
+        private void EnsureRemoteCollectionsInitialized()
+        {
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                if (!receivedInputsBySlot.ContainsKey(slot))
+                {
+                    receivedInputsBySlot[slot] = new FrameMetadataArray(InputArraySize);
+                }
+
+                if (!usedInputsBySlot.ContainsKey(slot))
+                {
+                    usedInputsBySlot[slot] = new FrameMetadataArray(InputArraySize);
+                }
+
+                if (!remoteFrameAdvantagesBySlot.ContainsKey(slot))
+                {
+                    remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
+                }
+            }
         }
 
     /// <summary>
@@ -317,60 +427,96 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // Check for Mismatched Inputs
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
         {
-            bool haveReceived = receivedInputs.ContainsKey(i);
-            bool haveUsed = opponentInputs.ContainsKey(i);
+            bool frameVerified = true;
 
-            // ONLY CHECK - DON'T RESIMULATE HERE
-            if (haveReceived && haveUsed)
+            if (usePeerRoster)
             {
-                ulong received = receivedInputs.GetInput(i);
-                ulong used = opponentInputs.GetInput(i);
-
-                if (received == used && states[i % StateArraySize].frame == i)
+                for (int slotIndex = 0; slotIndex < remotePlayerSlots.Count; slotIndex++)
                 {
-                    // THE FRAME IS VERIFIED
-                    syncFrame = i;
+                    int slot = remotePlayerSlots[slotIndex];
+                    FrameMetadataArray receivedBySlot = receivedInputsBySlot[slot];
+                    FrameMetadataArray usedBySlot = usedInputsBySlot[slot];
+                    bool haveReceived = receivedBySlot.ContainsKey(i);
+                    bool haveUsed = usedBySlot.ContainsKey(i);
 
-                    // HASH SENDING 
-                    if (matchManager != null)
+                    if (haveReceived && haveUsed)
                     {
-                        int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
-                            ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
-                            : 30; // Default: send hash every 30 frames
-
-                        if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                        ulong received = receivedBySlot.GetInput(i);
+                        ulong used = usedBySlot.GetInput(i);
+                        if (received != used)
                         {
-                            lastHashSentFrame = syncFrame;
-
-                            // Grab the hashes already calculated during SaveState()
-                            GameState verifiedState = states[syncFrame % StateArraySize];
-
-                            matchManager.SendStateHash(
-                                syncFrame,
-                                verifiedState.hash,
-                                verifiedState.sharedHash,
-                                verifiedState.projectileHash,
-                                verifiedState.player0Hash,
-                                verifiedState.player1Hash,
-                                verifiedState.player0CoreHash,
-                                verifiedState.player1CoreHash,
-                                verifiedState.player0SpellHash,
-                                verifiedState.player1SpellHash
-                            );
+                            foundDesyncedFrame = true;
+                            frameVerified = false;
+                            break;
                         }
                     }
-                    // -----------------------------
-                }
-                else if (received != used)
-                {
-                    foundDesyncedFrame = true;
-                    break;
+                    else if (haveReceived && !haveUsed)
+                    {
+                        foundDesyncedFrame = true;
+                        frameVerified = false;
+                        break;
+                    }
+                    else
+                    {
+                        frameVerified = false;
+                    }
                 }
             }
-            else if (haveReceived && !haveUsed)
+            else
             {
-                foundDesyncedFrame = true;
+                bool haveReceived = receivedInputs.ContainsKey(i);
+                bool haveUsed = opponentInputs.ContainsKey(i);
+
+                if (haveReceived && haveUsed)
+                {
+                    ulong received = receivedInputs.GetInput(i);
+                    ulong used = opponentInputs.GetInput(i);
+
+                    if (received != used)
+                    {
+                        foundDesyncedFrame = true;
+                        frameVerified = false;
+                    }
+                }
+                else if (haveReceived && !haveUsed)
+                {
+                    foundDesyncedFrame = true;
+                    frameVerified = false;
+                }
+                else
+                {
+                    frameVerified = false;
+                }
+            }
+
+            if (foundDesyncedFrame)
+            {
                 break;
+            }
+
+            if (frameVerified && states[i % StateArraySize].frame == i)
+            {
+                syncFrame = i;
+                if (matchManager != null)
+                {
+                    int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+                        ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+                        : 30;
+
+                    if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                    {
+                        lastHashSentFrame = syncFrame;
+                        GameState verifiedState = states[syncFrame % StateArraySize];
+                        matchManager.SendStateHash(
+                            syncFrame,
+                            verifiedState.hash,
+                            verifiedState.sharedHash,
+                            verifiedState.projectileHash,
+                            verifiedState.playerHashes ?? new uint[0],
+                            verifiedState.playerCoreHashes ?? new uint[0],
+                            verifiedState.playerSpellHashes ?? new uint[0]);
+                    }
+                }
             }
         }
         // --- End Mismatch Check ---
@@ -423,7 +569,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public bool SendLocalInput(ulong input)
         {
             // Check if opponent ID is set and we have a match manager
-            if (opponentNetworkId == 0 || matchManager == null || GameManager.Instance == null) return false;
+            if ((!usePeerRoster && opponentNetworkId == 0) || matchManager == null || GameManager.Instance == null) return false;
 
             // Don't send inputs during the initial frames before the input delay buffer is filled? Optional.
             // if (localFrame < InputDelay) return true;
@@ -469,7 +615,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (DelayBased)
             {
                 // In delay-based mode, wait until inputs for the *current* frame are received
-                if (!receivedInputs.ContainsKey(currentFrame))
+                bool hasAllCurrentFrameInputs = !usePeerRoster
+                    ? receivedInputs.ContainsKey(currentFrame)
+                    : RemoteSlotsHaveInputForFrame(currentFrame);
+                if (!hasAllCurrentFrameInputs)
                 {
                     // Debug.Log($"DelayBased: Waiting for input frame {currentFrame}");
                     consecutiveDrop++; // Increment drop counter while waiting
@@ -533,7 +682,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 int frameToSimulate = currentFrame;
                 int predictionDepth = frameToSimulate - syncFrame;
                 int holdCeiling = Mathf.Max(1, MaxRollBackFrames - 1);
-                bool predictingThisFrame = !receivedInputs.ContainsKey(frameToSimulate);
+                bool predictingThisFrame = !usePeerRoster
+                    ? !receivedInputs.ContainsKey(frameToSimulate)
+                    : !RemoteSlotsHaveInputForFrame(frameToSimulate);
 
                 if (predictingThisFrame && predictionDepth >= holdCeiling)
                 {
@@ -568,25 +719,42 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 ? clientInputs.GetInput(frame)
                 : 5UL; // Default to neutral (5) if missing
 
-            // Get remote input (predict if necessary)
-            ulong remoteInput = PredictOpponentInput(frame);
+            int inputCount = Mathf.Max(2, GameManager.Instance.playerCount);
+            ulong[] inputs = new ulong[inputCount];
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                inputs[i] = 5UL;
+            }
 
-            // Arrange inputs based on local player index
-            ulong[] inputs = new ulong[2]; // Assuming 2 players for online
-            int localIdx = GameManager.Instance.localPlayerIndex; // Get local player's index (0 or 1)
-            int remoteIdx = GameManager.Instance.remotePlayerIndex; // Get remote player's index (0 or 1)
-
-            if (localIdx >= 0 && localIdx < 2 && remoteIdx >= 0 && remoteIdx < 2)
+            int localIdx = GameManager.Instance.localPlayerIndex;
+            if (localIdx >= 0 && localIdx < inputs.Length)
             {
                 inputs[localIdx] = localInput;
-                inputs[remoteIdx] = remoteInput;
+            }
+
+            if (usePeerRoster)
+            {
+                for (int i = 0; i < remotePlayerSlots.Count; i++)
+                {
+                    int slot = remotePlayerSlots[i];
+                    if (slot >= 0 && slot < inputs.Length)
+                    {
+                        inputs[slot] = PredictRemoteInput(slot, frame);
+                    }
+                }
             }
             else
             {
-                Debug.LogError($"Invalid player indices during SynchronizeInput! Local: {localIdx}, Remote: {remoteIdx}");
-                // Default assignment (might be wrong)
-                inputs[0] = localInput;
-                inputs[1] = remoteInput;
+                ulong remoteInput = PredictOpponentInput(frame);
+                int remoteIdx = GameManager.Instance.remotePlayerIndex;
+                if (remoteIdx >= 0 && remoteIdx < inputs.Length)
+                {
+                    inputs[remoteIdx] = remoteInput;
+                }
+                else
+                {
+                    Debug.LogError($"Invalid player indices during SynchronizeInput! Local: {localIdx}, Remote: {remoteIdx}");
+                }
             }
 
             return inputs;
@@ -618,6 +786,38 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
         }
 
+        private ulong PredictRemoteInput(int slot, int frame)
+        {
+            FrameMetadataArray receivedBySlot = receivedInputsBySlot[slot];
+            FrameMetadataArray usedBySlot = usedInputsBySlot[slot];
+
+            if (receivedBySlot.ContainsKey(frame))
+            {
+                ulong actualInput = receivedBySlot.GetInput(frame);
+                remoteLastAppliedInputBySlot[slot] = actualInput;
+                usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
+                return actualInput;
+            }
+
+            ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
+            usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
+            return predicted;
+        }
+
+        private bool RemoteSlotsHaveInputForFrame(int frame)
+        {
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                if (!receivedInputsBySlot.ContainsKey(slot) || !receivedInputsBySlot[slot].ContainsKey(frame))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
     //// <summary>
     /// Saves the current game state by calling GameManager's serialization.
     /// </summary>
@@ -634,25 +834,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
         uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
         uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
-        uint player0Hash = 0;
-        uint player1Hash = 0;
-        uint player0CoreHash = 0;
-        uint player1CoreHash = 0;
-        uint player0SpellHash = 0;
-        uint player1SpellHash = 0;
-        if (GameManager.Instance.playerCount > 0 && GameManager.Instance.players[0] != null)
+        int playerCount = Mathf.Max(0, GameManager.Instance.playerCount);
+        uint[] playerHashes = new uint[playerCount];
+        uint[] playerCoreHashes = new uint[playerCount];
+        uint[] playerSpellHashes = new uint[playerCount];
+        for (int i = 0; i < playerCount; i++)
         {
-            player0CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[0]);
-            player0SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[0]);
-            player0Hash = ComputePlayerHash(GameManager.Instance.players[0]);
+            if (GameManager.Instance.players[i] != null)
+            {
+                playerCoreHashes[i] = ComputePlayerCoreHash(GameManager.Instance.players[i]);
+                playerSpellHashes[i] = ComputePlayerSpellHash(GameManager.Instance.players[i]);
+                playerHashes[i] = ComputePlayerHash(GameManager.Instance.players[i]);
+            }
         }
-        if (GameManager.Instance.playerCount > 1 && GameManager.Instance.players[1] != null)
-        {
-            player1CoreHash = ComputePlayerCoreHash(GameManager.Instance.players[1]);
-            player1SpellHash = ComputePlayerSpellHash(GameManager.Instance.players[1]);
-            player1Hash = ComputePlayerHash(GameManager.Instance.players[1]);
-        }
-        uint hash = ComputeCompositeHash(sharedHash, projectileHash, player0Hash, player1Hash);
+        uint player0Hash = playerCount > 0 ? playerHashes[0] : 0;
+        uint player1Hash = playerCount > 1 ? playerHashes[1] : 0;
+        uint player0CoreHash = playerCount > 0 ? playerCoreHashes[0] : 0;
+        uint player1CoreHash = playerCount > 1 ? playerCoreHashes[1] : 0;
+        uint player0SpellHash = playerCount > 0 ? playerSpellHashes[0] : 0;
+        uint player1SpellHash = playerCount > 1 ? playerSpellHashes[1] : 0;
+        uint hash = ComputeCompositeHash(sharedHash, projectileHash, playerHashes);
 
         // Store the state in the circular buffer using the current local frame
         int frameIndex = localFrame % StateArraySize;
@@ -668,7 +869,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             player0CoreHash = player0CoreHash,
             player1CoreHash = player1CoreHash,
             player0SpellHash = player0SpellHash,
-            player1SpellHash = player1SpellHash
+            player1SpellHash = player1SpellHash,
+            playerHashes = playerHashes,
+            playerCoreHashes = playerCoreHashes,
+            playerSpellHashes = playerSpellHashes
         };
 
         // Always send state hashes during online matches for desync detection
@@ -735,6 +939,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
     public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
+        OnRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash,
+            new uint[] { remotePlayer0Hash, remotePlayer1Hash },
+            new uint[] { remotePlayer0CoreHash, remotePlayer1CoreHash },
+            new uint[] { remotePlayer0SpellHash, remotePlayer1SpellHash });
+    }
+
+    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
+    {
         if (frame > syncFrame)
         {
             pendingRemoteHashes[frame] = new PendingRemoteHash()
@@ -743,17 +955,17 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 remoteHash = remoteHash,
                 remoteSharedHash = remoteSharedHash,
                 remoteProjectileHash = remoteProjectileHash,
-                remotePlayer0Hash = remotePlayer0Hash,
-                remotePlayer1Hash = remotePlayer1Hash,
-                remotePlayer0CoreHash = remotePlayer0CoreHash,
-                remotePlayer1CoreHash = remotePlayer1CoreHash,
-                remotePlayer0SpellHash = remotePlayer0SpellHash,
-                remotePlayer1SpellHash = remotePlayer1SpellHash
+                remotePlayer0Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 0 ? remotePlayerHashes[0] : 0,
+                remotePlayer1Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 1 ? remotePlayerHashes[1] : 0,
+                remotePlayer0CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 0 ? remotePlayerCoreHashes[0] : 0,
+                remotePlayer1CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 1 ? remotePlayerCoreHashes[1] : 0,
+                remotePlayer0SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 0 ? remotePlayerSpellHashes[0] : 0,
+                remotePlayer1SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 1 ? remotePlayerSpellHashes[1] : 0
             };
             return;
         }
 
-        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayer0Hash, remotePlayer1Hash, remotePlayer0CoreHash, remotePlayer1CoreHash, remotePlayer0SpellHash, remotePlayer1SpellHash);
+        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes);
     }
 
     private void ProcessPendingRemoteHashes()
@@ -777,16 +989,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 pending.remoteHash,
                 pending.remoteSharedHash,
                 pending.remoteProjectileHash,
-                pending.remotePlayer0Hash,
-                pending.remotePlayer1Hash,
-                pending.remotePlayer0CoreHash,
-                pending.remotePlayer1CoreHash,
-                pending.remotePlayer0SpellHash,
-                pending.remotePlayer1SpellHash);
+                new uint[] { pending.remotePlayer0Hash, pending.remotePlayer1Hash },
+                new uint[] { pending.remotePlayer0CoreHash, pending.remotePlayer1CoreHash },
+                new uint[] { pending.remotePlayer0SpellHash, pending.remotePlayer1SpellHash });
         }
     }
 
-    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
+    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
     {
         if (!IsStableGameplayHashFrame())
         {
@@ -802,6 +1011,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         uint localHash = states[index].hash;
         if (localHash != remoteHash)
         {
+            uint remotePlayer0Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 0 ? remotePlayerHashes[0] : 0;
+            uint remotePlayer1Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 1 ? remotePlayerHashes[1] : 0;
+            uint remotePlayer0CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 0 ? remotePlayerCoreHashes[0] : 0;
+            uint remotePlayer1CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 1 ? remotePlayerCoreHashes[1] : 0;
+            uint remotePlayer0SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 0 ? remotePlayerSpellHashes[0] : 0;
+            uint remotePlayer1SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 1 ? remotePlayerSpellHashes[1] : 0;
             Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
             Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
             Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
@@ -1030,15 +1245,21 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         return ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
     }
 
-    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint player0Hash, uint player1Hash)
+    private uint ComputeCompositeHash(uint sharedHash, uint projectileHash, uint[] playerHashes)
     {
         using (MemoryStream memoryStream = new MemoryStream())
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
             bw.Write(sharedHash);
             bw.Write(projectileHash);
-            bw.Write(player0Hash);
-            bw.Write(player1Hash);
+            bw.Write(playerHashes?.Length ?? 0);
+            if (playerHashes != null)
+            {
+                for (int i = 0; i < playerHashes.Length; i++)
+                {
+                    bw.Write(playerHashes[i]);
+                }
+            }
             return ComputeFnv1a(memoryStream.ToArray());
         }
     }
@@ -1228,9 +1449,61 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Handled within RollbackEvent check now.
         }
 
+        public void SetRemoteInput(int slot, int frame, ulong input)
+        {
+            EnsureRemoteCollectionsInitialized();
+            if (!receivedInputsBySlot.ContainsKey(slot))
+            {
+                receivedInputsBySlot[slot] = new FrameMetadataArray(InputArraySize);
+                usedInputsBySlot[slot] = new FrameMetadataArray(InputArraySize);
+                remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
+                remoteLastAppliedInputBySlot[slot] = 5;
+                remoteFrameBySlot[slot] = 0;
+                predictedRemoteFrameBySlot[slot] = 0;
+                highestRemoteInputFrameSeenBySlot[slot] = -1;
+            }
+
+            bool isNewFrame = !receivedInputsBySlot[slot].ContainsKey(frame);
+            receivedInputsBySlot[slot].Insert(frame, new FrameMetadata() { frame = frame, input = input });
+
+            if (EnablePacketLossSmoothing && isNewFrame)
+            {
+                int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int seen) ? seen : -1;
+                if (highestSeen < 0)
+                {
+                    highestRemoteInputFrameSeenBySlot[slot] = frame;
+                }
+                else if (frame > highestSeen)
+                {
+                    int skipped = frame - highestSeen - 1;
+                    highestRemoteInputFrameSeenBySlot[slot] = frame;
+                    if (skipped > 0)
+                    {
+                        packetLossSignal = Mathf.Min(packetLossSignal + skipped * PacketLossEventWeight, PacketLossHoldThreshold * 4);
+                    }
+                }
+                else
+                {
+                    packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
+                }
+            }
+        }
+
         /// <summary> Stores the frame advantage reported by the remote client. Called by MatchMessageManager. </summary>
         public void SetRemoteFrameAdvantage(int frame, int advantage)
         {
+            remoteFrameAdvantages.Insert(frame, advantage);
+        }
+
+        public void SetRemoteFrameAdvantage(int slot, int frame, int advantage)
+        {
+            EnsureRemoteCollectionsInitialized();
+            if (!remoteFrameAdvantagesBySlot.ContainsKey(slot))
+            {
+                remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
+            }
+
+            remoteFrameAdvantagesBySlot[slot].Insert(frame, advantage);
             remoteFrameAdvantages.Insert(frame, advantage);
         }
 
@@ -1253,9 +1526,45 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
         }
 
+        public void SetRemoteFrame(int slot, int frame)
+        {
+            remoteFrameBySlot[slot] = frame;
+            int pingMs = matchManager?.Ping ?? 200;
+            int pingFrames = (pingMs * 60 + 1999) / 2000;
+            predictedRemoteFrameBySlot[slot] = frame + pingFrames;
+            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : frame;
+            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : frame + pingFrames;
+        }
+
         /// <summary> Calculates the average frame advantage difference over a window. </summary>
         public float GetAverageFrameAdvantage()
         {
+            if (usePeerRoster && remoteFrameAdvantagesBySlot.Count > 0)
+            {
+                long rosterLocalSum = 0;
+                for (int i = 0; i < FrameAdvantageArraySize; i++)
+                {
+                    rosterLocalSum += localFrameAdvantages.GetValues()[i];
+                }
+
+                float rosterLocalAverage = (float)rosterLocalSum / FrameAdvantageArraySize;
+                float worstDifference = 0f;
+                foreach (CircularArray<int> remoteAdvantages in remoteFrameAdvantagesBySlot.Values)
+                {
+                    long rosterRemoteSum = 0;
+                    int[] rosterRemoteValues = remoteAdvantages.GetValues();
+                    for (int i = 0; i < FrameAdvantageArraySize; i++)
+                    {
+                        rosterRemoteSum += rosterRemoteValues[i];
+                    }
+
+                    float rosterRemoteAverage = (float)rosterRemoteSum / FrameAdvantageArraySize;
+                    worstDifference = Mathf.Max(worstDifference, Mathf.Max(0f, rosterLocalAverage - rosterRemoteAverage));
+                }
+
+                return worstDifference;
+            }
+
             // This calculation remains the same, using local/remote advantage history
             long localSum = 0; // Use long for sum to avoid potential overflow
             long remoteSum = 0;

@@ -90,6 +90,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public float FrameExtensionLimit = 1.5f; // Threshold to start extending frames locally
         [SerializeField] public int FrameExtensionWindow = 7; // Frames over which extensions are averaged/limited
         [SerializeField] public int TimeoutFrames = 60; // Frames without sync before timeout
+        [SerializeField] public float TransitionStartupTimeoutGraceSeconds = 10f; // Grace after scene loads/focus stalls
 
         // --- Constants ---
         // Make array sizes configurable or keep as constants
@@ -113,6 +114,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int consecutiveDrop = 0;
         private int lastRemoteFrameForTimeout = 0;
         private int remoteFrameStallTicks = 0;
+        private float timeoutGraceUntilRealtime = 0f;
         // Packet-loss smoothing runtime state. All zero/-1 when no loss is happening,
         // so the AllowUpdate fast path stays free of overhead.
         private int packetLossSignal = 0;            // Decaying score; rises on detected gaps
@@ -259,6 +261,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrame = 0;
             lastRemoteFrameForTimeout = 0;
             remoteFrameStallTicks = 0;
+            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
             packetLossSignal = 0;
             highestRemoteInputFrameSeen = -1;
             lossAwareHoldsThisStreak = 0;
@@ -446,15 +449,22 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (GameManager.Instance == null) return false;
 
             int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
+            bool timeoutGraceActive = UnityEngine.Time.unscaledTime < timeoutGraceUntilRealtime
+                || GameManager.Instance.isTransitioning;
 
             if (remoteFrame != lastRemoteFrameForTimeout)
             {
                 lastRemoteFrameForTimeout = remoteFrame;
                 remoteFrameStallTicks = 0;
+                timeoutGraceUntilRealtime = 0f;
             }
-            else if (currentFrame > InputDelay + 1)
+            else if (currentFrame > InputDelay + 1 && !timeoutGraceActive)
             {
                 remoteFrameStallTicks++;
+            }
+            else if (timeoutGraceActive)
+            {
+                remoteFrameStallTicks = 0;
             }
 
             // Timeout only when remote input packets stop advancing. Recovery pulses should
@@ -1251,6 +1261,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
             predictedRemoteFrame = frame + pingFrames;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
+        }
+
+        public void ResetTimeoutGrace(float graceSeconds)
+        {
+            remoteFrameStallTicks = 0;
+            lastRemoteFrameForTimeout = remoteFrame;
+            timeoutGraceUntilRealtime = Mathf.Max(
+                timeoutGraceUntilRealtime,
+                UnityEngine.Time.unscaledTime + Mathf.Max(0f, graceSeconds)
+            );
         }
 
         /// <summary> Calculates the average frame advantage difference over a window. </summary>

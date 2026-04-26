@@ -111,6 +111,11 @@ public class MatchMessageManager : MonoBehaviour
 
     void Update()
     {
+        PumpNetwork();
+    }
+
+    public void PumpNetwork()
+    {
         if (!isRunning || !SteamClient.IsValid)
         {
             return;

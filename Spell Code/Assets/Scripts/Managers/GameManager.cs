@@ -134,6 +134,7 @@ public class GameManager : MonoBehaviour
     // Network health tracking (uses real time, not frames)
     private float lastPacketReceivedTime = 0f;
     private const float NETWORK_TIMEOUT = 10f;
+    private const float TRANSITION_NETWORK_GRACE_SECONDS = 10f;
 
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
@@ -216,6 +217,7 @@ public class GameManager : MonoBehaviour
         {
             // otherwise, set this as the instance
             Instance = this;
+            Application.runInBackground = true;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
             
@@ -775,10 +777,25 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
     }
 
+    private void RefreshNetworkActivityGrace()
+    {
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+
+        if (RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.ResetTimeoutGrace(TRANSITION_NETWORK_GRACE_SECONDS);
+        }
+    }
+
     private bool CheckNetworkHealth()
     {
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.PumpNetwork();
+        }
+
         // Don't check during lobby phase
-        if (isWaitingForOpponent)
+        if (isWaitingForOpponent || isTransitioning)
             return true;
 
         // If we haven't received ANY packets yet, give it more time
@@ -882,6 +899,7 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
         pendingRemoteSceneReadySignature = 0;
+        RefreshNetworkActivityGrace();
     }
 
     private void CompleteTrackedOnlineTransition()
@@ -909,6 +927,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectIndex = -1;
         pendingStageSelectRngState = 0;
         pendingOpponentShopTransitionId = 0;
+        RefreshNetworkActivityGrace();
     }
 
     // Send lobby ready signal

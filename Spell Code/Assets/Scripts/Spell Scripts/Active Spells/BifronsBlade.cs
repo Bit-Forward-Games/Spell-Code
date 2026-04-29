@@ -14,7 +14,7 @@ public class BifronsBlade : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nEnhance next basic attack based on Demon Aura<sprite name=\"DemonAura\">.";
+        description = "Medium-range slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nEnhance next basic attack to consume Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
         spawnOffsetX = 25;
         spawnOffsetY = 40;
 
@@ -29,9 +29,15 @@ public class BifronsBlade : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                if (defender.hitboxData.basicAttackHitbox) //if it is the basic attack slash, which is a basic attack hitbox, deal effect damage based on the amount of Demon Aura consumed, then consume all Demon Aura. Otherwise, gain 20 Demon Aura.
+                if (defender.hitboxData.basicAttackHitbox) //if it is the basic attack slash,Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
                 {
-                    defender.TakeEffectDamage(owner.demonAura/5, owner);
+                    if (owner.demonAura > 0)
+                    {
+                        int demonDiv = owner.demonAura / 10;
+                        int damageToDeal = demonDiv * demonDiv / 2;
+                        defender.TakeEffectDamage(damageToDeal, owner);
+                        owner.demonAura = 0;
+                    }
                 }
                 else //if it is the spell hitbox, gain 20 Demon Aura, but only if the player is not already at max Demon Aura
                 {

@@ -12,9 +12,9 @@ public class AmonSlash : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic, ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range lunging slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nOn Basic Hit: Consume Demon Aura<sprite name=\"DemonAura\"> and deal extra damage.";
+        description = "Short-range lunging slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nDeals more damage based on Demon Aura<sprite name=\"DemonAura\">.";
 
     }
 
@@ -52,18 +52,10 @@ public class AmonSlash : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
+                defender.TakeEffectDamage(owner.demonAura/5, owner);
                 owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                 owner.SpawnToast("+20 DEMON AURA", Color.red);
-                break;
-            //OnHitBasic: Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
-            case ProcCondition.OnHitBasic:
-                if (owner.demonAura > 0)
-                {
-                    int demonDiv = owner.demonAura / 10;
-                    int damageToDeal = (demonDiv * demonDiv) / 2;
-                    defender.TakeEffectDamage(damageToDeal, owner);
-                    owner.demonAura = 0;
-                }
+                
                 break;
             case ProcCondition.ActiveOnCast:
                 owner.lightArmor = true;

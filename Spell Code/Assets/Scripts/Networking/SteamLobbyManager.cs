@@ -7,6 +7,8 @@ using Steamworks.Data;
 public class SteamLobbyManager : MonoBehaviour
 {
     private const int TargetOnlineLobbySize = 4;
+    private const string MatchReadyKey = "matchReady";
+    private const string MatchStartTokenKey = "matchStartToken";
 
     public static SteamLobbyManager Instance { get; private set; }
 
@@ -16,6 +18,8 @@ public class SteamLobbyManager : MonoBehaviour
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
     private uint hostFlowVersion;
+    private bool startedCurrentLobbyMatch;
+    private string currentMatchStartToken = string.Empty;
 
     [SerializeField] private bool debugLogs = true;
 
@@ -76,6 +80,19 @@ public class SteamLobbyManager : MonoBehaviour
         SteamMatchmaking.OnLobbyMemberJoined -= HandleLobbyMemberJoined;
         SteamMatchmaking.OnLobbyCreated -= HandleLobbyCreated;
         SteamFriends.OnGameLobbyJoinRequested -= HandleGameLobbyJoinRequested;
+    }
+
+    private void Update()
+    {
+        if (isShuttingDown || !currentLobby.HasValue)
+        {
+            return;
+        }
+
+        if (GameManager.Instance != null && !GameManager.Instance.isOnlineMatchActive)
+        {
+            TryStartOnlineMatchFromLobby(currentLobby.Value);
+        }
     }
 
     public async void HostAndInvite()
@@ -141,6 +158,10 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
             currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
+            currentLobby.Value.SetData(MatchReadyKey, "0");
+            currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            startedCurrentLobbyMatch = false;
+            currentMatchStartToken = string.Empty;
 
             if (!isShuttingDown)
             {
@@ -175,6 +196,8 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = false;
+        startedCurrentLobbyMatch = false;
+        currentMatchStartToken = string.Empty;
     }
 
     private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
@@ -207,6 +230,7 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         currentLobby = lobby;
+        startedCurrentLobbyMatch = false;
 
         TryStartOnlineMatchFromLobby(lobby);
     }
@@ -250,7 +274,27 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         OnlineMatchRoster roster = BuildRoster(lobby);
-        if (roster == null || roster.PlayerCount < TargetOnlineLobbySize)
+        if (roster == null)
+        {
+            return;
+        }
+
+        if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= TargetOnlineLobbySize)
+        {
+            string targetToken = lobby.Id.Value.ToString();
+            string currentReady = lobby.GetData(MatchReadyKey);
+            string currentToken = lobby.GetData(MatchStartTokenKey);
+            if (currentReady != "1" || currentToken != targetToken)
+            {
+                lobby.SetData(MatchReadyKey, "1");
+                lobby.SetData(MatchStartTokenKey, targetToken);
+            }
+        }
+
+        string matchReady = lobby.GetData(MatchReadyKey);
+        string matchStartToken = lobby.GetData(MatchStartTokenKey);
+
+        if (roster.PlayerCount < TargetOnlineLobbySize || matchReady != "1" || string.IsNullOrEmpty(matchStartToken))
         {
             if (debugLogs)
             {
@@ -259,6 +303,13 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        if (startedCurrentLobbyMatch && currentMatchStartToken == matchStartToken)
+        {
+            return;
+        }
+
+        startedCurrentLobbyMatch = true;
+        currentMatchStartToken = matchStartToken;
         GameManager.Instance.StartOnlineMatch(roster);
         isHostingFlow = false;
     }
@@ -274,7 +325,20 @@ public class SteamLobbyManager : MonoBehaviour
             }
         }
 
-        members.Sort((a, b) => a.Value.CompareTo(b.Value));
+        members.Sort((a, b) =>
+        {
+            if (a == lobby.Owner.Id && b != lobby.Owner.Id)
+            {
+                return -1;
+            }
+
+            if (b == lobby.Owner.Id && a != lobby.Owner.Id)
+            {
+                return 1;
+            }
+
+            return a.Value.CompareTo(b.Value);
+        });
         if (members.Count == 0)
         {
             return null;

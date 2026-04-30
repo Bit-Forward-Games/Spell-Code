@@ -442,9 +442,9 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive && isRunning)
         {
-            if (!CheckNetworkHealth())
+            if (!CheckNetworkHealth(out string networkFailureReason))
             {
-                StopMatch("Network timeout - connection lost");
+                StopMatch(networkFailureReason);
                 return;
             }
         }
@@ -974,16 +974,20 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
     }
 
-    private bool CheckNetworkHealth()
+    private bool CheckNetworkHealth(out string failureReason)
     {
+        failureReason = "Network timeout - connection lost";
         // Don't check during lobby phase
         if (isWaitingForOpponent)
             return true;
 
         if (IsRosterBasedOnlineMatch() && MatchMessageManager.Instance != null)
         {
-            if (MatchMessageManager.Instance.GetConnectedPeerCount() < GetExpectedRemotePeerCount())
+            if (!MatchMessageManager.Instance.HasAllPeersResponsive(NETWORK_TIMEOUT, out int stalePeerSlot))
             {
+                failureReason = stalePeerSlot >= 0
+                    ? $"Network timeout - peer P{stalePeerSlot + 1} stopped responding"
+                    : "Network timeout - connection lost";
                 return false;
             }
         }
@@ -995,6 +999,7 @@ public class GameManager : MonoBehaviour
             if (UnityEngine.Time.unscaledTime - lobbyWaitStartTime > 15f)
             {
                 //Debug.LogError("Network timeout - no packets received after 15 seconds");
+                failureReason = "Network timeout - no packets received after match start";
                 return false;
             }
             return true;
@@ -1006,6 +1011,7 @@ public class GameManager : MonoBehaviour
         if (timeSinceLastPacket > NETWORK_TIMEOUT)
         {
             //Debug.LogError($"Network timeout - no packets for {timeSinceLastPacket:F1} seconds");
+            failureReason = "Network timeout - connection lost";
             return false;
         }
 
@@ -1025,7 +1031,7 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive || !isWaitingForOpponent) return;
 
         opponentIsReady = true;
-        if (localPlayerIndex == 0) // Host generates and sends seed
+        if (IsOnlineHostAuthority()) // Host generates and sends seed
         {
             MatchMessageManager.Instance.SendRollbackSettings();
             int agreedSeed = UnityEngine.Random.Range(0, 100000);
@@ -1050,7 +1056,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (localPlayerIndex == 0)
+        if (IsOnlineHostAuthority())
         {
             MatchMessageManager.Instance.SendRollbackSettings();
             int agreedSeed = UnityEngine.Random.Range(0, 100000);
@@ -2732,7 +2738,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             int transitionId = GetExpectedOnlineTransitionId();
-            if (localPlayerIndex == 0 && MatchMessageManager.Instance != null)
+            if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
             {
                 MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
             }
@@ -2973,7 +2979,7 @@ public class GameManager : MonoBehaviour
     {
         if (isOnlineMatchActive)
         {
-            if (localPlayerIndex == 0)
+            if (IsOnlineHostAuthority())
             {
                 SelectAndBroadcastStage(activeOnlineTransitionId > 0 ? activeOnlineTransitionId : GetExpectedOnlineTransitionId());
             }
@@ -3951,6 +3957,16 @@ public class GameManager : MonoBehaviour
     private bool IsRosterBasedOnlineMatch()
     {
         return activeOnlineRoster != null && activeOnlineRoster.PlayerCount > 2;
+    }
+
+    private bool IsOnlineHostAuthority()
+    {
+        if (activeOnlineRoster != null)
+        {
+            return activeOnlineRoster.HostSteamId == Steamworks.SteamClient.SteamId;
+        }
+
+        return localPlayerIndex == 0;
     }
 
     private int GetExpectedRemotePeerCount()

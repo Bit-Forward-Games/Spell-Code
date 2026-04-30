@@ -94,6 +94,10 @@ public class MatchMessageManager : MonoBehaviour
     private readonly Dictionary<SteamId, int> peerHighestRemoteFrameSeen = new Dictionary<SteamId, int>();
     private readonly Dictionary<SteamId, int> peerPingMs = new Dictionary<SteamId, int>();
     private readonly HashSet<SteamId> connectedPeers = new HashSet<SteamId>();
+    private readonly Dictionary<SteamId, CircularArray<float>> sentFrameTimesByPeer = new Dictionary<SteamId, CircularArray<float>>();
+    private readonly Dictionary<SteamId, float> peerLastPacketTime = new Dictionary<SteamId, float>();
+    private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
+    private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
 
     private struct PendingOutboundPacket
     {
@@ -125,31 +129,29 @@ public class MatchMessageManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
 
-        SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
-        SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
     }
 
     private void OnEnable()
     {
-        SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
-        SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
+        SteamNetworking.OnP2PSessionRequest += OnP2PSessionRequest;
+        SteamNetworking.OnP2PConnectionFailed += OnP2PConnectionFailed;
     }
 
     private void OnDisable()
     {
-        SteamNetworking.OnP2PSessionRequest = null;
-        SteamNetworking.OnP2PConnectionFailed = null;
+        SteamNetworking.OnP2PSessionRequest -= OnP2PSessionRequest;
+        SteamNetworking.OnP2PConnectionFailed -= OnP2PConnectionFailed;
     }
 
     private void OnP2PSessionRequest(SteamId steamId)
     {
         if (IsKnownPeer(steamId) || (!opponentSteamId.IsValid && activeRoster == null))
         {
+            SteamNetworking.AcceptP2PSessionWithUser(steamId);
             if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = steamId;
             }
-            connectedPeers.Add(steamId);
         }
         else
         {
@@ -221,6 +223,34 @@ public class MatchMessageManager : MonoBehaviour
         return connectedPeers.Count;
     }
 
+    public bool HasAllPeersResponsive(float timeoutSeconds, out int stalePeerSlot)
+    {
+        stalePeerSlot = -1;
+        if (!HasRemotePeers())
+        {
+            return true;
+        }
+
+        float now = Time.unscaledTime;
+        for (int i = 0; i < activeRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            {
+                continue;
+            }
+
+            if (!peerLastPacketTime.TryGetValue(peer.SteamId, out float lastPacketTime)
+                || now - lastPacketTime > timeoutSeconds)
+            {
+                stalePeerSlot = peer.PlayerSlot;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public void StartMatch(SteamId opponentId)
     {
         OnlineMatchRoster roster = new OnlineMatchRoster
@@ -252,6 +282,10 @@ public class MatchMessageManager : MonoBehaviour
         connectedPeers.Clear();
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
+        peerLastPacketTime.Clear();
+        sentFrameTimesByPeer.Clear();
+        handshakeSentToPeers.Clear();
+        handshakeSeenFromPeers.Clear();
         ResetReadyFlags();
         SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -264,9 +298,9 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
-            connectedPeers.Add(peer.SteamId);
             peerHighestRemoteFrameSeen[peer.SteamId] = -1;
             peerPingMs[peer.SteamId] = Ping;
+            sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
             if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = peer.SteamId;
@@ -285,6 +319,10 @@ public class MatchMessageManager : MonoBehaviour
         remoteReadyReceived.Clear();
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
+        peerLastPacketTime.Clear();
+        sentFrameTimesByPeer.Clear();
+        handshakeSentToPeers.Clear();
+        handshakeSeenFromPeers.Clear();
     }
 
     public void ResetReadyFlags()
@@ -302,6 +340,10 @@ public class MatchMessageManager : MonoBehaviour
         outboundQueue.Clear();
         inboundQueue.Clear();
         peerHighestRemoteFrameSeen.Clear();
+        foreach (CircularArray<float> peerTimes in sentFrameTimesByPeer.Values)
+        {
+            peerTimes.Clear();
+        }
     }
 
     public void SendSeed(int seed)
@@ -474,7 +516,6 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(firstFrameToSend);
                 writer.Write((byte)inputCount);
 
-                sentFrameTimes.Insert(latestTargetFrame, Time.unscaledTime);
                 for (int i = 0; i < inputCount; i++)
                 {
                     int frame = firstFrameToSend + i;
@@ -484,7 +525,9 @@ public class MatchMessageManager : MonoBehaviour
                     writer.Write(inputToSend);
                 }
 
-                SendPacketToAll(memoryStream.ToArray(), INPUT_SEND_TYPE);
+                byte[] packetData = memoryStream.ToArray();
+                RecordSentInputTimestamp(latestTargetFrame);
+                SendPacketToAll(packetData, INPUT_SEND_TYPE);
             }
         }
         catch (Exception e)
@@ -493,9 +536,9 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendMessageACK(int frameToAck)
+    public void SendMessageACK(SteamId peerId, int frameToAck)
     {
-        if (!HasRemotePeers() || !isRunning)
+        if (!peerId.IsValid || !isRunning)
         {
             return;
         }
@@ -507,7 +550,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write((byte)1);
                 writer.Write(frameToAck);
-                SendPacketToAll(memoryStream.ToArray(), ACK_SEND_TYPE);
+                SendPacket(peerId, memoryStream.ToArray(), ACK_SEND_TYPE);
             }
         }
         catch (Exception e)
@@ -626,7 +669,16 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write((byte)0xFF);
                 writer.Write("HANDSHAKE");
-                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+                byte[] data = memoryStream.ToArray();
+                foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+                {
+                    if (peer == null || peer.SteamId == SteamClient.SteamId)
+                    {
+                        continue;
+                    }
+
+                    SendHandshakeToPeer(peer.SteamId, data);
+                }
             }
         }
         catch (Exception e)
@@ -651,11 +703,16 @@ public class MatchMessageManager : MonoBehaviour
             {
                 byte packetType = reader.ReadByte();
                 int senderSlot = ResolveSlot(senderSteamId);
+                peerLastPacketTime[senderSteamId] = Time.unscaledTime;
+                connectedPeers.Add(senderSteamId);
 
                 if (packetType == 0xFF)
                 {
                     reader.ReadString();
-                    SendHandshakeToPeer(senderSteamId);
+                    if (handshakeSeenFromPeers.Add(senderSteamId) && !handshakeSentToPeers.Contains(senderSteamId))
+                    {
+                        SendHandshakeToPeer(senderSteamId);
+                    }
                     return;
                 }
 
@@ -829,7 +886,7 @@ public class MatchMessageManager : MonoBehaviour
                             }
                         }
 
-                        SendMessageACK(frame);
+                            SendMessageACK(senderSteamId, frame);
 
                         if (i == inputCount - 1)
                         {
@@ -871,7 +928,12 @@ public class MatchMessageManager : MonoBehaviour
 
     private void ProcessACK(SteamId senderSteamId, int frame)
     {
-        float sentTime = sentFrameTimes.Get(frame);
+        if (!sentFrameTimesByPeer.TryGetValue(senderSteamId, out CircularArray<float> peerSentFrameTimes))
+        {
+            return;
+        }
+
+        float sentTime = peerSentFrameTimes.Get(frame);
         if (sentTime <= 0f)
         {
             return;
@@ -879,7 +941,7 @@ public class MatchMessageManager : MonoBehaviour
 
         int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
         peerPingMs[senderSteamId] = rttMs;
-        sentFrameTimes.Insert(frame, 0f);
+        peerSentFrameTimes.Insert(frame, 0f);
     }
 
     private void RefreshAggregatePing()
@@ -939,6 +1001,27 @@ public class MatchMessageManager : MonoBehaviour
         return any;
     }
 
+    private void RecordSentInputTimestamp(int frame)
+    {
+        float now = Time.unscaledTime;
+        sentFrameTimes.Insert(frame, now);
+        foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+        {
+            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            {
+                continue;
+            }
+
+            if (!sentFrameTimesByPeer.TryGetValue(peer.SteamId, out CircularArray<float> peerTimes))
+            {
+                peerTimes = new CircularArray<float>(RollbackManager.InputArraySize);
+                sentFrameTimesByPeer[peer.SteamId] = peerTimes;
+            }
+
+            peerTimes.Insert(frame, now);
+        }
+    }
+
     private void SendHandshakeToPeer(SteamId peerId)
     {
         try
@@ -948,7 +1031,22 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write((byte)0xFF);
                 writer.Write("HANDSHAKE");
-                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+                SendHandshakeToPeer(peerId, memoryStream.ToArray());
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending handshake: {e}");
+        }
+    }
+
+    private void SendHandshakeToPeer(SteamId peerId, byte[] data)
+    {
+        try
+        {
+            if (SendPacket(peerId, data, P2PSend.Reliable))
+            {
+                handshakeSentToPeers.Add(peerId);
             }
         }
         catch (Exception e)

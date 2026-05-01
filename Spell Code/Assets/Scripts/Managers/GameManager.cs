@@ -134,6 +134,7 @@ public class GameManager : MonoBehaviour
     // Network health tracking (uses real time, not frames)
     private float lastPacketReceivedTime = 0f;
     private const float NETWORK_TIMEOUT = 10f;
+    private const float TRANSITION_NETWORK_GRACE_SECONDS = 10f;
 
     [Header("Input Management")]
     public PlayerInputManager playerInputManager;
@@ -188,6 +189,7 @@ public class GameManager : MonoBehaviour
     private byte pendingStageSelectSceneType = 0;
     private int pendingStageSelectSceneSignature = 0;
     private int pendingStageSelectIndex = -1;
+    private uint pendingStageSelectRngState = 0;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     private bool hasPendingRemoteSceneReady = false;
@@ -215,6 +217,7 @@ public class GameManager : MonoBehaviour
         {
             // otherwise, set this as the instance
             Instance = this;
+            Application.runInBackground = true;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
             
@@ -663,6 +666,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         localSceneTransitionReady = false;
         remoteSceneTransitionReady = false;
         hasPendingRemoteSceneReady = false;
@@ -773,10 +777,25 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
     }
 
+    private void RefreshNetworkActivityGrace()
+    {
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+
+        if (RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.ResetTimeoutGrace(TRANSITION_NETWORK_GRACE_SECONDS);
+        }
+    }
+
     private bool CheckNetworkHealth()
     {
+        if (MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.PumpNetwork();
+        }
+
         // Don't check during lobby phase
-        if (isWaitingForOpponent)
+        if (isWaitingForOpponent || isTransitioning)
             return true;
 
         // If we haven't received ANY packets yet, give it more time
@@ -880,6 +899,7 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
         pendingRemoteSceneReadySignature = 0;
+        RefreshNetworkActivityGrace();
     }
 
     private void CompleteTrackedOnlineTransition()
@@ -905,7 +925,9 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         pendingOpponentShopTransitionId = 0;
+        RefreshNetworkActivityGrace();
     }
 
     // Send lobby ready signal
@@ -1113,6 +1135,7 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = packetSceneType;
                 pendingStageSelectSceneSignature = packetSceneSignature;
                 pendingStageSelectIndex = stageIndex;
+                pendingStageSelectRngState = hostStageRngState;
             }
             return false;
         }
@@ -1126,7 +1149,7 @@ public class GameManager : MonoBehaviour
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
-            ApplyOnlineStageSelection(stageIndex);
+            ApplyOnlineStageSelection(stageIndex, hostStageRngState);
             return true;
         }
 
@@ -1143,6 +1166,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = packetSceneType;
             pendingStageSelectSceneSignature = packetSceneSignature;
             pendingStageSelectIndex = stageIndex;
+            pendingStageSelectRngState = hostStageRngState;
             return true;
         }
 
@@ -1169,11 +1193,13 @@ public class GameManager : MonoBehaviour
             BeginTrackedOnlineTransition(pendingStageSelectTransitionId);
         }
         int pendingIndex = pendingStageSelectIndex;
+        uint pendingRngState = pendingStageSelectRngState;
         pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
-        ApplyOnlineStageSelection(pendingIndex);
+        pendingStageSelectRngState = 0;
+        ApplyOnlineStageSelection(pendingIndex, pendingRngState);
     }
 
     /// <summary>
@@ -1227,6 +1253,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             remoteSceneTransitionReady = false;
             hasPendingRemoteSceneReady = false;
@@ -1674,6 +1701,7 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectSceneType = 0;
                 pendingStageSelectSceneSignature = 0;
                 pendingStageSelectIndex = -1;
+                pendingStageSelectRngState = 0;
             }
             LoadRandomGameplayStage();
             ResetPlayers();
@@ -2402,6 +2430,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
         sceneManager.LoadScene("Shop");
         SetStage(-1);
     }
@@ -2654,7 +2683,7 @@ public class GameManager : MonoBehaviour
         {
             BeginTrackedOnlineTransition(transitionId);
         }
-        ApplyOnlineStageSelection(newStageIndex);
+        ApplyOnlineStageSelection(newStageIndex, stageRngState);
 
         if (MatchMessageManager.Instance != null)
         {
@@ -2662,8 +2691,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void ApplyOnlineStageSelection(int stageIndex)
+    public void ApplyOnlineStageSelection(int stageIndex, uint? syncedStageRngState = null)
     {
+        if (syncedStageRngState.HasValue)
+        {
+            stageRngState = syncedStageRngState.Value;
+        }
+
         if (playerInputManager != null)
         {
             playerInputManager.DisableJoining();
@@ -2785,6 +2819,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
@@ -2848,6 +2883,7 @@ public class GameManager : MonoBehaviour
             pendingStageSelectSceneType = 0;
             pendingStageSelectSceneSignature = 0;
             pendingStageSelectIndex = -1;
+            pendingStageSelectRngState = 0;
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;

@@ -79,6 +79,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
+    private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -146,7 +147,7 @@ public class MatchMessageManager : MonoBehaviour
 
     private void OnP2PSessionRequest(SteamId steamId)
     {
-        if (IsKnownPeer(steamId) || (!opponentSteamId.IsValid && activeRoster == null))
+        if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId) || (!opponentSteamId.IsValid && activeRoster == null))
         {
             SteamNetworking.AcceptP2PSessionWithUser(steamId);
             if (!opponentSteamId.IsValid)
@@ -184,7 +185,7 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
-            if (!IsKnownPeer(packet.Value.SteamId))
+            if (!IsKnownPeer(packet.Value.SteamId) && !IsCurrentLobbyMember(packet.Value.SteamId))
             {
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
                 continue;
@@ -684,6 +685,28 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    private void SendLobbyRosterSnapshotAck(SteamId peerId)
+    {
+        if (!peerId.IsValid)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK);
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending lobby roster snapshot ack: {e}");
+        }
+    }
+
     private void SendSimplePacket(byte packetType)
     {
         if (!HasRemotePeers())
@@ -853,8 +876,19 @@ public class MatchMessageManager : MonoBehaviour
                     int frame = reader.ReadInt32();
                     int stateLength = reader.ReadInt32();
                     byte[] stateData = reader.ReadBytes(stateLength);
-                    GameManager.Instance?.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
+                    bool applied = GameManager.Instance != null
+                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
                     UpdateRoster(roster);
+                    if (applied)
+                    {
+                        SendLobbyRosterSnapshotAck(senderSteamId);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK)
+                {
+                    GameManager.Instance?.OnOnlineLobbySnapshotAcknowledged(senderSteamId);
                     return;
                 }
 
@@ -937,6 +971,11 @@ public class MatchMessageManager : MonoBehaviour
                     int remoteFrameAdvantage = reader.ReadInt32();
                     int startFrame = reader.ReadInt32();
                     int inputCount = reader.ReadByte();
+
+                    if (senderSlot < 0 && activeRoster != null)
+                    {
+                        return;
+                    }
 
                     if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
                     {
@@ -1053,6 +1092,11 @@ public class MatchMessageManager : MonoBehaviour
         }
 
         return steamId == opponentSteamId;
+    }
+
+    private bool IsCurrentLobbyMember(SteamId steamId)
+    {
+        return SteamLobbyManager.Instance != null && SteamLobbyManager.Instance.IsCurrentLobbyMember(steamId);
     }
 
     private int ResolveSlot(SteamId steamId)

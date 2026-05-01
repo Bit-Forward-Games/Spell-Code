@@ -23,6 +23,8 @@ public class SteamLobbyManager : MonoBehaviour
     private bool startedCurrentLobbyMatch;
     private string currentMatchStartToken = string.Empty;
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
+    private readonly Dictionary<SteamId, float> pendingLobbySnapshotPeers = new Dictionary<SteamId, float>();
+    private const float LobbySnapshotResendSeconds = 1f;
 
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
@@ -102,6 +104,7 @@ public class SteamLobbyManager : MonoBehaviour
 
             UpdateLobbyJoinableState(currentLobby.Value);
             TryStartOnlineMatchFromLobby(currentLobby.Value);
+            TrySendPendingLobbySnapshots(currentLobby.Value);
         }
     }
 
@@ -209,6 +212,7 @@ public class SteamLobbyManager : MonoBehaviour
         startedCurrentLobbyMatch = false;
         currentMatchStartToken = string.Empty;
         activeMatchPeerIds.Clear();
+        pendingLobbySnapshotPeers.Clear();
     }
 
     private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
@@ -312,7 +316,7 @@ public class SteamLobbyManager : MonoBehaviour
                 {
                     for (int i = 0; i < newPeers.Count; i++)
                     {
-                        GameManager.Instance.TrySendOnlineLobbySnapshotToPeer(newPeers[i]);
+                        QueueLobbySnapshotPeer(newPeers[i]);
                     }
                 }
             }
@@ -368,6 +372,71 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         lobby.SetJoinable(GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers());
+    }
+
+    public bool IsCurrentLobbyMember(SteamId steamId)
+    {
+        if (!currentLobby.HasValue || !steamId.IsValid)
+        {
+            return false;
+        }
+
+        foreach (Friend member in currentLobby.Value.Members)
+        {
+            if (member.Id == steamId)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void OnLobbySnapshotAcknowledged(SteamId peerId)
+    {
+        pendingLobbySnapshotPeers.Remove(peerId);
+    }
+
+    private void QueueLobbySnapshotPeer(SteamId peerId)
+    {
+        if (!peerId.IsValid || peerId == SteamClient.SteamId)
+        {
+            return;
+        }
+
+        pendingLobbySnapshotPeers[peerId] = -LobbySnapshotResendSeconds;
+    }
+
+    private void TrySendPendingLobbySnapshots(Lobby lobby)
+    {
+        if (pendingLobbySnapshotPeers.Count == 0
+            || lobby.Owner.Id != SteamClient.SteamId
+            || GameManager.Instance == null
+            || !GameManager.Instance.isOnlineMatchActive)
+        {
+            return;
+        }
+
+        float now = Time.unscaledTime;
+        List<SteamId> peers = new List<SteamId>(pendingLobbySnapshotPeers.Keys);
+        for (int i = 0; i < peers.Count; i++)
+        {
+            SteamId peerId = peers[i];
+            if (!IsCurrentLobbyMember(peerId))
+            {
+                pendingLobbySnapshotPeers.Remove(peerId);
+                continue;
+            }
+
+            float lastSendTime = pendingLobbySnapshotPeers[peerId];
+            if (now - lastSendTime < LobbySnapshotResendSeconds)
+            {
+                continue;
+            }
+
+            pendingLobbySnapshotPeers[peerId] = now;
+            GameManager.Instance.TrySendOnlineLobbySnapshotToPeer(peerId);
+        }
     }
 
     private string BuildMatchStartToken(Lobby lobby, OnlineMatchRoster roster)

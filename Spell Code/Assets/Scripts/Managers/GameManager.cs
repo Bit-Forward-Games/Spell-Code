@@ -796,10 +796,11 @@ public class GameManager : MonoBehaviour
 
         playerCount = roster.PlayerCount;
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
-        ResetOnlineReadyForGameplayState();
+        PruneOnlineReadyForGameplayState(roster);
 
         MatchMessageManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.UpdateRoster(roster);
+        ApplyPendingGameplayReadyIfAvailable();
         return true;
     }
 
@@ -818,16 +819,16 @@ public class GameManager : MonoBehaviour
         MatchMessageManager.Instance.SendLobbyRosterSnapshot(peerId, activeOnlineRoster, frameNumber, SerializeManagedState());
     }
 
-    public void ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData)
+    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData)
     {
         if (roster == null || stateData == null || stateData.Length == 0)
         {
-            return;
+            return false;
         }
 
         if (!isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
         {
-            return;
+            return false;
         }
 
         TryRefreshOnlineLobbyRoster(roster);
@@ -839,6 +840,12 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         RollbackManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.SaveState();
+        return true;
+    }
+
+    public void OnOnlineLobbySnapshotAcknowledged(Steamworks.SteamId peerId)
+    {
+        SteamLobbyManager.Instance?.OnLobbySnapshotAcknowledged(peerId);
     }
 
     /// <summary>
@@ -2365,6 +2372,11 @@ public class GameManager : MonoBehaviour
     //gets called everytime a new player enters, recreates player array
     public void GetPlayerControllers(PlayerInput playerInput)
     {
+        if (playerInput == null)
+        {
+            return;
+        }
+
         if (isOnlineMatchActive)
         {
             //Debug.Log("GetPlayerControllers called but online match active - ignoring");
@@ -4086,6 +4098,70 @@ public class GameManager : MonoBehaviour
         pendingRemoteGameplayReadyTransitionId = 0;
         pendingGameplayReadyBySlot.Clear();
         pendingGameplayReadyTransitionBySlot.Clear();
+    }
+
+    private void PruneOnlineReadyForGameplayState(OnlineMatchRoster roster)
+    {
+        if (roster?.Peers == null)
+        {
+            ResetOnlineReadyForGameplayState();
+            return;
+        }
+
+        HashSet<int> validSlots = new HashSet<int>();
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer != null)
+            {
+                validSlots.Add(peer.PlayerSlot);
+            }
+        }
+
+        List<int> readySlotsToRemove = new List<int>();
+        foreach (int slot in gameplayReadyPeerSlots)
+        {
+            if (!validSlots.Contains(slot))
+            {
+                readySlotsToRemove.Add(slot);
+            }
+        }
+
+        for (int i = 0; i < readySlotsToRemove.Count; i++)
+        {
+            gameplayReadyPeerSlots.Remove(readySlotsToRemove[i]);
+        }
+
+        List<int> pendingSlotsToRemove = new List<int>();
+        foreach (int slot in pendingGameplayReadyBySlot.Keys)
+        {
+            if (!validSlots.Contains(slot))
+            {
+                pendingSlotsToRemove.Add(slot);
+            }
+        }
+
+        for (int i = 0; i < pendingSlotsToRemove.Count; i++)
+        {
+            pendingGameplayReadyBySlot.Remove(pendingSlotsToRemove[i]);
+            pendingGameplayReadyTransitionBySlot.Remove(pendingSlotsToRemove[i]);
+        }
+
+        if (!validSlots.Contains(localPlayerIndex))
+        {
+            localPlayerReadyForGameplay = false;
+            localGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+        }
+
+        if (remotePlayerIndex < 0 || !validSlots.Contains(remotePlayerIndex))
+        {
+            remotePlayerReadyForGameplay = false;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            pendingRemoteGameplayReadyTransitionId = 0;
+        }
     }
 
     public bool IsOnlineLobbyAcceptingAdditionalPlayers()

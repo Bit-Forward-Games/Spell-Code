@@ -224,7 +224,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public void Init(OnlineMatchRoster roster, int? inputDelayFrames = null)
         {
             activeRoster = roster;
-            usePeerRoster = roster != null && roster.PlayerCount > 2;
+            usePeerRoster = roster != null;
             opponentNetworkId = 0;
             remotePlayerSlots.Clear();
 
@@ -253,6 +253,30 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             ClearVars();
+        }
+
+        public void UpdateRoster(OnlineMatchRoster roster)
+        {
+            if (roster == null)
+            {
+                return;
+            }
+
+            activeRoster = roster;
+            usePeerRoster = true;
+            remotePlayerSlots.Clear();
+
+            for (int i = 0; i < roster.Peers.Count; i++)
+            {
+                OnlineMatchPeerInfo peer = roster.Peers[i];
+                if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                {
+                    remotePlayerSlots.Add(peer.PlayerSlot);
+                }
+            }
+
+            EnsureRemoteCollectionsInitialized();
+            PrimeRosterInputHistory();
         }
 
         public void ApplyOnlineSettings(
@@ -407,6 +431,53 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
                 }
             }
+        }
+
+        private void PrimeRosterInputHistory()
+        {
+            int currentFrame = GameManager.Instance != null ? GameManager.Instance.frameNumber : 0;
+            int startFrame = Mathf.Max(0, currentFrame - InputArraySize + 1);
+            int endFrame = currentFrame + InputDelay;
+
+            for (int slotIndex = 0; slotIndex < remotePlayerSlots.Count; slotIndex++)
+            {
+                int slot = remotePlayerSlots[slotIndex];
+                if (!receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray receivedBySlot)
+                    || !usedInputsBySlot.TryGetValue(slot, out FrameMetadataArray usedBySlot))
+                {
+                    continue;
+                }
+
+                for (int frame = startFrame; frame <= endFrame; frame++)
+                {
+                    FrameMetadata neutralFrame = new FrameMetadata() { frame = frame, input = 5 };
+                    if (!receivedBySlot.ContainsKey(frame))
+                    {
+                        receivedBySlot.Insert(frame, neutralFrame);
+                    }
+
+                    if (!usedBySlot.ContainsKey(frame))
+                    {
+                        usedBySlot.Insert(frame, neutralFrame);
+                    }
+                }
+
+                if (!remoteLastAppliedInputBySlot.ContainsKey(slot))
+                {
+                    remoteLastAppliedInputBySlot[slot] = 5;
+                }
+
+                remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
+                predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
+
+                if (!highestRemoteInputFrameSeenBySlot.ContainsKey(slot))
+                {
+                    highestRemoteInputFrameSeenBySlot[slot] = -1;
+                }
+            }
+
+            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : currentFrame;
+            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : currentFrame;
         }
 
     /// <summary>

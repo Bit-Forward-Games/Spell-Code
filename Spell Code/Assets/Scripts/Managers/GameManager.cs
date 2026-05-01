@@ -614,23 +614,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (roster.PlayerCount <= 2)
-        {
-            Steamworks.SteamId opponentId = default;
-            for (int i = 0; i < roster.Peers.Count; i++)
-            {
-                if (roster.Peers[i] != null && roster.Peers[i].SteamId != Steamworks.SteamClient.SteamId)
-                {
-                    opponentId = roster.Peers[i].SteamId;
-                    remotePlayerIndex = roster.Peers[i].PlayerSlot;
-                    break;
-                }
-            }
-
-            StartOnlineMatch(roster.LocalPlayerSlot, remotePlayerIndex, opponentId);
-            return;
-        }
-
         onboardManager = null;
         if (RollbackManager.Instance == null)
         {
@@ -786,6 +769,76 @@ public class GameManager : MonoBehaviour
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
+    }
+
+    public bool TryRefreshOnlineLobbyRoster(OnlineMatchRoster roster)
+    {
+        if (!CanStartOrRefreshOnlineLobby(roster) || playerPrefab == null)
+        {
+            return false;
+        }
+
+        ApplyOnlineRoster(roster);
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null || peer.PlayerSlot < 0 || peer.PlayerSlot >= players.Length)
+            {
+                return false;
+            }
+
+            if (players[peer.PlayerSlot] == null)
+            {
+                CreateOnlinePlayerForSlot(peer.PlayerSlot, peer.PlayerSlot == localPlayerIndex);
+            }
+        }
+
+        playerCount = roster.PlayerCount;
+        syncedInput = new ulong[Mathf.Max(2, playerCount)];
+        ResetOnlineReadyForGameplayState();
+
+        MatchMessageManager.Instance?.UpdateRoster(roster);
+        RollbackManager.Instance?.UpdateRoster(roster);
+        return true;
+    }
+
+    public void TrySendOnlineLobbySnapshotToPeer(Steamworks.SteamId peerId)
+    {
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || MatchMessageManager.Instance == null)
+        {
+            return;
+        }
+
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        MatchMessageManager.Instance.SendLobbyRosterSnapshot(peerId, activeOnlineRoster, frameNumber, SerializeManagedState());
+    }
+
+    public void ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData)
+    {
+        if (roster == null || stateData == null || stateData.Length == 0)
+        {
+            return;
+        }
+
+        if (!isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        TryRefreshOnlineLobbyRoster(roster);
+        DeserializeManagedState(stateData);
+        ForceSetFrame(snapshotFrame);
+        isWaitingForOpponent = false;
+        isRunning = true;
+        lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
+        lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
+        RollbackManager.Instance?.UpdateRoster(roster);
+        RollbackManager.Instance?.SaveState();
     }
 
     /// <summary>
@@ -3956,7 +4009,119 @@ public class GameManager : MonoBehaviour
 
     private bool IsRosterBasedOnlineMatch()
     {
-        return activeOnlineRoster != null && activeOnlineRoster.PlayerCount > 2;
+        return activeOnlineRoster != null;
+    }
+
+    private void ApplyOnlineRoster(OnlineMatchRoster roster)
+    {
+        ResetOnlineRosterState();
+        activeOnlineRoster = roster;
+        localPlayerIndex = roster.LocalPlayerSlot;
+        remotePlayerIndex = -1;
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null)
+            {
+                continue;
+            }
+
+            onlineSlotToPeer[peer.PlayerSlot] = peer.SteamId;
+            onlinePeerToSlot[peer.SteamId] = peer.PlayerSlot;
+            if (peer.PlayerSlot != localPlayerIndex && remotePlayerIndex < 0)
+            {
+                remotePlayerIndex = peer.PlayerSlot;
+            }
+        }
+    }
+
+    private void CreateOnlinePlayerForSlot(int slot, bool isLocal)
+    {
+        if (slot < 0 || slot >= players.Length || playerPrefab == null)
+        {
+            return;
+        }
+
+        GameObject p = Instantiate(playerPrefab);
+        players[slot] = p.GetComponent<PlayerController>();
+        AnimationManager.Instance.InitializePlayerVisuals(players[slot], slot);
+
+        if (players[slot].playerNum != null)
+        {
+            players[slot].playerNum.text = "P" + (slot + 1);
+        }
+
+        PlayerInput pInput = p.GetComponent<PlayerInput>();
+        if (isLocal)
+        {
+            players[slot].inputs.AssignInputDevice(null);
+            ConfigureOnlineLocalPlayerInput(pInput, players[slot].inputs);
+            players[slot].CheckForInputs(true, false);
+        }
+        else
+        {
+            if (pInput != null)
+            {
+                pInput.DeactivateInput();
+                pInput.enabled = false;
+            }
+
+            players[slot].CheckForInputs(false);
+        }
+
+        players[slot].InitCharacter();
+    }
+
+    private void ResetOnlineReadyForGameplayState()
+    {
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
+        gameplayReadyPeerSlots.Clear();
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
+        pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        pendingGameplayReadyBySlot.Clear();
+        pendingGameplayReadyTransitionBySlot.Clear();
+    }
+
+    public bool IsOnlineLobbyAcceptingAdditionalPlayers()
+    {
+        if (!isOnlineMatchActive)
+        {
+            return true;
+        }
+
+        if (SceneManager.GetActiveScene().name != "MainMenu" || isTransitioning)
+        {
+            return false;
+        }
+
+        return playerCount < players.Length;
+    }
+
+    public bool CanStartOrRefreshOnlineLobby(OnlineMatchRoster roster)
+    {
+        if (roster == null || roster.PlayerCount < 2 || roster.PlayerCount > players.Length)
+        {
+            return false;
+        }
+
+        if (!isOnlineMatchActive)
+        {
+            return true;
+        }
+
+        if (!IsOnlineLobbyAcceptingAdditionalPlayers())
+        {
+            return false;
+        }
+
+        int currentRosterCount = activeOnlineRoster != null ? activeOnlineRoster.PlayerCount : playerCount;
+        return roster.PlayerCount > currentRosterCount;
     }
 
     private bool IsOnlineHostAuthority()

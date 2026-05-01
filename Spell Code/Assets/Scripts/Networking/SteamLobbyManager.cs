@@ -7,8 +7,10 @@ using Steamworks.Data;
 public class SteamLobbyManager : MonoBehaviour
 {
     private const int TargetOnlineLobbySize = 4;
+    private const int MinimumOnlineLobbyStartSize = 2;
     private const string MatchReadyKey = "matchReady";
     private const string MatchStartTokenKey = "matchStartToken";
+    private const string LobbySlotKeyPrefix = "slot_";
 
     public static SteamLobbyManager Instance { get; private set; }
 
@@ -20,6 +22,7 @@ public class SteamLobbyManager : MonoBehaviour
     private uint hostFlowVersion;
     private bool startedCurrentLobbyMatch;
     private string currentMatchStartToken = string.Empty;
+    private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
 
     [SerializeField] private bool debugLogs = true;
 
@@ -89,8 +92,9 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance != null && !GameManager.Instance.isOnlineMatchActive)
+        if (GameManager.Instance != null)
         {
+            UpdateLobbyJoinableState(currentLobby.Value);
             TryStartOnlineMatchFromLobby(currentLobby.Value);
         }
     }
@@ -198,6 +202,7 @@ public class SteamLobbyManager : MonoBehaviour
         isHostingFlow = false;
         startedCurrentLobbyMatch = false;
         currentMatchStartToken = string.Empty;
+        activeMatchPeerIds.Clear();
     }
 
     private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
@@ -268,37 +273,71 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance.isOnlineMatchActive)
-        {
-            return;
-        }
-
         OnlineMatchRoster roster = BuildRoster(lobby);
         if (roster == null)
         {
             return;
         }
 
-        if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= TargetOnlineLobbySize)
+        string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
+        if (GameManager.Instance.isOnlineMatchActive)
         {
-            string targetToken = lobby.Id.Value.ToString();
+            if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+            {
+                string currentReady = lobby.GetData(MatchReadyKey);
+                string currentToken = lobby.GetData(MatchStartTokenKey);
+                if (currentReady != "1" || currentToken != expectedMatchStartToken)
+                {
+                    lobby.SetData(MatchReadyKey, "1");
+                    lobby.SetData(MatchStartTokenKey, expectedMatchStartToken);
+                }
+            }
+
+            List<SteamId> newPeers = GetNewRosterPeers(roster);
+            if (newPeers.Count == 0 || !GameManager.Instance.CanStartOrRefreshOnlineLobby(roster))
+            {
+                return;
+            }
+
+            if (GameManager.Instance.TryRefreshOnlineLobbyRoster(roster))
+            {
+                RememberRosterPeers(roster);
+                if (lobby.Owner.Id == SteamClient.SteamId)
+                {
+                    for (int i = 0; i < newPeers.Count; i++)
+                    {
+                        GameManager.Instance.TrySendOnlineLobbySnapshotToPeer(newPeers[i]);
+                    }
+                }
+            }
+            return;
+        }
+
+        bool canStartOrRefresh = GameManager.Instance.CanStartOrRefreshOnlineLobby(roster);
+        if (!canStartOrRefresh)
+        {
+            return;
+        }
+
+        if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+        {
             string currentReady = lobby.GetData(MatchReadyKey);
             string currentToken = lobby.GetData(MatchStartTokenKey);
-            if (currentReady != "1" || currentToken != targetToken)
+            if (currentReady != "1" || currentToken != expectedMatchStartToken)
             {
                 lobby.SetData(MatchReadyKey, "1");
-                lobby.SetData(MatchStartTokenKey, targetToken);
+                lobby.SetData(MatchStartTokenKey, expectedMatchStartToken);
             }
         }
 
         string matchReady = lobby.GetData(MatchReadyKey);
         string matchStartToken = lobby.GetData(MatchStartTokenKey);
 
-        if (roster.PlayerCount < TargetOnlineLobbySize || matchReady != "1" || string.IsNullOrEmpty(matchStartToken))
+        if (roster.PlayerCount < MinimumOnlineLobbyStartSize || matchReady != "1" || matchStartToken != expectedMatchStartToken)
         {
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] Waiting for lobby to fill before starting. Members={roster?.PlayerCount ?? 0}/{TargetOnlineLobbySize}");
+                Debug.Log($"[SteamLobbyManager] Waiting for at least one guest before starting. Members={roster?.PlayerCount ?? 0}/{MinimumOnlineLobbyStartSize}");
             }
             return;
         }
@@ -311,7 +350,40 @@ public class SteamLobbyManager : MonoBehaviour
         startedCurrentLobbyMatch = true;
         currentMatchStartToken = matchStartToken;
         GameManager.Instance.StartOnlineMatch(roster);
+        RememberRosterPeers(roster);
         isHostingFlow = false;
+    }
+
+    private void UpdateLobbyJoinableState(Lobby lobby)
+    {
+        if (lobby.Owner.Id != SteamClient.SteamId || GameManager.Instance == null)
+        {
+            return;
+        }
+
+        lobby.SetJoinable(GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers());
+    }
+
+    private string BuildMatchStartToken(Lobby lobby, OnlineMatchRoster roster)
+    {
+        string token = lobby.Id.Value.ToString();
+        if (roster?.Peers == null)
+        {
+            return token;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null)
+            {
+                continue;
+            }
+
+            token += $":{peer.PlayerSlot}-{peer.SteamId.Value}";
+        }
+
+        return token;
     }
 
     private OnlineMatchRoster BuildRoster(Lobby lobby)
@@ -325,24 +397,18 @@ public class SteamLobbyManager : MonoBehaviour
             }
         }
 
-        members.Sort((a, b) =>
-        {
-            if (a == lobby.Owner.Id && b != lobby.Owner.Id)
-            {
-                return -1;
-            }
-
-            if (b == lobby.Owner.Id && a != lobby.Owner.Id)
-            {
-                return 1;
-            }
-
-            return a.Value.CompareTo(b.Value);
-        });
         if (members.Count == 0)
         {
             return null;
         }
+
+        Dictionary<SteamId, int> assignedSlots = BuildAssignedSlots(lobby, members);
+        if (assignedSlots.Count < members.Count)
+        {
+            return null;
+        }
+
+        members.Sort((a, b) => assignedSlots[a].CompareTo(assignedSlots[b]));
 
         OnlineMatchRoster roster = new OnlineMatchRoster
         {
@@ -352,19 +418,127 @@ public class SteamLobbyManager : MonoBehaviour
         for (int i = 0; i < members.Count; i++)
         {
             SteamId memberId = members[i];
+            int playerSlot = assignedSlots[memberId];
             roster.Peers.Add(new OnlineMatchPeerInfo
             {
                 SteamId = memberId,
-                PlayerSlot = i
+                PlayerSlot = playerSlot
             });
 
             if (memberId == SteamClient.SteamId)
             {
-                roster.LocalPlayerSlot = i;
+                roster.LocalPlayerSlot = playerSlot;
             }
         }
 
         return roster;
+    }
+
+    private Dictionary<SteamId, int> BuildAssignedSlots(Lobby lobby, List<SteamId> members)
+    {
+        Dictionary<SteamId, int> assignedSlots = new Dictionary<SteamId, int>();
+        HashSet<int> usedSlots = new HashSet<int>();
+
+        assignedSlots[lobby.Owner.Id] = 0;
+        usedSlots.Add(0);
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            SteamId memberId = members[i];
+            if (memberId == lobby.Owner.Id)
+            {
+                continue;
+            }
+
+            string slotText = lobby.GetData(GetSlotKey(memberId));
+            if (int.TryParse(slotText, out int slot) && slot > 0 && slot < TargetOnlineLobbySize && !usedSlots.Contains(slot))
+            {
+                assignedSlots[memberId] = slot;
+                usedSlots.Add(slot);
+            }
+        }
+
+        if (lobby.Owner.Id != SteamClient.SteamId)
+        {
+            return assignedSlots;
+        }
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            SteamId memberId = members[i];
+            if (assignedSlots.ContainsKey(memberId))
+            {
+                continue;
+            }
+
+            int slot = GetFirstOpenSlot(usedSlots);
+            if (slot < 0)
+            {
+                continue;
+            }
+
+            assignedSlots[memberId] = slot;
+            usedSlots.Add(slot);
+            lobby.SetData(GetSlotKey(memberId), slot.ToString());
+        }
+
+        return assignedSlots;
+    }
+
+    private int GetFirstOpenSlot(HashSet<int> usedSlots)
+    {
+        for (int slot = 1; slot < TargetOnlineLobbySize; slot++)
+        {
+            if (!usedSlots.Contains(slot))
+            {
+                return slot;
+            }
+        }
+
+        return -1;
+    }
+
+    private string GetSlotKey(SteamId steamId)
+    {
+        return $"{LobbySlotKeyPrefix}{steamId.Value}";
+    }
+
+    private List<SteamId> GetNewRosterPeers(OnlineMatchRoster roster)
+    {
+        List<SteamId> newPeers = new List<SteamId>();
+        if (roster?.Peers == null)
+        {
+            return newPeers;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer != null && peer.SteamId != SteamClient.SteamId && !activeMatchPeerIds.Contains(peer.SteamId))
+            {
+                newPeers.Add(peer.SteamId);
+            }
+        }
+
+        return newPeers;
+    }
+
+    private void RememberRosterPeers(OnlineMatchRoster roster)
+    {
+        activeMatchPeerIds.Clear();
+        if (roster?.Peers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer != null)
+            {
+                activeMatchPeerIds.Add(peer.SteamId);
+            }
+        }
     }
 
     private void HandleLobbyCreated(Result result, Lobby lobby)

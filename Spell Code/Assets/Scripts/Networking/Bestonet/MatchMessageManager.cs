@@ -78,6 +78,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
+    private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -301,6 +302,48 @@ public class MatchMessageManager : MonoBehaviour
             peerHighestRemoteFrameSeen[peer.SteamId] = -1;
             peerPingMs[peer.SteamId] = Ping;
             sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
+            if (!opponentSteamId.IsValid)
+            {
+                opponentSteamId = peer.SteamId;
+            }
+        }
+
+        SendHandshake();
+    }
+
+    public void UpdateRoster(OnlineMatchRoster roster)
+    {
+        if (roster == null || roster.PlayerCount <= 1)
+        {
+            return;
+        }
+
+        activeRoster = roster;
+        isRunning = true;
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            {
+                continue;
+            }
+
+            if (!peerHighestRemoteFrameSeen.ContainsKey(peer.SteamId))
+            {
+                peerHighestRemoteFrameSeen[peer.SteamId] = -1;
+            }
+
+            if (!peerPingMs.ContainsKey(peer.SteamId))
+            {
+                peerPingMs[peer.SteamId] = Ping;
+            }
+
+            if (!sentFrameTimesByPeer.ContainsKey(peer.SteamId))
+            {
+                sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
+            }
+
             if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = peer.SteamId;
@@ -615,6 +658,32 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData)
+    {
+        if (!peerId.IsValid || roster == null || stateData == null || stateData.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT);
+                WriteRoster(writer, roster);
+                writer.Write(frame);
+                writer.Write(stateData.Length);
+                writer.Write(stateData);
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending lobby roster snapshot: {e}");
+        }
+    }
+
     private void SendSimplePacket(byte packetType)
     {
         if (!HasRemotePeers())
@@ -775,6 +844,17 @@ public class MatchMessageManager : MonoBehaviour
                         timeoutFrames,
                         softFramePacingThreshold,
                         maxConsecutiveFrameDrops);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT)
+                {
+                    OnlineMatchRoster roster = ReadRoster(reader);
+                    int frame = reader.ReadInt32();
+                    int stateLength = reader.ReadInt32();
+                    byte[] stateData = reader.ReadBytes(stateLength);
+                    GameManager.Instance?.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
+                    UpdateRoster(roster);
                     return;
                 }
 
@@ -999,6 +1079,56 @@ public class MatchMessageManager : MonoBehaviour
         }
 
         return any;
+    }
+
+    private void WriteRoster(BinaryWriter writer, OnlineMatchRoster roster)
+    {
+        writer.Write(roster.HostSteamId.Value);
+        writer.Write(roster.Peers?.Count ?? 0);
+        if (roster.Peers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            writer.Write(peer != null ? peer.SteamId.Value : 0UL);
+            writer.Write(peer != null ? peer.PlayerSlot : -1);
+        }
+    }
+
+    private OnlineMatchRoster ReadRoster(BinaryReader reader)
+    {
+        OnlineMatchRoster roster = new OnlineMatchRoster
+        {
+            HostSteamId = reader.ReadUInt64(),
+            LocalPlayerSlot = -1
+        };
+
+        int peerCount = reader.ReadInt32();
+        for (int i = 0; i < peerCount; i++)
+        {
+            SteamId steamId = reader.ReadUInt64();
+            int playerSlot = reader.ReadInt32();
+            if (!steamId.IsValid || playerSlot < 0)
+            {
+                continue;
+            }
+
+            roster.Peers.Add(new OnlineMatchPeerInfo
+            {
+                SteamId = steamId,
+                PlayerSlot = playerSlot
+            });
+
+            if (steamId == SteamClient.SteamId)
+            {
+                roster.LocalPlayerSlot = playerSlot;
+            }
+        }
+
+        return roster;
     }
 
     private void RecordSentInputTimestamp(int frame)

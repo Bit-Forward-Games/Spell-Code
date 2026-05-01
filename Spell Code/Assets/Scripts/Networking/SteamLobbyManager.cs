@@ -25,6 +25,7 @@ public class SteamLobbyManager : MonoBehaviour
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
 
     [SerializeField] private bool debugLogs = true;
+    [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
 
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
@@ -94,6 +95,11 @@ public class SteamLobbyManager : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
+            if (Input.GetKeyDown(inviteOverlayKey))
+            {
+                TryOpenInviteOverlay();
+            }
+
             UpdateLobbyJoinableState(currentLobby.Value);
             TryStartOnlineMatchFromLobby(currentLobby.Value);
         }

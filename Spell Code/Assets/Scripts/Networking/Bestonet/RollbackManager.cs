@@ -268,17 +268,48 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             usePeerRoster = true;
             remotePlayerSlots.Clear();
 
+            HashSet<int> validRemoteSlots = new HashSet<int>();
             for (int i = 0; i < roster.Peers.Count; i++)
             {
                 OnlineMatchPeerInfo peer = roster.Peers[i];
                 if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
                 {
                     remotePlayerSlots.Add(peer.PlayerSlot);
+                    validRemoteSlots.Add(peer.PlayerSlot);
                 }
             }
 
+            PruneRemoteSlotTracking(validRemoteSlots);
             EnsureRemoteCollectionsInitialized();
             PrimeRosterInputHistory();
+        }
+
+        private void PruneRemoteSlotTracking(HashSet<int> validRemoteSlots)
+        {
+            PruneSlotDictionary(receivedInputsBySlot, validRemoteSlots);
+            PruneSlotDictionary(usedInputsBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteFrameAdvantagesBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteLastAppliedInputBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteFrameBySlot, validRemoteSlots);
+            PruneSlotDictionary(predictedRemoteFrameBySlot, validRemoteSlots);
+            PruneSlotDictionary(highestRemoteInputFrameSeenBySlot, validRemoteSlots);
+        }
+
+        private void PruneSlotDictionary<T>(Dictionary<int, T> valuesBySlot, HashSet<int> validRemoteSlots)
+        {
+            List<int> staleSlots = new List<int>();
+            foreach (int slot in valuesBySlot.Keys)
+            {
+                if (!validRemoteSlots.Contains(slot))
+                {
+                    staleSlots.Add(slot);
+                }
+            }
+
+            for (int i = 0; i < staleSlots.Count; i++)
+            {
+                valuesBySlot.Remove(staleSlots[i]);
+            }
         }
 
         public void ApplyOnlineSettings(

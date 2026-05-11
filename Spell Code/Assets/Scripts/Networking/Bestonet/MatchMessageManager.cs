@@ -297,6 +297,7 @@ public class MatchMessageManager : MonoBehaviour
         SteamNetworking.AllowP2PPacketRelay(true);
 
         opponentSteamId = default;
+        float now = Time.unscaledTime;
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
@@ -307,6 +308,7 @@ public class MatchMessageManager : MonoBehaviour
 
             peerHighestRemoteFrameSeen[peer.SteamId] = -1;
             peerPingMs[peer.SteamId] = Ping;
+            peerLastPacketTime[peer.SteamId] = now;
             sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
             if (!opponentSteamId.IsValid)
             {
@@ -327,6 +329,8 @@ public class MatchMessageManager : MonoBehaviour
         activeRoster = roster;
         isRunning = true;
 
+        float now = Time.unscaledTime;
+        HashSet<SteamId> rosterPeerIds = new HashSet<SteamId>();
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
@@ -335,6 +339,7 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
+            rosterPeerIds.Add(peer.SteamId);
             if (!peerHighestRemoteFrameSeen.ContainsKey(peer.SteamId))
             {
                 peerHighestRemoteFrameSeen[peer.SteamId] = -1;
@@ -343,6 +348,11 @@ public class MatchMessageManager : MonoBehaviour
             if (!peerPingMs.ContainsKey(peer.SteamId))
             {
                 peerPingMs[peer.SteamId] = Ping;
+            }
+
+            if (!peerLastPacketTime.ContainsKey(peer.SteamId))
+            {
+                peerLastPacketTime[peer.SteamId] = now;
             }
 
             if (!sentFrameTimesByPeer.ContainsKey(peer.SteamId))
@@ -356,7 +366,54 @@ public class MatchMessageManager : MonoBehaviour
             }
         }
 
+        PrunePeerTracking(rosterPeerIds);
         SendHandshake();
+    }
+
+    private void PrunePeerTracking(HashSet<SteamId> rosterPeerIds)
+    {
+        PrunePeerSet(connectedPeers, rosterPeerIds);
+        PrunePeerSet(remoteReadyReceived, rosterPeerIds);
+        PrunePeerSet(handshakeSentToPeers, rosterPeerIds);
+        PrunePeerSet(handshakeSeenFromPeers, rosterPeerIds);
+        PrunePeerDictionary(peerHighestRemoteFrameSeen, rosterPeerIds);
+        PrunePeerDictionary(peerPingMs, rosterPeerIds);
+        PrunePeerDictionary(peerLastPacketTime, rosterPeerIds);
+        PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
+    }
+
+    private void PrunePeerSet(HashSet<SteamId> peers, HashSet<SteamId> rosterPeerIds)
+    {
+        List<SteamId> stalePeers = new List<SteamId>();
+        foreach (SteamId peerId in peers)
+        {
+            if (!rosterPeerIds.Contains(peerId))
+            {
+                stalePeers.Add(peerId);
+            }
+        }
+
+        for (int i = 0; i < stalePeers.Count; i++)
+        {
+            peers.Remove(stalePeers[i]);
+        }
+    }
+
+    private void PrunePeerDictionary<T>(Dictionary<SteamId, T> valuesByPeer, HashSet<SteamId> rosterPeerIds)
+    {
+        List<SteamId> stalePeers = new List<SteamId>();
+        foreach (SteamId peerId in valuesByPeer.Keys)
+        {
+            if (!rosterPeerIds.Contains(peerId))
+            {
+                stalePeers.Add(peerId);
+            }
+        }
+
+        for (int i = 0; i < stalePeers.Count; i++)
+        {
+            valuesByPeer.Remove(stalePeers[i]);
+        }
     }
 
     public void StopMatch()

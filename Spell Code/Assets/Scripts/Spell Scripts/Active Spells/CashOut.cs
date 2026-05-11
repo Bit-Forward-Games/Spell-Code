@@ -12,7 +12,7 @@ public class CashOut : SpellData
         spellName = "Cash Out";
         brands = new Brand[]{ Brand.BigStox };
         cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_0000_0001_0000_0010; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_1110_0001_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic};
         projectilePrefabs = new GameObject[10];

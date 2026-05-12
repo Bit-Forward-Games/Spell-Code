@@ -266,6 +266,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             activeRoster = roster;
             usePeerRoster = true;
+            List<int> previousRemoteSlots = new List<int>(remotePlayerSlots);
             remotePlayerSlots.Clear();
 
             HashSet<int> validRemoteSlots = new HashSet<int>();
@@ -282,6 +283,44 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneRemoteSlotTracking(validRemoteSlots);
             EnsureRemoteCollectionsInitialized();
             PrimeRosterInputHistory();
+            if (HasRemoteSlotSetChanged(previousRemoteSlots, remotePlayerSlots))
+            {
+                ResetRollbackHistoryForRosterChange();
+            }
+        }
+
+        private bool HasRemoteSlotSetChanged(List<int> previousSlots, List<int> currentSlots)
+        {
+            if (previousSlots.Count != currentSlots.Count)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < currentSlots.Count; i++)
+            {
+                if (!previousSlots.Contains(currentSlots[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void ResetRollbackHistoryForRosterChange()
+        {
+            int currentFrame = localFrame;
+            for (int i = 0; i < StateArraySize; i++)
+            {
+                states[i] = new GameState() { frame = -1, state = null, hash = 0 };
+            }
+
+            syncFrame = currentFrame;
+            RollbackFrames = 0;
+            isRollbackFrame = false;
+            lastHashSentFrame = -1;
+            pendingRemoteHashes.Clear();
+            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
         }
 
         private void PruneRemoteSlotTracking(HashSet<int> validRemoteSlots)

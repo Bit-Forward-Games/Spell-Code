@@ -802,6 +802,7 @@ public class GameManager : MonoBehaviour
 
         MatchMessageManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.UpdateRoster(roster);
+        RollbackManager.Instance?.SaveState();
         ApplyPendingGameplayReadyIfAvailable();
         return true;
     }
@@ -3754,15 +3755,22 @@ public class GameManager : MonoBehaviour
                 {
                     //Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
                 }
-                for (int i = 0; i < playerCount; i++) // Use current (or updated) playerCount
+
+                int playersToRead = Mathf.Clamp(savedPlayerCount, 0, players.Length);
+                for (int i = 0; i < playersToRead; i++)
                 {
+                    if (players[i] == null && i < playerCount && playerPrefab != null)
+                    {
+                        CreateOnlinePlayerForSlot(i, i == localPlayerIndex);
+                    }
+
                     if (players[i] != null)
                     {
                         players[i].Deserialize(br);
                     }
                     else
                     {
-                        //Debug.LogError($"Attempting to deserialize state into null player at index {i}.");
+                        throw new InvalidDataException($"Cannot deserialize saved player slot {i}; no player object is available.");
                     }
                 }
 
@@ -3839,9 +3847,13 @@ public class GameManager : MonoBehaviour
                         shopManager.SetChoicesForPlayer(3, savedP4Choices);
                     }
 
-                    for (int i = 0; i < playerCount; i++)
+                    for (int i = 0; i < playersToRead; i++)
                     {
-                        players[i].chosenSpell = br.ReadBoolean();
+                        bool chosenSpell = br.ReadBoolean();
+                        if (i < playerCount && players[i] != null)
+                        {
+                            players[i].chosenSpell = chosenSpell;
+                        }
                     }
                 }
 

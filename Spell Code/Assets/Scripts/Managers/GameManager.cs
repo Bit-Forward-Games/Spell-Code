@@ -834,7 +834,12 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        TryRefreshOnlineLobbyRoster(roster);
+        bool rosterAlreadyApplied = DoesActiveOnlineRosterMatch(roster);
+        if (!TryRefreshOnlineLobbyRoster(roster) && !rosterAlreadyApplied)
+        {
+            return false;
+        }
+
         DeserializeManagedState(stateData);
         ForceSetFrame(snapshotFrame);
         isWaitingForOpponent = false;
@@ -4054,6 +4059,25 @@ public class GameManager : MonoBehaviour
     private bool IsRosterBasedOnlineMatch()
     {
         return activeOnlineRoster != null;
+    }
+
+    private bool DoesActiveOnlineRosterMatch(OnlineMatchRoster roster)
+    {
+        if (activeOnlineRoster == null || roster == null || activeOnlineRoster.PlayerCount != roster.PlayerCount)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null || !activeOnlineRoster.TryGetSteamIdForSlot(peer.PlayerSlot, out Steamworks.SteamId activeSteamId) || activeSteamId != peer.SteamId)
+            {
+                return false;
+            }
+        }
+
+        return activeOnlineRoster.LocalPlayerSlot == roster.LocalPlayerSlot;
     }
 
     private void ApplyOnlineRoster(OnlineMatchRoster roster)

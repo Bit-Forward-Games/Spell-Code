@@ -478,9 +478,16 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         Dictionary<SteamId, int> assignedSlots = BuildAssignedSlots(lobby, members);
-        if (assignedSlots.Count < members.Count)
+        for (int i = 0; i < members.Count; i++)
         {
-            return null;
+            if (!assignedSlots.ContainsKey(members[i]))
+            {
+                if (debugLogs)
+                {
+                    Debug.Log($"[SteamLobbyManager] Waiting for slot metadata for member {members[i].Value}.");
+                }
+                return null;
+            }
         }
 
         members.Sort((a, b) => assignedSlots[a].CompareTo(assignedSlots[b]));
@@ -514,8 +521,11 @@ public class SteamLobbyManager : MonoBehaviour
         Dictionary<SteamId, int> assignedSlots = new Dictionary<SteamId, int>();
         HashSet<int> usedSlots = new HashSet<int>();
 
-        assignedSlots[lobby.Owner.Id] = 0;
-        usedSlots.Add(0);
+        if (lobby.Owner.Id.IsValid && members.Contains(lobby.Owner.Id))
+        {
+            assignedSlots[lobby.Owner.Id] = 0;
+            usedSlots.Add(0);
+        }
 
         for (int i = 0; i < members.Count; i++)
         {

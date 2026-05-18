@@ -309,17 +309,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         private void ResetRollbackHistoryForRosterChange()
         {
-            int currentFrame = localFrame;
+            ResetRollbackBaseline(localFrame);
+        }
+
+        public void ResetRollbackBaseline(int frame)
+        {
+            int baselineFrame = Mathf.Max(0, frame);
             for (int i = 0; i < StateArraySize; i++)
             {
                 states[i] = new GameState() { frame = -1, state = null, hash = 0 };
             }
 
-            syncFrame = currentFrame;
+            syncFrame = baselineFrame;
             RollbackFrames = 0;
             isRollbackFrame = false;
             lastHashSentFrame = -1;
             pendingRemoteHashes.Clear();
+            remoteFrameStallTicks = 0;
+            lastRemoteFrameForTimeout = remoteFrame;
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
         }
 
@@ -673,6 +680,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         // --- Perform Rollback ---
         Debug.Log($"Rollback Triggered: Mismatch detected after frame {syncFrame}. Rolling back from {framesBeforeRollback}.");
+        if (!HasStateForFrame(syncFrame))
+        {
+            Debug.LogWarning($"Rollback skipped because baseline frame {syncFrame} is no longer in history at frame {framesBeforeRollback}. Re-basing rollback history.");
+            ResetRollbackBaseline(framesBeforeRollback);
+            SaveState();
+            return;
+        }
+
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
 
@@ -1086,6 +1101,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // Force the GameManager's frame number to match the loaded state
         GameManager.Instance.ForceSetFrame(frame);
         return true;
+    }
+
+    private bool HasStateForFrame(int frame)
+    {
+        int index = frame % StateArraySize;
+        return states[index].frame == frame && states[index].state != null && states[index].state.Length > 0;
     }
 
     public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
@@ -1563,6 +1584,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>
         public void SetOpponentInput(int frame, ulong input)
         {
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && frame <= syncFrame)
+            {
+                return;
+            }
+
             // Optional: Add logging if input for a frame is received multiple times with different values (potential issue)
             // if (receivedInputs.ContainsKey(frame) && receivedInputs.GetInput(frame) != input) {
             //     Debug.LogWarning($"Received conflicting input for frame {frame}. Old: {receivedInputs.GetInput(frame)}, New: {input}");
@@ -1602,6 +1628,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input)
         {
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && frame <= syncFrame)
+            {
+                return;
+            }
+
             EnsureRemoteCollectionsInitialized();
             if (!receivedInputsBySlot.ContainsKey(slot))
             {

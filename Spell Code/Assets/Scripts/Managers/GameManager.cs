@@ -829,9 +829,20 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        if (!isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
+        if (roster.LocalPlayerSlot < 0 || SceneManager.GetActiveScene().name != "MainMenu")
         {
             return false;
+        }
+
+        bool bootstrappedFromSnapshot = false;
+        if (!isOnlineMatchActive)
+        {
+            StartOnlineMatch(roster);
+            bootstrappedFromSnapshot = isOnlineMatchActive;
+            if (!bootstrappedFromSnapshot)
+            {
+                return false;
+            }
         }
 
         bool rosterAlreadyApplied = DoesActiveOnlineRosterMatch(roster);
@@ -847,7 +858,12 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         RollbackManager.Instance?.UpdateRoster(roster);
+        RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
         RollbackManager.Instance?.SaveState();
+        if (bootstrappedFromSnapshot)
+        {
+            Debug.Log($"[OnlineLobby] Bootstrapped online lobby from host snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
+        }
         return true;
     }
 

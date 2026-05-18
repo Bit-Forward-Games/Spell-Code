@@ -43,7 +43,7 @@ public class SteamLobbyManager : MonoBehaviour
             return false;
         }
 
-        if (currentLobby.Value.Owner.Id != SteamClient.SteamId)
+        if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
         {
             if (debugLogs)
             {
@@ -283,16 +283,22 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (lobby.Owner.Id != SteamClient.SteamId)
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
         {
             return;
         }
 
-        if (friend.Id == SteamClient.SteamId)
+        if (SameSteamId(friend.Id, SteamClient.SteamId))
         {
             return;
         }
 
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Lobby member joined. Member={friend.Id.Value} LobbyId={lobby.Id.Value}");
+        }
+
+        EnsureSlotAssignedForMember(lobby, friend.Id);
         TryStartOnlineMatchFromLobby(lobby);
     }
 
@@ -313,7 +319,7 @@ public class SteamLobbyManager : MonoBehaviour
         string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
         if (GameManager.Instance.isOnlineMatchActive)
         {
-            if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+            if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
             {
                 string currentReady = lobby.GetData(MatchReadyKey);
                 string currentToken = lobby.GetData(MatchStartTokenKey);
@@ -333,7 +339,7 @@ public class SteamLobbyManager : MonoBehaviour
             if (GameManager.Instance.TryRefreshOnlineLobbyRoster(roster))
             {
                 RememberRosterPeers(roster);
-                if (lobby.Owner.Id == SteamClient.SteamId)
+                if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
                     for (int i = 0; i < newPeers.Count; i++)
                     {
@@ -350,7 +356,7 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (lobby.Owner.Id == SteamClient.SteamId && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+        if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
         {
             string currentReady = lobby.GetData(MatchReadyKey);
             string currentToken = lobby.GetData(MatchStartTokenKey);
@@ -387,7 +393,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void UpdateLobbyJoinableState(Lobby lobby)
     {
-        if (lobby.Owner.Id != SteamClient.SteamId || GameManager.Instance == null)
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) || GameManager.Instance == null)
         {
             return;
         }
@@ -404,7 +410,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         foreach (Friend member in currentLobby.Value.Members)
         {
-            if (member.Id == steamId)
+            if (SameSteamId(member.Id, steamId))
             {
                 return true;
             }
@@ -420,7 +426,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void QueueLobbySnapshotPeer(SteamId peerId)
     {
-        if (!peerId.IsValid || peerId == SteamClient.SteamId)
+        if (!peerId.IsValid || SameSteamId(peerId, SteamClient.SteamId))
         {
             return;
         }
@@ -431,7 +437,7 @@ public class SteamLobbyManager : MonoBehaviour
     private void TrySendPendingLobbySnapshots(Lobby lobby)
     {
         if (pendingLobbySnapshotPeers.Count == 0
-            || lobby.Owner.Id != SteamClient.SteamId
+            || !SameSteamId(lobby.Owner.Id, SteamClient.SteamId)
             || GameManager.Instance == null
             || !GameManager.Instance.isOnlineMatchActive)
         {
@@ -484,15 +490,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private OnlineMatchRoster BuildRoster(Lobby lobby)
     {
-        List<SteamId> members = new List<SteamId>();
-        foreach (Friend member in lobby.Members)
-        {
-            if (member.Id.IsValid)
-            {
-                members.Add(member.Id);
-            }
-        }
-
+        List<SteamId> members = GetLobbyMemberIds(lobby);
         if (members.Count == 0)
         {
             return null;
@@ -535,6 +533,45 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         return roster;
+    }
+
+    private List<SteamId> GetLobbyMemberIds(Lobby lobby)
+    {
+        List<SteamId> members = new List<SteamId>();
+        foreach (Friend member in lobby.Members)
+        {
+            if (member.Id.IsValid && !ContainsSteamId(members, member.Id))
+            {
+                members.Add(member.Id);
+            }
+        }
+
+        return members;
+    }
+
+    private void EnsureSlotAssignedForMember(Lobby lobby, SteamId memberId)
+    {
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) || !memberId.IsValid)
+        {
+            return;
+        }
+
+        List<SteamId> members = GetLobbyMemberIds(lobby);
+        if (!ContainsSteamId(members, lobby.Owner.Id))
+        {
+            members.Add(lobby.Owner.Id);
+        }
+
+        if (!ContainsSteamId(members, memberId))
+        {
+            members.Add(memberId);
+        }
+
+        Dictionary<SteamId, int> assignedSlots = BuildAssignedSlots(lobby, members);
+        if (debugLogs && assignedSlots.TryGetValue(memberId, out int slot))
+        {
+            Debug.Log($"[SteamLobbyManager] Assigned lobby slot. Member={memberId.Value} Slot={slot}");
+        }
     }
 
     private Dictionary<SteamId, int> BuildAssignedSlots(Lobby lobby, List<SteamId> members)
@@ -647,13 +684,26 @@ public class SteamLobbyManager : MonoBehaviour
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer != null && peer.SteamId != SteamClient.SteamId && !activeMatchPeerIds.Contains(peer.SteamId))
+            if (peer != null && !SameSteamId(peer.SteamId, SteamClient.SteamId) && !IsActiveMatchPeer(peer.SteamId))
             {
                 newPeers.Add(peer.SteamId);
             }
         }
 
         return newPeers;
+    }
+
+    private bool IsActiveMatchPeer(SteamId steamId)
+    {
+        foreach (SteamId activePeerId in activeMatchPeerIds)
+        {
+            if (SameSteamId(activePeerId, steamId))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void RememberRosterPeers(OnlineMatchRoster roster)

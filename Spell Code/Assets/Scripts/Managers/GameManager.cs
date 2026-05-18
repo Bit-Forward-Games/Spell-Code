@@ -64,12 +64,14 @@ public class GameManager : MonoBehaviour
     public List<StageDataSO> stages;
     [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
     public StageDataSO lobbySO;
+    public StageDataSO TutorialSO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
     public SceneUiManager sceneManager;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
+    public GameObject tutorialMapGO;
     public string currentStage;
 
     [HideInInspector]
@@ -383,6 +385,12 @@ public class GameManager : MonoBehaviour
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
             players[0].roundRam = 600;
+        }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        {
+            ClearStages();
+            sceneManager.LoadScene("Tutorial");
         }
 
         //remove player test key ","
@@ -2576,6 +2584,10 @@ public class GameManager : MonoBehaviour
             lobbyMapGO.SetActive(true);
             currentStage = lobbyMapGO.name;
             return;
+        }
+        if (currentStageIndex == -2)
+        {
+
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
         {

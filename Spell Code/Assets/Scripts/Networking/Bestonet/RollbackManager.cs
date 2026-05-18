@@ -822,6 +822,21 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return true;
             }
 
+            int maxPredictionAhead = Mathf.Min(
+                StateArraySize - 8,
+                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + 8));
+            if (!isRollbackFrame && remoteFrame > 0 && currentFrame - remoteFrame > maxPredictionAhead)
+            {
+                if (lastDroppedFrame != currentFrame)
+                {
+                    Debug.LogWarning($"Frame Pace Prediction Hold: Local {currentFrame}, Remote {remoteFrame}, Sync {syncFrame}. Waiting for remote input.");
+                    lastDroppedFrame = currentFrame;
+                }
+
+                consecutiveDrop++;
+                return false;
+            }
+
             // --- Packet-Loss-Aware Soft Hold ---
             // Decay the loss signal each tick. Costs a single int subtract when no loss is happening.
             if (packetLossSignal > 0)

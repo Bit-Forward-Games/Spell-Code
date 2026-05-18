@@ -341,10 +341,7 @@ public class SteamLobbyManager : MonoBehaviour
                 RememberRosterPeers(roster);
                 if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
-                    for (int i = 0; i < newPeers.Count; i++)
-                    {
-                        QueueLobbySnapshotPeer(newPeers[i]);
-                    }
+                    QueueLobbySnapshotPeers(roster);
                 }
             }
             return;
@@ -432,6 +429,27 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         pendingLobbySnapshotPeers[peerId] = -LobbySnapshotResendSeconds;
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Queued lobby snapshot. Peer={peerId.Value}");
+        }
+    }
+
+    private void QueueLobbySnapshotPeers(OnlineMatchRoster roster)
+    {
+        if (roster?.Peers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer != null)
+            {
+                QueueLobbySnapshotPeer(peer.SteamId);
+            }
+        }
     }
 
     private void TrySendPendingLobbySnapshots(Lobby lobby)
@@ -462,6 +480,10 @@ public class SteamLobbyManager : MonoBehaviour
             }
 
             pendingLobbySnapshotPeers[peerId] = now;
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Sending lobby snapshot. Peer={peerId.Value}");
+            }
             GameManager.Instance.TrySendOnlineLobbySnapshotToPeer(peerId);
         }
     }

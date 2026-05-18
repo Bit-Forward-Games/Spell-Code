@@ -758,7 +758,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 lastRemoteFrameForTimeout = remoteFrame;
                 remoteFrameStallTicks = 0;
-                timeoutGraceUntilRealtime = 0f;
             }
             else if (currentFrame > InputDelay + 1 && !timeoutGraceActive)
             {

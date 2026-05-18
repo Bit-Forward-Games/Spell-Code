@@ -44,7 +44,7 @@ public class OnlineMatchRoster
         {
             for (int i = 0; i < Peers.Count; i++)
             {
-                if (Peers[i] != null && Peers[i].SteamId == steamId)
+                if (Peers[i] != null && SameSteamId(Peers[i].SteamId, steamId))
                 {
                     slot = Peers[i].PlayerSlot;
                     return true;
@@ -54,6 +54,11 @@ public class OnlineMatchRoster
 
         slot = -1;
         return false;
+    }
+
+    private static bool SameSteamId(SteamId a, SteamId b)
+    {
+        return a.IsValid && b.IsValid && a.Value == b.Value;
     }
 }
 
@@ -242,7 +247,7 @@ public class MatchMessageManager : MonoBehaviour
         for (int i = 0; i < activeRoster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = activeRoster.Peers[i];
-            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
             {
                 continue;
             }
@@ -301,7 +306,7 @@ public class MatchMessageManager : MonoBehaviour
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
             {
                 continue;
             }
@@ -334,7 +339,7 @@ public class MatchMessageManager : MonoBehaviour
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
             {
                 continue;
             }
@@ -826,7 +831,7 @@ public class MatchMessageManager : MonoBehaviour
                 byte[] data = memoryStream.ToArray();
                 foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
                 {
-                    if (peer == null || peer.SteamId == SteamClient.SteamId)
+                    if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
                     {
                         continue;
                     }
@@ -1153,7 +1158,7 @@ public class MatchMessageManager : MonoBehaviour
             return activeRoster.TryGetSlotForSteamId(steamId, out int slot) && slot != activeRoster.LocalPlayerSlot;
         }
 
-        return steamId == opponentSteamId;
+        return SameSteamId(steamId, opponentSteamId);
     }
 
     private bool IsCurrentLobbyMember(SteamId steamId)
@@ -1168,7 +1173,7 @@ public class MatchMessageManager : MonoBehaviour
             return slot;
         }
 
-        return GameManager.Instance != null && steamId == opponentSteamId ? GameManager.Instance.remotePlayerIndex : -1;
+        return GameManager.Instance != null && SameSteamId(steamId, opponentSteamId) ? GameManager.Instance.remotePlayerIndex : -1;
     }
 
     private bool SendPacketToAll(byte[] data, P2PSend sendType)
@@ -1176,7 +1181,7 @@ public class MatchMessageManager : MonoBehaviour
         bool any = false;
         foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
         {
-            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
             {
                 continue;
             }
@@ -1228,7 +1233,7 @@ public class MatchMessageManager : MonoBehaviour
                 PlayerSlot = playerSlot
             });
 
-            if (steamId == SteamClient.SteamId)
+            if (SameSteamId(steamId, SteamClient.SteamId))
             {
                 roster.LocalPlayerSlot = playerSlot;
             }
@@ -1237,13 +1242,18 @@ public class MatchMessageManager : MonoBehaviour
         return roster;
     }
 
+    private static bool SameSteamId(SteamId a, SteamId b)
+    {
+        return a.IsValid && b.IsValid && a.Value == b.Value;
+    }
+
     private void RecordSentInputTimestamp(int frame)
     {
         float now = Time.unscaledTime;
         sentFrameTimes.Insert(frame, now);
         foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
         {
-            if (peer == null || peer.SteamId == SteamClient.SteamId)
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
             {
                 continue;
             }

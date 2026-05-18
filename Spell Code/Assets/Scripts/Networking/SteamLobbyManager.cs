@@ -173,6 +173,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
 
@@ -224,10 +225,30 @@ public class SteamLobbyManager : MonoBehaviour
 
         try
         {
+            if (currentLobby.HasValue && currentLobby.Value.Id != lobby.Id)
+            {
+                hostFlowVersion++;
+                LeaveLobbyInternal();
+            }
+
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Joining requested lobby. LobbyId={lobby.Id.Value} Inviter={friendId.Value}");
+            }
+
             Lobby? joined = await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
             if (joined.HasValue)
             {
                 currentLobby = joined.Value;
+                startedCurrentLobbyMatch = false;
+                currentMatchStartToken = string.Empty;
+
+                if (debugLogs)
+                {
+                    Debug.Log($"[SteamLobbyManager] Joined lobby. LobbyId={joined.Value.Id.Value} Owner={joined.Value.Owner.Id.Value}");
+                }
+
+                TryStartOnlineMatchFromLobby(joined.Value);
             }
         }
         catch (Exception e)
@@ -507,7 +528,7 @@ public class SteamLobbyManager : MonoBehaviour
                 PlayerSlot = playerSlot
             });
 
-            if (memberId == SteamClient.SteamId)
+            if (SameSteamId(memberId, SteamClient.SteamId))
             {
                 roster.LocalPlayerSlot = playerSlot;
             }
@@ -521,29 +542,38 @@ public class SteamLobbyManager : MonoBehaviour
         Dictionary<SteamId, int> assignedSlots = new Dictionary<SteamId, int>();
         HashSet<int> usedSlots = new HashSet<int>();
 
-        if (lobby.Owner.Id.IsValid && members.Contains(lobby.Owner.Id))
+        if (lobby.Owner.Id.IsValid && ContainsSteamId(members, lobby.Owner.Id))
         {
             assignedSlots[lobby.Owner.Id] = 0;
             usedSlots.Add(0);
+            if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
+            {
+                lobby.SetData(GetSlotKey(lobby.Owner.Id), "0");
+            }
         }
 
         for (int i = 0; i < members.Count; i++)
         {
             SteamId memberId = members[i];
-            if (memberId == lobby.Owner.Id)
+            if (SameSteamId(memberId, lobby.Owner.Id))
             {
                 continue;
             }
 
+            bool isOwner = SameSteamId(memberId, lobby.Owner.Id);
             string slotText = lobby.GetData(GetSlotKey(memberId));
-            if (int.TryParse(slotText, out int slot) && slot > 0 && slot < TargetOnlineLobbySize && !usedSlots.Contains(slot))
+            if (int.TryParse(slotText, out int slot)
+                && slot >= 0
+                && slot < TargetOnlineLobbySize
+                && !usedSlots.Contains(slot)
+                && (slot > 0 || isOwner))
             {
                 assignedSlots[memberId] = slot;
                 usedSlots.Add(slot);
             }
         }
 
-        if (lobby.Owner.Id != SteamClient.SteamId)
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
         {
             return assignedSlots;
         }
@@ -568,6 +598,24 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         return assignedSlots;
+    }
+
+    private bool ContainsSteamId(List<SteamId> steamIds, SteamId steamId)
+    {
+        for (int i = 0; i < steamIds.Count; i++)
+        {
+            if (SameSteamId(steamIds[i], steamId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool SameSteamId(SteamId a, SteamId b)
+    {
+        return a.IsValid && b.IsValid && a.Value == b.Value;
     }
 
     private int GetFirstOpenSlot(HashSet<int> usedSlots)

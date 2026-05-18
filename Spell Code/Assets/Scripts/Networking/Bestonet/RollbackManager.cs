@@ -68,6 +68,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> remoteFrameBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> predictedRemoteFrameBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> highestRemoteInputFrameSeenBySlot = new Dictionary<int, int>();
+        private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
         private OnlineMatchRoster activeRoster;
@@ -285,6 +286,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PrimeRosterInputHistory();
             if (HasRemoteSlotSetChanged(previousRemoteSlots, remotePlayerSlots))
             {
+                for (int i = 0; i < remotePlayerSlots.Count; i++)
+                {
+                    int slot = remotePlayerSlots[i];
+                    if (!previousRemoteSlots.Contains(slot))
+                    {
+                        pendingRemoteInputSlots.Add(slot);
+                    }
+                }
+
                 ResetRollbackHistoryForRosterChange();
             }
         }
@@ -339,6 +349,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remoteFrameBySlot, validRemoteSlots);
             PruneSlotDictionary(predictedRemoteFrameBySlot, validRemoteSlots);
             PruneSlotDictionary(highestRemoteInputFrameSeenBySlot, validRemoteSlots);
+            pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
         }
 
         private void PruneSlotDictionary<T>(Dictionary<int, T> valuesBySlot, HashSet<int> validRemoteSlots)
@@ -420,6 +431,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrameBySlot.Clear();
             predictedRemoteFrameBySlot.Clear();
             highestRemoteInputFrameSeenBySlot.Clear();
+            pendingRemoteInputSlots.Clear();
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
@@ -558,6 +570,67 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : currentFrame;
             predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : currentFrame;
+        }
+
+        public void MarkAllRemoteSlotsPendingUntilInput()
+        {
+            EnsureRemoteCollectionsInitialized();
+            pendingRemoteInputSlots.Clear();
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                pendingRemoteInputSlots.Add(remotePlayerSlots[i]);
+            }
+
+            if (pendingRemoteInputSlots.Count > 0)
+            {
+                ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+            }
+        }
+
+        private int GetEffectiveRemoteFrame(int fallbackFrame)
+        {
+            if (!usePeerRoster)
+            {
+                return remoteFrame;
+            }
+
+            int minFrame = int.MaxValue;
+            bool foundActiveSlot = false;
+            foreach (KeyValuePair<int, int> entry in remoteFrameBySlot)
+            {
+                if (pendingRemoteInputSlots.Contains(entry.Key))
+                {
+                    continue;
+                }
+
+                minFrame = Mathf.Min(minFrame, entry.Value);
+                foundActiveSlot = true;
+            }
+
+            return foundActiveSlot ? minFrame : fallbackFrame;
+        }
+
+        private int GetEffectivePredictedRemoteFrame(int fallbackFrame)
+        {
+            if (!usePeerRoster)
+            {
+                return predictedRemoteFrame;
+            }
+
+            int minFrame = int.MaxValue;
+            bool foundActiveSlot = false;
+            foreach (KeyValuePair<int, int> entry in predictedRemoteFrameBySlot)
+            {
+                if (pendingRemoteInputSlots.Contains(entry.Key))
+                {
+                    continue;
+                }
+
+                minFrame = Mathf.Min(minFrame, entry.Value);
+                foundActiveSlot = true;
+            }
+
+            return foundActiveSlot ? minFrame : fallbackFrame;
         }
 
     /// <summary>
@@ -751,12 +824,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (GameManager.Instance == null) return false;
 
             int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
+            int effectiveRemoteFrame = GetEffectiveRemoteFrame(currentFrame);
             bool timeoutGraceActive = UnityEngine.Time.unscaledTime < timeoutGraceUntilRealtime
                 || GameManager.Instance.isTransitioning;
 
-            if (remoteFrame != lastRemoteFrameForTimeout)
+            if (effectiveRemoteFrame != lastRemoteFrameForTimeout)
             {
-                lastRemoteFrameForTimeout = remoteFrame;
+                lastRemoteFrameForTimeout = effectiveRemoteFrame;
                 remoteFrameStallTicks = 0;
             }
             else if (currentFrame > InputDelay + 1 && !timeoutGraceActive)
@@ -803,33 +877,33 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // After a scene transition, both clients reset frame sync. Briefly hold for a
             // current-scene remote input, but pulse forward if it has not arrived yet.
             // A hard startup hold can deadlock both sides immediately after scene load.
-            if (remoteFrame == 0 && currentFrame > InputDelay + 1)
+            if (effectiveRemoteFrame == 0 && currentFrame > InputDelay + 1)
             {
                 consecutiveDrop++;
                 if (consecutiveDrop <= maxDropPulse)
                 {
                     if (lastDroppedFrame != currentFrame)
                     {
-                        Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Waiting for current-scene remote input.");
+                        Debug.LogWarning($"Frame Pace Startup Hold: Local {currentFrame}, Sync {syncFrame}, Remote {effectiveRemoteFrame}. Waiting for current-scene remote input.");
                         lastDroppedFrame = currentFrame;
                     }
                     return false;
                 }
 
-                Debug.LogWarning($"Frame Pace Startup Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {remoteFrame}. Allowing one startup frame.");
+                Debug.LogWarning($"Frame Pace Startup Recovery: Local {currentFrame}, Sync {syncFrame}, Remote {effectiveRemoteFrame}. Allowing one startup frame.");
                 consecutiveDrop = 0;
                 lastDroppedFrame = currentFrame;
                 return true;
             }
 
             int maxPredictionAhead = Mathf.Min(
-                StateArraySize - 8,
-                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + 8));
-            if (!isRollbackFrame && remoteFrame > 0 && currentFrame - remoteFrame > maxPredictionAhead)
+                StateArraySize - 32,
+                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + 60));
+            if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 if (lastDroppedFrame != currentFrame)
                 {
-                    Debug.LogWarning($"Frame Pace Prediction Hold: Local {currentFrame}, Remote {remoteFrame}, Sync {syncFrame}. Waiting for remote input.");
+                    Debug.LogWarning($"Frame Pace Prediction Hold: Local {currentFrame}, Remote {effectiveRemoteFrame}, Sync {syncFrame}. Waiting for remote input.");
                     lastDroppedFrame = currentFrame;
                 }
 
@@ -1554,12 +1628,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             //    return true;
             //}
             // Safety: if we haven't received any remote frames yet, assume we're in sync
-            if (remoteFrame == 0 && localFrame < 60)
+            int effectiveRemoteFrame = GetEffectiveRemoteFrame(localFrame);
+            int effectivePredictedRemoteFrame = GetEffectivePredictedRemoteFrame(localFrame);
+            if (effectiveRemoteFrame == 0 && localFrame < 60)
             {
                 frameAdvantageDifference = 0;
                 return true;
             }
-        localFrameAdvantage = localFrame - predictedRemoteFrame; // Calculate current advantage
+        localFrameAdvantage = localFrame - effectivePredictedRemoteFrame; // Calculate current advantage
             SetLocalFrameAdvantage(localFrameAdvantage); // Store it in history
 
             frameAdvantageDifference = GetAverageFrameAdvantage(); // Calculate average over window
@@ -1642,6 +1718,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input)
         {
+            ActivateRemoteSlotIfPending(slot, frame);
+
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && frame <= syncFrame)
             {
                 return;
@@ -1683,6 +1761,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
                 }
             }
+        }
+
+        private void ActivateRemoteSlotIfPending(int slot, int frame)
+        {
+            if (!pendingRemoteInputSlots.Remove(slot))
+            {
+                return;
+            }
+
+            int currentFrame = localFrame;
+            remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
+            predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
+            remoteFrame = GetEffectiveRemoteFrame(currentFrame);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(currentFrame);
+            ResetRollbackBaseline(currentFrame);
+            PrimeRosterInputHistory();
+            SaveState();
+            Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. Rebased lobby rollback baseline at {currentFrame}.");
         }
 
         /// <summary> Stores the frame advantage reported by the remote client. Called by MatchMessageManager. </summary>
@@ -1728,8 +1824,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int pingMs = matchManager?.Ping ?? 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
             predictedRemoteFrameBySlot[slot] = frame + pingFrames;
-            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : frame;
-            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : frame + pingFrames;
+            remoteFrame = GetEffectiveRemoteFrame(frame);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(frame + pingFrames);
         }
 
         public void ResetTimeoutGrace(float graceSeconds)

@@ -859,6 +859,10 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         RollbackManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
+        if (bootstrappedFromSnapshot)
+        {
+            RollbackManager.Instance?.MarkAllRemoteSlotsPendingUntilInput();
+        }
         RollbackManager.Instance?.SaveState();
         if (bootstrappedFromSnapshot)
         {

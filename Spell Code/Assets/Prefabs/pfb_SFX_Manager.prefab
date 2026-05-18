@@ -266,3 +266,13 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+  - soundName: 12
+    possibleSounds:
+    - {fileID: 8300000, guid: ab58e6143f2e350479dbdb13059c52ff, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}

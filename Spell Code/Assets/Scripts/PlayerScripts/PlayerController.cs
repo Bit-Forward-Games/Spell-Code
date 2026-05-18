@@ -2435,8 +2435,13 @@ public class PlayerController : MonoBehaviour
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (hitstunOverride)
             {
+                SpawnToast($"SUPER ARMORED!", Color.white);
+
                 //play the blocked sound
-                //mySFXHandler.PlaySound(SoundType.BLOCKED);
+                SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+
+                //Play the blocked visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
                 return;
             }
@@ -2447,6 +2452,9 @@ public class PlayerController : MonoBehaviour
                 if(hitboxData.attackLvl < 2)
                 {
                     SpawnToast($"ARMORED!", Color.white);
+
+                    //play the blocked sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
 
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);

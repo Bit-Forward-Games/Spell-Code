@@ -16,6 +16,7 @@ public class Pause : MonoBehaviour
     public bool paused;
     public bool options;
     public bool controls;
+    public bool spells;
     public AudioMixer masterAudioMixer;
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
@@ -120,6 +121,20 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
+
+        Time.timeScale = 0f;
+    }
+    
+    public void Spells()
+    {
+        spells = true
+        controls = false;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
 

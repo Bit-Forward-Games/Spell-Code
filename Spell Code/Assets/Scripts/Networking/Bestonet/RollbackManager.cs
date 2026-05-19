@@ -86,7 +86,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
-        [SerializeField] public int DirectionPredictionHoldFrames = 2; // Stop predicting held movement after short packet gaps
+        [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
+        [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
 
         [Header("Packet Loss Smoothing")]
@@ -928,7 +929,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int maxPredictionAhead = Mathf.Min(
                 StateArraySize - 32,
-                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + 60));
+                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 if (lastDroppedFrame != currentFrame)

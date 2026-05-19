@@ -2119,6 +2119,12 @@ public class GameManager : MonoBehaviour
 
     private void PerformRoundTransition()
     {
+        if (isOnlineMatchActive && !IsOnlineHostAuthority())
+        {
+            roundTransitionPending = true;
+            return;
+        }
+
         ClearStages();
 
         if (gameOver)
@@ -2911,6 +2917,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (IsRosterBasedOnlineMatch() && !IsOnlineHostSlot(playerSlot))
+        {
+            return;
+        }
+
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
         {
@@ -2946,9 +2957,9 @@ public class GameManager : MonoBehaviour
 
         if (!roundOver && !isTransitioning)
         {
-            pendingOpponentShopTransition = true;
-            pendingOpponentShopTransitionId = transitionId;
-            return;
+            roundOver = true;
+            roundTransitionPending = true;
+            roundEndFrameCounter = RoundEndTransitionFrameThreshold;
         }
 
         pendingOpponentShopTransition = false;
@@ -4294,6 +4305,19 @@ public class GameManager : MonoBehaviour
         }
 
         return localPlayerIndex == 0;
+    }
+
+    private bool IsOnlineHostSlot(int playerSlot)
+    {
+        if (activeOnlineRoster == null)
+        {
+            return playerSlot == remotePlayerIndex || playerSlot == 0;
+        }
+
+        return activeOnlineRoster.TryGetSteamIdForSlot(playerSlot, out Steamworks.SteamId slotSteamId)
+            && activeOnlineRoster.HostSteamId.IsValid
+            && slotSteamId.IsValid
+            && slotSteamId.Value == activeOnlineRoster.HostSteamId.Value;
     }
 
     private int GetExpectedRemotePeerCount()

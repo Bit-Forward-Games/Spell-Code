@@ -118,9 +118,8 @@ public class AnimationManager : MonoBehaviour
 
     public List<int> GetFrameLengthsForCurrentState(PlayerController player)
     {
-        fighters = GameManager.Instance.players[0..GameManager.Instance.playerCount];
-        int index = Array.IndexOf(fighters, player);
-        List<int> frameLengthsData = CharacterDataDictionary.GetAnimFrames(spriteSheetData[index].name, player.state)
+        fighters = GetFighters();
+        List<int> frameLengthsData = CharacterDataDictionary.GetAnimFrames(player.characterName, player.state)
                 .frameLengths;
 
         return frameLengthsData;
@@ -155,11 +154,11 @@ public class AnimationManager : MonoBehaviour
         {
             return; // Skip all rendering updates during rollback
         }
-        if (GameManager.Instance.playerCount == 0)
+        if (GameManager.Instance.playerCount == 0 && GameManager.Instance.playerNPCs.Count == 0)
         {
             return;
         }
-        fighters = GameManager.Instance.players[0..GameManager.Instance.playerCount];
+        fighters = GetFighters();
         // First pass: count how many players are attacking
         int attackingCount = fighters.Count(player => HitboxManager.Instance.IsAttackingState(player.state));
 
@@ -238,6 +237,14 @@ public class AnimationManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    private PlayerController[] GetFighters()
+    {
+        return GameManager.Instance.players[0..GameManager.Instance.playerCount]
+            .Concat(GameManager.Instance.playerNPCs.Where(player => player != null))
+            .Distinct()
+            .ToArray();
     }
 
     private Vector3 GetPlayerRenderPosition(PlayerController player, Vector3 targetPosition, int playerIndex)

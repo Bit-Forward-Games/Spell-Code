@@ -47,6 +47,7 @@ public class HitboxManager : MonoBehaviour
     bool[] playerIsRight = new bool[4];
 
     private StageCamera cachedForScreenShakeCamera;
+    private readonly Dictionary<BaseProjectile, HashSet<PlayerController>> npcProjectileIgnores = new();
 
     // ===== | Methods | =====
     private void Start()
@@ -63,7 +64,7 @@ public class HitboxManager : MonoBehaviour
 
     public void ProcessCollisions()
     {
-
+        PruneNpcProjectileIgnores();
 
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
@@ -89,8 +90,9 @@ public class HitboxManager : MonoBehaviour
                 .OrderBy(p => ProjectileManager.Instance.projectilePrefabs.IndexOf(p));
         }
 
-        foreach (BaseProjectile projectile in projectileList)
+        foreach (BaseProjectile projectile in projectileList.ToArray())
         {
+            if (projectile == null || !projectile.gameObject.activeSelf) continue;
             if (projectile.projectileHitboxes.Length == 0) continue;
             HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
             // Combine all hitbox lists into one sequence
@@ -101,12 +103,11 @@ public class HitboxManager : MonoBehaviour
 
 
             //PlayerController attackingPlayer = projectile.owner;
-            PlayerController[] defendingPlayers = GameManager.Instance.players
-                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount && p.isAlive)
-                .ToArray();
+            PlayerController[] defendingPlayers = GetDefendingPlayers(projectile);
+            bool projectileDeleted = false;
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
-                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) continue;
+                if (ShouldProjectileIgnorePlayer(projectile, defendingPlayer)) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
@@ -139,12 +140,22 @@ public class HitboxManager : MonoBehaviour
                             //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             //}
                             cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
+                            IgnoreProjectileForPlayer(projectile, defendingPlayer);
                             projectile.ownerSpell?.ShareHitIgnoreList();
-                            projectile.owner.spellsHit++;
+                            if (projectile.owner != null)
+                            {
+                                projectile.owner.spellsHit++;
+                            }
+                            if (!projectile.gameObject.activeSelf)
+                            {
+                                projectileDeleted = true;
+                                break;
+                            }
                         }
                     }
+                    if (projectileDeleted) break;
                 }
+                if (projectileDeleted) break;
             }
         }
     }
@@ -177,6 +188,61 @@ public class HitboxManager : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private PlayerController[] GetDefendingPlayers(BaseProjectile projectile)
+    {
+        return GameManager.Instance.players
+            .Take(GameManager.Instance.playerCount)
+            .Concat(GameManager.Instance.playerNPCs)
+            .Where(player => player != null && player != projectile.owner && player.isAlive)
+            .Distinct()
+            .ToArray();
+    }
+
+    private bool ShouldProjectileIgnorePlayer(BaseProjectile projectile, PlayerController defendingPlayer)
+    {
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, defendingPlayer);
+        if (playerIndex >= 0 && playerIndex < GameManager.Instance.playerCount)
+        {
+            return projectile.playerIgnoreArr[playerIndex];
+        }
+
+        return npcProjectileIgnores.TryGetValue(projectile, out HashSet<PlayerController> ignoredNPCs)
+            && ignoredNPCs.Contains(defendingPlayer);
+    }
+
+    private void IgnoreProjectileForPlayer(BaseProjectile projectile, PlayerController defendingPlayer)
+    {
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, defendingPlayer);
+        if (playerIndex >= 0 && playerIndex < GameManager.Instance.playerCount)
+        {
+            projectile.playerIgnoreArr[playerIndex] = true;
+            return;
+        }
+
+        if (!npcProjectileIgnores.TryGetValue(projectile, out HashSet<PlayerController> ignoredNPCs))
+        {
+            ignoredNPCs = new HashSet<PlayerController>();
+            npcProjectileIgnores[projectile] = ignoredNPCs;
+        }
+
+        ignoredNPCs.Add(defendingPlayer);
+        if (projectile.deleteOnHit)
+        {
+            ProjectileManager.Instance.DeleteProjectile(projectile);
+        }
+    }
+
+    private void PruneNpcProjectileIgnores()
+    {
+        foreach (BaseProjectile projectile in npcProjectileIgnores.Keys.ToArray())
+        {
+            if (projectile == null || !projectile.gameObject.activeSelf || projectile.logicFrame == 0)
+            {
+                npcProjectileIgnores.Remove(projectile);
+            }
+        }
     }
 
 

@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
+    public List<PlayerController> playerNPCs = new List<PlayerController>();
     public int playerCount = 0;
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
@@ -59,7 +60,7 @@ public class GameManager : MonoBehaviour
     public System.Random seededRandom;
 
     private DataManager dataManager;
-    public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
+    public TempSpellDisplay[] spellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
     public List<StageDataSO> stages;
     [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
@@ -1969,6 +1970,11 @@ public class GameManager : MonoBehaviour
             players[i].PlayerUpdate((ulong)inputs[i]);
         }
 
+        for (int i = 0; i < playerNPCs.Count; i++)
+        {
+            playerNPCs[i].PlayerUpdate(5);
+        }
+
         for (int i = 0; i < playerCount; i++)
         {
             if (players[i].isAlive)
@@ -1996,6 +2002,17 @@ public class GameManager : MonoBehaviour
                 //Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
                 return; // Already registered, don't add again!
             }
+        }
+
+        //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
+        if (!playerInput.user.valid)
+        {
+            if (!playerNPCs.Contains(existingPlayer)){
+                playerNPCs.Add(existingPlayer);
+                Debug.Log("Anotha player NPC added");
+                AnimationManager.Instance.InitializePlayerVisuals(existingPlayer, 0);//This currently makes the dummy just always player 1 visuals
+            }
+            return;
         }
 
         //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");

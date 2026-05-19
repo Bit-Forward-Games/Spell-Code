@@ -381,6 +381,7 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
+#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
@@ -389,9 +390,11 @@ public class GameManager : MonoBehaviour
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {
-            ClearStages();
             sceneManager.LoadScene("Tutorial");
+            SetStage(-2);
+            ResetPlayers();
         }
+#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
@@ -2334,13 +2337,21 @@ public class GameManager : MonoBehaviour
 
     public Vector2[] GetSpawnPositions()
     {
-        if (currentStageIndex < 0)
+        if (currentStageIndex == -1)
         {
             return new Vector2[] {
                 lobbySO.playerSpawnTransform[0],
                 lobbySO.playerSpawnTransform[1],
                 lobbySO.playerSpawnTransform[2],
                 lobbySO.playerSpawnTransform[3]};
+        }
+        if (currentStageIndex == -2)
+        {
+            return new Vector2[] {
+                TutorialSO.playerSpawnTransform[0],
+                TutorialSO.playerSpawnTransform[1],
+                TutorialSO.playerSpawnTransform[2],
+                TutorialSO.playerSpawnTransform[3]};
         }
         else
         {
@@ -2587,7 +2598,9 @@ public class GameManager : MonoBehaviour
         }
         if (currentStageIndex == -2)
         {
-
+            tutorialMapGO.SetActive(true);
+            currentStage = tutorialMapGO.name;
+            return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
@@ -2937,6 +2950,7 @@ public class GameManager : MonoBehaviour
             tempMapGOs[i].SetActive(false);
         }
         lobbyMapGO.SetActive(false);
+        tutorialMapGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()

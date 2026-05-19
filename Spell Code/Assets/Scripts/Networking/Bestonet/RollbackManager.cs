@@ -71,6 +71,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> remoteFrameOffsetBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> remotePredictedInputStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
+        private int? pendingRosterFrameOffset = null;
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
         private OnlineMatchRoster activeRoster;
@@ -291,13 +292,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PrimeRosterInputHistory();
             if (HasRemoteSlotSetChanged(previousRemoteSlots, remotePlayerSlots))
             {
+                bool addedPendingSlot = false;
                 for (int i = 0; i < remotePlayerSlots.Count; i++)
                 {
                     int slot = remotePlayerSlots[i];
                     if (!previousRemoteSlots.Contains(slot))
                     {
                         pendingRemoteInputSlots.Add(slot);
+                        addedPendingSlot = true;
                     }
+                }
+
+                if (addedPendingSlot)
+                {
+                    pendingRosterFrameOffset = null;
                 }
 
                 ResetRollbackHistoryForRosterChange();
@@ -441,6 +449,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrameOffsetBySlot.Clear();
             remotePredictedInputStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
+            pendingRosterFrameOffset = null;
 
             lastDroppedFrame = -1;
             consecutiveDrop = 0;
@@ -596,6 +605,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             EnsureRemoteCollectionsInitialized();
             pendingRemoteInputSlots.Clear();
+            pendingRosterFrameOffset = null;
             for (int i = 0; i < remotePlayerSlots.Count; i++)
             {
                 pendingRemoteInputSlots.Add(remotePlayerSlots[i]);
@@ -1846,7 +1856,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             int currentFrame = localFrame;
-            int frameOffset = currentFrame - frame;
+            int frameOffset;
+            if (pendingRosterFrameOffset.HasValue)
+            {
+                frameOffset = pendingRosterFrameOffset.Value;
+            }
+            else
+            {
+                frameOffset = currentFrame - frame;
+                if (pendingRemoteInputSlots.Count > 0)
+                {
+                    pendingRosterFrameOffset = frameOffset;
+                }
+            }
+
             remoteFrameOffsetBySlot[slot] = frameOffset;
             remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
@@ -1855,6 +1878,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             ResetRollbackBaseline(currentFrame);
             PrimeRosterInputHistory();
             SaveState();
+            if (pendingRemoteInputSlots.Count == 0)
+            {
+                pendingRosterFrameOffset = null;
+            }
             Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Rebased lobby rollback baseline at {currentFrame}.");
             return frame + frameOffset;
         }

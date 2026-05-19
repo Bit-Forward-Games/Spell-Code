@@ -341,7 +341,7 @@ public class SteamLobbyManager : MonoBehaviour
                 RememberRosterPeers(roster);
                 if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
-                    QueueLobbySnapshotPeers(roster);
+                    QueueLobbySnapshotPeers(newPeers);
                 }
             }
             return;
@@ -458,6 +458,19 @@ public class SteamLobbyManager : MonoBehaviour
             {
                 QueueLobbySnapshotPeer(peer.SteamId);
             }
+        }
+    }
+
+    private void QueueLobbySnapshotPeers(List<SteamId> peers)
+    {
+        if (peers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < peers.Count; i++)
+        {
+            QueueLobbySnapshotPeer(peers[i]);
         }
     }
 

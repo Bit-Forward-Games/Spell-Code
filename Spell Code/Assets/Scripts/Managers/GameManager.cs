@@ -834,6 +834,12 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        if (isOnlineMatchActive && DoesActiveOnlineRosterMatch(roster))
+        {
+            Debug.Log($"[OnlineLobby] Ignored duplicate lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
+            return true;
+        }
+
         bool bootstrappedFromSnapshot = false;
         if (!isOnlineMatchActive)
         {

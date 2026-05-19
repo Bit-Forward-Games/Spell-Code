@@ -224,8 +224,21 @@ public class GambaMachine : MonoBehaviour
                 }
             }
         }
+
+        else if (activeScene.name == "Tutorial")
+        {
+            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            {
+                Debug.Log("Hitbox collision detected!");
+                Debug.Log("TUTORIAL GAMBA");
+                gambaAnimator.SetBool("isActive", false);
+                
+                SpawnFloppyDisk(ownerPID, diskLocations[12], "Skillshot Slash");
+            }
+        }
+
         //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
-        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3 && activeScene.name != "Tutorial")
         {
             //Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;

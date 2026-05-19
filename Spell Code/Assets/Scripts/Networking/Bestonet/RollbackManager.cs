@@ -68,6 +68,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> remoteFrameBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> predictedRemoteFrameBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> highestRemoteInputFrameSeenBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> remoteFrameOffsetBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, int> remotePredictedInputStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
@@ -83,6 +85,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
+        [SerializeField] public int DirectionPredictionHoldFrames = 2; // Stop predicting held movement after short packet gaps
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -118,6 +121,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // public int RollbackFramesUI { get; private set; } = 0; // Removed UI specific variable
         public bool isRollbackFrame { get; private set; } = false; // True if currently resimulating
         private ulong opponentLastAppliedInput = 0; // For prediction
+        private int opponentPredictedInputStreak = 0;
         private int totalConsecutiveFrameExtensions = 0;
         public int remoteFrame { get; private set; } = 0; // Latest frame confirmed by remote client
         public int predictedRemoteFrame { get; private set; } = 0; // Estimated remote frame based on ping
@@ -349,6 +353,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remoteFrameBySlot, validRemoteSlots);
             PruneSlotDictionary(predictedRemoteFrameBySlot, validRemoteSlots);
             PruneSlotDictionary(highestRemoteInputFrameSeenBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteFrameOffsetBySlot, validRemoteSlots);
+            PruneSlotDictionary(remotePredictedInputStreakBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
         }
 
@@ -431,6 +437,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrameBySlot.Clear();
             predictedRemoteFrameBySlot.Clear();
             highestRemoteInputFrameSeenBySlot.Clear();
+            remoteFrameOffsetBySlot.Clear();
+            remotePredictedInputStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
 
             lastDroppedFrame = -1;
@@ -451,6 +459,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
+            opponentPredictedInputStreak = 0;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             currentFrameExtensionMicro = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
@@ -521,6 +530,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 if (!remoteFrameAdvantagesBySlot.ContainsKey(slot))
                 {
                     remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
+                }
+
+                if (!remoteFrameOffsetBySlot.ContainsKey(slot))
+                {
+                    remoteFrameOffsetBySlot[slot] = 0;
+                }
+
+                if (!remotePredictedInputStreakBySlot.ContainsKey(slot))
+                {
+                    remotePredictedInputStreakBySlot[slot] = 0;
                 }
             }
         }
@@ -1027,6 +1046,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 ulong actualInput = receivedInputs.GetInput(frame);
                 opponentLastAppliedInput = actualInput; // Update last known input
+                opponentPredictedInputStreak = 0;
                 // Store the *actual* input we are using for this frame's simulation
                 opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
                 return actualInput;
@@ -1035,8 +1055,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 // Simple prediction: reuse the last known input
                 // Store the *predicted* input we are using for this frame's simulation
-                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = opponentLastAppliedInput });
-                return opponentLastAppliedInput;
+                opponentPredictedInputStreak++;
+                ulong predicted = DecayPredictedMovement(opponentLastAppliedInput, opponentPredictedInputStreak);
+                opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
+                return predicted;
             }
         }
 
@@ -1049,13 +1071,35 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 ulong actualInput = receivedBySlot.GetInput(frame);
                 remoteLastAppliedInputBySlot[slot] = actualInput;
+                remotePredictedInputStreakBySlot[slot] = 0;
                 usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
                 return actualInput;
             }
 
+            int predictedStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int streak) ? streak + 1 : 1;
+            remotePredictedInputStreakBySlot[slot] = predictedStreak;
             ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
+            predicted = DecayPredictedMovement(predicted, predictedStreak);
             usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
             return predicted;
+        }
+
+        private ulong DecayPredictedMovement(ulong input, int predictedFrameStreak)
+        {
+            if (predictedFrameStreak <= Mathf.Max(0, DirectionPredictionHoldFrames))
+            {
+                return input;
+            }
+
+            int codeButtonState = (int)((input >> 8) & 0b11UL);
+            if (codeButtonState is (int)ButtonState.Pressed or (int)ButtonState.Held)
+            {
+                return input;
+            }
+
+            // Direction is stored in the low byte. Keep buttons intact, but stop
+            // predicting movement so short taps don't turn into long remote runs.
+            return (input & ~0xFFUL) | 5UL;
         }
 
         private bool RemoteSlotsHaveInputForFrame(int frame)
@@ -1718,9 +1762,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input)
         {
-            ActivateRemoteSlotIfPending(slot, frame);
+            int adjustedFrame = AlignRemoteFrameForSlot(slot, frame);
 
-            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && frame <= syncFrame)
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && adjustedFrame <= syncFrame)
             {
                 return;
             }
@@ -1735,22 +1779,23 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 remoteFrameBySlot[slot] = 0;
                 predictedRemoteFrameBySlot[slot] = 0;
                 highestRemoteInputFrameSeenBySlot[slot] = -1;
+                remoteFrameOffsetBySlot[slot] = 0;
             }
 
-            bool isNewFrame = !receivedInputsBySlot[slot].ContainsKey(frame);
-            receivedInputsBySlot[slot].Insert(frame, new FrameMetadata() { frame = frame, input = input });
+            bool isNewFrame = !receivedInputsBySlot[slot].ContainsKey(adjustedFrame);
+            receivedInputsBySlot[slot].Insert(adjustedFrame, new FrameMetadata() { frame = adjustedFrame, input = input });
 
             if (EnablePacketLossSmoothing && isNewFrame)
             {
                 int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int seen) ? seen : -1;
                 if (highestSeen < 0)
                 {
-                    highestRemoteInputFrameSeenBySlot[slot] = frame;
+                    highestRemoteInputFrameSeenBySlot[slot] = adjustedFrame;
                 }
-                else if (frame > highestSeen)
+                else if (adjustedFrame > highestSeen)
                 {
-                    int skipped = frame - highestSeen - 1;
-                    highestRemoteInputFrameSeenBySlot[slot] = frame;
+                    int skipped = adjustedFrame - highestSeen - 1;
+                    highestRemoteInputFrameSeenBySlot[slot] = adjustedFrame;
                     if (skipped > 0)
                     {
                         packetLossSignal = Mathf.Min(packetLossSignal + skipped * PacketLossEventWeight, PacketLossHoldThreshold * 4);
@@ -1763,14 +1808,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
         }
 
-        private void ActivateRemoteSlotIfPending(int slot, int frame)
+        private int AlignRemoteFrameForSlot(int slot, int frame)
         {
             if (!pendingRemoteInputSlots.Remove(slot))
             {
-                return;
+                return frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0);
             }
 
             int currentFrame = localFrame;
+            int frameOffset = currentFrame - frame;
+            remoteFrameOffsetBySlot[slot] = frameOffset;
             remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
             remoteFrame = GetEffectiveRemoteFrame(currentFrame);
@@ -1778,7 +1825,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             ResetRollbackBaseline(currentFrame);
             PrimeRosterInputHistory();
             SaveState();
-            Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. Rebased lobby rollback baseline at {currentFrame}.");
+            Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Rebased lobby rollback baseline at {currentFrame}.");
+            return frame + frameOffset;
         }
 
         /// <summary> Stores the frame advantage reported by the remote client. Called by MatchMessageManager. </summary>
@@ -1795,8 +1843,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 remoteFrameAdvantagesBySlot[slot] = new CircularArray<int>(FrameAdvantageArraySize);
             }
 
-            remoteFrameAdvantagesBySlot[slot].Insert(frame, advantage);
-            remoteFrameAdvantages.Insert(frame, advantage);
+            int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
+            remoteFrameAdvantagesBySlot[slot].Insert(adjustedFrame, advantage);
+            remoteFrameAdvantages.Insert(adjustedFrame, advantage);
         }
 
         /// <summary> Stores the calculated local frame advantage for the current frame. </summary>
@@ -1820,12 +1869,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteFrame(int slot, int frame)
         {
-            remoteFrameBySlot[slot] = frame;
+            int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
+            remoteFrameBySlot[slot] = adjustedFrame;
             int pingMs = matchManager?.Ping ?? 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
-            predictedRemoteFrameBySlot[slot] = frame + pingFrames;
-            remoteFrame = GetEffectiveRemoteFrame(frame);
-            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(frame + pingFrames);
+            predictedRemoteFrameBySlot[slot] = adjustedFrame + pingFrames;
+            remoteFrame = GetEffectiveRemoteFrame(adjustedFrame);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(adjustedFrame + pingFrames);
         }
 
         public void ResetTimeoutGrace(float graceSeconds)

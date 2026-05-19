@@ -2534,6 +2534,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a470636db879c014992346e16b932130, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1259988592 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4566250646201107090, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1655133742}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1269859158 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1954056624867836667, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
@@ -3377,6 +3382,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 3869790085205704437, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 122.700195
+      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -6621,7 +6630,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_FirstSelected: {fileID: 0}
+  m_FirstSelected: {fileID: 1259988592}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
 --- !u!4 &1972001413

@@ -381,6 +381,15 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount > MinimumOnlineLobbyStartSize)
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Waiting for host lobby snapshot before joining active roster. Members={roster.PlayerCount}");
+            }
+            return;
+        }
+
         startedCurrentLobbyMatch = true;
         currentMatchStartToken = matchStartToken;
         GameManager.Instance.StartOnlineMatch(roster);

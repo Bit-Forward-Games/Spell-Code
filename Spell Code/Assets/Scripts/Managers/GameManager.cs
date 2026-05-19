@@ -868,6 +868,10 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log($"[OnlineLobby] Bootstrapped online lobby from host snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
+        else
+        {
+            Debug.Log($"[OnlineLobby] Applied lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
+        }
         return true;
     }
 

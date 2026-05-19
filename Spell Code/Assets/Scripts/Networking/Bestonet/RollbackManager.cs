@@ -86,6 +86,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public int DirectionPredictionHoldFrames = 2; // Stop predicting held movement after short packet gaps
+        [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -1056,7 +1057,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 // Simple prediction: reuse the last known input
                 // Store the *predicted* input we are using for this frame's simulation
                 opponentPredictedInputStreak++;
-                ulong predicted = DecayPredictedMovement(opponentLastAppliedInput, opponentPredictedInputStreak);
+                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak);
                 opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
                 return predicted;
             }
@@ -1079,27 +1080,56 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int predictedStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int streak) ? streak + 1 : 1;
             remotePredictedInputStreakBySlot[slot] = predictedStreak;
             ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
-            predicted = DecayPredictedMovement(predicted, predictedStreak);
+            predicted = DecayPredictedInput(predicted, predictedStreak);
             usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
             return predicted;
         }
 
-        private ulong DecayPredictedMovement(ulong input, int predictedFrameStreak)
+        private ulong DecayPredictedInput(ulong input, int predictedFrameStreak)
         {
-            if (predictedFrameStreak <= Mathf.Max(0, DirectionPredictionHoldFrames))
-            {
-                return input;
-            }
-
+            ulong decayedInput = DecayPredictedCodeButton(input, predictedFrameStreak);
             int codeButtonState = (int)((input >> 8) & 0b11UL);
             if (codeButtonState is (int)ButtonState.Pressed or (int)ButtonState.Held)
             {
-                return input;
+                return decayedInput;
+            }
+
+            if (predictedFrameStreak <= Mathf.Max(0, DirectionPredictionHoldFrames))
+            {
+                return decayedInput;
             }
 
             // Direction is stored in the low byte. Keep buttons intact, but stop
             // predicting movement so short taps don't turn into long remote runs.
-            return (input & ~0xFFUL) | 5UL;
+            return (decayedInput & ~0xFFUL) | 5UL;
+        }
+
+        private ulong DecayPredictedCodeButton(ulong input, int predictedFrameStreak)
+        {
+            if (predictedFrameStreak <= Mathf.Max(0, CodeButtonPredictionHoldFrames))
+            {
+                return input;
+            }
+
+            ButtonState codeState = (ButtonState)((input >> 8) & 0b11UL);
+            if (codeState is ButtonState.Pressed or ButtonState.Held)
+            {
+                return SetButtonState(input, 0, ButtonState.Released);
+            }
+
+            if (codeState == ButtonState.Released)
+            {
+                return SetButtonState(input, 0, ButtonState.None);
+            }
+
+            return input;
+        }
+
+        private ulong SetButtonState(ulong input, int buttonIndex, ButtonState state)
+        {
+            int shift = 8 + buttonIndex * 2;
+            ulong mask = 0b11UL << shift;
+            return (input & ~mask) | (((ulong)state & 0b11UL) << shift);
         }
 
         private bool RemoteSlotsHaveInputForFrame(int frame)

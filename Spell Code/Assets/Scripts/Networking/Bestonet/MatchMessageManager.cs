@@ -182,7 +182,7 @@ public class MatchMessageManager : MonoBehaviour
 
     public void PumpNetwork()
     {
-        if (!isRunning || !SteamClient.IsValid)
+        if (!SteamClient.IsValid)
         {
             return;
         }
@@ -198,6 +198,11 @@ public class MatchMessageManager : MonoBehaviour
             if (!IsKnownPeer(packet.Value.SteamId) && !IsCurrentLobbyMember(packet.Value.SteamId))
             {
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
+                continue;
+            }
+
+            if (!isRunning && !IsBootstrapPacket(packet.Value.Data))
+            {
                 continue;
             }
 
@@ -402,6 +407,17 @@ public class MatchMessageManager : MonoBehaviour
         {
             peers.Remove(stalePeers[i]);
         }
+    }
+
+    private bool IsBootstrapPacket(byte[] data)
+    {
+        if (data == null || data.Length == 0)
+        {
+            return false;
+        }
+
+        byte packetType = data[0];
+        return packetType == 0xFF || packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT;
     }
 
     private void PrunePeerDictionary<T>(Dictionary<SteamId, T> valuesByPeer, HashSet<SteamId> rosterPeerIds)

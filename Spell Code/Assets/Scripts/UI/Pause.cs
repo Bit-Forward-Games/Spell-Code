@@ -10,6 +10,7 @@ public class Pause : MonoBehaviour
     public GameObject pausemenu;
     public GameObject optionsMenu;
     public GameObject controlsMenu;
+    public GameObject spellsMenu;
     public GameObject darkPanel;
     public GameManager gameManager;
     public int playerPauseIndex;
@@ -129,7 +130,7 @@ public class Pause : MonoBehaviour
     
     public void Spells()
     {
-        spells = true
+        spells = true;
         controls = false;
         options = false;
         pausemenu.SetActive(false);

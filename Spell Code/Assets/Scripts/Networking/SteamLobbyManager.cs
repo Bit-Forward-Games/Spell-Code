@@ -431,6 +431,11 @@ public class SteamLobbyManager : MonoBehaviour
         pendingLobbySnapshotPeers.Remove(peerId);
     }
 
+    public bool IsLobbySnapshotPendingForPeer(SteamId peerId)
+    {
+        return peerId.IsValid && pendingLobbySnapshotPeers.ContainsKey(peerId);
+    }
+
     private void QueueLobbySnapshotPeer(SteamId peerId)
     {
         if (!peerId.IsValid || SameSteamId(peerId, SteamClient.SteamId))

@@ -1,4 +1,5 @@
 using BestoNet.Types;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Fixed = BestoNet.Types.Fixed32;
@@ -58,10 +59,16 @@ public class GO_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
-        if(GameManager.Instance.playerCount > 1)
+        if (GameManager.Instance.sceneManager.sceneName == "Tutorial")
         {
-             isOpen = true;
+            Debug.Log("This is triggering");
+            animator.SetInteger("numPlayers", 2);
+            return isOpen;
+        }
 
+        if (GameManager.Instance.playerCount > 1)
+        {
+            isOpen = true;
         }
         else
         {

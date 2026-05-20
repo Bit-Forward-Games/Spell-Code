@@ -227,6 +227,15 @@ public class GambaMachine : MonoBehaviour
 
         else if (activeScene.name == "Tutorial")
         {
+            if (ownerPlayer.spellList.Count > 0)
+            {
+                if (ownerPID == 1)
+                {
+                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                    p1_floppys.Clear();
+                }
+            }
+
             if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
             {
                 Debug.Log("Hitbox collision detected!");

@@ -33,10 +33,10 @@ public class CodeE_BasicProjectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -5,
-                    yOffset = 5,
-                    width = 20,
-                    height = 10,
+                    xOffset = -8,
+                    yOffset = 8,
+                    width = 28,
+                    height = 16,
                     xKnockback = 2,
                     yKnockback = 1,
                     damage = 10,

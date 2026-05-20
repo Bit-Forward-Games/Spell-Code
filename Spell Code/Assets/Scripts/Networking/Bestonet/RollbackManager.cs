@@ -618,6 +618,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
         }
 
+        public bool IsWaitingForInitialRemoteInputStreams()
+        {
+            EnsureRemoteCollectionsInitialized();
+            return usePeerRoster
+                && remotePlayerSlots.Count > 0
+                && pendingRemoteInputSlots.Count == remotePlayerSlots.Count;
+        }
+
         private int GetEffectiveRemoteFrame(int fallbackFrame)
         {
             if (!usePeerRoster)

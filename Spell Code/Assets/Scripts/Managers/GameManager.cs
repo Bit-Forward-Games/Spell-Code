@@ -834,7 +834,13 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        if (isOnlineMatchActive && DoesActiveOnlineRosterMatch(roster))
+        bool rosterSnapshotAlreadyActive = isOnlineMatchActive && DoesActiveOnlineRosterMatch(roster);
+        bool canRefreshPendingBootstrapSnapshot = rosterSnapshotAlreadyActive
+            && RollbackManager.Instance != null
+            && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams()
+            && snapshotFrame > frameNumber;
+
+        if (rosterSnapshotAlreadyActive && !canRefreshPendingBootstrapSnapshot)
         {
             Debug.Log($"[OnlineLobby] Ignored duplicate lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
             return true;
@@ -865,7 +871,7 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         RollbackManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
-        if (bootstrappedFromSnapshot)
+        if (bootstrappedFromSnapshot || canRefreshPendingBootstrapSnapshot)
         {
             RollbackManager.Instance?.MarkAllRemoteSlotsPendingUntilInput();
         }
@@ -873,6 +879,10 @@ public class GameManager : MonoBehaviour
         if (bootstrappedFromSnapshot)
         {
             Debug.Log($"[OnlineLobby] Bootstrapped online lobby from host snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
+        }
+        else if (canRefreshPendingBootstrapSnapshot)
+        {
+            Debug.Log($"[OnlineLobby] Refreshed pending lobby bootstrap snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
         else
         {

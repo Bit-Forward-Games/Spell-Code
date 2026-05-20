@@ -920,6 +920,7 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        int previousFrame = frameNumber;
         DeserializeManagedState(stateData);
         ForceSetFrame(snapshotFrame);
         isWaitingForOpponent = false;
@@ -928,9 +929,13 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
         RollbackManager.Instance?.UpdateRoster(roster);
         RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
-        if (bootstrappedFromSnapshot || canRefreshPendingBootstrapSnapshot)
+        if (bootstrappedFromSnapshot)
         {
             RollbackManager.Instance?.MarkAllRemoteSlotsPendingUntilInput();
+        }
+        else if (canRefreshPendingBootstrapSnapshot)
+        {
+            RollbackManager.Instance?.RebaseActiveRemoteStreamsForLobbySnapshot(previousFrame, snapshotFrame);
         }
         RollbackManager.Instance?.SaveState();
         if (bootstrappedFromSnapshot)

@@ -828,6 +828,57 @@ public class GameManager : MonoBehaviour
         MatchMessageManager.Instance.SendLobbyRosterSnapshot(peerId, activeOnlineRoster, frameNumber, SerializeManagedState());
     }
 
+    public void TrySendOnlineLobbyRosterUpdateToExistingPeers(OnlineMatchRoster roster, List<Steamworks.SteamId> excludedPeers)
+    {
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || MatchMessageManager.Instance == null || roster?.Peers == null)
+        {
+            return;
+        }
+
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null
+                || peer.PlayerSlot == localPlayerIndex
+                || IsSteamIdInList(peer.SteamId, excludedPeers))
+            {
+                continue;
+            }
+
+            MatchMessageManager.Instance.SendLobbyRosterUpdate(peer.SteamId, roster);
+        }
+    }
+
+    public bool ApplyOnlineLobbyRosterUpdate(OnlineMatchRoster roster)
+    {
+        if (roster == null || roster.LocalPlayerSlot < 0 || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return false;
+        }
+
+        if (!isOnlineMatchActive)
+        {
+            return false;
+        }
+
+        if (DoesActiveOnlineRosterMatch(roster))
+        {
+            return true;
+        }
+
+        bool applied = TryRefreshOnlineLobbyRoster(roster);
+        if (applied)
+        {
+            Debug.Log($"[OnlineLobby] Applied lobby roster update. Players={roster.PlayerCount}");
+        }
+        return applied;
+    }
+
     public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData)
     {
         if (roster == null || stateData == null || stateData.Length == 0)
@@ -895,6 +946,24 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[OnlineLobby] Applied lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
         return true;
+    }
+
+    private bool IsSteamIdInList(Steamworks.SteamId steamId, List<Steamworks.SteamId> steamIds)
+    {
+        if (!steamId.IsValid || steamIds == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < steamIds.Count; i++)
+        {
+            if (steamIds[i].IsValid && steamIds[i].Value == steamId.Value)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void OnOnlineLobbySnapshotAcknowledged(Steamworks.SteamId peerId)

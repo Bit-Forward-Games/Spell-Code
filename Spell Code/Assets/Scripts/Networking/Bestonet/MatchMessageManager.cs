@@ -85,6 +85,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_SETTINGS = 40;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
+    private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -768,6 +769,29 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    public void SendLobbyRosterUpdate(SteamId peerId, OnlineMatchRoster roster)
+    {
+        if (!peerId.IsValid || roster == null)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_LOBBY_ROSTER_UPDATE);
+                WriteRoster(writer, roster);
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending lobby roster update: {e}");
+        }
+    }
+
     private void SendLobbyRosterSnapshotAck(SteamId peerId)
     {
         if (!peerId.IsValid)
@@ -972,6 +996,23 @@ public class MatchMessageManager : MonoBehaviour
                 if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK)
                 {
                     GameManager.Instance?.OnOnlineLobbySnapshotAcknowledged(senderSteamId);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_LOBBY_ROSTER_UPDATE)
+                {
+                    OnlineMatchRoster roster = ReadRoster(reader);
+                    if (roster.HostSteamId.IsValid && !SameSteamId(senderSteamId, roster.HostSteamId))
+                    {
+                        return;
+                    }
+
+                    bool applied = GameManager.Instance != null
+                        && GameManager.Instance.ApplyOnlineLobbyRosterUpdate(roster);
+                    if (applied)
+                    {
+                        UpdateRoster(roster);
+                    }
                     return;
                 }
 

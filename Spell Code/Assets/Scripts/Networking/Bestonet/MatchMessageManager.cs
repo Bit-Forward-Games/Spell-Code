@@ -1054,6 +1054,7 @@ public class MatchMessageManager : MonoBehaviour
                     int remoteFrameAdvantage = reader.ReadInt32();
                     int startFrame = reader.ReadInt32();
                     int inputCount = reader.ReadByte();
+                    int newestPacketFrame = startFrame + inputCount - 1;
 
                     if (senderSlot < 0 && activeRoster != null)
                     {
@@ -1073,7 +1074,7 @@ public class MatchMessageManager : MonoBehaviour
 
                         if (senderSlot >= 0)
                         {
-                            RollbackManager.Instance.SetRemoteInput(senderSlot, frame, input);
+                            RollbackManager.Instance.SetRemoteInput(senderSlot, frame, input, newestPacketFrame);
                         }
                         else if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                         {

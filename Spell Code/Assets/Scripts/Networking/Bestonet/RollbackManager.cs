@@ -1811,7 +1811,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input)
         {
-            int adjustedFrame = AlignRemoteFrameForSlot(slot, frame);
+            SetRemoteInput(slot, frame, input, frame);
+        }
+
+        public void SetRemoteInput(int slot, int frame, ulong input, int alignmentFrame)
+        {
+            int frameOffset = AlignRemoteFrameForSlot(slot, alignmentFrame);
+            int adjustedFrame = frame + frameOffset;
 
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && adjustedFrame <= syncFrame)
             {
@@ -1861,7 +1867,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             if (!pendingRemoteInputSlots.Remove(slot))
             {
-                return frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0);
+                return remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0;
             }
 
             int currentFrame = localFrame;
@@ -1892,7 +1898,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 pendingRosterFrameOffset = null;
             }
             Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Rebased lobby rollback baseline at {currentFrame}.");
-            return frame + frameOffset;
+            return frameOffset;
         }
 
         /// <summary> Stores the frame advantage reported by the remote client. Called by MatchMessageManager. </summary>

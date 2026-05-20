@@ -357,6 +357,7 @@ MonoBehaviour:
     dateTime: 
     matchData: []
   totalRoundsPlayed: 0
+  roundTimer: 0
 --- !u!4 &962855813
 Transform:
   m_ObjectHideFlags: 0
@@ -436,7 +437,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 65
+  orthographic size: 87
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -556,6 +557,9 @@ MonoBehaviour:
   screenEdgeBuffer: 50
   target: {x: 0, y: 0}
   lockCamera: 1
+  dynamicCameraOverride: 0
+  pause: {fileID: 0}
+  shakeEnabled: 0
 --- !u!1 &1087714001
 GameObject:
   m_ObjectHideFlags: 0
@@ -847,6 +851,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 444428024834195144, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 444428024834195144, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 32
+      objectReference: {fileID: 0}
     - target: {fileID: 660610975967777689, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
       propertyPath: m_Name
       value: BigAmphitheater_Arena
@@ -854,6 +866,30 @@ PrefabInstance:
     - target: {fileID: 660610975967777689, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4205715260299647546, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 48
+      objectReference: {fileID: 0}
+    - target: {fileID: 4205715260299647546, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -280
+      objectReference: {fileID: 0}
+    - target: {fileID: 4291436485197603005, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 4291436485197603005, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363699115434082305, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 6363699115434082305, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -64
       objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
       propertyPath: m_LocalPosition.x
@@ -894,6 +930,30 @@ PrefabInstance:
     - target: {fileID: 7350075412557514443, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7598845601329935429, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 48
+      objectReference: {fileID: 0}
+    - target: {fileID: 7598845601329935429, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 8383120185560941880, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 8383120185560941880, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -64
+      objectReference: {fileID: 0}
+    - target: {fileID: 9018318298886666045, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 9018318298886666045, guid: ca11885f976ccbd4db8432b2ac28ea10, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -216
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -245,7 +245,6 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        ///playerSpriteRenderer = GetComponent<SpriteRenderer>();
         DontDestroyOnLoad(this.gameObject);
     }
     void Start()
@@ -263,7 +262,6 @@ public class PlayerController : MonoBehaviour
         else
         {
             Debug.Log("dummy");
-            GameManager.Instance.playerNPCs.Add(this);
         }
         logicFrame = 0;
 
@@ -2440,7 +2438,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
-        if (hitboxData != null && isHit)
+        if (hitboxData != null /*&& isHit*/)
         {
             PlayerController attacker = hitboxData.parentProjectile.owner;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
@@ -2557,15 +2555,14 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            //subtract demon aura based on the hitbox's damage
-            //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
-            if (GameManager.Instance.isOnlineMatchActive)
-            {
-                isHit = false;
-                hitboxData = null;
-            }
-
+            // if (GameManager.Instance.isOnlineMatchActive)
+            // {
+            //     isHit = false;
+            //     hitboxData = null;
+            // }
+            isHit = false;
+            hitboxData = null;
 
         }
     }

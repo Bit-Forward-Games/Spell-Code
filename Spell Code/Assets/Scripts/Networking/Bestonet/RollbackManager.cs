@@ -694,9 +694,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             if (usePeerRoster)
             {
+                bool checkedActiveRemoteSlot = false;
                 for (int slotIndex = 0; slotIndex < remotePlayerSlots.Count; slotIndex++)
                 {
                     int slot = remotePlayerSlots[slotIndex];
+                    if (pendingRemoteInputSlots.Contains(slot))
+                    {
+                        continue;
+                    }
+
+                    checkedActiveRemoteSlot = true;
                     FrameMetadataArray receivedBySlot = receivedInputsBySlot[slot];
                     FrameMetadataArray usedBySlot = usedInputsBySlot[slot];
                     bool haveReceived = receivedBySlot.ContainsKey(i);
@@ -723,6 +730,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     {
                         frameVerified = false;
                     }
+                }
+
+                if (!checkedActiveRemoteSlot)
+                {
+                    frameVerified = false;
                 }
             }
             else
@@ -1156,6 +1168,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             for (int i = 0; i < remotePlayerSlots.Count; i++)
             {
                 int slot = remotePlayerSlots[i];
+                if (pendingRemoteInputSlots.Contains(slot))
+                {
+                    continue;
+                }
+
                 if (!receivedInputsBySlot.ContainsKey(slot) || !receivedInputsBySlot[slot].ContainsKey(frame))
                 {
                     return false;

@@ -618,6 +618,39 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
         }
 
+        public void RebaseActiveRemoteStreamsForLobbySnapshot(int previousFrame, int snapshotFrame)
+        {
+            EnsureRemoteCollectionsInitialized();
+            int frameDelta = snapshotFrame - previousFrame;
+            if (frameDelta <= 0)
+            {
+                return;
+            }
+
+            if (pendingRosterFrameOffset.HasValue)
+            {
+                pendingRosterFrameOffset += frameDelta;
+            }
+
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                if (pendingRemoteInputSlots.Contains(slot))
+                {
+                    continue;
+                }
+
+                remoteFrameOffsetBySlot[slot] = (remoteFrameOffsetBySlot.TryGetValue(slot, out int offset) ? offset : 0) + frameDelta;
+                remoteFrameBySlot[slot] = (remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : previousFrame) + frameDelta;
+                predictedRemoteFrameBySlot[slot] = (predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : previousFrame) + frameDelta;
+            }
+
+            remoteFrame = GetEffectiveRemoteFrame(snapshotFrame);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(snapshotFrame);
+            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+            Debug.Log($"[Rollback] Rebased active remote streams for lobby snapshot. PreviousFrame={previousFrame} SnapshotFrame={snapshotFrame} Delta={frameDelta} PendingStreams={pendingRemoteInputSlots.Count}.");
+        }
+
         public bool IsWaitingForInitialRemoteInputStreams()
         {
             EnsureRemoteCollectionsInitialized();

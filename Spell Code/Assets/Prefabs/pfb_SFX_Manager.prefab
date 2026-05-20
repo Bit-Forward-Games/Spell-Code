@@ -197,8 +197,7 @@ MonoBehaviour:
     - {fileID: 0}
   - soundName: 5
     possibleSounds:
-    - {fileID: 8300000, guid: dfe5fe5017de1ea46a4501e3940c6b65, type: 3}
-    - {fileID: 8300000, guid: 80fb7ca7581b90340899d5c95be97894, type: 3}
+    - {fileID: 8300000, guid: 18457c6cb58bcb844a461c9c0716b429, type: 3}
     secretVersionOfSound: {fileID: 0}
     canRepeat: 0
     audioSources:
@@ -268,7 +267,7 @@ MonoBehaviour:
     - {fileID: 0}
   - soundName: 12
     possibleSounds:
-    - {fileID: 8300000, guid: ab58e6143f2e350479dbdb13059c52ff, type: 3}
+    - {fileID: 8300000, guid: 97e5856866a117a44ad17f59bbc6fe89, type: 3}
     secretVersionOfSound: {fileID: 0}
     canRepeat: 0
     audioSources:

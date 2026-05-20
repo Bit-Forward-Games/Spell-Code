@@ -1151,8 +1151,6 @@ public class MatchMessageManager : MonoBehaviour
                             }
                         }
 
-                            SendMessageACK(senderSteamId, frame);
-
                         if (i == inputCount - 1)
                         {
                             int highestSeen = peerHighestRemoteFrameSeen.TryGetValue(senderSteamId, out int seen) ? seen : -1;
@@ -1173,6 +1171,8 @@ public class MatchMessageManager : MonoBehaviour
                             }
                         }
                     }
+
+                    SendMessageACK(senderSteamId, newestPacketFrame);
                     return;
                 }
 

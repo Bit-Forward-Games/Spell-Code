@@ -342,6 +342,7 @@ public class SteamLobbyManager : MonoBehaviour
                 if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
                     QueueLobbySnapshotPeers(newPeers);
+                    GameManager.Instance.TrySendOnlineLobbyRosterUpdateToExistingPeers(roster, newPeers);
                 }
             }
             return;

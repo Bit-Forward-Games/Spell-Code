@@ -782,6 +782,7 @@ public class GameManager : MonoBehaviour
 
         ApplyOnlineRoster(roster);
 
+        bool createdPlayer = false;
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
@@ -793,11 +794,16 @@ public class GameManager : MonoBehaviour
             if (players[peer.PlayerSlot] == null)
             {
                 CreateOnlinePlayerForSlot(peer.PlayerSlot, peer.PlayerSlot == localPlayerIndex);
+                createdPlayer = true;
             }
         }
 
         playerCount = roster.PlayerCount;
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
+        if (createdPlayer && ProjectileManager.Instance != null)
+        {
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
         PruneOnlineReadyForGameplayState(roster);
 
         MatchMessageManager.Instance?.UpdateRoster(roster);

@@ -623,7 +623,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             EnsureRemoteCollectionsInitialized();
             return usePeerRoster
                 && remotePlayerSlots.Count > 0
-                && pendingRemoteInputSlots.Count == remotePlayerSlots.Count;
+                && pendingRemoteInputSlots.Count > 0;
         }
 
         private int GetEffectiveRemoteFrame(int fallbackFrame)
@@ -1960,7 +1960,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
             remoteFrameBySlot[slot] = adjustedFrame;
-            int pingMs = matchManager?.Ping ?? 200;
+            int pingMs = matchManager != null ? matchManager.GetPingForSlot(slot) : 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
             predictedRemoteFrameBySlot[slot] = adjustedFrame + pingFrames;
             remoteFrame = GetEffectiveRemoteFrame(adjustedFrame);
@@ -1990,9 +1990,22 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                 float rosterLocalAverage = (float)rosterLocalSum / FrameAdvantageArraySize;
                 float worstDifference = 0f;
-                foreach (CircularArray<int> remoteAdvantages in remoteFrameAdvantagesBySlot.Values)
+                bool checkedActiveSlot = false;
+                foreach (KeyValuePair<int, CircularArray<int>> entry in remoteFrameAdvantagesBySlot)
                 {
+                    int slot = entry.Key;
+                    if (pendingRemoteInputSlots.Contains(slot))
+                    {
+                        continue;
+                    }
+
+                    if (highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int highestSeen) && highestSeen < 0)
+                    {
+                        continue;
+                    }
+
                     long rosterRemoteSum = 0;
+                    CircularArray<int> remoteAdvantages = entry.Value;
                     int[] rosterRemoteValues = remoteAdvantages.GetValues();
                     for (int i = 0; i < FrameAdvantageArraySize; i++)
                     {
@@ -2001,9 +2014,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                     float rosterRemoteAverage = (float)rosterRemoteSum / FrameAdvantageArraySize;
                     worstDifference = Mathf.Max(worstDifference, Mathf.Max(0f, rosterLocalAverage - rosterRemoteAverage));
+                    checkedActiveSlot = true;
                 }
 
-                return worstDifference;
+                if (checkedActiveSlot)
+                {
+                    return worstDifference;
+                }
             }
 
             // This calculation remains the same, using local/remote advantage history

@@ -241,6 +241,19 @@ public class MatchMessageManager : MonoBehaviour
         return connectedPeers.Count;
     }
 
+    public int GetPingForSlot(int slot)
+    {
+        if (activeRoster != null && activeRoster.TryGetSteamIdForSlot(slot, out SteamId peerId))
+        {
+            if (peerPingMs.TryGetValue(peerId, out int peerPing))
+            {
+                return peerPing;
+            }
+        }
+
+        return Ping;
+    }
+
     public bool HasAllPeersResponsive(float timeoutSeconds, out int stalePeerSlot)
     {
         stalePeerSlot = -1;
@@ -986,7 +999,9 @@ public class MatchMessageManager : MonoBehaviour
                     bool applied = GameManager.Instance != null
                         && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
                     UpdateRoster(roster);
-                    if (applied)
+                    bool waitingForInputStreams = RollbackManager.Instance != null
+                        && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams();
+                    if (applied && !waitingForInputStreams)
                     {
                         SendLobbyRosterSnapshotAck(senderSteamId);
                     }

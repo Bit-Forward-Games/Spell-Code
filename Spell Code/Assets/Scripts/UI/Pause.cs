@@ -44,6 +44,7 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI displaySpellDescription;
 
     private int tab = 0;
+    private int selectedSpell = 0;
 
     public class Row
     {
@@ -115,8 +116,8 @@ public class Pause : MonoBehaviour
         
         if (tab > 0 )
         {
-            displaySpellName.text = grid[tab - 1].spells[0].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[0].description;
+            displaySpellName.text = grid[tab - 1].spells[selectedSpell].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[selectedSpell].description;
         }
     }
 
@@ -212,8 +213,14 @@ public class Pause : MonoBehaviour
         {
             Vector2 nav = ctx.ReadValue<Vector2>();
 
-            if (nav.y > 0) Debug.Log("Up");
-            if (nav.y < 0) Debug.Log("Down");
+            if (nav.y > 0) 
+            {
+                if (selectedSpell < grid[tab - 1].spells.Length) selectedSpell++;
+            }
+            if (nav.y < 0) 
+            {
+                if (selectedSpell >= 0) selectedSpell--;
+            }
             if (nav.x < 0) 
             {
                 if (tab == 0) tab = 4;

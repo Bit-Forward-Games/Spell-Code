@@ -2361,27 +2361,31 @@ public class GameManager : MonoBehaviour
     {
         if (currentStageIndex == -1)
         {
-            return new Vector2[] {
-                lobbySO.playerSpawnTransform[0],
-                lobbySO.playerSpawnTransform[1],
-                lobbySO.playerSpawnTransform[2],
-                lobbySO.playerSpawnTransform[3]};
+            return lobbySO.playerSpawnTransform;
         }
         if (currentStageIndex == -2)
         {
-            return new Vector2[] {
-                TutorialSO.playerSpawnTransform[0],
-                TutorialSO.playerSpawnTransform[1],
-                TutorialSO.playerSpawnTransform[2],
-                TutorialSO.playerSpawnTransform[3]};
+            return TutorialSO.playerSpawnTransform;
         }
         else
         {
-            return new Vector2[] {
-                stages[currentStageIndex].playerSpawnTransform[0],
-                stages[currentStageIndex].playerSpawnTransform[1],
-                stages[currentStageIndex].playerSpawnTransform[2],
-                stages[currentStageIndex].playerSpawnTransform[3]};
+            return stages[currentStageIndex].playerSpawnTransform;
+        }
+    }
+
+    public Vector2[] GetNPCSpawnPositions()
+    {
+        if (currentStageIndex == -1)
+        {
+            return lobbySO.npcSpawnTransform;
+        }
+        if (currentStageIndex == -2)
+        {
+            return TutorialSO.npcSpawnTransform;
+        }
+        else
+        {
+            return stages[currentStageIndex].npcSpawnTransform;
         }
     }
 

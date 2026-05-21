@@ -245,7 +245,10 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        DontDestroyOnLoad(this.gameObject);
+        if (GetComponent<PlayerInput>().user.valid)
+        {
+            DontDestroyOnLoad(this.gameObject);
+        }
     }
     void Start()
     {
@@ -374,7 +377,7 @@ public class PlayerController : MonoBehaviour
                 break;
             default:
                 pID = 0;
-                Vector2 spawnPosNPC = GameManager.Instance.GetSpawnPositions()[0];
+                Vector2 spawnPosNPC = GameManager.Instance.GetNPCSpawnPositions()[0];
                 FixedVec2 startPosNPC = FixedVec2.FromFloat(spawnPosNPC.x, spawnPosNPC.y);
                 SpawnPlayer(startPosNPC);
                 return;

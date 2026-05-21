@@ -2431,7 +2431,8 @@ public class PlayerController : MonoBehaviour
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
         if (hitboxData != null && isHit)
         {
-            PlayerController attacker = hitboxData.parentProjectile.owner;
+            BaseProjectile sourceProjectile = hitboxData.parentProjectile;
+            PlayerController attacker = sourceProjectile != null ? sourceProjectile.owner : null;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (hitstunOverride)
             {
@@ -2500,9 +2501,10 @@ public class PlayerController : MonoBehaviour
             SetState(PlayerState.Hitstun);
 
             //call the active on hit proc of the spell that created the projectile that hit us
-            if (hitboxData.parentProjectile.ownerSpell != null)
+            SpellData sourceSpell = ResolveHitboxOwnerSpell(sourceProjectile);
+            if (sourceSpell != null)
             {
-                hitboxData.parentProjectile.ownerSpell.CheckCondition(this, ProcCondition.ActiveOnHit);
+                sourceSpell.CheckCondition(this, ProcCondition.ActiveOnHit);
             }
 
 
@@ -2655,6 +2657,46 @@ public class PlayerController : MonoBehaviour
                 targetPlayer.spellList[i].CheckCondition(this, targetProcCon);
             }
         }
+    }
+
+    private SpellData ResolveHitboxOwnerSpell(BaseProjectile sourceProjectile)
+    {
+        if (sourceProjectile == null)
+        {
+            return null;
+        }
+
+        if (sourceProjectile.ownerSpell != null)
+        {
+            return sourceProjectile.ownerSpell;
+        }
+
+        PlayerController projectileOwner = sourceProjectile.owner;
+        if (projectileOwner == null || projectileOwner.spellList == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < projectileOwner.spellList.Count; i++)
+        {
+            SpellData spell = projectileOwner.spellList[i];
+            if (spell == null || spell.projectileInstances == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < spell.projectileInstances.Count; j++)
+            {
+                GameObject projectileInstance = spell.projectileInstances[j];
+                if (projectileInstance == sourceProjectile.gameObject)
+                {
+                    sourceProjectile.ownerSpell = spell;
+                    return spell;
+                }
+            }
+        }
+
+        return null;
     }
 
     

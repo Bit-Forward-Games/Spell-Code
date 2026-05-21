@@ -37,33 +37,46 @@ public class SpellCode_Gate : MonoBehaviour
         SetOpen(isOpen);
     }
 
-    public void SimulateOnline()
+    public void SimulateOnline(bool isRollback = false)
     {
         if (!isOpen)
         {
-            CheckGateBroken();
+            CheckGateBroken(isRollback);
         }
 
         SetOpen(isOpen);
     }
 
-    public void CheckGateBroken()
+    public void CheckGateBroken(bool isRollback = false)
     {
         if (gateBounds != null && !isOpen)
         {
-            GateCollision();
+            GateCollision(isRollback);
         }
     }
 
 
-    public void GateCollision()
+    public void GateCollision(bool isRollback = false)
     {
         if (gateBounds != null)
         {
             foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
             {
-                if(projectile.ownerSpell == null) break;
-                if (projectile.projectileHitboxes.Length == 0) break;
+                if (projectile == null || projectile.owner == null || projectile.ownerSpell == null)
+                {
+                    continue;
+                }
+
+                if (projectile.projectileHitboxes == null || projectile.projectileHitboxes.Length == 0)
+                {
+                    continue;
+                }
+
+                if (projectile.activeHitboxGroupIndex < 0 || projectile.activeHitboxGroupIndex >= projectile.projectileHitboxes.Length)
+                {
+                    continue;
+                }
+
                 HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
                 // Combine all hitbox lists into one sequence
                 var activeProjHit = activeGroup.hitbox1
@@ -77,10 +90,13 @@ public class SpellCode_Gate : MonoBehaviour
                     if (CheckCollision(hitbox, projectile.position, gateBounds,
                                 projectile.facingRight) && projectile.owner.pID == ownerPID)
                     {
-                        isOpen = true;
+                        SetOpen(true);
 
-                        //Play the glass break visual effect at the gate position
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                        if (!isRollback && VFX_Manager.Instance != null)
+                        {
+                            // Play the break effect only on real frames; rollback resim may revisit this event.
+                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                        }
 
                         return;
                     }
@@ -93,9 +109,11 @@ public class SpellCode_Gate : MonoBehaviour
     // Helper to set state and update visuals
     public void SetOpen(bool open)
     {
+        isOpen = open;
+
         if (gateAnimator != null)
         {
-            gateAnimator.SetBool("live", !isOpen);
+            gateAnimator.SetBool("live", !open);
         }
     }
 
@@ -150,6 +168,6 @@ public class SpellCode_Gate : MonoBehaviour
 
     public void Deserialize(BinaryReader br)
     {
-        isOpen = br.ReadBoolean();
+        SetOpen(br.ReadBoolean());
     }
 }

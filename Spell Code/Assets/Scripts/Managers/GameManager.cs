@@ -2023,7 +2023,7 @@ public class GameManager : MonoBehaviour
             {
                 if (gates[i] != null)
                 {
-                    gates[i].SimulateOnline();
+                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
                 }
             }
 
@@ -2065,7 +2065,7 @@ public class GameManager : MonoBehaviour
             {
                 if (gates[i] != null)
                 {
-                    gates[i].SimulateOnline();
+                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
                 }
             }
         }
@@ -3676,8 +3676,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(lastRoundWinnerPID);
                 bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
 
-                Scene activeScene = SceneManager.GetActiveScene();
-                bool includeLobbyShopState = activeScene.name != "Gameplay";
+                bool includeLobbyShopState = ShouldIncludeLobbyShopState();
                 bw.Write(includeLobbyShopState);
 
                 if (includeLobbyShopState)
@@ -3827,6 +3826,8 @@ public class GameManager : MonoBehaviour
                 projectile.Serialize(bw);
             }
 
+            SerializeLobbyShopHashState(bw);
+
             return memoryStream.ToArray();
         }
     }
@@ -3851,6 +3852,8 @@ public class GameManager : MonoBehaviour
             bw.Write(rngState);
             bw.Write(ramNeededToWinRound);
 
+            SerializeLobbyShopHashState(bw);
+
             return memoryStream.ToArray();
         }
     }
@@ -3873,6 +3876,46 @@ public class GameManager : MonoBehaviour
 
             return memoryStream.ToArray();
         }
+    }
+
+    private bool ShouldIncludeLobbyShopState()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        return activeScene.name != "Gameplay";
+    }
+
+    private void SerializeLobbyShopHashState(BinaryWriter bw)
+    {
+        bool includeLobbyShopState = ShouldIncludeLobbyShopState();
+        bw.Write(includeLobbyShopState);
+        if (!includeLobbyShopState)
+        {
+            return;
+        }
+
+        bw.Write(gates.Length);
+        foreach (SpellCode_Gate gate in gates)
+        {
+            bw.Write(gate != null);
+            if (gate != null)
+            {
+                bw.Write(gate.isOpen);
+            }
+        }
+
+        List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
+        bw.Write(validGambas.Count);
+        foreach (GameObject gambaGO in validGambas)
+        {
+            GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+            bw.Write(gamba != null ? gamba.activatedCount : 0);
+            bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
+            bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+            bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+            bw.Write(isActive);
+        }
+
+        SerializeFloppyState(bw);
     }
 
     /// <summary>

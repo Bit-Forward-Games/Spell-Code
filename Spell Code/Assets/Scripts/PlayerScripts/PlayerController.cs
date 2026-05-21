@@ -2501,7 +2501,11 @@ public class PlayerController : MonoBehaviour
             SetState(PlayerState.Hitstun);
 
             //call the active on hit proc of the spell that created the projectile that hit us
-            SpellData sourceSpell = ResolveHitboxOwnerSpell(sourceProjectile);
+            SpellData sourceSpell = sourceProjectile != null ? sourceProjectile.ownerSpell : null;
+            if (sourceSpell == null)
+            {
+                sourceSpell = ResolveOnlineHitboxOwnerSpell(sourceProjectile);
+            }
             if (sourceSpell != null)
             {
                 sourceSpell.CheckCondition(this, ProcCondition.ActiveOnHit);
@@ -2659,8 +2663,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private SpellData ResolveHitboxOwnerSpell(BaseProjectile sourceProjectile)
+    private SpellData ResolveOnlineHitboxOwnerSpell(BaseProjectile sourceProjectile)
     {
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+        {
+            return null;
+        }
+
         if (sourceProjectile == null)
         {
             return null;
@@ -2698,8 +2707,6 @@ public class PlayerController : MonoBehaviour
 
         return null;
     }
-
-    
 
     public void ResolveReferences()
     {

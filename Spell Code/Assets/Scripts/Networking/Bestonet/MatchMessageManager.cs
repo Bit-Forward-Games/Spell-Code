@@ -1026,9 +1026,7 @@ public class MatchMessageManager : MonoBehaviour
                     bool applied = GameManager.Instance != null
                         && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
                     UpdateRoster(roster);
-                    bool waitingForInputStreams = RollbackManager.Instance != null
-                        && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams();
-                    if (applied && !waitingForInputStreams)
+                    if (applied)
                     {
                         SendLobbyRosterSnapshotAck(senderSteamId);
                     }

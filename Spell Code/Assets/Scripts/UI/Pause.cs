@@ -44,7 +44,7 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI displaySpellDescription;
 
     private int tab = 0;
-    private int selectedSpell = 0;
+    private int[] selectedSpell = new int[4];
 
     public class Row
     {
@@ -116,8 +116,8 @@ public class Pause : MonoBehaviour
         
         if (tab > 0 )
         {
-            displaySpellName.text = grid[tab - 1].spells[selectedSpell].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[selectedSpell].description;
+            displaySpellName.text = grid[tab - 1].spells[selectedSpell[tab - 1]].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[selectedSpell[tab - 1]].description;
         }
     }
 
@@ -215,11 +215,11 @@ public class Pause : MonoBehaviour
 
             if (nav.y > 0) 
             {
-                if (selectedSpell < grid[tab - 1].spells.Length) selectedSpell++;
+                if (selectedSpell[tab - 1] > 0) selectedSpell[tab - 1]--;
             }
             if (nav.y < 0) 
             {
-                if (selectedSpell >= 0) selectedSpell--;
+                if (selectedSpell[tab - 1] < grid[tab - 1].spells.Length - 1) selectedSpell[tab - 1]++;
             }
             if (nav.x < 0) 
             {

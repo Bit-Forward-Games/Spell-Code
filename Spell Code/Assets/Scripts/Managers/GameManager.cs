@@ -2701,7 +2701,7 @@ public class GameManager : MonoBehaviour
         if (gameStages.Count <= 0)
         {
             //fill it back up
-            RandomizeGameStages();
+            FillGameStages();
         }
 
         int _gameStageIndex = GetNextRandom(0, gameStages.Count);
@@ -3635,23 +3635,5 @@ public class GameManager : MonoBehaviour
         {
             gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
         }
-    }
-
-    /// <summary>
-    /// Allocate space for and randomize the array of stages that a game can choose from. No duplicate stages are allowed in this array
-    /// </summary>
-    private void RandomizeGameStages()
-    {
-        FillGameStages();
-
-        //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
-
-        //delete random stages from gameStages until gameStages.Length equals 9
-        while (gameStages.Count > 9)
-        {
-            gameStages.RemoveAt(GetNextStageRandom(0, gameStages.Count));
-        }
-
-        //Debug.Log("After culling: gameStages.Count = " + gameStages.Count);
     }
 }

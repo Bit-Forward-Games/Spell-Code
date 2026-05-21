@@ -1,6 +1,7 @@
 using BestoNet.Types;
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -59,9 +60,8 @@ public class GO_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
-        if (GameManager.Instance.sceneManager.sceneName == "Tutorial")
+        if (SceneManager.GetActiveScene().name == "Tutorial")
         {
-            Debug.Log("This is triggering");
             animator.SetInteger("numPlayers", 2);
             return isOpen;
         }
@@ -86,5 +86,4 @@ public class GO_Door : MonoBehaviour
         }
         return isOpen;
     }
-
 }

@@ -395,6 +395,11 @@ public class GameManager : MonoBehaviour
             SetStage(-2);
             ResetPlayers();
         }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
+        {
+            players[0].ClearSpellList();
+        }
 #endif
 
         //remove player test key ","

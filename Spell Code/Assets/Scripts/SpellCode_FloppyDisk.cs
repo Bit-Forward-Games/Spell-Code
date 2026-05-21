@@ -92,6 +92,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 {
                     if (overlappingPlayer.AddSpellToSpellList(diskName))
                     {
+                        Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
                         diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
                         //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
                         Destroy(gameObject);

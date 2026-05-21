@@ -80,6 +80,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
     private const byte PACKET_TYPE_SHOP_READY = 14;
+    private const byte PACKET_TYPE_END_TRANSITION = 15;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
@@ -621,6 +622,32 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    public void SendEndTransitionSignal(int transitionId, int winnerPid)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_END_TRANSITION);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(winnerPid);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending end transition signal: {e}");
+        }
+    }
+
     public void SendInputs()
     {
         if (RollbackManager.Instance == null || !HasRemotePeers() || !isRunning)
@@ -1095,6 +1122,19 @@ public class MatchMessageManager : MonoBehaviour
                     if (senderSlot >= 0)
                     {
                         GameManager.Instance?.OnPeerShopTransition(senderSlot, transitionId, sceneType, sceneSignature);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_END_TRANSITION)
+                {
+                    int transitionId = reader.ReadInt32();
+                    byte sceneType = reader.ReadByte();
+                    int sceneSignature = reader.ReadInt32();
+                    int winnerPid = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerEndTransition(senderSlot, transitionId, sceneType, sceneSignature, winnerPid);
                     }
                     return;
                 }

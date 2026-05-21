@@ -22,16 +22,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return false;
             }
 
-            string sceneName = SceneManager.GetActiveScene().name;
-            if (sceneName == "Gameplay")
-            {
-                return !GameManager.Instance.roundOver
-                    && !GameManager.Instance.isTransitioning
-                    && GameManager.Instance.currentStageIndex >= 0;
-            }
-
-            return (sceneName == "MainMenu" || sceneName == "Shop")
-                && !GameManager.Instance.isTransitioning;
+            return SceneManager.GetActiveScene().name == "Gameplay"
+                && !GameManager.Instance.roundOver
+                && !GameManager.Instance.isTransitioning
+                && GameManager.Instance.currentStageIndex >= 0;
         }
 
         // --- Singleton Instance ---

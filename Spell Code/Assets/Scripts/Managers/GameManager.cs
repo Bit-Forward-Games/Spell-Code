@@ -1362,6 +1362,18 @@ public class GameManager : MonoBehaviour
         RefreshNetworkActivityGrace();
     }
 
+    private void ApplyOnlineEndWinner(int winnerPid)
+    {
+        endWinnerPid = winnerPid;
+        bigWinner = winnerPid > 0 && winnerPid <= playerCount ? players[winnerPid - 1] : null;
+        endWinnerPalette = bigWinner != null
+            && bigWinner.matchPalette != null
+            && winnerPid - 1 >= 0
+            && winnerPid - 1 < bigWinner.matchPalette.Length
+                ? bigWinner.matchPalette[winnerPid - 1]
+                : null;
+    }
+
     // Send lobby ready signal
     public void SendLobbyReadyForGameplay()
     {
@@ -3111,8 +3123,14 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.DeleteAllProjectiles();
         if (isOnlineMatchActive)
         {
-            isTransitioning = true;
-            localSceneTransitionReady = false;
+            int winnerPid = endWinnerPid > 0 ? endWinnerPid : (bigWinner != null ? bigWinner.pID : -1);
+            int transitionId = GetExpectedOnlineTransitionId();
+            if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendEndTransitionSignal(transitionId, winnerPid);
+            }
+            BeginOnlineEndTransition(transitionId, winnerPid);
+            return;
         }
         else
         {
@@ -3122,6 +3140,79 @@ public class GameManager : MonoBehaviour
 
         //play a new end song
         //BGM_Manager.Instance.StartAndPlaySong();
+    }
+
+    private void BeginOnlineEndTransition(int transitionId, int winnerPid)
+    {
+        if (isTransitioning && SceneManager.GetActiveScene().name == "End")
+        {
+            ApplyOnlineEndWinner(winnerPid);
+            return;
+        }
+
+        ApplyOnlineEndWinner(winnerPid);
+        BeginTrackedOnlineTransition(transitionId);
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
+        gameplayReadyPeerSlots.Clear();
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
+        pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        hasPendingStageSelect = false;
+        pendingStageSelectTransitionId = 0;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] == null) continue;
+            players[i].totalRam = 0;
+            players[i].roundRam = 0;
+        }
+
+        gameOver = false;
+        roundOver = false;
+        ProjectileManager.Instance.DeleteAllProjectiles();
+        sceneManager.LoadScene("End");
+    }
+
+    public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        if (IsRosterBasedOnlineMatch() && !IsOnlineHostSlot(playerSlot))
+        {
+            return;
+        }
+
+        int expectedTransitionId = GetExpectedOnlineTransitionId();
+        if (transitionId < expectedTransitionId)
+        {
+            return;
+        }
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        if (activeSceneName == "End")
+        {
+            ApplyOnlineEndWinner(winnerPid);
+            return;
+        }
+
+        if (activeSceneName == "Gameplay"
+            && (sceneType != GetNetworkSceneTypeCode() || sceneSignature != GetNetworkSceneSignature()))
+        {
+            return;
+        }
+
+        BeginOnlineEndTransition(transitionId, winnerPid);
     }
 
     public PlayerController[] GetActivePlayerControllers()
@@ -3305,6 +3396,27 @@ public class GameManager : MonoBehaviour
             if (isOnlineMatchActive)
             {
                 HidePersistentUiForEndScene();
+                if (isTransitioning)
+                {
+                    if (MatchMessageManager.Instance != null)
+                    {
+                        MatchMessageManager.Instance.ResetFrameSyncForSceneTransition();
+                    }
+
+                    if (RollbackManager.Instance != null)
+                    {
+                        RollbackManager.Instance.ClearVars();
+                    }
+
+                    localSceneTransitionReady = true;
+                    sceneReadyPeerSlots.Add(localPlayerIndex);
+                    ApplyPendingSceneTransitionReadyIfAvailable();
+                    if (MatchMessageManager.Instance != null)
+                    {
+                        MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
+                    }
+                    CheckSceneTransitionReady();
+                }
             }
         }
         else

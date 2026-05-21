@@ -127,6 +127,7 @@ public class HitboxManager : MonoBehaviour
                                 HitboxData bakedHitbox = hitbox.Clone();
                                 int attackerFacing = projectile.facingRight ? 1 : -1;
                                 bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
+                                bakedHitbox.parentProjectile = projectile;
                                 defendingPlayer.hitboxData = bakedHitbox;
                             }
                             else

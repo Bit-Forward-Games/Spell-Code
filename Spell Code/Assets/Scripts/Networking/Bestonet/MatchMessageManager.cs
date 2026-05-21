@@ -80,12 +80,14 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_SEED = 12;
     private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
     private const byte PACKET_TYPE_SHOP_READY = 14;
+    private const byte PACKET_TYPE_END_TRANSITION = 15;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
+    private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -104,6 +106,7 @@ public class MatchMessageManager : MonoBehaviour
     private readonly HashSet<SteamId> connectedPeers = new HashSet<SteamId>();
     private readonly Dictionary<SteamId, CircularArray<float>> sentFrameTimesByPeer = new Dictionary<SteamId, CircularArray<float>>();
     private readonly Dictionary<SteamId, float> peerLastPacketTime = new Dictionary<SteamId, float>();
+    private readonly Dictionary<SteamId, float> peerLastHandshakeSendTime = new Dictionary<SteamId, float>();
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
     private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
 
@@ -170,9 +173,18 @@ public class MatchMessageManager : MonoBehaviour
     private void OnP2PConnectionFailed(SteamId steamId, P2PSessionError error)
     {
         Debug.LogError($"P2P Connection failed with {steamId}: {error}");
+        handshakeSentToPeers.Remove(steamId);
+        handshakeSeenFromPeers.Remove(steamId);
+        peerLastHandshakeSendTime.Remove(steamId);
+
         if (connectedPeers.Contains(steamId))
         {
             GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+        }
+        else if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId))
+        {
+            SteamNetworking.CloseP2PSessionWithUser(steamId);
+            SendHandshakeToPeer(steamId);
         }
     }
 
@@ -233,6 +245,7 @@ public class MatchMessageManager : MonoBehaviour
 
         ProcessOutboundQueue();
         ProcessInboundQueue();
+        MaintainPeerHandshakes();
         RefreshAggregatePing();
     }
 
@@ -314,6 +327,7 @@ public class MatchMessageManager : MonoBehaviour
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
         peerLastPacketTime.Clear();
+        peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
@@ -403,7 +417,39 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerDictionary(peerHighestRemoteFrameSeen, rosterPeerIds);
         PrunePeerDictionary(peerPingMs, rosterPeerIds);
         PrunePeerDictionary(peerLastPacketTime, rosterPeerIds);
+        PrunePeerDictionary(peerLastHandshakeSendTime, rosterPeerIds);
         PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
+    }
+
+    private void MaintainPeerHandshakes()
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        float now = Time.unscaledTime;
+        for (int i = 0; i < activeRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+            if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            if (connectedPeers.Contains(peer.SteamId) && handshakeSeenFromPeers.Contains(peer.SteamId))
+            {
+                continue;
+            }
+
+            if (peerLastHandshakeSendTime.TryGetValue(peer.SteamId, out float lastSendTime)
+                && now - lastSendTime < PEER_HANDSHAKE_RESEND_SECONDS)
+            {
+                continue;
+            }
+
+            SendHandshakeToPeer(peer.SteamId);
+        }
     }
 
     private void PrunePeerSet(HashSet<SteamId> peers, HashSet<SteamId> rosterPeerIds)
@@ -618,6 +664,32 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending shop transition signal: {e}");
+        }
+    }
+
+    public void SendEndTransitionSignal(int transitionId, int winnerPid)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_END_TRANSITION);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(winnerPid);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending end transition signal: {e}");
         }
     }
 
@@ -999,9 +1071,7 @@ public class MatchMessageManager : MonoBehaviour
                     bool applied = GameManager.Instance != null
                         && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
                     UpdateRoster(roster);
-                    bool waitingForInputStreams = RollbackManager.Instance != null
-                        && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams();
-                    if (applied && !waitingForInputStreams)
+                    if (applied)
                     {
                         SendLobbyRosterSnapshotAck(senderSteamId);
                     }
@@ -1099,6 +1169,19 @@ public class MatchMessageManager : MonoBehaviour
                     return;
                 }
 
+                if (packetType == PACKET_TYPE_END_TRANSITION)
+                {
+                    int transitionId = reader.ReadInt32();
+                    byte sceneType = reader.ReadByte();
+                    int sceneSignature = reader.ReadInt32();
+                    int winnerPid = reader.ReadInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameManager.Instance?.OnPeerEndTransition(senderSlot, transitionId, sceneType, sceneSignature, winnerPid);
+                    }
+                    return;
+                }
+
                 if (packetType == 0)
                 {
                     if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
@@ -1111,12 +1194,6 @@ public class MatchMessageManager : MonoBehaviour
                     int startFrame = reader.ReadInt32();
                     int inputCount = reader.ReadByte();
                     int newestPacketFrame = startFrame + inputCount - 1;
-
-                    if (SteamLobbyManager.Instance != null
-                        && SteamLobbyManager.Instance.IsLobbySnapshotPendingForPeer(senderSteamId))
-                    {
-                        return;
-                    }
 
                     if (senderSlot < 0 && activeRoster != null)
                     {
@@ -1372,6 +1449,7 @@ public class MatchMessageManager : MonoBehaviour
             if (SendPacket(peerId, data, P2PSend.Reliable))
             {
                 handshakeSentToPeers.Add(peerId);
+                peerLastHandshakeSendTime[peerId] = Time.unscaledTime;
             }
         }
         catch (Exception e)

@@ -227,12 +227,12 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
             FixedVec2 floppyPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
             // Compute squared distance (avoid square root):
-            Fixed dx = Fixed.Abs(player.position.X - floppyPos.X) / Fixed.FromInt(10);
-            Fixed dy = Fixed.Abs(player.position.Y - floppyPos.Y) / Fixed.FromInt(10);
+            Fixed dx = Fixed.Abs(player.position.X - floppyPos.X) / Fixed.FromInt(100);
+            Fixed dy = Fixed.Abs(player.position.Y - floppyPos.Y) / Fixed.FromInt(100);
             Fixed distSq = (dx * dx) + (dy * dy);
 
             // Convert collider radius to Fixed and square it
-            Fixed radius = Fixed.FromFloat(colliderRadius / 10);
+            Fixed radius = Fixed.FromFloat(colliderRadius / 100);
             Fixed radiusSq = radius * radius;
 
             // Determine overlap using squared values

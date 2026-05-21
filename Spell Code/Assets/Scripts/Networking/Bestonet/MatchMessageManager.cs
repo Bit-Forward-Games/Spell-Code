@@ -1195,12 +1195,6 @@ public class MatchMessageManager : MonoBehaviour
                     int inputCount = reader.ReadByte();
                     int newestPacketFrame = startFrame + inputCount - 1;
 
-                    if (SteamLobbyManager.Instance != null
-                        && SteamLobbyManager.Instance.IsLobbySnapshotPendingForPeer(senderSteamId))
-                    {
-                        return;
-                    }
-
                     if (senderSlot < 0 && activeRoster != null)
                     {
                         return;

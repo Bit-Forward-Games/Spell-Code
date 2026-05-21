@@ -3029,10 +3029,7 @@ public class GameManager : MonoBehaviour
 
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;
-            if (gamba.gambaAnimator != null)
-            {
-                gamba.gambaAnimator.SetBool("isActive", ownerCanUseShop);
-            }
+            gamba.isActive = ownerCanUseShop;
         }
 
         foreach (SpellCode_Gate gate in gates)
@@ -3241,7 +3238,7 @@ public class GameManager : MonoBehaviour
                         bw.Write(gamba != null ? gamba.activatedCount : 0);
                         bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
                         bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
-                        bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+                        bool isActive = gamba != null && gamba.isActive;
                         bw.Write(isActive);
                     }
 
@@ -3568,10 +3565,7 @@ public class GameManager : MonoBehaviour
                                 gamba.activatedCount = activatedCount;
                                 gamba.resetTimer = resetTimer;
                                 gamba.SetStartingSpellPos(startingSpellPos);
-                                if (gamba.gambaAnimator != null)
-                                {
-                                    gamba.gambaAnimator.SetBool("isActive", isActive);
-                                }
+                                gamba.isActive = isActive;
                             }
                         }
                     }

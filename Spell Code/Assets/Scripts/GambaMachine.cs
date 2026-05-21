@@ -19,6 +19,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class GambaMachine : MonoBehaviour
 {
     public Animator gambaAnimator;
+    public bool isActive;
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
     public int ownerPID;
@@ -76,7 +77,7 @@ public class GambaMachine : MonoBehaviour
                 //delete other options after selecting one
                 if (ownerPlayer.spellList.Count > 0)
                 {
-                    gambaAnimator.SetBool("isActive", false);
+                    isActive = false;
 
                     if (ownerPID == 1)
                     {
@@ -107,11 +108,11 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
             }
-            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            if (isActive && CheckHitboxCollision())
             {
                 Debug.Log("Hitbox collision detected!");
                 Debug.Log("LOBBY GAMBA");
-                gambaAnimator.SetBool("isActive", false);
+                isActive = false;
 
                 if (ownerPID == 1) {
                     foreach (GameObject flop in p1_floppys) { Destroy(flop); }
@@ -153,7 +154,7 @@ public class GambaMachine : MonoBehaviour
                 if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
                 {
                     activatedCount = 3;
-                    gambaAnimator.SetBool("isActive", false);
+                    isActive = false;
 
 
                     if (ownerPID == 1)
@@ -182,11 +183,11 @@ public class GambaMachine : MonoBehaviour
                 }
 
                 //clear player choice lists and spawn 3 new floppys
-                if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+                if (isActive && CheckHitboxCollision())
                 {
                     Debug.Log("Hitbox collision detected!");
                     Debug.Log("SHOP GAMBA");
-                    gambaAnimator.SetBool("isActive", false);
+                    isActive = false;
                     activatedCount++;
 
                     if (ownerPID == 1)
@@ -236,28 +237,30 @@ public class GambaMachine : MonoBehaviour
                 }
             }
 
-            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            if (isActive && CheckHitboxCollision())
             {
                 Debug.Log("Hitbox collision detected!");
                 Debug.Log("TUTORIAL GAMBA");
-                gambaAnimator.SetBool("isActive", false);
+                isActive = false;
                 
                 SpawnFloppyDisk(ownerPID, diskLocations[12], "Skillshot Slash");
             }
         }
 
         //in the future i want to keep track of the count so we can see how often players are rerolling their drops, but for now im tired
-        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3 && activeScene.name != "Tutorial")
+        if (!isActive && activatedCount < 3 && activeScene.name != "Tutorial")
         {
             //Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 60)
             {
-                gambaAnimator.SetBool("isActive", true);
+                isActive = true;
                 resetTimer = 0;
             }
         }
+
+        gambaAnimator.SetBool("isActive", isActive);
     }
 
     public void SimulateOnline(int ownerPlayerIndex, bool isRollback = false)
@@ -270,13 +273,13 @@ public class GambaMachine : MonoBehaviour
         {
             if (ownerPlayer.spellList.Count > 0)
             {
-                gambaAnimator.SetBool("isActive", false);
+                isActive = false;
                 ClearFloppysForPID(ownerPID);
             }
 
-            if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+            if (isActive && CheckHitboxCollision())
             {
-                gambaAnimator.SetBool("isActive", false);
+                isActive = false;
                 SpawnFloppysForOwnerOnline(isRollback);
             }
         }
@@ -285,14 +288,14 @@ public class GambaMachine : MonoBehaviour
             SimulateShopOnline(isRollback);
         }
 
-        if (activeScene.name != "Shop" && gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        if (activeScene.name != "Shop" && !isActive && activatedCount < 3)
         {
             if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 120)
             {
-                gambaAnimator.SetBool("isActive", true);
+                isActive = true;
                 resetTimer = 0;
             }
         }
@@ -305,14 +308,14 @@ public class GambaMachine : MonoBehaviour
         if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
         {
             activatedCount = 3;
-            gambaAnimator.SetBool("isActive", false);
+            isActive = false;
             ClearFloppysForPID(ownerPID);
         }
 
-        if (CheckHitboxCollision() && gambaAnimator.GetBool("isActive"))
+        if (isActive && CheckHitboxCollision())
         {
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
-            gambaAnimator.SetBool("isActive", false);
+            isActive = false;
             activatedCount++;
 
             ClearFloppysForPID(ownerPID);
@@ -323,12 +326,12 @@ public class GambaMachine : MonoBehaviour
             if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
         }
 
-        if (gambaAnimator.GetBool("isActive") == false && activatedCount < 3)
+        if (!isActive && activatedCount < 3)
         {
             resetTimer++;
             if (resetTimer > 120)
             {
-                gambaAnimator.SetBool("isActive", true);
+                isActive = true;
                 resetTimer = 0;
             }
         }
@@ -409,11 +412,8 @@ public class GambaMachine : MonoBehaviour
         if (ownerPID == 4) { startingSpellPos = 3; }
 
         ClearFloppysForPID(ownerPID);
-
-        if (gambaAnimator != null)
-        {
-            gambaAnimator.SetBool("isActive", true);
-        }
+        
+        isActive = true;
     }
 
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
@@ -422,11 +422,8 @@ public class GambaMachine : MonoBehaviour
         resetTimer = 0;
         activatedCount = ownerCanUseShop ? 0 : 3;
         ClearFloppysForPID(ownerPID);
-
-        if (gambaAnimator != null)
-        {
-            gambaAnimator.SetBool("isActive", ownerCanUseShop);
-        }
+        
+        isActive = ownerCanUseShop;
     }
 
     public int GetStartingSpellPos()

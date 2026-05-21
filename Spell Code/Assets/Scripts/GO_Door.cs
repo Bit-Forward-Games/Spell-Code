@@ -62,7 +62,11 @@ public class GO_Door : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().name == "Tutorial")
         {
-            animator.SetInteger("numPlayers", 2);
+            if(animator != null)
+            {
+                animator.SetInteger("numPlayers", 2);
+            }
+            isOpen = true;
             return isOpen;
         }
 

@@ -39,6 +39,14 @@ public class Pause : MonoBehaviour
     public Toggle tapJumpToggleGraphic;
 
     private int tab = 0;
+    public GameObject[,] matrix = new GameObject[3, 3];
+
+    public class Row
+    {
+        public SpellData[] items;
+    }
+
+    public Row[] grid = new Row[4];
 
     void Update()
     {

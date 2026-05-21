@@ -94,6 +94,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
+        [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // 3+ player lobby inputs are scheduled near-future to avoid join rollback storms
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -962,28 +963,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
 
             int maxDropPulse = Mathf.Max(1, MaxConsecutiveFrameDrops);
-
-            if (usePeerRoster
-                && pendingRemoteInputSlots.Count > 0
-                && SceneManager.GetActiveScene().name == "MainMenu"
-                && !GameManager.Instance.isTransitioning)
-            {
-                consecutiveDrop++;
-                if (consecutiveDrop <= maxDropPulse)
-                {
-                    if (lastDroppedFrame != currentFrame)
-                    {
-                        Debug.LogWarning($"Frame Pace Lobby Join Hold: Local {currentFrame}, PendingStreams {pendingRemoteInputSlots.Count}. Waiting for newly joined remote input.");
-                        lastDroppedFrame = currentFrame;
-                    }
-                    return false;
-                }
-
-                Debug.LogWarning($"Frame Pace Lobby Join Recovery: Local {currentFrame}, PendingStreams {pendingRemoteInputSlots.Count}. Allowing one lobby frame.");
-                consecutiveDrop = 0;
-                lastDroppedFrame = currentFrame;
-                return true;
-            }
 
             // After a scene transition, both clients reset frame sync. Briefly hold for a
             // current-scene remote input, but pulse forward if it has not arrived yet.
@@ -1894,6 +1873,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public void SetRemoteInput(int slot, int frame, ulong input, int alignmentFrame)
         {
             int frameOffset = AlignRemoteFrameForSlot(slot, alignmentFrame);
+            frameOffset = RebaseMultiplayerLobbyInputOffset(slot, alignmentFrame, frameOffset);
             int adjustedFrame = frame + frameOffset;
 
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && adjustedFrame <= syncFrame)
@@ -1938,6 +1918,40 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
                 }
             }
+        }
+
+        private int RebaseMultiplayerLobbyInputOffset(int slot, int alignmentFrame, int frameOffset)
+        {
+            if (!ShouldScheduleMultiplayerLobbyInputs())
+            {
+                return frameOffset;
+            }
+
+            int desiredNewestFrame = localFrame + Mathf.Max(1, MultiplayerLobbyInputLeadFrames);
+            int newestAdjustedFrame = alignmentFrame + frameOffset;
+            int catchUpFrames = desiredNewestFrame - newestAdjustedFrame;
+            if (catchUpFrames <= 0)
+            {
+                return frameOffset;
+            }
+
+            int rebasedOffset = frameOffset + catchUpFrames;
+            remoteFrameOffsetBySlot[slot] = rebasedOffset;
+            remoteFrameBySlot[slot] = Mathf.Max(desiredNewestFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
+            predictedRemoteFrameBySlot[slot] = Mathf.Max(desiredNewestFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
+            remoteFrame = GetEffectiveRemoteFrame(desiredNewestFrame);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(desiredNewestFrame);
+            return rebasedOffset;
+        }
+
+        private bool ShouldScheduleMultiplayerLobbyInputs()
+        {
+            return GameManager.Instance != null
+                && GameManager.Instance.isOnlineMatchActive
+                && usePeerRoster
+                && GameManager.Instance.playerCount > 2
+                && SceneManager.GetActiveScene().name == "MainMenu"
+                && !GameManager.Instance.isTransitioning;
         }
 
         private int AlignRemoteFrameForSlot(int slot, int frame)

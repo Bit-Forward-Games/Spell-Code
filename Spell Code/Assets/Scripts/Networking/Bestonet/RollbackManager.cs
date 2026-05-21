@@ -1871,15 +1871,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input, int alignmentFrame)
         {
-            if (usePeerRoster
-                && pendingRemoteInputSlots.Contains(slot)
-                && GameManager.Instance != null
-                && GameManager.Instance.isOnlineMatchActive
-                && alignmentFrame <= syncFrame)
-            {
-                return;
-            }
-
             int frameOffset = AlignRemoteFrameForSlot(slot, alignmentFrame);
             int adjustedFrame = frame + frameOffset;
 

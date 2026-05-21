@@ -84,10 +84,7 @@ public class ShopManager : MonoBehaviour
 
                 gambaMachine.activatedCount = ownerCanUseShop ? 0 : 3;
                 gambaMachine.ownerPlayer = hasActiveOwner ? gameManager.players[gambaMachine.ownerPID - 1] : null;
-                if (gambaMachine.gambaAnimator != null)
-                {
-                    gambaMachine.gambaAnimator.SetBool("isActive", ownerCanUseShop);
-                }
+                gambaMachine.isActive = ownerCanUseShop;
             }
         }
 

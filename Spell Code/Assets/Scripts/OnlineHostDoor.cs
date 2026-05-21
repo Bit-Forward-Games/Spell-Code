@@ -159,11 +159,11 @@ public class OnlineHostDoor : MonoBehaviour
     {
         FixedVec2 doorPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
 
-        Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(10);
-        Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(10);
+        Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(100);
+        Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(100);
         Fixed distSq = (dx * dx) + (dy * dy);
 
-        Fixed radius = Fixed.FromFloat(colliderRadius / 10f);
+        Fixed radius = Fixed.FromFloat(colliderRadius / 100f);
         Fixed radiusSq = radius * radius;
 
         return distSq <= radiusSq;

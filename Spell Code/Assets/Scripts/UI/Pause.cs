@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using TMPro;
 
 public class Pause : MonoBehaviour
 {
@@ -38,23 +40,18 @@ public class Pause : MonoBehaviour
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
 
+    public TextMeshProUGUI displaySpellName;
+    public TextMeshPro displaySpellDescription;
+
     private int tab = 0;
-    public GameObject[,] matrix = new GameObject[3, 3];
 
     public class Row
     {
-        public SpellData[] items;
+        public SpellData[] spells;
     }
 
     public Row[] grid = new Row[4];
 
-    void Update()
-    {
-        if (spells)
-        {
-            SpellGlossaryNavigation();
-        }
-    }
 
     public bool UIRelativeInput
     {
@@ -88,6 +85,35 @@ public class Pause : MonoBehaviour
     void Awake()
     {
         input = new InputSystem_Actions();
+        
+        Brand[] brandPerRow = { Brand.DemonX, Brand.VWave, Brand.Killeez, Brand.BigStox };
+
+        for (int i = 0; i < 4; i++)
+        {
+            grid[i] = new Row();
+
+            List<SpellData> rowSpells = new List<SpellData>();
+
+            foreach (SpellData spell in SpellDictionary.Instance.spellList)
+            {
+                if (spell != null && System.Array.Exists(spell.brands, b => b == brandPerRow[i]))
+                {
+                    rowSpells.Add(spell);
+                }
+            }
+
+            grid[i].spells = rowSpells.ToArray();
+        }
+    }
+
+    void Update()
+    {
+        if (spells)
+        {
+            SpellGlossaryNavigation();
+        }
+        
+        displaySpellName.text = grid[0].spells[0].spellName;
     }
 
     void OnEnable()  { input.Enable(); }

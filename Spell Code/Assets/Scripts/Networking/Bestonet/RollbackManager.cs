@@ -963,6 +963,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int maxDropPulse = Mathf.Max(1, MaxConsecutiveFrameDrops);
 
+            if (usePeerRoster
+                && pendingRemoteInputSlots.Count > 0
+                && SceneManager.GetActiveScene().name == "MainMenu"
+                && !GameManager.Instance.isTransitioning)
+            {
+                consecutiveDrop++;
+                if (consecutiveDrop <= maxDropPulse)
+                {
+                    if (lastDroppedFrame != currentFrame)
+                    {
+                        Debug.LogWarning($"Frame Pace Lobby Join Hold: Local {currentFrame}, PendingStreams {pendingRemoteInputSlots.Count}. Waiting for newly joined remote input.");
+                        lastDroppedFrame = currentFrame;
+                    }
+                    return false;
+                }
+
+                Debug.LogWarning($"Frame Pace Lobby Join Recovery: Local {currentFrame}, PendingStreams {pendingRemoteInputSlots.Count}. Allowing one lobby frame.");
+                consecutiveDrop = 0;
+                lastDroppedFrame = currentFrame;
+                return true;
+            }
+
             // After a scene transition, both clients reset frame sync. Briefly hold for a
             // current-scene remote input, but pulse forward if it has not arrived yet.
             // A hard startup hold can deadlock both sides immediately after scene load.

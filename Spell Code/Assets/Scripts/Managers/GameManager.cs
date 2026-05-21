@@ -2009,17 +2009,18 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
+        localPlayerInput = GatherInputForOnline();
+        rbManager.SendLocalInput(localPlayerInput);
+
         if (!rbManager.AllowUpdate())
         {
             return;
         }
 
-        localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
 
         frameNumber++;
-        rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
 
         Scene activeScene = SceneManager.GetActiveScene();

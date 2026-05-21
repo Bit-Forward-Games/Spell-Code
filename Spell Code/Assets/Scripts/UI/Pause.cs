@@ -41,7 +41,7 @@ public class Pause : MonoBehaviour
     public Toggle tapJumpToggleGraphic;
 
     public TextMeshProUGUI displaySpellName;
-    public TextMeshPro displaySpellDescription;
+    public TextMeshProUGUI displaySpellDescription;
 
     private int tab = 0;
 
@@ -86,7 +86,7 @@ public class Pause : MonoBehaviour
     {
         input = new InputSystem_Actions();
         
-        Brand[] brandPerRow = { Brand.DemonX, Brand.VWave, Brand.Killeez, Brand.BigStox };
+        Brand[] brandPerRow = { Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave};
 
         for (int i = 0; i < 4; i++)
         {
@@ -113,7 +113,11 @@ public class Pause : MonoBehaviour
             SpellGlossaryNavigation();
         }
         
-        displaySpellName.text = grid[0].spells[0].spellName;
+        if (tab > 0 )
+        {
+            displaySpellName.text = grid[tab - 1].spells[0].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[0].description;
+        }
     }
 
     void OnEnable()  { input.Enable(); }
@@ -212,12 +216,12 @@ public class Pause : MonoBehaviour
             if (nav.y < 0) Debug.Log("Down");
             if (nav.x < 0) 
             {
-                if (tab == 0) tab = 1;
+                if (tab == 0) tab = 4;
                 else tab--;
             }
             if (nav.x > 0) 
             {
-                if (tab == 1) tab = 0;
+                if (tab == 4) tab = 0;
                 else tab++;
             }
             

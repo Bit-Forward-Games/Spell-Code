@@ -133,8 +133,8 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
-        // relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
-        // codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 

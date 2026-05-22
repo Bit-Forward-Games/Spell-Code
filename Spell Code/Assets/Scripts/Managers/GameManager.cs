@@ -879,7 +879,7 @@ public class GameManager : MonoBehaviour
         return applied;
     }
 
-    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData)
+    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData, bool forceApply = false)
     {
         if (roster == null || stateData == null || stateData.Length == 0)
         {
@@ -897,7 +897,7 @@ public class GameManager : MonoBehaviour
             && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams()
             && snapshotFrame > frameNumber;
 
-        if (rosterSnapshotAlreadyActive && !canRefreshPendingBootstrapSnapshot)
+        if (rosterSnapshotAlreadyActive && !canRefreshPendingBootstrapSnapshot && !forceApply)
         {
             Debug.Log($"[OnlineLobby] Ignored duplicate lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
             return true;
@@ -942,6 +942,10 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log($"[OnlineLobby] Bootstrapped online lobby from host snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
+        else if (forceApply)
+        {
+            Debug.Log($"[OnlineLobby] Applied authoritative lobby state snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
+        }
         else if (canRefreshPendingBootstrapSnapshot)
         {
             Debug.Log($"[OnlineLobby] Refreshed pending lobby bootstrap snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
@@ -951,6 +955,30 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[OnlineLobby] Applied lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
         return true;
+    }
+
+    private void SendAuthoritativeOnlineLobbySnapshot()
+    {
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || activeOnlineRoster == null
+            || MatchMessageManager.Instance == null
+            || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        byte[] stateData = SerializeManagedState();
+        for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
+            if (peer == null || peer.PlayerSlot == localPlayerIndex || !peer.SteamId.IsValid)
+            {
+                continue;
+            }
+
+            MatchMessageManager.Instance.SendLobbyRosterSnapshot(peer.SteamId, activeOnlineRoster, frameNumber, stateData, forceApply: true);
+        }
     }
 
     private bool IsSteamIdInList(Steamworks.SteamId steamId, List<Steamworks.SteamId> steamIds)
@@ -2009,17 +2037,18 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
         rbManager.RollbackEvent();
 
+        localPlayerInput = GatherInputForOnline();
+        rbManager.SendLocalInput(localPlayerInput);
+
         if (!rbManager.AllowUpdate())
         {
             return;
         }
 
-        localPlayerInput = GatherInputForOnline();
         //codePrevFrame = codeCurrentFrame;
         //jumpPrevFrame = jumpCurrentFrame;
 
         frameNumber++;
-        rbManager.SendLocalInput(localPlayerInput);
         syncedInput = rbManager.SynchronizeInput();
 
         Scene activeScene = SceneManager.GetActiveScene();
@@ -3344,6 +3373,8 @@ public class GameManager : MonoBehaviour
         {
             BeginTrackedOnlineTransition(transitionId);
         }
+
+        SendAuthoritativeOnlineLobbySnapshot();
         ApplyOnlineStageSelection(newStageIndex, stageRngState);
 
         if (MatchMessageManager.Instance != null)

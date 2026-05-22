@@ -128,6 +128,8 @@ public class GameManager : MonoBehaviour
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
     public TextMeshProUGUI rollbackFramesText;
+    private const float NETWORK_INFO_DISPLAY_REFRESH_SECONDS = 2f;
+    private float nextNetworkInfoDisplayRefreshTime = 0f;
 
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
@@ -377,15 +379,7 @@ public class GameManager : MonoBehaviour
             }
 
             SetNetworkInfoVisible(true);
-            if (pingText != null && MatchMessageManager.Instance != null)
-            {
-                pingText.SetText($"RTT: {MatchMessageManager.Instance.Ping}");
-            }
-
-            if (rollbackFramesText != null && RollbackManager.Instance != null)
-            {
-                rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
-            }
+            UpdateNetworkInfoDisplay();
         }
 
 
@@ -617,6 +611,31 @@ public class GameManager : MonoBehaviour
         if (networkInfo != null && networkInfo.activeSelf != isVisible)
         {
             networkInfo.SetActive(isVisible);
+        }
+
+        if (!isVisible)
+        {
+            nextNetworkInfoDisplayRefreshTime = 0f;
+        }
+    }
+
+    private void UpdateNetworkInfoDisplay()
+    {
+        if (UnityEngine.Time.unscaledTime < nextNetworkInfoDisplayRefreshTime)
+        {
+            return;
+        }
+
+        nextNetworkInfoDisplayRefreshTime = UnityEngine.Time.unscaledTime + NETWORK_INFO_DISPLAY_REFRESH_SECONDS;
+
+        if (pingText != null && MatchMessageManager.Instance != null)
+        {
+            pingText.SetText($"RTT: {MatchMessageManager.Instance.Ping}");
+        }
+
+        if (rollbackFramesText != null && RollbackManager.Instance != null)
+        {
+            rollbackFramesText.SetText($"Rollback Frames: {RollbackManager.Instance.RollbackFrames}");
         }
     }
 

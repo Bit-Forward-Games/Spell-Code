@@ -66,7 +66,7 @@ public class GambaMachine : MonoBehaviour
     {
         if (gameManager.isOnlineMatchActive) return;
 
-        gambaAnimator.SetBool("facingLeft", !facingRight);
+        ApplyVisualState();
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -260,14 +260,18 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        gambaAnimator.SetBool("isActive", isActive);
+        ApplyVisualState();
     }
 
     public void SimulateOnline(int ownerPlayerIndex, bool isRollback = false)
     {
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
-        if (ownerPlayer == null) return;
+        if (ownerPlayer == null)
+        {
+            ApplyVisualState();
+            return;
+        }
 
         if (activeScene.name == "MainMenu")
         {
@@ -299,6 +303,8 @@ public class GambaMachine : MonoBehaviour
                 resetTimer = 0;
             }
         }
+
+        ApplyVisualState();
     }
 
     private void SimulateShopOnline(bool isRollback = false)
@@ -414,6 +420,7 @@ public class GambaMachine : MonoBehaviour
         ClearFloppysForPID(ownerPID);
         
         isActive = true;
+        ApplyVisualState();
     }
 
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
@@ -424,6 +431,7 @@ public class GambaMachine : MonoBehaviour
         ClearFloppysForPID(ownerPID);
         
         isActive = ownerCanUseShop;
+        ApplyVisualState();
     }
 
     public int GetStartingSpellPos()
@@ -434,6 +442,22 @@ public class GambaMachine : MonoBehaviour
     public void SetStartingSpellPos(int value)
     {
         startingSpellPos = value;
+    }
+
+    public void ApplyVisualState()
+    {
+        if (gambaAnimator == null)
+        {
+            gambaAnimator = GetComponent<Animator>();
+        }
+
+        if (gambaAnimator == null)
+        {
+            return;
+        }
+
+        gambaAnimator.SetBool("facingLeft", !facingRight);
+        gambaAnimator.SetBool("isActive", isActive);
     }
 
     public bool CheckHitboxCollision()

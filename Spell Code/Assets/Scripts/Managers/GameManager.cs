@@ -3477,6 +3477,7 @@ public class GameManager : MonoBehaviour
             endInputEnabled = false;
             if (isOnlineMatchActive)
             {
+                ClearStages();
                 HidePersistentUiForEndScene();
                 if (isTransitioning)
                 {
@@ -3747,6 +3748,7 @@ public class GameManager : MonoBehaviour
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;
             gamba.isActive = ownerCanUseShop;
+            gamba.ApplyVisualState();
         }
 
         foreach (SpellCode_Gate gate in gates)
@@ -4103,7 +4105,7 @@ public class GameManager : MonoBehaviour
             bw.Write(gamba != null ? gamba.activatedCount : 0);
             bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
             bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
-            bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+            bool isActive = gamba != null && gamba.isActive;
             bw.Write(isActive);
         }
 
@@ -4354,6 +4356,7 @@ public class GameManager : MonoBehaviour
                                 gamba.resetTimer = resetTimer;
                                 gamba.SetStartingSpellPos(startingSpellPos);
                                 gamba.isActive = isActive;
+                                gamba.ApplyVisualState();
                             }
                         }
                     }

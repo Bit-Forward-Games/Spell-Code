@@ -1,54 +1,62 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class QuarterReportCrit_prj : BaseProjectile
+public class BootsOfHermes_prj : BaseProjectile
 {
-
     protected override void InitializeDefaults()
     {
-        projName = "Quarter Report Crit";
+        projName = "Boots Of Hermes";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 180; 
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, true);
+        lifeSpan = 60; // lasts for 300 logic frames
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-     
+
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4); // Set horizontal speed based on facing direction
+        activeHitboxGroupIndex = 0;
     }
 
     public override void LoadProjectile()
     {
-        projectileHitboxes = new HitboxGroup[1];
-        projectileHitboxes[0] = new HitboxGroup
+        projectileHitboxes = new HitboxGroup[2];
+        projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
                 new HitboxData
                 {
-                    xOffset = -22,
-                    yOffset = 18,
-                    width = 23*2,
-                    height = 18*2,
-                    xKnockback = 6,
-                    yKnockback = 8,
+                    xOffset = -20,
+                    yOffset = 20,
+                    width = 40,
+                    height = 40,
+                    xKnockback = 4,
+                    yKnockback = 2,
                     damage = 15,
-                    hitstun = 45,
-                    attackLvl = 2,
-                    sweetSpot = true,
+                    hitstun = 15,
+                    attackLvl = 1,
                 }
             },
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
         base.LoadProjectile();
     }
+
 }

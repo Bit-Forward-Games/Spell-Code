@@ -12,9 +12,9 @@ public class BifronsBlade : SpellData
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1100_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nEnhance next basic attack to consume Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
+        description = "Medium-range slash.\nEnhance next basic attack to break armor and consume all Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
         spawnOffsetX = 25;
         spawnOffsetY = 40;
 
@@ -27,7 +27,6 @@ public class BifronsBlade : SpellData
     {
         switch (targetProcCon)
         {
-            //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
                 if (defender.hitboxData.basicAttackHitbox) //if it is the basic attack slash,Consume all Demon Aura on hitting an enemy with a basic attack, dealing that much bonus damage.
                 {
@@ -38,11 +37,6 @@ public class BifronsBlade : SpellData
                         defender.TakeEffectDamage(damageToDeal, owner);
                         owner.demonAura = 0;
                     }
-                }
-                else //if it is the spell hitbox, gain 20 Demon Aura, but only if the player is not already at max Demon Aura
-                {
-                    owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                    owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 }
                 break;
             case ProcCondition.OnCastBasic:

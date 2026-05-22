@@ -125,7 +125,6 @@ public class PlayerController : MonoBehaviour
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
-    public const ushort maxFlowState = 600;
     public ushort stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
     public ushort stockStabilityModified = 0; //crit chance after modifiers
     public ushort demonAura = 0;
@@ -182,7 +181,10 @@ public class PlayerController : MonoBehaviour
     public ushort iframes = 0;
     public bool armor = false;
 
+    [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
+    [NonSerialized]
+    public List<SpellData> sortedSpellList;
     public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     private int _pendingHitboxProjectileIndex = -1;
@@ -251,6 +253,8 @@ public class PlayerController : MonoBehaviour
         {
             DontDestroyOnLoad(this.gameObject);
         }
+
+        EnsureUniversalSpells();
     }
     void Start()
     {
@@ -443,7 +447,8 @@ public class PlayerController : MonoBehaviour
 
         //initialize resources
         flowState = 0;
-        stockStability = GetPersistentStockStabilityFromSpellList();
+        //stockStability = GetPersistentStockStabilityFromSpellList();
+        stockStability = 0;
         demonAura = 0;
         reps = 0;
 
@@ -458,6 +463,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         suppressSpellLoadSideEffects = false;
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         GameManager.Instance.spellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
     }
@@ -2365,7 +2371,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, ((float)flowState / (float)maxFlowState) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)VWavePassive.maxFlowState * 100f);
 
             flowState--;
         }
@@ -2400,7 +2406,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-        if (stockStability > 0)
+        if (stockStabilityModified > 0)
         {
             //play the stock aura visual effect 
             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
@@ -2678,7 +2684,10 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
     {
-        List<SpellData> sortedSpellList = targetPlayer.spellList
+
+        sortedSpellList = targetPlayer.spellList
+            .Concat(targetPlayer.universalSpells)
+            .Where(spell => spell != null)
             .OrderByDescending(spell => spell.priorityOverride)
             .ToList();
 
@@ -2688,6 +2697,41 @@ public class PlayerController : MonoBehaviour
             {
                 sortedSpellList[i].CheckCondition(this, targetProcCon);
             }
+        }
+    }
+
+    private void EnsureUniversalSpells()
+    {
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            if (universalSpells[i] != null)
+            {
+                universalSpells[i].owner = this;
+            }
+        }
+
+        if (SpellDictionary.Instance == null || SpellDictionary.Instance.spellList == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < SpellDictionary.Instance.spellList.Count; i++)
+        {
+            SpellData universalSpell = SpellDictionary.Instance.spellList[i];
+            if (universalSpell == null || universalSpell.spellType != SpellType.Universal)
+            {
+                continue;
+            }
+
+            bool alreadyAdded = universalSpells.Exists(spell => spell != null && spell.spellName == universalSpell.spellName);
+            if (alreadyAdded)
+            {
+                continue;
+            }
+
+            SpellData spellInstance = Instantiate(universalSpell);
+            spellInstance.owner = this;
+            universalSpells.Add(spellInstance);
         }
     }
 
@@ -2862,6 +2906,7 @@ public class PlayerController : MonoBehaviour
 
         bw.Write(flowState);
         bw.Write(stockStability);
+        bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
@@ -2973,6 +3018,7 @@ public class PlayerController : MonoBehaviour
 
         bw.Write(flowState);
         bw.Write(stockStability);
+        bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
@@ -3063,6 +3109,7 @@ public class PlayerController : MonoBehaviour
         if (markerB != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at B: {markerB:X8}");
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
+        stockStabilityModified = br.ReadUInt16();
         demonAura = br.ReadUInt16();
         demonAuraLifeSpanTimer = br.ReadUInt16();
         reps = br.ReadUInt16();
@@ -3252,7 +3299,9 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
-        List<SpellData> sortedSpellList = spellList
+        sortedSpellList = spellList
+            .Concat(universalSpells)
+            .Where(spell => spell != null)
             .OrderByDescending(spell => spell.priorityOverride)
             .ToList();
         //go through the player's spell list and update any proc effects

@@ -129,15 +129,36 @@ public class TrickshotAlley_prj : BaseProjectile
 
         foreach(BaseProjectile proj in myProjectiles)
         {
-            if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, facingRight))
+            if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, out HitboxData hitbox, facingRight))
             {
-                hSpeed = Fixed.FromInt((proj.facingRight ? 1 : -1) * fastSpeed); 
-                vSpeed = Fixed.FromInt(lowBounce); 
+                hSpeed = Fixed.FromInt(hitbox.xKnockback * (proj.facingRight ? 1 : -1)); 
+                vSpeed = Fixed.FromInt(hitbox.yKnockback); 
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
+                ownerSpell.cooldownCounter-= 60;
             }
         }
 
     }
+
+    //old backup implementation
+    // public void ProcessTrickshotCollisisons()
+    // {
+    //     List<BaseProjectile> myProjectiles = ProjectileManager.Instance.activeProjectiles
+    //     .Where(projectile => projectile != null && projectile.owner == owner && projectile != this)
+    //     .ToList();
+
+    //     foreach(BaseProjectile proj in myProjectiles)
+    //     {
+    //         if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, facingRight))
+    //         {
+    //             hSpeed = Fixed.FromInt((proj.facingRight ? 1 : -1) * fastSpeed); 
+    //             vSpeed = Fixed.FromInt(lowBounce); 
+    //             logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
+    //             ownerSpell.cooldownCounter-= 60;
+    //         }
+    //     }
+
+    // }
 
     // public void CheckStageDataSOCollision()
     // {

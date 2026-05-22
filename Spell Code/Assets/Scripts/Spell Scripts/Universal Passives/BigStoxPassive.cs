@@ -5,6 +5,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class BigStoxPassive : SpellData
 {
+    public static ushort bigStoxCritDamage = 15;
     public BigStoxPassive()
     {
         spellName = "BigStox Passive";
@@ -13,10 +14,9 @@ public class BigStoxPassive : SpellData
         priorityOverride = 5;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[2] { ProcCondition.OnStart, ProcCondition.OnHitSpell};
-        description = $"Gain 10% Stock Stability<sprite name=\"StockStability\"> for every BigStox Spellcode you have.\n hitting a Spellcode has a random chance based on Stock Stability<sprite name=\"StockStability\"> to \"Crit\", dealing increased damage.\nBigStox Spellcodes gain additional effects on Crit.";
+        description = $"On Spawn: Gain 10% Stock Stability<sprite name=\"StockStability\"> for every BigStox Spellcode you have.\n hitting a Spellcode has a random chance based on Stock Stability<sprite name=\"StockStability\"> to \"Crit\", dealing increased damage.";
 
     }
-
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
@@ -27,11 +27,11 @@ public class BigStoxPassive : SpellData
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox || !defender.hitboxData.sweetSpot)
                 {
                     //non bigstox spells can crit here
-                    if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability)
+                    if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified)
                     {
-                        defender.TakeEffectDamage(15,owner);
+                        defender.TakeEffectDamage(bigStoxCritDamage,owner);
+                        owner.SpawnToast($"+{bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
                     }
-                    owner.SpawnToast($"+{owner.demonAura/5} DAMAGE",  GameManager.colors["blue"]);
                 }
                 break;
             case ProcCondition.OnStart:
@@ -42,6 +42,7 @@ public class BigStoxPassive : SpellData
                         owner.stockStability +=10;
                     }
                 }
+                owner.stockStabilityModified = owner.stockStability;
                 break;
             default:
                 break;

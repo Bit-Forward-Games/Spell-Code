@@ -30,9 +30,7 @@ public enum Brand
     VWave,
     DemonX,
     Killeez,
-    BigStox,
-    SLUG,
-    Halk
+    BigStox
 }
 
 public enum ProcCondition
@@ -46,6 +44,7 @@ public enum ProcCondition
     OnHurtBasic,
     OnHurtSpell,
     OnSlide,
+    OnJump,
     OnDodge,
     OnDodged,
     OnBlock,

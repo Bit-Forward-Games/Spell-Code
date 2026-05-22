@@ -213,11 +213,11 @@ public class TempUIScript : MonoBehaviour
             }
 
             // flowStateVals[i].enabled = true;
-            flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / PlayerController.maxFlowState;
+            flowStateVals[i].fillAmount = (float)GameManager.Instance.players[i].flowState / VWavePassive.maxFlowState;
 
             // stockStabilityVals[i].enabled = true;
             // stockStabilityIcons[i].enabled = true;
-            stockStabilityVals[i].text = GameManager.Instance.players[i].stockStability.ToString() + "%";
+            stockStabilityVals[i].text = GameManager.Instance.players[i].stockStabilityModified.ToString() + "%";
 
             // demonAuraVals[i].enabled = true;
             demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;

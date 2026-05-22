@@ -13,20 +13,20 @@ public class GetAJob : SpellData
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0011_0100_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range lunging job application.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to increase range and damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Medium-range lunging job application.\nThis spell has armor.\nGains super armor, extra range, and stun on \"Crit\"<sprite name=\"StockStability\">.";
         spawnOffsetX = 36;
         spawnOffsetY = 36;
     }
     public override void LoadSpell()
     {
         base.LoadSpell();
-        if (owner != null && !owner.suppressSpellLoadSideEffects)
-        {
-            owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        }
+        // if (owner != null && !owner.suppressSpellLoadSideEffects)
+        // {
+        //     owner.stockStability += 10;
+        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
+        // }
         doesCrit = false;
     }
     public override void SpellUpdate()
@@ -66,6 +66,13 @@ public class GetAJob : SpellData
                 doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
                 owner.superArmor = doesCrit;
                 owner.armor = !doesCrit;
+                break;
+            case ProcCondition.ActiveOnHit:
+                if (doesCrit)
+                {
+                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner);
+                    owner.SpawnToast($"+{BigStoxPassive.bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
+                }
                 break;
             default:
                 break;

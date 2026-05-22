@@ -14,8 +14,8 @@ public class CoinToss : SpellData
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1101_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Long-range arching coin.\n50% chance of increased damage.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to guarantee damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
+        procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit};
+        description = "Long-range arching coin.\n50% chance of dealing increased damage when missing a \"Crit\"<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[3];
     }
 
@@ -47,11 +47,11 @@ public class CoinToss : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        if (owner != null && !owner.suppressSpellLoadSideEffects)
-        {
-            owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        }
+        // if (owner != null && !owner.suppressSpellLoadSideEffects)
+        // {
+        //     owner.stockStability += 10;
+        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
+        // }
         doesCrit = false;
     }
 
@@ -61,8 +61,15 @@ public class CoinToss : SpellData
         {
             case ProcCondition.ActiveOnCast:
                 int roll = GameManager.Instance.GetNextRandom(0, 100);
-                Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
+                //Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
                 doesCrit = roll < owner.stockStability;
+                break;
+            case ProcCondition.ActiveOnHit:
+                if (doesCrit)
+                {
+                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner);
+                    owner.SpawnToast($"+{BigStoxPassive.bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
+                }
                 break;
             default:
                 break;

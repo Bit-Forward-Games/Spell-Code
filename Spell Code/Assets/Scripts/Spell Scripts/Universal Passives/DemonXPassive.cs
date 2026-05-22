@@ -5,7 +5,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class DemonXPassive : SpellData
 {
-    const int DemonAuraResetTime = 180;
+    public static ushort DemonAuraResetTime = 180;
     public DemonXPassive()
     {
         spellName = "Demon-X Passive";
@@ -27,8 +27,13 @@ public class DemonXPassive : SpellData
                 owner.demonAuraLifeSpanTimer = DemonAuraResetTime; //refresh demon aura lifespan timer on spell hit to 3 seconds (360 frames)
                 break;
             case ProcCondition.OnHitSpell:
-                // deal extra damage based on demon aura
-                defender.TakeEffectDamage(owner.demonAura/5, owner);
+                if(owner.demonAura > 0)
+                {
+                    // deal extra damage based on demon aura
+                    defender.TakeEffectDamage(owner.demonAura/5, owner);
+                    owner.SpawnToast($"+{owner.demonAura/5} DAMAGE", GameManager.colors["red"]);
+                }
+                
 
 
                 //increase demon aura by 20 if its a Demon-X spellcode
@@ -37,7 +42,7 @@ public class DemonXPassive : SpellData
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                     owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 }
-                owner.SpawnToast($"+{owner.demonAura/5} DAMAGE", GameManager.colors["red"]);
+                
                 break;
             case ProcCondition.OnUpdate:
             //if its been 3 seconds since you've damaged someone, remove your demon aura

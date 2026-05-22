@@ -39,7 +39,7 @@ public class GetAJobCrit_prj : BaseProjectile
                     height = 34*2,
                     xKnockback = 6,
                     yKnockback = 5,
-                    damage = 25,
+                    damage = 15,
                     hitstun = 45,
                     attackLvl = 2,
                     sweetSpot = true

@@ -13,9 +13,10 @@ public class BlueChipTrader : SpellData
         spellName = "Blue Chip Trader";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[2] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell };
+        priorityOverride = 1;
+        procConditions = new ProcCondition[] { ProcCondition.OnHitBasic, ProcCondition.OnCastSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "On Basic hit: gain 100% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
+        description = "On Basic hit: gain 50% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
     }
 
     public override void LoadSpell()
@@ -28,20 +29,21 @@ public class BlueChipTrader : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnHitBasic:
-                if(storedStockStability == 0)
+                storedStockStability += 50;
+                owner.stockStability += 50;
+                if(owner.stockStability > 100)
                 {
-                storedStockStability = owner.stockStability;
-                owner.stockStability = 100;
-                owner.SpawnToast($"+{100-storedStockStability}% STOCK STABILITY", GameManager.colors["blue"]);
+                    int excessStocStability = owner.stockStability - 100;
+                    owner.stockStability = 100;
+                    storedStockStability -= (ushort)excessStocStability;
+
                 }
+                owner.SpawnToast("+50% STOCK STABILITY", GameManager.colors["blue"]);
                 break;
             case ProcCondition.OnCastSpell:
-                if(storedStockStability > 0)
-                {
-                owner.stockStability = storedStockStability;
+                owner.stockStability -= storedStockStability;
                 storedStockStability = 0;
-                owner.SpawnToast($"STOCK STABILITY CONSUMED", Color.gray);
-                }
+                owner.SpawnToast($"-{storedStockStability}% STOCK STABILITY", GameManager.colors["grey"]);
                 break;
             default:
                 break;

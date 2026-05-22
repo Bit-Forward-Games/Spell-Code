@@ -1,10 +1,79 @@
 fileFormatVersion: 2
-guid: 3639bdae51f182342b72bfb66752c0b6
+guid: 6d8c1afabefcf8244a33fe5ebb932b3b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3557744676598880898
-    second: Resource_Icons-Sheet_0
+      213: 7605982476995051474
+    second: BootsOfHermesProj-Sheet_0
+  - first:
+      213: -7604253129599774029
+    second: BootsOfHermesProj-Sheet_1
+  - first:
+      213: -3866223195485390121
+    second: BootsOfHermesProj-Sheet_2
+  - first:
+      213: -7008919156791101356
+    second: BootsOfHermesProj-Sheet_3
+  - first:
+      213: -4502089871195271061
+    second: BootsOfHermesProj-Sheet_4
+  - first:
+      213: -4595476257295851652
+    second: BootsOfHermesProj-Sheet_5
+  - first:
+      213: -1200364082816541614
+    second: BootsOfHermesProj-Sheet_6
+  - first:
+      213: 1137569309394670306
+    second: BootsOfHermesProj-Sheet_7
+  - first:
+      213: 6689818987108761626
+    second: BootsOfHermesProj-Sheet_8
+  - first:
+      213: 5313592211782951943
+    second: BootsOfHermesProj-Sheet_9
+  - first:
+      213: 8981558981186414319
+    second: BootsOfHermesProj-Sheet_10
+  - first:
+      213: 7608571960627634526
+    second: BootsOfHermesProj-Sheet_11
+  - first:
+      213: -8012434411023908895
+    second: BootsOfHermesProj-Sheet_12
+  - first:
+      213: -7002528712599331957
+    second: BootsOfHermesProj-Sheet_13
+  - first:
+      213: 1409329460956562068
+    second: BootsOfHermesProj-Sheet_14
+  - first:
+      213: 6354886963779982907
+    second: BootsOfHermesProj-Sheet_15
+  - first:
+      213: -8269765323969184976
+    second: BootsOfHermesProj-Sheet_16
+  - first:
+      213: 3990893016083149194
+    second: BootsOfHermesProj-Sheet_17
+  - first:
+      213: 3364372424121363186
+    second: BootsOfHermesProj-Sheet_18
+  - first:
+      213: 7727607055302731937
+    second: BootsOfHermesProj-Sheet_19
+  - first:
+      213: -6525531965396449247
+    second: BootsOfHermesProj-Sheet_20
+  - first:
+      213: -1572225574916681055
+    second: BootsOfHermesProj-Sheet_21
+  - first:
+      213: -3651418275072189905
+    second: BootsOfHermesProj-Sheet_22
+  - first:
+      213: -1031432090839961639
+    second: BootsOfHermesProj-Sheet_23
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +106,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -51,7 +120,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -75,20 +144,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -111,6 +167,19 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -152,13 +221,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Resource_Icons-Sheet_0
+      name: BootsOfHermesProj-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 100
-        height: 104
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -167,74 +236,140 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 28a96320fe5af5130800000000000000
-      internalID: 3557744676598880898
+      spriteID: 2dfb22db3c0ed8960800000000000000
+      internalID: 7605982476995051474
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Resource_Icons-Sheet_1
+      name: BootsOfHermesProj-Sheet_1
       rect:
         serializedVersion: 2
-        x: 100
+        x: 64
         y: 0
-        width: 100
-        height: 104
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 78149c564edea914a9358c0be86eb0cf
-      internalID: 1955570843
+      spriteID: 3b29d045114487690800000000000000
+      internalID: -7604253129599774029
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Resource_Icons-Sheet_2
+      name: BootsOfHermesProj-Sheet_2
       rect:
         serializedVersion: 2
-        x: 200
+        x: 128
         y: 0
-        width: 100
-        height: 104
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 6eb85be267d2a7f4c87503497fd8a1de
-      internalID: -634022125
+      spriteID: 7dab7b2ec7a685ac0800000000000000
+      internalID: -3866223195485390121
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Resource_Icons-Sheet_3
+      name: BootsOfHermesProj-Sheet_3
       rect:
         serializedVersion: 2
-        x: 300
+        x: 192
         y: 0
-        width: 100
-        height: 104
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: b7a079b982119ca408c356d33dd071f4
-      internalID: 461047292
+      spriteID: 458390869215bbe90800000000000000
+      internalID: -7008919156791101356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BootsOfHermesProj-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6095808d1d5581c0800000000000000
+      internalID: -4502089871195271061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BootsOfHermesProj-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7f932e11b69930c0800000000000000
+      internalID: -4595476257295851652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BootsOfHermesProj-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25c159af933775fe0800000000000000
+      internalID: -1200364082816541614
       vertices: []
       indices: 
       edges: []
@@ -243,7 +378,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4959d6ea04bcd1f42b5793766ebe9465
+    spriteID: 47e9ef6251ac6994299b71b6b306e09f
     internalID: 0
     vertices: []
     indices: 
@@ -253,10 +388,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Resource_Icons-Sheet_0: 3557744676598880898
-      Resource_Icons-Sheet_1: 1955570843
-      Resource_Icons-Sheet_2: -634022125
-      Resource_Icons-Sheet_3: 461047292
+      BootsOfHermesProj-Sheet_0: 7605982476995051474
+      BootsOfHermesProj-Sheet_1: -7604253129599774029
+      BootsOfHermesProj-Sheet_2: -3866223195485390121
+      BootsOfHermesProj-Sheet_3: -7008919156791101356
+      BootsOfHermesProj-Sheet_4: -4502089871195271061
+      BootsOfHermesProj-Sheet_5: -4595476257295851652
+      BootsOfHermesProj-Sheet_6: -1200364082816541614
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

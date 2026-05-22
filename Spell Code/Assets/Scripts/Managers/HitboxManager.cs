@@ -159,6 +159,12 @@ public class HitboxManager : MonoBehaviour
 
     public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, bool defenderFacingRight = true)
     {
+        return ProcessSingleProjectileCollisison(projectile, hurtboxData, defenderPos, out _, defenderFacingRight);
+    }
+
+    public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, out HitboxData collidedHitbox, bool defenderFacingRight = true)
+    {
+        collidedHitbox = null;
         if (projectile.projectileHitboxes.Length == 0) return false;
         HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
         // Combine all hitbox lists into one sequence
@@ -173,6 +179,7 @@ public class HitboxManager : MonoBehaviour
             if (CheckCollision(hitbox, projectile.position, hurtboxData, defenderPos,
                         projectile.facingRight, defenderFacingRight))
             {
+                collidedHitbox = hitbox;
                 //defendingPlayer.facingRight = !projectile.facingRight;
                 //byte hitstopVal = 5;
                 //defendingPlayer.hitstop = hitstopVal;

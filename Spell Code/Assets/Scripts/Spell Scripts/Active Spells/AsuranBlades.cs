@@ -13,10 +13,10 @@ public class AsuranBlades : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];
 
-        description = "Throw 3 shurikens downward.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, throw more shurikens.";
+        description = "Throw 3 shurikens downward.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, throw more shurikens.";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;

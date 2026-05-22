@@ -7,43 +7,31 @@ using System.Linq;
 
 public class LetItRide : SpellData
 {
-    public ushort convertedStockStability = 0;
 
     public LetItRide()
     {
         spellName = "Let It Ride";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
+        procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "Stock Stability<sprite name=\"StockStability\"> is capped at 10%.\nConvert excess Stock Stability<sprite name=\"StockStability\"> into bonus damage on empowered \"Big Stox\" Spells.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Your Stock Stability<sprite name=\"StockStability\"> is cut in half.\nConvert consumed Stock Stability<sprite name=\"StockStability\"> into bonus damage on \"Crit\"<sprite name=\"StockStability\"> for your BigStox Spellcodes.";
     }
 
-    public override void LoadSpell()
-    {
-        base.LoadSpell();
-        convertedStockStability = 0;
-        if (owner != null && !owner.suppressSpellLoadSideEffects)
-        {
-            owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        }
-    }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
         switch (targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                if (owner.stockStability != 10)
+                if (owner.stockStability != owner.stockStabilityModified/2)
                 {
-                    convertedStockStability += (ushort)(owner.stockStability - 10);
-                    owner.stockStability = 10;
+                    owner.stockStabilityModified = (ushort)((int)owner.stockStability/2);
                 }
                 break;
             case ProcCondition.OnHitSpell:
                 if (defender.hitboxData.sweetSpot && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.BigStox))
                 {
-                    int effectDamage = (int)((convertedStockStability+10)*1.5)-10;
+                    int effectDamage = owner.stockStability/2;
                     defender.TakeEffectDamage(effectDamage, owner);
                 }
                 break;
@@ -52,15 +40,4 @@ public class LetItRide : SpellData
         }
     }
 
-    public override void Serialize(System.IO.BinaryWriter bw)
-    {
-        base.Serialize(bw);
-        bw.Write(convertedStockStability);
-    }
-
-    public override void Deserialize(System.IO.BinaryReader br)
-    {
-        base.Deserialize(br);
-        convertedStockStability = br.ReadUInt16();
-    }
 }

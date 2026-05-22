@@ -12,12 +12,12 @@ public class CashOut : SpellData
         spellName = "Cash Out";
         brands = new Brand[]{ Brand.BigStox };
         cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_1110_0001_0000_0100; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0010_0001_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic};
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic, ProcCondition.ActiveOnHit};
         projectilePrefabs = new GameObject[10];
 
-        description = "Enhance basic spell into short-ranged burst shot.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to enhance number and damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
+        description = "Enhance basic spell into short-ranged burst shot.\nOn \"Crit\"<sprite name=\"StockStability\">, The enhanced basic spell becomes larger and breaks armor.";
 
         spawnOffsetX = 15;
         //spawnOffsetY = 0;
@@ -25,11 +25,11 @@ public class CashOut : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        if (owner != null && !owner.suppressSpellLoadSideEffects)
-        {
-            owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        }
+        // if (owner != null && !owner.suppressSpellLoadSideEffects)
+        // {
+        //     owner.stockStability += 10;
+        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
+        // }
         doesCrit = false;
     }
     public override void SpellUpdate()
@@ -89,6 +89,13 @@ public class CashOut : SpellData
                         ProjectileManager.Instance.SpawnProjectile(projectileInstances[6].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                         ProjectileManager.Instance.SpawnProjectile(projectileInstances[7].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY+1)));
                     }
+                }
+                break;
+            case ProcCondition.ActiveOnHit:
+                if (doesCrit)
+                {
+                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner);
+                    owner.SpawnToast($"+{BigStoxPassive.bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
                 }
                 break;
             default:

@@ -49,7 +49,7 @@ public class CashOutCrit_prj : BaseProjectile
                     height = 12,
                     xKnockback = 1,
                     yKnockback = 5,
-                    damage = 25,
+                    damage = 15,
                     hitstun = 15,
                     attackLvl = 2,
                     basicAttackHitbox = true

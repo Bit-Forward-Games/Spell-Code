@@ -13,9 +13,9 @@ public class AbaddonUppercut : SpellData
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0001_0001_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range rising Uppercut.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">\n and double-hits if over 50% Demon Aura<sprite name=\"DemonAura\">.\n This spell is armored.";
+        description = "Short-range rising Uppercut.\n This spell double-hits if over 50% Demon Aura<sprite name=\"DemonAura\">.\n This spell has Super Armor.";
 
     }
 

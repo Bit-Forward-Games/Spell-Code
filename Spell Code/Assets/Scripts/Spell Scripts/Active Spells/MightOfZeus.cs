@@ -11,12 +11,12 @@ public class MightOfZeus : SpellData
         spellName = "Might Of Zeus";
         brands = new Brand[]{ Brand.Killeez };
         cooldown = 240;
-        spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0100; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[3];
 
-        description = "Summon tall, medium-range lightning.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nIf 8+ Reps<sprite name=\"Reps\">, this stuns.";
+        description = "Summon tall, medium-range lightning.\nThis spell gains stun based on Reps<sprite name=\"Reps\">.";
 
         spawnOffsetX = 25;
         spawnOffsetY = 0;
@@ -28,12 +28,12 @@ public class MightOfZeus : SpellData
 
         if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 3)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 30), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 40), Fixed.FromInt(spawnOffsetY)));
         }
 
         if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 3)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 60), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 80), Fixed.FromInt(spawnOffsetY)));
         }
 
 
@@ -66,16 +66,13 @@ public class MightOfZeus : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnHit: // ActiveOnHit proc: Grant "Reps" and apply stun if conditions are met
-                if (owner.reps >= 5 && defender.state == PlayerState.Hitstun)
+                if (owner.reps > 0 && defender.state == PlayerState.Hitstun)
                 {
-                    defender.stateSpecificArg += 45; // Stun duration in frames (.75 seconds)
+                    defender.stateSpecificArg += (uint)owner.reps*5; // Stun duration in frames (.75 seconds)
                     defender.hSpd = Fixed.FromInt(0); // Stop horizontal movement
                     defender.vSpd = Fixed.FromInt(0); // Stop vertical movement
 
                 }
-
-                owner.reps++;
-                owner.SpawnToast("+1 REP", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

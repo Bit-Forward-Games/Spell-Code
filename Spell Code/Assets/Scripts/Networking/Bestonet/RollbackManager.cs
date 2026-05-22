@@ -92,6 +92,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
+        [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
@@ -986,9 +987,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return true;
             }
 
-            int maxPredictionAhead = Mathf.Min(
-                StateArraySize - 32,
-                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
+            int maxPredictionAhead = GetMaxPredictionAheadFrames();
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 if (lastDroppedFrame != currentFrame)
@@ -1044,6 +1043,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
             return true;
+        }
+
+        private int GetMaxPredictionAheadFrames()
+        {
+            int maxHistoryAhead = StateArraySize - 32;
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return Mathf.Min(maxHistoryAhead, Mathf.Max(InputDelay + 1, InputDelay + MultiplayerMaxPredictionAheadFrames));
+            }
+
+            return Mathf.Min(
+                maxHistoryAhead,
+                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
         }
 
         /// <summary>

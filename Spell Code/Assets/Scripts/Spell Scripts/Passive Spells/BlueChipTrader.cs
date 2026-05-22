@@ -31,19 +31,23 @@ public class BlueChipTrader : SpellData
             case ProcCondition.OnHitBasic:
                 storedStockStability += 50;
                 owner.stockStability += 50;
+                owner.stockStabilityModified = owner.stockStability;
                 if(owner.stockStability > 100)
                 {
                     int excessStocStability = owner.stockStability - 100;
                     owner.stockStability = 100;
+                    owner.stockStabilityModified = owner.stockStability;
                     storedStockStability -= (ushort)excessStocStability;
 
                 }
                 owner.SpawnToast("+50% STOCK STABILITY", GameManager.colors["blue"]);
                 break;
             case ProcCondition.OnCastSpell:
-                owner.stockStability -= storedStockStability;
-                storedStockStability = 0;
                 owner.SpawnToast($"-{storedStockStability}% STOCK STABILITY", GameManager.colors["grey"]);
+                owner.stockStability -= storedStockStability;
+                owner.stockStabilityModified = owner.stockStability;
+                storedStockStability = 0;
+                
                 break;
             default:
                 break;

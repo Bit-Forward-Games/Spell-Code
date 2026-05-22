@@ -494,6 +494,12 @@ public class GambaMachine : MonoBehaviour
             return true;
         }
 
+        if (spellData.spellType == SpellType.Universal)
+        {
+            Debug.Log("Universal spell: " + spellName + " has been removed");
+            return true;
+        }
+
         if (spellData.spellType != SpellType.Passive)
         {
             return false;

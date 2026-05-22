@@ -30,9 +30,9 @@ public class TrickshotAlley_prj : BaseProjectile
         projName = "Trickshot Alley";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 600; // lasts for 120 logic frames
+        lifeSpan = 600; 
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -131,8 +131,9 @@ public class TrickshotAlley_prj : BaseProjectile
         {
             if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, out HitboxData hitbox, facingRight))
             {
-                hSpeed = Fixed.FromInt(hitbox.xKnockback * (proj.facingRight ? 1 : -1)); 
-                vSpeed = Fixed.FromInt(hitbox.yKnockback); 
+                hSpeed = Fixed.FromInt(hitbox.xKnockback * (proj.facingRight ? 2 : -2)); 
+                vSpeed = Fixed.FromInt(hitbox.yKnockback*2); 
+                proj.playerIgnoreArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
                 ownerSpell.cooldownCounter-= 60;
             }

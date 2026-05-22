@@ -1054,16 +1054,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-
-                    //play the jump sound
-                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
-
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
                 LerpHspd(Fixed.FromInt(0), 3);
@@ -1102,16 +1093,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-
-                    //play the jump sound
-                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
-
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
                 else if (input.Direction % 3 == (facingRight ? 1 : 0))
@@ -1172,11 +1154,7 @@ public class PlayerController : MonoBehaviour
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
                     
-                    vSpd = jumpForce;
-                    jumpCount--;
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
 
@@ -1677,11 +1655,7 @@ public class PlayerController : MonoBehaviour
                 }
                 if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
 
@@ -2233,7 +2207,20 @@ public class PlayerController : MonoBehaviour
         superArmor = false;
     }
 
+    private void DoJump()
+    {
+        vSpd = jumpForce;
+        jumpCount--;
+        CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnJump);
 
+        //play the jump sound
+        SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+
+        //play the jump dust VFX
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
+        SetState(PlayerState.Jump);
+    }
 
     //move logic for each state here
     private void HandleEnterState(PlayerState curstate, uint inputSpellArg)

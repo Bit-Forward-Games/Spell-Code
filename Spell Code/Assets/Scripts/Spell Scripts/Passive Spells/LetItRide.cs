@@ -33,6 +33,7 @@ public class LetItRide : SpellData
                 {
                     int effectDamage = owner.stockStability/2;
                     defender.TakeEffectDamage(effectDamage, owner);
+                    owner.SpawnToast($"+{effectDamage} DAMAGE",  GameManager.colors["blue"]);
                 }
                 break;
             default:

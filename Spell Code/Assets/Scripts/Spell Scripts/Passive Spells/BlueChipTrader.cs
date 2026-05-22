@@ -32,7 +32,7 @@ public class BlueChipTrader : SpellData
                 {
                 storedStockStability = owner.stockStability;
                 owner.stockStability = 100;
-                owner.SpawnToast($"+{100-storedStockStability}% STOCK STABILITY", Color.blue);
+                owner.SpawnToast($"+{100-storedStockStability}% STOCK STABILITY", GameManager.colors["blue"]);
                 }
                 break;
             case ProcCondition.OnCastSpell:

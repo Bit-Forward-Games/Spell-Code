@@ -16,7 +16,7 @@ public static class BoxRenderer
     {
         //Debug.Log("BoxRenderer initialized");
         _texture = new Texture2D(1, 1);
-        _texture.SetPixel(0, 0, Color.white);
+        _texture.SetPixel(0, 0, GameManager.colors["white"]);
         _texture.Apply();
     }
 
@@ -25,7 +25,7 @@ public static class BoxRenderer
     {
         GUI.color = color;
         GUI.DrawTexture(rect, _texture);
-        GUI.color = Color.white;
+        GUI.color = GameManager.colors["white"];
     }
 
     public static void DrawBox(Vector2 position, float width, float height, Color color)
@@ -48,6 +48,6 @@ public static class BoxRenderer
         GUI.DrawTexture(rect, Texture2D.whiteTexture);
 
         // Reset GUI color
-        GUI.color = Color.white;
+        GUI.color = GameManager.colors["white"];
     }
 }

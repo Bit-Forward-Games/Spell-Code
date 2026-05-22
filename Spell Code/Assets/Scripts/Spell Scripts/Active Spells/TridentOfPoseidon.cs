@@ -66,7 +66,7 @@ public class TridentOfPoseidon : SpellData
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
                 owner.reps++;
-                owner.SpawnToast("+1 REP", Color.yellow);
+                owner.SpawnToast("+1 REP", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

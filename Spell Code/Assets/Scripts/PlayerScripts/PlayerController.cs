@@ -126,7 +126,8 @@ public class PlayerController : MonoBehaviour
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
     public const ushort maxFlowState = 600;
-    public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
+    public ushort stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
+    public ushort stockStabilityModified = 0; //crit chance after modifiers
     public ushort demonAura = 0;
     public const ushort maxDemonAura = 100;
     public ushort demonAuraLifeSpanTimer = 0;
@@ -152,9 +153,9 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public short ramBounty = 0;
     [NonSerialized]
-    public const ushort baseRamKillBonus = 100;
+    public const ushort baseRamKillBonus = 50;
     [NonSerialized]
-    public const ushort baseRamLifeWorth = 200;
+    public const ushort baseRamLifeWorth = 250;
 
     // Push Box Variables
     [HideInInspector]
@@ -176,12 +177,13 @@ public class PlayerController : MonoBehaviour
     public ushort comboResetTimer = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
-    public bool hitstunOverride = false;
+    public bool superArmor = false;
 
     public ushort iframes = 0;
-    public bool lightArmor = false;
+    public bool armor = false;
 
     public List<SpellData> spellList = new List<SpellData>();
+    public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     private int _pendingHitboxProjectileIndex = -1;
 
@@ -347,33 +349,29 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
                 pID = 1;
-                //playerNum.color = Color.red;
                 playerIndexImages[0].enabled = true;
-                playerIndexImages[0].color = new Color32(255, 62, 117, 255);
+                playerIndexImages[0].color = GameManager.colors["red"];
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
                 pID = 2;
-                //playerNum.color = Color.cyan;
                 playerIndexImages[1].enabled = true;
-                playerIndexImages[1].color = new Color32(67, 122, 252, 255);
+                playerIndexImages[1].color = GameManager.colors["blue"];
                 break;
             case 2:
                 InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
-                //playerNum.color = Color.yellow;
                 playerIndexImages[2].enabled = true;
-                playerIndexImages[2].color = new Color32(255, 207, 0, 255);
+                playerIndexImages[2].color = GameManager.colors["yellow"];
                 break;
             case 3:
                 InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
-                //playerNum.color = Color.green;
                 playerIndexImages[3].enabled = true;
-                playerIndexImages[3].color = new Color32(107, 255, 116, 255);
+                playerIndexImages[3].color = GameManager.colors["green"];
                 break;
             default:
                 pID = 0;
@@ -417,10 +415,10 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
         hitstop = 0;
         hitstopActive = false;
-        hitstunOverride = false;
+        superArmor = false;
         comboCounter = 0;
         comboResetTimer = 0;
-        lightArmor = false;
+        armor = false;
         basicSpawnOverride = "";
         isHit = false;
         hitboxData = null;
@@ -677,7 +675,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //if the player does not have light armor,...
-        if (!lightArmor)
+        if (!armor)
         {
             //disable blocking VFX
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
@@ -1343,7 +1341,7 @@ public class PlayerController : MonoBehaviour
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
-                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
+                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", GameManager.colors["white"]);
                         storedCodeDuration += 3;
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
@@ -1362,7 +1360,7 @@ public class PlayerController : MonoBehaviour
                         //jump button pressed or held for long enough
                         if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
-                            lightArmor = false;
+                            armor = false;
 
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
@@ -1373,7 +1371,7 @@ public class PlayerController : MonoBehaviour
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
-                            SpawnToast("STORED!", Color.white);
+                            SpawnToast("STORED!", GameManager.colors["white"]);
                             //break;
                             
                         }
@@ -1390,7 +1388,7 @@ public class PlayerController : MonoBehaviour
                     //code button released
                     if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
-                        lightArmor = false;
+                        armor = false;
 
                         SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -1401,7 +1399,7 @@ public class PlayerController : MonoBehaviour
                     {
                         ClearInputDisplay();
                         stateSpecificArg = 0;
-                        SpawnToast("INPUTS CLEARED!", Color.white);
+                        SpawnToast("INPUTS CLEARED!", GameManager.colors["white"]);
                     }
                 }
                 
@@ -1434,7 +1432,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
                         {
-                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", Color.white);
+                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", GameManager.colors["white"]);
                             InitializePalette(secretEpicPalette);
                             secretEpicPaletteActive = true;
                         }
@@ -1449,7 +1447,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
                         {
-                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", Color.white);
+                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", GameManager.colors["white"]);
                             InitializePalette(secretNormalPalette);
                             secretNormalPaletteActive = true;
                         }
@@ -1464,14 +1462,14 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
                         string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"RELATIVE INPUTS {activeWord}!", Color.white);
+                        SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
                     }
                     if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
                     {
                         Debug.Log("Toggle Code Input activated!");
                         toggleCodeInput = !toggleCodeInput;
                         string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", Color.white);
+                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
                     }
 #endregion
                     for (int i = 0; i < spellList.Count; i++)
@@ -1495,7 +1493,7 @@ public class PlayerController : MonoBehaviour
                             spellsFired++;
 
                             //make input display flash green to indicate correct input sequence
-                            inputDisplay.color = Color.green;
+                            inputDisplay.color = GameManager.colors["green"];
 
                             //play successful code cast sound
                             SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
@@ -1558,11 +1556,11 @@ public class PlayerController : MonoBehaviour
                             spellList[i].spellType == SpellType.Active &&
                             spellList[i].cooldownCounter > 0)
                         {
-                            inputDisplay.color = Color.yellow;
+                            inputDisplay.color = GameManager.colors["yellow"];
                             Debug.Log("COOLDOWN");
-                            SpawnToast("ON COOLDOWN!",Color.white);
+                            SpawnToast("ON COOLDOWN!",GameManager.colors["white"]);
                         }
-                        else { inputDisplay.color = Color.red; }
+                        else { inputDisplay.color = GameManager.colors["red"]; }
                     }
 
                     // Check conditions of all spells with the onCast condition
@@ -2226,7 +2224,7 @@ public class PlayerController : MonoBehaviour
         HandleExitState(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        hitstunOverride = false;
+        superArmor = false;
     }
 
 
@@ -2258,7 +2256,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                lightArmor = false;
+                armor = false;
 
                 //reset storedCode if you get hit
                 // storedCode = 0;
@@ -2294,7 +2292,7 @@ public class PlayerController : MonoBehaviour
                 comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
-                lightArmor = true;
+                armor = true;
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -2346,8 +2344,8 @@ public class PlayerController : MonoBehaviour
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
-                lightArmor = false;
-                hitstunOverride = false;
+                armor = false;
+                superArmor = false;
                 ClearInputDisplay();
                 break;
             case PlayerState.Slide:
@@ -2376,16 +2374,19 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
+
+
         if (demonAura > 0)
         {
-            if (demonAuraLifeSpanTimer > 0)
-            {
-                demonAuraLifeSpanTimer--;
-            }
-            else
-            {
-                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
-            }
+            //now handled in Demon-X universal passive
+            // if (demonAuraLifeSpanTimer > 0)
+            // {
+            //     demonAuraLifeSpanTimer--;
+            // }
+            // else
+            // {
+            //     demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
+            // }
 
             //Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
@@ -2397,6 +2398,8 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pID);
         }
 
+
+
         if (stockStability > 0)
         {
             //play the stock aura visual effect 
@@ -2406,6 +2409,8 @@ public class PlayerController : MonoBehaviour
         {
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
         }
+
+
 
         if (reps > 0)
         {
@@ -2445,9 +2450,9 @@ public class PlayerController : MonoBehaviour
         {
             PlayerController attacker = hitboxData.parentProjectile.owner;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
-            if (hitstunOverride)
+            if (superArmor)
             {
-                SpawnToast($"SUPER ARMORED!", Color.white);
+                SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
 
                 //play the blocked sound
                 SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
@@ -2460,11 +2465,11 @@ public class PlayerController : MonoBehaviour
             }
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (lightArmor)
+            if (armor)
             {
                 if(hitboxData.attackLvl < 2)
                 {
-                    SpawnToast($"ARMORED!", Color.white);
+                    SpawnToast($"ARMORED!", GameManager.colors["white"]);
 
                     //play the blocked sound
                     SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
@@ -2477,7 +2482,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
-                    SpawnToast($"ARMOR BREAK!", Color.white);
+                    SpawnToast($"ARMOR BREAK!", GameManager.colors["white"]);
 
                     //play armor shatter visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.ARMOR_BREAK, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
@@ -2490,7 +2495,7 @@ public class PlayerController : MonoBehaviour
             if (GameManager.Instance.currentStageIndex ==-1)
             {
                 //don't take damage in the lobby
-                SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
+                SpawnToast($"NO DAMAGE IN LOBBY!", GameManager.colors["white"]);
                 isHit = false;
                 hitboxData = null;
                 return;
@@ -2503,7 +2508,7 @@ public class PlayerController : MonoBehaviour
             comboCounter++;
             if (comboCounter >= 4)
             {
-                SpawnToast("COMBO BREAK!!!", Color.magenta);
+                SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
                 iframes = 120;
                 comboCounter = 0;
 
@@ -2556,10 +2561,11 @@ public class PlayerController : MonoBehaviour
                 }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                if (attacker != null && attacker.demonAura > 0)
-                {
-                    attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
-                }
+                //This logic is now handled in the Demon-X
+                // if (attacker != null && attacker.demonAura > 0)
+                // {
+                //     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
+                // }
             }
 
 
@@ -2654,7 +2660,7 @@ public class PlayerController : MonoBehaviour
             {
                 attacker.roundRam += baseRamKillBonus;
                 attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+                attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
             }
 
         }
@@ -2672,11 +2678,15 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
     {
-        for (int i = 0; i < targetPlayer.spellList.Count; i++)
+        List<SpellData> sortedSpellList = targetPlayer.spellList
+            .OrderByDescending(spell => spell.priorityOverride)
+            .ToList();
+
+        for (int i = 0; i < sortedSpellList.Count; i++)
         {
-            if (targetPlayer.spellList[i].procConditions.Contains(targetProcCon))
+            if (sortedSpellList[i].procConditions.Contains(targetProcCon))
             {
-                targetPlayer.spellList[i].CheckCondition(this, targetProcCon);
+                sortedSpellList[i].CheckCondition(this, targetProcCon);
             }
         }
     }
@@ -2816,10 +2826,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
         bw.Write(hitstopActive);
-        bw.Write(hitstunOverride);
+        bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
-        bw.Write(lightArmor);
+        bw.Write(armor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -2929,10 +2939,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
         bw.Write(hitstopActive);
-        bw.Write(hitstunOverride);
+        bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
-        bw.Write(lightArmor);
+        bw.Write(armor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -3015,10 +3025,10 @@ public class PlayerController : MonoBehaviour
         hitstop = br.ReadByte();
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
-        hitstunOverride = br.ReadBoolean();
+        superArmor = br.ReadBoolean();
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
-        lightArmor = br.ReadBoolean();
+        armor = br.ReadBoolean();
         basicSpawnOverride = br.ReadString();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
@@ -3242,10 +3252,13 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
+        List<SpellData> sortedSpellList = spellList
+            .OrderByDescending(spell => spell.priorityOverride)
+            .ToList();
         //go through the player's spell list and update any proc effects
-        for (int i = 0; i < spellList.Count; i++)
+        for (int i = 0; i < sortedSpellList.Count; i++)
         {
-            spellList[i].SpellUpdate();
+            sortedSpellList[i].SpellUpdate();
         }
     }
     public bool IsStorableState() =>
@@ -3369,7 +3382,7 @@ public class PlayerController : MonoBehaviour
         if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
             inputDisplay.text = "";
-            inputDisplay.color = Color.white;
+            inputDisplay.color = GameManager.colors["white"];
         }
     }
 
@@ -3420,7 +3433,7 @@ public class PlayerController : MonoBehaviour
 
     public static string ConvertCodeToString(uint code, Color? color = null)
     {
-        if (color == null) { color = Color.white; }
+        if (color == null) { color = GameManager.colors["white"]; }
 
         string codeString = "";
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg

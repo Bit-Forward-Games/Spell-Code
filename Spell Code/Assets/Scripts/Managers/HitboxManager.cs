@@ -498,7 +498,7 @@ public class HitboxManager : MonoBehaviour
 
             // 5) Draw black outline by stamping the text at offsets
             var prevColor = GUI.color;
-            style.normal.textColor = Color.black;
+            style.normal.textColor = GameManager.colors["black"];
             for (int dx = -1; dx <= 1; dx++)
             {
                 for (int dy = -1; dy <= 1; dy++)
@@ -510,7 +510,7 @@ public class HitboxManager : MonoBehaviour
             }
 
             // 6) Draw the white text on top
-            style.normal.textColor = Color.white;
+            style.normal.textColor = GameManager.colors["white"];
             GUI.Label(labelRect, text, style);
             GUI.color = prevColor;
         }

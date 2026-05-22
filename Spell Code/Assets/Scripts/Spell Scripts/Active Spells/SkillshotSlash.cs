@@ -31,7 +31,7 @@ public class SkillshotSlash : SpellData
                 if (defender.hitboxData.sweetSpot)
                 {
                     owner.flowState = PlayerController.maxFlowState;
-                    owner.SpawnToast("FLOW STATE!", Color.green);
+                    owner.SpawnToast("FLOW STATE!", GameManager.colors["green"]);
                 }
                 break;
             default:

@@ -14,7 +14,7 @@ public class AmonSlash : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range lunging slash.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nDeals more damage based on Demon Aura<sprite name=\"DemonAura\">.";
+        description = "Short-range lunging slash.\n This Spellcode has Armor.";
 
     }
 
@@ -52,13 +52,12 @@ public class AmonSlash : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                defender.TakeEffectDamage(owner.demonAura/5, owner);
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", Color.red);
+                //defender.TakeEffectDamage(owner.demonAura/5, owner);
+                
                 
                 break;
             case ProcCondition.ActiveOnCast:
-                owner.lightArmor = true;
+                owner.armor = true;
                 break;
             default:
                 break;

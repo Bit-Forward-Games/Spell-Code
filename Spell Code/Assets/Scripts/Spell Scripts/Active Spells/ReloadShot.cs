@@ -46,7 +46,7 @@ public class ReloadShot : SpellData
                 {
                     owner.flowState = PlayerController.maxFlowState;
                     cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
-                    owner.SpawnToast("FLOW STATE!", Color.green);
+                    owner.SpawnToast("FLOW STATE!", GameManager.colors["green"]);
                 }
                 break;
             default:

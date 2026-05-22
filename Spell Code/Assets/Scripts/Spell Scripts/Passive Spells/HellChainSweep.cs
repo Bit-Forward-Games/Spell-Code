@@ -35,7 +35,7 @@ public class HellChainSweep : SpellData
         {
             case ProcCondition.ActiveOnHit:
                 owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", Color.red);
+                owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 break;
             case ProcCondition.OnSlide:
             if(cooldownCounter <= 0)

@@ -28,7 +28,7 @@ public class CashOut : SpellData
         if (owner != null && !owner.suppressSpellLoadSideEffects)
         {
             owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
         }
         doesCrit = false;
     }
@@ -67,7 +67,7 @@ public class CashOut : SpellData
                 doesCrit = roll < owner.stockStability;
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[doesCrit?9:8].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(0), Fixed.FromInt(spawnOffsetY)));
                 string critText = doesCrit?"CRIT":"NON-CRIT";
-                owner.SpawnToast($"{critText} LOADED", doesCrit?Color.cyan:Color.grey);
+                owner.SpawnToast($"{critText} LOADED", doesCrit?Color.cyan:GameManager.colors["grey"]);
                 break;
             case ProcCondition.OnCastBasic:
             

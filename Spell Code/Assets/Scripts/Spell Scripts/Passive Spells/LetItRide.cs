@@ -26,7 +26,7 @@ public class LetItRide : SpellData
         if (owner != null && !owner.suppressSpellLoadSideEffects)
         {
             owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
         }
     }
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)

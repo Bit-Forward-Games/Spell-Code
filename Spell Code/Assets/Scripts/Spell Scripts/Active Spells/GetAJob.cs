@@ -25,7 +25,7 @@ public class GetAJob : SpellData
         if (owner != null && !owner.suppressSpellLoadSideEffects)
         {
             owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
+            owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
         }
         doesCrit = false;
     }
@@ -64,8 +64,8 @@ public class GetAJob : SpellData
             
             case ProcCondition.ActiveOnCast:
                 doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
-                owner.hitstunOverride = doesCrit;
-                owner.lightArmor = !doesCrit;
+                owner.superArmor = doesCrit;
+                owner.armor = !doesCrit;
                 break;
             default:
                 break;

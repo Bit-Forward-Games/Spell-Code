@@ -2455,7 +2455,8 @@ public class PlayerController : MonoBehaviour
 
                 //Play the blocked visual effect
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
-
+                isHit = false;
+                hitboxData = null;
                 return;
             }
 
@@ -2471,7 +2472,8 @@ public class PlayerController : MonoBehaviour
 
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
-
+                    isHit = false;
+                    hitboxData = null;
                     return;
                 }
                 else
@@ -2490,6 +2492,8 @@ public class PlayerController : MonoBehaviour
             {
                 //don't take damage in the lobby
                 SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
+                isHit = false;
+                hitboxData = null;
                 return;
             }
 

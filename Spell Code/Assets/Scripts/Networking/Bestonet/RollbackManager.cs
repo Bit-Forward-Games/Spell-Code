@@ -94,7 +94,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
-        [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // 3+ player lobby inputs are scheduled near-future to avoid join rollback storms
+        [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -1954,7 +1954,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return GameManager.Instance != null
                 && GameManager.Instance.isOnlineMatchActive
                 && usePeerRoster
-                && GameManager.Instance.playerCount > 2
+                && GameManager.Instance.playerCount >= 2
                 && SceneManager.GetActiveScene().name == "MainMenu"
                 && !GameManager.Instance.isTransitioning;
         }

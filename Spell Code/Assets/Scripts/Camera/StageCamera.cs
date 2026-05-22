@@ -46,7 +46,7 @@ public class StageCamera : MonoBehaviour
         if (pause == null)
             pause = GameObject.Find("TempUI").gameObject.GetComponent<Pause>();
 
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1 ? GameManager.Instance.lobbySO : GameManager.Instance.TutorialSO) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
        
        //check if camborders are set and if not, just use the default border
         Vector3 camBorderMax = stageDataSO.camBorderMax == Vector3.zero? stageDataSO.borderMax: stageDataSO.camBorderMax;

@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Lobby_Arena.unity
     guid: daa19ed9885d65947b8bca55cef3ac8d
+  - enabled: 1
+    path: Assets/Scenes/Tutorial.unity
+    guid: bce366597f12aa74a8bee486b45e88da
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

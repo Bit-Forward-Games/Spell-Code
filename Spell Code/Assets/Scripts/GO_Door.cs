@@ -1,5 +1,7 @@
 using BestoNet.Types;
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -36,12 +38,12 @@ public class GO_Door : MonoBehaviour
 
             FixedVec2 doorPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
             // Compute squared distance (avoid square root):
-            Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(10);
-            Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(10);
+            Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(100);
+            Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(100);
             Fixed distSq = (dx * dx) + (dy * dy);
 
             // Convert collider radius to Fixed and square it
-            Fixed radius = Fixed.FromFloat(colliderRadius/10);
+            Fixed radius = Fixed.FromFloat(colliderRadius/100);
             Fixed radiusSq = radius * radius;
 
             // Determine overlap using squared values
@@ -58,10 +60,19 @@ public class GO_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
-        if(GameManager.Instance.playerCount > 1)
+        if (SceneManager.GetActiveScene().name == "Tutorial")
         {
-             isOpen = true;
+            if(animator != null)
+            {
+                animator.SetInteger("numPlayers", 2);
+            }
+            isOpen = true;
+            return isOpen;
+        }
 
+        if (GameManager.Instance.playerCount > 1)
+        {
+            isOpen = true;
         }
         else
         {
@@ -79,5 +90,4 @@ public class GO_Door : MonoBehaviour
         }
         return isOpen;
     }
-
 }

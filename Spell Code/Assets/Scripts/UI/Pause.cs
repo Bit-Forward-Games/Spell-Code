@@ -4,18 +4,24 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
+using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using TMPro;
 
 public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
     public GameObject controlsMenu;
+    public GameObject spellsMenu;
     public GameObject darkPanel;
+    public GameObject[] spellGlossaryPanel;
     public GameManager gameManager;
     public int playerPauseIndex;
     public bool paused;
     public bool options;
     public bool controls;
+    public bool spells;
     public AudioMixer masterAudioMixer;
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
@@ -28,10 +34,25 @@ public class Pause : MonoBehaviour
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
+    public GameObject _spellsMenuFirst;
 
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
+
+    public TextMeshProUGUI displaySpellName;
+    public TextMeshProUGUI displaySpellDescription;
+
+    private int tab = 0;
+    private int[] selectedSpell = new int[4];
+
+    public class Row
+    {
+        public SpellData[] spells;
+    }
+
+    public Row[] grid = new Row[4];
+
 
     public bool UIRelativeInput
     {
@@ -60,6 +81,49 @@ public class Pause : MonoBehaviour
         }
     }
 
+    private InputSystem_Actions input; // your generated class name
+
+    void Awake()
+    {
+        input = new InputSystem_Actions();
+        
+        Brand[] brandPerRow = { Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave};
+
+        for (int i = 0; i < 4; i++)
+        {
+            grid[i] = new Row();
+
+            List<SpellData> rowSpells = new List<SpellData>();
+
+            foreach (SpellData spell in SpellDictionary.Instance.spellList)
+            {
+                if (spell != null && System.Array.Exists(spell.brands, b => b == brandPerRow[i]))
+                {
+                    rowSpells.Add(spell);
+                }
+            }
+
+            grid[i].spells = rowSpells.ToArray();
+        }
+    }
+
+    void Update()
+    {
+        if (spells)
+        {
+            SpellGlossaryNavigation();
+        }
+        
+        if (tab > 0 )
+        {
+            displaySpellName.text = grid[tab - 1].spells[selectedSpell[tab - 1]].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[selectedSpell[tab - 1]].description;
+        }
+    }
+
+    void OnEnable()  { input.Enable(); }
+    void OnDisable() { input.Disable(); }
+
     private void Start()
     {
         gameManager = GameManager.Instance;
@@ -87,9 +151,11 @@ public class Pause : MonoBehaviour
         paused = true;
         options = false;
         controls = false;
+        spells = false;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+        spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
@@ -124,6 +190,59 @@ public class Pause : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
 
         Time.timeScale = 0f;
+    }
+    
+    public void Spells()
+    {
+        spells = true;
+        controls = false;
+        options = false;
+        spellsMenu.SetActive(true);
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
+
+        EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
+
+        Time.timeScale = 0f;
+    }
+
+    public void SpellGlossaryNavigation()
+    {
+        input.UI.Navigate.performed += ctx =>
+        {
+            Vector2 nav = ctx.ReadValue<Vector2>();
+
+            if (nav.y > 0) 
+            {
+                if (selectedSpell[tab - 1] > 0) selectedSpell[tab - 1]--;
+            }
+            if (nav.y < 0) 
+            {
+                if (selectedSpell[tab - 1] < grid[tab - 1].spells.Length - 1) selectedSpell[tab - 1]++;
+            }
+            if (nav.x < 0) 
+            {
+                if (tab == 0) tab = 4;
+                else tab--;
+            }
+            if (nav.x > 0) 
+            {
+                if (tab == 4) tab = 0;
+                else tab++;
+            }
+            
+            ActivateOnly(tab);
+        };
+
+    }
+
+    void ActivateOnly(int index)
+    {
+        for (int i = 0; i < spellGlossaryPanel.Length; i++)
+        {
+            spellGlossaryPanel[i].SetActive(i == index);
+        }
     }
 
     public void ReturnToLobby()

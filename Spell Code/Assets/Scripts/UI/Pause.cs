@@ -81,23 +81,15 @@ public class Pause : MonoBehaviour
         }
     }
 
-    private InputSystem_Actions input; // your generated class name
+    private InputSystem_Actions input;
+
+    void OnEnable()  { input.Enable(); }
+    void OnDisable() { input.Disable(); }
 
     void Awake()
     {
         input = new InputSystem_Actions();
     }
-
-    void Update()
-    {
-        if (spells)
-        {
-            SpellGlossaryNavigation();
-        }
-    }
-
-    void OnEnable()  { input.Enable(); }
-    void OnDisable() { input.Disable(); }
 
     private void Start()
     {
@@ -107,14 +99,29 @@ public class Pause : MonoBehaviour
         Resume();
     }
 
+    void Update()
+    {
+        if (spells)
+        {
+            SpellGlossaryNavigation();
+        }
+
+        if (input.UI.Cancel.WasPressedThisFrame())
+        {
+            Resume();
+        }
+    }
+
     public void Resume()
     {
         paused = false;
         options = false;
+        spells = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
+        spellsMenu.SetActive(false);
 
         EventSystem.current.SetSelectedGameObject(null);
 

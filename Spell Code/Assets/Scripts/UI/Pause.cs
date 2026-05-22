@@ -44,14 +44,14 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI displaySpellDescription;
 
     private int tab = 0;
-    private int[] selectedSpell = new int[4];
+    private int[] selectedSpell = new int[5];
 
-    public class Row
+    public class Column
     {
         public SpellData[] spells;
     }
 
-    public Row[] grid = new Row[4];
+    public Column[] grid = new Column[5];
 
 
     public bool UIRelativeInput
@@ -86,25 +86,6 @@ public class Pause : MonoBehaviour
     void Awake()
     {
         input = new InputSystem_Actions();
-        
-        Brand[] brandPerRow = { Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave};
-
-        for (int i = 0; i < 4; i++)
-        {
-            grid[i] = new Row();
-
-            List<SpellData> rowSpells = new List<SpellData>();
-
-            foreach (SpellData spell in SpellDictionary.Instance.spellList)
-            {
-                if (spell != null && System.Array.Exists(spell.brands, b => b == brandPerRow[i]))
-                {
-                    rowSpells.Add(spell);
-                }
-            }
-
-            grid[i].spells = rowSpells.ToArray();
-        }
     }
 
     void Update()
@@ -112,12 +93,6 @@ public class Pause : MonoBehaviour
         if (spells)
         {
             SpellGlossaryNavigation();
-        }
-        
-        if (tab > 0 )
-        {
-            displaySpellName.text = grid[tab - 1].spells[selectedSpell[tab - 1]].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab - 1].spells[selectedSpell[tab - 1]].description;
         }
     }
 
@@ -158,8 +133,8 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
-        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
-        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
+        // relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
+        // codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
 
@@ -202,6 +177,43 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
 
+        tab = 0;
+
+        for (int i = 0; i < selectedSpell.Length; i++)
+        {
+            selectedSpell[i] = 0;
+        }
+
+        Brand[] brandPerColumn = { Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
+
+        for (int i = 0; i < 5; i++)
+        {
+            grid[i] = new Column();
+
+            List<SpellData> columnSpells = new List<SpellData>();
+            
+            if (i == 0)
+            {
+                List<SpellData> mySpells = gameManager.players[playerPauseIndex].spellList;
+                
+                if (mySpells != null)
+                    foreach (SpellData spell in gameManager.players[playerPauseIndex].spellList)
+                        if (spell != null) columnSpells.Add(spell);
+            }
+            else
+            {
+                foreach (SpellData spell in SpellDictionary.Instance.spellList)
+                {
+                    if (spell != null && System.Array.Exists(spell.brands, b => b == brandPerColumn[i]))
+                    {
+                        columnSpells.Add(spell);
+                    }
+                }
+
+            }
+            grid[i].spells = columnSpells.ToArray();
+        }
+
         EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
 
         Time.timeScale = 0f;
@@ -209,17 +221,18 @@ public class Pause : MonoBehaviour
 
     public void SpellGlossaryNavigation()
     {
+
         input.UI.Navigate.performed += ctx =>
         {
             Vector2 nav = ctx.ReadValue<Vector2>();
 
             if (nav.y > 0) 
             {
-                if (selectedSpell[tab - 1] > 0) selectedSpell[tab - 1]--;
+                if (selectedSpell[tab] > 0) selectedSpell[tab]--;
             }
             if (nav.y < 0) 
             {
-                if (selectedSpell[tab - 1] < grid[tab - 1].spells.Length - 1) selectedSpell[tab - 1]++;
+                if (selectedSpell[tab] < grid[tab].spells.Length - 1) selectedSpell[tab]++;
             }
             if (nav.x < 0) 
             {
@@ -235,6 +248,16 @@ public class Pause : MonoBehaviour
             ActivateOnly(tab);
         };
 
+        if (grid[tab] != null && grid[tab].spells.Length > 0)
+        {
+            displaySpellName.text = grid[tab].spells[selectedSpell[tab]].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell[tab]].description;
+        }
+        else
+        {
+            displaySpellName.text = "none";
+            displaySpellDescription.text = "none";
+        }
     }
 
     void ActivateOnly(int index)

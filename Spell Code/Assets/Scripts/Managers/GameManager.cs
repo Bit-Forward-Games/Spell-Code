@@ -437,6 +437,7 @@ public class GameManager : MonoBehaviour
         //}
 
         if (isTransitioning) return;
+        Scene activeScene = SceneManager.GetActiveScene();
 
         // ONLINE LOBBY WAIT STATE
         if (isOnlineMatchActive && isWaitingForOpponent)
@@ -451,6 +452,11 @@ public class GameManager : MonoBehaviour
                 return;
             }
             return; // Don't run simulation yet
+        }
+
+        if (isOnlineMatchActive && !IsOnlineSimulationScene(activeScene))
+        {
+            return;
         }
 
         if (isOnlineMatchActive && isRunning)
@@ -478,6 +484,11 @@ public class GameManager : MonoBehaviour
         {
             AnimationManager.Instance.RenderGameState();
         }
+    }
+
+    private bool IsOnlineSimulationScene(Scene scene)
+    {
+        return scene.name == "MainMenu" || scene.name == "Gameplay" || scene.name == "Shop";
     }
 
     private ulong GatherInputForOnline()
@@ -3271,6 +3282,7 @@ public class GameManager : MonoBehaviour
         gameOver = false;
         roundOver = false;
         ProjectileManager.Instance.DeleteAllProjectiles();
+        isRunning = false;
         sceneManager.LoadScene("End");
     }
 
@@ -3496,6 +3508,7 @@ public class GameManager : MonoBehaviour
             endInputEnabled = false;
             if (isOnlineMatchActive)
             {
+                isRunning = false;
                 ClearStages();
                 HidePersistentUiForEndScene();
                 if (isTransitioning)

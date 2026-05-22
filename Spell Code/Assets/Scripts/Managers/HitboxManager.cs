@@ -64,14 +64,17 @@ public class HitboxManager : MonoBehaviour
     public void ProcessCollisions()
     {
 
+        PlayerController[] activePlayers = GetActivePlayerControllers();
+        EnsurePlayerDataCapacity(activePlayers.Length);
 
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        for (int i = 0; i < activePlayers.Length; i++)
         {
-            playerStates[i] = GameManager.Instance.players[i].state;
-            playerCharacters[i] = GameManager.Instance.players[i].characterName;
-            playerFrames[i] = GameManager.Instance.players[i].logicFrame;
-            playerOrigins[i] = GameManager.Instance.players[i].position;
-            playerIsRight[i] = GameManager.Instance.players[i].facingRight;
+            PlayerController player = activePlayers[i];
+            playerStates[i] = player.state;
+            playerCharacters[i] = player.characterName;
+            playerFrames[i] = player.logicFrame;
+            playerOrigins[i] = player.position;
+            playerIsRight[i] = player.facingRight;
         }
 
 
@@ -101,12 +104,15 @@ public class HitboxManager : MonoBehaviour
 
 
             //PlayerController attackingPlayer = projectile.owner;
-            PlayerController[] defendingPlayers = GameManager.Instance.players
-                .Where((p, idx) => p != projectile.owner && idx < GameManager.Instance.playerCount && p.isAlive)
+            EnsureProjectileIgnoreCapacity(projectile, activePlayers.Length);
+            PlayerController[] defendingPlayers = activePlayers
+                .Where(p => p != projectile.owner && p.isAlive)
                 .ToArray();
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
-                if (projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)]) continue;
+                int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
+                if (defendingPlayerIndex < 0) continue;
+                if (projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID : defendingPlayerIndex]) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
@@ -140,7 +146,9 @@ public class HitboxManager : MonoBehaviour
                             //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             //}
                             cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
+                            
+                            projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
+                            
                             projectile.ownerSpell?.ShareHitIgnoreList();
                             projectile.owner.spellsHit++;
                         }
@@ -371,22 +379,29 @@ public class HitboxManager : MonoBehaviour
         
         if (!BoxRenderer.RenderBoxes) return;
 
+        PlayerController[] activePlayers = GetActivePlayerControllers();
+        EnsurePlayerDataCapacity(activePlayers.Length);
 
-        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        for(int i = 0; i < activePlayers.Length; i++)
         {
-            playerStates[i] = GameManager.Instance.players[i].state;
+            PlayerController player = activePlayers[i];
+            playerStates[i] = player.state;
+            playerCharacters[i] = player.characterName;
+            playerFrames[i] = player.logicFrame;
+            playerOrigins[i] = player.position;
+            playerIsRight[i] = player.facingRight;
         }
 
-        (HurtboxGroup, List<int>)[] playerHurtInfos = new (HurtboxGroup, List<int>)[GameManager.Instance.playerCount];
-        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        (HurtboxGroup, List<int>)[] playerHurtInfos = new (HurtboxGroup, List<int>)[activePlayers.Length];
+        for(int i = 0; i < activePlayers.Length; i++)
         {
-            playerHurtInfos[i] = GetHurtboxes(GameManager.Instance.players[i]);
+            playerHurtInfos[i] = GetHurtboxes(activePlayers[i]);
         }
 
 
         //DrawHurtBoxes(playerOneOrigin, playerOneHurtInfo, playerOneFrame, playerOneState, playerOneIsRight);
         //DrawHurtBoxes(playerTwoOrigin, playerTwoHurtInfo, playerTwoFrame, playerTwoState, playerTwoIsRight);
-        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        for(int i = 0; i < activePlayers.Length; i++)
         {
             Vector2 drawOrigin = new Vector2(playerOrigins[i].X.ToFloat(), playerOrigins[i].Y.ToFloat());
             DrawHurtBoxes(drawOrigin, playerHurtInfos[i], playerFrames[i], playerStates[i], playerIsRight[i]);
@@ -557,6 +572,38 @@ public class HitboxManager : MonoBehaviour
             PlayerState.CodeRelease => true,
             _ => false
         };
+    }
+
+    private PlayerController[] GetActivePlayerControllers()
+    {
+        return GameManager.Instance.players[0..GameManager.Instance.playerCount]
+            .Concat(GameManager.Instance.playerNPCs.Where(player => player != null))
+            .Where(player => player != null)
+            .Distinct()
+            .ToArray();
+    }
+
+    private int GetActivePlayerIndex(PlayerController player, PlayerController[] activePlayers)
+    {
+        return Array.IndexOf(activePlayers, player);
+    }
+
+    private void EnsurePlayerDataCapacity(int playerCount)
+    {
+        if (playerStates.Length >= playerCount) return;
+
+        Array.Resize(ref playerStates, playerCount);
+        Array.Resize(ref playerCharacters, playerCount);
+        Array.Resize(ref playerFrames, playerCount);
+        Array.Resize(ref playerOrigins, playerCount);
+        Array.Resize(ref playerIsRight, playerCount);
+    }
+
+    private void EnsureProjectileIgnoreCapacity(BaseProjectile projectile, int playerCount)
+    {
+        if (projectile.playerIgnoreArr.Length >= playerCount) return;
+
+        Array.Resize(ref projectile.playerIgnoreArr, playerCount);
     }
 
     /// <summary>

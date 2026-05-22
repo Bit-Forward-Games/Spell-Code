@@ -198,6 +198,11 @@ public abstract class SpellData : MonoBehaviour
                 mergedIgnoreArr = new bool[projectile.playerIgnoreArr.Length];
                 sharedIgnoreMap.Add(projectile.projName, mergedIgnoreArr);
             }
+            else if (mergedIgnoreArr.Length < projectile.playerIgnoreArr.Length)
+            {
+                Array.Resize(ref mergedIgnoreArr, projectile.playerIgnoreArr.Length);
+                sharedIgnoreMap[projectile.projName] = mergedIgnoreArr;
+            }
 
             for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
             {
@@ -214,6 +219,11 @@ public abstract class SpellData : MonoBehaviour
             if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerIgnoreArr == null) continue;
 
             if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr)) continue;
+
+            if (projectile.playerIgnoreArr.Length < mergedIgnoreArr.Length)
+            {
+                Array.Resize(ref projectile.playerIgnoreArr, mergedIgnoreArr.Length);
+            }
 
             for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
             {

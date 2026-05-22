@@ -231,7 +231,7 @@ public class PlayerController : MonoBehaviour
     public bool startingSpellAdded = false;
     public bool suppressSpellLoadSideEffects = false;
 
-    public int pID;
+    public int pID = 0;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
@@ -245,25 +245,33 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        ///playerSpriteRenderer = GetComponent<SpriteRenderer>();
-        DontDestroyOnLoad(this.gameObject);
+        if (GetComponent<PlayerInput>().user.valid)
+        {
+            DontDestroyOnLoad(this.gameObject);
+        }
     }
     void Start()
     {
-        upAction = playerInputs.actionMaps[0].FindAction("Up");
-        downAction = playerInputs.actionMaps[0].FindAction("Down");
-        leftAction = playerInputs.actionMaps[0].FindAction("Left");
-        rightAction = playerInputs.actionMaps[0].FindAction("Right");
-        codeAction = playerInputs.actionMaps[0].FindAction("Code");
-        jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
-        pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
+        if(GetComponent<PlayerInput>() != null && GetComponent<PlayerInput>().user.valid)
+        {
+            upAction = playerInputs.actionMaps[0].FindAction("Up");
+            downAction = playerInputs.actionMaps[0].FindAction("Down");
+            leftAction = playerInputs.actionMaps[0].FindAction("Left");
+            rightAction = playerInputs.actionMaps[0].FindAction("Right");
+            codeAction = playerInputs.actionMaps[0].FindAction("Code");
+            jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
+            pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
+        }
+        else
+        {
+            Debug.Log("dummy");
+        }
         logicFrame = 0;
 
         //bufferInput = InputConverter.ConvertFromLong(5);
 
         hitboxData = null;
 
-        //specialMoves.SetupSpecialMoves(characterName);
         if (!GameManager.Instance.isOnlineMatchActive)
         {
             InitCharacter();
@@ -339,7 +347,7 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
                 pID = 1;
-                playerNum.color = Color.red;
+                //playerNum.color = Color.red;
                 playerIndexImages[0].enabled = true;
                 playerIndexImages[0].color = new Color32(255, 62, 117, 255);
                 break;
@@ -347,7 +355,7 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
                 pID = 2;
-                playerNum.color = Color.cyan;
+                //playerNum.color = Color.cyan;
                 playerIndexImages[1].enabled = true;
                 playerIndexImages[1].color = new Color32(67, 122, 252, 255);
                 break;
@@ -355,7 +363,7 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
-                playerNum.color = Color.yellow;
+                //playerNum.color = Color.yellow;
                 playerIndexImages[2].enabled = true;
                 playerIndexImages[2].color = new Color32(255, 207, 0, 255);
                 break;
@@ -363,10 +371,17 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
-                playerNum.color = Color.green;
+                //playerNum.color = Color.green;
                 playerIndexImages[3].enabled = true;
                 playerIndexImages[3].color = new Color32(107, 255, 116, 255);
                 break;
+            default:
+                pID = 0;
+                Vector2 spawnPosNPC = GameManager.Instance.GetNPCSpawnPositions()[0];
+                FixedVec2 startPosNPC = FixedVec2.FromFloat(spawnPosNPC.x, spawnPosNPC.y);
+                SpawnPlayer(startPosNPC);
+                return;
+                //break;
         }
 
         // Lock starter selection by PID using the actual dictionary keys.
@@ -375,17 +390,12 @@ public class PlayerController : MonoBehaviour
         else if (pID == 3) { startingSpell = "Blade Of Ares"; }
         else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
-            FixedVec2 startPos;
+        FixedVec2 startPos;
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
 
 
-        //Vector3 spawnPosV3 = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].playerSpawnTransform[Array.IndexOf(GameManager.Instance.players, this)];
-        //startPos = FixedVec2.FromFloat(spawnPosV3.x, spawnPosV3.y);
-        //SpawnPlayer(startPos);
-
-        //ProjectileManager.Instance.InitializeAllProjectiles();
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)
@@ -431,13 +441,13 @@ public class PlayerController : MonoBehaviour
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
 
+        if(pID == 0)return;
+
         //initialize resources
         flowState = 0;
         stockStability = GetPersistentStockStabilityFromSpellList();
         demonAura = 0;
         reps = 0;
-        //momentum = 0;
-        //slimed = false;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
         suppressSpellLoadSideEffects = true;
@@ -450,9 +460,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         suppressSpellLoadSideEffects = false;
-        GameManager.Instance.tempSpellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
-
-        //ProjectileManager.Instance.InitializeAllProjectiles();
+        GameManager.Instance.spellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
     }
 
@@ -560,7 +568,7 @@ public class PlayerController : MonoBehaviour
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+        GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
 
         //trigger bools depending on brand
         for (int i = 0; i < targetSpell.brands.Length; i++)
@@ -634,7 +642,7 @@ public class PlayerController : MonoBehaviour
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+        GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 
     public void RemoveSpellFromSpellList(string spellToRemove)
@@ -650,7 +658,7 @@ public class PlayerController : MonoBehaviour
                 ProjectileManager.Instance.InitializeAllProjectiles();
 
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
                 return;
             }
         }
@@ -884,7 +892,7 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerUpdate(ulong rawInput)
     {
-        input = InputConverter.ConvertFromLong((ulong)rawInput);
+        input = InputConverter.ConvertFromLong( pID == 0 ? 5 : (ulong)rawInput );
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
@@ -1722,8 +1730,12 @@ public class PlayerController : MonoBehaviour
         List<int> frameLengths = AnimationManager.Instance.GetFrameLengthsForCurrentState(this);
         animationFrame = GetCurrentFrameIndex(frameLengths, CharacterDataDictionary.GetAnimFrames(characterName, state).loopAnim);
 
-        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-        GameManager.Instance.tempSpellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
+        if(pID != 0)
+        {
+            int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+            GameManager.Instance.spellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
+        }
+        
 
         //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
         AdjustIframeAndArmorVFX();
@@ -1856,7 +1868,7 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         onPlatform = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: GameManager.Instance.TutorialSO) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
@@ -2297,7 +2309,7 @@ public class PlayerController : MonoBehaviour
 
                 //update the player's spell display to show the spell inputs
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
+                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
 
                 break;
             case PlayerState.CodeRelease:
@@ -2326,7 +2338,7 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeWeave:
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
+                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
@@ -2429,15 +2441,20 @@ public class PlayerController : MonoBehaviour
             return;
         }
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
-        if (hitboxData != null && isHit)
+        if (hitboxData != null /*&& isHit*/)
         {
             BaseProjectile sourceProjectile = hitboxData.parentProjectile;
             PlayerController attacker = sourceProjectile != null ? sourceProjectile.owner : null;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (hitstunOverride)
             {
+                SpawnToast($"SUPER ARMORED!", Color.white);
+
                 //play the blocked sound
-                //mySFXHandler.PlaySound(SoundType.BLOCKED);
+                SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+
+                //Play the blocked visual effect
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
                 return;
             }
@@ -2448,6 +2465,9 @@ public class PlayerController : MonoBehaviour
                 if(hitboxData.attackLvl < 2)
                 {
                     SpawnToast($"ARMORED!", Color.white);
+
+                    //play the blocked sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
 
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
@@ -2466,7 +2486,7 @@ public class PlayerController : MonoBehaviour
 
             //mySFXHandler.PlaySound(SoundType.DAMAGED);
 
-            if (GameManager.Instance.currentStageIndex < 0)
+            if (GameManager.Instance.currentStageIndex ==-1)
             {
                 //don't take damage in the lobby
                 SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
@@ -2474,7 +2494,6 @@ public class PlayerController : MonoBehaviour
             }
 
             
-
             HandleDamage(attacker, hitboxData.damage);
             //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
             
@@ -2545,20 +2564,21 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            //subtract demon aura based on the hitbox's damage
-            //demonAura = (ushort)Math.Max(0, demonAura - (int)hitboxData.damage);
 
-            if (GameManager.Instance.isOnlineMatchActive)
-            {
-                isHit = false;
-                hitboxData = null;
-            }
-
+            // if (GameManager.Instance.isOnlineMatchActive)
+            // {
+            //     isHit = false;
+            //     hitboxData = null;
+            // }
+            isHit = false;
+            hitboxData = null;
 
         }
     }
     private void HandleDamage(PlayerController attacker, int damageAmount)
     {
+        if(pID == 0)return; //if this is a training dummy then don't handle damage
+
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
         if (!isRollback && damageAmount > 0)
@@ -3341,11 +3361,11 @@ public class PlayerController : MonoBehaviour
 
         // Update UI if available
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-        if (playerIndex >= 0 && GameManager.Instance.tempSpellDisplays != null &&
-            playerIndex < GameManager.Instance.tempSpellDisplays.Length &&
-            GameManager.Instance.tempSpellDisplays[playerIndex] != null)
+        if (playerIndex >= 0 && GameManager.Instance.spellDisplays != null &&
+            playerIndex < GameManager.Instance.spellDisplays.Length &&
+            GameManager.Instance.spellDisplays[playerIndex] != null)
         {
-            GameManager.Instance.tempSpellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+            GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
         }
     }
 

@@ -18,6 +18,7 @@ public class StageDataBuilder : MonoBehaviour
     private GameObject[] platforms;
     private GameObject[] solids;
     private GameObject[] playerSpawns;
+    private GameObject[] npcSpawns;
     private GameObject[] activatableSolids;
     
     void Start()
@@ -30,7 +31,7 @@ public class StageDataBuilder : MonoBehaviour
         playerSpawns[1] = GameObject.FindGameObjectWithTag("Player 2 Spawn ");
         playerSpawns[2] = GameObject.FindGameObjectWithTag("Player 3 Spawn");
         playerSpawns[3] = GameObject.FindGameObjectWithTag("Player 4 Spawn");
-        //playerSpawns = GameObject.FindGameObjectsWithTag("Player Spawn");
+        npcSpawns = GameObject.FindGameObjectsWithTag("NPC Spawn");
         activatableSolids = GameObject.FindGameObjectsWithTag("activatableSolid");
 
 
@@ -42,7 +43,8 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.solidCenter = new Vector2[solids.Length];
         stageDataSO.solidExtent = new Vector2[solids.Length];
 
-        stageDataSO.playerSpawnTransform = new Vector3[playerSpawns.Length];
+        stageDataSO.playerSpawnTransform = new Vector2[playerSpawns.Length];
+        stageDataSO.npcSpawnTransform = new Vector2[npcSpawns.Length];
 
         stageDataSO.activatableSolidCenter = new Vector3[activatableSolids.Length];
         stageDataSO.activatableSolidExtent = new Vector3[activatableSolids.Length];
@@ -67,7 +69,7 @@ public class StageDataBuilder : MonoBehaviour
     {
         int i = 0;
         int j = 0; 
-        //int k = 0;
+        int k = 0;
         int l = 0;
         foreach (GameObject platform in platforms)
         {
@@ -85,12 +87,12 @@ public class StageDataBuilder : MonoBehaviour
             j++;
         }
 
-        //foreach (GameObject spawn in playerSpawns)
-        //{
-        //    Transform spawnTransforms = spawn.GetComponent<Transform>();
-        //    stageDataSO.playerSpawnTransform[k] = spawnTransforms.position;
-        //    k++;
-        //}
+        foreach (GameObject spawn in npcSpawns)
+        {
+           Transform spawnTransforms = spawn.GetComponent<Transform>();
+           stageDataSO.npcSpawnTransform[k] = new Vector2(spawnTransforms.position.x, spawnTransforms.position.y);
+           k++;
+        }
 
         //if there are not exactly 4 player spawn points,...
         //if(playerSpawns.Length != 4)
@@ -103,10 +105,10 @@ public class StageDataBuilder : MonoBehaviour
         //}
 
         //add each player spawn point to playerSpawnTransform based on their tags
-        stageDataSO.playerSpawnTransform[0] = playerSpawns[0].transform.position;
-        stageDataSO.playerSpawnTransform[1] = playerSpawns[1].transform.position;
-        stageDataSO.playerSpawnTransform[2] = playerSpawns[2].transform.position;
-        stageDataSO.playerSpawnTransform[3] = playerSpawns[3].transform.position;
+        stageDataSO.playerSpawnTransform[0] = new Vector2(playerSpawns[0].transform.position.x, playerSpawns[0].transform.position.y);
+        stageDataSO.playerSpawnTransform[1] = new Vector2(playerSpawns[1].transform.position.x, playerSpawns[1].transform.position.y);
+        stageDataSO.playerSpawnTransform[2] = new Vector2(playerSpawns[2].transform.position.x, playerSpawns[2].transform.position.y);
+        stageDataSO.playerSpawnTransform[3] = new Vector2(playerSpawns[3].transform.position.x, playerSpawns[3].transform.position.y);
 
         foreach (GameObject activatableSolid in activatableSolids)
         {

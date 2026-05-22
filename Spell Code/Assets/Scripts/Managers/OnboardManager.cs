@@ -159,7 +159,7 @@ public class OnboardManager : MonoBehaviour
         p1_castTxt.enabled = false;
         p1_gambaActive = false;
         p1_breakWSpellcode.enabled = false;
-        if (p1_gamba != null) p1_gamba.gambaAnimator.SetBool("isActive", false);
+        if (p1_gamba != null) p1_gamba.isActive = false;
 
         p2_atkTxt.text = "Join";
         p2_moveGraphic.enabled = false;
@@ -171,7 +171,7 @@ public class OnboardManager : MonoBehaviour
         p2_castTxt.enabled = false;
         p2_gambaActive = false;
         p2_breakWSpellcode.enabled = false;
-        if (p2_gamba != null) p2_gamba.gambaAnimator.SetBool("isActive", false);
+        if (p2_gamba != null) p2_gamba.isActive = false;
 
         p3_atkTxt.text = "Join";
         p3_moveGraphic.enabled = false;
@@ -183,7 +183,7 @@ public class OnboardManager : MonoBehaviour
         p3_castTxt.enabled = false;
         p3_gambaActive = false;
         p3_breakWSpellcode.enabled = false;
-        if (p3_gamba != null) p3_gamba.gambaAnimator.SetBool("isActive", false);
+        if (p3_gamba != null) p3_gamba.isActive = false;
 
         p4_atkTxt.text = "Join";
         p4_moveGraphic.enabled = false;
@@ -195,7 +195,7 @@ public class OnboardManager : MonoBehaviour
         p4_castTxt.enabled = false;
         p4_gambaActive = false;
         p4_breakWSpellcode.enabled = false;
-        if (p4_gamba != null) p4_gamba.gambaAnimator.SetBool("isActive", false);
+        if (p4_gamba != null) p4_gamba.isActive = false;
     }
 
     public void OnboardUpdate(ulong[] playerInputs)
@@ -233,7 +233,7 @@ public class OnboardManager : MonoBehaviour
 
                 if (!p1_gambaActive) 
                 { 
-                    p1_gamba.gambaAnimator.SetBool("isActive", true); 
+                    p1_gamba.isActive = true; 
                     p1_gambaActive = true; 
                 }
 
@@ -334,7 +334,7 @@ public class OnboardManager : MonoBehaviour
 
                 if (!p2_gambaActive)
                 {
-                    p2_gamba.gambaAnimator.SetBool("isActive", true);
+                    p2_gamba.isActive = true;
                     p2_gambaActive = true;
                 }
 
@@ -437,7 +437,7 @@ public class OnboardManager : MonoBehaviour
 
                 if (!p3_gambaActive)
                 {
-                    p3_gamba.gambaAnimator.SetBool("isActive", true);
+                    p3_gamba.isActive = true;
                     p3_gambaActive = true;
                 }
 
@@ -538,7 +538,7 @@ public class OnboardManager : MonoBehaviour
 
                 if (!p4_gambaActive)
                 {
-                    p4_gamba.gambaAnimator.SetBool("isActive", true);
+                    p4_gamba.isActive = true;
                     p4_gambaActive = true;
                 }
 

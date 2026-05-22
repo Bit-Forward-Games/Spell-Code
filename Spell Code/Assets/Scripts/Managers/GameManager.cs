@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
+    public List<PlayerController> playerNPCs = new List<PlayerController>();
     public int playerCount = 0;
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
@@ -59,17 +60,19 @@ public class GameManager : MonoBehaviour
     public System.Random seededRandom;
 
     private DataManager dataManager;
-    public TempSpellDisplay[] tempSpellDisplays = new TempSpellDisplay[4];
+    public TempSpellDisplay[] spellDisplays = new TempSpellDisplay[4];
     public TempUIScript tempUI;
     public List<StageDataSO> stages;
     [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
     public StageDataSO lobbySO;
+    public StageDataSO TutorialSO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
     public SceneUiManager sceneManager;
 
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
+    public GameObject tutorialMapGO;
     public string currentStage;
 
     [HideInInspector]
@@ -392,11 +395,25 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
+#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
             players[0].roundRam = 600;
         }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        {
+            sceneManager.LoadScene("Tutorial");
+            SetStage(-2);
+            ResetPlayers();
+        }
+
+        if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
+        {
+            players[0].ClearSpellList();
+        }
+#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
@@ -2553,6 +2570,11 @@ public class GameManager : MonoBehaviour
             players[i].PlayerUpdate((ulong)inputs[i]);
         }
 
+        for (int i = 0; i < playerNPCs.Count; i++)
+        {
+            playerNPCs[i].PlayerUpdate(5);
+        }
+
         for (int i = 0; i < playerCount; i++)
         {
             if (players[i].isAlive)
@@ -2585,6 +2607,17 @@ public class GameManager : MonoBehaviour
                 //Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
                 return; // Already registered, don't add again!
             }
+        }
+
+        //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
+        if (!playerInput.user.valid)
+        {
+            if (!playerNPCs.Contains(existingPlayer)){
+                playerNPCs.Add(existingPlayer);
+                Debug.Log("Anotha player NPC added");
+                AnimationManager.Instance.InitializePlayerVisuals(existingPlayer, 0);//This currently makes the dummy just always player 1 visuals
+            }
+            return;
         }
 
         //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
@@ -2926,21 +2959,33 @@ public class GameManager : MonoBehaviour
 
     public Vector2[] GetSpawnPositions()
     {
-        if (currentStageIndex < 0)
+        if (currentStageIndex == -1)
         {
-            return new Vector2[] {
-                lobbySO.playerSpawnTransform[0],
-                lobbySO.playerSpawnTransform[1],
-                lobbySO.playerSpawnTransform[2],
-                lobbySO.playerSpawnTransform[3]};
+            return lobbySO.playerSpawnTransform;
+        }
+        if (currentStageIndex == -2)
+        {
+            return TutorialSO.playerSpawnTransform;
         }
         else
         {
-            return new Vector2[] {
-                stages[currentStageIndex].playerSpawnTransform[0],
-                stages[currentStageIndex].playerSpawnTransform[1],
-                stages[currentStageIndex].playerSpawnTransform[2],
-                stages[currentStageIndex].playerSpawnTransform[3]};
+            return stages[currentStageIndex].playerSpawnTransform;
+        }
+    }
+
+    public Vector2[] GetNPCSpawnPositions()
+    {
+        if (currentStageIndex == -1)
+        {
+            return lobbySO.npcSpawnTransform;
+        }
+        if (currentStageIndex == -2)
+        {
+            return TutorialSO.npcSpawnTransform;
+        }
+        else
+        {
+            return stages[currentStageIndex].npcSpawnTransform;
         }
     }
 
@@ -3267,6 +3312,12 @@ public class GameManager : MonoBehaviour
             currentStage = lobbyMapGO.name;
             return;
         }
+        if (currentStageIndex == -2)
+        {
+            tutorialMapGO.SetActive(true);
+            currentStage = tutorialMapGO.name;
+            return;
+        }
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
             if (i == stageIndex)
@@ -3340,7 +3391,7 @@ public class GameManager : MonoBehaviour
         if (gameStages.Count <= 0)
         {
             //fill it back up
-            RandomizeGameStages();
+            FillGameStages();
         }
 
         int _gameStageIndex = GetNextRandom(0, gameStages.Count);
@@ -3642,6 +3693,7 @@ public class GameManager : MonoBehaviour
             tempMapGOs[i].SetActive(false);
         }
         lobbyMapGO.SetActive(false);
+        tutorialMapGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()
@@ -3694,10 +3746,7 @@ public class GameManager : MonoBehaviour
 
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;
-            if (gamba.gambaAnimator != null)
-            {
-                gamba.gambaAnimator.SetBool("isActive", ownerCanUseShop);
-            }
+            gamba.isActive = ownerCanUseShop;
         }
 
         foreach (SpellCode_Gate gate in gates)
@@ -3911,7 +3960,7 @@ public class GameManager : MonoBehaviour
                         bw.Write(gamba != null ? gamba.activatedCount : 0);
                         bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
                         bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
-                        bool isActive = gamba != null && gamba.gambaAnimator != null && gamba.gambaAnimator.GetBool("isActive");
+                        bool isActive = gamba != null && gamba.isActive;
                         bw.Write(isActive);
                     }
 
@@ -4304,10 +4353,7 @@ public class GameManager : MonoBehaviour
                                 gamba.activatedCount = activatedCount;
                                 gamba.resetTimer = resetTimer;
                                 gamba.SetStartingSpellPos(startingSpellPos);
-                                if (gamba.gambaAnimator != null)
-                                {
-                                    gamba.gambaAnimator.SetBool("isActive", isActive);
-                                }
+                                gamba.isActive = isActive;
                             }
                         }
                     }

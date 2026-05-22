@@ -736,7 +736,7 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < playerCount; i++)
         {
-            GameObject p = Instantiate(playerPrefab);
+            GameObject p = InstantiateOnlinePlayerObject();
             players[i] = p.GetComponent<PlayerController>();
             AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
 
@@ -1131,7 +1131,7 @@ public class GameManager : MonoBehaviour
         // Create players but don't start simulation
         for (int i = 0; i < 2; i++)
         {
-            GameObject p = Instantiate(playerPrefab);
+            GameObject p = InstantiateOnlinePlayerObject();
             players[i] = p.GetComponent<PlayerController>();
             AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
 
@@ -4474,7 +4474,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        GameObject p = Instantiate(playerPrefab);
+        GameObject p = InstantiateOnlinePlayerObject();
         players[slot] = p.GetComponent<PlayerController>();
         AnimationManager.Instance.InitializePlayerVisuals(players[slot], slot);
 
@@ -4502,6 +4502,13 @@ public class GameManager : MonoBehaviour
         }
 
         players[slot].InitCharacter();
+    }
+
+    private GameObject InstantiateOnlinePlayerObject()
+    {
+        GameObject playerObject = Instantiate(playerPrefab);
+        DontDestroyOnLoad(playerObject);
+        return playerObject;
     }
 
     private void ResetOnlineReadyForGameplayState()

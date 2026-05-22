@@ -3942,7 +3942,12 @@ public class GameManager : MonoBehaviour
                     bw.Write(gates.Length);
                     foreach (var gate in gates)
                     {
-                        if (gate != null) gate.Serialize(bw);
+                        bool hasGate = gate != null;
+                        bw.Write(hasGate);
+                        if (hasGate)
+                        {
+                            gate.Serialize(bw);
+                        }
                     }
 
                     List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
@@ -4334,9 +4339,16 @@ public class GameManager : MonoBehaviour
                     int gateCount = br.ReadInt32();
                     for (int i = 0; i < gateCount; i++)
                     {
+                        bool hasGate = br.ReadBoolean();
+                        if (!hasGate)
+                        {
+                            continue;
+                        }
+
+                        bool isOpen = br.ReadBoolean();
                         if (i < gates.Length && gates[i] != null)
                         {
-                            gates[i].Deserialize(br);
+                            gates[i].SetOpen(isOpen);
                         }
                     }
 

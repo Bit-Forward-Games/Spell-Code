@@ -294,7 +294,6 @@ public class GambaMachine : MonoBehaviour
 
         if (activeScene.name != "Shop" && !isActive && activatedCount < 3)
         {
-            if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 120)

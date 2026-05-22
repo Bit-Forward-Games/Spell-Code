@@ -990,13 +990,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int maxPredictionAhead = GetMaxPredictionAheadFrames();
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
+                consecutiveDrop++;
+                if (consecutiveDrop > maxDropPulse)
+                {
+                    consecutiveDrop = 0;
+                    lastDroppedFrame = currentFrame;
+                    return true;
+                }
+
                 if (lastDroppedFrame != currentFrame)
                 {
                     Debug.LogWarning($"Frame Pace Prediction Hold: Local {currentFrame}, Remote {effectiveRemoteFrame}, Sync {syncFrame}. Waiting for remote input.");
                     lastDroppedFrame = currentFrame;
                 }
 
-                consecutiveDrop++;
                 return false;
             }
 

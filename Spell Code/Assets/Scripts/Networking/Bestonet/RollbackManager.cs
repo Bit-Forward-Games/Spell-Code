@@ -1876,6 +1876,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             frameOffset = RebaseMultiplayerLobbyInputOffset(slot, alignmentFrame, frameOffset);
             int adjustedFrame = frame + frameOffset;
 
+            if (ShouldDropMultiplayerLobbyBackfillFrame(adjustedFrame))
+            {
+                return;
+            }
+
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && adjustedFrame <= syncFrame)
             {
                 return;
@@ -1929,13 +1934,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int desiredNewestFrame = localFrame + Mathf.Max(1, MultiplayerLobbyInputLeadFrames);
             int newestAdjustedFrame = alignmentFrame + frameOffset;
-            int catchUpFrames = desiredNewestFrame - newestAdjustedFrame;
-            if (catchUpFrames <= 0)
+            int frameShift = desiredNewestFrame - newestAdjustedFrame;
+            if (frameShift == 0)
             {
                 return frameOffset;
             }
 
-            int rebasedOffset = frameOffset + catchUpFrames;
+            int rebasedOffset = frameOffset + frameShift;
             remoteFrameOffsetBySlot[slot] = rebasedOffset;
             remoteFrameBySlot[slot] = Mathf.Max(desiredNewestFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(desiredNewestFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
@@ -1952,6 +1957,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 && GameManager.Instance.playerCount > 2
                 && SceneManager.GetActiveScene().name == "MainMenu"
                 && !GameManager.Instance.isTransitioning;
+        }
+
+        private bool ShouldDropMultiplayerLobbyBackfillFrame(int adjustedFrame)
+        {
+            return ShouldScheduleMultiplayerLobbyInputs()
+                && adjustedFrame <= localFrame;
         }
 
         private int AlignRemoteFrameForSlot(int slot, int frame)

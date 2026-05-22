@@ -828,7 +828,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData)
+    public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData, bool forceApply = false)
     {
         if (!peerId.IsValid || roster == null || stateData == null || stateData.Length == 0)
         {
@@ -845,6 +845,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(frame);
                 writer.Write(stateData.Length);
                 writer.Write(stateData);
+                writer.Write(forceApply);
                 SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1065,11 +1066,17 @@ public class MatchMessageManager : MonoBehaviour
                 if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT)
                 {
                     OnlineMatchRoster roster = ReadRoster(reader);
+                    if (roster.HostSteamId.IsValid && !SameSteamId(senderSteamId, roster.HostSteamId))
+                    {
+                        return;
+                    }
+
                     int frame = reader.ReadInt32();
                     int stateLength = reader.ReadInt32();
                     byte[] stateData = reader.ReadBytes(stateLength);
+                    bool forceApply = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
                     bool applied = GameManager.Instance != null
-                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData);
+                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData, forceApply);
                     UpdateRoster(roster);
                     if (applied)
                     {

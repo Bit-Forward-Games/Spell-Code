@@ -53,8 +53,6 @@ public class AbaddonUppercut : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 if(owner.demonAura > 50 && doubleHitReady)
                 {
                     //effectively do the uppercut again

@@ -76,17 +76,8 @@ public class AsuranBlades : SpellData
     {
         switch (targetProcCon)
         {
-            //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
-            case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
-                break;
-            // case ProcCondition.OnSlide:
-            //     if (owner.demonAura >= 50)
-            //     {
-            //         ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(0)));
-            //     }
-            //     break;
+            //Spell effects take place in the update function
+            
             default:
                 break;
         }

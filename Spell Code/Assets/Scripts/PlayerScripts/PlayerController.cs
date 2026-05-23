@@ -1277,7 +1277,7 @@ public class PlayerController : MonoBehaviour
                             // Example: For codeCount = 1, clear bits 31-30; for codeCount = 2, clear bits 29-28, etc.
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("down input Pressed!");
+                            //Debug.Log("down input Pressed!");
                             //play the input down code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_DOWN, 0.95f, 0.95f);
                             break;
@@ -1293,7 +1293,7 @@ public class PlayerController : MonoBehaviour
                             }
                                 stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("left input Pressed!");
+                            //Debug.Log("left input Pressed!");
                             //play the input left code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_LEFT, 1.05f, 1.05f);
                             break;
@@ -1308,14 +1308,14 @@ public class PlayerController : MonoBehaviour
                             }
                             stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("right input Pressed!");
+                            //Debug.Log("right input Pressed!");
                             //play the input right code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_RIGHT, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("up input Pressed!");
+                            //Debug.Log("up input Pressed!");
                             //play the input up code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_UP, 1.1f, 1.1f);
                             break;

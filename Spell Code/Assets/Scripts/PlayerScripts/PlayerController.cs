@@ -60,6 +60,15 @@ public class PlayerController : MonoBehaviour
         public Color baseColor;
     }
 
+    private class PlayerDamageNumber
+    {
+        public TextMeshPro textMesh;
+        public float elapsed;
+        public Color baseColor;
+        public Vector3 startOffset;
+        public Vector3 drift;
+    }
+
     public bool isAlive = true;
     public SpriteRenderer playerSpriteRenderer;
     //INPUTS
@@ -217,6 +226,18 @@ public class PlayerController : MonoBehaviour
     private readonly List<PlayerToast> activeToasts = new();
     private Transform toastRoot;
 
+    //Damage Number Variables
+    private float damageNumberLifetime = 0.85f;
+    private float damageNumberFadeDuration = 0.25f;
+    private float damageNumberBaseVerticalOffset = 52f;
+    private float damageNumberRiseDistance = 34f;
+    private float damageNumberHorizontalDrift = 24f;
+    private float damageNumberGravityFallDistance = 28f;
+    private float damageNumberFontSize = 84f;
+
+    private readonly List<PlayerDamageNumber> activeDamageNumbers = new();
+    private Transform damageNumberRoot;
+
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
     public int basicsFired = 0;
@@ -291,11 +312,13 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         UpdateToasts();
+        UpdateDamageNumbers();
     }
 
     private void OnDisable()
     {
         ClearToasts();
+        ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -305,6 +328,7 @@ public class PlayerController : MonoBehaviour
     private void OnDestroy()
     {
         ClearToasts();
+        ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
         if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -2420,7 +2444,7 @@ public class PlayerController : MonoBehaviour
     /// this function makes the player take damage outside of hitstun, notably from spell effect damage
     /// </summary>
     /// <param name="damageAmount"></param>
-    public void TakeEffectDamage(int damageAmount, PlayerController attacker)
+    public void TakeEffectDamage(int damageAmount, PlayerController attacker, Color? damageTextColor = null)
     {
         if (GameManager.Instance.currentStageIndex < 0)
         {
@@ -2428,7 +2452,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        HandleDamage(attacker, damageAmount);
+        HandleDamage(attacker, damageAmount, damageTextColor);
     }
 
     public void CheckHit(InputSnapshot input)
@@ -2572,7 +2596,7 @@ public class PlayerController : MonoBehaviour
 
         }
     }
-    private void HandleDamage(PlayerController attacker, int damageAmount)
+    private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
         if(pID == 0)return; //if this is a training dummy then don't handle damage
 
@@ -2581,6 +2605,7 @@ public class PlayerController : MonoBehaviour
         if (!isRollback && damageAmount > 0)
         {
             TriggerHitRumble(0.2f, 0.6f, 0.12f);
+            SpawnDamageNumber(damageAmount, damageTextColor);
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
@@ -3467,6 +3492,68 @@ public class PlayerController : MonoBehaviour
         UpdateToastVisuals();
     }
 
+    public void SpawnDamageNumber(int damageAmount, Color? color = null)
+    {
+        if (damageAmount <= 0)
+        {
+            return;
+        }
+
+        SpawnDamageNumber(damageAmount.ToString(), color);
+    }
+
+    public void SpawnDamageNumber(string text, Color? color = null)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return;
+        }
+
+        EnsureDamageNumberRoot();
+        Color damageNumberColor = color ?? Color.white;
+
+        GameObject damageNumberObject = new($"{name}_DamageNumber");
+        damageNumberObject.transform.SetParent(damageNumberRoot, false);
+
+        TextMeshPro damageNumberText = damageNumberObject.AddComponent<TextMeshPro>();
+        damageNumberText.text = text;
+        damageNumberText.color = damageNumberColor;
+        damageNumberText.alignment = TextAlignmentOptions.Center;
+        damageNumberText.fontSize = damageNumberFontSize;
+        damageNumberText.fontStyle = FontStyles.Bold;
+        damageNumberText.textWrappingMode = TextWrappingModes.NoWrap;
+        damageNumberText.overflowMode = TextOverflowModes.Overflow;
+        damageNumberText.raycastTarget = false;
+        damageNumberText.sortingOrder = 100;
+
+        Renderer damageNumberRenderer = damageNumberText.GetComponent<Renderer>();
+        if (damageNumberRenderer != null)
+        {
+            damageNumberRenderer.sortingLayerID = GetFrontmostSortingLayerId();
+            damageNumberRenderer.sortingOrder = short.MaxValue;
+        }
+
+        float horizontalDirection = UnityEngine.Random.value < 0.5f ? -1f : 1f;
+        float horizontalDistance = UnityEngine.Random.Range(damageNumberHorizontalDrift * 0.65f, damageNumberHorizontalDrift);
+        float spawnJitter = UnityEngine.Random.Range(-8f, 8f);
+
+        activeDamageNumbers.Add(new PlayerDamageNumber
+        {
+            textMesh = damageNumberText,
+            elapsed = 0f,
+            baseColor = damageNumberColor,
+            startOffset = new Vector3(spawnJitter, damageNumberBaseVerticalOffset, 0f),
+            drift = new Vector3(horizontalDirection * horizontalDistance, damageNumberRiseDistance, 0f)
+        });
+
+        UpdateDamageNumberVisuals();
+    }
+
     public static string ConvertCodeToString(uint code, Color? color = null)
     {
         if (color == null) { color = GameManager.colors["white"]; }
@@ -3517,6 +3604,30 @@ public class PlayerController : MonoBehaviour
         toastRoot.localPosition = new Vector3(0f, 0f, -0.1f);
         toastRoot.localRotation = Quaternion.identity;
         toastRoot.localScale = Vector3.one;
+    }
+
+    private void EnsureDamageNumberRoot()
+    {
+        if (damageNumberRoot != null)
+        {
+            return;
+        }
+
+        Transform existingRoot = transform.Find("DamageNumberRoot");
+        if (existingRoot != null)
+        {
+            damageNumberRoot = existingRoot;
+        }
+        else
+        {
+            GameObject damageNumberRootObject = new("DamageNumberRoot");
+            damageNumberRoot = damageNumberRootObject.transform;
+            damageNumberRoot.SetParent(transform, false);
+        }
+
+        damageNumberRoot.localPosition = new Vector3(0f, 0f, -0.1f);
+        damageNumberRoot.localRotation = Quaternion.identity;
+        damageNumberRoot.localScale = Vector3.one;
     }
 
     private void UpdateToasts()
@@ -3584,6 +3695,76 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void UpdateDamageNumbers()
+    {
+        if (activeDamageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        float lifetime = Mathf.Max(0.01f, damageNumberLifetime);
+        for (int i = activeDamageNumbers.Count - 1; i >= 0; i--)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber == null || damageNumber.textMesh == null)
+            {
+                activeDamageNumbers.RemoveAt(i);
+                continue;
+            }
+
+            damageNumber.elapsed += Time.deltaTime;
+            if (damageNumber.elapsed >= lifetime)
+            {
+                Destroy(damageNumber.textMesh.gameObject);
+                activeDamageNumbers.RemoveAt(i);
+            }
+        }
+
+        if (activeDamageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        UpdateDamageNumberVisuals();
+    }
+
+    private void UpdateDamageNumberVisuals()
+    {
+        float lifetime = Mathf.Max(0.01f, damageNumberLifetime);
+        float fadeDuration = Mathf.Clamp(damageNumberFadeDuration, 0f, lifetime);
+        float fadeStart = lifetime - fadeDuration;
+
+        for (int i = 0; i < activeDamageNumbers.Count; i++)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber == null || damageNumber.textMesh == null)
+            {
+                continue;
+            }
+
+            float normalizedLifetime = Mathf.Clamp01(damageNumber.elapsed / lifetime);
+            float alpha = damageNumber.baseColor.a;
+            if (fadeDuration > 0f && damageNumber.elapsed > fadeStart)
+            {
+                float fadeProgress = Mathf.InverseLerp(fadeStart, lifetime, damageNumber.elapsed);
+                alpha *= 1f - fadeProgress;
+            }
+
+            Color displayColor = damageNumber.baseColor;
+            displayColor.a = alpha;
+            damageNumber.textMesh.color = displayColor;
+
+            float popScale = Mathf.Lerp(0.8f, 1.15f, Mathf.Clamp01(normalizedLifetime / 0.18f));
+            float settleScale = Mathf.Lerp(popScale, 0.95f, Mathf.Clamp01((normalizedLifetime - 0.18f) / 0.82f));
+            damageNumber.textMesh.transform.localScale = Vector3.one * settleScale;
+
+            float easedMovement = 1f - Mathf.Pow(1f - normalizedLifetime, 2f);
+            float floatBob = Mathf.Sin(normalizedLifetime * Mathf.PI) * 8f;
+            float gravityFall = damageNumberGravityFallDistance * normalizedLifetime * normalizedLifetime;
+            damageNumber.textMesh.transform.localPosition = damageNumber.startOffset + (damageNumber.drift * easedMovement) + new Vector3(0f, floatBob - gravityFall, 0f);
+        }
+    }
+
     private void ClearToasts()
     {
         for (int i = activeToasts.Count - 1; i >= 0; i--)
@@ -3596,6 +3777,20 @@ public class PlayerController : MonoBehaviour
         }
 
         activeToasts.Clear();
+    }
+
+    private void ClearDamageNumbers()
+    {
+        for (int i = activeDamageNumbers.Count - 1; i >= 0; i--)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber != null && damageNumber.textMesh != null)
+            {
+                Destroy(damageNumber.textMesh.gameObject);
+            }
+        }
+
+        activeDamageNumbers.Clear();
     }
 
     private static int GetFrontmostSortingLayerId()

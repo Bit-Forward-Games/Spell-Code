@@ -30,8 +30,8 @@ public class DemonXPassive : SpellData
                 if(owner.demonAura > 0)
                 {
                     // deal extra damage based on demon aura
-                    defender.TakeEffectDamage(owner.demonAura/5, owner);
-                    owner.SpawnToast($"+{owner.demonAura/5} DAMAGE", GameManager.colors["red"]);
+                    defender.TakeEffectDamage(owner.demonAura/5, owner, GameManager.colors["red"]);
+                    //owner.SpawnToast($"+{owner.demonAura/5} DAMAGE", GameManager.colors["red"]);
                 }
                 
 

@@ -32,8 +32,7 @@ public class LetItRide : SpellData
                 if (defender.hitboxData.sweetSpot && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.BigStox))
                 {
                     int effectDamage = owner.stockStability/2;
-                    defender.TakeEffectDamage(effectDamage, owner);
-                    owner.SpawnToast($"+{effectDamage} DAMAGE",  GameManager.colors["blue"]);
+                    defender.TakeEffectDamage(effectDamage, owner, GameManager.colors["blue"]);
                 }
                 break;
             default:

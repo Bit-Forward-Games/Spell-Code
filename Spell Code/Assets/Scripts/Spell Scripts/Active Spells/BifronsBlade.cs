@@ -34,7 +34,7 @@ public class BifronsBlade : SpellData
                     {
                         int demonDiv = owner.demonAura / 10;
                         int damageToDeal = demonDiv * demonDiv / 2;
-                        defender.TakeEffectDamage(damageToDeal, owner);
+                        defender.TakeEffectDamage(damageToDeal, owner, GameManager.colors["red"]);
                         owner.demonAura = 0;
                     }
                 }

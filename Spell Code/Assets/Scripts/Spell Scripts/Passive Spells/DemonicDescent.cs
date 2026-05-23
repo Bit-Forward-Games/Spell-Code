@@ -32,8 +32,7 @@ public class DemonicDescent : SpellData
             case ProcCondition.OnHitSpell:
                 if (owner.demonAura >= 100)
                 {
-                    defender.TakeEffectDamage(20, owner);
-                    owner.SpawnToast($"+20 DAMAGE", GameManager.colors["red"]);
+                    defender.TakeEffectDamage(20, owner, GameManager.colors["red"]);
                 }
                 break;
             default:

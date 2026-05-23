@@ -29,8 +29,7 @@ public class BigStoxPassive : SpellData
                     //non bigstox spells can crit here
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified)
                     {
-                        defender.TakeEffectDamage(bigStoxCritDamage,owner);
-                        owner.SpawnToast($"+{bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
+                        defender.TakeEffectDamage(bigStoxCritDamage,owner, GameManager.colors["blue"]);
                     }
                 }
                 break;

@@ -94,8 +94,7 @@ public class CashOut : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
                 {
-                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner);
-                    owner.SpawnToast($"+{BigStoxPassive.bigStoxCritDamage} DAMAGE",  GameManager.colors["blue"]);
+                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner, GameManager.colors["blue"]);
                 }
                 break;
             default:

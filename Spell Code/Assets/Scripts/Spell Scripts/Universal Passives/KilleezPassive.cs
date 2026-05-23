@@ -27,8 +27,7 @@ public class KilleezPassive : SpellData
                 // deal extra damage based on demon aura
                 if(owner.reps > 0)
                 {
-                    defender.TakeEffectDamage(owner.reps, owner);
-                    owner.SpawnToast($"+{owner.reps} DAMAGE", GameManager.colors["yellow"]);
+                    defender.TakeEffectDamage(owner.reps, owner, GameManager.colors["yellow"]);
                 }
                 
 

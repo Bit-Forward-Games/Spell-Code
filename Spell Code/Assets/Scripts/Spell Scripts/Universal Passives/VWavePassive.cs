@@ -28,8 +28,7 @@ public class VWavePassive : SpellData
                 // deal extra damage based on demon aura
                 if(owner.flowState > 0)
                 {
-                    defender.TakeEffectDamage(flowstateExtraDamage, owner);
-                    owner.SpawnToast($"+{flowstateExtraDamage} DAMAGE", GameManager.colors["green"]);
+                    defender.TakeEffectDamage(flowstateExtraDamage, owner, GameManager.colors["green"]);
                 }
                 
 

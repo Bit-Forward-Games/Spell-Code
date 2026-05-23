@@ -22,8 +22,7 @@ public class GiftOfPrometheus : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
-                defender.TakeEffectDamage(owner.reps * 4, owner);
-                owner.SpawnToast($"+{owner.reps*4} DAMAGE", GameManager.colors["yellow"]);
+                defender.TakeEffectDamage(owner.reps * 4, owner, GameManager.colors["yellow"]);
                 break;
             default:
                 break;

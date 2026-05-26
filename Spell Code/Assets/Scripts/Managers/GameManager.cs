@@ -2357,6 +2357,10 @@ public class GameManager : MonoBehaviour
         {
             if (isOnlineMatchActive)
             {
+                for (int i = 0; i < playerCount; i++)
+                {
+                    players[i].roundRam = 0; // reset round RAM
+                }
                 localPlayerReadyForGameplay = false;
                 remotePlayerReadyForGameplay = false;
                 gameplayReadyPeerSlots.Clear();

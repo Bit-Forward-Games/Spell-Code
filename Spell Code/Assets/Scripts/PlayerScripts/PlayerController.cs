@@ -2753,7 +2753,50 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    
+    private SpellData ResolveOnlineHitboxOwnerSpell(BaseProjectile sourceProjectile)
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+        {
+            return null;
+        }
+
+        if (sourceProjectile == null)
+        {
+            return null;
+        }
+
+        if (sourceProjectile.ownerSpell != null)
+        {
+            return sourceProjectile.ownerSpell;
+        }
+
+        PlayerController projectileOwner = sourceProjectile.owner;
+        if (projectileOwner == null || projectileOwner.spellList == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < projectileOwner.spellList.Count; i++)
+        {
+            SpellData spell = projectileOwner.spellList[i];
+            if (spell == null || spell.projectileInstances == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < spell.projectileInstances.Count; j++)
+            {
+                GameObject projectileInstance = spell.projectileInstances[j];
+                if (projectileInstance == sourceProjectile.gameObject)
+                {
+                    sourceProjectile.ownerSpell = spell;
+                    return spell;
+                }
+            }
+        }
+
+        return null;
+    }
 
     public void ResolveReferences()
     {

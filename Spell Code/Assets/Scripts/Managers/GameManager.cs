@@ -1798,6 +1798,12 @@ public class GameManager : MonoBehaviour
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
+
+            if (packetSceneType == 1)
+            {
+                AdvanceRoundCountOnce();
+            }
+
             ApplyOnlineStageSelection(stageIndex, hostStageRngState);
             return true;
         }

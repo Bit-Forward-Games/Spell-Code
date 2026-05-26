@@ -2280,6 +2280,15 @@ public class GameManager : MonoBehaviour
         }
 
         List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
+        foreach (GameObject gambaGO in validGambas)
+        {
+            GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+            if (gamba != null)
+            {
+                gamba.ClearTrackedFloppyReferences();
+            }
+        }
+
         foreach (var savedFloppy in savedFloppies)
         {
             if (savedFloppy.ownerPid <= 0 || string.IsNullOrEmpty(savedFloppy.diskName))

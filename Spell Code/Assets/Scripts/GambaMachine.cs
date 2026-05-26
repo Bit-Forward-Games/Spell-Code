@@ -281,7 +281,7 @@ public class GambaMachine : MonoBehaviour
                 ClearFloppysForPID(ownerPID);
             }
 
-            if (isActive && CheckHitboxCollision())
+            if (isActive && CheckOnlineHitboxCollision())
             {
                 isActive = false;
                 SpawnFloppysForOwnerOnline(isRollback);
@@ -317,7 +317,7 @@ public class GambaMachine : MonoBehaviour
             ClearFloppysForPID(ownerPID);
         }
 
-        if (isActive && CheckHitboxCollision())
+        if (isActive && CheckOnlineHitboxCollision())
         {
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
@@ -472,6 +472,48 @@ public class GambaMachine : MonoBehaviour
             hurtbox, 
             FixedVec2.FromFloat(transform.position.x, transform.position.y), 
             true);
+    }
+
+    private bool CheckOnlineHitboxCollision()
+    {
+        if (ownerPlayer == null || ProjectileManager.Instance == null || HitboxManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (CheckHitboxCollision())
+        {
+            return true;
+        }
+
+        foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
+        {
+            if (projectile == null || projectile.owner == null)
+            {
+                continue;
+            }
+
+            if (projectile.owner.pID != ownerPID || projectile.ownerSpell != null)
+            {
+                continue;
+            }
+
+            if (ownerPlayer.charData != null && projectile.projName != ownerPlayer.charData.basicAttackProjId)
+            {
+                continue;
+            }
+
+            if (HitboxManager.Instance.ProcessSingleProjectileCollisison(
+                projectile,
+                hurtbox,
+                FixedVec2.FromFloat(transform.position.x, transform.position.y),
+                true))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private List<string> BuildAvailableSpellPool(int pid)

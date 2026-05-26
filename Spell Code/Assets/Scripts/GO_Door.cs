@@ -60,15 +60,6 @@ public class GO_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
-        if (SceneManager.GetActiveScene().name == "Tutorial")
-        {
-            if(animator != null)
-            {
-                animator.SetInteger("numPlayers", 2);
-            }
-            isOpen = true;
-            return isOpen;
-        }
 
         if (GameManager.Instance.playerCount > 1)
         {

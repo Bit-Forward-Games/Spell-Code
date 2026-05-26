@@ -42,9 +42,13 @@ public class Pause : MonoBehaviour
 
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
+    public TextMeshProUGUI spellGlossaryList;
+    public TextMeshProUGUI spellSelectedText;
+    public Image spellSelectedBorder;
+    public RectTransform spellSelectedBorderTransform;
 
     private int tab = 0;
-    private int[] selectedSpell = new int[5];
+    private int selectedSpell;
 
     public class Column
     {
@@ -186,11 +190,6 @@ public class Pause : MonoBehaviour
 
         tab = 0;
 
-        for (int i = 0; i < selectedSpell.Length; i++)
-        {
-            selectedSpell[i] = 0;
-        }
-
         Brand[] brandPerColumn = { Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
 
         for (int i = 0; i < 5; i++)
@@ -226,6 +225,25 @@ public class Pause : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    public void SpellGlossaryNewTab()
+    {
+        selectedSpell = 0;
+        
+        spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 200f);
+
+        spellGlossaryList.text = "";
+        
+        for (int i = 0; i < grid[tab].spells.Length ; i++)
+        {
+            spellGlossaryList.text += grid[tab].spells[i].spellName + "\n";
+        }
+    }
+
+    public void SpellGlossaryListSelection(float one)
+    {
+        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 50f);
+    }
+
     public void SpellGlossaryNavigation()
     {
 
@@ -235,21 +253,31 @@ public class Pause : MonoBehaviour
 
             if (nav.y > 0) 
             {
-                if (selectedSpell[tab] > 0) selectedSpell[tab]--;
+                if (selectedSpell > 0) 
+                {
+                    selectedSpell--;
+                    SpellGlossaryListSelection(1);
+                }
             }
             if (nav.y < 0) 
             {
-                if (selectedSpell[tab] < grid[tab].spells.Length - 1) selectedSpell[tab]++;
+                if (selectedSpell < grid[tab].spells.Length - 1) 
+                {
+                    selectedSpell++;
+                    SpellGlossaryListSelection(-1);
+                }
             }
             if (nav.x < 0) 
             {
                 if (tab == 0) tab = 4;
                 else tab--;
+                SpellGlossaryNewTab();
             }
             if (nav.x > 0) 
             {
                 if (tab == 4) tab = 0;
                 else tab++;
+                SpellGlossaryNewTab();
             }
             
             ActivateOnly(tab);
@@ -257,13 +285,32 @@ public class Pause : MonoBehaviour
 
         if (grid[tab] != null && grid[tab].spells.Length > 0)
         {
-            displaySpellName.text = grid[tab].spells[selectedSpell[tab]].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell[tab]].description;
+            displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
+            spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
+            
+            switch (grid[tab].spells[selectedSpell].brands[0])
+            {
+                case Brand.VWave:
+                    spellSelectedBorder.color = new Color32(107, 255, 116, 255);
+                    break;
+                case Brand.BigStox:
+                    spellSelectedBorder.color = new Color32(67, 122, 252, 255);
+                    break;
+                case Brand.DemonX:
+                    spellSelectedBorder.color = new Color32(255, 62, 117, 255);
+                    break;
+                case Brand.Killeez:
+                    spellSelectedBorder.color = new Color32(255, 207, 0, 255);
+                    break;
+            }
         }
         else
         {
             displaySpellName.text = "none";
             displaySpellDescription.text = "none";
+            spellSelectedText.text = "none";
+            spellSelectedBorder.color = new Color32(255, 255, 255, 255);
         }
     }
 

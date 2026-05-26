@@ -2446,7 +2446,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker, Color? damageTextColor = null)
     {
-        if (GameManager.Instance.currentStageIndex < 0)
+        if (GameManager.Instance.currentStageIndex == -1)
         {
             //don't take damage in the lobby
             return;
@@ -2598,7 +2598,7 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
-        if(pID == 0)return; //if this is a training dummy then don't handle damage
+        //if(pID == 0)return; //if this is a training dummy then don't handle damage
 
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
@@ -2609,27 +2609,36 @@ public class PlayerController : MonoBehaviour
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
-        if (hasAttacker && damageAmount > 0)
+        if(pID != 0)
         {
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-        }
-
-        if (DataManager.Instance != null &&
-            DataManager.Instance.gameData != null &&
-            DataManager.Instance.gameData.arenaData != null)
-        {
-            var arenaData = DataManager.Instance.gameData.arenaData;
-            if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+            if (hasAttacker && damageAmount > 0)
             {
-                hitList = new List<Vector2>();
-                arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }
-            hitList.Add(transform.position);
+
+            if (DataManager.Instance != null &&
+                DataManager.Instance.gameData != null &&
+                DataManager.Instance.gameData.arenaData != null)
+            {
+                var arenaData = DataManager.Instance.gameData.arenaData;
+                if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+                {
+                    hitList = new List<Vector2>();
+                    arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                }
+                hitList.Add(transform.position);
+            }
         }
+        
 
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
+            if (pID == 0)
+            {
+                currentPlayerHealth = charData.playerHealth;
+                return;
+            }
             if (DataManager.Instance != null &&
                 DataManager.Instance.gameData != null &&
                 DataManager.Instance.gameData.arenaData != null)

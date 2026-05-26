@@ -42,10 +42,12 @@ public class Pause : MonoBehaviour
 
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
-    public TextMeshProUGUI spellGlossaryList;
     public TextMeshProUGUI spellSelectedText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
+    public GameObject unselectedSpell;
+    public GameObject spellListParent;
+    public GameObject[] spellGlossaryList;
 
     private int tab = 0;
     private int selectedSpell;
@@ -55,7 +57,7 @@ public class Pause : MonoBehaviour
         public SpellData[] spells;
     }
 
-    public Column[] grid = new Column[5];
+    public Column[] grid = new Column[6];
 
 
     public bool UIRelativeInput
@@ -101,6 +103,36 @@ public class Pause : MonoBehaviour
         //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
         Resume();
+
+        spellGlossaryList = new GameObject[SpellDictionary.Instance.spellList.Count];
+
+        for (int i = 0; i < SpellDictionary.Instance.spellList.Count; i++)
+        {
+            SpellData spell = SpellDictionary.Instance.spellList[i];
+            spellGlossaryList[i] = Instantiate(unselectedSpell, spellListParent.transform);
+            Image spellGraphic = spellGlossaryList[i].GetComponent<Image>();
+            TextMeshProUGUI spellNameText = spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>();
+
+            switch (spell.brands[0])
+            {
+                case Brand.VWave:
+                    spellGraphic.color = GameManager.colors["green"];
+                    break;
+                case Brand.BigStox:
+                    spellGraphic.color = GameManager.colors["blue"];
+                    break;
+                case Brand.DemonX:
+                    spellGraphic.color = GameManager.colors["red"];
+                    break;
+                case Brand.Killeez:
+                    spellGraphic.color = GameManager.colors["yellow"];
+                    break;
+            }
+
+            spellNameText.text = spell.spellName;
+            
+            spellGlossaryList[i].SetActive(false);
+        }
     }
 
     void Update()
@@ -192,7 +224,7 @@ public class Pause : MonoBehaviour
 
         Brand[] brandPerColumn = { Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             grid[i] = new Column();
 
@@ -206,6 +238,16 @@ public class Pause : MonoBehaviour
                     foreach (SpellData spell in gameManager.players[playerPauseIndex].spellList)
                         if (spell != null) columnSpells.Add(spell);
             }
+            else if (i == 5)
+            {
+                foreach (SpellData spell in SpellDictionary.Instance.spellList)
+                {
+                    if (spell != null)
+                    {
+                        columnSpells.Add(spell);
+                    }
+                }
+            }
             else
             {
                 foreach (SpellData spell in SpellDictionary.Instance.spellList)
@@ -215,7 +257,6 @@ public class Pause : MonoBehaviour
                         columnSpells.Add(spell);
                     }
                 }
-
             }
             grid[i].spells = columnSpells.ToArray();
         }
@@ -227,21 +268,37 @@ public class Pause : MonoBehaviour
 
     public void SpellGlossaryNewTab()
     {
+        List<GameObject> columnSpellList = new List<GameObject>();
         selectedSpell = 0;
         
         spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 200f);
-
-        spellGlossaryList.text = "";
         
-        for (int i = 0; i < grid[tab].spells.Length ; i++)
+        int j = 0;
+        
+        for (int i = 0; i < spellGlossaryList.Length ; i++)
         {
-            spellGlossaryList.text += grid[tab].spells[i].spellName + "\n";
+            if (j >= grid[tab].spells.Length)
+            {
+                spellGlossaryList[i].SetActive(false);
+                continue;
+            }
+            
+            if (spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>().text == grid[tab].spells[j].spellName)
+            {
+                spellGlossaryList[i].SetActive(true);
+                spellGlossaryList[i].transform.position = new Vector2(spellGlossaryList[i].transform.position.x, spellListParent.transform.position.y - (j * 200));
+                j++;
+            }
+            else
+            {
+                spellGlossaryList[i].SetActive(false);
+            }
         }
     }
 
     public void SpellGlossaryListSelection(float one)
     {
-        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 50f);
+        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 70f);
     }
 
     public void SpellGlossaryNavigation()
@@ -269,13 +326,13 @@ public class Pause : MonoBehaviour
             }
             if (nav.x < 0) 
             {
-                if (tab == 0) tab = 4;
+                if (tab == 0) tab = 5;
                 else tab--;
                 SpellGlossaryNewTab();
             }
             if (nav.x > 0) 
             {
-                if (tab == 4) tab = 0;
+                if (tab == 5) tab = 0;
                 else tab++;
                 SpellGlossaryNewTab();
             }
@@ -288,22 +345,26 @@ public class Pause : MonoBehaviour
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
             displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
             spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
-            
-            switch (grid[tab].spells[selectedSpell].brands[0])
+
+            if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
             {
-                case Brand.VWave:
-                    spellSelectedBorder.color = new Color32(107, 255, 116, 255);
-                    break;
-                case Brand.BigStox:
-                    spellSelectedBorder.color = new Color32(67, 122, 252, 255);
-                    break;
-                case Brand.DemonX:
-                    spellSelectedBorder.color = new Color32(255, 62, 117, 255);
-                    break;
-                case Brand.Killeez:
-                    spellSelectedBorder.color = new Color32(255, 207, 0, 255);
-                    break;
+                switch (grid[tab].spells[selectedSpell].brands[0])
+                {
+                    case Brand.VWave:
+                        spellSelectedBorder.color = GameManager.colors["green"];
+                        break;
+                    case Brand.BigStox:
+                        spellSelectedBorder.color = GameManager.colors["blue"];
+                        break;
+                    case Brand.DemonX:
+                        spellSelectedBorder.color = GameManager.colors["red"];
+                        break;
+                    case Brand.Killeez:
+                        spellSelectedBorder.color = GameManager.colors["yellow"];
+                        break;
+                }
             }
+            
         }
         else
         {

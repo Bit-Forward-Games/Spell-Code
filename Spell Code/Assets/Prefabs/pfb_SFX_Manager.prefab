@@ -275,3 +275,5 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+  spellcodeAudioClips:
+  - {fileID: 8300000, guid: debebf0e38917ef40ac68ac672f36ce5, type: 3}

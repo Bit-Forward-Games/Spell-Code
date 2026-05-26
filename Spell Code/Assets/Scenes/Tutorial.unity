@@ -284,7 +284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aae4fe7a6b279324e81c066329135a7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  door: {fileID: 552092907}
+  door: {fileID: 1227817851}
   machine: {fileID: 978990244}
 --- !u!4 &257718915
 Transform:
@@ -301,17 +301,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &552092907 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6156439578299445748, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-  m_PrefabInstance: {fileID: 978990243}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95e9fd3f4f8d2b948827398ad78b1c14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &826706541
 GameObject:
   m_ObjectHideFlags: 0
@@ -469,6 +458,14 @@ PrefabInstance:
     - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947821609592003075, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+      propertyPath: diskName
+      value: Hell-Chain Sweep
+      objectReference: {fileID: 0}
+    - target: {fileID: 6343537903615373471, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+      propertyPath: diskName
+      value: Abaddon Uppercut
       objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -901,6 +898,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137343025}
   m_CullTransparentMesh: 1
+--- !u!114 &1227817851 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6727843324509476229, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+  m_PrefabInstance: {fileID: 978990243}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f37d70642f938a41a4a2c96c55adaf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1322015736
 GameObject:
   m_ObjectHideFlags: 0

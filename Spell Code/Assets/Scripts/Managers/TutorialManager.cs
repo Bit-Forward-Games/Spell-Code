@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Tutorial : MonoBehaviour
 {
-    public GO_Door door;
+    public Exit_Door door;
     public GambaMachine machine;
     private GameManager gM;
 
@@ -16,7 +16,6 @@ public class Tutorial : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        door.CheckOpenDoor();
         if (door.CheckAllPlayersReady()) { gM.sceneManager.LoadScene("MainMenu"); }
     }
 }

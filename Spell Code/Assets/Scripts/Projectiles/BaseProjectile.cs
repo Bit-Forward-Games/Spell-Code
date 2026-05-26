@@ -63,6 +63,9 @@ public abstract class BaseProjectile : MonoBehaviour
         //this.hitboxDatas = hitboxDatas;
         this.activeHitboxGroupIndex = 0;
         this.logicFrame = 0;
+
+        //play the spawn sfx for this spellcode based on the projectile name
+        SFX_Manager.Instance.PlaySpellcodeSound(projName, 1.0f, 1.0f);
     }
 
     public virtual void ResetValues()

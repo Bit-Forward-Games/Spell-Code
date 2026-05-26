@@ -94,7 +94,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
-        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 2; // Shorter 3/4-player movement prediction so fast left/right reversals do not overshoot for long
+        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 1; // Shorter 3/4-player movement prediction so fast left/right reversals do not overshoot for long
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 

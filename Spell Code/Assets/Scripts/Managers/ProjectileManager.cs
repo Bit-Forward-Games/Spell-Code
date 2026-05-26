@@ -1,8 +1,8 @@
-using NUnit.Framework;
-using UnityEngine;
-using System.Collections.Generic;
 using BestoNet.Types;
-
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -301,6 +301,9 @@ public class ProjectileManager : MonoBehaviour
         {
             activeProjectiles.Remove(targetProjectile);
         }
+
+        //play the destroy sfx for this spellcode based on the projectile name
+        SFX_Manager.Instance.PlaySpellcodeSound(targetProjectile.projName + " End", 1.0f, 1.0f);
     }
 
     public List<BaseProjectile> GetMatchingProjectiles(string projectileName, PlayerController owner)

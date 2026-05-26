@@ -3655,6 +3655,13 @@ public class GameManager : MonoBehaviour
             localPlayerInput = 5;
             syncedInput = new ulong[Mathf.Max(2, IsRosterBasedOnlineMatch() ? playerCount : 2)];
             timeoutFrames = 0;
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (players[i] != null)
+                {
+                    players[i].roundRam = 0;
+                }
+            }
 
             if (MatchMessageManager.Instance != null)
             {

@@ -286,6 +286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   door: {fileID: 1227817851}
   machine: {fileID: 978990244}
+  machine2: {fileID: 0}
 --- !u!4 &257718915
 Transform:
   m_ObjectHideFlags: 0
@@ -458,14 +459,6 @@ PrefabInstance:
     - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_IsActive
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5947821609592003075, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: diskName
-      value: Hell-Chain Sweep
-      objectReference: {fileID: 0}
-    - target: {fileID: 6343537903615373471, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: diskName
-      value: Abaddon Uppercut
       objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x

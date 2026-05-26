@@ -149,8 +149,8 @@ BoxCollider2D:
   m_Offset: {x: 0.32149506, y: 19.861801}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.1666667}
-    oldSize: {x: 64, y: 96}
+    pivot: {x: 0.5, y: 0.16666667}
+    oldSize: {x: 74, y: 96}
     newSize: {x: 96, y: 96}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -171,6 +171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gambaAnimator: {fileID: 7695478952057797815}
+  isActive: 0
   ownerPlayer: {fileID: 0}
   ownerPID: 0
   spells: []
@@ -181,6 +182,7 @@ MonoBehaviour:
     width: 0
     height: 0
   colliderRadius: 16
+  resetTimer: 0
   activatedCount: 0
   floppy: {fileID: 2806504647812706647, guid: 2a5b19df33862834294e45f69628e494, type: 3}
   diskLocations:
@@ -196,4 +198,12 @@ MonoBehaviour:
   - {x: 79, y: -112}
   - {x: 143, y: -112}
   - {x: 207, y: -112}
+  tutorialLocs:
+  - {x: 1450, y: -254}
+  - {x: 2129, y: -591}
+  - {x: 2177, y: -591}
+  - {x: 2225, y: -591}
+  - {x: 2273, y: -591}
+  - {x: 2321, y: -591}
+  - {x: 2369, y: -591}
   facingRight: 1

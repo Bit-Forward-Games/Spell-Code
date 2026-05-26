@@ -401,7 +401,7 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-#if UNITY_EDITOR
+//#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
@@ -419,7 +419,7 @@ public class GameManager : MonoBehaviour
         {
             players[0].ClearSpellList();
         }
-#endif
+//#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }

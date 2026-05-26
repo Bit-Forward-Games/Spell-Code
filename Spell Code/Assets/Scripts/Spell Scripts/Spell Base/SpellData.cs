@@ -20,7 +20,8 @@ using System;
 public enum SpellType
 {
     Passive,
-    Active
+    Active,
+    Universal
 }
 
 public enum Brand
@@ -29,9 +30,7 @@ public enum Brand
     VWave,
     DemonX,
     Killeez,
-    BigStox,
-    SLUG,
-    Halk
+    BigStox
 }
 
 public enum ProcCondition
@@ -45,6 +44,7 @@ public enum ProcCondition
     OnHurtBasic,
     OnHurtSpell,
     OnSlide,
+    OnJump,
     OnDodge,
     OnDodged,
     OnBlock,
@@ -54,6 +54,7 @@ public enum ProcCondition
     ActiveOnCast,
     OnKill,
     OnDeath,
+    OnStart,
     OnUpdate
     
 }
@@ -74,6 +75,9 @@ public abstract class SpellData : MonoBehaviour
 
     [NonSerialized]
     public string description;
+
+    [NonSerialized]
+    public byte priorityOverride = 0;   //This Variable when non-zero allows for "high priority" spellcodes to resolve their effects first if necessary, e.g., blue chip trader should always resolve before Let It Ride.
 
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;

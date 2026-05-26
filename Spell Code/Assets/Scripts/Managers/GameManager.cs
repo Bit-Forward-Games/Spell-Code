@@ -23,6 +23,25 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    public static Dictionary<string, Color> colors = new Dictionary<string, Color>
+    {
+        { "red", HexToColor("#ff424f") },
+        { "green", HexToColor("#6cb328") },
+        { "blue", HexToColor("#409def") },
+        { "yellow", HexToColor("#fbc800") },
+        { "white", HexToColor("#ffffff") },
+        { "purple", HexToColor("#b44cef") },
+        { "gold", HexToColor("#dd8c00") },
+        { "grey", HexToColor("#998d86") },
+        { "black", HexToColor("#000000") }
+    };
+
+    private static Color HexToColor(string hexCode)
+    {
+        ColorUtility.TryParseHtmlString(hexCode, out Color color);
+        return color;
+    }
+
     public GameObject MainMenuScreen;
 
     public GameObject playerPrefab;
@@ -2837,7 +2856,7 @@ public class GameManager : MonoBehaviour
                     int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,ramNeededToWinRound-1-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
                     p.totalRam += (ushort)CollectedGold;
-                    p.SpawnToast($"+{totalRamEarned} RAM", Color.yellow);
+                    p.SpawnToast($"+{totalRamEarned} RAM", GameManager.colors["yellow"]);
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }

@@ -10,7 +10,7 @@ public class GiftOfPrometheus : SpellData
         spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        description = "Delayed massive explosion.\nHit this: Gain 2 Reps<sprite name=\"Reps\">.\nDeals greatly increased damage based on Reps<sprite name=\"Reps\">.";
+        description = "Delayed massive explosion.\nDeals Massively increased damage based on Reps<sprite name=\"Reps\">.";
 
         projectilePrefabs = new GameObject[1];
     }
@@ -22,9 +22,7 @@ public class GiftOfPrometheus : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
-                owner.reps += 2;
-                owner.SpawnToast("+2 REPS", Color.yellow);
-                defender.TakeEffectDamage(owner.reps * 5, owner);
+                defender.TakeEffectDamage(owner.reps * 4, owner, GameManager.colors["yellow"]);
                 break;
             default:
                 break;

@@ -160,6 +160,12 @@ public class HitboxManager : MonoBehaviour
 
     public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, bool defenderFacingRight = true)
     {
+        return ProcessSingleProjectileCollisison(projectile, hurtboxData, defenderPos, out _, defenderFacingRight);
+    }
+
+    public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, out HitboxData collidedHitbox, bool defenderFacingRight = true)
+    {
+        collidedHitbox = null;
         if (projectile.projectileHitboxes.Length == 0) return false;
         HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
         // Combine all hitbox lists into one sequence
@@ -174,6 +180,7 @@ public class HitboxManager : MonoBehaviour
             if (CheckCollision(hitbox, projectile.position, hurtboxData, defenderPos,
                         projectile.facingRight, defenderFacingRight))
             {
+                collidedHitbox = hitbox;
                 //defendingPlayer.facingRight = !projectile.facingRight;
                 //byte hitstopVal = 5;
                 //defendingPlayer.hitstop = hitstopVal;
@@ -499,7 +506,7 @@ public class HitboxManager : MonoBehaviour
 
             // 5) Draw black outline by stamping the text at offsets
             var prevColor = GUI.color;
-            style.normal.textColor = Color.black;
+            style.normal.textColor = GameManager.colors["black"];
             for (int dx = -1; dx <= 1; dx++)
             {
                 for (int dy = -1; dy <= 1; dy++)
@@ -511,7 +518,7 @@ public class HitboxManager : MonoBehaviour
             }
 
             // 6) Draw the white text on top
-            style.normal.textColor = Color.white;
+            style.normal.textColor = GameManager.colors["white"];
             GUI.Label(labelRect, text, style);
             GUI.color = prevColor;
         }

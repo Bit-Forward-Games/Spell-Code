@@ -11,10 +11,10 @@ public class HellChainSweep : SpellData
         spellName = "Hell-Chain Sweep";
         cooldown = 60;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[] { ProcCondition.OnSlide, ProcCondition.ActiveOnHit};
+        procConditions = new ProcCondition[] { ProcCondition.OnSlide};
         brands = new Brand[1] { Brand.DemonX };
         projectilePrefabs = new GameObject[2];
-        description = "Your slide attacks.\nHit This: +20% Demon Aura<sprite name=\"DemonAura\">\n When above 50% Demon Aura<sprite name=\"DemonAura\">, this spell is empowered.";
+        description = "Deal damage with your slide.\nWhen above 50% Demon Aura<sprite name=\"DemonAura\">, this spell breaks armor.";
         spawnOffsetX = 15;
         spawnOffsetY = 0;
     }
@@ -33,10 +33,6 @@ public class HellChainSweep : SpellData
     {
         switch (targetProcCon)
         {
-            case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", Color.red);
-                break;
             case ProcCondition.OnSlide:
             if(cooldownCounter <= 0)
                 {

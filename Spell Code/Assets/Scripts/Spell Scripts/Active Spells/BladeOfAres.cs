@@ -9,9 +9,9 @@ public class BladeOfAres : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0111_0000_0010; 
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range slash.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nDeals increased damage based on Reps<sprite name=\"Reps\">.";
+        description = "Short-range slash.\nThis Spell has armor.";
 
     }
 
@@ -21,13 +21,8 @@ public class BladeOfAres : SpellData
     {
         switch (targetProcCon)
         {
-            case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
-                owner.reps += 1;
-                owner.SpawnToast("+1 REP", Color.yellow);
-                defender.TakeEffectDamage(owner.reps * 2, owner);
-                break;
             case ProcCondition.ActiveOnCast:
-                owner.lightArmor = true;
+                owner.armor = true;
                 break;
             default:
                 break;

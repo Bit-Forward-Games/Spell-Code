@@ -3261,6 +3261,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 3968330034865702258, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -45.69995
+      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3313,6 +3317,122 @@ PrefabInstance:
       propertyPath: onboardManager
       value: 
       objectReference: {fileID: 312826359}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: spellList.Array.size
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1928891378184226331, guid: 266cc57ca2373ee47b72cd6e46d18839, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2369003188202569782, guid: b7ee108558594f24185302ae9a34be06, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[2]'
+      value: 
+      objectReference: {fileID: -8716498149934488879, guid: cc7f531e0b113764596a04390fbe720f, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[3]'
+      value: 
+      objectReference: {fileID: -8620375665089151006, guid: 0134af370bd257e41b6f3d6336762082, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[4]'
+      value: 
+      objectReference: {fileID: 696722717300790416, guid: 0169a6d0252c077439b9223455c39108, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[5]'
+      value: 
+      objectReference: {fileID: 5816283378747392984, guid: e60c67891c09e3c489074294d36cbc52, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[6]'
+      value: 
+      objectReference: {fileID: 5770587365939138301, guid: a3a241a164f11cf459e770565be7451a, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[7]'
+      value: 
+      objectReference: {fileID: -5587277087600910401, guid: 06af91947713a824aa3a669efc0aa028, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[8]'
+      value: 
+      objectReference: {fileID: -5945762793687658070, guid: 9e4c99c1ea039de4c87c46cd1fb1ecf0, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[9]'
+      value: 
+      objectReference: {fileID: -764328101641788283, guid: 35f892d8493915041b6d65a1d99473e2, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[10]'
+      value: 
+      objectReference: {fileID: -3969159087852126958, guid: fba9adf08a7477541b0fe5409906df9a, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[11]'
+      value: 
+      objectReference: {fileID: 6900761627890387506, guid: 5d3d47814f0b3cf42a27913c2762752c, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[12]'
+      value: 
+      objectReference: {fileID: 3677211430249304234, guid: f777cb9f886bf3a4389b25ec7fd55c88, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[13]'
+      value: 
+      objectReference: {fileID: -5894398789448975100, guid: ef3771bb82ad3fb40a027110987fae71, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[14]'
+      value: 
+      objectReference: {fileID: -4505625144646423502, guid: d6bea4b6433c99247a2b15dc4770ff05, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[15]'
+      value: 
+      objectReference: {fileID: -4971000813473237039, guid: ecb07621054a9534b8f6ab9879d6eb85, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[16]'
+      value: 
+      objectReference: {fileID: -6130499417200948843, guid: a6e6d6fbd777fff41a13b08a0af6ab6a, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[17]'
+      value: 
+      objectReference: {fileID: 4086900605317289789, guid: e20692c84a0616b4e852994d0fd9dff3, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[18]'
+      value: 
+      objectReference: {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[19]'
+      value: 
+      objectReference: {fileID: 1029980139648314942, guid: 9d2d9534aa316704bb7e17eb4c5d2558, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[20]'
+      value: 
+      objectReference: {fileID: 3228513247226345638, guid: fc3b2debc8d4a174d8974734fc504041, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[21]'
+      value: 
+      objectReference: {fileID: 5563068128995029098, guid: cb2eff8e4e8b8ff40a4400428f820dbd, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[22]'
+      value: 
+      objectReference: {fileID: 6018045562301869049, guid: 4d04079dedaa5194a941eefff3452143, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[23]'
+      value: 
+      objectReference: {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[24]'
+      value: 
+      objectReference: {fileID: -4807453519986841140, guid: 2a95c3d546893f5439c5eccd1bff9339, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[25]'
+      value: 
+      objectReference: {fileID: -983938460387295349, guid: 4640ba4b36aff1842b79ea7964b681d3, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[26]'
+      value: 
+      objectReference: {fileID: 8791147183177087036, guid: e1333e686a899b14f8f7389907262737, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[27]'
+      value: 
+      objectReference: {fileID: -4764670587118944097, guid: b3a2bcd249cbd2442a3f9261bf7801ec, type: 3}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
@@ -3320,13 +3440,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8941769069912411544, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 9183262321279178268, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
 --- !u!114 &1740018769 stripped
 MonoBehaviour:

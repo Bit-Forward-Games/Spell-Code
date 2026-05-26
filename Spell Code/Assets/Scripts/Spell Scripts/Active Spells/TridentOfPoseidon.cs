@@ -9,12 +9,12 @@ public class TridentOfPoseidon : SpellData
     {
         spellName = "Trident Of Poseidon";
         brands = new Brand[]{ Brand.Killeez };
-        cooldown = 240;
+        cooldown = 300;
         spellInput = 0b_0000_0000_0000_0000_0000_0111_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[3] { ProcCondition.ActiveOnHit, ProcCondition.OnHitBasic, ProcCondition.ActiveOnCast };
+        procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[3];
-        description = "Lunge Downward with Trident.\nHit this: Gain 1 Rep<sprite name=\"Reps\">.\nUpon landing, send forth a wave that goes farther based on Reps<sprite name=\"Reps\">.";
+        description = "Lunge Downward with Trident.\nUpon landing, send forth waves which travel farther based on Reps<sprite name=\"Reps\">.";
 
     }
 
@@ -63,11 +63,7 @@ public class TridentOfPoseidon : SpellData
     {
         switch(targetProcCon)
         {
-            //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
-            case ProcCondition.ActiveOnHit:
-                owner.reps++;
-                owner.SpawnToast("+1 REP", Color.yellow);
-                break;
+            //all spell effects are done in the projectiles' logic
             default:
                 break;
         }

@@ -15,7 +15,7 @@ public class NetworkDebugStats : MonoBehaviour
         GUIStyle style = new GUIStyle(GUI.skin.box);
         style.alignment = TextAnchor.UpperLeft;
         style.fontSize = 14;
-        style.normal.textColor = Color.white;
+        style.normal.textColor = GameManager.colors["white"];
 
         // Calculate box height based on lines
         float width = 250;
@@ -27,17 +27,17 @@ public class NetworkDebugStats : MonoBehaviour
 
         // --- PING ---
         int ping = MatchMessageManager.Instance.Ping;
-        GUI.color = ping < 100 ? Color.green : (ping < 200 ? Color.yellow : Color.red);
+        GUI.color = ping < 100 ? GameManager.colors["green"] : (ping < 200 ? GameManager.colors["yellow"] : GameManager.colors["red"]);
         GUILayout.Label($"Ping: {ping}ms");
 
         // --- ROLLBACK INFO ---
-        GUI.color = Color.white;
+        GUI.color = GameManager.colors["white"];
         int rbFrames = RollbackManager.Instance.RollbackFrames;
-        if (rbFrames > 0) GUI.color = Color.red; // Flash red if rolling back
+        if (rbFrames > 0) GUI.color = GameManager.colors["red"]; // Flash red if rolling back
         GUILayout.Label($"Last Rollback: {rbFrames} frames");
 
         // --- FRAME SYNC ---
-        GUI.color = Color.white;
+        GUI.color = GameManager.colors["white"];
         int frameAdv = RollbackManager.Instance.localFrameAdvantage;
         GUILayout.Label($"Frame Advantage: {frameAdv}");
 

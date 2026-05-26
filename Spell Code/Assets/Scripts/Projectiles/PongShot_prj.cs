@@ -19,7 +19,7 @@ public class PongShot_prj : BaseProjectile
         projName = "Pong Shot";
         lifeSpan = 240;
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
     }
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -36,7 +36,7 @@ public class PongShot_prj : BaseProjectile
 
         deleteOnHit = true;
         bounceCount = 0;
-        lifeSpan = (ushort)(owner.flowState > 0 ? 300 : 240); // Set speed based on flow state
+        lifeSpan = (ushort)((owner != null && owner.flowState > 0) ? 300 : 240); // Set speed based on flow state
         projectileHitboxes = new HitboxGroup[3];
 
         projectileHitboxes[1] = new HitboxGroup

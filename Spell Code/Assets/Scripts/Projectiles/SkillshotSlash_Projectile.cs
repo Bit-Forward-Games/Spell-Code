@@ -38,7 +38,7 @@ public class SkillshotSlash_Projectile : BaseProjectile
                     yOffset = 12*2,
                     width = 65*2,
                     height = 27*2,
-                    xKnockback = 2,
+                    xKnockback = 4,
                     yKnockback = 3,
                     damage = 15,
                     hitstun = 15,

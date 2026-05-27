@@ -34,7 +34,7 @@ public class ClearMachine : MonoBehaviour
     {
         gameManager = GameManager.Instance;
 
-        hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36 };
+        hurtbox = new HurtboxData() { height = 48, width = 20, xOffset = -10, yOffset = 48 };
     }
 
     // Update is called once per frame

@@ -129,7 +129,7 @@ public class PongShot_prj : BaseProjectile
 
     public void CheckStageDataSOCollision()
     {
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: GameManager.Instance.TutorialSO) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)

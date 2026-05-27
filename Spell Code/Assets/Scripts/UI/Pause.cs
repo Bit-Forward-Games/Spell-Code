@@ -298,7 +298,7 @@ public class Pause : MonoBehaviour
 
     public void SpellGlossaryListSelection(float one)
     {
-        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 70f);
+        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 60f);
     }
 
     public void SpellGlossaryNavigation()

@@ -36,10 +36,10 @@ public class DemonicDescent_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -20*2,
-                    yOffset = 20*2,
-                    width = 40*2,
-                    height = 40*2,
+                    xOffset = -25*2,
+                    yOffset = 25*2,
+                    width = 50*2,
+                    height = 50*2,
                     xKnockback = 0,
                     yKnockback = 0,
                     damage = 2,

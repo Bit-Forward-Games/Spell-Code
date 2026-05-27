@@ -6,6 +6,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
+using System;
 
 public class StageCamera : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class StageCamera : MonoBehaviour
     private Vector3 shakeOffset;
 
     public Pause pause;
+    [NonSerialized]
     public bool shakeEnabled;
 
     void Start()
@@ -150,7 +152,7 @@ public class StageCamera : MonoBehaviour
         //}
         if (shakeTimeRemaining > 0)
         {
-            shakeOffset = Random.insideUnitCircle * shakeMagnitude;
+            shakeOffset = UnityEngine.Random.insideUnitCircle * shakeMagnitude;
             shakeTimeRemaining -= Time.deltaTime;
         }
         else

@@ -2798,6 +2798,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Scene loaded: {scene.name}");
 
         RefreshSceneObjectReferences();
+        HitboxManager.Instance.GetActiveCamera();
 
         if (scene.name == "End")
         {
@@ -2858,7 +2859,6 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
-            HitboxManager.Instance.GetActiveCamera();
             FindAllFloppyDisks();
         }
 

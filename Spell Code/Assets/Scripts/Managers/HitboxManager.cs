@@ -124,12 +124,18 @@ public class HitboxManager : MonoBehaviour
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
                             defendingPlayer.facingRight = !projectile.facingRight;
+                            
                             byte hitstopVal = 8;
-                            if (projectile.meleeProjectile)
+                            if(hitbox.hitstun > 0)
                             {
-                                projectile.owner.hitstop = hitstopVal;
+                                if (projectile.meleeProjectile)
+                                {
+                                    projectile.owner.hitstop = hitstopVal;
+                                }
+                                defendingPlayer.hitstop = hitstopVal;
+                                cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
                             }
-                            defendingPlayer.hitstop = hitstopVal;
+                           
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
                             if (GameManager.Instance.isOnlineMatchActive)
@@ -144,12 +150,7 @@ public class HitboxManager : MonoBehaviour
                                 defendingPlayer.facingRight = !projectile.facingRight;
                                 defendingPlayer.hitboxData = hitbox;
                             }
-                            //if (!RollbackManager.Instance.isRollbackFrame)
-                            //{
-                            //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            //}
-                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            
+
                             projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                             
                             projectile.ownerSpell?.ShareHitIgnoreList();

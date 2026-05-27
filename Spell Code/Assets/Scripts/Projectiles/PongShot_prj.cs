@@ -213,6 +213,9 @@ public class PongShot_prj : BaseProjectile
                         }
                     }
 
+                    //Play the pong shot collision SFX
+                    SFX_Manager.Instance.PlaySpellcodeSound("Pong Shot Collision");
+
                     bounceCount++; // Increment bounce count when hitting a solid surface
                                    //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
                     if (bounceCount >= 2)
@@ -279,7 +282,10 @@ public class PongShot_prj : BaseProjectile
                // This avoids blocking the projectile from jumping up through the platform.
                if ((pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))||(pMaxY >= platformBottom && position.Y <= platformBottom && vSpeed >= Fixed.FromInt(0)))
                {
-                   vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
+                    //Play the pong shot collision SFX
+                    SFX_Manager.Instance.PlaySpellcodeSound("Pong Shot Collision");
+
+                    vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
                    bounceCount++; // Increment bounce count when hitting a platform
                                   //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
                    if (bounceCount >= 2)

@@ -310,7 +310,7 @@ public class GambaMachine : MonoBehaviour
     {
         if (ownerPlayer == null) return;
 
-        if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+        if (ownerPlayer.chosenSpell || ownerPlayer.spellList.Count >= 6)
         {
             activatedCount = 3;
             isActive = false;
@@ -775,7 +775,7 @@ public class GambaMachine : MonoBehaviour
             List<string> available = spells.Where(s => !chosen.Contains(s)).ToList();
             if (available.Count == 0) break;
 
-            int randomInt = GameManager.Instance.GetNextRandom(0, available.Count);
+            int randomInt = GameManager.Instance.GetOnlineShopChoiceRandom(pid, activatedCount, i, available.Count);
             string spellToAdd = available[randomInt];
             chosen.Add(spellToAdd);
 

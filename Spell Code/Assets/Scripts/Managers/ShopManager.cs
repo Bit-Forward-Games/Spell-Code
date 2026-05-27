@@ -109,12 +109,15 @@ public class ShopManager : MonoBehaviour
                     && gambaMachine.ownerPID <= gameManager.playerCount
                     && gameManager.players[gambaMachine.ownerPID - 1] != null;
                 int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
+                PlayerController owner = hasActiveOwner ? gameManager.players[gambaMachine.ownerPID - 1] : null;
                 bool ownerCanUseShop = hasActiveOwner
-                    && gameManager.players[gambaMachine.ownerPID - 1].spellList != null
-                    && gameManager.players[gambaMachine.ownerPID - 1].spellList.Count < roundsPlayed + 1;
+                    && owner.spellList != null
+                    && (gameManager.isOnlineMatchActive
+                        ? owner.spellList.Count < 6 && !owner.chosenSpell
+                        : owner.spellList.Count < roundsPlayed + 1);
 
                 gambaMachine.activatedCount = ownerCanUseShop ? 0 : 3;
-                gambaMachine.ownerPlayer = hasActiveOwner ? gameManager.players[gambaMachine.ownerPID - 1] : null;
+                gambaMachine.ownerPlayer = owner;
                 gambaMachine.isActive = ownerCanUseShop;
             }
         }

@@ -154,12 +154,23 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                     return;
                 }
 
-                overlappingPlayer.AddSpellToSpellList(diskName);
-                if (isRealFrame)
+                if (overlappingPlayer.AddSpellToSpellList(diskName))
                 {
-                    diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                    if (SceneManager.GetActiveScene().name == "Shop")
+                    {
+                        overlappingPlayer.chosenSpell = true;
+                    }
+
+                    if (isRealFrame)
+                    {
+                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                    }
+                    Destroy(gameObject);
                 }
-                Destroy(gameObject);
+                else
+                {
+                    selectHoldCounter = 0;
+                }
             }
         }
         else
@@ -192,9 +203,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
         if (activeScene.name == "Shop")
         {
-            DataManager dataManager = DataManager.Instance;
-            int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
-            return overlappingPlayer.spellList.Count >= roundsPlayed + 1;
+            return overlappingPlayer.chosenSpell || overlappingPlayer.spellList.Count >= 6;
         }
 
         return false;

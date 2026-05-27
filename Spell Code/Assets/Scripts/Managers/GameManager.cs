@@ -3208,6 +3208,31 @@ public class GameManager : MonoBehaviour
         return minValue + (int)(rngState % (uint)range);
     }
 
+    public int GetOnlineShopChoiceRandom(int ownerPid, int activationCount, int choiceIndex, int maxValue)
+    {
+        if (maxValue <= 0)
+        {
+            return 0;
+        }
+
+        unchecked
+        {
+            uint state = (uint)randomSeed;
+            state ^= 0x9E3779B9u * (uint)(CurrentTotalRoundsPlayed + 1);
+            state ^= 0x85EBCA6Bu * (uint)Mathf.Max(1, ownerPid);
+            state ^= 0xC2B2AE35u * (uint)Mathf.Max(0, activationCount);
+            state ^= 0x27D4EB2Fu * (uint)Mathf.Max(1, choiceIndex + 1);
+
+            state ^= state >> 16;
+            state *= 0x7FEB352Du;
+            state ^= state >> 15;
+            state *= 0x846CA68Bu;
+            state ^= state >> 16;
+
+            return (int)(state % (uint)maxValue);
+        }
+    }
+
     private int GetNextStageRandom(int minValue, int maxValue)
     {
         // Deterministic LCG, same constants as GetNextRandom but separate state
@@ -3871,6 +3896,7 @@ public class GameManager : MonoBehaviour
             localPlayerInput = 5;
             syncedInput = new ulong[Mathf.Max(2, IsRosterBasedOnlineMatch() ? playerCount : 2)];
             timeoutFrames = 0;
+            ResetOnlineShopChoiceFlags();
 
             if (MatchMessageManager.Instance != null)
             {
@@ -3898,6 +3924,22 @@ public class GameManager : MonoBehaviour
             }
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()
+        }
+    }
+
+    private void ResetOnlineShopChoiceFlags()
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null)
+            {
+                players[i].chosenSpell = false;
+            }
         }
     }
 
@@ -3954,10 +3996,10 @@ public class GameManager : MonoBehaviour
 
             gamba.resetTimer = 0;
             bool hasActiveOwner = gamba.ownerPID > 0 && gamba.ownerPID <= playerCount && players[gamba.ownerPID - 1] != null;
-            int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
             bool ownerCanUseShop = hasActiveOwner
                 && players[gamba.ownerPID - 1].spellList != null
-                && players[gamba.ownerPID - 1].spellList.Count < roundsPlayed + 1;
+                && players[gamba.ownerPID - 1].spellList.Count < 6
+                && !players[gamba.ownerPID - 1].chosenSpell;
 
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;

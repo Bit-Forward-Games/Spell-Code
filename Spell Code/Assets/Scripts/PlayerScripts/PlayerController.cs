@@ -2339,6 +2339,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Slide:
                 hSpd = facingRight ? slideSpeed : -slideSpeed;
                 playerHeight = Fixed.FromInt(charData.playerHeight/2);
+
+                //Play the slide SFX
+                SFX_Manager.Instance.PlaySound(Sounds.SLIDE, 1.0f, 1.0f);
+
                 break;
         }
     }

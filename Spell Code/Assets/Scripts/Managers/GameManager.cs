@@ -237,6 +237,8 @@ public class GameManager : MonoBehaviour
     private int pendingStageSelectIndex = -1;
     private uint pendingStageSelectRngState = 0;
     private int pendingStageSelectTotalRoundsPlayed = -1;
+    private uint pendingStageSelectGameplayRngState = 0;
+    private int pendingStageSelectRandomCallCount = -1;
     private bool localSceneTransitionReady = false;
     private bool remoteSceneTransitionReady = false;
     private bool hasPendingRemoteSceneReady = false;
@@ -960,16 +962,41 @@ public class GameManager : MonoBehaviour
         return applied;
     }
 
-    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData, bool forceApply = false)
+    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData, bool forceApply = false, byte snapshotSceneType = 0, int snapshotSceneSignature = 0)
     {
         if (roster == null || stateData == null || stateData.Length == 0)
         {
             return false;
         }
 
-        if (roster.LocalPlayerSlot < 0 || SceneManager.GetActiveScene().name != "MainMenu")
+        if (roster.LocalPlayerSlot < 0)
         {
             return false;
+        }
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        if (!forceApply && activeSceneName != "MainMenu")
+        {
+            return false;
+        }
+
+        if (forceApply)
+        {
+            byte currentSceneType = GetNetworkSceneTypeCode();
+            if (currentSceneType == 0 || activeSceneName == "End")
+            {
+                return false;
+            }
+
+            if (snapshotSceneType != 0 && snapshotSceneType != currentSceneType)
+            {
+                return false;
+            }
+
+            if (currentSceneType == 1 && snapshotSceneSignature != 0 && snapshotSceneSignature != GetNetworkSceneSignature())
+            {
+                return false;
+            }
         }
 
         bool rosterSnapshotAlreadyActive = isOnlineMatchActive && DoesActiveOnlineRosterMatch(roster);
@@ -1044,7 +1071,7 @@ public class GameManager : MonoBehaviour
             || !IsOnlineHostAuthority()
             || activeOnlineRoster == null
             || MatchMessageManager.Instance == null
-            || SceneManager.GetActiveScene().name != "MainMenu")
+            || !IsOnlineSimulationScene(SceneManager.GetActiveScene()))
         {
             return;
         }
@@ -1786,7 +1813,7 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState, int hostTotalRoundsPlayed = -1)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState, int hostTotalRoundsPlayed = -1, uint hostGameplayRngState = 0, int hostRandomCallCount = -1)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         byte currentSceneType = GetNetworkSceneTypeCode();
@@ -1820,6 +1847,8 @@ public class GameManager : MonoBehaviour
                 pendingStageSelectIndex = stageIndex;
                 pendingStageSelectRngState = hostStageRngState;
                 pendingStageSelectTotalRoundsPlayed = hostTotalRoundsPlayed;
+                pendingStageSelectGameplayRngState = hostGameplayRngState;
+                pendingStageSelectRandomCallCount = hostRandomCallCount;
             }
             return false;
         }
@@ -1845,6 +1874,7 @@ public class GameManager : MonoBehaviour
                 AdvanceRoundCountOnce();
             }
 
+            ApplyOnlineGameplayRngState(hostGameplayRngState, hostRandomCallCount);
             MarkGameplayStageTransitionApplied(transitionId);
             ApplyOnlineStageSelection(stageIndex, hostStageRngState);
             return true;
@@ -1868,6 +1898,7 @@ public class GameManager : MonoBehaviour
 
             if (packetSceneType == 1)
             {
+                ApplyOnlineGameplayRngState(hostGameplayRngState, hostRandomCallCount);
                 MarkGameplayStageTransitionApplied(transitionId);
             }
 
@@ -1890,6 +1921,8 @@ public class GameManager : MonoBehaviour
             pendingStageSelectIndex = stageIndex;
             pendingStageSelectRngState = hostStageRngState;
             pendingStageSelectTotalRoundsPlayed = hostTotalRoundsPlayed;
+            pendingStageSelectGameplayRngState = hostGameplayRngState;
+            pendingStageSelectRandomCallCount = hostRandomCallCount;
             return true;
         }
 
@@ -1947,6 +1980,17 @@ public class GameManager : MonoBehaviour
         onlineRoundAdvanceApplied = true;
     }
 
+    private void ApplyOnlineGameplayRngState(uint hostGameplayRngState, int hostRandomCallCount)
+    {
+        if (hostRandomCallCount < 0)
+        {
+            return;
+        }
+
+        rngState = hostGameplayRngState;
+        randomCallCount = hostRandomCallCount;
+    }
+
     private void ApplyPendingStageSelectIfAvailable()
     {
         if (!hasPendingStageSelect)
@@ -1970,18 +2014,23 @@ public class GameManager : MonoBehaviour
         byte pendingSceneType = pendingStageSelectSceneType;
         uint pendingRngState = pendingStageSelectRngState;
         int pendingTotalRoundsPlayed = pendingStageSelectTotalRoundsPlayed;
+        uint pendingGameplayRngState = pendingStageSelectGameplayRngState;
+        int pendingRandomCallCount = pendingStageSelectRandomCallCount;
         pendingStageSelectTransitionId = 0;
         pendingStageSelectSceneType = 0;
         pendingStageSelectSceneSignature = 0;
         pendingStageSelectIndex = -1;
         pendingStageSelectRngState = 0;
         pendingStageSelectTotalRoundsPlayed = -1;
+        pendingStageSelectGameplayRngState = 0;
+        pendingStageSelectRandomCallCount = -1;
         if (pendingSceneType == 1)
         {
             if (pendingTotalRoundsPlayed >= 0)
             {
                 ApplyOnlineTotalRoundsPlayed(pendingTotalRoundsPlayed);
             }
+            ApplyOnlineGameplayRngState(pendingGameplayRngState, pendingRandomCallCount);
             MarkGameplayStageTransitionApplied(pendingTransitionId);
         }
         ApplyOnlineStageSelection(pendingIndex, pendingRngState);
@@ -3268,6 +3317,7 @@ public class GameManager : MonoBehaviour
             int transitionId = GetExpectedOnlineTransitionId();
             if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
             {
+                SendAuthoritativeOnlineLobbySnapshot();
                 MatchMessageManager.Instance.SendShopTransitionSignal(transitionId);
             }
             BeginOnlineShopTransition(transitionId);

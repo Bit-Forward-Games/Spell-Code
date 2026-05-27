@@ -33,7 +33,7 @@ public class VWavePassive : SpellData
                 
 
                 //enter flowstate if you hit a sweetspot on a vwave spell
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.VWave && defender.hitboxData.sweetSpot)
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.VWave && defender.hitboxData.sweetSpot && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     owner.flowState = maxFlowState;
                     owner.SpawnToast("FLOW STATE", GameManager.colors["green"]);

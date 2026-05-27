@@ -124,7 +124,11 @@ public class HitboxManager : MonoBehaviour
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
                             defendingPlayer.facingRight = !projectile.facingRight;
-                            byte hitstopVal = 5;
+                            byte hitstopVal = 8;
+                            if (projectile.meleeProjectile)
+                            {
+                                projectile.owner.hitstop = hitstopVal;
+                            }
                             defendingPlayer.hitstop = hitstopVal;
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;

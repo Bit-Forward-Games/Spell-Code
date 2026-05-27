@@ -14,6 +14,7 @@ public class QuarterReportCrit_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 180; 
+        deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -26,6 +27,7 @@ public class QuarterReportCrit_prj : BaseProjectile
 
     public override void LoadProjectile()
     {
+        deleteOnHit = true;
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {

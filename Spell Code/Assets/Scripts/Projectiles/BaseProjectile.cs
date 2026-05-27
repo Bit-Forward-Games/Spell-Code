@@ -25,7 +25,7 @@ public abstract class BaseProjectile : MonoBehaviour
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on
     [NonSerialized]
-    public ushort lifeSpan = 60; //in logic frames
+    public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
     [NonSerialized]
     public PlayerController owner;
     [NonSerialized]
@@ -34,7 +34,14 @@ public abstract class BaseProjectile : MonoBehaviour
     public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
     [NonSerialized]
     public AnimFrames animFrames;
-    public bool deleteOnHit = true;
+    [NonSerialized]
+    public bool deleteOnHit = false;
+    [NonSerialized]
+    public bool ignoreBrand = false;
+    [NonSerialized]
+    public bool meleeProjectile = false;
+
+    public FrameData frameData = null;//NOTE: IF FRAMEDATA IS NOT NULL HITBOX[0] MUST ALWAYS BE A NULL HITBOX
 
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
@@ -109,17 +116,53 @@ public abstract class BaseProjectile : MonoBehaviour
     }
     public virtual void ProjectileUpdate()
     {
-        //position.X += hSpeed;
-        //position.Y += vSpeed;
-        position += new FixedVec2(hSpeed, vSpeed);
+        
         logicFrame++;
 
+        if (meleeProjectile)
+        {
+            Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
+            Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
+            Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
+            Fixed newX = owner.position.X + (xOffset * direction);
+            Fixed newY = owner.position.Y + yOffset;
+
+            position = new FixedVec2(newX, newY);
+        }
+        else
+        {
+            position += new FixedVec2(hSpeed, vSpeed);
+        }
+
         // Check lifespan
-        if (logicFrame >= lifeSpan)
+        if( lifeSpan != 0)  //if lifeSpan == 0, then use the anim frames instead of lifespan to delete the projectile
+        {
+            if (logicFrame >= lifeSpan)
+            {
+                ProjectileManager.Instance.DeleteProjectile(this);
+                return;
+            }
+        }
+        if (logicFrame >= animFrames.frameLengths.Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
-            return;
         }
+        
+        if(frameData != null)
+        {
+            bool hitboxSet = false;
+            for(int i = 0; i < frameData.startFrames.Count; i++)
+            {
+                if(logicFrame >= frameData.startFrames[i] && logicFrame <= frameData.endFrames[i])
+                {
+                    activeHitboxGroupIndex = (byte)(i+1);
+                    hitboxSet = true;
+                }
+            }
+            if(!hitboxSet)activeHitboxGroupIndex = 0;
+        }
+
+
 
         //check if the projectile hit something and if it did, delete if necessary
         if (deleteOnHit)
@@ -172,6 +215,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
+        bw.Write(ignoreBrand);
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)
@@ -212,6 +256,7 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
+        ignoreBrand = br.ReadBoolean();
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)

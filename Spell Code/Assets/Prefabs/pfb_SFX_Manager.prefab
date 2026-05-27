@@ -275,9 +275,26 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+  - soundName: 13
+    possibleSounds:
+    - {fileID: 8300000, guid: aa89205cb914d794eaaaee5b44830876, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   spellcodeAudioClips:
   - {fileID: 8300000, guid: debebf0e38917ef40ac68ac672f36ce5, type: 3}
   - {fileID: 8300000, guid: c843570f8addcd1489af3e2149e5fa6c, type: 3}
   - {fileID: 8300000, guid: 8c103a703e3e17647b3b44992b85198b, type: 3}
   - {fileID: 8300000, guid: 8aa27d90a804f5b488c2912cd6585444, type: 3}
   - {fileID: 8300000, guid: 483901c000ee62945a8b2c73308dcf55, type: 3}
+  - {fileID: 8300000, guid: cf8c69a774f112743a5d39ddf69fa3e5, type: 3}
+  - {fileID: 8300000, guid: 24a4d22a7bb0cc24ba40e46843590f84, type: 3}
+  - {fileID: 8300000, guid: 71d33342be0e1f04182bb4d7dd3b2481, type: 3}
+  - {fileID: 8300000, guid: 96421233497d979438690e35ae58359f, type: 3}
+  - {fileID: 8300000, guid: 2f756a41c30d53b41becd4f7ec32ec7a, type: 3}
+  - {fileID: 8300000, guid: c5deb0bc79f6aff4fb8c1d410e03e177, type: 3}
+  - {fileID: 8300000, guid: 095919819961e2348bf83a1a31ed939c, type: 3}

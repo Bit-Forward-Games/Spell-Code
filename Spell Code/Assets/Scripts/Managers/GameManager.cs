@@ -1826,6 +1826,30 @@ public class GameManager : MonoBehaviour
 
         int currentSceneSignature = GetNetworkSceneSignature();
 
+        if (packetSceneType == 1
+            && currentSceneType != 1
+            && stageIndex >= 0
+            && stageIndex < stages.Count)
+        {
+            if (activeOnlineTransitionId == 0)
+            {
+                BeginTrackedOnlineTransition(transitionId);
+            }
+
+            if (hostTotalRoundsPlayed >= 0)
+            {
+                ApplyOnlineTotalRoundsPlayed(hostTotalRoundsPlayed);
+            }
+            else if (transitionId == expectedTransitionId)
+            {
+                AdvanceRoundCountOnce();
+            }
+
+            MarkGameplayStageTransitionApplied(transitionId);
+            ApplyOnlineStageSelection(stageIndex, hostStageRngState);
+            return true;
+        }
+
         if (packetSceneType == currentSceneType)
         {
             if (activeOnlineTransitionId == 0)
@@ -3518,8 +3542,7 @@ public class GameManager : MonoBehaviour
                 sceneBase = 100000;
                 break;
             case "Shop":
-                sceneBase = 200000;
-                break;
+                return 199999;
             case "MainMenu":
                 sceneBase = 300000;
                 break;
@@ -3817,6 +3840,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Shop" && isTransitioning)
         {
             //Debug.Log("Shop Scene Loaded - Resuming Online Match in Shop");
+            SetStage(-1);
             roundOver = false;
             gameOver = false;
             roundEndFrameCounter = 0;

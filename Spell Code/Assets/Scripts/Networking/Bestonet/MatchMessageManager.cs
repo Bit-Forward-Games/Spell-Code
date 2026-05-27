@@ -815,8 +815,8 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write(PACKET_TYPE_STAGE_SELECT);
                 writer.Write(transitionId);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write((byte)1);
+                writer.Write(100000 + stageIndex);
                 writer.Write(stageIndex);
                 writer.Write(stageRngState);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentTotalRoundsPlayed : -1);

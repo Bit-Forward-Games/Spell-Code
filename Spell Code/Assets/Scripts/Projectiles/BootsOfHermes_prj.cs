@@ -16,6 +16,7 @@ public class BootsOfHermes_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 60; // lasts for 300 logic frames
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3}, false);
+        ignoreBrand = true;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

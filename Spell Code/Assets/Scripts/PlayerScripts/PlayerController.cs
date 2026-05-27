@@ -211,9 +211,9 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 1.5f;
+    private float toastLifetime = 1.2f;
     //[SerializeField]
-    private float toastFadeDuration = 0.35f;
+    private float toastFadeDuration = 0.25f;
     //[SerializeField]
     private float toastBaseVerticalOffset = 90;
     //[SerializeField]
@@ -2522,23 +2522,23 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            
             HandleDamage(attacker, hitboxData.damage);
-            //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
-            
-            comboCounter++;
-            if (comboCounter >= 4)
+
+            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
-                SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
-                iframes = 120;
-                comboCounter = 0;
+                
+                //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+                comboCounter++;
+                if (comboCounter >= 4)
+                {
+                    SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
+                    iframes = 120;
+                    comboCounter = 0;
 
-                //Play the combo break VFX
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
-            }
-
-
-            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+                    //Play the combo break VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
+                }
+                //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             //play the damaged sound
             SFX_Manager.Instance.PlaySound(Sounds.HIT);
@@ -2548,6 +2548,13 @@ public class PlayerController : MonoBehaviour
 
             SetState(PlayerState.Hitstun);
 
+            }
+            
+            
+            
+
+
+            
             //call the active on hit proc of the spell that created the projectile that hit us
             if (hitboxData.parentProjectile.ownerSpell != null)
             {

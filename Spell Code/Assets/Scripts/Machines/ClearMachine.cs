@@ -23,7 +23,6 @@ public class ClearMachine : MonoBehaviour
     public PlayerController ownerPlayer = null;
     public int ownerPID;
     private GameManager gameManager;
-    private DataManager dataManager;
 
     public HurtboxData hurtbox = new HurtboxData();
     public float colliderRadius = 16f;
@@ -34,7 +33,6 @@ public class ClearMachine : MonoBehaviour
     void Start()
     {
         gameManager = GameManager.Instance;
-        dataManager = DataManager.Instance;
 
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36 };
     }

@@ -3281,14 +3281,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 2314199081146836107, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: spellcodeAudioClips.Array.size
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 2314199081146836107, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: 'spellcodeAudioClips.Array.data[5]'
-      value: 
-      objectReference: {fileID: 8300000, guid: 483901c000ee62945a8b2c73308dcf55, type: 3}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 

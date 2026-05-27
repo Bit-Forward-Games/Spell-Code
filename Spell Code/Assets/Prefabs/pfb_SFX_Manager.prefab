@@ -217,7 +217,7 @@ MonoBehaviour:
     - {fileID: 0}
   - soundName: 6
     possibleSounds:
-    - {fileID: 8300000, guid: 8cd3a1bf4d388a842bb2193a89023d5f, type: 3}
+    - {fileID: 8300000, guid: 382df19f1ccf9304f8acb2ab8bd3f544, type: 3}
     secretVersionOfSound: {fileID: 0}
     canRepeat: 1
     audioSources:
@@ -278,3 +278,6 @@ MonoBehaviour:
   spellcodeAudioClips:
   - {fileID: 8300000, guid: debebf0e38917ef40ac68ac672f36ce5, type: 3}
   - {fileID: 8300000, guid: c843570f8addcd1489af3e2149e5fa6c, type: 3}
+  - {fileID: 8300000, guid: 8c103a703e3e17647b3b44992b85198b, type: 3}
+  - {fileID: 8300000, guid: 8aa27d90a804f5b488c2912cd6585444, type: 3}
+  - {fileID: 8300000, guid: 483901c000ee62945a8b2c73308dcf55, type: 3}

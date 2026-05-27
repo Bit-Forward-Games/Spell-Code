@@ -12,8 +12,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
     protected override void InitializeDefaults()
     {
         projName = "Gift Of Prometheus";
-        lifeSpan = 300; // lasts for 120 logic frames
-        deleteOnHit = false;
+        lifeSpan = 0;
         animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }, false);
     }
     
@@ -80,35 +79,32 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(11).Sum()+1,
+                animFrames.frameLengths.Take(12).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(12).Sum(),
+                animFrames.frameLengths.Take(16).Sum()
+
+            }
+        };
         base.LoadProjectile();
     }
 
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
+        //okay so this logic is a bit wonky to understand but basically if the projectile hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
         if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
         {
             hSpeed = Fixed.FromInt(0);
         }
-        if (logicFrame >= animFrames.frameLengths.Take(11).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(12).Sum())
-        {
-            activeHitboxGroupIndex = 1;
-        }
-        else if (logicFrame >= animFrames.frameLengths.Take(12).Sum() + 1 && logicFrame <= animFrames.frameLengths.Take(16).Sum())
-        {
-            activeHitboxGroupIndex = 2;
-        }
-        else
-        {
-            activeHitboxGroupIndex = 0;
-        }
-        if (logicFrame >= animFrames.frameLengths.Sum())
-        {
-            ProjectileManager.Instance.DeleteProjectile(this);
-        }
-        //this basically checks if the projectile hit something
     }
 }

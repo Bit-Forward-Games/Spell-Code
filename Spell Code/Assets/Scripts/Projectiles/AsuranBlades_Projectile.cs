@@ -14,6 +14,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 30; // lasts for 20 logic frames
+        deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -59,6 +60,7 @@ public class AsuranBlades_Projectile : BaseProjectile
 
     public override void LoadProjectile()
     {
+        deleteOnHit = true;
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {

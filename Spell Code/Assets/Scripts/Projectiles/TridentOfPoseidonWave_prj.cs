@@ -69,11 +69,6 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
         {
             vSpeed -= owner.gravity/Fixed.FromFloat(2f); // Apply gravity to the vertical speed
         }
-        //if the projectile has reached the end of its animation, delete it
-        if (logicFrame >= animFrames.frameLengths.Sum())
-        {
-            ProjectileManager.Instance.DeleteProjectile(this);
-        }
         if (logicFrame == animFrames.frameLengths.Take(4).Sum())
         {
             logicFrame = 0; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps

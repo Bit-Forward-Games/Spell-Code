@@ -17,9 +17,9 @@ public class PongShot_prj : BaseProjectile
     protected override void InitializeDefaults()
     {
         projName = "Pong Shot";
-        lifeSpan = 240;
+        lifeSpan = 0;
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
     }
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -89,6 +89,19 @@ public class PongShot_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(3).Sum()+1,
+                animFrames.frameLengths.Take(11).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(11).Sum(),
+                animFrames.frameLengths.Sum(),
+            }
+        };
         base.LoadProjectile();
     }
 
@@ -108,21 +121,6 @@ public class PongShot_prj : BaseProjectile
         if (bounceCount >= 2 && logicFrame < animFrames.frameLengths.Take(11).Sum())
         {
             logicFrame = animFrames.frameLengths.Take(11).Sum() + 1; //set the logic frame to the start of the end animation
-        }
-
-
-        //determine which hitbox group is active based on the current logic frame
-        if (logicFrame > animFrames.frameLengths.Take(3).Sum() && logicFrame < animFrames.frameLengths.Take(11).Sum())
-        {
-            activeHitboxGroupIndex = 1;
-        }
-        else if (logicFrame > animFrames.frameLengths.Take(11).Sum())
-        {
-            activeHitboxGroupIndex = 2;
-        }
-        else
-        {
-            activeHitboxGroupIndex = 0;
         }
     }
 

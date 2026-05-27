@@ -14,8 +14,7 @@ public class CoinTossLoaded_prj : BaseProjectile
         projName = "Coin Toss Loaded";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 600; // lasts for 120 logic frames
-        deleteOnHit = false;
+        lifeSpan = 0;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
@@ -28,8 +27,6 @@ public class CoinTossLoaded_prj : BaseProjectile
     }
     public override void LoadProjectile()
     {
-
-        deleteOnHit = false;
         projectileHitboxes = new HitboxGroup[2];
         projectileHitboxes[0] = new HitboxGroup
         {
@@ -70,7 +67,7 @@ public class CoinTossLoaded_prj : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(16).Sum() || logicFrame >= animFrames.frameLengths.Sum())
+        if (logicFrame == animFrames.frameLengths.Take(16).Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }

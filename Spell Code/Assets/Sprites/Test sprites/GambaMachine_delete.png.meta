@@ -64,7 +64,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,10 +75,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 4
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -102,7 +102,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -182,11 +182,11 @@ TextureImporter:
       name: GambaMachine_delete_0
       rect:
         serializedVersion: 2
-        x: 59
-        y: 239
-        width: 186
-        height: 98
-      alignment: 0
+        x: 0
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -204,11 +204,11 @@ TextureImporter:
       name: GambaMachine_delete_1
       rect:
         serializedVersion: 2
-        x: 355
-        y: 239
-        width: 186
-        height: 98
-      alignment: 0
+        x: 296
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -226,11 +226,11 @@ TextureImporter:
       name: GambaMachine_delete_2
       rect:
         serializedVersion: 2
-        x: 939
-        y: 239
-        width: 186
-        height: 98
-      alignment: 0
+        x: 592
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -248,11 +248,11 @@ TextureImporter:
       name: GambaMachine_delete_3
       rect:
         serializedVersion: 2
-        x: 1235
-        y: 239
-        width: 186
-        height: 98
-      alignment: 0
+        x: 888
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -270,11 +270,11 @@ TextureImporter:
       name: GambaMachine_delete_4
       rect:
         serializedVersion: 2
-        x: 75
-        y: 55
-        width: 174
-        height: 174
-      alignment: 0
+        x: 1184
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -292,11 +292,11 @@ TextureImporter:
       name: GambaMachine_delete_5
       rect:
         serializedVersion: 2
-        x: 371
-        y: 55
-        width: 174
-        height: 174
-      alignment: 0
+        x: 1480
+        y: 0
+        width: 296
+        height: 384
+      alignment: 9
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
@@ -310,99 +310,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: GambaMachine_delete_6
-      rect:
-        serializedVersion: 2
-        x: 667
-        y: 55
-        width: 206
-        height: 174
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9030549db8ddb2680800000000000000
-      internalID: -8778679455913278711
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GambaMachine_delete_7
-      rect:
-        serializedVersion: 2
-        x: 931
-        y: 55
-        width: 174
-        height: 174
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6d3bcf1e39c5d5f80800000000000000
-      internalID: -8116229163230383146
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GambaMachine_delete_8
-      rect:
-        serializedVersion: 2
-        x: 1227
-        y: 55
-        width: 174
-        height: 174
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f565a3a971eec3a00800000000000000
-      internalID: 737726224121091679
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GambaMachine_delete_9
-      rect:
-        serializedVersion: 2
-        x: 1491
-        y: 55
-        width: 206
-        height: 174
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1bade0f7ae14f2190800000000000000
-      internalID: -7985091138894767439
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 9cddd608e8fe6a446a27ac3271eedcf9
     internalID: 0
     vertices: []
     indices: 
@@ -418,10 +330,6 @@ TextureImporter:
       GambaMachine_delete_3: -399096670587580993
       GambaMachine_delete_4: 8636575797575858689
       GambaMachine_delete_5: -7493485868779412002
-      GambaMachine_delete_6: -8778679455913278711
-      GambaMachine_delete_7: -8116229163230383146
-      GambaMachine_delete_8: 737726224121091679
-      GambaMachine_delete_9: -7985091138894767439
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

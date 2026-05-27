@@ -669,7 +669,14 @@ public class PlayerController : MonoBehaviour
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        flowState = 0; //the timer for how long you are in flow state
+        stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
+        stockStabilityModified = 0; //crit chance after modifiers
+        demonAura = 0;
+        demonAuraLifeSpanTimer = 0;
+        reps = 0;
+
+    int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 

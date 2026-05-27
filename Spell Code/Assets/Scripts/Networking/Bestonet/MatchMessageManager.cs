@@ -1209,6 +1209,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
                     {
+                        GameManager.Instance.HandleInputSceneSignatureMismatch(senderSlot, packetSceneSignature);
                         Debug.LogWarning($"Ignoring stale input packet after scene transition. StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={GameManager.Instance.GetNetworkSceneSignature()}");
                         return;
                     }

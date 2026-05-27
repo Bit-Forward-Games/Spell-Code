@@ -1770,12 +1770,19 @@ public class GameManager : MonoBehaviour
     public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
-        if (transitionId < expectedTransitionId)
+        byte currentSceneType = GetNetworkSceneTypeCode();
+        bool isGameplayStageCorrection = packetSceneType == 1
+            && currentSceneType == 1
+            && stageIndex >= 0
+            && stageIndex < stages.Count
+            && stageIndex != currentStageIndex;
+
+        if (transitionId < expectedTransitionId && !isGameplayStageCorrection)
         {
             return false;
         }
 
-        if (activeOnlineTransitionId > 0 && transitionId != activeOnlineTransitionId)
+        if (activeOnlineTransitionId > 0 && transitionId != activeOnlineTransitionId && !isGameplayStageCorrection)
         {
             if (transitionId > activeOnlineTransitionId)
             {
@@ -1789,7 +1796,6 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        byte currentSceneType = GetNetworkSceneTypeCode();
         int currentSceneSignature = GetNetworkSceneSignature();
 
         if (packetSceneType == currentSceneType)
@@ -1799,7 +1805,7 @@ public class GameManager : MonoBehaviour
                 BeginTrackedOnlineTransition(transitionId);
             }
 
-            if (packetSceneType == 1)
+            if (packetSceneType == 1 && transitionId == expectedTransitionId)
             {
                 AdvanceRoundCountOnce();
             }
@@ -1827,6 +1833,31 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning($"Ignoring stale stage select packet. PacketSceneType={packetSceneType}, LocalSceneType={currentSceneType}, PacketScene={packetSceneSignature}, LocalScene={currentSceneSignature}, StageIndex={stageIndex}");
         return false;
+    }
+
+    public void HandleInputSceneSignatureMismatch(int senderSlot, int packetSceneSignature)
+    {
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || MatchMessageManager.Instance == null)
+        {
+            return;
+        }
+
+        int localSceneSignature = GetNetworkSceneSignature();
+        bool localGameplay = GetNetworkSceneTypeCode() == 1;
+        bool packetGameplay = packetSceneSignature >= 100000 && packetSceneSignature < 200000;
+        if (!localGameplay || !packetGameplay || packetSceneSignature == localSceneSignature || currentStageIndex < 0)
+        {
+            return;
+        }
+
+        int transitionId = activeOnlineTransitionId > 0 ? activeOnlineTransitionId : onlineTransitionSequence;
+        if (transitionId <= 0)
+        {
+            transitionId = GetExpectedOnlineTransitionId();
+        }
+
+        MatchMessageManager.Instance.SendStageSelect(transitionId, currentStageIndex, stageRngState);
+        RefreshNetworkActivityGrace();
     }
 
     private void ApplyPendingStageSelectIfAvailable()

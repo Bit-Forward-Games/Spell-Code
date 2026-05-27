@@ -713,6 +713,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return foundActiveSlot ? minFrame : fallbackFrame;
         }
 
+        private string GetRemoteFrameDebugString()
+        {
+            if (!usePeerRoster)
+            {
+                return $"remote={remoteFrame}, predicted={predictedRemoteFrame}, highest={highestRemoteInputFrameSeen}";
+            }
+
+            List<string> slotParts = new List<string>();
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                int frame = remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : -1;
+                int predicted = predictedRemoteFrameBySlot.TryGetValue(slot, out int predictedFrame) ? predictedFrame : -1;
+                int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int highest) ? highest : -1;
+                int offset = remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0;
+                string pending = pendingRemoteInputSlots.Contains(slot) ? ",pending" : string.Empty;
+                slotParts.Add($"P{slot + 1}:frame={frame},pred={predicted},highest={highestSeen},offset={offset}{pending}");
+            }
+
+            return string.Join(" | ", slotParts);
+        }
+
     /// <summary>
     /// Checks for input mismatches and triggers a rollback if necessary.
     /// Should be called once per frame before simulation.
@@ -938,6 +960,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // not hide a real network stall, and syncFrame lag is normal rollback behavior.
             if (remoteFrameStallTicks > TimeoutFrames)
             {
+                int stalePeerSlot = -1;
+                if (usePeerRoster
+                    && matchManager != null
+                    && matchManager.HasAllPeersResponsive(3f, out stalePeerSlot))
+                {
+                    Debug.LogWarning($"Frame stall timeout suppressed; peers are still responsive. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                    remoteFrameStallTicks = 0;
+                    ResetTimeoutGrace(1f);
+                    return true;
+                }
+
+                if (stalePeerSlot >= 0)
+                {
+                    Debug.LogWarning($"Frame stall timeout from stale peer P{stalePeerSlot + 1}. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Frame stall timeout. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                }
+
                 TriggerMatchTimeout(); // Handle timeout disconnect
                 return false; // Don't allow update if timed out
             }

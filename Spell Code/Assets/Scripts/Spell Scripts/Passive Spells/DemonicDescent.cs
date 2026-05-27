@@ -12,9 +12,12 @@ public class DemonicDescent : SpellData
         spellName = "Demonic Descent";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[2] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
+        procConditions = new ProcCondition[] { ProcCondition.OnUpdate};
         brands = new Brand[1] { Brand.DemonX };
-        description = "While at 100% Demon Aura <sprite name=\"DemonAura\">, you gain mobility, and your Spells deal increased damage";
+        projectilePrefabs = new GameObject[2];
+        description = "While at 100% Demon Aura <sprite name=\"DemonAura\">, you gain mobility, and you gain a damaging aura.\n";
+        spawnOffsetX = 0;
+        spawnOffsetY = 36;
     }
 
 
@@ -24,15 +27,23 @@ public class DemonicDescent : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.OnUpdate:
-                owner.runSpeed = owner.demonAura >= 100 ? Fixed.FromInt((owner.charData.runSpeed + 20)/10) : Fixed.FromInt(owner.charData.runSpeed/10);
-                owner.jumpForce = owner.demonAura >= 100 ? Fixed.FromInt(owner.charData.jumpForce + 2) : Fixed.FromInt(owner.charData.jumpForce);
-                owner.slideSpeed = owner.demonAura >= 100 ? Fixed.FromInt((owner.charData.slideSpeed + 20)/10) : Fixed.FromInt(owner.charData.slideSpeed/10);
-                break;
-            //OnHitSpell: Deal Extra damage when hitting with a spell.
-            case ProcCondition.OnHitSpell:
-                if (owner.demonAura >= 100)
+                
+                if(owner.demonAura>= 100)
                 {
-                    defender.TakeEffectDamage(20, owner, GameManager.colors["red"]);
+                    owner.runSpeed = Fixed.FromInt((owner.charData.runSpeed + 15)/10);
+                    owner.jumpForce = Fixed.FromInt(owner.charData.jumpForce + 2);
+                    owner.slideSpeed = Fixed.FromInt((owner.charData.slideSpeed + 20)/10);
+
+                    if (!projectileInstances[0].activeSelf)
+                    {
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX ), Fixed.FromInt(spawnOffsetY)));
+                    }
+                }
+                else
+                {
+                    owner.runSpeed = Fixed.FromInt(owner.charData.runSpeed/10);
+                    owner.jumpForce = Fixed.FromInt(owner.charData.jumpForce);
+                    owner.slideSpeed = Fixed.FromInt(owner.charData.slideSpeed/10);
                 }
                 break;
             default:

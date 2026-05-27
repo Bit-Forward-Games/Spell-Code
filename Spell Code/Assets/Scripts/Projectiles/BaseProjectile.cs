@@ -35,6 +35,8 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized]
     public AnimFrames animFrames;
     public bool deleteOnHit = true;
+    [NonSerialized]
+    public bool ignoreBrand = false;
 
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
@@ -172,6 +174,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
+        bw.Write(ignoreBrand);
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)
@@ -212,6 +215,7 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
+        ignoreBrand = br.ReadBoolean();
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)

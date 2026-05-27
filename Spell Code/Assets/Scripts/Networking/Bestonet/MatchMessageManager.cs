@@ -819,6 +819,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(stageIndex);
                 writer.Write(stageRngState);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentTotalRoundsPlayed : -1);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1128,7 +1129,8 @@ public class MatchMessageManager : MonoBehaviour
                     int packetSceneSignature = reader.ReadInt32();
                     int stageIndex = reader.ReadInt32();
                     uint stageRngState = reader.ReadUInt32();
-                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
+                    int totalRoundsPlayed = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
+                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState, totalRoundsPlayed);
                     return;
                 }
 

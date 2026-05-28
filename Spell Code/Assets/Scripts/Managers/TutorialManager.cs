@@ -19,12 +19,16 @@ public class Tutorial : MonoBehaviour
     public GambaMachine machine2;
     private GameManager gM;
 
+    public SpriteRenderer gambaHitGif;
+    public SpriteRenderer floppyPickupGif;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         //machine.isActive = true;
         //machine2.isActive = true;
         gM = GameManager.Instance;
+        floppyPickupGif.enabled = false;
     }
 
     // Update is called once per frame
@@ -39,6 +43,17 @@ public class Tutorial : MonoBehaviour
 
         //    machine.SpawnFloppyDisk(machine.ownerPID, machine.tutorialLocs[0], "Skillshot Slash");
         //}
+
+        if (machine.isActive)
+        {
+            gambaHitGif.enabled = true;
+            floppyPickupGif.enabled = false;
+        }
+        else if (!machine.isActive)
+        {
+            gambaHitGif.enabled = false;
+            floppyPickupGif.enabled = true;
+        }
 
         if (door.CheckAllPlayersReady()) { gM.sceneManager.LoadScene("MainMenu"); }
     }

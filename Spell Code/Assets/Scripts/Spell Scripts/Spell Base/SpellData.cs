@@ -151,6 +151,27 @@ public abstract class SpellData : MonoBehaviour
     }
 
     /// <summary>
+    /// Online-only helper for movement spells (AmonSlash, GetAJob, AbaddonUppercut, etc.)
+    /// that set <c>owner.hSpd</c>/<c>owner.vSpd</c> based on <c>owner.facingRight</c> at
+    /// activate time. Returns true if the owner is a remote peer whose current frame input
+    /// is still being predicted; the caller should NOT consume <c>activateFlag</c> in that
+    /// case and instead let SpellUpdate retry on the next frame, by which point either the
+    /// real input has arrived or the streak has decayed to neutral.
+    /// Safe to call from offline simulation — always returns false there.
+    /// </summary>
+    protected bool ShouldDeferSpellLaunchForPrediction()
+    {
+        if (owner == null) return false;
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive) return false;
+        if (RollbackManager.Instance == null) return false;
+
+        int ownerSlot = System.Array.IndexOf(GameManager.Instance.players, owner);
+        if (ownerSlot < 0) return false;
+
+        return RollbackManager.Instance.IsRemoteInputCurrentlyPredicted(ownerSlot);
+    }
+
+    /// <summary>
     /// This function checks if the conditions for setting the given spell's activateFlag is met after its procCondition is triggered
     /// e.g. if the spell's procCondition is OnHit and requires the player to have a certain number of some resource to activate,
     /// this function would check for that.

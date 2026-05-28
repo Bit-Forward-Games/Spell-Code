@@ -45,6 +45,7 @@ public class AsuranBlades : SpellData
         }
         if (activateFlag)
         {
+            if (ShouldDeferSpellLaunchForPrediction()) return;
 
             // Reset the activate flag
             activateFlag = false;

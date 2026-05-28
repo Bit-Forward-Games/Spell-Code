@@ -45,6 +45,8 @@ public class CashOut : SpellData
         }
         if (activateFlag)
         {
+            if (ShouldDeferSpellLaunchForPrediction()) return;
+
             owner.basicSpawnOverride = spellName;
             // Reset the activate flag
             activateFlag = false;

@@ -29,6 +29,8 @@ public class AbaddonUppercut : SpellData
         }
         if (activateFlag)
         {
+            // Defer launch if owner input is still predicted (see SpellData helper).
+            if (ShouldDeferSpellLaunchForPrediction()) return;
 
             // Reset the activate flag
             activateFlag = false;

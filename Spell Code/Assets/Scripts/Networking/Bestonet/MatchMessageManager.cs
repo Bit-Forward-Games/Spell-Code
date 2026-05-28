@@ -128,6 +128,16 @@ public class MatchMessageManager : MonoBehaviour
     private readonly List<PendingOutboundPacket> outboundQueue = new List<PendingOutboundPacket>();
     private readonly List<PendingInboundPacket> inboundQueue = new List<PendingInboundPacket>();
 
+    // Most-recent input packet from each peer that arrived while our scene
+    // signature didn't match the sender's. Replayed automatically each pump so inputs
+    // are never silently dropped just because a peer transitioned scenes slightly ahead
+    // or behind us, or because two peers ended up on different stage indices.
+    private readonly Dictionary<SteamId, byte[]> sceneMismatchedInputByPeer = new Dictionary<SteamId, byte[]>();
+    // How many pump cycles a buffered input packet may live before being
+    // discarded. Prevents the buffer from holding genuinely stale data forever.
+    private readonly Dictionary<SteamId, int> sceneMismatchedInputAgeByPeer = new Dictionary<SteamId, int>();
+    private const int SCENE_MISMATCH_REPLAY_MAX_AGE_TICKS = 600; // ~10s at 60fps
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -245,8 +255,108 @@ public class MatchMessageManager : MonoBehaviour
 
         ProcessOutboundQueue();
         ProcessInboundQueue();
+        TryReplayBufferedSceneMismatchedInputs();
         MaintainPeerHandshakes();
         RefreshAggregatePing();
+    }
+
+    // Replay any input packets that were buffered because they arrived while
+    // our scene signature didn't match the sender's. Called every PumpNetwork tick so the
+    // moment our scene catches up, the held packet is processed exactly as if it had just
+    // arrived. Stale entries are aged out via SCENE_MISMATCH_REPLAY_MAX_AGE_TICKS.
+    private void TryReplayBufferedSceneMismatchedInputs()
+    {
+        if (sceneMismatchedInputByPeer.Count == 0)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null || !isRunning)
+        {
+            return;
+        }
+
+        List<SteamId> replayablePeers = null;
+        List<SteamId> expiredPeers = null;
+
+        foreach (KeyValuePair<SteamId, byte[]> entry in sceneMismatchedInputByPeer)
+        {
+            SteamId peer = entry.Key;
+            byte[] data = entry.Value;
+            if (data == null || data.Length < 6)
+            {
+                expiredPeers ??= new List<SteamId>();
+                expiredPeers.Add(peer);
+                continue;
+            }
+
+            // Read scene signature without disturbing the buffered bytes.
+            // Layout: [byte packetType=0][int sceneSignature][int frameAdv][int startFrame][byte count]...
+            int bufferedSceneSignature = BitConverter.ToInt32(data, 1);
+            int localSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
+
+            if (bufferedSceneSignature == localSceneSignature)
+            {
+                replayablePeers ??= new List<SteamId>();
+                replayablePeers.Add(peer);
+            }
+            else
+            {
+                int age = sceneMismatchedInputAgeByPeer.TryGetValue(peer, out int currentAge) ? currentAge + 1 : 1;
+                sceneMismatchedInputAgeByPeer[peer] = age;
+                if (age > SCENE_MISMATCH_REPLAY_MAX_AGE_TICKS)
+                {
+                    expiredPeers ??= new List<SteamId>();
+                    expiredPeers.Add(peer);
+                }
+            }
+        }
+
+        if (expiredPeers != null)
+        {
+            for (int i = 0; i < expiredPeers.Count; i++)
+            {
+                sceneMismatchedInputByPeer.Remove(expiredPeers[i]);
+                sceneMismatchedInputAgeByPeer.Remove(expiredPeers[i]);
+            }
+        }
+
+        if (replayablePeers != null)
+        {
+            for (int i = 0; i < replayablePeers.Count; i++)
+            {
+                SteamId peer = replayablePeers[i];
+                byte[] data = sceneMismatchedInputByPeer[peer];
+                sceneMismatchedInputByPeer.Remove(peer);
+                sceneMismatchedInputAgeByPeer.Remove(peer);
+
+                try
+                {
+                    ProcessPacket(peer, data);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error replaying buffered scene-mismatched input from {peer}: {e}");
+                }
+            }
+        }
+    }
+
+    // Stash the latest input packet from this peer so it can be replayed once
+    // our scene signature matches theirs. Newer packets supersede older ones (input packets
+    // carry their own resend window, so only the most recent matters for catch-up).
+    private void BufferSceneMismatchedInputPacket(SteamId peerId, byte[] originalPacket)
+    {
+        if (!peerId.IsValid || originalPacket == null || originalPacket.Length == 0)
+        {
+            return;
+        }
+
+        // Defensive copy: the caller's buffer can be reused by the network layer.
+        byte[] copy = new byte[originalPacket.Length];
+        Buffer.BlockCopy(originalPacket, 0, copy, 0, originalPacket.Length);
+        sceneMismatchedInputByPeer[peerId] = copy;
+        sceneMismatchedInputAgeByPeer[peerId] = 0;
     }
 
     public int GetConnectedPeerCount()
@@ -419,6 +529,8 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerDictionary(peerLastPacketTime, rosterPeerIds);
         PrunePeerDictionary(peerLastHandshakeSendTime, rosterPeerIds);
         PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
+        PrunePeerDictionary(sceneMismatchedInputByPeer, rosterPeerIds);
+        PrunePeerDictionary(sceneMismatchedInputAgeByPeer, rosterPeerIds);
     }
 
     private void MaintainPeerHandshakes()
@@ -510,6 +622,8 @@ public class MatchMessageManager : MonoBehaviour
         sentFrameTimesByPeer.Clear();
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
+        sceneMismatchedInputByPeer.Clear();
+        sceneMismatchedInputAgeByPeer.Clear();
     }
 
     public void ResetReadyFlags()
@@ -1219,8 +1333,13 @@ public class MatchMessageManager : MonoBehaviour
 
                     if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
                     {
+                        // Instead of silently discarding the entire packet (which
+                        // dropped every input frame inside, every peer's advantage/ping update,
+                        // and could mask their inputs for the whole transition window) we now
+                        // buffer the most recent mismatched packet and replay it the moment our
+                        // scene signature catches up. Host-side correction is still triggered.
                         GameManager.Instance.HandleInputSceneSignatureMismatch(senderSlot, packetSceneSignature);
-                        Debug.LogWarning($"Ignoring stale input packet after scene transition. StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={GameManager.Instance.GetNetworkSceneSignature()}");
+                        BufferSceneMismatchedInputPacket(senderSteamId, messageData);
                         return;
                     }
 

@@ -9,8 +9,8 @@ public class ReloadShot : SpellData
         cooldown = 480;
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] { ProcCondition.ActiveOnHit };
-        description = "Long Range Shot.\nHit this: Reset all other cooldowns.\nHit sweet-spot: enter Flow State<sprite name=\"FlowState\">\nConsume all Flow State<sprite name=\"FlowState\"> to reduce this cooldown.";
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
+        description = "Long Range Shot.\nHit this: Reset all other cooldowns.\nConsume all Flow State<sprite name=\"FlowState\"> to reduce this cooldown.";
         projectilePrefabs = new GameObject[1];
     }
 
@@ -23,12 +23,9 @@ public class ReloadShot : SpellData
                 int currentFlow = owner.flowState;
                 if (currentFlow > 0)
                 {
-                    //float percentMaxHealthDamage = (float)consumedFlow/(float)PlayerController.maxFlowState * 0.5f; // 50% of max health at full flow
-                    //int damageToDeal = Mathf.CeilToInt(defender.GetMaxHealth() * percentMaxHealthDamage);
-                    //defender.TakeEffectDamage(damageToDeal);
                     // Integer-only cooldown reduction: (cooldown * flow) / maxFlow
-                    cooldownCounter = (int)((long)cooldownCounter * currentFlow / PlayerController.maxFlowState);
-                    //if we hit the sweet spot, set flow state to 300 (5 seconds worth)
+                    cooldownCounter = (int)((long)cooldownCounter * currentFlow / VWavePassive.maxFlowState);
+                    //if we dont hit the sweet spot, set flow state to 0
                     if (!defender.hitboxData.sweetSpot)
                     {
                         owner.flowState = 0;
@@ -44,9 +41,7 @@ public class ReloadShot : SpellData
                 }
                 if (defender.hitboxData.sweetSpot)
                 {
-                    owner.flowState = PlayerController.maxFlowState;
                     cooldownCounter /= 2; // further reduce cooldown by 50% on sweet spot hit
-                    owner.SpawnToast("FLOW STATE!", Color.green);
                 }
                 break;
             default:

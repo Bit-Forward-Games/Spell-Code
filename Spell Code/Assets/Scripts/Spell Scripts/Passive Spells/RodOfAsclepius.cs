@@ -33,7 +33,7 @@ public class RodOfAsclepius : SpellData
                 {
                     nextRepProc += 3;
                     owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + 15, owner.GetMaxHealth());
-                    owner.SpawnToast("+15 HP", Color.green);
+                    owner.SpawnToast("+15 HP", GameManager.colors["green"]);
                 }
                 break;
             case ProcCondition.OnDeath:

@@ -66,7 +66,7 @@ public class GambaMachine : MonoBehaviour
     {
         if (gameManager.isOnlineMatchActive) return;
 
-        gambaAnimator.SetBool("facingLeft", !facingRight);
+        ApplyVisualState();
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -260,14 +260,18 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        gambaAnimator.SetBool("isActive", isActive);
+        ApplyVisualState();
     }
 
     public void SimulateOnline(int ownerPlayerIndex, bool isRollback = false)
     {
         activeScene = SceneManager.GetActiveScene();
         if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
-        if (ownerPlayer == null) return;
+        if (ownerPlayer == null)
+        {
+            ApplyVisualState();
+            return;
+        }
 
         if (activeScene.name == "MainMenu")
         {
@@ -277,10 +281,14 @@ public class GambaMachine : MonoBehaviour
                 ClearFloppysForPID(ownerPID);
             }
 
-            if (isActive && CheckHitboxCollision())
+            if (isActive && CheckOnlineHitboxCollision())
             {
                 isActive = false;
                 SpawnFloppysForOwnerOnline(isRollback);
+                if (!isRollback)
+                {
+                    GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"lobby gamba P{ownerPID}");
+                }
             }
         }
         else if (activeScene.name == "Shop")
@@ -290,7 +298,6 @@ public class GambaMachine : MonoBehaviour
 
         if (activeScene.name != "Shop" && !isActive && activatedCount < 3)
         {
-            if (!isRollback) Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
             if (resetTimer > 120)
@@ -299,20 +306,22 @@ public class GambaMachine : MonoBehaviour
                 resetTimer = 0;
             }
         }
+
+        ApplyVisualState();
     }
 
     private void SimulateShopOnline(bool isRollback = false)
     {
         if (ownerPlayer == null) return;
 
-        if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+        if (ownerPlayer.chosenSpell || ownerPlayer.spellList.Count >= 6)
         {
             activatedCount = 3;
             isActive = false;
             ClearFloppysForPID(ownerPID);
         }
 
-        if (isActive && CheckHitboxCollision())
+        if (isActive && CheckOnlineHitboxCollision())
         {
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
@@ -324,6 +333,10 @@ public class GambaMachine : MonoBehaviour
             if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
             if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
             if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            if (!isRollback)
+            {
+                GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"shop gamba P{ownerPID} activation {activatedCount}");
+            }
         }
 
         if (!isActive && activatedCount < 3)
@@ -414,6 +427,7 @@ public class GambaMachine : MonoBehaviour
         ClearFloppysForPID(ownerPID);
         
         isActive = true;
+        ApplyVisualState();
     }
 
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
@@ -424,6 +438,7 @@ public class GambaMachine : MonoBehaviour
         ClearFloppysForPID(ownerPID);
         
         isActive = ownerCanUseShop;
+        ApplyVisualState();
     }
 
     public int GetStartingSpellPos()
@@ -434,6 +449,22 @@ public class GambaMachine : MonoBehaviour
     public void SetStartingSpellPos(int value)
     {
         startingSpellPos = value;
+    }
+
+    public void ApplyVisualState()
+    {
+        if (gambaAnimator == null)
+        {
+            gambaAnimator = GetComponent<Animator>();
+        }
+
+        if (gambaAnimator == null)
+        {
+            return;
+        }
+
+        gambaAnimator.SetBool("facingLeft", !facingRight);
+        gambaAnimator.SetBool("isActive", isActive);
     }
 
     public bool CheckHitboxCollision()
@@ -449,6 +480,48 @@ public class GambaMachine : MonoBehaviour
             hurtbox, 
             FixedVec2.FromFloat(transform.position.x, transform.position.y), 
             true);
+    }
+
+    private bool CheckOnlineHitboxCollision()
+    {
+        if (ownerPlayer == null || ProjectileManager.Instance == null || HitboxManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (CheckHitboxCollision())
+        {
+            return true;
+        }
+
+        foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
+        {
+            if (projectile == null || projectile.owner == null)
+            {
+                continue;
+            }
+
+            if (projectile.owner.pID != ownerPID || projectile.ownerSpell != null)
+            {
+                continue;
+            }
+
+            if (ownerPlayer.charData != null && projectile.projName != ownerPlayer.charData.basicAttackProjId)
+            {
+                continue;
+            }
+
+            if (HitboxManager.Instance.ProcessSingleProjectileCollisison(
+                projectile,
+                hurtbox,
+                FixedVec2.FromFloat(transform.position.x, transform.position.y),
+                true))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private List<string> BuildAvailableSpellPool(int pid)
@@ -491,6 +564,12 @@ public class GambaMachine : MonoBehaviour
         if (player.HasReachedSpellCopyLimit(spellName))
         {
             Debug.Log("Copy cap reached: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (spellData.spellType == SpellType.Universal)
+        {
+            Debug.Log("Universal spell: " + spellName + " has been removed");
             return true;
         }
 
@@ -704,7 +783,7 @@ public class GambaMachine : MonoBehaviour
             List<string> available = spells.Where(s => !chosen.Contains(s)).ToList();
             if (available.Count == 0) break;
 
-            int randomInt = GameManager.Instance.GetNextRandom(0, available.Count);
+            int randomInt = GameManager.Instance.GetOnlineShopChoiceRandom(pid, activatedCount, i, available.Count);
             string spellToAdd = available[randomInt];
             chosen.Add(spellToAdd);
 

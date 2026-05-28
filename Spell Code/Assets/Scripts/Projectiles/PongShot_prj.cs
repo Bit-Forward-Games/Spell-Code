@@ -27,7 +27,7 @@ public class PongShot_prj : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
         bounceCount = 0; // reset bounce count on spawn
-        speed = owner.flowState > 0 ? 5 : 4; // Set speed based on flow state
+        speed = 4; 
         hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * speed); // Set horizontal speed based on facing direction
         vSpeed = Fixed.FromInt(-speed); // diagonal movement, so set vertical speed to match horizontal speed
     }
@@ -36,6 +36,7 @@ public class PongShot_prj : BaseProjectile
 
         deleteOnHit = true;
         bounceCount = 0;
+        lifeSpan = (ushort)(owner.flowState > 0 ? 300 : 240); // Set speed based on flow state
         projectileHitboxes = new HitboxGroup[3];
 
         projectileHitboxes[1] = new HitboxGroup

@@ -211,13 +211,13 @@ public class OnboardManager : MonoBehaviour
             //if player moves left or right
             if (!p1_moveComplete)
             {
-                if (inputSnapshots[0].Direction == 4 || inputSnapshots[0].Direction == 6) { p1_moveComplete = true; p1_moveTxt.color = Color.green; Debug.Log("Move Onboard Complete"); }
+                if (inputSnapshots[0].Direction == 4 || inputSnapshots[0].Direction == 6) { p1_moveComplete = true; p1_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
             }
 
             //if player jumps
             if (!p1_jumpComplete)
             {
-                if (inputSnapshots[0].ButtonStates[1] == ButtonState.Pressed) { p1_jumpComplete = true; p1_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
+                if (inputSnapshots[0].ButtonStates[1] == ButtonState.Pressed) { p1_jumpComplete = true; p1_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
             }
 
             //if move is done and player has not yet attacked
@@ -285,7 +285,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p1_glassBroken)
             {
-                p1_castTxt.color = Color.green;
+                p1_castTxt.color = GameManager.colors["green"];
                 p1_castTxt.enabled = false;
                 p1_castGraphic.enabled = false;
 
@@ -312,13 +312,13 @@ public class OnboardManager : MonoBehaviour
             //if player moves left or right
             if (!p2_moveComplete)
             {
-                if (inputSnapshots[1].Direction == 4 || inputSnapshots[1].Direction == 6) { p2_moveComplete = true; p2_moveTxt.color = Color.green; Debug.Log("Move Onboard Complete"); }
+                if (inputSnapshots[1].Direction == 4 || inputSnapshots[1].Direction == 6) { p2_moveComplete = true; p2_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
             }
 
             //if player jumps
             if (!p2_jumpComplete)
             {
-                if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed) { p2_jumpComplete = true; p2_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
+                if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed) { p2_jumpComplete = true; p2_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
             }
             
             //if move is done and player has not yet attacked
@@ -388,7 +388,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p2_glassBroken)
             {
-                p2_castTxt.color = Color.green;
+                p2_castTxt.color = GameManager.colors["green"];
                 p2_castTxt.enabled = false;
                 p2_castGraphic.enabled = false;
 
@@ -415,13 +415,13 @@ public class OnboardManager : MonoBehaviour
             //if player moves left or right
             if (!p3_moveComplete)
             {
-                if (inputSnapshots[2].Direction == 4 || inputSnapshots[2].Direction == 6) { p3_moveComplete = true; p3_moveTxt.color = Color.green; Debug.Log("Move Onboard Complete"); }
+                if (inputSnapshots[2].Direction == 4 || inputSnapshots[2].Direction == 6) { p3_moveComplete = true; p3_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
             }
 
             //if player jumps
             if (!p3_jumpComplete)
             {
-                if (inputSnapshots[2].ButtonStates[1] == ButtonState.Pressed) { p3_jumpComplete = true; p3_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
+                if (inputSnapshots[2].ButtonStates[1] == ButtonState.Pressed) { p3_jumpComplete = true; p3_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
             }
 
             //if move is done and player has not yet attacked
@@ -489,7 +489,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p3_glassBroken)
             {
-                p3_castTxt.color = Color.green;
+                p3_castTxt.color = GameManager.colors["green"];
                 p3_castTxt.enabled = false;
                 p3_castGraphic.enabled = false;
 
@@ -516,13 +516,13 @@ public class OnboardManager : MonoBehaviour
             //if player moves left or right
             if (!p4_moveComplete)
             {
-                if (inputSnapshots[3].Direction == 4 || inputSnapshots[3].Direction == 6) { p4_moveComplete = true; p4_moveTxt.color = Color.green; Debug.Log("Move Onboard Complete"); }
+                if (inputSnapshots[3].Direction == 4 || inputSnapshots[3].Direction == 6) { p4_moveComplete = true; p4_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
             }
 
             //if player jumps
             if (!p4_jumpComplete)
             {
-                if (inputSnapshots[3].ButtonStates[1] == ButtonState.Pressed) { p4_jumpComplete = true; p4_jumpTxt.color = Color.green; Debug.Log("Jump Onboard Complete"); }
+                if (inputSnapshots[3].ButtonStates[1] == ButtonState.Pressed) { p4_jumpComplete = true; p4_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
             }
 
             //if move is done and player has not yet attacked
@@ -590,7 +590,7 @@ public class OnboardManager : MonoBehaviour
 
             if (p4_glassBroken)
             {
-                p4_castTxt.color = Color.green;
+                p4_castTxt.color = GameManager.colors["green"];
                 p4_castTxt.enabled = false;
                 p4_castGraphic.enabled = false;
 

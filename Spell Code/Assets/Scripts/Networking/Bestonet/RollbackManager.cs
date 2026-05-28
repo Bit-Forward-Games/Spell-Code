@@ -92,7 +92,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
+        [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
+        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 1; // Shorter 3/4-player movement prediction so fast left/right reversals do not overshoot for long
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 
@@ -711,6 +713,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return foundActiveSlot ? minFrame : fallbackFrame;
         }
 
+        private string GetRemoteFrameDebugString()
+        {
+            if (!usePeerRoster)
+            {
+                return $"remote={remoteFrame}, predicted={predictedRemoteFrame}, highest={highestRemoteInputFrameSeen}";
+            }
+
+            List<string> slotParts = new List<string>();
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                int frame = remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : -1;
+                int predicted = predictedRemoteFrameBySlot.TryGetValue(slot, out int predictedFrame) ? predictedFrame : -1;
+                int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int highest) ? highest : -1;
+                int offset = remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0;
+                string pending = pendingRemoteInputSlots.Contains(slot) ? ",pending" : string.Empty;
+                slotParts.Add($"P{slot + 1}:frame={frame},pred={predicted},highest={highestSeen},offset={offset}{pending}");
+            }
+
+            return string.Join(" | ", slotParts);
+        }
+
     /// <summary>
     /// Checks for input mismatches and triggers a rollback if necessary.
     /// Should be called once per frame before simulation.
@@ -936,6 +960,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // not hide a real network stall, and syncFrame lag is normal rollback behavior.
             if (remoteFrameStallTicks > TimeoutFrames)
             {
+                int stalePeerSlot = -1;
+                if (usePeerRoster
+                    && matchManager != null
+                    && matchManager.HasAllPeersResponsive(3f, out stalePeerSlot))
+                {
+                    Debug.LogWarning($"Frame stall timeout suppressed; peers are still responsive. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                    remoteFrameStallTicks = 0;
+                    ResetTimeoutGrace(1f);
+                    return true;
+                }
+
+                if (stalePeerSlot >= 0)
+                {
+                    Debug.LogWarning($"Frame stall timeout from stale peer P{stalePeerSlot + 1}. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Frame stall timeout. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                }
+
                 TriggerMatchTimeout(); // Handle timeout disconnect
                 return false; // Don't allow update if timed out
             }
@@ -986,18 +1030,23 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return true;
             }
 
-            int maxPredictionAhead = Mathf.Min(
-                StateArraySize - 32,
-                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
+            int maxPredictionAhead = GetMaxPredictionAheadFrames();
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
+                consecutiveDrop++;
+                if (consecutiveDrop > maxDropPulse)
+                {
+                    consecutiveDrop = 0;
+                    lastDroppedFrame = currentFrame;
+                    return true;
+                }
+
                 if (lastDroppedFrame != currentFrame)
                 {
                     Debug.LogWarning($"Frame Pace Prediction Hold: Local {currentFrame}, Remote {effectiveRemoteFrame}, Sync {syncFrame}. Waiting for remote input.");
                     lastDroppedFrame = currentFrame;
                 }
 
-                consecutiveDrop++;
                 return false;
             }
 
@@ -1044,6 +1093,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
             return true;
+        }
+
+        private int GetMaxPredictionAheadFrames()
+        {
+            int maxHistoryAhead = StateArraySize - 32;
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return Mathf.Min(maxHistoryAhead, Mathf.Max(InputDelay + 1, InputDelay + MultiplayerMaxPredictionAheadFrames));
+            }
+
+            return Mathf.Min(
+                maxHistoryAhead,
+                Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
         }
 
         /// <summary>
@@ -1164,7 +1226,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return decayedInput;
             }
 
-            if (predictedFrameStreak <= Mathf.Max(0, DirectionPredictionHoldFrames))
+            if (predictedFrameStreak <= Mathf.Max(0, GetDirectionPredictionHoldFrames()))
             {
                 return decayedInput;
             }
@@ -1172,6 +1234,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Direction is stored in the low byte. Keep buttons intact, but stop
             // predicting movement so short taps don't turn into long remote runs.
             return (decayedInput & ~0xFFUL) | 5UL;
+        }
+
+        private int GetDirectionPredictionHoldFrames()
+        {
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return MultiplayerDirectionPredictionHoldFrames;
+            }
+
+            return DirectionPredictionHoldFrames;
         }
 
         private ulong DecayPredictedCodeButton(ulong input, int predictedFrameStreak)

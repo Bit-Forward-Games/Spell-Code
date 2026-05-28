@@ -20,6 +20,7 @@ public abstract class BaseProjectile : MonoBehaviour
     public Fixed hSpeed;
     public Fixed vSpeed;
     public FixedVec2 position;
+    [NonSerialized]
     public bool facingRight;
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on

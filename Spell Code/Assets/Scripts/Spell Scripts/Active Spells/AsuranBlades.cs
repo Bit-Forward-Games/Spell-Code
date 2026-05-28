@@ -13,10 +13,10 @@ public class AsuranBlades : SpellData
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[2] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];
 
-        description = "Throw 3 shurikens downward.\nHit this: +20% Demon Aura<sprite name=\"DemonAura\">.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, throw more shurikens.";
+        description = "Throw 3 shurikens downward.\nIf 50%+ Demon Aura<sprite name=\"DemonAura\">, throw more shurikens.";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;
@@ -76,17 +76,8 @@ public class AsuranBlades : SpellData
     {
         switch (targetProcCon)
         {
-            //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
-            case ProcCondition.ActiveOnHit:
-                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                owner.SpawnToast("+20 DEMON AURA", Color.red);
-                break;
-            // case ProcCondition.OnSlide:
-            //     if (owner.demonAura >= 50)
-            //     {
-            //         ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(16), Fixed.FromInt(0)));
-            //     }
-            //     break;
+            //Spell effects take place in the update function
+            
             default:
                 break;
         }

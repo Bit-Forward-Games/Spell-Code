@@ -51,7 +51,7 @@ public class CashOut_prj : BaseProjectile
                     yKnockback = 5,
                     damage = 15,
                     hitstun = 15,
-                    attackLvl = 2,
+                    attackLvl = 1,
                     basicAttackHitbox = true
                 }
             },

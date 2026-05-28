@@ -815,10 +815,13 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write(PACKET_TYPE_STAGE_SELECT);
                 writer.Write(transitionId);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write((byte)1);
+                writer.Write(100000 + stageIndex);
                 writer.Write(stageIndex);
                 writer.Write(stageRngState);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentTotalRoundsPlayed : -1);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentRngState : 0u);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.randomCallCount : -1);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -846,6 +849,8 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(stateData.Length);
                 writer.Write(stateData);
                 writer.Write(forceApply);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1075,8 +1080,10 @@ public class MatchMessageManager : MonoBehaviour
                     int stateLength = reader.ReadInt32();
                     byte[] stateData = reader.ReadBytes(stateLength);
                     bool forceApply = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
+                    byte snapshotSceneType = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadByte() : (byte)0;
+                    int snapshotSceneSignature = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;
                     bool applied = GameManager.Instance != null
-                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData, forceApply);
+                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData, forceApply, snapshotSceneType, snapshotSceneSignature);
                     UpdateRoster(roster);
                     if (applied)
                     {
@@ -1128,7 +1135,10 @@ public class MatchMessageManager : MonoBehaviour
                     int packetSceneSignature = reader.ReadInt32();
                     int stageIndex = reader.ReadInt32();
                     uint stageRngState = reader.ReadUInt32();
-                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState);
+                    int totalRoundsPlayed = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
+                    uint gameplayRngState = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadUInt32() : 0u;
+                    int randomCallCount = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
+                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState, totalRoundsPlayed, gameplayRngState, randomCallCount);
                     return;
                 }
 
@@ -1209,6 +1219,7 @@ public class MatchMessageManager : MonoBehaviour
 
                     if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
                     {
+                        GameManager.Instance.HandleInputSceneSignatureMismatch(senderSlot, packetSceneSignature);
                         Debug.LogWarning($"Ignoring stale input packet after scene transition. StartFrame={startFrame}, Count={inputCount}, PacketScene={packetSceneSignature}, LocalScene={GameManager.Instance.GetNetworkSceneSignature()}");
                         return;
                     }

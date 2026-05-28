@@ -30,9 +30,9 @@ public class TrickshotAlley_prj : BaseProjectile
         projName = "Trickshot Alley";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 600; // lasts for 120 logic frames
+        lifeSpan = 600; 
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -129,15 +129,37 @@ public class TrickshotAlley_prj : BaseProjectile
 
         foreach(BaseProjectile proj in myProjectiles)
         {
-            if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, facingRight))
+            if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, out HitboxData hitbox, facingRight))
             {
-                hSpeed = Fixed.FromInt((proj.facingRight ? 1 : -1) * fastSpeed); 
-                vSpeed = Fixed.FromInt(lowBounce); 
+                hSpeed = Fixed.FromInt(hitbox.xKnockback * (proj.facingRight ? 1 : -1)); 
+                vSpeed = Fixed.FromInt(hitbox.yKnockback); 
+                proj.playerIgnoreArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
+                ownerSpell.cooldownCounter-= 60;
             }
         }
 
     }
+
+    //old backup implementation
+    // public void ProcessTrickshotCollisisons()
+    // {
+    //     List<BaseProjectile> myProjectiles = ProjectileManager.Instance.activeProjectiles
+    //     .Where(projectile => projectile != null && projectile.owner == owner && projectile != this)
+    //     .ToList();
+
+    //     foreach(BaseProjectile proj in myProjectiles)
+    //     {
+    //         if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, facingRight))
+    //         {
+    //             hSpeed = Fixed.FromInt((proj.facingRight ? 1 : -1) * fastSpeed); 
+    //             vSpeed = Fixed.FromInt(lowBounce); 
+    //             logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
+    //             ownerSpell.cooldownCounter-= 60;
+    //         }
+    //     }
+
+    // }
 
     // public void CheckStageDataSOCollision()
     // {

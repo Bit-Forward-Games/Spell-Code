@@ -60,6 +60,15 @@ public class PlayerController : MonoBehaviour
         public Color baseColor;
     }
 
+    private class PlayerDamageNumber
+    {
+        public TextMeshPro textMesh;
+        public float elapsed;
+        public Color baseColor;
+        public Vector3 startOffset;
+        public Vector3 drift;
+    }
+
     public bool isAlive = true;
     public SpriteRenderer playerSpriteRenderer;
     //INPUTS
@@ -125,8 +134,8 @@ public class PlayerController : MonoBehaviour
 
     //Spell Resource Variables
     public ushort flowState = 0; //the timer for how long you are in flow state
-    public const ushort maxFlowState = 600;
-    public ushort stockStability = 0; //percentage chance to crit, e.g. 25 = 25% chance
+    public ushort stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
+    public ushort stockStabilityModified = 0; //crit chance after modifiers
     public ushort demonAura = 0;
     public const ushort maxDemonAura = 100;
     public ushort demonAuraLifeSpanTimer = 0;
@@ -152,9 +161,9 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public short ramBounty = 0;
     [NonSerialized]
-    public const ushort baseRamKillBonus = 100;
+    public const ushort baseRamKillBonus = 50;
     [NonSerialized]
-    public const ushort baseRamLifeWorth = 200;
+    public const ushort baseRamLifeWorth = 250;
 
     // Push Box Variables
     [HideInInspector]
@@ -176,12 +185,16 @@ public class PlayerController : MonoBehaviour
     public ushort comboResetTimer = 0;
     public byte hitstop = 0;
     public bool hitstopActive = false;
-    public bool hitstunOverride = false;
+    public bool superArmor = false;
 
     public ushort iframes = 0;
-    public bool lightArmor = false;
+    public bool armor = false;
 
+    [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
+    [NonSerialized]
+    public List<SpellData> sortedSpellList;
+    public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     private int _pendingHitboxProjectileIndex = -1;
 
@@ -212,6 +225,18 @@ public class PlayerController : MonoBehaviour
 
     private readonly List<PlayerToast> activeToasts = new();
     private Transform toastRoot;
+
+    //Damage Number Variables
+    private float damageNumberLifetime = 0.85f;
+    private float damageNumberFadeDuration = 0.25f;
+    private float damageNumberBaseVerticalOffset = 52f;
+    private float damageNumberRiseDistance = 34f;
+    private float damageNumberHorizontalDrift = 24f;
+    private float damageNumberGravityFallDistance = 28f;
+    private float damageNumberFontSize = 84f;
+
+    private readonly List<PlayerDamageNumber> activeDamageNumbers = new();
+    private Transform damageNumberRoot;
 
     //Player Data (for data saving and balancing, different from the above Character Data)
     public int spellsFired = 0;
@@ -249,6 +274,8 @@ public class PlayerController : MonoBehaviour
         {
             DontDestroyOnLoad(this.gameObject);
         }
+
+        EnsureUniversalSpells();
     }
     void Start()
     {
@@ -285,11 +312,13 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         UpdateToasts();
+        UpdateDamageNumbers();
     }
 
     private void OnDisable()
     {
         ClearToasts();
+        ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
         SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -299,6 +328,7 @@ public class PlayerController : MonoBehaviour
     private void OnDestroy()
     {
         ClearToasts();
+        ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
         if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -347,33 +377,29 @@ public class PlayerController : MonoBehaviour
                 InitializePalette(matchPalette[0]);
                 //playerNum.text = "P1";
                 pID = 1;
-                //playerNum.color = Color.red;
                 playerIndexImages[0].enabled = true;
-                playerIndexImages[0].color = new Color32(255, 62, 117, 255);
+                playerIndexImages[0].color = GameManager.colors["red"];
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
                 //playerNum.text = "P2";
                 pID = 2;
-                //playerNum.color = Color.cyan;
                 playerIndexImages[1].enabled = true;
-                playerIndexImages[1].color = new Color32(67, 122, 252, 255);
+                playerIndexImages[1].color = GameManager.colors["blue"];
                 break;
             case 2:
                 InitializePalette(matchPalette[2]);
                 //playerNum.text = "P3";
                 pID = 3;
-                //playerNum.color = Color.yellow;
                 playerIndexImages[2].enabled = true;
-                playerIndexImages[2].color = new Color32(255, 207, 0, 255);
+                playerIndexImages[2].color = GameManager.colors["yellow"];
                 break;
             case 3:
                 InitializePalette(matchPalette[3]);
                 //playerNum.text = "P4";
                 pID = 4;
-                //playerNum.color = Color.green;
                 playerIndexImages[3].enabled = true;
-                playerIndexImages[3].color = new Color32(107, 255, 116, 255);
+                playerIndexImages[3].color = GameManager.colors["green"];
                 break;
             default:
                 pID = 0;
@@ -417,10 +443,10 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
         hitstop = 0;
         hitstopActive = false;
-        hitstunOverride = false;
+        superArmor = false;
         comboCounter = 0;
         comboResetTimer = 0;
-        lightArmor = false;
+        armor = false;
         basicSpawnOverride = "";
         isHit = false;
         hitboxData = null;
@@ -445,7 +471,8 @@ public class PlayerController : MonoBehaviour
 
         //initialize resources
         flowState = 0;
-        stockStability = GetPersistentStockStabilityFromSpellList();
+        //stockStability = GetPersistentStockStabilityFromSpellList();
+        stockStability = 0;
         demonAura = 0;
         reps = 0;
 
@@ -460,6 +487,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         suppressSpellLoadSideEffects = false;
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         GameManager.Instance.spellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
     }
@@ -677,7 +705,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //if the player does not have light armor,...
-        if (!lightArmor)
+        if (!armor)
         {
             //disable blocking VFX
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
@@ -1050,16 +1078,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-
-                    //play the jump sound
-                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
-
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
                 LerpHspd(Fixed.FromInt(0), 3);
@@ -1098,16 +1117,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-
-                    //play the jump sound
-                    SFX_Manager.Instance.PlaySound(Sounds.JUMP);
-
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
                 else if (input.Direction % 3 == (facingRight ? 1 : 0))
@@ -1168,11 +1178,7 @@ public class PlayerController : MonoBehaviour
                 else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
                     
-                    vSpd = jumpForce;
-                    jumpCount--;
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
 
@@ -1271,7 +1277,7 @@ public class PlayerController : MonoBehaviour
                             // Example: For codeCount = 1, clear bits 31-30; for codeCount = 2, clear bits 29-28, etc.
                             stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("down input Pressed!");
+                            //Debug.Log("down input Pressed!");
                             //play the input down code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_DOWN, 0.95f, 0.95f);
                             break;
@@ -1287,7 +1293,7 @@ public class PlayerController : MonoBehaviour
                             }
                                 stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("left input Pressed!");
+                            //Debug.Log("left input Pressed!");
                             //play the input left code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_LEFT, 1.05f, 1.05f);
                             break;
@@ -1302,14 +1308,14 @@ public class PlayerController : MonoBehaviour
                             }
                             stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("right input Pressed!");
+                            //Debug.Log("right input Pressed!");
                             //play the input right code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_RIGHT, 1f, 1f);
                             break;
                         case 8:
                             stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
                             stateSpecificArg &= ~(1u << 4);
-                            Debug.Log("up input Pressed!");
+                            //Debug.Log("up input Pressed!");
                             //play the input up code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_UP, 1.1f, 1.1f);
                             break;
@@ -1343,7 +1349,7 @@ public class PlayerController : MonoBehaviour
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
-                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", Color.white);
+                        if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", GameManager.colors["white"]);
                         storedCodeDuration += 3;
                         if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
@@ -1362,7 +1368,7 @@ public class PlayerController : MonoBehaviour
                         //jump button pressed or held for long enough
                         if (input.ButtonStates[1] == ButtonState.Pressed || storedCodeDuration >= 240)
                         {
-                            lightArmor = false;
+                            armor = false;
 
                             //set the 5th bit to 0 to indicate we are no longer primed
                             stateSpecificArg &= ~(1u << 4);
@@ -1373,7 +1379,7 @@ public class PlayerController : MonoBehaviour
                             uint spellCodeLength = (storedCode & 0xFu);
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
-                            SpawnToast("STORED!", Color.white);
+                            SpawnToast("STORED!", GameManager.colors["white"]);
                             //break;
                             
                         }
@@ -1390,7 +1396,7 @@ public class PlayerController : MonoBehaviour
                     //code button released
                     if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
-                        lightArmor = false;
+                        armor = false;
 
                         SetState(PlayerState.CodeRelease, stateSpecificArg);
 
@@ -1401,7 +1407,7 @@ public class PlayerController : MonoBehaviour
                     {
                         ClearInputDisplay();
                         stateSpecificArg = 0;
-                        SpawnToast("INPUTS CLEARED!", Color.white);
+                        SpawnToast("INPUTS CLEARED!", GameManager.colors["white"]);
                     }
                 }
                 
@@ -1434,7 +1440,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Konami Code Activated!");
                         if (!secretEpicPaletteActive)
                         {
-                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", Color.white);
+                            SpawnToast("Hey Lois, I'm in Spell Code SlingerZ!", GameManager.colors["white"]);
                             InitializePalette(secretEpicPalette);
                             secretEpicPaletteActive = true;
                         }
@@ -1449,7 +1455,7 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Inverse Konami Code Activated!");
                         if (!secretNormalPaletteActive)
                         {
-                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", Color.white);
+                            SpawnToast("I'm in Spell Code SlingerZ, Giggity!", GameManager.colors["white"]);
                             InitializePalette(secretNormalPalette);
                             secretNormalPaletteActive = true;
                         }
@@ -1464,14 +1470,14 @@ public class PlayerController : MonoBehaviour
                         Debug.Log("Relative Inputs activated!");
                         relativeInputs = !relativeInputs;
                         string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"RELATIVE INPUTS {activeWord}!", Color.white);
+                        SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
                     }
                     if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
                     {
                         Debug.Log("Toggle Code Input activated!");
                         toggleCodeInput = !toggleCodeInput;
                         string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", Color.white);
+                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
                     }
 #endregion
                     for (int i = 0; i < spellList.Count; i++)
@@ -1495,7 +1501,7 @@ public class PlayerController : MonoBehaviour
                             spellsFired++;
 
                             //make input display flash green to indicate correct input sequence
-                            inputDisplay.color = Color.green;
+                            inputDisplay.color = GameManager.colors["green"];
 
                             //play successful code cast sound
                             SFX_Manager.Instance.PlaySound(Sounds.EXIT_CODE_WEAVE);
@@ -1558,11 +1564,11 @@ public class PlayerController : MonoBehaviour
                             spellList[i].spellType == SpellType.Active &&
                             spellList[i].cooldownCounter > 0)
                         {
-                            inputDisplay.color = Color.yellow;
+                            inputDisplay.color = GameManager.colors["yellow"];
                             Debug.Log("COOLDOWN");
-                            SpawnToast("ON COOLDOWN!",Color.white);
+                            SpawnToast("ON COOLDOWN!",GameManager.colors["white"]);
                         }
-                        else { inputDisplay.color = Color.red; }
+                        else { inputDisplay.color = GameManager.colors["red"]; }
                     }
 
                     // Check conditions of all spells with the onCast condition
@@ -1673,11 +1679,7 @@ public class PlayerController : MonoBehaviour
                 }
                 if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
                 {
-                    vSpd = jumpForce;
-                    jumpCount--;
-                    //play the jump dust VFX
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-                    SetState(PlayerState.Jump);
+                    DoJump();
                     break;
                 }
 
@@ -2226,10 +2228,23 @@ public class PlayerController : MonoBehaviour
         HandleExitState(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        hitstunOverride = false;
+        superArmor = false;
     }
 
+    private void DoJump()
+    {
+        vSpd = jumpForce;
+        jumpCount--;
+        CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnJump);
 
+        //play the jump sound
+        SFX_Manager.Instance.PlaySound(Sounds.JUMP);
+
+        //play the jump dust VFX
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
+
+        SetState(PlayerState.Jump);
+    }
 
     //move logic for each state here
     private void HandleEnterState(PlayerState curstate, uint inputSpellArg)
@@ -2258,7 +2273,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                lightArmor = false;
+                armor = false;
 
                 //reset storedCode if you get hit
                 // storedCode = 0;
@@ -2294,7 +2309,7 @@ public class PlayerController : MonoBehaviour
                 comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
-                lightArmor = true;
+                armor = true;
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -2346,8 +2361,8 @@ public class PlayerController : MonoBehaviour
                 SFX_Manager.Instance.StopRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, Array.IndexOf(GameManager.Instance.players, this));
 
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
-                lightArmor = false;
-                hitstunOverride = false;
+                armor = false;
+                superArmor = false;
                 ClearInputDisplay();
                 break;
             case PlayerState.Slide:
@@ -2367,7 +2382,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, ((float)flowState / (float)maxFlowState) * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)VWavePassive.maxFlowState * 100f);
 
             flowState--;
         }
@@ -2376,16 +2391,19 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
+
+
         if (demonAura > 0)
         {
-            if (demonAuraLifeSpanTimer > 0)
-            {
-                demonAuraLifeSpanTimer--;
-            }
-            else
-            {
-                demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
-            }
+            //now handled in Demon-X universal passive
+            // if (demonAuraLifeSpanTimer > 0)
+            // {
+            //     demonAuraLifeSpanTimer--;
+            // }
+            // else
+            // {
+            //     demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
+            // }
 
             //Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
@@ -2397,7 +2415,9 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pID);
         }
 
-        if (stockStability > 0)
+
+
+        if (stockStabilityModified > 0)
         {
             //play the stock aura visual effect 
             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
@@ -2406,6 +2426,8 @@ public class PlayerController : MonoBehaviour
         {
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
         }
+
+
 
         if (reps > 0)
         {
@@ -2422,7 +2444,7 @@ public class PlayerController : MonoBehaviour
     /// this function makes the player take damage outside of hitstun, notably from spell effect damage
     /// </summary>
     /// <param name="damageAmount"></param>
-    public void TakeEffectDamage(int damageAmount, PlayerController attacker)
+    public void TakeEffectDamage(int damageAmount, PlayerController attacker, Color? damageTextColor = null)
     {
         if (GameManager.Instance.currentStageIndex < 0)
         {
@@ -2430,7 +2452,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        HandleDamage(attacker, damageAmount);
+        HandleDamage(attacker, damageAmount, damageTextColor);
     }
 
     public void CheckHit(InputSnapshot input)
@@ -2446,9 +2468,9 @@ public class PlayerController : MonoBehaviour
             BaseProjectile sourceProjectile = hitboxData.parentProjectile;
             PlayerController attacker = sourceProjectile != null ? sourceProjectile.owner : null;
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
-            if (hitstunOverride)
+            if (superArmor)
             {
-                SpawnToast($"SUPER ARMORED!", Color.white);
+                SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
 
                 //play the blocked sound
                 SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
@@ -2461,11 +2483,11 @@ public class PlayerController : MonoBehaviour
             }
 
             //ignore hit if we are in codeweave and the attack level is less than 2 (basic attack)
-            if (lightArmor)
+            if (armor)
             {
                 if(hitboxData.attackLvl < 2)
                 {
-                    SpawnToast($"ARMORED!", Color.white);
+                    SpawnToast($"ARMORED!", GameManager.colors["white"]);
 
                     //play the blocked sound
                     SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
@@ -2478,7 +2500,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
-                    SpawnToast($"ARMOR BREAK!", Color.white);
+                    SpawnToast($"ARMOR BREAK!", GameManager.colors["white"]);
 
                     //play armor shatter visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.ARMOR_BREAK, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
@@ -2491,7 +2513,7 @@ public class PlayerController : MonoBehaviour
             if (GameManager.Instance.currentStageIndex ==-1)
             {
                 //don't take damage in the lobby
-                SpawnToast($"NO DAMAGE IN LOBBY!", Color.white);
+                SpawnToast($"NO DAMAGE IN LOBBY!", GameManager.colors["white"]);
                 isHit = false;
                 hitboxData = null;
                 return;
@@ -2504,7 +2526,7 @@ public class PlayerController : MonoBehaviour
             comboCounter++;
             if (comboCounter >= 4)
             {
-                SpawnToast("COMBO BREAK!!!", Color.magenta);
+                SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
                 iframes = 120;
                 comboCounter = 0;
 
@@ -2562,10 +2584,11 @@ public class PlayerController : MonoBehaviour
                 }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                if (attacker != null && attacker.demonAura > 0)
-                {
-                    attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
-                }
+                //This logic is now handled in the Demon-X
+                // if (attacker != null && attacker.demonAura > 0)
+                // {
+                //     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
+                // }
             }
 
 
@@ -2579,7 +2602,7 @@ public class PlayerController : MonoBehaviour
 
         }
     }
-    private void HandleDamage(PlayerController attacker, int damageAmount)
+    private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
         if(pID == 0)return; //if this is a training dummy then don't handle damage
 
@@ -2588,6 +2611,7 @@ public class PlayerController : MonoBehaviour
         if (!isRollback && damageAmount > 0)
         {
             TriggerHitRumble(0.2f, 0.6f, 0.12f);
+            SpawnDamageNumber(damageAmount, damageTextColor);
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
@@ -2660,7 +2684,7 @@ public class PlayerController : MonoBehaviour
             {
                 attacker.roundRam += baseRamKillBonus;
                 attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", Color.yellow);
+                attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
             }
 
         }
@@ -2678,12 +2702,54 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
     {
-        for (int i = 0; i < targetPlayer.spellList.Count; i++)
+
+        sortedSpellList = targetPlayer.spellList
+            .Concat(targetPlayer.universalSpells)
+            .Where(spell => spell != null)
+            .OrderByDescending(spell => spell.priorityOverride)
+            .ToList();
+
+        for (int i = 0; i < sortedSpellList.Count; i++)
         {
-            if (targetPlayer.spellList[i].procConditions.Contains(targetProcCon))
+            if (sortedSpellList[i].procConditions.Contains(targetProcCon))
             {
-                targetPlayer.spellList[i].CheckCondition(this, targetProcCon);
+                sortedSpellList[i].CheckCondition(this, targetProcCon);
             }
+        }
+    }
+
+    private void EnsureUniversalSpells()
+    {
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            if (universalSpells[i] != null)
+            {
+                universalSpells[i].owner = this;
+            }
+        }
+
+        if (SpellDictionary.Instance == null || SpellDictionary.Instance.spellList == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < SpellDictionary.Instance.spellList.Count; i++)
+        {
+            SpellData universalSpell = SpellDictionary.Instance.spellList[i];
+            if (universalSpell == null || universalSpell.spellType != SpellType.Universal)
+            {
+                continue;
+            }
+
+            bool alreadyAdded = universalSpells.Exists(spell => spell != null && spell.spellName == universalSpell.spellName);
+            if (alreadyAdded)
+            {
+                continue;
+            }
+
+            SpellData spellInstance = Instantiate(universalSpell);
+            spellInstance.owner = this;
+            universalSpells.Add(spellInstance);
         }
     }
 
@@ -2865,10 +2931,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
         bw.Write(hitstopActive);
-        bw.Write(hitstunOverride);
+        bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
-        bw.Write(lightArmor);
+        bw.Write(armor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -2901,6 +2967,7 @@ public class PlayerController : MonoBehaviour
 
         bw.Write(flowState);
         bw.Write(stockStability);
+        bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
@@ -2978,10 +3045,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(stateSpecificArg);
         bw.Write(hitstop);
         bw.Write(hitstopActive);
-        bw.Write(hitstunOverride);
+        bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
-        bw.Write(lightArmor);
+        bw.Write(armor);
         bw.Write(basicSpawnOverride);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -3012,6 +3079,7 @@ public class PlayerController : MonoBehaviour
 
         bw.Write(flowState);
         bw.Write(stockStability);
+        bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
@@ -3064,10 +3132,10 @@ public class PlayerController : MonoBehaviour
         hitstop = br.ReadByte();
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
-        hitstunOverride = br.ReadBoolean();
+        superArmor = br.ReadBoolean();
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
-        lightArmor = br.ReadBoolean();
+        armor = br.ReadBoolean();
         basicSpawnOverride = br.ReadString();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
@@ -3102,6 +3170,7 @@ public class PlayerController : MonoBehaviour
         if (markerB != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at B: {markerB:X8}");
         flowState = br.ReadUInt16();
         stockStability = br.ReadUInt16();
+        stockStabilityModified = br.ReadUInt16();
         demonAura = br.ReadUInt16();
         demonAuraLifeSpanTimer = br.ReadUInt16();
         reps = br.ReadUInt16();
@@ -3291,10 +3360,15 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
+        sortedSpellList = spellList
+            .Concat(universalSpells)
+            .Where(spell => spell != null)
+            .OrderByDescending(spell => spell.priorityOverride)
+            .ToList();
         //go through the player's spell list and update any proc effects
-        for (int i = 0; i < spellList.Count; i++)
+        for (int i = 0; i < sortedSpellList.Count; i++)
         {
-            spellList[i].SpellUpdate();
+            sortedSpellList[i].SpellUpdate();
         }
     }
     public bool IsStorableState() =>
@@ -3418,7 +3492,7 @@ public class PlayerController : MonoBehaviour
         if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
             inputDisplay.text = "";
-            inputDisplay.color = Color.white;
+            inputDisplay.color = GameManager.colors["white"];
         }
     }
 
@@ -3467,9 +3541,71 @@ public class PlayerController : MonoBehaviour
         UpdateToastVisuals();
     }
 
+    public void SpawnDamageNumber(int damageAmount, Color? color = null)
+    {
+        if (damageAmount <= 0)
+        {
+            return;
+        }
+
+        SpawnDamageNumber(damageAmount.ToString(), color);
+    }
+
+    public void SpawnDamageNumber(string text, Color? color = null)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return;
+        }
+
+        EnsureDamageNumberRoot();
+        Color damageNumberColor = color ?? Color.white;
+
+        GameObject damageNumberObject = new($"{name}_DamageNumber");
+        damageNumberObject.transform.SetParent(damageNumberRoot, false);
+
+        TextMeshPro damageNumberText = damageNumberObject.AddComponent<TextMeshPro>();
+        damageNumberText.text = text;
+        damageNumberText.color = damageNumberColor;
+        damageNumberText.alignment = TextAlignmentOptions.Center;
+        damageNumberText.fontSize = damageNumberFontSize;
+        damageNumberText.fontStyle = FontStyles.Bold;
+        damageNumberText.textWrappingMode = TextWrappingModes.NoWrap;
+        damageNumberText.overflowMode = TextOverflowModes.Overflow;
+        damageNumberText.raycastTarget = false;
+        damageNumberText.sortingOrder = 100;
+
+        Renderer damageNumberRenderer = damageNumberText.GetComponent<Renderer>();
+        if (damageNumberRenderer != null)
+        {
+            damageNumberRenderer.sortingLayerID = GetFrontmostSortingLayerId();
+            damageNumberRenderer.sortingOrder = short.MaxValue;
+        }
+
+        float horizontalDirection = UnityEngine.Random.value < 0.5f ? -1f : 1f;
+        float horizontalDistance = UnityEngine.Random.Range(damageNumberHorizontalDrift * 0.65f, damageNumberHorizontalDrift);
+        float spawnJitter = UnityEngine.Random.Range(-8f, 8f);
+
+        activeDamageNumbers.Add(new PlayerDamageNumber
+        {
+            textMesh = damageNumberText,
+            elapsed = 0f,
+            baseColor = damageNumberColor,
+            startOffset = new Vector3(spawnJitter, damageNumberBaseVerticalOffset, 0f),
+            drift = new Vector3(horizontalDirection * horizontalDistance, damageNumberRiseDistance, 0f)
+        });
+
+        UpdateDamageNumberVisuals();
+    }
+
     public static string ConvertCodeToString(uint code, Color? color = null)
     {
-        if (color == null) { color = Color.white; }
+        if (color == null) { color = GameManager.colors["white"]; }
 
         string codeString = "";
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
@@ -3517,6 +3653,30 @@ public class PlayerController : MonoBehaviour
         toastRoot.localPosition = new Vector3(0f, 0f, -0.1f);
         toastRoot.localRotation = Quaternion.identity;
         toastRoot.localScale = Vector3.one;
+    }
+
+    private void EnsureDamageNumberRoot()
+    {
+        if (damageNumberRoot != null)
+        {
+            return;
+        }
+
+        Transform existingRoot = transform.Find("DamageNumberRoot");
+        if (existingRoot != null)
+        {
+            damageNumberRoot = existingRoot;
+        }
+        else
+        {
+            GameObject damageNumberRootObject = new("DamageNumberRoot");
+            damageNumberRoot = damageNumberRootObject.transform;
+            damageNumberRoot.SetParent(transform, false);
+        }
+
+        damageNumberRoot.localPosition = new Vector3(0f, 0f, -0.1f);
+        damageNumberRoot.localRotation = Quaternion.identity;
+        damageNumberRoot.localScale = Vector3.one;
     }
 
     private void UpdateToasts()
@@ -3584,6 +3744,76 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void UpdateDamageNumbers()
+    {
+        if (activeDamageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        float lifetime = Mathf.Max(0.01f, damageNumberLifetime);
+        for (int i = activeDamageNumbers.Count - 1; i >= 0; i--)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber == null || damageNumber.textMesh == null)
+            {
+                activeDamageNumbers.RemoveAt(i);
+                continue;
+            }
+
+            damageNumber.elapsed += Time.deltaTime;
+            if (damageNumber.elapsed >= lifetime)
+            {
+                Destroy(damageNumber.textMesh.gameObject);
+                activeDamageNumbers.RemoveAt(i);
+            }
+        }
+
+        if (activeDamageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        UpdateDamageNumberVisuals();
+    }
+
+    private void UpdateDamageNumberVisuals()
+    {
+        float lifetime = Mathf.Max(0.01f, damageNumberLifetime);
+        float fadeDuration = Mathf.Clamp(damageNumberFadeDuration, 0f, lifetime);
+        float fadeStart = lifetime - fadeDuration;
+
+        for (int i = 0; i < activeDamageNumbers.Count; i++)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber == null || damageNumber.textMesh == null)
+            {
+                continue;
+            }
+
+            float normalizedLifetime = Mathf.Clamp01(damageNumber.elapsed / lifetime);
+            float alpha = damageNumber.baseColor.a;
+            if (fadeDuration > 0f && damageNumber.elapsed > fadeStart)
+            {
+                float fadeProgress = Mathf.InverseLerp(fadeStart, lifetime, damageNumber.elapsed);
+                alpha *= 1f - fadeProgress;
+            }
+
+            Color displayColor = damageNumber.baseColor;
+            displayColor.a = alpha;
+            damageNumber.textMesh.color = displayColor;
+
+            float popScale = Mathf.Lerp(0.8f, 1.15f, Mathf.Clamp01(normalizedLifetime / 0.18f));
+            float settleScale = Mathf.Lerp(popScale, 0.95f, Mathf.Clamp01((normalizedLifetime - 0.18f) / 0.82f));
+            damageNumber.textMesh.transform.localScale = Vector3.one * settleScale;
+
+            float easedMovement = 1f - Mathf.Pow(1f - normalizedLifetime, 2f);
+            float floatBob = Mathf.Sin(normalizedLifetime * Mathf.PI) * 8f;
+            float gravityFall = damageNumberGravityFallDistance * normalizedLifetime * normalizedLifetime;
+            damageNumber.textMesh.transform.localPosition = damageNumber.startOffset + (damageNumber.drift * easedMovement) + new Vector3(0f, floatBob - gravityFall, 0f);
+        }
+    }
+
     private void ClearToasts()
     {
         for (int i = activeToasts.Count - 1; i >= 0; i--)
@@ -3596,6 +3826,20 @@ public class PlayerController : MonoBehaviour
         }
 
         activeToasts.Clear();
+    }
+
+    private void ClearDamageNumbers()
+    {
+        for (int i = activeDamageNumbers.Count - 1; i >= 0; i--)
+        {
+            PlayerDamageNumber damageNumber = activeDamageNumbers[i];
+            if (damageNumber != null && damageNumber.textMesh != null)
+            {
+                Destroy(damageNumber.textMesh.gameObject);
+            }
+        }
+
+        activeDamageNumbers.Clear();
     }
 
     private static int GetFrontmostSortingLayerId()

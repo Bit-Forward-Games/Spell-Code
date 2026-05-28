@@ -14,8 +14,8 @@ public class QuarterReport : SpellData
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[1] {ProcCondition.ActiveOnCast};
-        description = "Medium-range shot.\nRandom chance based on Stock Stability<sprite name=\"StockStability\"> to enhance range and damage.\nGain 10% Stock Stability<sprite name=\"StockStability\">.";
+        procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit};
+        description = "Medium-range shot.\nEnhances range and stun on \"Crit\"<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
     }
 
@@ -47,11 +47,11 @@ public class QuarterReport : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        if (owner != null && !owner.suppressSpellLoadSideEffects)
-        {
-            owner.stockStability += 10;
-            owner.SpawnToast("+10% STOCK STABILITY", Color.blue);
-        }
+        // if (owner != null && !owner.suppressSpellLoadSideEffects)
+        // {
+        //     owner.stockStability += 10;
+        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
+        // }
         doesCrit = false;
     }
 
@@ -61,6 +61,12 @@ public class QuarterReport : SpellData
         {
             case ProcCondition.ActiveOnCast:
                 doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
+                break;
+            case ProcCondition.ActiveOnHit:
+                if (doesCrit)
+                {
+                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                }
                 break;
             default:
                 break;

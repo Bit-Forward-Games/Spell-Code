@@ -43,7 +43,7 @@ public class CoinTossLoaded_prj : BaseProjectile
                     height = 32,
                     xKnockback = 3,
                     yKnockback = 10,
-                    damage = 25,
+                    damage = 15,
                     hitstun = 45,
                     attackLvl = 4,
                     sweetSpot = true

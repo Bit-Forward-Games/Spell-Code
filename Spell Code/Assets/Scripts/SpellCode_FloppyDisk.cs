@@ -68,12 +68,13 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             return;
         }
-        colliding = (CheckPlayerCollision() != null);
+        colliding = CheckPlayerCollision() != null;
 
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+            
 
             diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 

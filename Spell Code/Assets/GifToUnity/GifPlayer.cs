@@ -67,6 +67,11 @@ namespace GifImporter
                 _setGif = Gif;
             }
         }
+
+        public void Reset()
+        {
+            _index = 0;
+        }
     }
 }
 

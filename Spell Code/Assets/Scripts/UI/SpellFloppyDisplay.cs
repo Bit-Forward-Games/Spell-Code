@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System;
+using GifImporter;
 
 public class SpellFloppyDisplay : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class SpellFloppyDisplay : MonoBehaviour
     public Image spellIcon;
     public Image Background;
     public Image selectFill;
+    public GifPlayer SpellGifPlayer;
     [NonSerialized]
     public Vector2[] displayLocations = new Vector2[4] { 
         new Vector2(-400, 260),
@@ -37,6 +39,7 @@ public class SpellFloppyDisplay : MonoBehaviour
         spellCooldown.text = $"Cooldown: {displayCooldown}s";
         spellInput.text = spellData.spellType == SpellType.Active? $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}": "Passive";
         spellIcon.sprite = spellData.readyIcon;
+        SpellGifPlayer.Gif = spellData.SpellGIF;;
         switch (spellData.brands[0])
         {
             case Brand.Killeez:

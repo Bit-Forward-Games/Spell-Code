@@ -166,7 +166,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 960
+        width: 1280
         height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -186,9 +186,9 @@ TextureImporter:
       name: spellcode_disk_BG-Sheet_1
       rect:
         serializedVersion: 2
-        x: 960
+        x: 1280
         y: 0
-        width: 960
+        width: 1280
         height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -208,9 +208,9 @@ TextureImporter:
       name: spellcode_disk_BG-Sheet_2
       rect:
         serializedVersion: 2
-        x: 1920
+        x: 2560
         y: 0
-        width: 960
+        width: 1280
         height: 960
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -230,9 +230,9 @@ TextureImporter:
       name: spellcode_disk_BG-Sheet_3
       rect:
         serializedVersion: 2
-        x: 2880
+        x: 3840
         y: 0
-        width: 960
+        width: 1280
         height: 960
       alignment: 0
       pivot: {x: 0, y: 0}

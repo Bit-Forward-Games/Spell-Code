@@ -40,7 +40,7 @@ public class NoScopeShot_Prj : BaseProjectile
                     width = 64*2,
                     height = 8*2,
                     xKnockback = 5,
-                    yKnockback = 8,
+                    yKnockback = 3,
                     damage = 15,
                     hitstun = 10,
                     attackLvl = 1,

@@ -28,11 +28,6 @@ public class AmonSlash : SpellData
         }
         if (activateFlag)
         {
-            // If the remote owner's input for this frame is still being predicted,
-            // hold off on the launch so we don't commit hSpd to a direction that may flip when
-            // the real input arrives. activateFlag stays set; we retry next frame.
-            if (ShouldDeferSpellLaunchForPrediction()) return;
-
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(2); // Launch the player upwards slightly

@@ -39,9 +39,6 @@ public class GetAJob : SpellData
         }
         if (activateFlag)
         {
-            // Defer launch if owner input is still predicted (see SpellData helper).
-            if (ShouldDeferSpellLaunchForPrediction()) return;
-
             int speedBoost = doesCrit ? 12 : 8; // Example: If it's a critical hit, increase speed boost
             // Reset the activate flag
             activateFlag = false;

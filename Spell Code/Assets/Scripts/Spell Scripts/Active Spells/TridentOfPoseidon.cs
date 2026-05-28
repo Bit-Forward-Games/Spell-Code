@@ -41,7 +41,6 @@ public class TridentOfPoseidon : SpellData
         }
         if (activateFlag)
         {
-            if (ShouldDeferSpellLaunchForPrediction()) return;
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(5); // Launch the player upwards slightly

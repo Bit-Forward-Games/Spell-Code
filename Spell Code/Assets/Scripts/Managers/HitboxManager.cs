@@ -150,7 +150,13 @@ public class HitboxManager : MonoBehaviour
                             projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                             
                             projectile.ownerSpell?.ShareHitIgnoreList();
-                            projectile.owner.spellsHit++;
+                            // Stat counter only — gate behind rollback so resim doesn't
+                            // double-count hits the original frame already counted.
+                            // Not part of state hash, but skews end-of-match stats.
+                            if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                            {
+                                projectile.owner.spellsHit++;
+                            }
                         }
                     }
                 }

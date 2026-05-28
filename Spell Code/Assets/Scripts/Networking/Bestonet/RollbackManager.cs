@@ -1449,36 +1449,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
         }
 
-        // Returns true if the most recent PredictRemoteInput call for this slot
-        // used a real received input (streak == 0), false if the call had to predict.
-        // Used by movement spells to defer their hSpd launch when the owning peer's current
-        // frame input is still being predicted, avoiding wrong-direction launches.
-        public bool IsRemoteInputCurrentlyPredicted(int playerSlot)
-        {
-            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
-            {
-                return false;
-            }
-
-            // Local player's inputs are always authoritative on this client.
-            if (playerSlot == GameManager.Instance.localPlayerIndex)
-            {
-                return false;
-            }
-
-            if (!usePeerRoster)
-            {
-                return opponentPredictedInputStreak > 0;
-            }
-
-            if (pendingRemoteInputSlots.Contains(playerSlot))
-            {
-                return true;
-            }
-
-            return remotePredictedInputStreakBySlot.TryGetValue(playerSlot, out int streak) && streak > 0;
-        }
-
         private bool RemoteSlotsHaveInputForFrame(int frame)
         {
             for (int i = 0; i < remotePlayerSlots.Count; i++)

@@ -29,9 +29,6 @@ public class AbaddonUppercut : SpellData
         }
         if (activateFlag)
         {
-            // Defer launch if owner input is still predicted (see SpellData helper).
-            if (ShouldDeferSpellLaunchForPrediction()) return;
-
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(15); // Launch the player upwards slightly

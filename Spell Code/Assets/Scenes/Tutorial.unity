@@ -543,13 +543,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6446479999002691263, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 6489815283124935995, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf9ff075889653145904aa04bae7428c, type: 3}
 --- !u!114 &978990244 stripped
 MonoBehaviour:
@@ -713,7 +707,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 50}
-  minZoom: 150
+  minZoom: 180
   maxZoom: 9999
   HardSetZoom: 205
   zoomSpeed: 1.5

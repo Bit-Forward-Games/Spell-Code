@@ -143,7 +143,7 @@ public abstract class BaseProjectile : MonoBehaviour
                 return;
             }
         }
-        if (logicFrame >= animFrames.frameLengths.Sum())
+        else if (logicFrame >= animFrames.frameLengths.Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }

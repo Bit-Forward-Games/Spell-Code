@@ -474,7 +474,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6732060565920077018, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalScale.x
@@ -713,7 +713,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 50}
-  minZoom: 150
+  minZoom: 180
   maxZoom: 9999
   HardSetZoom: 205
   zoomSpeed: 1.5

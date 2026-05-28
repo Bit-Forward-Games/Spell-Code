@@ -242,7 +242,7 @@ public class GambaMachine : MonoBehaviour
                 Debug.Log("TUTORIAL GAMBA");
                 isActive = false;
 
-                SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Skillshot Slash");
+                SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
             }
 
             if (isActive && CheckHitboxCollision() && machineID == 2)

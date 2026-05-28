@@ -13,7 +13,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         projName = "Asuran Blades";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 30; // lasts for 20 logic frames
+        lifeSpan = 30;
         deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
     }

@@ -14,7 +14,7 @@ public class ReloadShot_prj : BaseProjectile
         projName = "Reload Shot";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 600; // lasts for 120 logic frames
+        lifeSpan = 0;
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }

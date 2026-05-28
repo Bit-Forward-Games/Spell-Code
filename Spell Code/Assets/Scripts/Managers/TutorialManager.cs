@@ -47,9 +47,8 @@ public class Tutorial : MonoBehaviour
         if (machine.isActive)
         {
             gambaHitGif.enabled = true;
-            floppyPickupGif.enabled = false;
         }
-        else if (!machine.isActive)
+        else if (machine.isActive == false)
         {
             gambaHitGif.enabled = false;
             floppyPickupGif.enabled = true;

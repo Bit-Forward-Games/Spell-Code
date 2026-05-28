@@ -150,6 +150,9 @@ public class TrickshotAlley_prj : BaseProjectile
                 proj.playerIgnoreArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
                 ownerSpell.cooldownCounter-= 60;
+
+                //Play the Trickshot Alley Hit SFX
+                SFX_Manager.Instance.PlaySpellcodeSound("Trickshot Alley Hit");
             }
         }
 

@@ -91,6 +91,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
+        [SerializeField] public int MultiplayerMaxConsecutiveFrameDrops = 0; // 3/4P online: never pulse past prediction cap; hold until input arrives (timeout net catches real stalls)
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
@@ -622,10 +623,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         // True if at least one remote slot (other than `excludeSlot`) is past its
-        // pending-handshake phase and has at least one received input on record. Used by
-        // AlignRemoteFrameForSlot to decide whether the rollback baseline can be safely reset
-        // (no active peers) or must be preserved (other peers have live history that would be
-        // discarded by a baseline reset).
+        // pending-handshake phase. Used by AlignRemoteFrameForSlot to decide whether the
+        // rollback baseline can be safely reset (no active peers) or must be preserved
+        // (other peers have live history that would be discarded by a baseline reset).
+        //
+        // We trust "removed from pendingRemoteInputSlots" as proof of alignment. We do NOT
+        // additionally require highestRemoteInputFrameSeenBySlot >= 0, because during
+        // bootstrap the first input from a slot frequently hits SetRemoteInput's
+        // `adjustedFrame <= syncFrame` early-return (ResetRollbackBaseline just set syncFrame
+        // to current localFrame). In that path the tracker never gets populated, but the slot
+        // is still legitimately aligned and its future inputs should preserve the baseline.
         private bool HasAnyActiveRemoteSlotWithHistory(int excludeSlot)
         {
             if (!usePeerRoster)
@@ -639,13 +646,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 if (slot == excludeSlot) continue;
                 if (pendingRemoteInputSlots.Contains(slot)) continue;
 
+                // The slot is past handshake (out of pending). Verify its input buffer
+                // exists - paranoid sanity check; should always be true post-alignment.
                 if (receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray received)
                     && received != null)
                 {
-                    if (highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int highest) && highest >= 0)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -1082,7 +1088,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 consecutiveDrop++;
-                if (consecutiveDrop > maxDropPulse)
+                // Online-only: in 3/4P we want to ENFORCE the prediction-ahead cap. Pulsing
+                // past it is what produced the 4-10 frame rollback bursts we saw in the
+                // 4P session logs (host running ahead of one stalled peer). The TimeoutFrames
+                // watchdog will catch genuine peer stalls, so holding indefinitely here is safe.
+                int predictionDropLimit = GetPredictionHoldDropLimit();
+                if (predictionDropLimit > 0 && consecutiveDrop > predictionDropLimit)
                 {
                     consecutiveDrop = 0;
                     lastDroppedFrame = currentFrame;
@@ -1154,6 +1165,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return Mathf.Min(
                 maxHistoryAhead,
                 Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
+        }
+
+        // Online-only: drop-pulse limit consulted ONLY by the prediction-ahead hold path.
+        // In 3/4P we want to enforce the cap (return 0 -> never pulse, just hold).
+        // The startup-hold path keeps using MaxConsecutiveFrameDrops directly because that
+        // path needs to pulse to avoid both-sides-waiting deadlocks during scene transition.
+        private int GetPredictionHoldDropLimit()
+        {
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return Mathf.Max(0, MultiplayerMaxConsecutiveFrameDrops);
+            }
+
+            return Mathf.Max(1, MaxConsecutiveFrameDrops);
         }
 
         /// <summary>

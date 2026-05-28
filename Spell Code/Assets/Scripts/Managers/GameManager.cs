@@ -4438,6 +4438,34 @@ public class GameManager : MonoBehaviour
         SerializeFloppyState(bw);
     }
 
+    // Online-only: set true while DeserializeManagedState is running. PlayerController's
+    // RebuildSpellListFromSaved consults this so the (expensive) projectile-pool rebuild
+    // can be batched to a single call at the end of the deserialize pass instead of firing
+    // once per mismatching player. Offline path is untouched.
+    [System.NonSerialized]
+    public bool isApplyingManagedStateDeserialize = false;
+    private bool _pendingProjectilePoolRebuild = false;
+
+    /// <summary>
+    /// Online-only: called by PlayerController.RebuildSpellListFromSaved during a
+    /// snapshot/rollback apply. While the deserialize pass is in progress, the rebuild is
+    /// deferred to a single call at the end. Outside of deserialize, rebuilds immediately
+    /// so direct callers see the legacy behavior.
+    /// </summary>
+    public void RequestProjectilePoolRebuild()
+    {
+        if (isApplyingManagedStateDeserialize)
+        {
+            _pendingProjectilePoolRebuild = true;
+            return;
+        }
+
+        if (ProjectileManager.Instance != null)
+        {
+            ProjectileManager.Instance.InitializeAllProjectiles();
+        }
+    }
+
     /// <summary>
     /// Deserializes and applies a game state snapshot.
     /// Restores players and manages projectile activation/state.
@@ -4445,6 +4473,12 @@ public class GameManager : MonoBehaviour
     /// <param name="stateData">The byte array snapshot to load.</param>
     public void DeserializeManagedState(byte[] stateData)
     {
+        // Online-only: batch any projectile-pool rebuilds requested by per-player
+        // RebuildSpellListFromSaved calls. See RequestProjectilePoolRebuild above.
+        isApplyingManagedStateDeserialize = true;
+        _pendingProjectilePoolRebuild = false;
+        try
+        {
         using (MemoryStream memoryStream = new MemoryStream(stateData))
         {
             using (BinaryReader br = new BinaryReader(memoryStream))
@@ -4556,7 +4590,21 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Projectile State 
+                // Online-only: any per-player RebuildSpellListFromSaved calls during the
+                // player loop above requested a deferred pool rebuild. Do it ONCE here, now
+                // that every player's spell list is finalised, so the projectile prefab
+                // ordering matches the host's and the prefabIndex values we're about to
+                // read from the stream resolve correctly.
+                if (_pendingProjectilePoolRebuild)
+                {
+                    _pendingProjectilePoolRebuild = false;
+                    if (ProjectileManager.Instance != null)
+                    {
+                        ProjectileManager.Instance.InitializeAllProjectiles();
+                    }
+                }
+
+                // Projectile State
                 int savedProjectileCount = br.ReadInt32();
                 List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
                 List<BaseProjectile> currentlyActive = masterList
@@ -4710,6 +4758,12 @@ public class GameManager : MonoBehaviour
                         players[i].ResolveReferences();
                 }
             }
+        }
+        }
+        finally
+        {
+            isApplyingManagedStateDeserialize = false;
+            _pendingProjectilePoolRebuild = false;
         }
     }
 

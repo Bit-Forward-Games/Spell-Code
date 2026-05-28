@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -29,6 +30,8 @@ public class ClearMachine : MonoBehaviour
 
     public bool facingRight = true;
 
+    public byte resetTimer = 0;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -41,7 +44,7 @@ public class ClearMachine : MonoBehaviour
     void FixedUpdate()
     {
         clearAnimator.SetBool("facingLeft", !facingRight);
-        clearAnimator.SetBool("isActive", true);
+        clearAnimator.SetBool("isActive", isActive);
 
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
@@ -49,6 +52,19 @@ public class ClearMachine : MonoBehaviour
         {
             Debug.Log("CLEARING");
             ownerPlayer.ClearSpellList();
+            isActive = false;
+        }
+
+        if (!isActive)
+        {
+            //Debug.Log("GAMBA RESET TIMER GOING");
+            resetTimer++;
+
+            if (resetTimer > 60)
+            {
+                isActive = true;
+                resetTimer = 0;
+            }
         }
     }
 

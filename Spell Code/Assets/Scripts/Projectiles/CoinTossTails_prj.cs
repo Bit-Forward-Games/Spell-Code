@@ -27,7 +27,7 @@ public class CoinTossTails_prj : BaseProjectile
     {
 
         projectileHitboxes = new HitboxGroup[2];
-        projectileHitboxes[0] = new HitboxGroup
+        projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
@@ -48,12 +48,23 @@ public class CoinTossTails_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
-        projectileHitboxes[1] = new HitboxGroup
+        projectileHitboxes[0] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>(),
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
+        };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                0
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(16).Sum()
+            }
         };
         base.LoadProjectile();
     }
@@ -74,7 +85,7 @@ public class CoinTossTails_prj : BaseProjectile
         {
             hSpeed = Fixed.FromInt(0);
             vSpeed = Fixed.FromInt(0);
-            activeHitboxGroupIndex = 1;
+            activeHitboxGroupIndex = 0;
 
             playerIgnoreArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(16).Sum() + 1; //set the logic frame to the start of the end animation

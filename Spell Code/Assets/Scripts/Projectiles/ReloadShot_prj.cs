@@ -14,7 +14,7 @@ public class ReloadShot_prj : BaseProjectile
         projName = "Reload Shot";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 600; // lasts for 120 logic frames
+        lifeSpan = 0;
         deleteOnHit = false;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
@@ -116,6 +116,15 @@ public class ReloadShot_prj : BaseProjectile
 
             playerIgnoreArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(18).Sum()+1; //set the logic frame to the start of the end animation
+
+
+        }
+
+        //if the animation has looped,...
+        if (animationFrame == 3)
+        {
+            //Replay the Reload Shot SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Reload Shot");
         }
     }
 }

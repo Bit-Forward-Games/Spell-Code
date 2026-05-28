@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 public class TempUIScript : MonoBehaviour
@@ -60,6 +61,18 @@ public class TempUIScript : MonoBehaviour
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
 
+    public GameObject _soloGamemodesMenuFirst;
+    public GameObject soloGamemodesMenu;
+    public bool soloGamemodesMenuOpened;
+    public Pause pause;
+
+    private InputSystem_Actions input;
+ 
+    void Awake()
+    {
+        input = new InputSystem_Actions();
+    }
+
     void Start()
     {
         followPlayerHpBar = new Image[4];
@@ -79,11 +92,13 @@ public class TempUIScript : MonoBehaviour
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        input.Enable();
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        input.Disable();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -115,6 +130,23 @@ public class TempUIScript : MonoBehaviour
             transitionScreenDisplayed = true;
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            soloGamemodesMenu.SetActive(true);
+            soloGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+
+        if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        {
+            soloGamemodesMenuOpened = false;
+            soloGamemodesMenu.SetActive(false);
+            Time.timeScale = 1f;
+        }
+
+        if (input.UI.Back.WasPressedThisFrame()) Debug.Log("Hello???");
     }
 
     public void UpdateUIBarVals()

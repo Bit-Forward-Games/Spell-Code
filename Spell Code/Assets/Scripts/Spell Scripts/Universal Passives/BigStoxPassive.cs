@@ -34,6 +34,7 @@ public class BigStoxPassive : SpellData
                 }
                 break;
             case ProcCondition.OnStart:
+                owner.stockStability = 0;
                 foreach(SpellData spell in owner.spellList)
                 {
                     if(spell.brands[0] == Brand.BigStox)

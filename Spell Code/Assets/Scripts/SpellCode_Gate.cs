@@ -98,6 +98,11 @@ public class SpellCode_Gate : MonoBehaviour
                             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
                         }
 
+                        if (!isRollback)
+                        {
+                            GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"gate break P{ownerPID}");
+                        }
+
                         return;
                     }
                 }

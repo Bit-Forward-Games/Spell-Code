@@ -165,6 +165,11 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                     {
                         diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
                     }
+                    gameObject.SetActive(false);
+                    if (isRealFrame)
+                    {
+                        GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"floppy pickup P{ownerPID} {diskName}");
+                    }
                     Destroy(gameObject);
                 }
                 else

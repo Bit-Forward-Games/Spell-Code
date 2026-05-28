@@ -285,6 +285,10 @@ public class GambaMachine : MonoBehaviour
             {
                 isActive = false;
                 SpawnFloppysForOwnerOnline(isRollback);
+                if (!isRollback)
+                {
+                    GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"lobby gamba P{ownerPID}");
+                }
             }
         }
         else if (activeScene.name == "Shop")
@@ -329,6 +333,10 @@ public class GambaMachine : MonoBehaviour
             if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
             if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
             if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            if (!isRollback)
+            {
+                GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"shop gamba P{ownerPID} activation {activatedCount}");
+            }
         }
 
         if (!isActive && activatedCount < 3)

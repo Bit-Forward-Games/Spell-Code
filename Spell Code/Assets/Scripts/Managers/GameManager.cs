@@ -1089,6 +1089,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void BroadcastAuthoritativeOnlineStateSnapshot(string reason = "")
+    {
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority())
+        {
+            return;
+        }
+
+        SendAuthoritativeOnlineLobbySnapshot();
+
+        if (!string.IsNullOrEmpty(reason))
+        {
+            Debug.Log($"[OnlineState] Broadcast authoritative snapshot after {reason}. Frame={frameNumber}");
+        }
+    }
+
     private bool IsSteamIdInList(Steamworks.SteamId steamId, List<Steamworks.SteamId> steamIds)
     {
         if (!steamId.IsValid || steamIds == null)

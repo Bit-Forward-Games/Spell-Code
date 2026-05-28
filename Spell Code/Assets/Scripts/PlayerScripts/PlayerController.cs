@@ -593,6 +593,7 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);

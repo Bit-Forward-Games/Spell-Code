@@ -75,6 +75,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> highestRemoteInputFrameSeenBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> remoteFrameOffsetBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> remotePredictedInputStreakBySlot = new Dictionary<int, int>();
+        // Stability tracking for direction prediction. remoteLastReceivedDirectionBySlot
+        // holds the direction byte of the most recent RECEIVED (not predicted) input from each slot.
+        // remoteHeldDirectionStreakBySlot counts how many consecutive received frames had that same
+        // direction byte. The decay path uses min(streak, MultiplayerDirectionPredictionHoldMaxFrames)
+        // as its hold window: held direction predicts longer, rapidly-changing direction decays fast.
+        private readonly Dictionary<int, byte> remoteLastReceivedDirectionBySlot = new Dictionary<int, byte>();
+        private readonly Dictionary<int, int> remoteHeldDirectionStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
         private int? pendingRosterFrameOffset = null;
         private readonly List<int> remotePlayerSlots = new List<int>();
@@ -95,7 +102,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
-        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 0; // Decay direction immediately in 3/4-player online so released directions cannot ghost-run for an extra frame
+        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 0; // 3/4P online: base hold window. With stability-aware mode below, the effective window scales up to MultiplayerDirectionPredictionHoldMaxFrames when the received direction has been stable.
+        [SerializeField] public int MultiplayerDirectionPredictionHoldMaxFrames = 4; // 3/4P online: cap for the stability-aware hold window. Prediction will hold the direction for at most this many frames even if the direction has been held for a long time. Tune against MaxRollBackFrames so rollback can always correct in time.
         [SerializeField] public int MultiplayerJumpButtonPredictionHoldFrames = 1; // Decay predicted jump button quickly so stuck "Held" doesn't drive variable jump / slide branches
         [SerializeField] public int MultiplayerPauseButtonPredictionHoldFrames = 0; // Decay predicted pause immediately - online pause is not networked anyway
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
@@ -136,6 +144,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public bool isRollbackFrame { get; private set; } = false; // True if currently resimulating
         private ulong opponentLastAppliedInput = 0; // For prediction
         private int opponentPredictedInputStreak = 0;
+        // Online-only 2P equivalent of the per-slot stability trackers above.
+        private byte opponentLastReceivedDirection = 5;
+        private int opponentHeldDirectionStreak = 0;
         private int totalConsecutiveFrameExtensions = 0;
         public int remoteFrame { get; private set; } = 0; // Latest frame confirmed by remote client
         public int predictedRemoteFrame { get; private set; } = 0; // Estimated remote frame based on ping
@@ -376,6 +387,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(highestRemoteInputFrameSeenBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteFrameOffsetBySlot, validRemoteSlots);
             PruneSlotDictionary(remotePredictedInputStreakBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteLastReceivedDirectionBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
         }
 
@@ -460,6 +473,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             highestRemoteInputFrameSeenBySlot.Clear();
             remoteFrameOffsetBySlot.Clear();
             remotePredictedInputStreakBySlot.Clear();
+            remoteLastReceivedDirectionBySlot.Clear();
+            remoteHeldDirectionStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
             pendingRosterFrameOffset = null;
 
@@ -482,6 +497,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
             opponentPredictedInputStreak = 0;
+            opponentLastReceivedDirection = 5;
+            opponentHeldDirectionStreak = 0;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             currentFrameExtensionMicro = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
@@ -1251,6 +1268,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (receivedInputs.ContainsKey(frame))
             {
                 ulong actualInput = receivedInputs.GetInput(frame);
+                // Stability tracking: extend streak when the received direction stays the same,
+                // reset when it changes. Used to size the prediction hold window in DecayPredictedInput.
+                byte actualDirection = (byte)(actualInput & 0xFFUL);
+                if (actualDirection == opponentLastReceivedDirection)
+                {
+                    opponentHeldDirectionStreak++;
+                }
+                else
+                {
+                    opponentHeldDirectionStreak = 1;
+                }
+                opponentLastReceivedDirection = actualDirection;
+
                 opponentLastAppliedInput = actualInput; // Update last known input
                 opponentPredictedInputStreak = 0;
                 // Store the *actual* input we are using for this frame's simulation
@@ -1262,7 +1292,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 // Simple prediction: reuse the last known input
                 // Store the *predicted* input we are using for this frame's simulation
                 opponentPredictedInputStreak++;
-                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak);
+                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak, slot: -1);
                 opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
                 return predicted;
             }
@@ -1276,6 +1306,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (receivedBySlot.ContainsKey(frame))
             {
                 ulong actualInput = receivedBySlot.GetInput(frame);
+                // Stability tracking: extend the per-slot streak when the received direction
+                // matches the most recent received direction for this slot. Reset on direction
+                // change. The streak feeds the per-slot hold window in DecayPredictedInput so
+                // a long-held direction predicts further than a tapped one.
+                byte actualDirection = (byte)(actualInput & 0xFFUL);
+                byte prevReceivedDirection = remoteLastReceivedDirectionBySlot.TryGetValue(slot, out byte prevDir)
+                    ? prevDir
+                    : (byte)5;
+                if (actualDirection == prevReceivedDirection)
+                {
+                    remoteHeldDirectionStreakBySlot[slot] = (remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int held) ? held : 0) + 1;
+                }
+                else
+                {
+                    remoteHeldDirectionStreakBySlot[slot] = 1;
+                }
+                remoteLastReceivedDirectionBySlot[slot] = actualDirection;
+
                 remoteLastAppliedInputBySlot[slot] = actualInput;
                 remotePredictedInputStreakBySlot[slot] = 0;
                 usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
@@ -1285,12 +1333,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int predictedStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int streak) ? streak + 1 : 1;
             remotePredictedInputStreakBySlot[slot] = predictedStreak;
             ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
-            predicted = DecayPredictedInput(predicted, predictedStreak);
+            predicted = DecayPredictedInput(predicted, predictedStreak, slot);
             usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
             return predicted;
         }
 
-        private ulong DecayPredictedInput(ulong input, int predictedFrameStreak)
+        private ulong DecayPredictedInput(ulong input, int predictedFrameStreak, int slot)
         {
             ulong decayedInput = DecayPredictedCodeButton(input, predictedFrameStreak);
             // Also decay the jump and pause buttons so a stuck "Held" prediction
@@ -1304,7 +1352,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return decayedInput;
             }
 
-            if (predictedFrameStreak <= Mathf.Max(0, GetDirectionPredictionHoldFrames()))
+            if (predictedFrameStreak <= Mathf.Max(0, GetDirectionPredictionHoldFrames(slot)))
             {
                 return decayedInput;
             }
@@ -1314,13 +1362,31 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return (decayedInput & ~0xFFUL) | 5UL;
         }
 
-        private int GetDirectionPredictionHoldFrames()
+        // Returns the effective hold window for direction prediction on this slot.
+        // 3/4P online: stability-aware. The window is min(stabilityStreak, max-cap) where
+        // stabilityStreak is how many consecutive received frames had the same direction byte.
+        // A tapped/spammed direction has streak ~1 -> hold ~1, so it decays fast (prevents overshoot).
+        // A long-held direction has streak >> 1 -> hold = cap (default 4), so it predicts longer
+        // (prevents undershoot during slide/run momentum).
+        // Other paths (2P / offline) keep the fixed hold-window behaviour.
+        private int GetDirectionPredictionHoldFrames(int slot)
         {
             if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
             {
-                return MultiplayerDirectionPredictionHoldFrames;
+                int baseHold = Mathf.Max(0, MultiplayerDirectionPredictionHoldFrames);
+                int stabilityCap = Mathf.Max(baseHold, MultiplayerDirectionPredictionHoldMaxFrames);
+                int stabilityStreak = slot >= 0
+                    && remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int held)
+                        ? held
+                        : 0;
+                // Scale the hold by how stable the received direction has been, but never lower
+                // than the base hold (lets you bump it via inspector if you want a floor).
+                return Mathf.Clamp(stabilityStreak, baseHold, stabilityCap);
             }
 
+            // 2P online / offline: keep the legacy fixed hold window. The 2P stability streak
+            // is still tracked (in PredictOpponentInput) so a future change can wire it in here,
+            // but right now we don't change 2P behaviour to avoid regressing a known-good path.
             return DirectionPredictionHoldFrames;
         }
 

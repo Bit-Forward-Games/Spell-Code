@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using GifImporter;
+using DG.Tweening;
 
 public class SpellFloppyDisplay : MonoBehaviour
 {
@@ -17,6 +18,16 @@ public class SpellFloppyDisplay : MonoBehaviour
     public Image Background;
     public Image selectFill;
     public GifPlayer SpellGifPlayer;
+    public GameObject SpellGifGO;
+
+
+//fields for animated interactivity
+    public bool showDesc = false;
+    public const float gifScaleNoDesc = 2.75f;
+    public const float gifScaleDesc = 2f;
+
+
+
     [NonSerialized]
     public Vector2[] displayLocations = new Vector2[4] { 
         new Vector2(-400, 260),
@@ -55,6 +66,39 @@ public class SpellFloppyDisplay : MonoBehaviour
                 Background.sprite = backgroundImageReference[3];
                 break;
 
+        }
+    }
+
+    public void StartFloppyDisplay()
+    {
+        canvasObject.GetComponent<Canvas>().enabled = true;
+        SpellGifPlayer.Reset();
+        showDesc = false;
+    }
+
+    public void FloppyDisplayUpdate()
+    {
+        if (showDesc)
+        {
+            if (SpellGifGO != null)
+            {
+                Tween tween = SpellGifGO.transform.DOScale(gifScaleDesc, .25f);
+                tween.OnComplete(() =>
+                {
+                    spellDesc.DOColor(Color.black, .25f);
+                });
+            }
+        }
+        else
+        {
+            if (SpellGifGO != null)
+            {
+                Tween tween = spellDesc.DOColor(Color.clear, .25f);
+                tween.OnComplete(() =>
+                {
+                    SpellGifGO.transform.DOScale(gifScaleNoDesc, .25f);
+                });
+            }
         }
     }
 

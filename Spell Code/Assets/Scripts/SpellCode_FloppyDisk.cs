@@ -73,10 +73,14 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
-            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+            if (!diskDisplay.canvasObject.GetComponent<Canvas>().enabled)
+            {
+                diskDisplay.StartFloppyDisplay();
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+            }
             
 
-            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+            //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
             {
@@ -87,6 +91,12 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 else
                 {
                     selectHoldCounter = 0;
+                }
+                //this will show description
+                if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released && selectHoldCounter < 60)
+                {
+                    diskDisplay.showDesc = !diskDisplay.showDesc;
+                    diskDisplay.FloppyDisplayUpdate();
                 }
 
                 if (selectHoldCounter >= 60)

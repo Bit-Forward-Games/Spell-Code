@@ -176,6 +176,11 @@ public class StageCamera : MonoBehaviour
         else
         {
             shakeOffset = Vector3.zero;
+
+            if (lockCamera)
+            {
+                transform.position = new Vector3(0, 0, -10);
+            }
         }
 
         transform.position += shakeOffset;

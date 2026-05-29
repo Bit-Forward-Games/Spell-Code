@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
     public bool tapJump = false;
+    private bool tapJumpPrimed = true;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -627,29 +628,29 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private ushort GetPersistentStockStabilityFromSpellList()
-    {
-        ushort totalStockStability = 0;
+    // private ushort GetPersistentStockStabilityFromSpellList()
+    // {
+    //     ushort totalStockStability = 0;
 
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            SpellData spell = spellList[i];
-            if (spell == null) continue;
+    //     for (int i = 0; i < spellList.Count; i++)
+    //     {
+    //         SpellData spell = spellList[i];
+    //         if (spell == null) continue;
 
-            switch (spell.spellName)
-            {
-                case "Quarter Report":
-                case "Coin Toss":
-                case "Get A Job":
-                case "Penny Stock Peddler":
-                case "Cash Out":
-                    totalStockStability += 10;
-                    break;
-            }
-        }
+    //         switch (spell.spellName)
+    //         {
+    //             case "Quarter Report":
+    //             case "Coin Toss":
+    //             case "Get A Job":
+    //             case "Penny Stock Peddler":
+    //             case "Cash Out":
+    //                 totalStockStability += 10;
+    //                 break;
+    //         }
+    //     }
 
-        return totalStockStability;
-    }
+    //     return totalStockStability;
+    // }
 
 
     public void ClearSpellList()
@@ -1084,7 +1085,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false)) && tapJumpPrimed))
                 {
                     DoJump();
                     break;
@@ -1123,7 +1124,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false)) && tapJumpPrimed))
                 {
                     DoJump();
                     break;
@@ -1164,6 +1165,7 @@ public class PlayerController : MonoBehaviour
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);
+                    
                 }
                 if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
@@ -2243,6 +2245,7 @@ public class PlayerController : MonoBehaviour
     {
         vSpd = jumpForce;
         jumpCount--;
+        tapJumpPrimed = false;
         CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnJump);
 
         //play the jump sound

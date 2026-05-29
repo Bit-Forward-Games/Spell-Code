@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
     public bool tapJump = false;
+    private bool tapJumpPrimed = true;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -211,9 +212,9 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 1.5f;
+    private float toastLifetime = 1.2f;
     //[SerializeField]
-    private float toastFadeDuration = 0.35f;
+    private float toastFadeDuration = 0.25f;
     //[SerializeField]
     private float toastBaseVerticalOffset = 90;
     //[SerializeField]
@@ -593,6 +594,7 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -626,29 +628,29 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private ushort GetPersistentStockStabilityFromSpellList()
-    {
-        ushort totalStockStability = 0;
+    // private ushort GetPersistentStockStabilityFromSpellList()
+    // {
+    //     ushort totalStockStability = 0;
 
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            SpellData spell = spellList[i];
-            if (spell == null) continue;
+    //     for (int i = 0; i < spellList.Count; i++)
+    //     {
+    //         SpellData spell = spellList[i];
+    //         if (spell == null) continue;
 
-            switch (spell.spellName)
-            {
-                case "Quarter Report":
-                case "Coin Toss":
-                case "Get A Job":
-                case "Penny Stock Peddler":
-                case "Cash Out":
-                    totalStockStability += 10;
-                    break;
-            }
-        }
+    //         switch (spell.spellName)
+    //         {
+    //             case "Quarter Report":
+    //             case "Coin Toss":
+    //             case "Get A Job":
+    //             case "Penny Stock Peddler":
+    //             case "Cash Out":
+    //                 totalStockStability += 10;
+    //                 break;
+    //         }
+    //     }
 
-        return totalStockStability;
-    }
+    //     return totalStockStability;
+    // }
 
 
     public void ClearSpellList()
@@ -669,7 +671,14 @@ public class PlayerController : MonoBehaviour
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        flowState = 0; //the timer for how long you are in flow state
+        stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
+        stockStabilityModified = 0; //crit chance after modifiers
+        demonAura = 0;
+        demonAuraLifeSpanTimer = 0;
+        reps = 0;
+
+    int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 
@@ -974,6 +983,11 @@ public class PlayerController : MonoBehaviour
 
         CheckHit(input);
 
+        if(input.Direction <= 6)
+        {
+            tapJumpPrimed = true;
+        }
+
 
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
@@ -1076,7 +1090,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1115,7 +1129,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1156,6 +1170,7 @@ public class PlayerController : MonoBehaviour
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);
+                    
                 }
                 if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
@@ -1175,7 +1190,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //air jump input check
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     
                     DoJump();
@@ -1677,7 +1692,7 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -2235,6 +2250,7 @@ public class PlayerController : MonoBehaviour
     {
         vSpd = jumpForce;
         jumpCount--;
+        tapJumpPrimed = false;
         CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnJump);
 
         //play the jump sound
@@ -2339,6 +2355,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Slide:
                 hSpd = facingRight ? slideSpeed : -slideSpeed;
                 playerHeight = Fixed.FromInt(charData.playerHeight/2);
+
+                //Play the slide SFX
+                SFX_Manager.Instance.PlaySound(Sounds.SLIDE, 1.0f, 1.0f);
+
                 break;
         }
     }
@@ -2446,7 +2466,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker, Color? damageTextColor = null)
     {
-        if (GameManager.Instance.currentStageIndex < 0)
+        if (GameManager.Instance.currentStageIndex == -1)
         {
             //don't take damage in the lobby
             return;
@@ -2519,23 +2539,23 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            
             HandleDamage(attacker, hitboxData.damage);
-            //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
-            
-            comboCounter++;
-            if (comboCounter >= 4)
+
+            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
-                SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
-                iframes = 120;
-                comboCounter = 0;
+                
+                //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+                comboCounter++;
+                if (comboCounter >= 4)
+                {
+                    SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
+                    iframes = 120;
+                    comboCounter = 0;
 
-                //Play the combo break VFX
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
-            }
-
-
-            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+                    //Play the combo break VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
+                }
+                //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             //play the damaged sound
             SFX_Manager.Instance.PlaySound(Sounds.HIT);
@@ -2545,6 +2565,13 @@ public class PlayerController : MonoBehaviour
 
             SetState(PlayerState.Hitstun);
 
+            }
+            
+            
+            
+
+
+            
             //call the active on hit proc of the spell that created the projectile that hit us
             SpellData sourceSpell = sourceProjectile != null ? sourceProjectile.ownerSpell : null;
             if (sourceSpell == null)
@@ -2604,7 +2631,7 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
-        if(pID == 0)return; //if this is a training dummy then don't handle damage
+        //if(pID == 0)return; //if this is a training dummy then don't handle damage
 
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
@@ -2615,27 +2642,36 @@ public class PlayerController : MonoBehaviour
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
-        if (hasAttacker && damageAmount > 0)
+        if(pID != 0)
         {
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-        }
-
-        if (DataManager.Instance != null &&
-            DataManager.Instance.gameData != null &&
-            DataManager.Instance.gameData.arenaData != null)
-        {
-            var arenaData = DataManager.Instance.gameData.arenaData;
-            if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+            if (hasAttacker && damageAmount > 0)
             {
-                hitList = new List<Vector2>();
-                arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }
-            hitList.Add(transform.position);
+
+            if (DataManager.Instance != null &&
+                DataManager.Instance.gameData != null &&
+                DataManager.Instance.gameData.arenaData != null)
+            {
+                var arenaData = DataManager.Instance.gameData.arenaData;
+                if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+                {
+                    hitList = new List<Vector2>();
+                    arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                }
+                hitList.Add(transform.position);
+            }
         }
+        
 
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
+            if (pID == 0)
+            {
+                currentPlayerHealth = charData.playerHealth;
+                return;
+            }
             if (DataManager.Instance != null &&
                 DataManager.Instance.gameData != null &&
                 DataManager.Instance.gameData.arenaData != null)

@@ -14,6 +14,7 @@ public class CodeE_BasicProjectile : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 20; // lasts for 300 logic frames
+        deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -26,6 +27,7 @@ public class CodeE_BasicProjectile : BaseProjectile
 
     public override void LoadProjectile()
     {
+        deleteOnHit = true;
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {

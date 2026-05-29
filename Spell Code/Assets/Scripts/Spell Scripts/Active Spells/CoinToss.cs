@@ -62,7 +62,7 @@ public class CoinToss : SpellData
             case ProcCondition.ActiveOnCast:
                 int roll = GameManager.Instance.GetNextRandom(0, 100);
                 //Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
-                doesCrit = roll < owner.stockStability;
+                doesCrit = roll < owner.stockStabilityModified;
                 break;
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)

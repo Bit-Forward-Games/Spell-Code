@@ -50,7 +50,7 @@ MonoBehaviour:
   - {fileID: 7323394407539773554, guid: 0313600240a42e54184617cf8275501f, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  shopSprite: {fileID: 21300000, guid: b6b76d8190ffd014fb2acb09c9c41b2e, type: 3}
   readyIcon: {fileID: 21300000, guid: 120c6bb00c8734f96bd2f572e79fa079, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 91d51ae16c0ba1c4d96bf64d6ad94dd8, type: 3}
+  SpellGIF: {fileID: 11400000, guid: e404f9be75d7b584890c82027adc2488, type: 2}
   doesCrit: 0

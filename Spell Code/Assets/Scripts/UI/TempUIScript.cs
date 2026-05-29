@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 public class TempUIScript : MonoBehaviour
@@ -60,6 +61,18 @@ public class TempUIScript : MonoBehaviour
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
 
+    public GameObject _soloGamemodesMenuFirst;
+    public GameObject soloGamemodesMenu;
+    public bool soloGamemodesMenuOpened;
+    public Pause pause;
+
+    private InputSystem_Actions input;
+ 
+    void Awake()
+    {
+        input = new InputSystem_Actions();
+    }
+
     void Start()
     {
         followPlayerHpBar = new Image[4];
@@ -79,11 +92,13 @@ public class TempUIScript : MonoBehaviour
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        input.Enable();
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        input.Disable();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -103,6 +118,24 @@ public class TempUIScript : MonoBehaviour
         }
     }
 
+    public void SetSoloMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            soloGamemodesMenu.SetActive(true);
+            soloGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            soloGamemodesMenuOpened = false;
+            soloGamemodesMenu.SetActive(false);
+            Time.timeScale = 1f;
+        }
+        
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -114,6 +147,32 @@ public class TempUIScript : MonoBehaviour
         {
             transitionScreenDisplayed = true;
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
+        }
+
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     SetSoloMenuActive(true);
+        // }
+
+        if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        {
+            SetSoloMenuActive(false);
+        }
+    }
+
+    public void InvitePlayer()
+    {
+        if (SteamLobbyManager.Instance.IsInLobby)
+        {
+            bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
+            if (!opened)
+            {
+                SteamLobbyManager.Instance.HostAndInvite();
+            }
+        }
+        else
+        {
+            SteamLobbyManager.Instance.HostAndInvite();
         }
     }
 

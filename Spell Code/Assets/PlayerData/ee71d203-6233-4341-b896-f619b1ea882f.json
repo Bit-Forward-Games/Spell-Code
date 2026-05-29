@@ -1,0 +1,125 @@
+{
+  "dateTime": "5/27/2026 12:18:28 PM",
+  "matchData": [
+    {
+      "matchNum": 1,
+      "matchLength": 3.3166666,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Skillshot Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Quarter Report"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 2,
+      "matchLength": 0.966666639,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Skillshot Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "Code-E",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Quarter Report"
+          ]
+        }
+      ]
+    }
+  ],
+  "arenaData": {
+    "deathDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "duel_TheRoom_Arena": [],
+      "duel_TwoDots_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": []
+    },
+    "hitDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "duel_TheRoom_Arena": [],
+      "duel_TwoDots_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": []
+    }
+  }
+}

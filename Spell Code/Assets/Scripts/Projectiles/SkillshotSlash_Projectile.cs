@@ -14,7 +14,8 @@ public class SkillshotSlash_Projectile : BaseProjectile
         projName = "Skillshot Slash";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 30; // lasts for 300 logic frames
+        lifeSpan = 0;
+        meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 3, 3, 3, 3, 3 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -37,7 +38,7 @@ public class SkillshotSlash_Projectile : BaseProjectile
                     yOffset = 12*2,
                     width = 65*2,
                     height = 27*2,
-                    xKnockback = 2,
+                    xKnockback = 4,
                     yKnockback = 3,
                     damage = 15,
                     hitstun = 15,
@@ -70,36 +71,19 @@ public class SkillshotSlash_Projectile : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(2).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(3).Sum()
+            }
+        };
         base.LoadProjectile();
     }
 
-    public override void ProjectileUpdate()
-    {
-        logicFrame++;
-        // Update animation frame
-        animationFrame = GetCurrentFrameIndex(animFrames.frameLengths, animFrames.loopAnim);
-
-        Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
-        Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
-        Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
-        Fixed newX = owner.position.X + (xOffset * direction);
-        Fixed newY = owner.position.Y + yOffset;
-
-        position = new FixedVec2(newX, newY);
-
-        if (logicFrame >= animFrames.frameLengths.Take(2).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
-        {
-            activeHitboxGroupIndex = 1;
-        }
-        else
-        {
-            activeHitboxGroupIndex = 0;
-        }
-        if (logicFrame >= animFrames.frameLengths.Sum())
-        {
-            ProjectileManager.Instance.DeleteProjectile(this);
-        }
-        //this basically checks if the projectile hit something
-        
-    }
+    
 }

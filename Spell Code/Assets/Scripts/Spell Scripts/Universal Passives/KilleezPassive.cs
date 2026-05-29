@@ -32,7 +32,7 @@ public class KilleezPassive : SpellData
                 
 
                 //increase demon aura by 20 if its a Demon-X spellcode
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.Killeez)
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.Killeez && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     owner.reps++;
                     owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);

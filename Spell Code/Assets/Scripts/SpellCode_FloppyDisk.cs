@@ -68,14 +68,19 @@ public class SpellCode_FloppyDisk : MonoBehaviour
         {
             return;
         }
-        colliding = (CheckPlayerCollision() != null);
+        colliding = CheckPlayerCollision() != null;
 
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
-            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+            if (!diskDisplay.canvasObject.GetComponent<Canvas>().enabled)
+            {
+                diskDisplay.StartFloppyDisplay();
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+            }
+            
 
-            diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+            //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
             {
@@ -87,15 +92,24 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 {
                     selectHoldCounter = 0;
                 }
+                //this will show description
+                if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released && selectHoldCounter < 60)
+                {
+                    diskDisplay.showDesc = !diskDisplay.showDesc;
+                    diskDisplay.FloppyDisplayUpdate();
+                }
 
                 if (selectHoldCounter >= 60)
                 {
                     if (overlappingPlayer.AddSpellToSpellList(diskName))
                     {
                         Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
-                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
-                        //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
-                        Destroy(gameObject);
+                        //if (SceneManager.GetActiveScene().name != "Tutorial")
+                        //{
+                            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                            //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                            Destroy(gameObject);
+                        //}
                     }
                     else
                     {

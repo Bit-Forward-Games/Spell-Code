@@ -14,8 +14,9 @@ public class BootsOfHermes_prj : BaseProjectile
         projName = "Boots Of Hermes";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 60; // lasts for 300 logic frames
+        lifeSpan = 0; // lasts for 300 logic frames
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3}, false);
+        ignoreBrand = true;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -56,20 +57,18 @@ public class BootsOfHermes_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(2).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Sum()
+            }
+        };
         base.LoadProjectile();
     }
-    public override void ProjectileUpdate()
-    {
-        base.ProjectileUpdate();
-
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
-        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
-        //and then waits until the animation is done to delete itself.
-        if (logicFrame >= animFrames.frameLengths.Sum())
-        {
-            ProjectileManager.Instance.DeleteProjectile(this);
-        }
-        activeHitboxGroupIndex = (byte)(logicFrame > animFrames.frameLengths.Take(3).Sum()?1:0);
-
-    }
+   
 }

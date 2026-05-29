@@ -9,7 +9,8 @@ using UnityEngine.Audio;
 public enum Sounds //enum to store the names of the sounds that can play
 { 
     JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE_UP, INPUT_CODE_RIGHT, INPUT_CODE_DOWN, INPUT_CODE_LEFT,
-    ARMOR_HIT
+    ARMOR_HIT,
+    SLIDE
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -36,6 +37,7 @@ public class SFX_Manager : MonoBehaviour
 
     [Header("Sounds that SFX Manager can play")]
     [SerializeField] public List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
+    [SerializeField] public List<AudioClip> spellcodeAudioClips; //list of Spellcode specific SFX
 
     void Awake()
     {
@@ -162,6 +164,34 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_soundObject.possibleSounds[_randomSoundIndex], sfxAudioSource.volume);
+    }
+
+    /// <summary>
+    /// Play a sound with the name defined by "_soundName"
+    /// </summary>
+    /// <param name="_soundName"> Name of the sound to be played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
+    public void PlaySpellcodeSound(string _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
+    {
+        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        {
+            //log a warning
+            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within spellcodeAudioClips of the SFX_Manager script. Please specify a sound that exists with spellcodeAudioClips");
+
+            //return
+            return;
+        }
+
+        //save the appropriate SoundObject since we know it exists
+        AudioClip _audioClip = spellcodeAudioClips.Find(x => x.name == _soundName);
+
+        //Randomize pitch between _minPitchShift and _maxPitchShift
+        sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
+
+        //load and play the sound with name equal to nameOfSoundToPlay
+        sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
     }
 
     /// <summary>

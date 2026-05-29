@@ -17,9 +17,9 @@ public class PongShot_prj : BaseProjectile
     protected override void InitializeDefaults()
     {
         projName = "Pong Shot";
-        lifeSpan = 240;
+        lifeSpan = 0;
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }, false);
     }
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
@@ -36,7 +36,7 @@ public class PongShot_prj : BaseProjectile
 
         deleteOnHit = true;
         bounceCount = 0;
-        lifeSpan = (ushort)(owner.flowState > 0 ? 300 : 240); // Set speed based on flow state
+        lifeSpan = (ushort)((owner != null && owner.flowState > 0) ? 300 : 240); // Set speed based on flow state
         projectileHitboxes = new HitboxGroup[3];
 
         projectileHitboxes[1] = new HitboxGroup
@@ -89,6 +89,19 @@ public class PongShot_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(3).Sum()+1,
+                animFrames.frameLengths.Take(11).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(11).Sum(),
+                animFrames.frameLengths.Sum(),
+            }
+        };
         base.LoadProjectile();
     }
 
@@ -109,27 +122,12 @@ public class PongShot_prj : BaseProjectile
         {
             logicFrame = animFrames.frameLengths.Take(11).Sum() + 1; //set the logic frame to the start of the end animation
         }
-
-
-        //determine which hitbox group is active based on the current logic frame
-        if (logicFrame > animFrames.frameLengths.Take(3).Sum() && logicFrame < animFrames.frameLengths.Take(11).Sum())
-        {
-            activeHitboxGroupIndex = 1;
-        }
-        else if (logicFrame > animFrames.frameLengths.Take(11).Sum())
-        {
-            activeHitboxGroupIndex = 2;
-        }
-        else
-        {
-            activeHitboxGroupIndex = 0;
-        }
     }
 
 
     public void CheckStageDataSOCollision()
     {
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? GameManager.Instance.lobbySO : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: GameManager.Instance.TutorialSO) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
@@ -213,6 +211,9 @@ public class PongShot_prj : BaseProjectile
                         }
                     }
 
+                    //Play the pong shot collision SFX
+                    SFX_Manager.Instance.PlaySpellcodeSound("Pong Shot Collision");
+
                     bounceCount++; // Increment bounce count when hitting a solid surface
                                    //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
                     if (bounceCount >= 2)
@@ -279,7 +280,10 @@ public class PongShot_prj : BaseProjectile
                // This avoids blocking the projectile from jumping up through the platform.
                if ((pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))||(pMaxY >= platformBottom && position.Y <= platformBottom && vSpeed >= Fixed.FromInt(0)))
                {
-                   vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
+                    //Play the pong shot collision SFX
+                    SFX_Manager.Instance.PlaySpellcodeSound("Pong Shot Collision");
+
+                    vSpeed = -vSpeed; // Bounce vertically by reversing vertical speed
                    bounceCount++; // Increment bounce count when hitting a platform
                                   //set logic frame to either the end of the start animation or the end of the end animation, depending on how many times it has bounced, to skip to the appropriate hitbox group
                    if (bounceCount >= 2)

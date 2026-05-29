@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.ramis.assetdiff": {
+      "version": "https://github.com/RamiShehadeh/visualyaml.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "ddb379181f83a67fc045f238f6325e0be8a5f493"
+    },
     "com.unity.2d.animation": {
       "version": "10.2.1",
       "depth": 1,

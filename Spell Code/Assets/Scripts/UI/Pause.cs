@@ -6,7 +6,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.Audio;
 using System.Collections.Generic;
 using TMPro;
- 
+using DG.Tweening;
+
 public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
@@ -39,6 +40,8 @@ public class Pause : MonoBehaviour
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
  
+    private string[] brandName = {"MySpells", "DemonX", "BigStoX", "Killeez", "VWave", "AllSpells"};
+    public TextMeshProUGUI spellAddress;
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
     public TextMeshProUGUI spellSelectedText;
@@ -207,6 +210,9 @@ public class Pause : MonoBehaviour
         if (nav == Vector2.zero) navCooldown = 0f;
  
         lastNavValue = nav;
+
+        spellAddress.text = "http://www.myspellcodelist.com/" + brandName[tab].Replace(" ", "") + "/" + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+
     }
  
     private void UpdateSpellDisplay()
@@ -409,17 +415,35 @@ public class Pause : MonoBehaviour
         if ((one == -1 && ((spellSelectedBorderTransform.anchoredPosition.y > -133 && selectedSpell < spellTabList.Count) || selectedSpell >= spellTabList.Count - 1))
         || (one == 1 && ((spellSelectedBorderTransform.anchoredPosition.y < 133 && selectedSpell > 0) || selectedSpell <= 0))
         )
-            spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 66.666667f);
-        else 
         {
-            spellListParent.transform.position += new Vector3(0, -one * 200f, 0);
+            // Derive target deterministically from logical state — never accumulates float error
+            float targetY = 200f - (selectedSpell - listScrollOffset) * 66.666667f;
+
+            DOTween.Kill(spellSelectedBorderTransform);
+            spellSelectedBorderTransform
+                .DOAnchorPos(new Vector2(spellSelectedBorderTransform.anchoredPosition.x, targetY), 0.12f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
+
+            for (int i = 0; i < spellTabList.Count; i++)
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
+        }
+        else
+        {
             if (one == -1) listScrollOffset++;
             else listScrollOffset--;
-        }
- 
-        for (int i = 0; i < spellTabList.Count; i++)
-        {
-            spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
+
+            Vector3 targetListPos = spellListParent.transform.position + new Vector3(0, -one * 200f, 0);
+
+            DOTween.Kill(spellListParent.transform);
+            spellListParent.transform
+                .DOMove(targetListPos, 0.12f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
+
+            // Apply immediately — children move with the parent, so no pop/flicker
+            for (int i = 0; i < spellTabList.Count; i++)
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
         }
     }
  

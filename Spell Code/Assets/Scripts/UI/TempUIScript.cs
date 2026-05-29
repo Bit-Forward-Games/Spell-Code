@@ -145,8 +145,6 @@ public class TempUIScript : MonoBehaviour
             soloGamemodesMenu.SetActive(false);
             Time.timeScale = 1f;
         }
-
-        if (input.UI.Back.WasPressedThisFrame()) Debug.Log("Hello???");
     }
 
     public void UpdateUIBarVals()

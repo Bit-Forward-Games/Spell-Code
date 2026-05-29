@@ -140,18 +140,7 @@ public class OnlineHostDoor : MonoBehaviour
         }
         nextTriggerTime = Time.unscaledTime + Mathf.Max(0.1f, triggerCooldownSeconds);
 
-        if (SteamLobbyManager.Instance.IsInLobby)
-        {
-            bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
-            if (!opened)
-            {
-                SteamLobbyManager.Instance.HostAndInvite();
-            }
-        }
-        else
-        {
-            SteamLobbyManager.Instance.HostAndInvite();
-        }
+        SteamLobbyManager.Instance.OpenInviteOverlayOrHost();
         return true;
     }
 

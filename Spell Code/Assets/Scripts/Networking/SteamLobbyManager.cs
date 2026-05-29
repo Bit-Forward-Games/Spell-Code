@@ -32,6 +32,40 @@ public class SteamLobbyManager : MonoBehaviour
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
 
+    public bool OpenInviteOverlayOrHost()
+    {
+        if (isShuttingDown || !SteamClient.IsValid)
+        {
+            Debug.LogError("Steam is not running or is shutting down. Cannot open invite overlay.");
+            return false;
+        }
+
+        if (currentLobby.HasValue)
+        {
+            if (TryOpenInviteOverlay())
+            {
+                return true;
+            }
+
+            if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
+            {
+                return false;
+            }
+        }
+
+        if (isHostingFlow)
+        {
+            if (debugLogs)
+            {
+                Debug.Log("[SteamLobbyManager] Invite request ignored; lobby creation is already in progress.");
+            }
+            return true;
+        }
+
+        HostAndInvite();
+        return true;
+    }
+
     public bool TryOpenInviteOverlay()
     {
         if (isShuttingDown || !SteamClient.IsValid || !currentLobby.HasValue)

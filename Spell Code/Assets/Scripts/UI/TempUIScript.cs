@@ -162,17 +162,35 @@ public class TempUIScript : MonoBehaviour
 
     public void InvitePlayer()
     {
-        if (SteamLobbyManager.Instance.IsInLobby)
+        CloseGamemodesMenuForOnlineInvite();
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        if (lobbyManager == null)
         {
-            bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
-            if (!opened)
-            {
-                SteamLobbyManager.Instance.HostAndInvite();
-            }
+            Debug.LogError("[TempUIScript] Online option selected, but SteamLobbyManager was not found.");
+            return;
         }
-        else
+
+        if (!lobbyManager.OpenInviteOverlayOrHost())
         {
-            SteamLobbyManager.Instance.HostAndInvite();
+            Debug.LogWarning("[TempUIScript] Online invite request could not be started.");
+        }
+    }
+
+    private void CloseGamemodesMenuForOnlineInvite()
+    {
+        soloGamemodesMenuOpened = false;
+
+        if (soloGamemodesMenu != null)
+        {
+            soloGamemodesMenu.SetActive(false);
+        }
+
+        Time.timeScale = 1f;
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 

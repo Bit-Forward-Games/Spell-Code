@@ -10,6 +10,7 @@ public class SpellFloppyDisplay : MonoBehaviour
 
     public TextMeshProUGUI spellDesc;
     public TextMeshProUGUI spellName;
+    public TextMeshProUGUI spellExe;
     public TextMeshProUGUI spellCooldown;
     public TextMeshProUGUI spellInput;
 
@@ -45,6 +46,7 @@ public class SpellFloppyDisplay : MonoBehaviour
     {
         spellData = SpellDictionary.Instance.spellDict[spellString];
         spellName.text = spellData.spellName;
+        spellExe.text = spellData.spellName.Replace(" ", "_") + ".exe";
         spellDesc.text = spellData.description;
         int displayCooldown = (int)(spellData.cooldown > 59 ? spellData.cooldown / 60f : 0f);
         spellCooldown.text = $"Cooldown: {displayCooldown}s";

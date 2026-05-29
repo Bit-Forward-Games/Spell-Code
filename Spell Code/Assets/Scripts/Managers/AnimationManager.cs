@@ -33,7 +33,11 @@ public class AnimationManager : MonoBehaviour
     [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;
     [SerializeField] public  PlayerController[] fighters;
     [Header("Online Rollback Presentation")]
-    [SerializeField] private bool smoothOnlineRemoteVisuals = true;
+    // Default off: the LERP at 28f compresses rapid spam-input movement on the rendered
+    // remote player to ~37% of the actual sim range (the "P2 doesn't move as much on P1's
+    // screen" symptom). Turn this back on if you want to hide rollback snaps at the cost of
+    // distorting rapid-input visuals.
+    [SerializeField] private bool smoothOnlineRemoteVisuals = false;
     [SerializeField] private float onlineRemotePlayerSmoothing = 28f;
     [SerializeField] private float onlineRemoteProjectileSmoothing = 40f;
     [SerializeField] private float onlineVisualSnapDistance = 64f;

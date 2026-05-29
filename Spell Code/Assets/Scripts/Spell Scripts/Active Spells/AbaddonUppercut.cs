@@ -29,7 +29,6 @@ public class AbaddonUppercut : SpellData
         }
         if (activateFlag)
         {
-
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(15); // Launch the player upwards slightly

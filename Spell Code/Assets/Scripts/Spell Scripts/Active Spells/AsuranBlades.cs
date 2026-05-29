@@ -45,7 +45,6 @@ public class AsuranBlades : SpellData
         }
         if (activateFlag)
         {
-
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(8); // Launch the player upwards slightly

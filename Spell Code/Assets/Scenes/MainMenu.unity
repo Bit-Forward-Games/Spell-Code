@@ -3180,6 +3180,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4543029438853477300, guid: ec4413402ed80ab4a915f7b467190ec2, type: 3}
+      propertyPath: logPredictionTrace
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4972789253636239824, guid: ec4413402ed80ab4a915f7b467190ec2, type: 3}
       propertyPath: m_Name
       value: RollbackManager
@@ -3253,6 +3257,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 640447128905950754, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: smoothOnlineRemoteVisuals
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 940491606846688129, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3317,6 +3325,10 @@ PrefabInstance:
       propertyPath: onboardManager
       value: 
       objectReference: {fileID: 312826359}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: logSimDiagnostics
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
       value: 28

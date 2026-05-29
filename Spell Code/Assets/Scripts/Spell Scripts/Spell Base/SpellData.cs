@@ -150,6 +150,7 @@ public abstract class SpellData : MonoBehaviour
         cooldownCounter = 0;
     }
 
+
     /// <summary>
     /// This function checks if the conditions for setting the given spell's activateFlag is met after its procCondition is triggered
     /// e.g. if the spell's procCondition is OnHit and requires the player to have a certain number of some resource to activate,

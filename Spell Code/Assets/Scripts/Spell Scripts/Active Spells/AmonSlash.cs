@@ -28,7 +28,6 @@ public class AmonSlash : SpellData
         }
         if (activateFlag)
         {
-
             // Reset the activate flag
             activateFlag = false;
             owner.vSpd = Fixed.FromInt(2); // Launch the player upwards slightly

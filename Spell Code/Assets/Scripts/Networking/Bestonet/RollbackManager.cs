@@ -75,6 +75,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> highestRemoteInputFrameSeenBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> remoteFrameOffsetBySlot = new Dictionary<int, int>();
         private readonly Dictionary<int, int> remotePredictedInputStreakBySlot = new Dictionary<int, int>();
+        // Stability tracking for direction prediction. remoteLastReceivedDirectionBySlot
+        // holds the direction byte of the most recent RECEIVED (not predicted) input from each slot.
+        // remoteHeldDirectionStreakBySlot counts how many consecutive received frames had that same
+        // direction byte. The decay path uses min(streak, MultiplayerDirectionPredictionHoldMaxFrames)
+        // as its hold window: held direction predicts longer, rapidly-changing direction decays fast.
+        private readonly Dictionary<int, byte> remoteLastReceivedDirectionBySlot = new Dictionary<int, byte>();
+        private readonly Dictionary<int, int> remoteHeldDirectionStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
         private int? pendingRosterFrameOffset = null;
         private readonly List<int> remotePlayerSlots = new List<int>();
@@ -91,10 +98,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameAdvantageLimit = 3; // BestoNet default: start pacing before rollback gets large
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
+        [SerializeField] public int MultiplayerMaxConsecutiveFrameDrops = 0; // 3/4P online: never pulse past prediction cap; hold until input arrives (timeout net catches real stalls)
         [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
         [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
         [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
-        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 1; // Shorter 3/4-player movement prediction so fast left/right reversals do not overshoot for long
+        [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 0; // 3/4P online: base hold window. With stability-aware mode below, the effective window scales up to MultiplayerDirectionPredictionHoldMaxFrames when the received direction has been stable.
+        [SerializeField] public int MultiplayerDirectionPredictionHoldMaxFrames = 4; // 3/4P online: cap for the stability-aware hold window. Prediction will hold the direction for at most this many frames even if the direction has been held for a long time. Tune against MaxRollBackFrames so rollback can always correct in time.
+        [SerializeField] public int MultiplayerJumpButtonPredictionHoldFrames = 1; // Decay predicted jump button quickly so stuck "Held" doesn't drive variable jump / slide branches
+        [SerializeField] public int MultiplayerPauseButtonPredictionHoldFrames = 0; // Decay predicted pause immediately - online pause is not networked anyway
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 
@@ -111,6 +122,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MaxLossAwareHolds = 2;
         // How quickly the loss signal decays each tick when no new losses arrive.
         [SerializeField] public int PacketLossDecayPerTick = 1;
+
+        [Header("Diagnostics")]
+        // When true, RollbackEvent emits [PredictDiag] lines on each input mismatch
+        // (per-slot pred vs actual fields + streak values) and after each resim
+        // (per-player position snap delta). Use this to localise visible over/undershoot
+        // to a specific slot, input field, or tuning value. Off in production.
+        [SerializeField] public bool logPredictionTrace = false;
 
         [Header("Timing & Sync")]
         [SerializeField] public bool EnableFrameExtension = true;
@@ -133,6 +151,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         public bool isRollbackFrame { get; private set; } = false; // True if currently resimulating
         private ulong opponentLastAppliedInput = 0; // For prediction
         private int opponentPredictedInputStreak = 0;
+        // Online-only 2P equivalent of the per-slot stability trackers above.
+        private byte opponentLastReceivedDirection = 5;
+        private int opponentHeldDirectionStreak = 0;
         private int totalConsecutiveFrameExtensions = 0;
         public int remoteFrame { get; private set; } = 0; // Latest frame confirmed by remote client
         public int predictedRemoteFrame { get; private set; } = 0; // Estimated remote frame based on ping
@@ -373,6 +394,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(highestRemoteInputFrameSeenBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteFrameOffsetBySlot, validRemoteSlots);
             PruneSlotDictionary(remotePredictedInputStreakBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteLastReceivedDirectionBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
         }
 
@@ -457,6 +480,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             highestRemoteInputFrameSeenBySlot.Clear();
             remoteFrameOffsetBySlot.Clear();
             remotePredictedInputStreakBySlot.Clear();
+            remoteLastReceivedDirectionBySlot.Clear();
+            remoteHeldDirectionStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
             pendingRosterFrameOffset = null;
 
@@ -479,6 +504,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
             opponentPredictedInputStreak = 0;
+            opponentLastReceivedDirection = 5;
+            opponentHeldDirectionStreak = 0;
             totalConsecutiveFrameExtensions = FrameExtensionWindow; // Initialize based on config
             currentFrameExtensionMicro = 0;
             if (matchManager != null) matchManager.sentFrameTimes.Clear(); // Clear ping calculation times if manager exists
@@ -565,49 +592,94 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         private void PrimeRosterInputHistory()
         {
+            for (int slotIndex = 0; slotIndex < remotePlayerSlots.Count; slotIndex++)
+            {
+                PrimeRosterInputHistoryForSlot(remotePlayerSlots[slotIndex]);
+            }
+
+            int currentFrame = GameManager.Instance != null ? GameManager.Instance.frameNumber : 0;
+            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : currentFrame;
+            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : currentFrame;
+        }
+
+        // Per-slot variant of PrimeRosterInputHistory. The original method
+        // neutral-filled history for ALL remote slots; in 3/4P that wiped real inputs
+        // that other already-active peers had legitimately sent. This variant only fills
+        // gaps for the single slot being primed, leaving the other peers' history alone.
+        private void PrimeRosterInputHistoryForSlot(int slot)
+        {
             int currentFrame = GameManager.Instance != null ? GameManager.Instance.frameNumber : 0;
             int startFrame = Mathf.Max(0, currentFrame - InputArraySize + 1);
             int endFrame = currentFrame + InputDelay;
 
-            for (int slotIndex = 0; slotIndex < remotePlayerSlots.Count; slotIndex++)
+            if (!receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray receivedBySlot)
+                || !usedInputsBySlot.TryGetValue(slot, out FrameMetadataArray usedBySlot))
             {
-                int slot = remotePlayerSlots[slotIndex];
-                if (!receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray receivedBySlot)
-                    || !usedInputsBySlot.TryGetValue(slot, out FrameMetadataArray usedBySlot))
+                return;
+            }
+
+            for (int frame = startFrame; frame <= endFrame; frame++)
+            {
+                FrameMetadata neutralFrame = new FrameMetadata() { frame = frame, input = 5 };
+                if (!receivedBySlot.ContainsKey(frame))
                 {
-                    continue;
+                    receivedBySlot.Insert(frame, neutralFrame);
                 }
 
-                for (int frame = startFrame; frame <= endFrame; frame++)
+                if (!usedBySlot.ContainsKey(frame))
                 {
-                    FrameMetadata neutralFrame = new FrameMetadata() { frame = frame, input = 5 };
-                    if (!receivedBySlot.ContainsKey(frame))
-                    {
-                        receivedBySlot.Insert(frame, neutralFrame);
-                    }
-
-                    if (!usedBySlot.ContainsKey(frame))
-                    {
-                        usedBySlot.Insert(frame, neutralFrame);
-                    }
-                }
-
-                if (!remoteLastAppliedInputBySlot.ContainsKey(slot))
-                {
-                    remoteLastAppliedInputBySlot[slot] = 5;
-                }
-
-                remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
-                predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
-
-                if (!highestRemoteInputFrameSeenBySlot.ContainsKey(slot))
-                {
-                    highestRemoteInputFrameSeenBySlot[slot] = -1;
+                    usedBySlot.Insert(frame, neutralFrame);
                 }
             }
 
-            remoteFrame = remoteFrameBySlot.Count > 0 ? remoteFrameBySlot.Values.Min() : currentFrame;
-            predictedRemoteFrame = predictedRemoteFrameBySlot.Count > 0 ? predictedRemoteFrameBySlot.Values.Min() : currentFrame;
+            if (!remoteLastAppliedInputBySlot.ContainsKey(slot))
+            {
+                remoteLastAppliedInputBySlot[slot] = 5;
+            }
+
+            remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
+            predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
+
+            if (!highestRemoteInputFrameSeenBySlot.ContainsKey(slot))
+            {
+                highestRemoteInputFrameSeenBySlot[slot] = -1;
+            }
+        }
+
+        // True if at least one remote slot (other than `excludeSlot`) is past its
+        // pending-handshake phase. Used by AlignRemoteFrameForSlot to decide whether the
+        // rollback baseline can be safely reset (no active peers) or must be preserved
+        // (other peers have live history that would be discarded by a baseline reset).
+        //
+        // We trust "removed from pendingRemoteInputSlots" as proof of alignment. We do NOT
+        // additionally require highestRemoteInputFrameSeenBySlot >= 0, because during
+        // bootstrap the first input from a slot frequently hits SetRemoteInput's
+        // `adjustedFrame <= syncFrame` early-return (ResetRollbackBaseline just set syncFrame
+        // to current localFrame). In that path the tracker never gets populated, but the slot
+        // is still legitimately aligned and its future inputs should preserve the baseline.
+        private bool HasAnyActiveRemoteSlotWithHistory(int excludeSlot)
+        {
+            if (!usePeerRoster)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                if (slot == excludeSlot) continue;
+                if (pendingRemoteInputSlots.Contains(slot)) continue;
+
+                // The slot is past handshake (out of pending). Verify its input buffer
+                // exists - paranoid sanity check; should always be true post-alignment.
+                if (receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray received)
+                    && received != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void MarkAllRemoteSlotsPendingUntilInput()
@@ -735,6 +807,87 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return string.Join(" | ", slotParts);
         }
 
+        // === Prediction-trace logging (gated by logPredictionTrace) ===
+        // These run only when the inspector flag is on. The fast path early-returns
+        // BEFORE any allocation, so leaving the methods on the hot path is free in production.
+
+        // Snapshot the per-player current position (one axis at a time so we don't allocate a struct).
+        // Returns null when tracing is off so the snap-delta logger can also fast-out.
+        private long[] CapturePlayerPositionsForTrace(bool takeX)
+        {
+            if (!logPredictionTrace || GameManager.Instance == null) return null;
+            int count = Mathf.Max(0, GameManager.Instance.playerCount);
+            long[] result = new long[count];
+            for (int i = 0; i < count; i++)
+            {
+                PlayerController p = GameManager.Instance.players[i];
+                if (p == null) continue;
+                result[i] = takeX ? p.position.X.RawValue : p.position.Y.RawValue;
+            }
+            return result;
+        }
+
+        // Log the per-player position delta produced by a rollback resim. Reads the values
+        // captured by CapturePlayerPositionsForTrace before LoadState and diffs them against
+        // the post-resim positions. Delta is the visible "snap" the user perceives.
+        private void LogPredictionSnapDelta(int rollbackFromSyncFrame, int rollbackToFrame, long[] preX, long[] preY)
+        {
+            if (!logPredictionTrace || preX == null || preY == null || GameManager.Instance == null) return;
+
+            int count = Mathf.Min(preX.Length, GameManager.Instance.playerCount);
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append($"[PredictDiag] Snap after rollback {rollbackFromSyncFrame}->{rollbackToFrame} ({rollbackToFrame - rollbackFromSyncFrame}f):");
+            for (int i = 0; i < count; i++)
+            {
+                PlayerController p = GameManager.Instance.players[i];
+                if (p == null) continue;
+                long dx = p.position.X.RawValue - preX[i];
+                long dy = p.position.Y.RawValue - preY[i];
+                // Convert raw Fixed32 (65536/unit) to display units, signed.
+                sb.Append($" P{i}=({dx / 65536f:+0.##;-0.##;0},{dy / 65536f:+0.##;-0.##;0})u");
+            }
+            Debug.Log(sb.ToString());
+        }
+
+        // Log a per-slot input mismatch at the moment RollbackEvent detects it. Pass slot=-1
+        // for the legacy 2P opponent path. Pass predicted=null when the slot had received input
+        // but no used input yet (the haveReceived-and-not-haveUsed case).
+        private void LogPredictionMismatch(int slot, int frame, ulong? predicted, ulong actual)
+        {
+            if (!logPredictionTrace) return;
+
+            string predStr = predicted.HasValue ? FormatInputForTrace(predicted.Value) : "<no used>";
+            string actualStr = FormatInputForTrace(actual);
+
+            int predStreak;
+            int heldStreak;
+            if (slot >= 0)
+            {
+                predStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int ps) ? ps : 0;
+                heldStreak = remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int hs) ? hs : 0;
+            }
+            else
+            {
+                predStreak = opponentPredictedInputStreak;
+                heldStreak = opponentHeldDirectionStreak;
+            }
+
+            string slotLabel = slot >= 0 ? $"slot={slot}" : "slot=opp";
+            Debug.Log($"[PredictDiag] Mismatch frame={frame} {slotLabel} pred={predStr} actual={actualStr} predStreak={predStreak} heldStreak={heldStreak}");
+        }
+
+        // Compact human-readable encoding of one input ulong. Matches the bit layout in
+        // InputConverter: low byte = direction (numpad 1-9, 5 = neutral); bits 8-9 code button;
+        // bits 10-11 jump button; bits 12-13 pause button.
+        private static string FormatInputForTrace(ulong input)
+        {
+            int direction = (int)(input & 0xFFUL);
+            ButtonState code = (ButtonState)((input >> 8) & 0b11UL);
+            ButtonState jump = (ButtonState)((input >> 10) & 0b11UL);
+            ButtonState pause = (ButtonState)((input >> 12) & 0b11UL);
+            return $"(dir={direction},code={code},jump={jump},pause={pause})";
+        }
+
     /// <summary>
     /// Checks for input mismatches and triggers a rollback if necessary.
     /// Should be called once per frame before simulation.
@@ -778,6 +931,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                         ulong used = usedBySlot.GetInput(i);
                         if (received != used)
                         {
+                            LogPredictionMismatch(slot, i, used, received);
                             foundDesyncedFrame = true;
                             frameVerified = false;
                             break;
@@ -785,6 +939,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     }
                     else if (haveReceived && !haveUsed)
                     {
+                        LogPredictionMismatch(slot, i, predicted: null, actual: receivedBySlot.GetInput(i));
                         foundDesyncedFrame = true;
                         frameVerified = false;
                         break;
@@ -812,12 +967,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                     if (received != used)
                     {
+                        LogPredictionMismatch(slot: -1, frame: i, predicted: used, actual: received);
                         foundDesyncedFrame = true;
                         frameVerified = false;
                     }
                 }
                 else if (haveReceived && !haveUsed)
                 {
+                    LogPredictionMismatch(slot: -1, frame: i, predicted: null, actual: receivedInputs.GetInput(i));
                     foundDesyncedFrame = true;
                     frameVerified = false;
                 }
@@ -878,12 +1035,23 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
 
+        // Capture pre-rollback (visible) positions so we can log the snap delta after resim.
+        // Cheap when logPredictionTrace is off (early-return inside the helper).
+        long[] preRollbackPosX = CapturePlayerPositionsForTrace(takeX: true);
+        long[] preRollbackPosY = CapturePlayerPositionsForTrace(takeX: false);
+
         if (!LoadState(syncFrame))
         {
             Debug.LogError($"Rollback ABORTED: Failed to load state for frame {syncFrame}. Game may be desynced.");
             SetRollbackStatus(false);
             return;
         }
+
+        // Clear the prediction streak counters BEFORE resimulating so each
+        // resim frame's PredictRemoteInput call evaluates decay from a clean baseline
+        // (received frame -> streak 0, predicted frame -> streak 1+) instead of inheriting
+        // a stale streak from pre-rollback prediction history.
+        ResetRemotePredictionStreaksForResim();
 
         // RESIMULATE HERE - ONLY WHEN ROLLBACK IS ACTUALLY NEEDED
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
@@ -905,6 +1073,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         SetRollbackStatus(false);
         ProcessPendingRemoteHashes();
+        LogPredictionSnapDelta(syncFrame, framesBeforeRollback, preRollbackPosX, preRollbackPosY);
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
@@ -1034,7 +1203,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 consecutiveDrop++;
-                if (consecutiveDrop > maxDropPulse)
+                // Online-only: in 3/4P we want to ENFORCE the prediction-ahead cap. Pulsing
+                // past it is what produced the 4-10 frame rollback bursts we saw in the
+                // 4P session logs (host running ahead of one stalled peer). The TimeoutFrames
+                // watchdog will catch genuine peer stalls, so holding indefinitely here is safe.
+                int predictionDropLimit = GetPredictionHoldDropLimit();
+                if (predictionDropLimit > 0 && consecutiveDrop > predictionDropLimit)
                 {
                     consecutiveDrop = 0;
                     lastDroppedFrame = currentFrame;
@@ -1085,6 +1259,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     lastLossAwareHoldFrame = currentFrame;
                     // Pay a small fraction of the hold against the signal so it cannot loop forever.
                     packetLossSignal = Mathf.Max(0, packetLossSignal - PacketLossHoldThreshold);
+                    // Diagnostic: this branch was previously silent so a packet-loss-induced
+                    // hold looked identical to a sim that just wasn't running. Log only once per
+                    // frame (not once per AllowUpdate call) by gating on the frame number.
+                    Debug.Log($"[PacketDiag] Packet-loss soft hold at frame={currentFrame} signal={packetLossSignal + PacketLossHoldThreshold} streak={lossAwareHoldsThisStreak}/{MaxLossAwareHolds} predictionDepth={predictionDepth}");
                     return false; // One frame of hold; bounded by MaxLossAwareHolds.
                 }
             }
@@ -1106,6 +1284,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return Mathf.Min(
                 maxHistoryAhead,
                 Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
+        }
+
+        // Online-only: drop-pulse limit consulted ONLY by the prediction-ahead hold path.
+        // In 3/4P we want to enforce the cap (return 0 -> never pulse, just hold).
+        // The startup-hold path keeps using MaxConsecutiveFrameDrops directly because that
+        // path needs to pulse to avoid both-sides-waiting deadlocks during scene transition.
+        private int GetPredictionHoldDropLimit()
+        {
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return Mathf.Max(0, MultiplayerMaxConsecutiveFrameDrops);
+            }
+
+            return Mathf.Max(1, MaxConsecutiveFrameDrops);
         }
 
         /// <summary>
@@ -1178,6 +1370,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (receivedInputs.ContainsKey(frame))
             {
                 ulong actualInput = receivedInputs.GetInput(frame);
+                // Stability tracking: extend streak when the received direction stays the same,
+                // reset when it changes. Used to size the prediction hold window in DecayPredictedInput.
+                byte actualDirection = (byte)(actualInput & 0xFFUL);
+                if (actualDirection == opponentLastReceivedDirection)
+                {
+                    opponentHeldDirectionStreak++;
+                }
+                else
+                {
+                    opponentHeldDirectionStreak = 1;
+                }
+                opponentLastReceivedDirection = actualDirection;
+
                 opponentLastAppliedInput = actualInput; // Update last known input
                 opponentPredictedInputStreak = 0;
                 // Store the *actual* input we are using for this frame's simulation
@@ -1189,7 +1394,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 // Simple prediction: reuse the last known input
                 // Store the *predicted* input we are using for this frame's simulation
                 opponentPredictedInputStreak++;
-                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak);
+                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak, slot: -1);
                 opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
                 return predicted;
             }
@@ -1203,6 +1408,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (receivedBySlot.ContainsKey(frame))
             {
                 ulong actualInput = receivedBySlot.GetInput(frame);
+                // Stability tracking: extend the per-slot streak when the received direction
+                // matches the most recent received direction for this slot. Reset on direction
+                // change. The streak feeds the per-slot hold window in DecayPredictedInput so
+                // a long-held direction predicts further than a tapped one.
+                byte actualDirection = (byte)(actualInput & 0xFFUL);
+                byte prevReceivedDirection = remoteLastReceivedDirectionBySlot.TryGetValue(slot, out byte prevDir)
+                    ? prevDir
+                    : (byte)5;
+                if (actualDirection == prevReceivedDirection)
+                {
+                    remoteHeldDirectionStreakBySlot[slot] = (remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int held) ? held : 0) + 1;
+                }
+                else
+                {
+                    remoteHeldDirectionStreakBySlot[slot] = 1;
+                }
+                remoteLastReceivedDirectionBySlot[slot] = actualDirection;
+
                 remoteLastAppliedInputBySlot[slot] = actualInput;
                 remotePredictedInputStreakBySlot[slot] = 0;
                 usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = actualInput });
@@ -1212,21 +1435,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int predictedStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int streak) ? streak + 1 : 1;
             remotePredictedInputStreakBySlot[slot] = predictedStreak;
             ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
-            predicted = DecayPredictedInput(predicted, predictedStreak);
+            predicted = DecayPredictedInput(predicted, predictedStreak, slot);
             usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
             return predicted;
         }
 
-        private ulong DecayPredictedInput(ulong input, int predictedFrameStreak)
+        private ulong DecayPredictedInput(ulong input, int predictedFrameStreak, int slot)
         {
             ulong decayedInput = DecayPredictedCodeButton(input, predictedFrameStreak);
+            // Also decay the jump and pause buttons so a stuck "Held" prediction
+            // doesn't keep driving variable-jump, slide, or pause branches when packets stall.
+            decayedInput = DecayPredictedJumpButton(decayedInput, predictedFrameStreak);
+            decayedInput = DecayPredictedPauseButton(decayedInput, predictedFrameStreak);
+
             int codeButtonState = (int)((input >> 8) & 0b11UL);
             if (codeButtonState is (int)ButtonState.Pressed or (int)ButtonState.Held)
             {
                 return decayedInput;
             }
 
-            if (predictedFrameStreak <= Mathf.Max(0, GetDirectionPredictionHoldFrames()))
+            if (predictedFrameStreak <= Mathf.Max(0, GetDirectionPredictionHoldFrames(slot)))
             {
                 return decayedInput;
             }
@@ -1236,14 +1464,57 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return (decayedInput & ~0xFFUL) | 5UL;
         }
 
-        private int GetDirectionPredictionHoldFrames()
+        // Returns the effective hold window for direction prediction on this slot.
+        // 3/4P online: stability-aware. The window is min(stabilityStreak, max-cap) where
+        // stabilityStreak is how many consecutive received frames had the same direction byte.
+        // A tapped/spammed direction has streak ~1 -> hold ~1, so it decays fast (prevents overshoot).
+        // A long-held direction has streak >> 1 -> hold = cap (default 4), so it predicts longer
+        // (prevents undershoot during slide/run momentum).
+        // Other paths (2P / offline) keep the fixed hold-window behaviour.
+        private int GetDirectionPredictionHoldFrames(int slot)
         {
             if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
             {
-                return MultiplayerDirectionPredictionHoldFrames;
+                int baseHold = Mathf.Max(0, MultiplayerDirectionPredictionHoldFrames);
+                int stabilityCap = Mathf.Max(baseHold, MultiplayerDirectionPredictionHoldMaxFrames);
+                int stabilityStreak = slot >= 0
+                    && remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int held)
+                        ? held
+                        : 0;
+                // Scale the hold by how stable the received direction has been, but never lower
+                // than the base hold (lets you bump it via inspector if you want a floor).
+                return Mathf.Clamp(stabilityStreak, baseHold, stabilityCap);
             }
 
+            // 2P online / offline: keep the legacy fixed hold window. The 2P stability streak
+            // is still tracked (in PredictOpponentInput) so a future change can wire it in here,
+            // but right now we don't change 2P behaviour to avoid regressing a known-good path.
             return DirectionPredictionHoldFrames;
+        }
+
+        // Jump button decay window. Mirrors GetDirectionPredictionHoldFrames pattern.
+        private int GetJumpButtonPredictionHoldFrames()
+        {
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return MultiplayerJumpButtonPredictionHoldFrames;
+            }
+
+            // For 2P online, keep the same generous window as the code button so we don't
+            // false-release jumps mid-air. Offline never reaches this code path.
+            return CodeButtonPredictionHoldFrames;
+        }
+
+        private int GetPauseButtonPredictionHoldFrames()
+        {
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            {
+                return MultiplayerPauseButtonPredictionHoldFrames;
+            }
+
+            // 2P online: pause isn't actually networked, but be conservative and let it linger
+            // for one code-button window before synthesizing release.
+            return CodeButtonPredictionHoldFrames;
         }
 
         private ulong DecayPredictedCodeButton(ulong input, int predictedFrameStreak)
@@ -1267,11 +1538,83 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return input;
         }
 
+        // Online-only decay for button[1] (jump). Same shape as DecayPredictedCodeButton:
+        // Pressed/Held -> Released, Released -> None, after a configurable hold window.
+        private ulong DecayPredictedJumpButton(ulong input, int predictedFrameStreak)
+        {
+            int hold = Mathf.Max(0, GetJumpButtonPredictionHoldFrames());
+            if (predictedFrameStreak <= hold)
+            {
+                return input;
+            }
+
+            ButtonState jumpState = (ButtonState)((input >> 10) & 0b11UL);
+            if (jumpState is ButtonState.Pressed or ButtonState.Held)
+            {
+                return SetButtonState(input, 1, ButtonState.Released);
+            }
+
+            if (jumpState == ButtonState.Released)
+            {
+                return SetButtonState(input, 1, ButtonState.None);
+            }
+
+            return input;
+        }
+
+        // Online-only decay for button[2] (pause). Pause is not networked end-to-end today;
+        // synthesize release/none on the prediction side so it can't leak into state hashing.
+        private ulong DecayPredictedPauseButton(ulong input, int predictedFrameStreak)
+        {
+            int hold = Mathf.Max(0, GetPauseButtonPredictionHoldFrames());
+            if (predictedFrameStreak <= hold)
+            {
+                return input;
+            }
+
+            ButtonState pauseState = (ButtonState)((input >> 12) & 0b11UL);
+            if (pauseState is ButtonState.Pressed or ButtonState.Held)
+            {
+                return SetButtonState(input, 2, ButtonState.Released);
+            }
+
+            if (pauseState == ButtonState.Released)
+            {
+                return SetButtonState(input, 2, ButtonState.None);
+            }
+
+            return input;
+        }
+
         private ulong SetButtonState(ulong input, int buttonIndex, ButtonState state)
         {
             int shift = 8 + buttonIndex * 2;
             ulong mask = 0b11UL << shift;
             return (input & ~mask) | (((ulong)state & 0b11UL) << shift);
+        }
+
+        // Reset every tracked remote slot's predicted-input streak to 0.
+        // Called at the top of a rollback resim so prediction decay starts fresh for the
+        // resimulated frames instead of inheriting the streak from the pre-rollback timeline.
+        private void ResetRemotePredictionStreaksForResim()
+        {
+            if (!usePeerRoster)
+            {
+                opponentPredictedInputStreak = 0;
+                return;
+            }
+
+            // We can't enumerate-and-mutate a Dictionary, so snapshot the keys first.
+            if (remotePredictedInputStreakBySlot.Count == 0)
+            {
+                return;
+            }
+
+            List<int> slots = new List<int>(remotePredictedInputStreakBySlot.Keys);
+            for (int i = 0; i < slots.Count; i++)
+            {
+                remotePredictedInputStreakBySlot[slots[i]] = 0;
+            }
         }
 
         private bool RemoteSlotsHaveInputForFrame(int frame)
@@ -1786,6 +2129,30 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     }
 
     /// <summary>
+    /// Online-only entry point for graceful frame pacing. Called once per completed online
+    /// frame from GameManager.RunOnlineFrame. Measures the local frame advantage, schedules
+    /// a short microsleep window (StartFrameExtensions) if this client is running ahead of
+    /// the slowest peer, then performs the sleep (ExtendFrame).
+    ///
+    /// Without this, AllowUpdate's hard hold/pulse is the only pacing tool: in 4P with
+    /// MultiplayerMaxConsecutiveFrameDrops=0 the slowest peer locks every client's pace,
+    /// which manifests as visible freezes when any one peer's network drifts. With this,
+    /// faster clients slow themselves down ~1.5ms/frame BEFORE hitting the prediction cap,
+    /// so the cap is hit less often and there's no cascade.
+    ///
+    /// Safe during rollback resim (early-returns); only the post-sim path should call this.
+    /// </summary>
+    public void RunFramePacing()
+    {
+        if (isRollbackFrame || DelayBased || !EnableFrameExtension) return;
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive) return;
+
+        CheckTimeSync(out float frameAdvantageDifference);
+        StartFrameExtensions(frameAdvantageDifference);
+        ExtendFrame();
+    }
+
+    /// <summary>
     /// Starts a short local frame extension window when this client is running ahead.
     /// This mirrors BestoNet's FPSLock.SetFrameExtension behavior without touching simulation state.
     /// </summary>
@@ -2064,14 +2431,31 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
             remoteFrame = GetEffectiveRemoteFrame(currentFrame);
             predictedRemoteFrame = GetEffectivePredictedRemoteFrame(currentFrame);
-            ResetRollbackBaseline(currentFrame);
-            PrimeRosterInputHistory();
-            SaveState();
+
+            // Only reset the rollback baseline (which drops in-flight inputs
+            // for any frame <= syncFrame) when there is no other active peer whose input
+            // history we'd be invalidating. In 3/4P, a late-joining peer must NOT erase
+            // the inputs other peers have already sent.
+            bool otherPeersHaveLiveHistory = HasAnyActiveRemoteSlotWithHistory(slot);
+            if (!otherPeersHaveLiveHistory)
+            {
+                ResetRollbackBaseline(currentFrame);
+                PrimeRosterInputHistory();
+                SaveState();
+                Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Rebased lobby rollback baseline at {currentFrame}.");
+            }
+            else
+            {
+                // Other peers are already live. Initialise just this slot's buffers and
+                // leave syncFrame / state history alone so already-received inputs survive.
+                PrimeRosterInputHistoryForSlot(slot);
+                Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Preserved existing rollback baseline (syncFrame={syncFrame}, localFrame={currentFrame}) because other peers have live history.");
+            }
+
             if (pendingRemoteInputSlots.Count == 0)
             {
                 pendingRosterFrameOffset = null;
             }
-            Debug.Log($"[Rollback] Remote slot {slot} input stream active at frame {frame}. FrameOffset={frameOffset}. Rebased lobby rollback baseline at {currentFrame}.");
             return frameOffset;
         }
 

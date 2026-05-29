@@ -15,6 +15,11 @@ public class PlayerLogFileWriter : MonoBehaviour
     private StreamWriter writer;
     private int activeSlot = -1;
     private string activePath;
+    // Track which paths we've already truncated this process lifetime so that re-inits
+    // (writer became null, slot flickered briefly, etc.) append to the existing file
+    // instead of wiping it. Without this, any mid-session writer recreation silently
+    // truncates the session's log and we lose all data prior to the re-init.
+    private static readonly HashSet<string> TruncatedPathsThisSession = new HashSet<string>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -112,10 +117,22 @@ public class PlayerLogFileWriter : MonoBehaviour
         activeSlot = slot;
         activePath = Path.Combine(GetPlayerLogsDirectory(), GetLogFileName(slot));
         Directory.CreateDirectory(Path.GetDirectoryName(activePath));
-        writer = new StreamWriter(new FileStream(activePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
+
+        // Truncate this file the FIRST time we open it this process lifetime, but APPEND
+        // on any subsequent re-open. This guards against mid-session writer re-creations
+        // (slot flicker, etc.) silently wiping the session's log. We still get a fresh
+        // file at the start of each game run because TruncatedPathsThisSession is per-process.
+        bool firstOpen = TruncatedPathsThisSession.Add(activePath);
+        FileMode mode = firstOpen ? FileMode.Create : FileMode.Append;
+
+        writer = new StreamWriter(new FileStream(activePath, mode, FileAccess.Write, FileShare.ReadWrite))
         {
             AutoFlush = true
         };
+
+        // Marker line so a re-init shows up clearly in the log. First open is also marked,
+        // which is harmless and helps confirm the writer is healthy.
+        writer.WriteLine($"=== PlayerLogFileWriter open slot={slot} mode={(firstOpen ? "create" : "append")} time={DateTime.UtcNow:HH:mm:ss.fff}Z ===");
     }
 
     private void FlushPendingLines()

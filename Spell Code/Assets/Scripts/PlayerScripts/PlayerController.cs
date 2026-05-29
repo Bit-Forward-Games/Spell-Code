@@ -3238,7 +3238,11 @@ public class PlayerController : MonoBehaviour
 
         if (spellList.Count != spellCount)
         {
-            Debug.LogError($"Spell list size mismatch during Deserialize! Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
+            // Online: this is expected when an authoritative snapshot is ahead of the
+            // local sim (e.g. host snapshotted right after a floppy pickup but the local
+            // sim hadn't reached that frame yet). RebuildSpellListFromSaved correctly
+            // reconciles, so demote to LogWarning instead of LogError to reduce noise.
+            Debug.LogWarning($"Spell list size mismatch during Deserialize. Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
             RebuildSpellListFromSaved(savedSpells);
         }
 
@@ -3428,8 +3432,16 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Rebuild projectile pool once to match the new spell list
-        if (ProjectileManager.Instance != null)
+        // Rebuild projectile pool once to match the new spell list.
+        // Online-only: when this rebuild is happening inside a managed-state deserialize
+        // (snapshot / rollback apply), route through GameManager so it can BATCH the pool
+        // rebuild to a single call after every player's spell list is finalised. Outside
+        // of deserialize, the request executes immediately, matching legacy behaviour.
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RequestProjectilePoolRebuild();
+        }
+        else if (ProjectileManager.Instance != null)
         {
             ProjectileManager.Instance.InitializeAllProjectiles();
         }

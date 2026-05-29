@@ -174,15 +174,15 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySpellcodeSound(string _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
-        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
-        if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
-        {
-            //log a warning
-            Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within spellcodeAudioClips of the SFX_Manager script. Please specify a sound that exists with spellcodeAudioClips");
+        ////sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        //if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        //{
+        //    //log a warning
+        //    Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within spellcodeAudioClips of the SFX_Manager script. Please specify a sound that exists with spellcodeAudioClips");
 
-            //return
-            return;
-        }
+        //    //return
+        //    return;
+        //}
 
         //save the appropriate SoundObject since we know it exists
         AudioClip _audioClip = spellcodeAudioClips.Find(x => x.name == _soundName);

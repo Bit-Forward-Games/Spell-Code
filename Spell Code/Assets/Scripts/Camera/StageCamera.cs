@@ -55,10 +55,12 @@ public class StageCamera : MonoBehaviour
         Vector3 camBorderMin = stageDataSO.camBorderMin == Vector3.zero? stageDataSO.borderMin: stageDataSO.camBorderMin;
 
         lockCamera = !stageDataSO.dynamicCamera;
-        // If camera is locked, set to hard zoom and return
+        // If camera is locked, frame the full camera border and return
         if (lockCamera || !pause.dynamicCameraOverride)
         {
-            cam.orthographicSize = HardSetZoom;
+            cam.orthographicSize = GetZoomToFitBorders(camBorderMin, camBorderMax);
+            Vector3 borderCenter = (camBorderMin + camBorderMax) * 0.5f;
+            transform.position = new Vector3(borderCenter.x, borderCenter.y, -10);
             if (pause.shakeEnabled) ApplyShake();
             return;
         }
@@ -137,6 +139,22 @@ public class StageCamera : MonoBehaviour
         return bounds;
     }
 
+    private float GetZoomToFitBorders(Vector3 camBorderMin, Vector3 camBorderMax)
+    {
+        float aspect = Mathf.Max(0.0001f, cam.aspect);
+        float borderWidth = Mathf.Abs(camBorderMax.x - camBorderMin.x);
+        float borderHeight = Mathf.Abs(camBorderMax.y - camBorderMin.y);
+
+        if (borderWidth <= 0f || borderHeight <= 0f)
+        {
+            return HardSetZoom;
+        }
+
+        float sizeFromHeight = borderHeight * 0.5f;
+        float sizeFromWidth = borderWidth * 0.5f / aspect;
+        return Mathf.Clamp(Mathf.Max(sizeFromHeight, sizeFromWidth), minZoom, maxZoom);
+    }
+
     public void ScreenShake(float duration, float magnitude)
     {
         shakeTimeRemaining = duration;
@@ -158,11 +176,6 @@ public class StageCamera : MonoBehaviour
         else
         {
             shakeOffset = Vector3.zero;
-
-            if (lockCamera)
-            {
-                transform.position = new Vector3(0, 0, -10);
-            }
         }
 
         transform.position += shakeOffset;

@@ -63,7 +63,7 @@ public class GetAJob : SpellData
         {
             
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStability;
+                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified;
                 owner.superArmor = doesCrit;
                 owner.armor = !doesCrit;
                 break;

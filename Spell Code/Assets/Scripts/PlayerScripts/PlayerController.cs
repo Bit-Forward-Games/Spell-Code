@@ -983,6 +983,11 @@ public class PlayerController : MonoBehaviour
 
         CheckHit(input);
 
+        if(input.Direction <= 6)
+        {
+            tapJumpPrimed = true;
+        }
+
 
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
@@ -1085,7 +1090,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false)) && tapJumpPrimed))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1124,7 +1129,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false)) && tapJumpPrimed))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1185,7 +1190,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //air jump input check
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     
                     DoJump();
@@ -1687,7 +1692,7 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;

@@ -1259,6 +1259,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     lastLossAwareHoldFrame = currentFrame;
                     // Pay a small fraction of the hold against the signal so it cannot loop forever.
                     packetLossSignal = Mathf.Max(0, packetLossSignal - PacketLossHoldThreshold);
+                    // Diagnostic: this branch was previously silent so a packet-loss-induced
+                    // hold looked identical to a sim that just wasn't running. Log only once per
+                    // frame (not once per AllowUpdate call) by gating on the frame number.
+                    Debug.Log($"[PacketDiag] Packet-loss soft hold at frame={currentFrame} signal={packetLossSignal + PacketLossHoldThreshold} streak={lossAwareHoldsThisStreak}/{MaxLossAwareHolds} predictionDepth={predictionDepth}");
                     return false; // One frame of hold; bounded by MaxLossAwareHolds.
                 }
             }

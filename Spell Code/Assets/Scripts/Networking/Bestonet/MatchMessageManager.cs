@@ -137,6 +137,10 @@ public class MatchMessageManager : MonoBehaviour
     // discarded. Prevents the buffer from holding genuinely stale data forever.
     private readonly Dictionary<SteamId, int> sceneMismatchedInputAgeByPeer = new Dictionary<SteamId, int>();
     private const int SCENE_MISMATCH_REPLAY_MAX_AGE_TICKS = 600; // ~10s at 60fps
+    // Rate-limit diagnostic logs about scene-mismatched buffering. Without this, a peer
+    // that's persistently in a different scene would spam the log every packet (~60/s).
+    // We emit one log per peer-scene-signature combo so each unique mismatch shows once.
+    private readonly Dictionary<SteamId, int> lastLoggedMismatchSignatureByPeer = new Dictionary<SteamId, int>();
 
     private void Awake()
     {
@@ -329,6 +333,8 @@ public class MatchMessageManager : MonoBehaviour
                 byte[] data = sceneMismatchedInputByPeer[peer];
                 sceneMismatchedInputByPeer.Remove(peer);
                 sceneMismatchedInputAgeByPeer.Remove(peer);
+                lastLoggedMismatchSignatureByPeer.Remove(peer); // reset so next mismatch logs again
+                Debug.Log($"[PacketDiag] Replayed scene-mismatched input packet from peer {peer}.");
 
                 try
                 {
@@ -350,6 +356,25 @@ public class MatchMessageManager : MonoBehaviour
         if (!peerId.IsValid || originalPacket == null || originalPacket.Length == 0)
         {
             return;
+        }
+
+        // Diagnostic: log the first time we buffer a packet for this peer at this scene
+        // signature combo. Buffering happens every packet (~60/s) while a mismatch persists,
+        // so log only when the (peer, theirSignature, ourSignature) triple changes.
+        // The packet layout (set in SendInputs) is:
+        //   [byte type=0][int theirSceneSignature][int frameAdv][int startFrame][byte inputCount]...
+        if (originalPacket.Length >= 5 && originalPacket[0] == 0 && GameManager.Instance != null)
+        {
+            int theirSignature = BitConverter.ToInt32(originalPacket, 1);
+            int ourSignature = GameManager.Instance.GetNetworkSceneSignature();
+            // Use a composite int as the dedup key: theirSig XOR ourSig (cheap, collisions
+            // would just suppress an extra log line, no functional impact).
+            int dedupKey = theirSignature ^ (ourSignature << 1);
+            if (!lastLoggedMismatchSignatureByPeer.TryGetValue(peerId, out int prev) || prev != dedupKey)
+            {
+                lastLoggedMismatchSignatureByPeer[peerId] = dedupKey;
+                Debug.LogWarning($"[PacketDiag] Buffering input from peer {peerId} due to scene mismatch. theirSig={theirSignature} ourSig={ourSignature}. Will replay when our scene catches up.");
+            }
         }
 
         // Defensive copy: the caller's buffer can be reused by the network layer.
@@ -531,6 +556,7 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
         PrunePeerDictionary(sceneMismatchedInputByPeer, rosterPeerIds);
         PrunePeerDictionary(sceneMismatchedInputAgeByPeer, rosterPeerIds);
+        PrunePeerDictionary(lastLoggedMismatchSignatureByPeer, rosterPeerIds);
     }
 
     private void MaintainPeerHandshakes()
@@ -624,6 +650,7 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Clear();
         sceneMismatchedInputByPeer.Clear();
         sceneMismatchedInputAgeByPeer.Clear();
+        lastLoggedMismatchSignatureByPeer.Clear();
     }
 
     public void ResetReadyFlags()

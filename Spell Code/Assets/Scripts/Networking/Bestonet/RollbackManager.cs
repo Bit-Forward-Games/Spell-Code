@@ -99,9 +99,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int SoftFramePacingThreshold = 3; // Start gently pacing before the hard rollback limit
         [SerializeField] public int MaxConsecutiveFrameDrops = 1; // Pulse holds to avoid transition deadlocks
         [SerializeField] public int MultiplayerMaxConsecutiveFrameDrops = 0; // 3/4P online: never pulse past prediction cap; hold until input arrives (timeout net catches real stalls)
-        [SerializeField] public int MaxPredictionAheadFrames = 18; // Cap visible remote input latency before pacing
+        [SerializeField] public int MaxPredictionAheadFrames = 8; // 2P online cap before pacing; lower keeps remote movement from drifting far during packet gaps
         [SerializeField] public int MultiplayerMaxPredictionAheadFrames = 8; // Tighter cap for 3/4-player online so one stale peer cannot be ignored for long
-        [SerializeField] public int DirectionPredictionHoldFrames = 6; // Stop predicting held movement after short packet gaps
+        [SerializeField] public int DirectionPredictionHoldFrames = 0; // 2P online base hold window. Effective window scales by direction stability up to DirectionPredictionHoldMaxFrames.
+        [SerializeField] public int DirectionPredictionHoldMaxFrames = 4; // 2P online stability-aware cap. Short taps decay quickly; long-held directions can predict briefly.
         [SerializeField] public int MultiplayerDirectionPredictionHoldFrames = 0; // 3/4P online: base hold window. With stability-aware mode below, the effective window scales up to MultiplayerDirectionPredictionHoldMaxFrames when the received direction has been stable.
         [SerializeField] public int MultiplayerDirectionPredictionHoldMaxFrames = 4; // 3/4P online: cap for the stability-aware hold window. Prediction will hold the direction for at most this many frames even if the direction has been held for a long time. Tune against MaxRollBackFrames so rollback can always correct in time.
         [SerializeField] public int MultiplayerJumpButtonPredictionHoldFrames = 1; // Decay predicted jump button quickly so stuck "Held" doesn't drive variable jump / slide branches
@@ -1281,6 +1282,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return Mathf.Min(maxHistoryAhead, Mathf.Max(InputDelay + 1, InputDelay + MultiplayerMaxPredictionAheadFrames));
             }
 
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+            {
+                return Mathf.Min(maxHistoryAhead, Mathf.Max(InputDelay + 1, InputDelay + MaxPredictionAheadFrames));
+            }
+
             return Mathf.Min(
                 maxHistoryAhead,
                 Mathf.Max(InputDelay + MaxRollBackFrames + 6, InputDelay + MaxPredictionAheadFrames));
@@ -1465,12 +1471,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         // Returns the effective hold window for direction prediction on this slot.
-        // 3/4P online: stability-aware. The window is min(stabilityStreak, max-cap) where
+        // Online: stability-aware. The window is min(stabilityStreak, max-cap) where
         // stabilityStreak is how many consecutive received frames had the same direction byte.
         // A tapped/spammed direction has streak ~1 -> hold ~1, so it decays fast (prevents overshoot).
         // A long-held direction has streak >> 1 -> hold = cap (default 4), so it predicts longer
         // (prevents undershoot during slide/run momentum).
-        // Other paths (2P / offline) keep the fixed hold-window behaviour.
+        // Offline never reaches this prediction path.
         private int GetDirectionPredictionHoldFrames(int slot)
         {
             if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
@@ -1486,9 +1492,18 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return Mathf.Clamp(stabilityStreak, baseHold, stabilityCap);
             }
 
-            // 2P online / offline: keep the legacy fixed hold window. The 2P stability streak
-            // is still tracked (in PredictOpponentInput) so a future change can wire it in here,
-            // but right now we don't change 2P behaviour to avoid regressing a known-good path.
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+            {
+                int baseHold = Mathf.Max(0, DirectionPredictionHoldFrames);
+                int stabilityCap = Mathf.Max(baseHold, DirectionPredictionHoldMaxFrames);
+                int stabilityStreak = slot >= 0
+                    && remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int held)
+                        ? held
+                        : opponentHeldDirectionStreak;
+
+                return Mathf.Clamp(stabilityStreak, baseHold, stabilityCap);
+            }
+
             return DirectionPredictionHoldFrames;
         }
 

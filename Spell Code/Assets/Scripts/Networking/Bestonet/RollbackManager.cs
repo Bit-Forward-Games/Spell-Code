@@ -123,6 +123,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // How quickly the loss signal decays each tick when no new losses arrive.
         [SerializeField] public int PacketLossDecayPerTick = 1;
 
+        [Header("Diagnostics")]
+        // When true, RollbackEvent emits [PredictDiag] lines on each input mismatch
+        // (per-slot pred vs actual fields + streak values) and after each resim
+        // (per-player position snap delta). Use this to localise visible over/undershoot
+        // to a specific slot, input field, or tuning value. Off in production.
+        [SerializeField] public bool logPredictionTrace = false;
+
         [Header("Timing & Sync")]
         [SerializeField] public bool EnableFrameExtension = true;
         [SerializeField] public int SleepTimeMicro = 1500; // BestoNet FPSLock-style local frame extension
@@ -800,6 +807,87 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return string.Join(" | ", slotParts);
         }
 
+        // === Prediction-trace logging (gated by logPredictionTrace) ===
+        // These run only when the inspector flag is on. The fast path early-returns
+        // BEFORE any allocation, so leaving the methods on the hot path is free in production.
+
+        // Snapshot the per-player current position (one axis at a time so we don't allocate a struct).
+        // Returns null when tracing is off so the snap-delta logger can also fast-out.
+        private long[] CapturePlayerPositionsForTrace(bool takeX)
+        {
+            if (!logPredictionTrace || GameManager.Instance == null) return null;
+            int count = Mathf.Max(0, GameManager.Instance.playerCount);
+            long[] result = new long[count];
+            for (int i = 0; i < count; i++)
+            {
+                PlayerController p = GameManager.Instance.players[i];
+                if (p == null) continue;
+                result[i] = takeX ? p.position.X.RawValue : p.position.Y.RawValue;
+            }
+            return result;
+        }
+
+        // Log the per-player position delta produced by a rollback resim. Reads the values
+        // captured by CapturePlayerPositionsForTrace before LoadState and diffs them against
+        // the post-resim positions. Delta is the visible "snap" the user perceives.
+        private void LogPredictionSnapDelta(int rollbackFromSyncFrame, int rollbackToFrame, long[] preX, long[] preY)
+        {
+            if (!logPredictionTrace || preX == null || preY == null || GameManager.Instance == null) return;
+
+            int count = Mathf.Min(preX.Length, GameManager.Instance.playerCount);
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append($"[PredictDiag] Snap after rollback {rollbackFromSyncFrame}->{rollbackToFrame} ({rollbackToFrame - rollbackFromSyncFrame}f):");
+            for (int i = 0; i < count; i++)
+            {
+                PlayerController p = GameManager.Instance.players[i];
+                if (p == null) continue;
+                long dx = p.position.X.RawValue - preX[i];
+                long dy = p.position.Y.RawValue - preY[i];
+                // Convert raw Fixed32 (65536/unit) to display units, signed.
+                sb.Append($" P{i}=({dx / 65536f:+0.##;-0.##;0},{dy / 65536f:+0.##;-0.##;0})u");
+            }
+            Debug.Log(sb.ToString());
+        }
+
+        // Log a per-slot input mismatch at the moment RollbackEvent detects it. Pass slot=-1
+        // for the legacy 2P opponent path. Pass predicted=null when the slot had received input
+        // but no used input yet (the haveReceived-and-not-haveUsed case).
+        private void LogPredictionMismatch(int slot, int frame, ulong? predicted, ulong actual)
+        {
+            if (!logPredictionTrace) return;
+
+            string predStr = predicted.HasValue ? FormatInputForTrace(predicted.Value) : "<no used>";
+            string actualStr = FormatInputForTrace(actual);
+
+            int predStreak;
+            int heldStreak;
+            if (slot >= 0)
+            {
+                predStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int ps) ? ps : 0;
+                heldStreak = remoteHeldDirectionStreakBySlot.TryGetValue(slot, out int hs) ? hs : 0;
+            }
+            else
+            {
+                predStreak = opponentPredictedInputStreak;
+                heldStreak = opponentHeldDirectionStreak;
+            }
+
+            string slotLabel = slot >= 0 ? $"slot={slot}" : "slot=opp";
+            Debug.Log($"[PredictDiag] Mismatch frame={frame} {slotLabel} pred={predStr} actual={actualStr} predStreak={predStreak} heldStreak={heldStreak}");
+        }
+
+        // Compact human-readable encoding of one input ulong. Matches the bit layout in
+        // InputConverter: low byte = direction (numpad 1-9, 5 = neutral); bits 8-9 code button;
+        // bits 10-11 jump button; bits 12-13 pause button.
+        private static string FormatInputForTrace(ulong input)
+        {
+            int direction = (int)(input & 0xFFUL);
+            ButtonState code = (ButtonState)((input >> 8) & 0b11UL);
+            ButtonState jump = (ButtonState)((input >> 10) & 0b11UL);
+            ButtonState pause = (ButtonState)((input >> 12) & 0b11UL);
+            return $"(dir={direction},code={code},jump={jump},pause={pause})";
+        }
+
     /// <summary>
     /// Checks for input mismatches and triggers a rollback if necessary.
     /// Should be called once per frame before simulation.
@@ -843,6 +931,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                         ulong used = usedBySlot.GetInput(i);
                         if (received != used)
                         {
+                            LogPredictionMismatch(slot, i, used, received);
                             foundDesyncedFrame = true;
                             frameVerified = false;
                             break;
@@ -850,6 +939,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     }
                     else if (haveReceived && !haveUsed)
                     {
+                        LogPredictionMismatch(slot, i, predicted: null, actual: receivedBySlot.GetInput(i));
                         foundDesyncedFrame = true;
                         frameVerified = false;
                         break;
@@ -877,12 +967,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                     if (received != used)
                     {
+                        LogPredictionMismatch(slot: -1, frame: i, predicted: used, actual: received);
                         foundDesyncedFrame = true;
                         frameVerified = false;
                     }
                 }
                 else if (haveReceived && !haveUsed)
                 {
+                    LogPredictionMismatch(slot: -1, frame: i, predicted: null, actual: receivedInputs.GetInput(i));
                     foundDesyncedFrame = true;
                     frameVerified = false;
                 }
@@ -943,6 +1035,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         SetRollbackStatus(true);
         RollbackFrames = framesBeforeRollback - syncFrame;
 
+        // Capture pre-rollback (visible) positions so we can log the snap delta after resim.
+        // Cheap when logPredictionTrace is off (early-return inside the helper).
+        long[] preRollbackPosX = CapturePlayerPositionsForTrace(takeX: true);
+        long[] preRollbackPosY = CapturePlayerPositionsForTrace(takeX: false);
+
         if (!LoadState(syncFrame))
         {
             Debug.LogError($"Rollback ABORTED: Failed to load state for frame {syncFrame}. Game may be desynced.");
@@ -976,6 +1073,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         SetRollbackStatus(false);
         ProcessPendingRemoteHashes();
+        LogPredictionSnapDelta(syncFrame, framesBeforeRollback, preRollbackPosX, preRollbackPosY);
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 

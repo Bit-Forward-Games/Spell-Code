@@ -3180,6 +3180,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4543029438853477300, guid: ec4413402ed80ab4a915f7b467190ec2, type: 3}
+      propertyPath: logPredictionTrace
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4972789253636239824, guid: ec4413402ed80ab4a915f7b467190ec2, type: 3}
       propertyPath: m_Name
       value: RollbackManager

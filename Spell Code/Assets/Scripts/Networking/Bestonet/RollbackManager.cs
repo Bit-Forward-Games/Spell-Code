@@ -2125,6 +2125,30 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     }
 
     /// <summary>
+    /// Online-only entry point for graceful frame pacing. Called once per completed online
+    /// frame from GameManager.RunOnlineFrame. Measures the local frame advantage, schedules
+    /// a short microsleep window (StartFrameExtensions) if this client is running ahead of
+    /// the slowest peer, then performs the sleep (ExtendFrame).
+    ///
+    /// Without this, AllowUpdate's hard hold/pulse is the only pacing tool: in 4P with
+    /// MultiplayerMaxConsecutiveFrameDrops=0 the slowest peer locks every client's pace,
+    /// which manifests as visible freezes when any one peer's network drifts. With this,
+    /// faster clients slow themselves down ~1.5ms/frame BEFORE hitting the prediction cap,
+    /// so the cap is hit less often and there's no cascade.
+    ///
+    /// Safe during rollback resim (early-returns); only the post-sim path should call this.
+    /// </summary>
+    public void RunFramePacing()
+    {
+        if (isRollbackFrame || DelayBased || !EnableFrameExtension) return;
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive) return;
+
+        CheckTimeSync(out float frameAdvantageDifference);
+        StartFrameExtensions(frameAdvantageDifference);
+        ExtendFrame();
+    }
+
+    /// <summary>
     /// Starts a short local frame extension window when this client is running ahead.
     /// This mirrors BestoNet's FPSLock.SetFrameExtension behavior without touching simulation state.
     /// </summary>

@@ -2393,6 +2393,13 @@ public class GameManager : MonoBehaviour
         {
             rbManager.SaveState();
         }
+
+        // BestoNet's CheckTimeSync / StartFrameExtensions / 
+        // ExtendFrame trio so that when this client is ahead of the
+        // slowest peer, it slows itself down by ~1.5ms/frame instead of letting AllowUpdate's
+        // hard hold dominate. Prevents the "everyone holds for the slowest peer" cascade
+        // observed with MultiplayerMaxConsecutiveFrameDrops=0.
+        rbManager.RunFramePacing();
     }
 
     private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));

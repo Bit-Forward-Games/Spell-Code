@@ -2472,6 +2472,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if(damageTextColor == GameManager.colors["blue"])
+        {
+            //Play the critical hit noise on top of the hit SFX
+            SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_HIT);
+        }
+
         HandleDamage(attacker, damageAmount, damageTextColor);
     }
 

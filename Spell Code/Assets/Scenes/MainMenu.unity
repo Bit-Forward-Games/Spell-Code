@@ -3256,6 +3256,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 1086066500782581235, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1974111978123749526, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 185
@@ -3268,10 +3272,30 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3561755459777968623, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: 'Learn how to play and test out new builds!
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4519956901559073814, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: 'Battle against your friends around the world!
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4618272467799596420, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: GameModesPanel
+      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 4764291420530871145, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Online Option
+      objectReference: {fileID: 0}
     - target: {fileID: 5586739243119581139, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

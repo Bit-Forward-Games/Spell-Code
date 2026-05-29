@@ -1899,14 +1899,22 @@ public class GameManager : MonoBehaviour
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
-                LoadRandomGameplayStage();
+                if (goDoorPrefab.soloModes)
+                {
+                    tempUI.SetSoloMenuActive(true);
+                }
+                else
+                {
+                    LoadRandomGameplayStage();
+                }
+                
             }
 
-            if (!isOnlineMatchActive && onlineHostDoor != null)
-            {
-                onlineHostDoor.CheckOpenDoor();
-                onlineHostDoor.CheckHostTrigger();
-            }
+            // if (!isOnlineMatchActive && onlineHostDoor != null)
+            // {
+            //     onlineHostDoor.CheckOpenDoor();
+            //     onlineHostDoor.CheckHostTrigger();
+            // }
 
             if (players[0] != null)
             {

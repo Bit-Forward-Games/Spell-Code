@@ -9,6 +9,7 @@ public class GO_Door : MonoBehaviour
 {
     Animator animator;
     bool isOpen = false;
+    public bool soloModes = true;
     float colliderRadius = 36;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -61,13 +62,15 @@ public class GO_Door : MonoBehaviour
     public bool CheckOpenDoor()
     {
 
-        if (GameManager.Instance.playerCount > 1)
+        if (GameManager.Instance.playerCount > 0)
         {
             isOpen = true;
+            soloModes = GameManager.Instance.playerCount == 1;
         }
         else
         {
             isOpen = false;
+            soloModes = true;
         }
 
         if(animator == null)

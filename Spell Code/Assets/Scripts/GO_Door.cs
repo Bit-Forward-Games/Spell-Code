@@ -49,7 +49,7 @@ public class GO_Door : MonoBehaviour
             Fixed radiusSq = radius * radius;
 
             // Determine overlap using squared values
-            if (distSq > radiusSq)
+            if (distSq > radiusSq || !player.isGrounded)
             {
                 //player is out of range
                 isPrimed = true;

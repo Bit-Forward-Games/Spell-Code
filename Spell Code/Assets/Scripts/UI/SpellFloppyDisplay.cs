@@ -76,6 +76,8 @@ public class SpellFloppyDisplay : MonoBehaviour
         canvasObject.GetComponent<Canvas>().enabled = true;
         SpellGifPlayer.Reset();
         showDesc = false;
+        SpellGifGO.transform.localScale = new Vector3(gifScaleNoDesc, gifScaleNoDesc, 1);
+        spellDesc.color = Color.clear;
     }
 
     public void FloppyDisplayUpdate()

@@ -442,9 +442,11 @@ public class GameManager : MonoBehaviour
 
     public void loadTutorial()
     {
+        
         sceneManager.LoadScene("Tutorial");
         SetStage(-2);
         ResetPlayers();
+        players[0].ClearSpellList();
     }
 
     private void FixedUpdate()

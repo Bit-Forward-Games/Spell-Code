@@ -160,6 +160,22 @@ public class TempUIScript : MonoBehaviour
         }
     }
 
+    public void InvitePlayer()
+    {
+        if (SteamLobbyManager.Instance.IsInLobby)
+        {
+            bool opened = SteamLobbyManager.Instance.TryOpenInviteOverlay();
+            if (!opened)
+            {
+                SteamLobbyManager.Instance.HostAndInvite();
+            }
+        }
+        else
+        {
+            SteamLobbyManager.Instance.HostAndInvite();
+        }
+    }
+
     public void UpdateUIBarVals()
     {
         Scene currentScene = SceneManager.GetActiveScene();

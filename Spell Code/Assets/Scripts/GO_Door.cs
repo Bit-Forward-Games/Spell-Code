@@ -9,6 +9,7 @@ public class GO_Door : MonoBehaviour
 {
     Animator animator;
     bool isOpen = false;
+    public bool isPrimed = true;
     public bool soloModes = true;
     float colliderRadius = 36;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -51,7 +52,9 @@ public class GO_Door : MonoBehaviour
             if (distSq > radiusSq)
             {
                 //player is out of range
+                isPrimed = true;
                 return false;
+                
             }
         }
 

@@ -116,6 +116,7 @@ public class ReloadShot_prj : BaseProjectile
 
             playerIgnoreArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(18).Sum()+1; //set the logic frame to the start of the end animation
+            activeHitboxGroupIndex = 0;
 
 
         }

@@ -408,12 +408,12 @@ public class GameManager : MonoBehaviour
             players[0].roundRam = 600;
         }
 
-        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
-        {
-            sceneManager.LoadScene("Tutorial");
-            SetStage(-2);
-            ResetPlayers();
-        }
+        // if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        // {
+        //     sceneManager.LoadScene("Tutorial");
+        //     SetStage(-2);
+        //     ResetPlayers();
+        // }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
         {
@@ -438,6 +438,13 @@ public class GameManager : MonoBehaviour
             }
         }
 #endif
+    }
+
+    public void loadTutorial()
+    {
+        sceneManager.LoadScene("Tutorial");
+        SetStage(-2);
+        ResetPlayers();
     }
 
     private void FixedUpdate()
@@ -1897,10 +1904,11 @@ public class GameManager : MonoBehaviour
 
             goDoorPrefab.CheckOpenDoor();
 
-            if (goDoorPrefab.CheckAllPlayersReady())
+            if (goDoorPrefab.CheckAllPlayersReady() && goDoorPrefab.isPrimed)
             {
                 if (goDoorPrefab.soloModes)
                 {
+                    goDoorPrefab.isPrimed = false;
                     tempUI.SetSoloMenuActive(true);
                 }
                 else

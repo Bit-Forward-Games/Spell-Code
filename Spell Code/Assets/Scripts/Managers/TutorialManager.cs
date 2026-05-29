@@ -22,6 +22,9 @@ public class Tutorial : MonoBehaviour
     public SpriteRenderer gambaHitGif;
     public SpriteRenderer floppyPickupGif;
 
+    public TextMeshProUGUI gambaHitText;
+    public TextMeshProUGUI floppyPickupText;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -29,6 +32,7 @@ public class Tutorial : MonoBehaviour
         //machine2.isActive = true;
         gM = GameManager.Instance;
         floppyPickupGif.enabled = false;
+        floppyPickupText.enabled = false;
     }
 
     // Update is called once per frame
@@ -51,7 +55,9 @@ public class Tutorial : MonoBehaviour
         else if (machine.isActive == false)
         {
             gambaHitGif.enabled = false;
+            gambaHitText.enabled = false;
             floppyPickupGif.enabled = true;
+            floppyPickupText.enabled = true;
         }
 
         if (door.CheckAllPlayersReady()) { gM.sceneManager.LoadScene("MainMenu"); }

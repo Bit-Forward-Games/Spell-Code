@@ -116,7 +116,7 @@ MonoBehaviour:
   - DelayInMs: 60
     Sprite: {fileID: 21300000, guid: 73b0f1d8b64a62145a60c293d3e89eb5, type: 3}
   - DelayInMs: 60
-    Sprite: {fileID: -5405439202717716237, guid: 8c9697788f95d3646acfceffc712c148, type: 3}
+    Sprite: {fileID: 21300000, guid: 8c9697788f95d3646acfceffc712c148, type: 3}
   - DelayInMs: 60
     Sprite: {fileID: 21300000, guid: 5f1933369b560114d91c5692f72fd7f7, type: 3}
   - DelayInMs: 60

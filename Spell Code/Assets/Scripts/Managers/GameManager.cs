@@ -211,6 +211,16 @@ public class GameManager : MonoBehaviour
     [Header("Debug")]
     public bool logDesyncTrace = false;
     public int logDesyncEveryNFrames = 1;
+    // When true, GameManager emits [SimDiag] lines that show: which FixedUpdate early-return
+    // path is hit (rate-limited so it doesn't spam), and a heartbeat every 60 sim frames from
+    // RunOnlineFrame showing current frame, wall-clock time, and frames-per-second cadence.
+    // Use this when a peer's sim appears to drift without any of the existing hold/rollback
+    // logs explaining it. Off in production.
+    public bool logSimDiagnostics = false;
+    private float lastSimSkipLogTime = -1f;
+    private string lastSimSkipReason = null;
+    private int lastSimHeartbeatFrame = -1;
+    private float lastSimHeartbeatTime = -1f;
 
     // Online lobby state tracking
     public bool localPlayerReadyForGameplay = false;
@@ -471,7 +481,11 @@ public class GameManager : MonoBehaviour
         //    prevSceneWasShop = false;
         //}
 
-        if (isTransitioning) return;
+        if (isTransitioning)
+        {
+            LogSimSkip("isTransitioning");
+            return;
+        }
         Scene activeScene = SceneManager.GetActiveScene();
 
         // ONLINE LOBBY WAIT STATE
@@ -486,11 +500,13 @@ public class GameManager : MonoBehaviour
                 // Return to menu or show error UI
                 return;
             }
+            LogSimSkip("isWaitingForOpponent");
             return; // Don't run simulation yet
         }
 
         if (isOnlineMatchActive && !IsOnlineSimulationScene(activeScene))
         {
+            LogSimSkip($"wrong scene '{activeScene.name}'");
             return;
         }
 
@@ -2291,6 +2307,8 @@ public class GameManager : MonoBehaviour
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
 
+        LogSimHeartbeatIfDue();
+
         if (!rbManager.isRollbackFrame)
         {
             int currentFrame = frameNumber;
@@ -2400,6 +2418,35 @@ public class GameManager : MonoBehaviour
         // hard hold dominate. Prevents the "everyone holds for the slowest peer" cascade
         // observed with MultiplayerMaxConsecutiveFrameDrops=0.
         rbManager.RunFramePacing();
+    }
+
+    // Rate-limited log for "FixedUpdate bailed out before RunOnlineFrame ran" cases. Without
+    // this, isTransitioning / isWaitingForOpponent / wrong-scene early returns are silent and
+    // we can't tell from the log whether the sim is being held by the netcode or by an outer
+    // gate. Logs at most once per second per unique reason so it doesn't spam.
+    private void LogSimSkip(string reason)
+    {
+        if (!logSimDiagnostics) return;
+        float now = UnityEngine.Time.unscaledTime;
+        if (reason == lastSimSkipReason && now - lastSimSkipLogTime < 1f) return;
+        lastSimSkipLogTime = now;
+        lastSimSkipReason = reason;
+        Debug.Log($"[SimDiag] FixedUpdate skipped ({reason}). isOnline={isOnlineMatchActive} frame={frameNumber}");
+    }
+
+    // Heartbeat from RunOnlineFrame. Fires every 60 sim frames and prints the elapsed
+    // wall-clock seconds since the previous heartbeat - so divide 60 / elapsedSec to get
+    // effective sim Hz. Use this when a peer is drifting and nothing else explains it.
+    private void LogSimHeartbeatIfDue()
+    {
+        if (!logSimDiagnostics) return;
+        if (frameNumber - lastSimHeartbeatFrame < 60) return;
+        float now = UnityEngine.Time.unscaledTime;
+        float elapsed = lastSimHeartbeatTime > 0f ? now - lastSimHeartbeatTime : -1f;
+        float effectiveHz = elapsed > 0f ? (frameNumber - lastSimHeartbeatFrame) / elapsed : -1f;
+        lastSimHeartbeatFrame = frameNumber;
+        lastSimHeartbeatTime = now;
+        Debug.Log($"[SimDiag] Heartbeat frame={frameNumber} time={now:F2}s elapsed={elapsed:F3}s effHz={effectiveHz:F1}");
     }
 
     private int RoundEndTransitionFrameThreshold => Mathf.Max(1, Mathf.RoundToInt(roundEndTransitionTime * 60f));

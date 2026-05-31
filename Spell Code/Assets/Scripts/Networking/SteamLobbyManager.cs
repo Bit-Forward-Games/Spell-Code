@@ -33,11 +33,11 @@ public class SteamLobbyManager : MonoBehaviour
             {
                 return true;
             }
-
-            if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
-            {
-                return false;
-            }
+            //--@JAYESH I commented this out to stop the comp error
+            // if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
+            // {
+            //     return false;
+            // }
         }
 
         if (isHostingFlow)

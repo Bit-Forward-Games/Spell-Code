@@ -34,10 +34,10 @@ public class SteamLobbyManager : MonoBehaviour
                 return true;
             }
             //--@JAYESH I commented this out to stop the comp error
-            // if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
-            // {
-            //     return false;
-            // }
+             if (!SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId))
+            {
+                return false;
+            }
         }
 
         if (isHostingFlow)
@@ -51,6 +51,11 @@ public class SteamLobbyManager : MonoBehaviour
 
         HostAndInvite();
         return true;
+    }
+
+    private bool SameSteamId(SteamId a, SteamId b)
+    {
+        return a.IsValid && b.IsValid && a.Value == b.Value;
     }
 
     public bool TryOpenInviteOverlay()

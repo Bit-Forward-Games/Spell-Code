@@ -83,6 +83,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, byte> remoteLastReceivedDirectionBySlot = new Dictionary<int, byte>();
         private readonly Dictionary<int, int> remoteHeldDirectionStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
+        private readonly Dictionary<int, int> lobbyLeadAlignedInputPacketBySlot = new Dictionary<int, int>();
         private int? pendingRosterFrameOffset = null;
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
@@ -397,6 +398,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remotePredictedInputStreakBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteLastReceivedDirectionBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
+            PruneSlotDictionary(lobbyLeadAlignedInputPacketBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
         }
 
@@ -484,6 +486,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteLastReceivedDirectionBySlot.Clear();
             remoteHeldDirectionStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
+            lobbyLeadAlignedInputPacketBySlot.Clear();
             pendingRosterFrameOffset = null;
 
             lastDroppedFrame = -1;
@@ -688,6 +691,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             EnsureRemoteCollectionsInitialized();
             pendingRemoteInputSlots.Clear();
             pendingRosterFrameOffset = null;
+            lobbyLeadAlignedInputPacketBySlot.Clear();
             for (int i = 0; i < remotePlayerSlots.Count; i++)
             {
                 pendingRemoteInputSlots.Add(remotePlayerSlots[i]);
@@ -2330,7 +2334,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             frameOffset = RebaseMultiplayerLobbyInputOffset(slot, alignmentFrame, frameOffset);
             int adjustedFrame = frame + frameOffset;
 
-            if (ShouldDropMultiplayerLobbyBackfillFrame(adjustedFrame))
+            if (ShouldDropMultiplayerLobbyBackfillFrame(slot, alignmentFrame, adjustedFrame))
             {
                 return;
             }
@@ -2386,9 +2390,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return frameOffset;
             }
 
+            if (lobbyLeadAlignedInputPacketBySlot.ContainsKey(slot))
+            {
+                return frameOffset;
+            }
+
             int desiredNewestFrame = localFrame + Mathf.Max(1, MultiplayerLobbyInputLeadFrames);
             int newestAdjustedFrame = alignmentFrame + frameOffset;
             int frameShift = desiredNewestFrame - newestAdjustedFrame;
+            lobbyLeadAlignedInputPacketBySlot[slot] = alignmentFrame;
             if (frameShift == 0)
             {
                 return frameOffset;
@@ -2413,9 +2423,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 && !GameManager.Instance.isTransitioning;
         }
 
-        private bool ShouldDropMultiplayerLobbyBackfillFrame(int adjustedFrame)
+        private bool ShouldDropMultiplayerLobbyBackfillFrame(int slot, int alignmentFrame, int adjustedFrame)
         {
             return ShouldScheduleMultiplayerLobbyInputs()
+                && lobbyLeadAlignedInputPacketBySlot.TryGetValue(slot, out int leadAlignedPacketFrame)
+                && leadAlignedPacketFrame == alignmentFrame
                 && adjustedFrame <= localFrame;
         }
 

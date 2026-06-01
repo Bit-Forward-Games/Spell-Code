@@ -178,16 +178,6 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                     return;
                 }
 
-                if (GameManager.Instance != null && !GameManager.Instance.ShouldApplyOnlineAuthoritativeLobbyState())
-                {
-                    selectHoldCounter = 60;
-                    if (isRealFrame)
-                    {
-                        diskDisplay.selectFill.fillAmount = GetFillPercent();
-                    }
-                    return;
-                }
-
                 if (overlappingPlayer.AddSpellToSpellList(diskName))
                 {
                     if (SceneManager.GetActiveScene().name == "Shop")

@@ -54,7 +54,7 @@ public class CashOutCrit_prj : BaseProjectile
                     damage = 15,
                     hitstun = 15,
                     attackLvl = 2,
-                    basicAttackHitbox = true
+                    //basicAttackHitbox = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

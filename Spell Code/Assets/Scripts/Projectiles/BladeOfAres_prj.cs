@@ -34,7 +34,7 @@ public class BladeOfAres_prj : BaseProjectile
                 {
                     xOffset = -13*2,
                     yOffset = 37*2,
-                    width = 35*2,
+                    width = 36*2,
                     height = 17*2,
                     xKnockback = 1,
                     yKnockback = 8,
@@ -49,7 +49,7 @@ public class BladeOfAres_prj : BaseProjectile
                 {
                     xOffset = 3*2,
                     yOffset = 29*2,
-                    width = 42*2,
+                    width = 36*2,
                     height = 45*2,
                     xKnockback = 5,
                     yKnockback = 5,

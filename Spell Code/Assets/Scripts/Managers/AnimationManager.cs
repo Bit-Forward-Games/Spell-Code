@@ -44,6 +44,7 @@ public class AnimationManager : MonoBehaviour
 
     private readonly Dictionary<PlayerController, Vector3> playerRenderPositions = new();
     private readonly Dictionary<BaseProjectile, Vector3> projectileRenderPositions = new();
+    private readonly Dictionary<PlayerController, int> transientPlayerSmoothingFrames = new();
 
 
 
@@ -251,9 +252,29 @@ public class AnimationManager : MonoBehaviour
             .ToArray();
     }
 
+    public void SmoothNextOnlineLobbyPlayerCorrection(PlayerController[] players, int localPlayerIndex)
+    {
+        if (players == null || RollbackManager.Instance == null || RollbackManager.Instance.isRollbackFrame)
+        {
+            return;
+        }
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null || i == localPlayerIndex)
+            {
+                continue;
+            }
+
+            playerRenderPositions[player] = player.transform.position;
+            transientPlayerSmoothingFrames[player] = 8;
+        }
+    }
+
     private Vector3 GetPlayerRenderPosition(PlayerController player, Vector3 targetPosition, int playerIndex)
     {
-        bool shouldSmooth = ShouldSmoothOnlineObject(playerIndex);
+        bool shouldSmooth = ShouldSmoothOnlineObject(playerIndex) || ConsumeTransientPlayerSmoothing(player);
         return GetSmoothedRenderPosition(playerRenderPositions, player, targetPosition, shouldSmooth, onlineRemotePlayerSmoothing);
     }
 
@@ -276,7 +297,24 @@ public class AnimationManager : MonoBehaviour
             return false;
         }
 
-        return ownerIndex >= 0 && ownerIndex == GameManager.Instance.remotePlayerIndex;
+        return ownerIndex >= 0 && ownerIndex != GameManager.Instance.localPlayerIndex;
+    }
+
+    private bool ConsumeTransientPlayerSmoothing(PlayerController player)
+    {
+        if (player == null || !transientPlayerSmoothingFrames.TryGetValue(player, out int framesRemaining))
+        {
+            return false;
+        }
+
+        if (framesRemaining <= 0)
+        {
+            transientPlayerSmoothingFrames.Remove(player);
+            return false;
+        }
+
+        transientPlayerSmoothingFrames[player] = framesRemaining - 1;
+        return true;
     }
 
     private Vector3 GetSmoothedRenderPosition<T>(Dictionary<T, Vector3> positions, T key, Vector3 targetPosition, bool shouldSmooth, float smoothing)

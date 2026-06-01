@@ -491,7 +491,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_Tiles.Array.data[12681].second.m_TileObjectToInstantiateIndex

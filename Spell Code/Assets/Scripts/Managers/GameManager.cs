@@ -1051,6 +1051,10 @@ public class GameManager : MonoBehaviour
             && RollbackManager.Instance != null
             && RollbackManager.Instance.IsWaitingForInitialRemoteInputStreams()
             && snapshotFrame > frameNumber;
+        bool preservePredictedLobbyMotion = forceApply
+            && activeSceneName == "MainMenu"
+            && rosterSnapshotAlreadyActive
+            && !canRefreshPendingBootstrapSnapshot;
 
         if (rosterSnapshotAlreadyActive && !canRefreshPendingBootstrapSnapshot && !forceApply)
         {
@@ -1076,7 +1080,14 @@ public class GameManager : MonoBehaviour
         }
 
         int previousFrame = frameNumber;
+        PlayerController.OnlineMotionState?[] preservedLobbyMotion = preservePredictedLobbyMotion
+            ? CaptureOnlineLobbyMotionState()
+            : null;
         DeserializeManagedState(stateData);
+        if (preservedLobbyMotion != null)
+        {
+            RestoreOnlineLobbyMotionState(preservedLobbyMotion);
+        }
         ForceSetFrame(snapshotFrame);
         isWaitingForOpponent = false;
         isRunning = true;
@@ -1110,6 +1121,36 @@ public class GameManager : MonoBehaviour
             Debug.Log($"[OnlineLobby] Applied lobby roster snapshot. Players={roster.PlayerCount} Frame={snapshotFrame}");
         }
         return true;
+    }
+
+    private PlayerController.OnlineMotionState?[] CaptureOnlineLobbyMotionState()
+    {
+        PlayerController.OnlineMotionState?[] motionStates = new PlayerController.OnlineMotionState?[players.Length];
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                motionStates[i] = players[i].CaptureOnlineMotionState();
+            }
+        }
+        return motionStates;
+    }
+
+    private void RestoreOnlineLobbyMotionState(PlayerController.OnlineMotionState?[] motionStates)
+    {
+        if (motionStates == null)
+        {
+            return;
+        }
+
+        int count = Mathf.Min(players.Length, motionStates.Length);
+        for (int i = 0; i < count; i++)
+        {
+            if (players[i] != null && motionStates[i].HasValue)
+            {
+                players[i].RestoreOnlineMotionState(motionStates[i].Value);
+            }
+        }
     }
 
     private void SendAuthoritativeOnlineLobbySnapshot()

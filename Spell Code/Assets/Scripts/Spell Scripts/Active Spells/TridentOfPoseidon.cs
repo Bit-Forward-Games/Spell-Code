@@ -9,7 +9,7 @@ public class TridentOfPoseidon : SpellData
     {
         spellName = "Trident Of Poseidon";
         brands = new Brand[]{ Brand.Killeez };
-        cooldown = 300;
+        cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_0111_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};

@@ -256,8 +256,10 @@ public class PlayerController : MonoBehaviour
     public string startingSpell;
     public bool startingSpellAdded = false;
     public bool suppressSpellLoadSideEffects = false;
+    [NonSerialized]
+    public int pID = -1;
 
-    public int pID = 0;
+    public bool npcOverride = false;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true

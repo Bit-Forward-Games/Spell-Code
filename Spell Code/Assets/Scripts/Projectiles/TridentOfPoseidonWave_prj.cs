@@ -15,8 +15,9 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
     {
-        projName = "Trident Of Poseidon_Wave";
-        lifeSpan = 240;
+        projName = "Trident Of Poseidon Wave";
+        ignoreBrand = true;
+        //lifeSpan = 240;
         deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3, 3 }, false);
     }
@@ -50,7 +51,7 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
                     yKnockback = 3,
                     damage = 15,
                     hitstun = 10,
-                    attackLvl = 1,
+                    attackLvl = 1
                 }
             },
             hitbox2 = new List<HitboxData>(),

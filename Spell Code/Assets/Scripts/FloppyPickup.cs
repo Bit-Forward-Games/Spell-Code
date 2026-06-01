@@ -15,7 +15,7 @@ using UnityEngine.Windows;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SpellCode_FloppyDisk : MonoBehaviour
+public class FloppyPickup : MonoBehaviour
 {
     public Animator diskAnimator;
     //Bounds diskBounds;
@@ -27,9 +27,11 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
     public bool colliding;
 
-    public float colliderRadius = 16f;
+    public float colliderRadius = 18f;
 
     private byte selectHoldCounter = 0;
+
+    private int timeToFill = 30;
 
 
 
@@ -88,33 +90,36 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 {
                     selectHoldCounter++;
                 }
-                else
+                else if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released)
                 {
-                    selectHoldCounter = 0;
-                }
-                //this will show description
-                if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released && selectHoldCounter < 60)
-                {
-                    diskDisplay.showDesc = !diskDisplay.showDesc;
-                    diskDisplay.FloppyDisplayUpdate();
-                }
-
-                if (selectHoldCounter >= 60)
-                {
-                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    if(selectHoldCounter < timeToFill)
                     {
-                        Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
-                        //if (SceneManager.GetActiveScene().name != "Tutorial")
-                        //{
-                            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
-                            //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
-                            Destroy(gameObject);
-                        //}
+                        if (overlappingPlayer.AddSpellToSpellList(diskName))
+                        {
+                            Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
+                            //if (SceneManager.GetActiveScene().name != "Tutorial")
+                            //{
+                                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                                //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                                Destroy(gameObject);
+                            //}
+                        }
+                        else
+                        {
+                            selectHoldCounter = 0;
+                        }
                     }
                     else
                     {
-                        selectHoldCounter = 0;
+                        diskDisplay.showDesc = !diskDisplay.showDesc;
+                        diskDisplay.FloppyDisplayUpdate();
                     }
+                    
+                    
+                }
+                else
+                {
+                    selectHoldCounter = 0;
                 }
             }
             else
@@ -130,6 +135,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
             diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;    
         }
         diskDisplay.selectFill.fillAmount = GetFillPercent();
+        diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1? "purple":"grey"];
     }
 
     public void SimulateOnline(ulong[] inputs, bool isRealFrame)
@@ -226,7 +232,7 @@ public class SpellCode_FloppyDisk : MonoBehaviour
 
     private float GetFillPercent()
     {
-        float percent = selectHoldCounter / 60f;
+        float percent = selectHoldCounter / (float)timeToFill;
         float normalizedLogarithmicfillPercent = Mathf.Clamp01(Mathf.Log10(percent)+1);
         return normalizedLogarithmicfillPercent;
     }

@@ -146,7 +146,7 @@ public class ProjectileManager : MonoBehaviour
         }
     }
 
-    public void DeleteAllProjectiles()
+    public void DestroyAllProjectiles()
     {
         activeProjectiles.Clear();
         //first destroy all projectiles in the list then clear the list
@@ -159,8 +159,29 @@ public class ProjectileManager : MonoBehaviour
         }
         projectilePrefabs.Clear();
     }
+    public void DeleteAllProjectiles()
+    {
+        for(int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            List<BaseProjectile> projList = new List<BaseProjectile>();
+            foreach(BaseProjectile proj in activeProjectiles)
+            {
+                if(proj.owner == GameManager.Instance.players[i])
+                {
+                    projList.Add(proj);
+                }
+            }
 
-    public void DeleteAllPlayerProjectiles(int pID)
+            foreach(BaseProjectile deletingProj in projList)
+            {
+                DeleteProjectile(deletingProj);
+            }
+        }
+        
+
+    }
+
+    public void DeleteTargetPlayerProjectiles(int pID)
     {
         PlayerController targetPlayer = GameManager.Instance.players[pID-1];
         List<BaseProjectile> projList = new List<BaseProjectile>();
@@ -182,7 +203,7 @@ public class ProjectileManager : MonoBehaviour
     public void InitializeAllProjectiles()
     {
         //first destroy all projectiles in the list then clear the list
-        DeleteAllProjectiles();
+        DestroyAllProjectiles();
 
         if (ProjectileDictionary.Instance == null)
         {

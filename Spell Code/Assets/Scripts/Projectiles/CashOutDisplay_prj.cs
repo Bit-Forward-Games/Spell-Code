@@ -19,7 +19,7 @@ public class CashOutDisplay_prj : BaseProjectile
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Cash Out Display");
         activeHitboxGroupIndex = 0;
         vSpeed = Fixed.FromInt(8); // No vertical speed
     }

@@ -657,7 +657,7 @@ public class GambaMachine : MonoBehaviour
                 continue;
             }
 
-            SpellCode_FloppyDisk diskInfo = floppyDisk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup diskInfo = floppyDisk.GetComponent<FloppyPickup>();
             if (diskInfo != null)
             {
                 spells.Remove(diskInfo.diskName);
@@ -685,7 +685,7 @@ public class GambaMachine : MonoBehaviour
             string spellToAdd = spells[randomInt];
 
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
-            SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup info = disk.GetComponent<FloppyPickup>();
             info.diskName = spellToAdd;
             info.ownerPID = ownerPID;
             floppys.Add(disk);
@@ -746,7 +746,7 @@ public class GambaMachine : MonoBehaviour
         else
         {
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
-            SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup info = disk.GetComponent<FloppyPickup>();
             disk.transform.position = new Vector3(disk.transform.position.x, disk.transform.position.y, -1);
             info.diskName = name;
             info.ownerPID = ownerPID;

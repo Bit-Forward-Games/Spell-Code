@@ -21,7 +21,7 @@ public class CashOutCrit_prj : BaseProjectile
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Cash Out");
 
         //this is the base speed for the projectile before applying angle factors
         int fixedSpeed = 10;
@@ -54,7 +54,7 @@ public class CashOutCrit_prj : BaseProjectile
                     damage = 15,
                     hitstun = 15,
                     attackLvl = 2,
-                    basicAttackHitbox = true
+                    //basicAttackHitbox = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

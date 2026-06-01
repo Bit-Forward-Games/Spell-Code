@@ -50,6 +50,13 @@ public class GetAJob : SpellData
             if (owner != null && projectilePrefabs.Length > 1)
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[(doesCrit ? 1 : 0)].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+
+                //if the spell will crit,...
+                if (doesCrit)
+                {
+                    //Play the Critical Cast SFX
+                    SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_CAST);
+                }
             }
             cooldownCounter = cooldown;
         }

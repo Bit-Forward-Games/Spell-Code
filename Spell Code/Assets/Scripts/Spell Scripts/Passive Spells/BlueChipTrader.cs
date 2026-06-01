@@ -39,6 +39,10 @@ public class BlueChipTrader : SpellData
                     storedStockStability -= (ushort)excessStocStability;
 
                 }
+
+                //play the Blue Chip Trader SFX
+                SFX_Manager.Instance.PlaySpellcodeSound("Blue Chip Trader");
+
                 owner.SpawnToast("+30% STOCK STABILITY", GameManager.colors["blue"]);
                 break;
             case ProcCondition.OnHitSpell:

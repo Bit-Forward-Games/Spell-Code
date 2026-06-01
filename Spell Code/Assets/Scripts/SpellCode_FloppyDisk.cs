@@ -151,6 +151,16 @@ public class SpellCode_FloppyDisk : MonoBehaviour
                 inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
             }
 
+            if (isRealFrame
+                && GameManager.Instance != null
+                && ownerIndex == GameManager.Instance.localPlayerIndex
+                && inputSnapshot.ButtonStates[0] == ButtonState.Released
+                && selectHoldCounter < 60)
+            {
+                diskDisplay.showDesc = !diskDisplay.showDesc;
+                diskDisplay.FloppyDisplayUpdate();
+            }
+
             if (inputSnapshot.ButtonStates[0] == ButtonState.Held)
             {
                 selectHoldCounter++;

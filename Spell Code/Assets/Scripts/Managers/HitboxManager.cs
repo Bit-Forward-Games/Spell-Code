@@ -138,6 +138,13 @@ public class HitboxManager : MonoBehaviour
                            
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
+
+                            // Monotonic per-hit counter (in state hash, deterministic). UI
+                            // watches this to fire its damage bar animation exactly once per
+                            // hit. Must increment in BOTH normal sim and rollback resim so
+                            // the post-resim value matches the original save-state value.
+                            defendingPlayer.damageBarHitCount++;
+
                             if (GameManager.Instance.isOnlineMatchActive)
                             {
                                 HitboxData bakedHitbox = hitbox.Clone();

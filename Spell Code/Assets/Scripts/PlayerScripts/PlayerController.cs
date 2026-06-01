@@ -175,6 +175,12 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
+
+    // Monotonically incremented each time HitboxManager registers a hit on this player.
+    // Used by the UI damage bar to fire its animation exactly once per hit, even when
+    // online rollback resim re-runs HitboxManager and re-sets isHit. 
+    public uint damageBarHitCount = 0;
+
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public uint storedCode = 0; //the code that is stored up for release
@@ -450,6 +456,7 @@ public class PlayerController : MonoBehaviour
         armor = false;
         basicSpawnOverride = "";
         isHit = false;
+        damageBarHitCount = 0;
         hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
@@ -2983,6 +2990,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(damageBarHitCount);
         bw.Write(iframes);
         bw.Write(unchecked((int)0xAABBCCDD));
 
@@ -3097,6 +3105,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(damageBarHitCount);
         bw.Write(iframes);
 
         bool hasHitboxData = hitboxData != null;
@@ -3184,6 +3193,7 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isHit = br.ReadBoolean();
+        damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();
         int markerA = br.ReadInt32();
         if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");

@@ -36,6 +36,14 @@ public class TempUIScript : MonoBehaviour
     
     private Coroutine[] damageBarCoroutines = new Coroutine[4];
     private float[] damageBarDisplayFill = new float[4];
+
+    // Track the player's hit counter the last time we fired a damage bar animation.
+    // Fire the coroutine only when the counter increases. This avoids the online bug where
+    // rollback resim re-set isHit -> UI restarted coroutine every Update -> animation never
+    // played to completion. The counter is monotonic and deterministic across rollback so
+    // lastSeen never falls behind after a resim.
+
+    private uint[] lastSeenDamageBarHitCount = new uint[4];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public GameObject MainMenuScreen;
@@ -236,8 +244,16 @@ public class TempUIScript : MonoBehaviour
                 previousRamVals[i] = _ramIncrease;
             }
 
-            if (GameManager.Instance.players[i].isHit)
+            // Fire the damage bar coroutine only on the rising edge of damageBarHitCount.
+            // The previous design watched player.isHit, but in online play rollback resim
+            // would re-run HitboxManager which re-set isHit -> UI restarted the coroutine
+            // every Update -> WaitForSeconds never elapsed -> bar never animated. The
+            // counter is monotonic across rollback (deterministic) so lastSeen never falls
+            // behind after a resim, and the coroutine fires exactly once per actual hit.
+            uint currentHitCount = GameManager.Instance.players[i].damageBarHitCount;
+            if (currentHitCount != lastSeenDamageBarHitCount[i])
             {
+                lastSeenDamageBarHitCount[i] = currentHitCount;
                 if (damageBarCoroutines[i] != null) StopCoroutine(damageBarCoroutines[i]);
                 damageBarCoroutines[i] = StartCoroutine(DamageBar(i));
             }
@@ -326,8 +342,11 @@ public class TempUIScript : MonoBehaviour
         followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
         PlayerController player = GameManager.Instance.players[playerIndex];
 
-        player.isHit = false;
-        
+        // Note: previously we did `player.isHit = false` here to "consume" the trigger flag,
+        // but that was UI code writing to a field that's part of the deterministic sim's
+        // state hash. The damageBarHitCount counter pattern replaces that flag-clear with a
+        // UI-side lastSeen tracker, so the sim's isHit is left untouched by UI.
+
         float previousHealthAmount = damageBarDisplayFill[playerIndex];
         
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;

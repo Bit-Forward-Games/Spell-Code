@@ -432,6 +432,11 @@ public class InputPlayerBindings : MonoBehaviour
         }
     }
 
+    public void SetActiveWithoutChangingActions(bool enable)
+    {
+        IsActive = enable;
+    }
+
     public void ConfigureInputDevices(params InputDevice[] devices)
     {
         if (inputActionAsset == null)

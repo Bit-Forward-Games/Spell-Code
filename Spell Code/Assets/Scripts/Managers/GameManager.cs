@@ -602,6 +602,30 @@ public class GameManager : MonoBehaviour
         bindings?.ConfigureInputDevices(sharedDevices);
     }
 
+    private void MarkOnlineRemotePlayerInputInactive(PlayerController player)
+    {
+        player?.inputs?.SetActiveWithoutChangingActions(false);
+    }
+
+    private void EnsureOnlineLocalPlayerInputActive()
+    {
+        if (localPlayerIndex < 0 || localPlayerIndex >= players.Length)
+        {
+            return;
+        }
+
+        PlayerController localPlayer = players[localPlayerIndex];
+        if (localPlayer == null)
+        {
+            return;
+        }
+
+        PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+        localPlayer.inputs.AssignInputDevice(null);
+        ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
+        localPlayer.CheckForInputs(true, false);
+    }
+
     //private ulong GatherRawInput()
     //{
     //    // Direction
@@ -845,15 +869,11 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                if (pInput != null)
-                {
-                    pInput.DeactivateInput();
-                    pInput.enabled = false;
-                }
-
-                players[i].CheckForInputs(false);
+                MarkOnlineRemotePlayerInputInactive(players[i]);
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         for (int i = 0; i < players.Length; i++)
         {
@@ -905,6 +925,8 @@ public class GameManager : MonoBehaviour
                 createdPlayer = true;
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         playerCount = roster.PlayerCount;
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
@@ -1276,12 +1298,7 @@ public class GameManager : MonoBehaviour
 
             if (i == remotePlayerIndex)
             {
-                if (pInput != null)
-                {
-                    pInput.DeactivateInput();
-                    pInput.enabled = false;
-                }
-                players[i].CheckForInputs(false);
+                MarkOnlineRemotePlayerInputInactive(players[i]);
             }
             else if (i == localIndex)
             {
@@ -1290,6 +1307,8 @@ public class GameManager : MonoBehaviour
                 players[i].CheckForInputs(true, false);
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         for (int i = 0; i < players.Length; i++)
         {
@@ -4954,13 +4973,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (pInput != null)
-            {
-                pInput.DeactivateInput();
-                pInput.enabled = false;
-            }
-
-            players[slot].CheckForInputs(false);
+            MarkOnlineRemotePlayerInputInactive(players[slot]);
         }
 
         players[slot].InitCharacter();

@@ -5,7 +5,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class CodeE_BasicProjectile : BaseProjectile
+public class RCade_BasicProjectile : BaseProjectile
 {
 
     protected override void InitializeDefaults()

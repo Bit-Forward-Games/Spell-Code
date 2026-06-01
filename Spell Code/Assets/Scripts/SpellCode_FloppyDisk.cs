@@ -234,27 +234,30 @@ public class SpellCode_FloppyDisk : MonoBehaviour
     public PlayerController CheckPlayerCollision()
     {
         PlayerController player;
-        // check if all active players are within a certain range of the door
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        if (GameManager.Instance.playerCount > 0)
         {
-            player = GameManager.Instance.players[i];
-
-            FixedVec2 floppyPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
-            // Compute squared distance (avoid square root):
-            Fixed dx = Fixed.Abs(player.position.X - floppyPos.X) / Fixed.FromInt(100);
-            Fixed dy = Fixed.Abs(player.position.Y - floppyPos.Y) / Fixed.FromInt(100);
-            Fixed distSq = (dx * dx) + (dy * dy);
-
-            // Convert collider radius to Fixed and square it
-            Fixed radius = Fixed.FromFloat(colliderRadius / 100);
-            Fixed radiusSq = radius * radius;
-
-            // Determine overlap using squared values
-            if (distSq < radiusSq)
+            // check if all active players are within a certain range of the door
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                overlappingPlayer = player;
-                //Debug.Log("Overlapping player ID: " + overlappingPlayer.pID);
-                return player;
+                player = GameManager.Instance.players[i];
+
+                FixedVec2 floppyPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
+                // Compute squared distance (avoid square root):
+                Fixed dx = Fixed.Abs(player.position.X - floppyPos.X) / Fixed.FromInt(100);
+                Fixed dy = Fixed.Abs(player.position.Y - floppyPos.Y) / Fixed.FromInt(100);
+                Fixed distSq = (dx * dx) + (dy * dy);
+
+                // Convert collider radius to Fixed and square it
+                Fixed radius = Fixed.FromFloat(colliderRadius / 100);
+                Fixed radiusSq = radius * radius;
+
+                // Determine overlap using squared values
+                if (distSq < radiusSq)
+                {
+                    overlappingPlayer = player;
+                    //Debug.Log("Overlapping player ID: " + overlappingPlayer.pID);
+                    return player;
+                }
             }
         }
         overlappingPlayer = null;

@@ -322,8 +322,11 @@ public class PlayerController : MonoBehaviour
         ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
-        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
-        StopHitRumble();
+        if (this.gameObject != null)
+        {
+            SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+            StopHitRumble();
+        }
     }
 
     private void OnDestroy()
@@ -331,8 +334,11 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         ClearDamageNumbers();
 
-        //stop playing all repeating sounds for this player
-        if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        if (this.gameObject != null)
+        {
+            //stop playing all repeating sounds for this player
+            if (SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        }
         StopHitRumble();
     }
 

@@ -10,7 +10,7 @@ public enum Sounds //enum to store the names of the sounds that can play
 { 
     JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE_UP, INPUT_CODE_RIGHT, INPUT_CODE_DOWN, INPUT_CODE_LEFT,
     ARMOR_HIT,
-    SLIDE, CRITICAL_HIT
+    SLIDE, CRITICAL_HIT, CRITICAL_CAST
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -192,7 +192,7 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
-        Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
+        //Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
     }
 
     /// <summary>

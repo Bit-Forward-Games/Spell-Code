@@ -60,6 +60,11 @@ public class SpellCode_Gate : MonoBehaviour
     {
         if (gateBounds != null)
         {
+            if (GameManager.Instance != null && !GameManager.Instance.ShouldApplyOnlineAuthoritativeLobbyState())
+            {
+                return;
+            }
+
             foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
             {
                 if (projectile == null || projectile.owner == null || projectile.ownerSpell == null)

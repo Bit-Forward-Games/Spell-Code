@@ -2247,6 +2247,26 @@ public class GameManager : MonoBehaviour
             {
                 shopImage.enabled = false;
                 SimulateOnlineFloppies(inputs, isRealFrame);
+
+                for (int i = 0; i < gates.Length; i++)
+                {
+                    if (gates[i] != null)
+                    {
+                        gates[i].SimulateOnline(!isRealFrame);
+                    }
+                }
+
+                foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+                {
+                    if (gambaGO == null) continue;
+                    GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                    if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, !isRealFrame);
+                }
+
+                if (isRealFrame && goDoorPrefab != null && goDoorPrefab.CheckAllPlayersReady() && !localPlayerReadyForGameplay)
+                {
+                    SendLobbyReadyForGameplay();
+                }
             }
         }
         else if (activeScene.name == "Shop")
@@ -2285,6 +2305,14 @@ public class GameManager : MonoBehaviour
             {
                 shopImage.enabled = true;
                 SimulateOnlineFloppies(inputs, isRealFrame);
+
+                for (int i = 0; i < gates.Length; i++)
+                {
+                    if (gates[i] != null)
+                    {
+                        gates[i].SimulateOnline(!isRealFrame);
+                    }
+                }
             }
         }
         else if (activeScene.name == "Gameplay")
@@ -2364,76 +2392,14 @@ public class GameManager : MonoBehaviour
         frameNumber++;
         syncedInput = rbManager.SynchronizeInput();
 
-        Scene activeScene = SceneManager.GetActiveScene();
-
         UpdateGameState(syncedInput);
 
         UpdateSceneLogic(syncedInput);
 
-        // ONLINE LOBBY LOGIC (MainMenu scene)
-        if (activeScene.name == "MainMenu")
-        {
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-
-            // Handle spell selection for online players (only local and remote)
-            //HandleOnlineSpellSelection();
-
-            //if (onboardManager == null)
-            //    onboardManager = FindFirstObjectByType<OnboardManager>(); // only finds active objects
-
-            //if (onboardManager != null && !rbManager.isRollbackFrame)
-            //    onboardManager.OnboardUpdate(syncedInput);
-
-            // Drive gamba machines through synced simulation (must run during rollback for RNG consistency)
-            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
-            {
-                if (gambaGO == null) continue;
-                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, rbManager.isRollbackFrame);
-            }
-
-            goDoorPrefab.CheckOpenDoor();
-
-            if (goDoorPrefab.CheckAllPlayersReady())
-            {
-                // In online mode, signal readiness instead of immediately transitioning
-                if (!localPlayerReadyForGameplay)
-                {
-                    SendLobbyReadyForGameplay();
-                }
-            }
-        }
-        else if (activeScene.name == "Gameplay")
+        if (SceneManager.GetActiveScene().name == "Gameplay")
         {
             TickRoundEndTransition(!rbManager.isRollbackFrame);
         }
-        else if (activeScene.name == "Shop")
-        {
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-        }
-        //else if (activeScene.name == "Shop")
-        //{
-        //    if (!rbManager.isRollbackFrame)
-        //    {
-        //        foreach (GameObject gambaGO in gambas)
-        //        {
-        //            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-        //            if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1);
-        //        }
-        //    }
-        //}
 
         if (!rbManager.isRollbackFrame && !rbManager.DelayBased)
         {
@@ -5109,6 +5075,11 @@ public class GameManager : MonoBehaviour
         }
 
         return localPlayerIndex == 0;
+    }
+
+    public bool ShouldApplyOnlineAuthoritativeLobbyState()
+    {
+        return !isOnlineMatchActive || IsOnlineHostAuthority();
     }
 
     private bool IsOnlineHostSlot(int playerSlot)

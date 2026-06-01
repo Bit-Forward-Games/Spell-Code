@@ -325,6 +325,9 @@ public class GambaMachine : MonoBehaviour
             return;
         }
 
+        bool canApplyAuthoritativeState = GameManager.Instance == null
+            || GameManager.Instance.ShouldApplyOnlineAuthoritativeLobbyState();
+
         if (activeScene.name == "MainMenu")
         {
             if (ownerPlayer.spellList.Count > 0)
@@ -333,7 +336,7 @@ public class GambaMachine : MonoBehaviour
                 ClearFloppysForPID(ownerPID);
             }
 
-            if (isActive && CheckOnlineHitboxCollision())
+            if (canApplyAuthoritativeState && isActive && CheckOnlineHitboxCollision())
             {
                 isActive = false;
                 SpawnFloppysForOwnerOnline(isRollback);
@@ -348,7 +351,7 @@ public class GambaMachine : MonoBehaviour
             SimulateShopOnline(isRollback);
         }
 
-        if (activeScene.name != "Shop" && !isActive && activatedCount < 3)
+        if (canApplyAuthoritativeState && activeScene.name != "Shop" && !isActive && activatedCount < 3)
         {
             resetTimer++;
 
@@ -356,6 +359,10 @@ public class GambaMachine : MonoBehaviour
             {
                 isActive = true;
                 resetTimer = 0;
+                if (!isRollback)
+                {
+                    GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"lobby gamba P{ownerPID} reset");
+                }
             }
         }
 
@@ -366,6 +373,9 @@ public class GambaMachine : MonoBehaviour
     {
         if (ownerPlayer == null) return;
 
+        bool canApplyAuthoritativeState = GameManager.Instance == null
+            || GameManager.Instance.ShouldApplyOnlineAuthoritativeLobbyState();
+
         if (ownerPlayer.chosenSpell || ownerPlayer.spellList.Count >= 6)
         {
             activatedCount = 3;
@@ -373,7 +383,7 @@ public class GambaMachine : MonoBehaviour
             ClearFloppysForPID(ownerPID);
         }
 
-        if (isActive && CheckOnlineHitboxCollision())
+        if (canApplyAuthoritativeState && isActive && CheckOnlineHitboxCollision())
         {
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
@@ -391,13 +401,17 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        if (!isActive && activatedCount < 3)
+        if (canApplyAuthoritativeState && !isActive && activatedCount < 3)
         {
             resetTimer++;
             if (resetTimer > 120)
             {
                 isActive = true;
                 resetTimer = 0;
+                if (!isRollback)
+                {
+                    GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"shop gamba P{ownerPID} reset");
+                }
             }
         }
     }

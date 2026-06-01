@@ -19,7 +19,7 @@ public class NoScopeShot_Prj : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 16); // Set horizontal speed based on facing direction

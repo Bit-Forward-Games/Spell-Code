@@ -19,9 +19,9 @@ public class QuarterReportCrit_prj : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
      
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Quarter Report");
         this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4); // Set horizontal speed based on facing direction
     }
 

@@ -35,7 +35,7 @@ public class TrickshotAlley_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;

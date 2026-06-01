@@ -60,7 +60,7 @@ public abstract class BaseProjectile : MonoBehaviour
         
     }
 
-    public virtual void SpawnProjectile(/*PlayerController owner,*/ bool facingRight, FixedVec2 spawnOffset/*, float hSpeed, float vSpeed, HitboxData[] hitboxDatas*/)
+    public virtual void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         //this.owner = owner;
         this.facingRight = facingRight;
@@ -71,8 +71,18 @@ public abstract class BaseProjectile : MonoBehaviour
         this.activeHitboxGroupIndex = 0;
         this.logicFrame = 0;
 
-        //play the spawn sfx for this spellcode based on the projectile name
-        SFX_Manager.Instance.PlaySpellcodeSound(projName, 1.0f, 1.0f);
+        //if nameOverride is empty,...
+        if (nameOverride == "")
+        {
+            //play the defualt spawn sfx for this spellcode based on the projectile name
+            SFX_Manager.Instance.PlaySpellcodeSound(projName, 1.0f, 1.0f);
+        }
+        //else nameOverrie has a value,...
+        else
+        {
+            //play the spawn sfx for this spellcode based on nameOverride
+            SFX_Manager.Instance.PlaySpellcodeSound(nameOverride, 1.0f, 1.0f);
+        }
     }
 
     public virtual void ResetValues()

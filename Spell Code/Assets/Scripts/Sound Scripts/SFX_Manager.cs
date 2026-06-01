@@ -192,6 +192,7 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
+        Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
     }
 
     /// <summary>

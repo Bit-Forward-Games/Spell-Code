@@ -1100,6 +1100,12 @@ public class GameManager : MonoBehaviour
         {
             RollbackManager.Instance?.RebaseActiveRemoteStreamsForLobbySnapshot(previousFrame, snapshotFrame);
         }
+        else if (smoothForcedLobbyCorrection)
+        {
+            // The existing 8-frame visual smoother (SmoothNextOnlineLobbyPlayerCorrection, fired on this same condition) then
+            // only has to ease the small genuine positional correction.
+            RollbackManager.Instance?.RebaseActiveRemoteStreamsForLobbySnapshot(previousFrame, snapshotFrame);
+        }
         RollbackManager.Instance?.SaveState();
         if (bootstrappedFromSnapshot)
         {

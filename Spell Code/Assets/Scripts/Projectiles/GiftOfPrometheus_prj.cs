@@ -105,6 +105,9 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
         {
             hSpeed = Fixed.FromInt(0);
+
+            //Play the Gift Of Prometheus SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus Explosion");
         }
     }
 }

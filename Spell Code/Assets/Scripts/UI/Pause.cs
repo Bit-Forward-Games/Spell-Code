@@ -7,6 +7,7 @@ using UnityEngine.Audio;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
+using YamlDotNet.Serialization;
 
 public class Pause : MonoBehaviour
 {
@@ -263,8 +264,27 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
- 
+        SaveSettings();
         Time.timeScale = 1f;    
+    }
+
+    public void SaveSettings()
+    {
+        SettingsManager settings = SettingsManager.Instance;
+        settings.SetDynamicCamera(dynamicCameraOverride);
+        settings.SetScreenshake(shakeEnabled);
+        settings.SetFullscreen(true);
+        settings.SetMusicVolume(musicVolumeSlider.value);
+        settings.SetSfxVolume(sfxVolumeSlider.value);
+    }
+
+    public void LoadSettings()
+    {
+        GameSettingsData settings = SettingsManager.Instance.Settings;
+        dynamicCameraOverride = settings.dynamicCamera;
+        shakeEnabled = settings.screenshake;
+        musicVolumeSlider.value = settings.musicVolume;
+        sfxVolumeSlider.value = settings.sfxVolume;
     }
  
     public void Pausing()

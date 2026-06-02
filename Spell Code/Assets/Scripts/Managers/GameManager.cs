@@ -1092,6 +1092,10 @@ public class GameManager : MonoBehaviour
         {
             RollbackManager.Instance?.RebaseActiveRemoteStreamsForLobbySnapshot(previousFrame, snapshotFrame);
         }
+        else if (forceApply && activeSceneName == "MainMenu")
+        {
+            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(snapshotFrame);
+        }
         RollbackManager.Instance?.SaveState();
         if (bootstrappedFromSnapshot)
         {
@@ -1144,6 +1148,10 @@ public class GameManager : MonoBehaviour
         }
 
         SendAuthoritativeOnlineLobbySnapshot();
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(frameNumber);
+        }
 
         if (!string.IsNullOrEmpty(reason))
         {

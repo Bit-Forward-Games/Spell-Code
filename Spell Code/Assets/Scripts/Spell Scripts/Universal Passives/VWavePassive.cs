@@ -37,6 +37,9 @@ public class VWavePassive : SpellData
                 {
                     owner.flowState = maxFlowState;
                     owner.SpawnToast("FLOW STATE", GameManager.colors["green"]);
+
+                    //Play the Sweet Spot SFX
+                    SFX_Manager.Instance.PlaySound(Sounds.SWEET_SPOT_HIT);
                 }
                 
                 break;

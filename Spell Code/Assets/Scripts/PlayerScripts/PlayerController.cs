@@ -2955,63 +2955,6 @@ public class PlayerController : MonoBehaviour
     }
 
     /// NETWORK CODE:
-    public struct OnlineMotionState
-    {
-        public FixedVec2 position;
-        public Fixed hSpd;
-        public Fixed vSpd;
-        public Fixed timer;
-        public bool facingRight;
-        public bool isGrounded;
-        public bool onPlatform;
-        public bool relativeInputs;
-        public PlayerState state;
-        public PlayerState prevState;
-        public int logicFrame;
-        public int animationFrame;
-        public ushort lerpDelay;
-        public uint stateSpecificArg;
-    }
-
-    public OnlineMotionState CaptureOnlineMotionState()
-    {
-        return new OnlineMotionState
-        {
-            position = position,
-            hSpd = hSpd,
-            vSpd = vSpd,
-            timer = timer,
-            facingRight = facingRight,
-            isGrounded = isGrounded,
-            onPlatform = onPlatform,
-            relativeInputs = relativeInputs,
-            state = state,
-            prevState = prevState,
-            logicFrame = logicFrame,
-            animationFrame = animationFrame,
-            lerpDelay = lerpDelay,
-            stateSpecificArg = stateSpecificArg
-        };
-    }
-
-    public void RestoreOnlineMotionState(OnlineMotionState motionState)
-    {
-        position = motionState.position;
-        hSpd = motionState.hSpd;
-        vSpd = motionState.vSpd;
-        timer = motionState.timer;
-        facingRight = motionState.facingRight;
-        isGrounded = motionState.isGrounded;
-        onPlatform = motionState.onPlatform;
-        relativeInputs = motionState.relativeInputs;
-        state = motionState.state;
-        prevState = motionState.prevState;
-        logicFrame = motionState.logicFrame;
-        animationFrame = motionState.animationFrame;
-        lerpDelay = motionState.lerpDelay;
-        stateSpecificArg = motionState.stateSpecificArg;
-    }
-
     public void Serialize(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);

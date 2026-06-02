@@ -3289,6 +3289,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -185.99997
       objectReference: {fileID: 0}
+    - target: {fileID: 2255584519474260159, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: cooldown
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 

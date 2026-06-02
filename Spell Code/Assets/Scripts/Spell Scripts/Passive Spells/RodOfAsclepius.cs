@@ -34,6 +34,9 @@ public class RodOfAsclepius : SpellData
                     nextRepProc += 3;
                     owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + 15, owner.GetMaxHealth());
                     owner.SpawnToast("+15 HP", GameManager.colors["green"]);
+
+                    //Play the Rod of Asclepius SFX
+                    SFX_Manager.Instance.PlaySpellcodeSound("Rod Of Asclepius");
                 }
                 break;
             case ProcCondition.OnDeath:

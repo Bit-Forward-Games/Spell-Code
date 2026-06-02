@@ -3020,7 +3020,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(basicSpawnOverride);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -3081,7 +3081,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3103,7 +3103,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3135,7 +3135,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(basicSpawnOverride);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
@@ -3180,7 +3180,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3193,6 +3193,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Spell strings in the serialization hot path are written as a stable int id (index
+    // into SpellDictionary.spellList, identical on every client) instead of a length-prefixed
+    // string, so a save-state / rollback no longer allocates a string per spell via ReadString.
+    // -1 == "no spell" (e.g. an empty basicSpawnOverride). These thin wrappers null-guard the
+    // dictionary and keep the Serialize/Deserialize pair symmetric.
+    private static int GetSpellSerializationId(string spellName)
+    {
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellId(spellName) : -1;
+    }
+
+    private static string GetSpellNameFromSerializationId(int spellId)
+    {
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : "";
+    }
 
     public void Deserialize(BinaryReader br)
     {
@@ -3223,7 +3237,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
-        basicSpawnOverride = br.ReadString();
+        basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
@@ -3314,14 +3328,15 @@ public class PlayerController : MonoBehaviour
 
         startingSpellAdded = savedStartingSpellAdded;
 
-        // Read serialized spell payloads first
-        List<(string name, byte[] data)> savedSpells = new List<(string name, byte[] data)>(spellCount);
+        // Read serialized spell payloads first. Spell identity is now a stable int id (issue 4)
+        // rather than a per-spell string, so this no longer allocates a string per spell.
+        List<(int id, byte[] data)> savedSpells = new List<(int id, byte[] data)>(spellCount);
         for (int i = 0; i < spellCount; i++)
         {
-            string spellName = br.ReadString();
+            int spellId = br.ReadInt32();
             int spellDataLength = br.ReadInt32();
             byte[] spellBytes = br.ReadBytes(spellDataLength);
-            savedSpells.Add((spellName, spellBytes));
+            savedSpells.Add((spellId, spellBytes));
         }
 
         if (spellList.Count != spellCount)
@@ -3330,30 +3345,30 @@ public class PlayerController : MonoBehaviour
             // local sim (e.g. host snapshotted right after a floppy pickup but the local
             // sim hadn't reached that frame yet). RebuildSpellListFromSaved correctly
             // reconciles, so demote to LogWarning instead of LogError to reduce noise.
-            Debug.LogWarning($"Spell list size mismatch during Deserialize. Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
+            Debug.LogWarning($"Spell list size mismatch during Deserialize. Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved ids.");
             RebuildSpellListFromSaved(savedSpells);
         }
 
         // Deserialize spell state by saved order so duplicate spell names restore deterministically.
         for (int i = 0; i < savedSpells.Count; i++)
         {
-            string spellName = savedSpells[i].name;
+            int spellId = savedSpells[i].id;
             byte[] spellBytes = savedSpells[i].data;
 
             if (i >= spellList.Count || spellList[i] == null)
             {
-                Debug.LogWarning($"Spell slot {i} missing while restoring '{spellName}' - skipped {spellBytes.Length} bytes");
+                Debug.LogWarning($"Spell slot {i} missing while restoring id {spellId} - skipped {spellBytes.Length} bytes");
                 continue;
             }
 
             SpellData spellInstance = spellList[i];
-            if (spellInstance.spellName != spellName)
+            if (GetSpellSerializationId(spellInstance.spellName) != spellId)
             {
-                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected '{spellName}', found '{spellInstance.spellName}'. Rebuilding from saved order.");
+                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected id {spellId}, found '{spellInstance.spellName}'. Rebuilding from saved order.");
                 RebuildSpellListFromSaved(savedSpells);
                 if (i >= spellList.Count || spellList[i] == null)
                 {
-                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for '{spellName}' - skipped {spellBytes.Length} bytes");
+                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for id {spellId} - skipped {spellBytes.Length} bytes");
                     continue;
                 }
                 spellInstance = spellList[i];
@@ -3466,7 +3481,7 @@ public class PlayerController : MonoBehaviour
         state == PlayerState.Slide ||
         state == PlayerState.CodeWeave;
 
-    private void RebuildSpellListFromSaved(List<(string name, byte[] data)> savedSpells)
+    private void RebuildSpellListFromSaved(List<(int id, byte[] data)> savedSpells)
     {
         // Destroy existing spell instances
         for (int i = spellList.Count - 1; i >= 0; i--)
@@ -3482,11 +3497,11 @@ public class PlayerController : MonoBehaviour
         // Recreate list in saved order (no LoadSpell to avoid side effects)
         for (int i = 0; i < savedSpells.Count; i++)
         {
-            string spellName = savedSpells[i].name;
-            if (SpellDictionary.Instance != null &&
-                SpellDictionary.Instance.spellDict != null &&
-                SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData template) &&
-                template != null)
+            int spellId = savedSpells[i].id;
+            SpellData template = SpellDictionary.Instance != null
+                ? SpellDictionary.Instance.GetSpellTemplate(spellId)
+                : null;
+            if (template != null)
             {
                 SpellData instance = Instantiate(template);
                 instance.owner = this;
@@ -3494,7 +3509,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell '{spellName}' in dictionary.");
+                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell id {spellId} in dictionary.");
             }
         }
 

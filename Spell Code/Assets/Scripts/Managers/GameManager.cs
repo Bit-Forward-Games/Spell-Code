@@ -85,6 +85,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
     public StageDataSO lobbySO;
     public StageDataSO TutorialSO;
+    public StageDataSO trainingGroundsSO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
     public SceneUiManager sceneManager;
@@ -92,6 +93,7 @@ public class GameManager : MonoBehaviour
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
     public GameObject tutorialMapGO;
+    public GameObject trainingGroundsGO;
     public string currentStage;
 
     [HideInInspector]
@@ -401,25 +403,23 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
             players[0].roundRam = 600;
         }
 
-        // if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
-        // {
-        //     sceneManager.LoadScene("Tutorial");
-        //     SetStage(-2);
-        //     ResetPlayers();
-        // }
+        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        {
+            loadTrainingGrounds();
+        }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
         {
             players[0].ClearSpellList();
         }
-//#endif
+#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
@@ -445,6 +445,14 @@ public class GameManager : MonoBehaviour
         
         sceneManager.LoadScene("Tutorial");
         SetStage(-2);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
+    public void loadTrainingGrounds()
+    {
+        sceneManager.LoadScene("TrainingGrounds");
+        SetStage(-3);
         ResetPlayers();
         players[0].ClearSpellList();
     }
@@ -2408,6 +2416,10 @@ public class GameManager : MonoBehaviour
         {
             return TutorialSO.playerSpawnTransform;
         }
+        if (currentStageIndex == -3)
+        {
+            return trainingGroundsSO.playerSpawnTransform;
+        }
         else
         {
             return stages[currentStageIndex].playerSpawnTransform;
@@ -2423,6 +2435,10 @@ public class GameManager : MonoBehaviour
         if (currentStageIndex == -2)
         {
             return TutorialSO.npcSpawnTransform;
+        }
+        if (currentStageIndex == -3)
+        {
+            return trainingGroundsSO.npcSpawnTransform;
         }
         else
         {
@@ -2667,6 +2683,12 @@ public class GameManager : MonoBehaviour
         {
             tutorialMapGO.SetActive(true);
             currentStage = tutorialMapGO.name;
+            return;
+        }
+        if (currentStageIndex == -3)
+        {
+            trainingGroundsGO.SetActive(true);
+            currentStage = trainingGroundsGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)

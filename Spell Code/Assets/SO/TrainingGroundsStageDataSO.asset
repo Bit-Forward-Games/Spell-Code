@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: TrainingGroundsStageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
+  platformCenter:
+  - {x: 416, y: 76}
+  - {x: 544, y: -19.999996}
+  - {x: 288, y: -19.999996}
+  - {x: 111.99999, y: -19.999996}
+  - {x: 63.999992, y: -19.999996}
+  - {x: 15.999992, y: -19.999996}
+  - {x: -32.000008, y: -19.999996}
+  - {x: -80.00001, y: -19.999996}
+  - {x: -128, y: -19.999998}
+  platformExtent:
+  - {x: 48.000793, y: 4}
+  - {x: 48.000793, y: 4}
+  - {x: 48.0008, y: 4}
+  - {x: 16.000801, y: 4}
+  - {x: 16.000801, y: 4}
+  - {x: 16.000801, y: 4}
+  - {x: 16.000801, y: 4}
+  - {x: 16.000801, y: 4}
+  - {x: 16.000797, y: 4}
+  solidCenter:
+  - {x: 736, y: 152}
+  - {x: -288, y: 152}
+  - {x: 224, y: -160}
+  solidExtent:
+  - {x: 63.98993, y: 264.00012}
+  - {x: 63.9899, y: 264.00012}
+  - {x: 576.0108, y: 48}
+  playerSpawnTransform:
+  - {x: -79.6507, y: -104.55522}
+  - {x: -79.6507, y: -104.55522}
+  - {x: -79.6507, y: -104.55522}
+  - {x: -79.6507, y: -104.55522}
+  npcSpawnTransform:
+  - {x: 414.3493, y: -108.55522}
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: -2000, y: -2000, z: 0}
+  borderMax: {x: 2000, y: 2000, z: 0}
+  camBorderMin: {x: -2000, y: -2000, z: 0}
+  camBorderMax: {x: 2000, y: 2000, z: 0}
+  borderType: 0
+  stageType: 0
+  dynamicCamera: 1

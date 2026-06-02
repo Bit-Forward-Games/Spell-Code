@@ -4,9 +4,9 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
-using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using TMPro;
+using DG.Tweening;
 
 public class Pause : MonoBehaviour
 {
@@ -30,34 +30,46 @@ public class Pause : MonoBehaviour
     public bool shakeEnabled = true;
     public bool dynamicCameraOverride = true;
     private SceneUiManager sceneUiManager;
-
+ 
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
     public GameObject _spellsMenuFirst;
-
+ 
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
-
+ 
+    private string[] brandName = {"MySpells", "DemonX", "BigStoX", "Killeez", "VWave", "AllSpells"};
+    public TextMeshProUGUI spellAddress;
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
-    public TextMeshProUGUI spellGlossaryList;
     public TextMeshProUGUI spellSelectedText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
-
+    public GameObject unselectedSpell;
+    public GameObject spellListParent;
+    public GameObject[] spellGlossaryList;
+    public List<GameObject> spellTabList = new List<GameObject>();
+ 
     private int tab = 0;
     private int selectedSpell;
-
+    private float spellListInitialY;
+ 
+    // Cooldown to prevent held-stick from firing every frame
+    private float navCooldown = 0f;
+    private const float NAV_COOLDOWN_TIME = 0.2f;
+    // Track last frame's nav value to detect fresh presses
+    private Vector2 lastNavValue = Vector2.zero;
+ 
     public class Column
     {
         public SpellData[] spells;
     }
-
-    public Column[] grid = new Column[5];
-
-
+ 
+    public Column[] grid = new Column[6];
+ 
+ 
     public bool UIRelativeInput
     {
         get { return gameManager.players[playerPauseIndex].relativeInputs; }
@@ -66,7 +78,7 @@ public class Pause : MonoBehaviour
             gameManager.players[playerPauseIndex].relativeInputs = value;
         }
     }
-
+ 
     public bool UIToggleCodeInput
     {
         get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
@@ -84,38 +96,161 @@ public class Pause : MonoBehaviour
             gameManager.players[playerPauseIndex].tapJump = value; 
         }
     }
-
+ 
     private InputSystem_Actions input;
-
+ 
     void OnEnable()  { input.Enable(); }
     void OnDisable() { input.Disable(); }
-
+ 
     void Awake()
     {
         input = new InputSystem_Actions();
     }
-
+ 
     private void Start()
     {
         gameManager = GameManager.Instance;
-        //find sceneUiManager
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
+ 
         Resume();
+ 
+        spellListInitialY = spellListParent.transform.position.y;
+ 
+        spellGlossaryList = new GameObject[SpellDictionary.Instance.spellList.Count];
+ 
+        for (int i = 0; i < SpellDictionary.Instance.spellList.Count; i++)
+        {
+            SpellData spell = SpellDictionary.Instance.spellList[i];
+            spellGlossaryList[i] = Instantiate(unselectedSpell, spellListParent.transform);
+            Image spellGraphic = spellGlossaryList[i].GetComponent<Image>();
+            TextMeshProUGUI spellNameText = spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>();
+ 
+            switch (spell.brands[0])
+            {
+                case Brand.VWave:
+                    spellGraphic.color = GameManager.colors["green"];
+                    break;
+                case Brand.BigStox:
+                    spellGraphic.color = GameManager.colors["blue"];
+                    break;
+                case Brand.DemonX:
+                    spellGraphic.color = GameManager.colors["red"];
+                    break;
+                case Brand.Killeez:
+                    spellGraphic.color = GameManager.colors["yellow"];
+                    break;
+            }
+ 
+            spellNameText.text = spell.spellName;
+            
+            spellGlossaryList[i].SetActive(false);
+        }
     }
-
+ 
     void Update()
     {
         if (spells)
         {
             SpellGlossaryNavigation();
+            UpdateSpellDisplay();
         }
-
+ 
         if (input.UI.Cancel.WasPressedThisFrame())
         {
             Resume();
         }
-    }
 
+        if (input.UI.Back.WasPressedThisFrame() && !controls && paused)
+        {
+            Pausing();
+        }
+    }
+ 
+    private void SpellGlossaryNavigation()
+    {
+        Vector2 nav = input.UI.Navigate.ReadValue<Vector2>();
+ 
+        // Tick down cooldown using unscaled time so it works while paused (timeScale = 0)
+        navCooldown -= Time.unscaledDeltaTime;
+ 
+        // Only act on a fresh directional press OR if cooldown has expired while stick is held
+        bool freshPress = (nav != Vector2.zero && lastNavValue == Vector2.zero);
+        bool heldAndReady = (nav != Vector2.zero && navCooldown <= 0f);
+ 
+        if (freshPress || heldAndReady)
+        {
+            navCooldown = NAV_COOLDOWN_TIME;
+ 
+            if (nav.y > 0 && selectedSpell > 0)
+            {
+                selectedSpell--;
+                SpellGlossaryListSelection(1);
+            }
+            else if (nav.y < 0 && selectedSpell < grid[tab].spells.Length - 1)
+            {
+                selectedSpell++;
+                SpellGlossaryListSelection(-1);
+            }
+ 
+            if (nav.x < 0)
+            {
+                tab = (tab == 0) ? 5 : tab - 1;
+                SpellGlossaryNewTab();
+            }
+            else if (nav.x > 0)
+            {
+                tab = (tab == 5) ? 0 : tab + 1;
+                SpellGlossaryNewTab();
+            }
+ 
+            ActivateOnly(tab);
+        }
+ 
+        // Reset cooldown faster on fresh release so next press is always instant
+        if (nav == Vector2.zero) navCooldown = 0f;
+ 
+        lastNavValue = nav;
+
+        spellAddress.text = "http://www.myspellcodelist.com/" + brandName[tab].Replace(" ", "") + "/" + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+
+    }
+ 
+    private void UpdateSpellDisplay()
+    {
+        if (grid[tab] != null && grid[tab].spells.Length > 0)
+        {
+            displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
+            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
+            spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
+ 
+            if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
+            {
+                switch (grid[tab].spells[selectedSpell].brands[0])
+                {
+                    case Brand.VWave:
+                        spellSelectedBorder.color = GameManager.colors["green"];
+                        break;
+                    case Brand.BigStox:
+                        spellSelectedBorder.color = GameManager.colors["blue"];
+                        break;
+                    case Brand.DemonX:
+                        spellSelectedBorder.color = GameManager.colors["red"];
+                        break;
+                    case Brand.Killeez:
+                        spellSelectedBorder.color = GameManager.colors["yellow"];
+                        break;
+                }
+            }
+        }
+        else
+        {
+            displaySpellName.text = "none";
+            displaySpellDescription.text = "none";
+            spellSelectedText.text = "none";
+            spellSelectedBorder.color = new Color32(255, 255, 255, 255);
+        }
+    }
+ 
     public void Resume()
     {
         paused = false;
@@ -126,12 +261,12 @@ public class Pause : MonoBehaviour
         controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
-
+ 
         EventSystem.current.SetSelectedGameObject(null);
-
+ 
         Time.timeScale = 1f;    
     }
-
+ 
     public void Pausing()
     {
         paused = true;
@@ -143,15 +278,15 @@ public class Pause : MonoBehaviour
         controlsMenu.SetActive(false);
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
-
+ 
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
-
+ 
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
-
+ 
         Time.timeScale = 0f;
     }
-
+ 
     public void Options()
     {
         options = true;
@@ -159,12 +294,12 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
-
+ 
         EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
-
+ 
         Time.timeScale = 0f;
     }
-
+ 
     public void Controls()
     {
         controls = true;
@@ -172,9 +307,9 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
-
+ 
         EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
-
+ 
         Time.timeScale = 0f;
     }
     
@@ -187,15 +322,15 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
-
+ 
         tab = 0;
-
+ 
         Brand[] brandPerColumn = { Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
-
-        for (int i = 0; i < 5; i++)
+ 
+        for (int i = 0; i < 6; i++)
         {
             grid[i] = new Column();
-
+ 
             List<SpellData> columnSpells = new List<SpellData>();
             
             if (i == 0)
@@ -206,6 +341,16 @@ public class Pause : MonoBehaviour
                     foreach (SpellData spell in gameManager.players[playerPauseIndex].spellList)
                         if (spell != null) columnSpells.Add(spell);
             }
+            else if (i == 5)
+            {
+                foreach (SpellData spell in SpellDictionary.Instance.spellList)
+                {
+                    if (spell != null)
+                    {
+                        columnSpells.Add(spell);
+                    }
+                }
+            }
             else
             {
                 foreach (SpellData spell in SpellDictionary.Instance.spellList)
@@ -215,105 +360,93 @@ public class Pause : MonoBehaviour
                         columnSpells.Add(spell);
                     }
                 }
-
             }
             grid[i].spells = columnSpells.ToArray();
         }
-
+ 
         EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
-
+ 
         Time.timeScale = 0f;
     }
-
+ 
+    private int listScrollOffset = 0;
+ 
     public void SpellGlossaryNewTab()
     {
+        spellListParent.transform.position = new Vector3(
+            spellListParent.transform.position.x,
+            spellListInitialY,
+            spellListParent.transform.position.z
+        );
+        
         selectedSpell = 0;
+        listScrollOffset = 0;
         
         spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 200f);
-
-        spellGlossaryList.text = "";
         
-        for (int i = 0; i < grid[tab].spells.Length ; i++)
+        int j = 0;
+        spellTabList.Clear();
+        
+        for (int i = 0; i < spellGlossaryList.Length; i++)
         {
-            spellGlossaryList.text += grid[tab].spells[i].spellName + "\n";
+            if (j >= grid[tab].spells.Length)
+            {
+                spellGlossaryList[i].SetActive(false);
+                continue;
+            }
+            
+            if (spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>().text == grid[tab].spells[j].spellName)
+            {
+                spellTabList.Add(spellGlossaryList[i]);
+                spellGlossaryList[i].SetActive(true);
+                spellGlossaryList[i].transform.position = new Vector2(spellGlossaryList[i].transform.position.x, spellListParent.transform.position.y - (j * 200));
+                if (spellTabList[j].transform.position.y < spellListParent.transform.position.y - (6 * 200)) spellTabList[j].SetActive(false);
+                j++;
+            }
+            else
+            {
+                spellGlossaryList[i].SetActive(false);
+            }
         }
     }
-
+ 
     public void SpellGlossaryListSelection(float one)
     {
-        spellSelectedBorderTransform.anchoredPosition += new Vector2(0, one * 50f);
-    }
-
-    public void SpellGlossaryNavigation()
-    {
-
-        input.UI.Navigate.performed += ctx =>
+        if ((one == -1 && ((spellSelectedBorderTransform.anchoredPosition.y > -133 && selectedSpell < spellTabList.Count) || selectedSpell >= spellTabList.Count - 1))
+        || (one == 1 && ((spellSelectedBorderTransform.anchoredPosition.y < 133 && selectedSpell > 0) || selectedSpell <= 0))
+        )
         {
-            Vector2 nav = ctx.ReadValue<Vector2>();
+            // Derive target deterministically from logical state — never accumulates float error
+            float targetY = 200f - (selectedSpell - listScrollOffset) * 66.666667f;
 
-            if (nav.y > 0) 
-            {
-                if (selectedSpell > 0) 
-                {
-                    selectedSpell--;
-                    SpellGlossaryListSelection(1);
-                }
-            }
-            if (nav.y < 0) 
-            {
-                if (selectedSpell < grid[tab].spells.Length - 1) 
-                {
-                    selectedSpell++;
-                    SpellGlossaryListSelection(-1);
-                }
-            }
-            if (nav.x < 0) 
-            {
-                if (tab == 0) tab = 4;
-                else tab--;
-                SpellGlossaryNewTab();
-            }
-            if (nav.x > 0) 
-            {
-                if (tab == 4) tab = 0;
-                else tab++;
-                SpellGlossaryNewTab();
-            }
-            
-            ActivateOnly(tab);
-        };
+            DOTween.Kill(spellSelectedBorderTransform);
+            spellSelectedBorderTransform
+                .DOAnchorPos(new Vector2(spellSelectedBorderTransform.anchoredPosition.x, targetY), 0.12f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
 
-        if (grid[tab] != null && grid[tab].spells.Length > 0)
-        {
-            displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
-            spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
-            
-            switch (grid[tab].spells[selectedSpell].brands[0])
-            {
-                case Brand.VWave:
-                    spellSelectedBorder.color = new Color32(107, 255, 116, 255);
-                    break;
-                case Brand.BigStox:
-                    spellSelectedBorder.color = new Color32(67, 122, 252, 255);
-                    break;
-                case Brand.DemonX:
-                    spellSelectedBorder.color = new Color32(255, 62, 117, 255);
-                    break;
-                case Brand.Killeez:
-                    spellSelectedBorder.color = new Color32(255, 207, 0, 255);
-                    break;
-            }
+            for (int i = 0; i < spellTabList.Count; i++)
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
         }
         else
         {
-            displaySpellName.text = "none";
-            displaySpellDescription.text = "none";
-            spellSelectedText.text = "none";
-            spellSelectedBorder.color = new Color32(255, 255, 255, 255);
+            if (one == -1) listScrollOffset++;
+            else listScrollOffset--;
+
+            Vector3 targetListPos = spellListParent.transform.position + new Vector3(0, -one * 200f, 0);
+
+            DOTween.Kill(spellListParent.transform);
+            spellListParent.transform
+                .DOMove(targetListPos, 0.12f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
+
+            // Apply immediately — children move with the parent, so no pop/flicker
+            for (int i = 0; i < spellTabList.Count; i++)
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
         }
     }
-
+ 
     void ActivateOnly(int index)
     {
         for (int i = 0; i < spellGlossaryPanel.Length; i++)
@@ -321,56 +454,50 @@ public class Pause : MonoBehaviour
             spellGlossaryPanel[i].SetActive(i == index);
         }
     }
-
+ 
     public void ReturnToLobby()
     {
-        //Resume game
         Resume();
-
-        //Restart the game back at the lobby
         sceneUiManager.MainMenu();
     }
-
+ 
     public void QuitGame()
     {
-        //save data
         DataManager.Instance.SaveToFile();
-
-        //quit the game
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
     }
-
+ 
     public void MusicVolume()
     {
         musicAudioMixer.SetFloat("MusicVolume", Mathf.Log10(musicVolumeSlider.value) * 20f);
     }
-
+ 
     public void SFXVolume()
     {
         musicAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
     }
-
+ 
     public void ToggleCameraShake()
     {
         shakeEnabled = !shakeEnabled;
     }
-
+ 
     public void ToggleDynamicCamera()
     {
         dynamicCameraOverride = !dynamicCameraOverride;
     }
-
+ 
     public void ToggleRelativeInput()
     {
         UIRelativeInput = !UIRelativeInput;
     }
-
+ 
     public void ToggleCodeInput()
     {
         UIToggleCodeInput = !UIToggleCodeInput;
     }
-
+ 
     public void ToggleTapJump()
     {
         UITapJump = !UITapJump;

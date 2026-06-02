@@ -124,10 +124,27 @@ public class HitboxManager : MonoBehaviour
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
                             defendingPlayer.facingRight = !projectile.facingRight;
-                            byte hitstopVal = 5;
-                            defendingPlayer.hitstop = hitstopVal;
+                            
+                            byte hitstopVal = 8;
+                            if(hitbox.hitstun > 0)
+                            {
+                                if (projectile.meleeProjectile)
+                                {
+                                    projectile.owner.hitstop = hitstopVal;
+                                }
+                                defendingPlayer.hitstop = hitstopVal;
+                                cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                            }
+                           
                             defendingPlayer.hitboxData = hitbox;
                             defendingPlayer.isHit = true;
+
+                            // Monotonic per-hit counter (in state hash, deterministic). UI
+                            // watches this to fire its damage bar animation exactly once per
+                            // hit. Must increment in BOTH normal sim and rollback resim so
+                            // the post-resim value matches the original save-state value.
+                            defendingPlayer.damageBarHitCount++;
+
                             if (GameManager.Instance.isOnlineMatchActive)
                             {
                                 HitboxData bakedHitbox = hitbox.Clone();
@@ -141,12 +158,7 @@ public class HitboxManager : MonoBehaviour
                                 defendingPlayer.facingRight = !projectile.facingRight;
                                 defendingPlayer.hitboxData = hitbox;
                             }
-                            //if (!RollbackManager.Instance.isRollbackFrame)
-                            //{
-                            //    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            //}
-                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                            
+
                             projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                             
                             projectile.ownerSpell?.ShareHitIgnoreList();

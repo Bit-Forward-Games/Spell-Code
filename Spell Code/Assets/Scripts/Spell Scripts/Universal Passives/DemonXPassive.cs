@@ -36,7 +36,7 @@ public class DemonXPassive : SpellData
 
 
                 //increase demon aura by 20 if its a Demon-X spellcode
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.DemonX)
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.DemonX && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                     owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);

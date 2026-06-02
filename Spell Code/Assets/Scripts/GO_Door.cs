@@ -9,6 +9,8 @@ public class GO_Door : MonoBehaviour
 {
     Animator animator;
     bool isOpen = false;
+    public bool isPrimed = true;
+    public bool soloModes = true;
     float colliderRadius = 36;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -47,10 +49,12 @@ public class GO_Door : MonoBehaviour
             Fixed radiusSq = radius * radius;
 
             // Determine overlap using squared values
-            if (distSq > radiusSq)
+            if (distSq > radiusSq || !player.isGrounded)
             {
                 //player is out of range
+                isPrimed = true;
                 return false;
+                
             }
         }
 
@@ -60,23 +64,16 @@ public class GO_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
-        if (SceneManager.GetActiveScene().name == "Tutorial")
-        {
-            if(animator != null)
-            {
-                animator.SetInteger("numPlayers", 2);
-            }
-            isOpen = true;
-            return isOpen;
-        }
 
-        if (GameManager.Instance.playerCount > 1)
+        if (GameManager.Instance.playerCount > 0)
         {
             isOpen = true;
+            soloModes = GameManager.Instance.playerCount == 1;
         }
         else
         {
             isOpen = false;
+            soloModes = true;
         }
 
         if(animator == null)

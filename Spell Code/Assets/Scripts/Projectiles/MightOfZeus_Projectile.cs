@@ -14,7 +14,7 @@ public class MightOfZeus_Projectile : BaseProjectile
         projName = "Might Of Zeus";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 60; // lasts for 300 logic frames
+        lifeSpan = 0;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -56,28 +56,17 @@ public class MightOfZeus_Projectile : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(1).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(3).Sum()
+            }
+        };
         base.LoadProjectile();
-    }
-
-    public override void ProjectileUpdate()
-    {
-        base.ProjectileUpdate();
-        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
-        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
-        //and then waits until the animation is done to delete itself.
-        if (logicFrame >= animFrames.frameLengths.Take(1).Sum()+1 && logicFrame <= animFrames.frameLengths.Take(3).Sum())
-        {
-            activeHitboxGroupIndex = 1;
-        }
-        else
-        {
-            activeHitboxGroupIndex = 0;
-        }
-        if (logicFrame >= animFrames.frameLengths.Sum())
-        {
-            ProjectileManager.Instance.DeleteProjectile(this);
-        }
-        //this basically checks if the projectile hit something
-        
     }
 }

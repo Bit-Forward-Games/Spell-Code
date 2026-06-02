@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 public class TempUIScript : MonoBehaviour
@@ -35,6 +36,14 @@ public class TempUIScript : MonoBehaviour
     
     private Coroutine[] damageBarCoroutines = new Coroutine[4];
     private float[] damageBarDisplayFill = new float[4];
+
+    // Track the player's hit counter the last time we fired a damage bar animation.
+    // Fire the coroutine only when the counter increases. This avoids the online bug where
+    // rollback resim re-set isHit -> UI restarted coroutine every Update -> animation never
+    // played to completion. The counter is monotonic and deterministic across rollback so
+    // lastSeen never falls behind after a resim.
+
+    private uint[] lastSeenDamageBarHitCount = new uint[4];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public GameObject MainMenuScreen;
@@ -60,6 +69,18 @@ public class TempUIScript : MonoBehaviour
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
 
+    public GameObject _soloGamemodesMenuFirst;
+    public GameObject soloGamemodesMenu;
+    public bool soloGamemodesMenuOpened;
+    public Pause pause;
+
+    private InputSystem_Actions input;
+ 
+    void Awake()
+    {
+        input = new InputSystem_Actions();
+    }
+
     void Start()
     {
         followPlayerHpBar = new Image[4];
@@ -79,11 +100,13 @@ public class TempUIScript : MonoBehaviour
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        input.Enable();
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        input.Disable();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -103,6 +126,24 @@ public class TempUIScript : MonoBehaviour
         }
     }
 
+    public void SetSoloMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            soloGamemodesMenu.SetActive(true);
+            soloGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            soloGamemodesMenuOpened = false;
+            soloGamemodesMenu.SetActive(false);
+            Time.timeScale = 1f;
+        }
+        
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -114,6 +155,50 @@ public class TempUIScript : MonoBehaviour
         {
             transitionScreenDisplayed = true;
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
+        }
+
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     SetSoloMenuActive(true);
+        // }
+
+        if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        {
+            SetSoloMenuActive(false);
+        }
+    }
+
+    public void InvitePlayer()
+    {
+        CloseGamemodesMenuForOnlineInvite();
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        if (lobbyManager == null)
+        {
+            Debug.LogError("[TempUIScript] Online option selected, but SteamLobbyManager was not found.");
+            return;
+        }
+
+        if (!lobbyManager.OpenInviteOverlayOrHost())
+        {
+            Debug.LogWarning("[TempUIScript] Online invite request could not be started.");
+        }
+    }
+
+    private void CloseGamemodesMenuForOnlineInvite()
+    {
+        soloGamemodesMenuOpened = false;
+
+        if (soloGamemodesMenu != null)
+        {
+            soloGamemodesMenu.SetActive(false);
+        }
+
+        Time.timeScale = 1f;
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 
@@ -159,8 +244,16 @@ public class TempUIScript : MonoBehaviour
                 previousRamVals[i] = _ramIncrease;
             }
 
-            if (GameManager.Instance.players[i].isHit)
+            // Fire the damage bar coroutine only on the rising edge of damageBarHitCount.
+            // The previous design watched player.isHit, but in online play rollback resim
+            // would re-run HitboxManager which re-set isHit -> UI restarted the coroutine
+            // every Update -> WaitForSeconds never elapsed -> bar never animated. The
+            // counter is monotonic across rollback (deterministic) so lastSeen never falls
+            // behind after a resim, and the coroutine fires exactly once per actual hit.
+            uint currentHitCount = GameManager.Instance.players[i].damageBarHitCount;
+            if (currentHitCount != lastSeenDamageBarHitCount[i])
             {
+                lastSeenDamageBarHitCount[i] = currentHitCount;
                 if (damageBarCoroutines[i] != null) StopCoroutine(damageBarCoroutines[i]);
                 damageBarCoroutines[i] = StartCoroutine(DamageBar(i));
             }
@@ -249,8 +342,11 @@ public class TempUIScript : MonoBehaviour
         followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
         PlayerController player = GameManager.Instance.players[playerIndex];
 
-        player.isHit = false;
-        
+        // Note: previously we did `player.isHit = false` here to "consume" the trigger flag,
+        // but that was UI code writing to a field that's part of the deterministic sim's
+        // state hash. The damageBarHitCount counter pattern replaces that flag-clear with a
+        // UI-side lastSeen tracker, so the sim's isHit is left untouched by UI.
+
         float previousHealthAmount = damageBarDisplayFill[playerIndex];
         
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;

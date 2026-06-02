@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
     public bool tapJump = false;
+    private bool tapJumpPrimed = true;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -174,6 +175,12 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
+
+    // Monotonically incremented each time HitboxManager registers a hit on this player.
+    // Used by the UI damage bar to fire its animation exactly once per hit, even when
+    // online rollback resim re-runs HitboxManager and re-sets isHit. 
+    public uint damageBarHitCount = 0;
+
     public uint stateSpecificArg = 0; //use only within a state, not between them
 
     public uint storedCode = 0; //the code that is stored up for release
@@ -193,7 +200,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
     [NonSerialized]
-    public List<SpellData> sortedSpellList;
+    public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     private int _pendingHitboxProjectileIndex = -1;
@@ -211,9 +218,9 @@ public class PlayerController : MonoBehaviour
 
     //Toast Variables
     //[SerializeField]
-    private float toastLifetime = 1.5f;
+    private float toastLifetime = 1.2f;
     //[SerializeField]
-    private float toastFadeDuration = 0.35f;
+    private float toastFadeDuration = 0.25f;
     //[SerializeField]
     private float toastBaseVerticalOffset = 90;
     //[SerializeField]
@@ -449,6 +456,7 @@ public class PlayerController : MonoBehaviour
         armor = false;
         basicSpawnOverride = "";
         isHit = false;
+        damageBarHitCount = 0;
         hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
@@ -593,6 +601,7 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -626,29 +635,29 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private ushort GetPersistentStockStabilityFromSpellList()
-    {
-        ushort totalStockStability = 0;
+    // private ushort GetPersistentStockStabilityFromSpellList()
+    // {
+    //     ushort totalStockStability = 0;
 
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            SpellData spell = spellList[i];
-            if (spell == null) continue;
+    //     for (int i = 0; i < spellList.Count; i++)
+    //     {
+    //         SpellData spell = spellList[i];
+    //         if (spell == null) continue;
 
-            switch (spell.spellName)
-            {
-                case "Quarter Report":
-                case "Coin Toss":
-                case "Get A Job":
-                case "Penny Stock Peddler":
-                case "Cash Out":
-                    totalStockStability += 10;
-                    break;
-            }
-        }
+    //         switch (spell.spellName)
+    //         {
+    //             case "Quarter Report":
+    //             case "Coin Toss":
+    //             case "Get A Job":
+    //             case "Penny Stock Peddler":
+    //             case "Cash Out":
+    //                 totalStockStability += 10;
+    //                 break;
+    //         }
+    //     }
 
-        return totalStockStability;
-    }
+    //     return totalStockStability;
+    // }
 
 
     public void ClearSpellList()
@@ -669,7 +678,14 @@ public class PlayerController : MonoBehaviour
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        flowState = 0; //the timer for how long you are in flow state
+        stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
+        stockStabilityModified = 0; //crit chance after modifiers
+        demonAura = 0;
+        demonAuraLifeSpanTimer = 0;
+        reps = 0;
+
+    int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
     }
 
@@ -974,6 +990,11 @@ public class PlayerController : MonoBehaviour
 
         CheckHit(input);
 
+        if(input.Direction <= 6)
+        {
+            tapJumpPrimed = true;
+        }
+
 
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
@@ -1076,7 +1097,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1115,7 +1136,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -1156,6 +1177,7 @@ public class PlayerController : MonoBehaviour
                 {
                     //reapply gravity more strongly to create a variable jump height
                     vSpd -= gravity * Fixed.FromInt(2);
+                    
                 }
                 if (input.ButtonStates[0] == ButtonState.Pressed)
                 {
@@ -1175,7 +1197,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //air jump input check
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     
                     DoJump();
@@ -1677,7 +1699,7 @@ public class PlayerController : MonoBehaviour
                 {
                     vSpd = Fixed.FromInt(-2);
                 }
-                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || input.ButtonStates[1] == ButtonState.Pressed || (tapJump? input.Direction > 6:false)))   //jump out of slide only on the ground
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
                 {
                     DoJump();
                     break;
@@ -2235,6 +2257,7 @@ public class PlayerController : MonoBehaviour
     {
         vSpd = jumpForce;
         jumpCount--;
+        tapJumpPrimed = false;
         CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnJump);
 
         //play the jump sound
@@ -2339,6 +2362,10 @@ public class PlayerController : MonoBehaviour
             case PlayerState.Slide:
                 hSpd = facingRight ? slideSpeed : -slideSpeed;
                 playerHeight = Fixed.FromInt(charData.playerHeight/2);
+
+                //Play the slide SFX
+                SFX_Manager.Instance.PlaySound(Sounds.SLIDE, 1.0f, 1.0f);
+
                 break;
         }
     }
@@ -2446,10 +2473,16 @@ public class PlayerController : MonoBehaviour
     /// <param name="damageAmount"></param>
     public void TakeEffectDamage(int damageAmount, PlayerController attacker, Color? damageTextColor = null)
     {
-        if (GameManager.Instance.currentStageIndex < 0)
+        if (GameManager.Instance.currentStageIndex == -1)
         {
             //don't take damage in the lobby
             return;
+        }
+
+        if(damageTextColor == GameManager.colors["blue"])
+        {
+            //Play the critical hit noise on top of the hit SFX
+            SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_HIT);
         }
 
         HandleDamage(attacker, damageAmount, damageTextColor);
@@ -2519,23 +2552,23 @@ public class PlayerController : MonoBehaviour
                 return;
             }
 
-            
             HandleDamage(attacker, hitboxData.damage);
-            //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
-            
-            comboCounter++;
-            if (comboCounter >= 4)
+
+            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
-                SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
-                iframes = 120;
-                comboCounter = 0;
+                
+                //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+                comboCounter++;
+                if (comboCounter >= 4)
+                {
+                    SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
+                    iframes = 120;
+                    comboCounter = 0;
 
-                //Play the combo break VFX
-                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
-            }
-
-
-            //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
+                    //Play the combo break VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
+                }
+                //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
             //play the damaged sound
             SFX_Manager.Instance.PlaySound(Sounds.HIT);
@@ -2545,6 +2578,13 @@ public class PlayerController : MonoBehaviour
 
             SetState(PlayerState.Hitstun);
 
+            }
+            
+            
+            
+
+
+            
             //call the active on hit proc of the spell that created the projectile that hit us
             SpellData sourceSpell = sourceProjectile != null ? sourceProjectile.ownerSpell : null;
             if (sourceSpell == null)
@@ -2604,7 +2644,7 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
-        if(pID == 0)return; //if this is a training dummy then don't handle damage
+        //if(pID == 0)return; //if this is a training dummy then don't handle damage
 
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
@@ -2615,27 +2655,36 @@ public class PlayerController : MonoBehaviour
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
-        if (hasAttacker && damageAmount > 0)
+        if(pID != 0)
         {
-            GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
-        }
-
-        if (DataManager.Instance != null &&
-            DataManager.Instance.gameData != null &&
-            DataManager.Instance.gameData.arenaData != null)
-        {
-            var arenaData = DataManager.Instance.gameData.arenaData;
-            if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+            if (hasAttacker && damageAmount > 0)
             {
-                hitList = new List<Vector2>();
-                arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }
-            hitList.Add(transform.position);
+
+            if (DataManager.Instance != null &&
+                DataManager.Instance.gameData != null &&
+                DataManager.Instance.gameData.arenaData != null)
+            {
+                var arenaData = DataManager.Instance.gameData.arenaData;
+                if (!arenaData.hitDict.TryGetValue(GameManager.Instance.currentStage, out List<Vector2> hitList))
+                {
+                    hitList = new List<Vector2>();
+                    arenaData.hitDict[GameManager.Instance.currentStage] = hitList;
+                }
+                hitList.Add(transform.position);
+            }
         }
+        
 
         //checking for death
         if (damageAmount >= currentPlayerHealth)
         {
+            if (pID == 0)
+            {
+                currentPlayerHealth = charData.playerHealth;
+                return;
+            }
             if (DataManager.Instance != null &&
                 DataManager.Instance.gameData != null &&
                 DataManager.Instance.gameData.arenaData != null)
@@ -2695,6 +2744,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Zero-allocation, deterministic replacement for the old
+    //   list.Concat(universal).Where(s => s != null).OrderByDescending(s => s.priorityOverride).ToList()
+    // which allocated four objects on every call and re-ran on every rollback resim. Refills the
+    // reused 'buffer' in place. Uses a STABLE insertion sort so spells with equal priorityOverride
+    // keep their original relative order (primary list first, then universal, each in order) --
+    // byte-identical to LINQ's OrderByDescending. That order is part of deterministic match state
+    // (proc-resolution priority), so it must not change.
+    private static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
+    {
+        buffer.Clear();
+
+        if (primary != null)
+        {
+            for (int i = 0; i < primary.Count; i++)
+            {
+                if (primary[i] != null) buffer.Add(primary[i]);
+            }
+        }
+        if (universal != null)
+        {
+            for (int i = 0; i < universal.Count; i++)
+            {
+                if (universal[i] != null) buffer.Add(universal[i]);
+            }
+        }
+
+        for (int i = 1; i < buffer.Count; i++)
+        {
+            SpellData current = buffer[i];
+            int j = i - 1;
+            // Shift only strictly-lower-priority spells right; stop at equal priority so
+            // equal-priority spells keep insertion order (stable, matching OrderByDescending).
+            while (j >= 0 && buffer[j].priorityOverride < current.priorityOverride)
+            {
+                buffer[j + 1] = buffer[j];
+                j--;
+            }
+            buffer[j + 1] = current;
+        }
+    }
+
     /// <summary>
     /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
     /// </summary>
@@ -2702,12 +2792,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
     {
-
-        sortedSpellList = targetPlayer.spellList
-            .Concat(targetPlayer.universalSpells)
-            .Where(spell => spell != null)
-            .OrderByDescending(spell => spell.priorityOverride)
-            .ToList();
+        BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
@@ -2935,12 +3020,13 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(basicSpawnOverride);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(damageBarHitCount);
         bw.Write(iframes);
         bw.Write(unchecked((int)0xAABBCCDD));
 
@@ -2995,7 +3081,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3017,7 +3103,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3049,12 +3135,13 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(basicSpawnOverride);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isHit);
+        bw.Write(damageBarHitCount);
         bw.Write(iframes);
 
         bool hasHitboxData = hitboxData != null;
@@ -3093,7 +3180,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(spellList[i].spellName);
+            bw.Write(GetSpellSerializationId(spellList[i].spellName));
 
             using (MemoryStream tempStream = new MemoryStream())
             using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
@@ -3106,6 +3193,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Spell strings in the serialization hot path are written as a stable int id (index
+    // into SpellDictionary.spellList, identical on every client) instead of a length-prefixed
+    // string, so a save-state / rollback no longer allocates a string per spell via ReadString.
+    // -1 == "no spell" (e.g. an empty basicSpawnOverride). These thin wrappers null-guard the
+    // dictionary and keep the Serialize/Deserialize pair symmetric.
+    private static int GetSpellSerializationId(string spellName)
+    {
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellId(spellName) : -1;
+    }
+
+    private static string GetSpellNameFromSerializationId(int spellId)
+    {
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : "";
+    }
 
     public void Deserialize(BinaryReader br)
     {
@@ -3136,12 +3237,13 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
-        basicSpawnOverride = br.ReadString();
+        basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isHit = br.ReadBoolean();
+        damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();
         int markerA = br.ReadInt32();
         if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
@@ -3226,14 +3328,15 @@ public class PlayerController : MonoBehaviour
 
         startingSpellAdded = savedStartingSpellAdded;
 
-        // Read serialized spell payloads first
-        List<(string name, byte[] data)> savedSpells = new List<(string name, byte[] data)>(spellCount);
+        // Read serialized spell payloads first. Spell identity is now a stable int id (issue 4)
+        // rather than a per-spell string, so this no longer allocates a string per spell.
+        List<(int id, byte[] data)> savedSpells = new List<(int id, byte[] data)>(spellCount);
         for (int i = 0; i < spellCount; i++)
         {
-            string spellName = br.ReadString();
+            int spellId = br.ReadInt32();
             int spellDataLength = br.ReadInt32();
             byte[] spellBytes = br.ReadBytes(spellDataLength);
-            savedSpells.Add((spellName, spellBytes));
+            savedSpells.Add((spellId, spellBytes));
         }
 
         if (spellList.Count != spellCount)
@@ -3242,30 +3345,30 @@ public class PlayerController : MonoBehaviour
             // local sim (e.g. host snapshotted right after a floppy pickup but the local
             // sim hadn't reached that frame yet). RebuildSpellListFromSaved correctly
             // reconciles, so demote to LogWarning instead of LogError to reduce noise.
-            Debug.LogWarning($"Spell list size mismatch during Deserialize. Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved names.");
+            Debug.LogWarning($"Spell list size mismatch during Deserialize. Expected {spellCount}, got {spellList.Count}. Rebuilding list from saved ids.");
             RebuildSpellListFromSaved(savedSpells);
         }
 
         // Deserialize spell state by saved order so duplicate spell names restore deterministically.
         for (int i = 0; i < savedSpells.Count; i++)
         {
-            string spellName = savedSpells[i].name;
+            int spellId = savedSpells[i].id;
             byte[] spellBytes = savedSpells[i].data;
 
             if (i >= spellList.Count || spellList[i] == null)
             {
-                Debug.LogWarning($"Spell slot {i} missing while restoring '{spellName}' - skipped {spellBytes.Length} bytes");
+                Debug.LogWarning($"Spell slot {i} missing while restoring id {spellId} - skipped {spellBytes.Length} bytes");
                 continue;
             }
 
             SpellData spellInstance = spellList[i];
-            if (spellInstance.spellName != spellName)
+            if (GetSpellSerializationId(spellInstance.spellName) != spellId)
             {
-                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected '{spellName}', found '{spellInstance.spellName}'. Rebuilding from saved order.");
+                Debug.LogWarning($"Spell order mismatch at slot {i}. Expected id {spellId}, found '{spellInstance.spellName}'. Rebuilding from saved order.");
                 RebuildSpellListFromSaved(savedSpells);
                 if (i >= spellList.Count || spellList[i] == null)
                 {
-                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for '{spellName}' - skipped {spellBytes.Length} bytes");
+                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for id {spellId} - skipped {spellBytes.Length} bytes");
                     continue;
                 }
                 spellInstance = spellList[i];
@@ -3364,11 +3467,7 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
-        sortedSpellList = spellList
-            .Concat(universalSpells)
-            .Where(spell => spell != null)
-            .OrderByDescending(spell => spell.priorityOverride)
-            .ToList();
+        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
         //go through the player's spell list and update any proc effects
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
@@ -3382,7 +3481,7 @@ public class PlayerController : MonoBehaviour
         state == PlayerState.Slide ||
         state == PlayerState.CodeWeave;
 
-    private void RebuildSpellListFromSaved(List<(string name, byte[] data)> savedSpells)
+    private void RebuildSpellListFromSaved(List<(int id, byte[] data)> savedSpells)
     {
         // Destroy existing spell instances
         for (int i = spellList.Count - 1; i >= 0; i--)
@@ -3398,11 +3497,11 @@ public class PlayerController : MonoBehaviour
         // Recreate list in saved order (no LoadSpell to avoid side effects)
         for (int i = 0; i < savedSpells.Count; i++)
         {
-            string spellName = savedSpells[i].name;
-            if (SpellDictionary.Instance != null &&
-                SpellDictionary.Instance.spellDict != null &&
-                SpellDictionary.Instance.spellDict.TryGetValue(spellName, out SpellData template) &&
-                template != null)
+            int spellId = savedSpells[i].id;
+            SpellData template = SpellDictionary.Instance != null
+                ? SpellDictionary.Instance.GetSpellTemplate(spellId)
+                : null;
+            if (template != null)
             {
                 SpellData instance = Instantiate(template);
                 instance.owner = this;
@@ -3410,7 +3509,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell '{spellName}' in dictionary.");
+                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell id {spellId} in dictionary.");
             }
         }
 

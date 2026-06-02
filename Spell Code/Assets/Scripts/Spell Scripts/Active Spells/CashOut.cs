@@ -64,7 +64,7 @@ public class CashOut : SpellData
             case ProcCondition.ActiveOnCast:
                 int roll = GameManager.Instance.GetNextRandom(0, 100);
                 //Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
-                doesCrit = roll < owner.stockStability;
+                doesCrit = roll < owner.stockStabilityModified;
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[doesCrit?9:8].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(0), Fixed.FromInt(spawnOffsetY)));
                 string critText = doesCrit?"CRIT":"NON-CRIT";
                 owner.SpawnToast($"{critText} LOADED", doesCrit?Color.cyan:GameManager.colors["grey"]);

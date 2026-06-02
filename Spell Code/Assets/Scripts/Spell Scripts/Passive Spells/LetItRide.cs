@@ -13,6 +13,7 @@ public class LetItRide : SpellData
         spellName = "Let It Ride";
         cooldown = 1;
         spellType = SpellType.Passive;
+        priorityOverride = 1;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.BigStox };
         description = "Your Stock Stability<sprite name=\"StockStability\"> is cut in half.\nConvert consumed Stock Stability<sprite name=\"StockStability\"> into bonus damage on \"Crit\"<sprite name=\"StockStability\"> for your BigStox Spellcodes.";

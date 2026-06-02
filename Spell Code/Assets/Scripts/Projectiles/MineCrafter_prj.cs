@@ -14,7 +14,7 @@ public class MineCrafter_prj : BaseProjectile
         projName = "Mine Crafter";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 600; // lasts for 300 logic frames
+        lifeSpan = 0;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 2}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -38,8 +38,8 @@ public class MineCrafter_prj : BaseProjectile
                     yOffset = 20,
                     width = 40,
                     height = 40,
-                    xKnockback = 3,
-                    yKnockback = 10,
+                    xKnockback = 2,
+                    yKnockback = 6,
                     damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
@@ -56,6 +56,17 @@ public class MineCrafter_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(4).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(36).Sum()-1
+            }
+        };
         base.LoadProjectile();
     }
 
@@ -66,7 +77,7 @@ public class MineCrafter_prj : BaseProjectile
         //okay so this logic is a bit wonky to understand but basically if the ball hits something,
         //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
         //and then waits until the animation is done to delete itself.
-        if (logicFrame == animFrames.frameLengths.Take(36).Sum() || logicFrame >= animFrames.frameLengths.Sum())
+        if (logicFrame == animFrames.frameLengths.Take(36).Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
@@ -74,14 +85,9 @@ public class MineCrafter_prj : BaseProjectile
         if (playerIgnoreArr.Any(ignore => ignore))
         {
             hSpeed = Fixed.FromInt(0);
-            activeHitboxGroupIndex = 0;
 
             playerIgnoreArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(36).Sum() + 1; //set the logic frame to the start of the end animation
-        }
-        else if (logicFrame > animFrames.frameLengths.Take(4).Sum() && logicFrame <= animFrames.frameLengths.Take(36).Sum() - 1)
-        {
-            activeHitboxGroupIndex = 1;
         }
 
     }

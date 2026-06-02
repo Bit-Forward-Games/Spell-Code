@@ -7,6 +7,7 @@ using System.IO;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using System;
+using GifImporter;
 
 /*public enum SpellDirection 
 { 
@@ -111,6 +112,8 @@ public abstract class SpellData : MonoBehaviour
     //public Sprite shopSprite;
     public Sprite readyIcon;
     public Sprite notReadyIcon;
+
+    public Gif SpellGIF;
 
 
     private void Awake()

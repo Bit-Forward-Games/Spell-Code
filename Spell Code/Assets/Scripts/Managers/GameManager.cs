@@ -434,25 +434,25 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-#if UNITY_EDITOR
+//#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
             players[0].roundRam = 600;
         }
 
-        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
-        {
-            sceneManager.LoadScene("Tutorial");
-            SetStage(-2);
-            ResetPlayers();
-        }
+        // if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        // {
+        //     sceneManager.LoadScene("Tutorial");
+        //     SetStage(-2);
+        //     ResetPlayers();
+        // }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
         {
             players[0].ClearSpellList();
         }
-#endif
+//#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
@@ -471,6 +471,15 @@ public class GameManager : MonoBehaviour
             }
         }
 #endif
+    }
+
+    public void loadTutorial()
+    {
+        
+        sceneManager.LoadScene("Tutorial");
+        SetStage(-2);
+        ResetPlayers();
+        players[0].ClearSpellList();
     }
 
     private void FixedUpdate()
@@ -591,6 +600,30 @@ public class GameManager : MonoBehaviour
 
         bindings?.AllowAllBindingGroups();
         bindings?.ConfigureInputDevices(sharedDevices);
+    }
+
+    private void MarkOnlineRemotePlayerInputInactive(PlayerController player)
+    {
+        player?.inputs?.SetActiveWithoutChangingActions(false);
+    }
+
+    private void EnsureOnlineLocalPlayerInputActive()
+    {
+        if (localPlayerIndex < 0 || localPlayerIndex >= players.Length)
+        {
+            return;
+        }
+
+        PlayerController localPlayer = players[localPlayerIndex];
+        if (localPlayer == null)
+        {
+            return;
+        }
+
+        PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
+        localPlayer.inputs.AssignInputDevice(null);
+        ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
+        localPlayer.CheckForInputs(true, false);
     }
 
     //private ulong GatherRawInput()
@@ -836,15 +869,11 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                if (pInput != null)
-                {
-                    pInput.DeactivateInput();
-                    pInput.enabled = false;
-                }
-
-                players[i].CheckForInputs(false);
+                MarkOnlineRemotePlayerInputInactive(players[i]);
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         for (int i = 0; i < players.Length; i++)
         {
@@ -896,6 +925,8 @@ public class GameManager : MonoBehaviour
                 createdPlayer = true;
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         playerCount = roster.PlayerCount;
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
@@ -1267,12 +1298,7 @@ public class GameManager : MonoBehaviour
 
             if (i == remotePlayerIndex)
             {
-                if (pInput != null)
-                {
-                    pInput.DeactivateInput();
-                    pInput.enabled = false;
-                }
-                players[i].CheckForInputs(false);
+                MarkOnlineRemotePlayerInputInactive(players[i]);
             }
             else if (i == localIndex)
             {
@@ -1281,6 +1307,8 @@ public class GameManager : MonoBehaviour
                 players[i].CheckForInputs(true, false);
             }
         }
+
+        EnsureOnlineLocalPlayerInputActive();
 
         for (int i = 0; i < players.Length; i++)
         {
@@ -2791,16 +2819,25 @@ public class GameManager : MonoBehaviour
 
             goDoorPrefab.CheckOpenDoor();
 
-            if (goDoorPrefab.CheckAllPlayersReady())
+            if (goDoorPrefab.CheckAllPlayersReady() && goDoorPrefab.isPrimed)
             {
-                LoadRandomGameplayStage();
+                if (goDoorPrefab.soloModes)
+                {
+                    goDoorPrefab.isPrimed = false;
+                    tempUI.SetSoloMenuActive(true);
+                }
+                else
+                {
+                    LoadRandomGameplayStage();
+                }
+                
             }
 
-            if (!isOnlineMatchActive && onlineHostDoor != null)
-            {
-                onlineHostDoor.CheckOpenDoor();
-                onlineHostDoor.CheckHostTrigger();
-            }
+            // if (!isOnlineMatchActive && onlineHostDoor != null)
+            // {
+            //     onlineHostDoor.CheckOpenDoor();
+            //     onlineHostDoor.CheckHostTrigger();
+            // }
 
             if (players[0] != null)
             {
@@ -3818,6 +3855,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Scene loaded: {scene.name}");
 
         RefreshSceneObjectReferences();
+        HitboxManager.Instance.GetActiveCamera();
 
         if (scene.name == "End")
         {
@@ -3901,7 +3939,6 @@ public class GameManager : MonoBehaviour
             }
 
             ResetPlayers();
-            HitboxManager.Instance.GetActiveCamera();
             FindAllFloppyDisks();
         }
 
@@ -4936,13 +4973,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (pInput != null)
-            {
-                pInput.DeactivateInput();
-                pInput.enabled = false;
-            }
-
-            players[slot].CheckForInputs(false);
+            MarkOnlineRemotePlayerInputInactive(players[slot]);
         }
 
         players[slot].InitCharacter();

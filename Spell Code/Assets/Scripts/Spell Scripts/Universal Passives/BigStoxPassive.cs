@@ -24,7 +24,7 @@ public class BigStoxPassive : SpellData
         {
             case ProcCondition.OnHitSpell:
                 // we let Bigstox Spells handle their own Crit logic, this is so that we dont roll for crit 2 times for a bigstox spell on both cast and hit
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox || !defender.hitboxData.sweetSpot)
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox  /*|| !defender.hitboxData.sweetSpot*/)
                 {
                     //non bigstox spells can crit here
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified)
@@ -34,6 +34,7 @@ public class BigStoxPassive : SpellData
                 }
                 break;
             case ProcCondition.OnStart:
+                owner.stockStability = 0;
                 foreach(SpellData spell in owner.spellList)
                 {
                     if(spell.brands[0] == Brand.BigStox)

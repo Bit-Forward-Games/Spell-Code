@@ -9,7 +9,8 @@ using UnityEngine.Audio;
 public enum Sounds //enum to store the names of the sounds that can play
 { 
     JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE_UP, INPUT_CODE_RIGHT, INPUT_CODE_DOWN, INPUT_CODE_LEFT,
-    ARMOR_HIT
+    ARMOR_HIT,
+    SLIDE, CRITICAL_HIT
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -36,6 +37,7 @@ public class SFX_Manager : MonoBehaviour
 
     [Header("Sounds that SFX Manager can play")]
     [SerializeField] public List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
+    [SerializeField] public List<AudioClip> spellcodeAudioClips; //list of Spellcode specific SFX
 
     void Awake()
     {
@@ -109,8 +111,25 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     /// <param name="_chanceToPlaySecretVersion"> change (out of 1f) to play the secret version of the sound</param>
+ 
+    // Rollback hygiene: while the sim is resimulating (isRollbackFrame), every audio side-effect on
+    // that frame already fired once on its real advance. Re-firing it on each resim is the sound
+    // spam you get during a rollback. Suppress the play/start entry points here (Stop* stays ungated
+    // so a resim can still silence a sound). On the live advance and offline, isRollbackFrame is
+    // false so behaviour is unchanged. Audio uses UnityEngine.Random (not the deterministic sim
+    // RNG), so gating it has zero effect on the state hash.
+    private static bool SuppressAudioSideEffectDuringRollback()
+    {
+        return RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+    }
+
     public void PlaySound(Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
         //clamp _chanceToPlaySecretVersion between 0 and 1
         _chanceToPlaySecretVersion = Mathf.Clamp01(_chanceToPlaySecretVersion);
 
@@ -165,6 +184,39 @@ public class SFX_Manager : MonoBehaviour
     }
 
     /// <summary>
+    /// Play a sound with the name defined by "_soundName"
+    /// </summary>
+    /// <param name="_soundName"> Name of the sound to be played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
+    public void PlaySpellcodeSound(string _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
+    {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
+        ////sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        //if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        //{
+        //    //log a warning
+        //    Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within spellcodeAudioClips of the SFX_Manager script. Please specify a sound that exists with spellcodeAudioClips");
+
+        //    //return
+        //    return;
+        //}
+
+        //save the appropriate SoundObject since we know it exists
+        AudioClip _audioClip = spellcodeAudioClips.Find(x => x.name == _soundName);
+
+        //Randomize pitch between _minPitchShift and _maxPitchShift
+        sfxAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
+
+        //load and play the sound with name equal to nameOfSoundToPlay
+        sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
+    }
+
+    /// <summary>
     /// Start to repeatedly play the sound specified by _soundName. Note: "StartRepeatingSound()" cannot play secret versions of sounds
     /// </summary>
     /// <param name="_soundName"> Sound to be start be played by the SFX Handler. This sound will play on repeat until StopRepeatingSound(_soundName) is called</param>
@@ -174,6 +226,11 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
     public void StartRepeatingSound(Sounds _soundName, float _playRate, int _playerIndex, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
         //sanity check to make sure that there is a sound with name equal to _soundName that exists within availableSounds
         if (soundObjects.Find(x => x.soundName == _soundName) == null)
         {

@@ -172,7 +172,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public Fixed playerHeight;
 
-    [HideInInspector]
+    [NonSerialized]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
     public uint stateSpecificArg = 0; //use only within a state, not between them
@@ -357,8 +357,9 @@ public class PlayerController : MonoBehaviour
     {
         //Set Player Values 
         charData = CharacterDataDictionary.GetCharacterData(characterName);
-
-        currentPlayerHealth = charData.playerHealth;
+        if(charData != null)
+        {
+            currentPlayerHealth = charData.playerHealth;
         runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
         slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
         maxJumpCount = (byte)charData.jumpCount;
@@ -367,6 +368,8 @@ public class PlayerController : MonoBehaviour
         playerHeight = Fixed.FromInt(charData.playerHeight);
 
         startingSpell = charData.startingInventory[0];
+        }
+        
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -1894,7 +1897,7 @@ public class PlayerController : MonoBehaviour
         onPlatform = false;
         bool returnVal = false;
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
-        Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
+        //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)

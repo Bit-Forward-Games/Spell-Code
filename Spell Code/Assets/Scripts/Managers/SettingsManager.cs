@@ -95,13 +95,13 @@ public class SettingsManager : MonoBehaviour
         Save();
     }
 
-    public void SetResolution(int width, int height)
-    {
-        Settings.resolutionWidth = Mathf.Max(1, width);
-        Settings.resolutionHeight = Mathf.Max(1, height);
-        ApplyDisplaySettings();
-        Save();
-    }
+    // public void SetResolution(int width, int height)
+    // {
+    //     Settings.resolutionWidth = Mathf.Max(1, width);
+    //     Settings.resolutionHeight = Mathf.Max(1, height);
+    //     ApplyDisplaySettings();
+    //     Save();
+    // }
 
 
 

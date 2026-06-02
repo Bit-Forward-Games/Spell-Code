@@ -360,14 +360,14 @@ public class PlayerController : MonoBehaviour
         if(charData != null)
         {
             currentPlayerHealth = charData.playerHealth;
-        runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
-        slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
-        maxJumpCount = (byte)charData.jumpCount;
-        jumpForce = Fixed.FromInt(charData.jumpForce);
-        playerWidth = Fixed.FromInt(charData.playerWidth);
-        playerHeight = Fixed.FromInt(charData.playerHeight);
+            runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
+            slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+            maxJumpCount = (byte)charData.jumpCount;
+            jumpForce = Fixed.FromInt(charData.jumpForce);
+            playerWidth = Fixed.FromInt(charData.playerWidth);
+            playerHeight = Fixed.FromInt(charData.playerHeight);
 
-        startingSpell = charData.startingInventory[0];
+            startingSpell = charData.startingInventory[0];
         }
         
 

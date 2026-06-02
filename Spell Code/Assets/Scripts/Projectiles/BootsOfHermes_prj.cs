@@ -24,6 +24,9 @@ public class BootsOfHermes_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
+
+        //Play the Boots Of Hermes SFX
+        SFX_Manager.Instance.PlaySpellcodeSound("Boots Of Hermes");
     }
 
     public override void LoadProjectile()

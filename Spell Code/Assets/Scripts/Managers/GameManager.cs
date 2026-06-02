@@ -142,8 +142,6 @@ public class GameManager : MonoBehaviour
     public List<GameObject> gambas;
 
     [Header("Online UI")]
-    public GameObject onlineMenuUI;
-    public KeyCode toggleOnlineMenuKey = KeyCode.F5;
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
     public TextMeshProUGUI rollbackFramesText;
@@ -384,10 +382,6 @@ public class GameManager : MonoBehaviour
         dataManager = DataManager.Instance;
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
-        }
 
         seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
 
@@ -457,20 +451,6 @@ public class GameManager : MonoBehaviour
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 
-#if UNITY_EDITOR
-        if (!isOnlineMatchActive)
-        {
-            if (UnityEngine.Input.GetKeyDown(toggleOnlineMenuKey))
-            {
-                if (onlineMenuUI != null)
-                {
-                    // Toggle the online menu's visibility
-                    bool isOnlineMenuVisible = !onlineMenuUI.activeSelf;
-                    onlineMenuUI.SetActive(isOnlineMenuVisible);
-                }
-            }
-        }
-#endif
     }
 
     public void loadTutorial()
@@ -799,11 +779,6 @@ public class GameManager : MonoBehaviour
             {
                 gamba.ResetLobbyState();
             }
-        }
-
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
         }
 
         isOnlineMatchActive = false;
@@ -1236,12 +1211,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Hide online menu immediately
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
-            //Debug.Log("Online menu UI hidden");
-        }
 
         isOnlineMatchActive = false;
         isWaitingForOpponent = false;
@@ -2819,11 +2788,6 @@ public class GameManager : MonoBehaviour
             //    gates[i].SetOpen(true);
             //}
 
-            //if (onlineMenuUI != null)
-            //{
-            //    onlineMenuUI.SetActive(false);
-            //}
-            //}
 
             goDoorPrefab.CheckOpenDoor();
 
@@ -3304,11 +3268,6 @@ public class GameManager : MonoBehaviour
         playerCount = 0;
 
         SetMenuActive(true);
-
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
-        }
 
         for (int i = 0; i < players.Length; i++)
         {
@@ -4137,11 +4096,6 @@ public class GameManager : MonoBehaviour
         if (roundEndedText != null)
         {
             roundEndedText.enabled = false;
-        }
-
-        if (onlineMenuUI != null)
-        {
-            onlineMenuUI.SetActive(false);
         }
 
         if (networkInfo != null)

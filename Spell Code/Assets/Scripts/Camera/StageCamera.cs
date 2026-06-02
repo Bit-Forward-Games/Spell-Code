@@ -61,7 +61,7 @@ public class StageCamera : MonoBehaviour
             cam.orthographicSize = GetZoomToFitBorders(camBorderMin, camBorderMax);
             Vector3 borderCenter = (camBorderMin + camBorderMax) * 0.5f;
             transform.position = new Vector3(borderCenter.x, borderCenter.y, -10);
-            if (pause.shakeEnabled) ApplyShake();
+            if (pause.screenShake) ApplyShake();
             return;
         }
 
@@ -114,7 +114,7 @@ public class StageCamera : MonoBehaviour
             transform.position = Vector3.Lerp(transform.position, targetPosition, lerpFactor);
 
 
-            if (pause.shakeEnabled) ApplyShake();
+            if (pause.screenShake) ApplyShake();
 
         }
     }

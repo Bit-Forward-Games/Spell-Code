@@ -200,7 +200,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
     [NonSerialized]
-    public List<SpellData> sortedSpellList;
+    public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     private int _pendingHitboxProjectileIndex = -1;
@@ -2744,6 +2744,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Zero-allocation, deterministic replacement for the old
+    //   list.Concat(universal).Where(s => s != null).OrderByDescending(s => s.priorityOverride).ToList()
+    // which allocated four objects on every call and re-ran on every rollback resim. Refills the
+    // reused 'buffer' in place. Uses a STABLE insertion sort so spells with equal priorityOverride
+    // keep their original relative order (primary list first, then universal, each in order) --
+    // byte-identical to LINQ's OrderByDescending. That order is part of deterministic match state
+    // (proc-resolution priority), so it must not change.
+    private static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
+    {
+        buffer.Clear();
+
+        if (primary != null)
+        {
+            for (int i = 0; i < primary.Count; i++)
+            {
+                if (primary[i] != null) buffer.Add(primary[i]);
+            }
+        }
+        if (universal != null)
+        {
+            for (int i = 0; i < universal.Count; i++)
+            {
+                if (universal[i] != null) buffer.Add(universal[i]);
+            }
+        }
+
+        for (int i = 1; i < buffer.Count; i++)
+        {
+            SpellData current = buffer[i];
+            int j = i - 1;
+            // Shift only strictly-lower-priority spells right; stop at equal priority so
+            // equal-priority spells keep insertion order (stable, matching OrderByDescending).
+            while (j >= 0 && buffer[j].priorityOverride < current.priorityOverride)
+            {
+                buffer[j + 1] = buffer[j];
+                j--;
+            }
+            buffer[j + 1] = current;
+        }
+    }
+
     /// <summary>
     /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
     /// </summary>
@@ -2751,12 +2792,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
     {
-
-        sortedSpellList = targetPlayer.spellList
-            .Concat(targetPlayer.universalSpells)
-            .Where(spell => spell != null)
-            .OrderByDescending(spell => spell.priorityOverride)
-            .ToList();
+        BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
@@ -3416,11 +3452,7 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
-        sortedSpellList = spellList
-            .Concat(universalSpells)
-            .Where(spell => spell != null)
-            .OrderByDescending(spell => spell.priorityOverride)
-            .ToList();
+        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
         //go through the player's spell list and update any proc effects
         for (int i = 0; i < sortedSpellList.Count; i++)
         {

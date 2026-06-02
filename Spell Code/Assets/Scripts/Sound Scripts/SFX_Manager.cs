@@ -111,8 +111,25 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     /// <param name="_chanceToPlaySecretVersion"> change (out of 1f) to play the secret version of the sound</param>
+ 
+    // Rollback hygiene: while the sim is resimulating (isRollbackFrame), every audio side-effect on
+    // that frame already fired once on its real advance. Re-firing it on each resim is the sound
+    // spam you get during a rollback. Suppress the play/start entry points here (Stop* stays ungated
+    // so a resim can still silence a sound). On the live advance and offline, isRollbackFrame is
+    // false so behaviour is unchanged. Audio uses UnityEngine.Random (not the deterministic sim
+    // RNG), so gating it has zero effect on the state hash.
+    private static bool SuppressAudioSideEffectDuringRollback()
+    {
+        return RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+    }
+
     public void PlaySound(Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
         //clamp _chanceToPlaySecretVersion between 0 and 1
         _chanceToPlaySecretVersion = Mathf.Clamp01(_chanceToPlaySecretVersion);
 
@@ -174,6 +191,11 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySpellcodeSound(string _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
         ////sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
         //if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
         //{
@@ -204,6 +226,11 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
     public void StartRepeatingSound(Sounds _soundName, float _playRate, int _playerIndex, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
+        if (SuppressAudioSideEffectDuringRollback())
+        {
+            return;
+        }
+
         //sanity check to make sure that there is a sound with name equal to _soundName that exists within availableSounds
         if (soundObjects.Find(x => x.soundName == _soundName) == null)
         {

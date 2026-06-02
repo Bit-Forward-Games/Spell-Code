@@ -242,6 +242,16 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_particleLifetime"> How long (in seconds) each particle emitted by the particle system will last for. By default, set to -1 which indicates that the particles will last for their default lifetime.</param>
     public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f, float _particleLifetime = -1f)
     {
+        // Rollback hygiene: never spawn visual effects while resimulating. Every frame plays its
+        // VFX once on its first (real) advance; rollback then replays that frame with
+        // isRollbackFrame == true, and without this guard each resim re-triggers the effect,
+        // producing the duplicate-particle storm.
+        // Stop*() is intentionally NOT gated so effects can still be cleared during a resim.
+        if (RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame)
+        {
+            return;
+        }
+
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
             return;

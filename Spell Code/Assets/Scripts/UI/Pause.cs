@@ -215,7 +215,13 @@ public class Pause : MonoBehaviour
  
         lastNavValue = nav;
 
-        spellAddress.text = "http://www.myspellcodelist.com/" + brandName[tab].Replace(" ", "") + "/" + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+        if (grid[tab] != null && grid[tab].spells.Length > 0 && grid[tab].spells[selectedSpell] != null)
+        {
+            spellAddress.text = "http://www.myspellcodelist.com/"
+                + brandName[tab].Replace(" ", "") + "/"
+                + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+        }
+        else spellAddress.text = "http://www.myspellcodelist.com/";
 
     }
  

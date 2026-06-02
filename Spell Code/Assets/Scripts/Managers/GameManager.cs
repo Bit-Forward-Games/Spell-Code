@@ -3041,6 +3041,7 @@ public class GameManager : MonoBehaviour
         }
         lobbyMapGO.SetActive(false);
         tutorialMapGO.SetActive(false);
+        trainingGroundsGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()

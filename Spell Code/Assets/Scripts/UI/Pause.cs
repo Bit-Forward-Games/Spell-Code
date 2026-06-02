@@ -28,8 +28,10 @@ public class Pause : MonoBehaviour
     public AudioMixer sfxAudioMixer;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
-    public bool shakeEnabled = true;
+    public bool screenShake = true;
     public bool dynamicCameraOverride = true;
+    public Toggle screenShakeToggle;
+    public Toggle dynamicCameraToggle;
     private SceneUiManager sceneUiManager;
  
     public GameObject _pauseMenuFirst;
@@ -106,6 +108,7 @@ public class Pause : MonoBehaviour
     void Awake()
     {
         input = new InputSystem_Actions();
+        LoadSettings();
     }
  
     private void Start()
@@ -272,7 +275,7 @@ public class Pause : MonoBehaviour
     {
         SettingsManager settings = SettingsManager.Instance;
         settings.SetDynamicCamera(dynamicCameraOverride);
-        settings.SetScreenshake(shakeEnabled);
+        settings.SetScreenshake(screenShake);
         settings.SetFullscreen(true);
         settings.SetMusicVolume(musicVolumeSlider.value);
         settings.SetSfxVolume(sfxVolumeSlider.value);
@@ -280,9 +283,12 @@ public class Pause : MonoBehaviour
 
     public void LoadSettings()
     {
+        SettingsManager.Instance.Load();
         GameSettingsData settings = SettingsManager.Instance.Settings;
         dynamicCameraOverride = settings.dynamicCamera;
-        shakeEnabled = settings.screenshake;
+        screenShake = settings.screenshake;
+        dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+        screenShakeToggle.SetIsOnWithoutNotify(screenShake);
         musicVolumeSlider.value = settings.musicVolume;
         sfxVolumeSlider.value = settings.sfxVolume;
     }
@@ -500,7 +506,7 @@ public class Pause : MonoBehaviour
  
     public void ToggleCameraShake()
     {
-        shakeEnabled = !shakeEnabled;
+        screenShake = !screenShake;
     }
  
     public void ToggleDynamicCamera()

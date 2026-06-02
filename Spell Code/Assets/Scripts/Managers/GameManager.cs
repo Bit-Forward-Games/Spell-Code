@@ -324,7 +324,14 @@ public class GameManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        SetResolution();
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.ApplySettings();
+        }
+        else
+        {
+            SetResolution();
+        }
 
         isOnlineMatchActive = false;
         isWaitingForOpponent = false;
@@ -440,7 +447,7 @@ public class GameManager : MonoBehaviour
 #endif
     }
 
-    public void loadTutorial()
+    public void LoadTutorial()
     {
         
         sceneManager.LoadScene("Tutorial");
@@ -3128,6 +3135,16 @@ public class GameManager : MonoBehaviour
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(isActive);
+            FirstTimeBootTutorial();
+        }
+    }
+
+    public void FirstTimeBootTutorial()
+    {
+        if (SettingsManager.Instance.IsFirstLaunch())
+        {
+            SettingsManager.Instance.MarkFirstLaunchComplete();
+            LoadTutorial();
         }
     }
 

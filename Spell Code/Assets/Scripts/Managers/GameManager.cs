@@ -4198,6 +4198,7 @@ public class GameManager : MonoBehaviour
     /// <returns>A byte array representing the game state snapshot.</returns>
     public byte[] SerializeManagedState()
     {
+        var __hitchSw = logSnapshotHitchTiming ? System.Diagnostics.Stopwatch.StartNew() : null;
         using (MemoryStream memoryStream = new MemoryStream())
         {
             using (BinaryWriter bw = new BinaryWriter(memoryStream))
@@ -4348,7 +4349,9 @@ public class GameManager : MonoBehaviour
                     SerializeFloppyState(bw);
                 }
 
-                return memoryStream.ToArray();
+                byte[] __serialized = memoryStream.ToArray();
+                LogHitchTiming("SerializeManagedState", __hitchSw, playerCount);
+                return __serialized;
             }
         }
     }
@@ -4499,6 +4502,28 @@ public class GameManager : MonoBehaviour
     public bool isApplyingManagedStateDeserialize = false;
     private bool _pendingProjectilePoolRebuild = false;
 
+    // TEMP diagnostic for the pre-snapshot lobby hitch. Times the snapshot-path operations and logs
+    // [HitchDiag] only when one exceeds the threshold, so it stays quiet unless there's a real spike.
+    // Once the dominant cost is identified and the real fix lands, set this false / remove it.
+    [SerializeField] public bool logSnapshotHitchTiming = true;
+    private const double SnapshotHitchLogThresholdMs = 0.5;
+
+    public void LogHitchTiming(string label, System.Diagnostics.Stopwatch stopwatch, int detail = -1)
+    {
+        if (stopwatch == null) return;
+        stopwatch.Stop();
+        double ms = stopwatch.Elapsed.TotalMilliseconds;
+        if (ms < SnapshotHitchLogThresholdMs) return;
+        if (detail >= 0)
+        {
+            Debug.Log($"[HitchDiag] {label} took {ms:F2} ms (n={detail})");
+        }
+        else
+        {
+            Debug.Log($"[HitchDiag] {label} took {ms:F2} ms");
+        }
+    }
+
     /// <summary>
     /// Online-only: called by PlayerController.RebuildSpellListFromSaved during a
     /// snapshot/rollback apply. While the deserialize pass is in progress, the rebuild is
@@ -4530,6 +4555,7 @@ public class GameManager : MonoBehaviour
         // RebuildSpellListFromSaved calls. See RequestProjectilePoolRebuild above.
         isApplyingManagedStateDeserialize = true;
         _pendingProjectilePoolRebuild = false;
+        var __hitchSw = logSnapshotHitchTiming ? System.Diagnostics.Stopwatch.StartNew() : null;
         try
         {
         using (MemoryStream memoryStream = new MemoryStream(stateData))
@@ -4817,6 +4843,7 @@ public class GameManager : MonoBehaviour
         {
             isApplyingManagedStateDeserialize = false;
             _pendingProjectilePoolRebuild = false;
+            LogHitchTiming("DeserializeManagedState", __hitchSw, playerCount);
         }
     }
 

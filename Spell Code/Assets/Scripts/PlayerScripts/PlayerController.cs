@@ -199,6 +199,17 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
+
+    // Per-player pool of spell instances keyed by serialization id
+    // RebuildSpellListFromSaved can REUSE instances instead of Destroy()/Instantiate() on every
+    // rollback resim (the GameObject create/destroy churn that's catastrophic during lobby rollback
+    // storms). Reuse is determinism-safe: a spell's template constants are set in its C# constructor
+    // (run once, never change) and its sim-relevant runtime state is restored by Deserialize right
+    // after the rebuild, while projectileInstances is rebuilt by InitializeAllProjectiles. A stack
+    // per id supports duplicate copies of the same spell. Pure runtime cache -- not serialized and
+    // not hashed, so its (possibly client-specific) contents never affect determinism.
+    [NonSerialized]
+    private readonly Dictionary<int, Stack<SpellData>> spellInstancePool = new Dictionary<int, Stack<SpellData>>();
     [NonSerialized]
     public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
@@ -3481,36 +3492,79 @@ public class PlayerController : MonoBehaviour
         state == PlayerState.Slide ||
         state == PlayerState.CodeWeave;
 
+    // Spell-instance pooling for RebuildSpellListFromSaved, to avoid the
+    // Destroy()/Instantiate() churn on the rollback hot path. Keyed by serialization id so a rented
+    // instance is always the correct concrete spell type (its constructor-set constants stay valid).
+    private void ReturnSpellInstanceToPool(SpellData spell)
+    {
+        if (spell == null) return;
+        int id = SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellId(spell.spellName) : -1;
+        if (id < 0)
+        {
+            // Unknown spell type -- can't key it for safe reuse, so fall back to the old behaviour.
+            Destroy(spell.gameObject);
+            return;
+        }
+        if (!spellInstancePool.TryGetValue(id, out Stack<SpellData> pool))
+        {
+            pool = new Stack<SpellData>();
+            spellInstancePool[id] = pool;
+        }
+        spell.gameObject.SetActive(false);
+        pool.Push(spell);
+    }
+
+    private SpellData RentSpellInstanceFromPool(int spellId)
+    {
+        if (spellId < 0) return null;
+        if (spellInstancePool.TryGetValue(spellId, out Stack<SpellData> pool))
+        {
+            while (pool.Count > 0)
+            {
+                SpellData spell = pool.Pop();
+                if (spell != null) // skip any instance destroyed out from under the pool
+                {
+                    spell.gameObject.SetActive(true);
+                    return spell;
+                }
+            }
+        }
+        return null;
+    }
+
     private void RebuildSpellListFromSaved(List<(int id, byte[] data)> savedSpells)
     {
-        // Destroy existing spell instances
+        // Issue 2: return existing instances to the pool instead of destroying them.
         for (int i = spellList.Count - 1; i >= 0; i--)
         {
             SpellData spell = spellList[i];
             if (spell != null)
             {
-                Destroy(spell.gameObject);
+                ReturnSpellInstanceToPool(spell);
             }
         }
         spellList.Clear();
 
-        // Recreate list in saved order (no LoadSpell to avoid side effects)
+        // Recreate list in saved order (no LoadSpell to avoid side effects). Reuse a pooled instance
+        // of the same id when one exists; only Instantiate when the pool is empty for that id.
         for (int i = 0; i < savedSpells.Count; i++)
         {
             int spellId = savedSpells[i].id;
-            SpellData template = SpellDictionary.Instance != null
-                ? SpellDictionary.Instance.GetSpellTemplate(spellId)
-                : null;
-            if (template != null)
+            SpellData instance = RentSpellInstanceFromPool(spellId);
+            if (instance == null)
             {
-                SpellData instance = Instantiate(template);
-                instance.owner = this;
-                spellList.Add(instance);
+                SpellData template = SpellDictionary.Instance != null
+                    ? SpellDictionary.Instance.GetSpellTemplate(spellId)
+                    : null;
+                if (template == null)
+                {
+                    Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell id {spellId} in dictionary.");
+                    continue;
+                }
+                instance = Instantiate(template);
             }
-            else
-            {
-                Debug.LogWarning($"RebuildSpellListFromSaved: Missing spell id {spellId} in dictionary.");
-            }
+            instance.owner = this;
+            spellList.Add(instance);
         }
 
         // Recompute brand flags from rebuilt list

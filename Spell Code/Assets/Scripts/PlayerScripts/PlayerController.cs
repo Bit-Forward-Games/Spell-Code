@@ -1073,13 +1073,20 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if (input.Direction == 2 /*&& onPlatform*/)
+                    if(input.Direction == 2 && onPlatform)
                     {
                         break;
                     }
                     SetState(PlayerState.Slide);
                     break;
                 }
+
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
+                {
+                    DoJump();
+                    break;
+                }
+                
                 //Check Direction Inputs
                 if (input.Direction % 3 == 0) //3 6 or 9
                 {
@@ -1101,11 +1108,6 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
-                {
-                    DoJump();
-                    break;
-                }
                 LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
@@ -1123,7 +1125,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1195,8 +1197,9 @@ public class PlayerController : MonoBehaviour
                 
 
                 //check for slide input:
-                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    if(input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }

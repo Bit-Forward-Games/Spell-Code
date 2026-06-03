@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using System.IO;
-using BestoNet.Types;
 
 
-using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class SpellCode_Gate : MonoBehaviour
@@ -49,7 +44,7 @@ public class SpellCode_Gate : MonoBehaviour
 
     public void CheckGateBroken()
     {
-        if (gateBounds != null && !isOpen)
+        if (HasGateBounds() && !isOpen)
         {
             GateCollision();
         }
@@ -58,34 +53,25 @@ public class SpellCode_Gate : MonoBehaviour
 
     public void GateCollision()
     {
-        if (gateBounds != null)
+        if (HasGateBounds())
         {
+            HurtboxData gateHurtbox = GetGateHurtbox();
+            FixedVec2 gateHurtboxPos = FixedVec2.FromFloat(gateBounds.min.x, gateBounds.min.y);
+
             foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
             {
                 if(projectile.ownerSpell == null) break;
-                if (projectile.projectileHitboxes.Length == 0) break;
-                HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
-                // Combine all hitbox lists into one sequence
-                var activeProjHit = activeGroup.hitbox1
-                    .Concat(activeGroup.hitbox2)
-                    .Concat(activeGroup.hitbox3)
-                    .Concat(activeGroup.hitbox4);
+                if (projectile.owner.pID != ownerPID) continue;
 
-
-                foreach (HitboxData hitbox in activeProjHit)
+                if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                 {
-                    if (CheckCollision(hitbox, projectile.position, gateBounds,
-                                projectile.facingRight) && projectile.owner.pID == ownerPID)
-                    {
-                        isOpen = true;
+                    isOpen = true;
 
-                        //Play the glass break visual effect at the gate position
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                    //Play the glass break visual effect at the gate position
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
 
-                        return;
-                    }
+                    return;
                 }
-
             }
         }
     }
@@ -99,48 +85,20 @@ public class SpellCode_Gate : MonoBehaviour
         }
     }
 
-    private bool CheckCollision(HitboxData hitbox, FixedVec2 hitboxOrigin, Bounds colliderBounds, bool hitboxOwnerFacingRight)
+    private HurtboxData GetGateHurtbox()
     {
-
-        // If either box has no width or height, return false
-        if (colliderBounds.extents.x == 0 || colliderBounds.extents.y == 0)
+        return new HurtboxData
         {
-            return false;
-        }
-        // Construct Hitbox Boundaries
-        Fixed hitboxLeft = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight));
-        Fixed hitboxRight = hitboxOrigin.X + Fixed.FromInt(GetAttackerOffsetX(hitbox, hitboxOwnerFacingRight) + hitbox.width);
-        Fixed hitboxTop = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset);
-        Fixed hitboxBottom = hitboxOrigin.Y + Fixed.FromInt(hitbox.yOffset - hitbox.height);
-
-        //Debug.Log($"Hit: Left {hitboxLeft} Right {hitboxRight} Top {hitboxTop} Bottom {hitboxBottom}");
-
-        
-
-        //Debug.Log($"Hurt: Left {hurtboxLeft} Right {hurtboxRight} Top {hurtboxTop} Bottom {hurtboxBottom}");
-
-        // Check for Collision using AABB
-        if (hitboxLeft < Fixed.FromFloat(colliderBounds.max.x) &&
-            hitboxRight > Fixed.FromFloat(colliderBounds.min.x) &&
-            hitboxTop > Fixed.FromFloat(colliderBounds.min.y) &&
-            hitboxBottom < Fixed.FromFloat(colliderBounds.max.y))
-        {
-            return true;
-        }
-
-        return false;
+            xOffset = 0,
+            yOffset = Mathf.RoundToInt(gateBounds.size.y),
+            width = Mathf.RoundToInt(gateBounds.size.x),
+            height = Mathf.RoundToInt(gateBounds.size.y)
+        };
     }
 
-    /// <summary>
-    /// Get the X Offset for the Hitbox or HurtBox
-    /// </summary>
-    /// <param name="hitData"></param>
-    /// <param name="isRight"></param>
-    /// <returns></returns>
-    private int GetAttackerOffsetX(HitboxData hitData, bool isRight)
+    private bool HasGateBounds()
     {
-        //return isRight ? hitData.xOffset : -hitData.xOffset;
-        return isRight ? hitData.xOffset : -(hitData.xOffset + hitData.width);
+        return gateBounds.size.x > 0 && gateBounds.size.y > 0;
     }
 
     public void Serialize(BinaryWriter bw)

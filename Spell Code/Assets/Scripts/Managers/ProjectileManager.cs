@@ -181,6 +181,8 @@ public class ProjectileManager : MonoBehaviour
 
     public void InitializeAllProjectiles()
     {
+        var __hitchSw = (GameManager.Instance != null && GameManager.Instance.logSnapshotHitchTiming)
+            ? System.Diagnostics.Stopwatch.StartNew() : null;
         //first destroy all projectiles in the list then clear the list
         DeleteAllProjectiles();
 
@@ -233,6 +235,10 @@ public class ProjectileManager : MonoBehaviour
         }
 
         SynchronizeActiveProjectiles();
+        if (__hitchSw != null && GameManager.Instance != null)
+        {
+            GameManager.Instance.LogHitchTiming("InitializeAllProjectiles", __hitchSw, projectilePrefabs.Count);
+        }
     }
 
     public void SpawnProjectile(string projectileName, PlayerController owner, bool facingRight, FixedVec2 spawnOffset)

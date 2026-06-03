@@ -736,6 +736,60 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             Debug.Log($"[Rollback] Rebased active remote streams for lobby snapshot. PreviousFrame={previousFrame} SnapshotFrame={snapshotFrame} Delta={frameDelta} PendingStreams={pendingRemoteInputSlots.Count}.");
         }
 
+        public void StabilizeLobbySnapshotPacing(int snapshotFrame)
+        {
+            if (GameManager.Instance == null
+                || !GameManager.Instance.isOnlineMatchActive
+                || SceneManager.GetActiveScene().name != "MainMenu")
+            {
+                return;
+            }
+
+            EnsureRemoteCollectionsInitialized();
+            int stabilizedStreams = 0;
+            int snapshotAnchor = Mathf.Max(0, snapshotFrame);
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int slot = remotePlayerSlots[i];
+                if (pendingRemoteInputSlots.Contains(slot))
+                {
+                    continue;
+                }
+
+                int remote = remoteFrameBySlot.TryGetValue(slot, out int existingRemote) ? existingRemote : snapshotAnchor;
+                int frameDelta = snapshotAnchor - remote;
+                if (frameDelta > 0)
+                {
+                    remoteFrameOffsetBySlot[slot] = (remoteFrameOffsetBySlot.TryGetValue(slot, out int offset) ? offset : 0) + frameDelta;
+                    remoteFrameBySlot[slot] = snapshotAnchor;
+                    int predicted = predictedRemoteFrameBySlot.TryGetValue(slot, out int existingPredicted) ? existingPredicted : remote;
+                    predictedRemoteFrameBySlot[slot] = Mathf.Max(snapshotAnchor, predicted + frameDelta);
+                    highestRemoteInputFrameSeenBySlot[slot] = snapshotAnchor;
+                    stabilizedStreams++;
+                }
+                else if (!predictedRemoteFrameBySlot.ContainsKey(slot) || predictedRemoteFrameBySlot[slot] < snapshotAnchor)
+                {
+                    predictedRemoteFrameBySlot[slot] = snapshotAnchor;
+                }
+            }
+
+            remoteFrame = GetEffectiveRemoteFrame(snapshotAnchor);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(snapshotAnchor);
+            packetLossSignal = 0;
+            lossAwareHoldsThisStreak = 0;
+            lastLossAwareHoldFrame = -1;
+            consecutiveDrop = 0;
+            lastDroppedFrame = -1;
+            remoteFrameStallTicks = 0;
+            lastRemoteFrameForTimeout = remoteFrame;
+            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+
+            if (stabilizedStreams > 0)
+            {
+                Debug.Log($"[Rollback] Stabilized lobby snapshot pacing. Frame={snapshotAnchor} Streams={stabilizedStreams} PendingStreams={pendingRemoteInputSlots.Count}.");
+            }
+        }
+
         public bool IsWaitingForInitialRemoteInputStreams()
         {
             EnsureRemoteCollectionsInitialized();

@@ -19,7 +19,7 @@ public enum VisualEffects
     VWAVE_CAST, KILLEEZ_CAST, DEMONX_CAST, BIGSTOX_CAST,
     BLOCKED, BLOCKING,
     SPAWN, GLASS_BREAK, ARMOR_BREAK,
-    CRITICAL_CAST
+    CRITICAL_CAST, CRITICAL_HIT
 }
 public class VFX_Manager : MonoBehaviour
 {

@@ -2486,6 +2486,9 @@ public class PlayerController : MonoBehaviour
 
         if(damageTextColor == GameManager.colors["blue"])
         {
+            //Play the critical hit VFX on top of the hit VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CRITICAL_HIT, position + FixedVec2.FromFloat(0f, 42f), pID);
+
             //Play the critical hit noise on top of the hit SFX
             SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_HIT);
         }

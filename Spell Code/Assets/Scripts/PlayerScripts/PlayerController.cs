@@ -3092,16 +3092,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(GetSpellSerializationId(spellList[i].spellName));
-
-            using (MemoryStream tempStream = new MemoryStream())
-            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
-            {
-                spellList[i].Serialize(tempWriter);
-                byte[] spellBytes = tempStream.ToArray();
-                bw.Write(spellBytes.Length);
-                bw.Write(spellBytes);
-            }
+            SerializeSpellStateInline(bw, spellList[i]);
         }
 
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
@@ -3114,16 +3105,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(GetSpellSerializationId(spellList[i].spellName));
-
-            using (MemoryStream tempStream = new MemoryStream())
-            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
-            {
-                spellList[i].Serialize(tempWriter);
-                byte[] spellBytes = tempStream.ToArray();
-                bw.Write(spellBytes.Length);
-                bw.Write(spellBytes);
-            }
+            SerializeSpellStateInline(bw, spellList[i]);
         }
     }
 
@@ -3191,16 +3173,42 @@ public class PlayerController : MonoBehaviour
         bw.Write(spellList.Count);
         for (int i = 0; i < spellList.Count; i++)
         {
-            bw.Write(GetSpellSerializationId(spellList[i].spellName));
+            SerializeSpellStateInline(bw, spellList[i]);
+        }
+    }
 
-            using (MemoryStream tempStream = new MemoryStream())
-            using (BinaryWriter tempWriter = new BinaryWriter(tempStream))
-            {
-                spellList[i].Serialize(tempWriter);
-                byte[] spellBytes = tempStream.ToArray();
-                bw.Write(spellBytes.Length);
-                bw.Write(spellBytes);
-            }
+    private static void SerializeSpellStateInline(BinaryWriter bw, SpellData spell)
+    {
+        bw.Write(GetSpellSerializationId(spell != null ? spell.spellName : null));
+
+        Stream stream = bw.BaseStream;
+        long lengthPosition = stream.Position;
+        bw.Write(0);
+        long dataStartPosition = stream.Position;
+
+        if (spell != null)
+        {
+            spell.Serialize(bw);
+        }
+
+        long dataEndPosition = stream.Position;
+        int dataLength = checked((int)(dataEndPosition - dataStartPosition));
+        stream.Position = lengthPosition;
+        bw.Write(dataLength);
+        stream.Position = dataEndPosition;
+    }
+
+    private struct SavedSpellState
+    {
+        public int id;
+        public long dataStart;
+        public int dataLength;
+
+        public SavedSpellState(int id, long dataStart, int dataLength)
+        {
+            this.id = id;
+            this.dataStart = dataStart;
+            this.dataLength = dataLength;
         }
     }
 
@@ -3339,16 +3347,19 @@ public class PlayerController : MonoBehaviour
 
         startingSpellAdded = savedStartingSpellAdded;
 
-        // Read serialized spell payloads first. Spell identity is now a stable int id (issue 4)
-        // rather than a per-spell string, so this no longer allocates a string per spell.
-        List<(int id, byte[] data)> savedSpells = new List<(int id, byte[] data)>(spellCount);
+        // Read serialized spell payload ranges first. Spell identity is now a stable int id
+        // rather than a per-spell string, and payloads stay in the parent snapshot stream
+        // instead of being copied to a fresh byte[] per spell.
+        List<SavedSpellState> savedSpells = new List<SavedSpellState>(spellCount);
         for (int i = 0; i < spellCount; i++)
         {
             int spellId = br.ReadInt32();
             int spellDataLength = br.ReadInt32();
-            byte[] spellBytes = br.ReadBytes(spellDataLength);
-            savedSpells.Add((spellId, spellBytes));
+            long spellDataStart = br.BaseStream.Position;
+            savedSpells.Add(new SavedSpellState(spellId, spellDataStart, spellDataLength));
+            br.BaseStream.Position = spellDataStart + spellDataLength;
         }
+        long spellPayloadEnd = br.BaseStream.Position;
 
         if (spellList.Count != spellCount)
         {
@@ -3364,11 +3375,11 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < savedSpells.Count; i++)
         {
             int spellId = savedSpells[i].id;
-            byte[] spellBytes = savedSpells[i].data;
+            int spellDataLength = savedSpells[i].dataLength;
 
             if (i >= spellList.Count || spellList[i] == null)
             {
-                Debug.LogWarning($"Spell slot {i} missing while restoring id {spellId} - skipped {spellBytes.Length} bytes");
+                Debug.LogWarning($"Spell slot {i} missing while restoring id {spellId} - skipped {spellDataLength} bytes");
                 continue;
             }
 
@@ -3379,18 +3390,17 @@ public class PlayerController : MonoBehaviour
                 RebuildSpellListFromSaved(savedSpells);
                 if (i >= spellList.Count || spellList[i] == null)
                 {
-                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for id {spellId} - skipped {spellBytes.Length} bytes");
+                    Debug.LogWarning($"Spell slot {i} still missing after rebuild for id {spellId} - skipped {spellDataLength} bytes");
                     continue;
                 }
                 spellInstance = spellList[i];
             }
 
-            using (MemoryStream tempStream = new MemoryStream(spellBytes))
-            using (BinaryReader tempReader = new BinaryReader(tempStream))
-            {
-                spellInstance.Deserialize(tempReader);
-            }
+            br.BaseStream.Position = savedSpells[i].dataStart;
+            spellInstance.Deserialize(br);
+            br.BaseStream.Position = savedSpells[i].dataStart + spellDataLength;
         }
+        br.BaseStream.Position = spellPayloadEnd;
     }
 
     private void TriggerHitRumble(float low, float high, float duration)
@@ -3532,7 +3542,7 @@ public class PlayerController : MonoBehaviour
         return null;
     }
 
-    private void RebuildSpellListFromSaved(List<(int id, byte[] data)> savedSpells)
+    private void RebuildSpellListFromSaved(List<SavedSpellState> savedSpells)
     {
         // Issue 2: return existing instances to the pool instead of destroying them.
         for (int i = spellList.Count - 1; i >= 0; i--)

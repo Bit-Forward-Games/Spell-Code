@@ -2568,60 +2568,25 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// <summary> Updates the latest known frame from the opponent and estimates their current frame. Called by MatchMessageManager. </summary>
         public void SetRemoteFrame(int frame)
         {
-            if (ShouldPreserveLobbyRemoteFrameProgress() && frame < remoteFrame)
-            {
-                frame = remoteFrame;
-            }
-
             remoteFrame = frame; // Last frame opponent confirmed sending/receiving input for
             // Predict current remote frame based on ping (needs ping calculation from MatchMessageManager)
             int pingMs = matchManager?.Ping ?? 200; // Default ping if manager missing
             // Integer-only: one-way ping in frames = (pingMs / 2) * 60 / 1000, rounded up
             // Equivalent to CeilToInt((pingMs/2) / 16.667) but fully deterministic
             int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
-            int predictedFrame = frame + pingFrames;
-            if (ShouldPreserveLobbyRemoteFrameProgress() && predictedFrame < predictedRemoteFrame)
-            {
-                predictedFrame = predictedRemoteFrame;
-            }
-
-            predictedRemoteFrame = predictedFrame;
+            predictedRemoteFrame = frame + pingFrames;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
         }
 
         public void SetRemoteFrame(int slot, int frame)
         {
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
-            bool preserveLobbyProgress = ShouldPreserveLobbyRemoteFrameProgress();
-            if (preserveLobbyProgress
-                && remoteFrameBySlot.TryGetValue(slot, out int previousRemoteFrame)
-                && adjustedFrame < previousRemoteFrame)
-            {
-                adjustedFrame = previousRemoteFrame;
-            }
-
             remoteFrameBySlot[slot] = adjustedFrame;
             int pingMs = matchManager != null ? matchManager.GetPingForSlot(slot) : 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
-            int predictedFrame = adjustedFrame + pingFrames;
-            if (preserveLobbyProgress
-                && predictedRemoteFrameBySlot.TryGetValue(slot, out int previousPredictedFrame)
-                && predictedFrame < previousPredictedFrame)
-            {
-                predictedFrame = previousPredictedFrame;
-            }
-
-            predictedRemoteFrameBySlot[slot] = predictedFrame;
+            predictedRemoteFrameBySlot[slot] = adjustedFrame + pingFrames;
             remoteFrame = GetEffectiveRemoteFrame(adjustedFrame);
-            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(predictedFrame);
-        }
-
-        private bool ShouldPreserveLobbyRemoteFrameProgress()
-        {
-            return GameManager.Instance != null
-                && GameManager.Instance.isOnlineMatchActive
-                && !GameManager.Instance.isTransitioning
-                && SceneManager.GetActiveScene().name == "MainMenu";
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(adjustedFrame + pingFrames);
         }
 
         public void ResetTimeoutGrace(float graceSeconds)

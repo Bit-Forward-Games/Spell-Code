@@ -246,6 +246,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             
         }
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void SetResolution()

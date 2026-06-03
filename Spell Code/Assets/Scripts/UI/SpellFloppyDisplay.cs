@@ -31,10 +31,10 @@ public class SpellFloppyDisplay : MonoBehaviour
 
     [NonSerialized]
     public Vector2[] displayLocations = new Vector2[4] { 
-        new Vector2(-400, 260),
-        new Vector2(400, 260), 
-        new Vector2(-400, -260), 
-        new Vector2(400, -260) };
+        new Vector2(-360, 250),
+        new Vector2(360, 250), 
+        new Vector2(-360, -250), 
+        new Vector2(360, -250) };
 
     public GameObject canvasObject;
 

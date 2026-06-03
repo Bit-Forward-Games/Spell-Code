@@ -1,10 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
+using System;
 
 public class SceneUiManager : MonoBehaviour
 {
     public string sceneName;
+
+    //screen transtition things
+    [SerializeField]public Image ScreenCover;
+    Vector3 preStartLoadPos = new Vector3(2500,0,0);
+    Vector3 preEndLoadPos = new Vector3(-1500,0,0);
+
+    Vector3 postStartLoadPos = new Vector3(-1500,0,0);
+    Vector3 postEndLoadPos = new Vector3(2500,0,0);
+
+    private bool sceneLoadInProgress;
+
+
 
     private DataManager dm;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -33,8 +47,39 @@ public class SceneUiManager : MonoBehaviour
             SFX_Manager.Instance.StopRepeatingAllSounds();
         }
 
+        //screen transtion things
+        if (ScreenCover != null)
+        {
+            ScreenCover.transform.localPosition = preStartLoadPos;
+            Tween tween = ScreenCover.transform
+                .DOLocalMoveX(preEndLoadPos.x, 1f)
+                .SetUpdate(true);
+            tween.OnComplete(() =>
+            {
+                beforeSceneLoad?.Invoke();
+                SceneManager.LoadScene(sceneName);
+            });
+            return;
+        }
+
+        beforeSceneLoad?.Invoke();
         SceneManager.LoadScene(sceneName);
     }
+
+    public void RemoveScreenCover()
+    {
+        if (ScreenCover == null)
+        {
+            return;
+        }
+
+        ScreenCover.transform.localPosition = postStartLoadPos;
+        Tween tween = ScreenCover.transform
+            .DOLocalMoveX(postEndLoadPos.x, 1f)
+            .SetUpdate(true);
+    }
+
+
 
     /// <summary>
     /// Reset Data objects as well as all players

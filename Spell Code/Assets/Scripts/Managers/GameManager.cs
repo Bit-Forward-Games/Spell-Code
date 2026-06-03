@@ -3040,6 +3040,7 @@ public class GameManager : MonoBehaviour
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()
         }
+        sceneManager.RemoveScreenCover();
     }
 
     public void ClearStages()

@@ -22,10 +22,6 @@ public static class SCUtils
     }
     //ham
 
-    public static void ChangeScene(string name)
-    {
-        SceneManager.LoadScene(name);
-    }
 
     public static InputAction AddBindingsToMap(InputAction action, ReadOnlyArray<InputBinding> bindings)
     {

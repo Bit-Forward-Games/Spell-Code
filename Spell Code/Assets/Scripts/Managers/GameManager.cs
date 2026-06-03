@@ -305,6 +305,8 @@ public class GameManager : MonoBehaviour
 
     public void ExecuteOrder66()
     {
+        SceneUiManager.KeepCameraBackgroundHiddenUntilScreenCoverRemoved();
+
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
         DontDestroyOnLoad(dontDestroyProbe);
 
@@ -321,6 +323,8 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
+        SceneManager.LoadScene("MainMenu");
+        //Camera.main.GetComponentInChildren<Image>().enabled = false;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -3040,6 +3044,12 @@ public class GameManager : MonoBehaviour
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()
         }
+            GameObject[] curtains = GameObject.FindGameObjectsWithTag("LoadCurtain");
+            Debug.Log(curtains.Length);
+            if(curtains.Length > 0)
+            {
+                curtains[0].SetActive(true);
+            }
         sceneManager.RemoveScreenCover();
     }
 

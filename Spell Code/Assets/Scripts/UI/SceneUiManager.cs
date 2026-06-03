@@ -10,7 +10,7 @@ public class SceneUiManager : MonoBehaviour
     public string sceneName;
 
     //screen transtition things
-    [SerializeField]public Image ScreenCover;
+    public Image ScreenCover;
     Vector3 preStartLoadPos = new Vector3(2500,0,0);
     Vector3 preEndLoadPos = new Vector3(-1500,0,0);
 
@@ -18,34 +18,12 @@ public class SceneUiManager : MonoBehaviour
     Vector3 postEndLoadPos = new Vector3(2500,0,0);
 
     private bool sceneLoadInProgress;
-    private static bool keepCameraBackgroundHiddenUntilScreenCoverRemoved;
 
 
 
     private DataManager dm;
 
-    private void Awake()
-    {
-        HideCameraBackgroundIfWaitingForScreenCover();
-    }
 
-    private void OnEnable()
-    {
-        HideCameraBackgroundIfWaitingForScreenCover();
-    }
-
-    public static void KeepCameraBackgroundHiddenUntilScreenCoverRemoved()
-    {
-        keepCameraBackgroundHiddenUntilScreenCoverRemoved = true;
-    }
-
-    private void HideCameraBackgroundIfWaitingForScreenCover()
-    {
-        if (keepCameraBackgroundHiddenUntilScreenCoverRemoved)
-        {
-            SetCameraBackgroundImageEnabled(false);
-        }
-    }
 
     private void FindScreenCoverIfNeeded()
     {
@@ -59,47 +37,6 @@ public class SceneUiManager : MonoBehaviour
         }
     }
 
-    private void SetCameraBackgroundImageEnabled(bool enabled)
-    {
-        if (Camera.main == null)
-            return;
-
-        Graphic[] cameraGraphics = Camera.main.GetComponentsInChildren<Graphic>(true);
-        for (int i = 0; i < cameraGraphics.Length; i++)
-        {
-            if (IsCameraBackgroundGraphic(cameraGraphics[i]))
-            {
-                cameraGraphics[i].enabled = enabled;
-            }
-        }
-
-        SpriteRenderer[] cameraSprites = Camera.main.GetComponentsInChildren<SpriteRenderer>(true);
-        for (int i = 0; i < cameraSprites.Length; i++)
-        {
-            Transform spriteParent = cameraSprites[i].transform.parent;
-            if (cameraSprites[i].name.Contains("Background") || (spriteParent != null && spriteParent.name.Contains("Background")))
-            {
-                cameraSprites[i].enabled = enabled;
-            }
-        }
-    }
-
-    private bool IsCameraBackgroundGraphic(Graphic graphic)
-    {
-        if (graphic == null || graphic == ScreenCover)
-            return false;
-
-        Transform graphicTransform = graphic.transform;
-        while (graphicTransform != null && graphicTransform != Camera.main.transform)
-        {
-            if (graphicTransform.name.Contains("Background"))
-                return true;
-
-            graphicTransform = graphicTransform.parent;
-        }
-
-        return false;
-    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -142,7 +79,7 @@ public class SceneUiManager : MonoBehaviour
         {
             ScreenCover.transform.localPosition = preStartLoadPos;
             Tween tween = ScreenCover.transform
-                .DOLocalMoveX(preEndLoadPos.x, 1f)
+                .DOLocalMoveX(preEndLoadPos.x, .5f)
                 .SetUpdate(true);
             tween.OnComplete(() => {
                     onComplete();
@@ -152,7 +89,6 @@ public class SceneUiManager : MonoBehaviour
         }
 
         onComplete();
-        SetCameraBackgroundImageEnabled(false);
         Time.timeScale = 1f;
     }
 
@@ -160,25 +96,16 @@ public class SceneUiManager : MonoBehaviour
     {
         FindScreenCoverIfNeeded();
 
-        SetCameraBackgroundImageEnabled(false);
-
         if(ScreenCover != null)
         {
             ScreenCover.transform.localPosition = postStartLoadPos;
             //
             Tween tween = ScreenCover.transform
-                .DOLocalMoveX(postEndLoadPos.x, 1f)
+                .DOLocalMoveX(postEndLoadPos.x, .5f)
                 .SetUpdate(true);
-                tween.OnComplete(() =>
-                {
-                    SetCameraBackgroundImageEnabled(true);
-                    keepCameraBackgroundHiddenUntilScreenCoverRemoved = false;
-                });
             return;
         }
 
-        SetCameraBackgroundImageEnabled(true);
-        keepCameraBackgroundHiddenUntilScreenCoverRemoved = false;
 
     }
 
@@ -186,24 +113,19 @@ public class SceneUiManager : MonoBehaviour
     {
         FindScreenCoverIfNeeded();
 
-        SetCameraBackgroundImageEnabled(false);
 
         if(ScreenCover != null)
         {
             ScreenCover.transform.localPosition = postStartLoadPos;
             Tween tween = ScreenCover.transform
-                .DOLocalMoveX(postEndLoadPos.x, 1f)
+                .DOLocalMoveX(postEndLoadPos.x, .5f)
                 .SetUpdate(true);
             tween.OnComplete(() =>
             {
-                SetCameraBackgroundImageEnabled(true);
-                keepCameraBackgroundHiddenUntilScreenCoverRemoved = false;
                 onComplete();
             });
             return;
         }
-        SetCameraBackgroundImageEnabled(true);
-        keepCameraBackgroundHiddenUntilScreenCoverRemoved = false;
         onComplete();
 
     }
@@ -247,7 +169,6 @@ public class SceneUiManager : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            KeepCameraBackgroundHiddenUntilScreenCoverRemoved();
             GameManager.Instance.sceneManager.ApplyScreenCover(()=>GameManager.Instance.ExecuteOrder66());
         }
     }

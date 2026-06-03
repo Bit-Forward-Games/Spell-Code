@@ -9,7 +9,6 @@ using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 
 public class StageDataBuilder : MonoBehaviour
 {
@@ -172,6 +171,7 @@ public class StageDataBuilder : MonoBehaviour
         stageDataSO.dynamicCamera = (_borderType != BorderType.Loop) ? true : false;
     }
 
+#if UNITY_EDITOR
     void SaveStageData()
     {
         // Specify the path where you want to save it
@@ -200,4 +200,5 @@ public class StageDataBuilder : MonoBehaviour
         //log a message
         Debug.Log(sceneName + " StageDataSO.asset has been saved to: " + directory);
     }
+#endif
 }

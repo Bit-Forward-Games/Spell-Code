@@ -409,7 +409,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 182008658}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -1744,6 +1744,68 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1001 &922573539
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1452465068}
+    m_Modifications:
+    - target: {fileID: 1417234062282770246, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_Name
+      value: ScreenTransition
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+--- !u!4 &922573540 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+  m_PrefabInstance: {fileID: 922573539}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &975130342 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3974272328759213753, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
@@ -2975,6 +3037,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1025829702}
+  - {fileID: 922573540}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1531402847 stripped
@@ -3088,6 +3151,14 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 3482084119599465952, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: ScreenCover
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_PlayerJoinedEvent.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_PlayerJoinedEvent.m_PersistentCalls.m_Calls.Array.data[2].m_Target
       value: 

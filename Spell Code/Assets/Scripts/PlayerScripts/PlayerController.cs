@@ -1073,7 +1073,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if (input.Direction == 2 && onPlatform)
+                    if (input.Direction == 2 /*&& onPlatform*/)
                     {
                         break;
                     }
@@ -1195,7 +1195,7 @@ public class PlayerController : MonoBehaviour
                 
 
                 //check for slide input:
-                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;

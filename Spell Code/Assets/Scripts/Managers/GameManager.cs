@@ -305,7 +305,6 @@ public class GameManager : MonoBehaviour
 
     public void ExecuteOrder66()
     {
-        SceneUiManager.KeepCameraBackgroundHiddenUntilScreenCoverRemoved();
 
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
         DontDestroyOnLoad(dontDestroyProbe);

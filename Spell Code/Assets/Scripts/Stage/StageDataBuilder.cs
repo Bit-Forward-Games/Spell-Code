@@ -188,7 +188,7 @@ public class StageDataBuilder : MonoBehaviour
         string sceneName = this.gameObject.name;
 
         // Create the path with scene name + "_StageDataSO"
-        string path = $"{directory}/{sceneName}_StageDataSO.asset";
+        string path = $"{directory}/{sceneName} StageDataSO.asset";
         
         // Create the asset at the specified path
         AssetDatabase.CreateAsset(stageDataSO, path);
@@ -198,6 +198,28 @@ public class StageDataBuilder : MonoBehaviour
         AssetDatabase.Refresh();
 
         //log a message
-        Debug.Log(sceneName + "_StageDataSO.asset has been saved to: " + directory);
+        Debug.Log(sceneName + " StageDataSO.asset has been saved to: " + directory);
     }
+
+    //private string GetDirectoryOfSO()
+    //{
+    //    switch (_stageType)
+    //    {
+    //        case StageType.Duel:
+    //            return "Assets/SO/Arena SOs/Dual (2 players)";
+    //        case StageType.General:
+    //            return "Assets/SO/Arena SOs/Dual (2 players)";
+    //        case StageType.Party:
+    //            return "Assets/SO/Arena SOs/Dual (2 players)";
+    //        case StageType.Special:
+    //            return "Assets/SO/Arena SOs/Dual (2 players)";
+    //        default:
+    //            return "ERROR";
+    //    }
+    //}
+
+    //private string GetPathToSO()
+    //{
+    //    string path = "";
+    //}
 }

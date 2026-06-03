@@ -200,26 +200,4 @@ public class StageDataBuilder : MonoBehaviour
         //log a message
         Debug.Log(sceneName + " StageDataSO.asset has been saved to: " + directory);
     }
-
-    //private string GetDirectoryOfSO()
-    //{
-    //    switch (_stageType)
-    //    {
-    //        case StageType.Duel:
-    //            return "Assets/SO/Arena SOs/Dual (2 players)";
-    //        case StageType.General:
-    //            return "Assets/SO/Arena SOs/Dual (2 players)";
-    //        case StageType.Party:
-    //            return "Assets/SO/Arena SOs/Dual (2 players)";
-    //        case StageType.Special:
-    //            return "Assets/SO/Arena SOs/Dual (2 players)";
-    //        default:
-    //            return "ERROR";
-    //    }
-    //}
-
-    //private string GetPathToSO()
-    //{
-    //    string path = "";
-    //}
 }

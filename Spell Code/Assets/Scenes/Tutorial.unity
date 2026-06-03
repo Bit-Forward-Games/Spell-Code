@@ -352,14 +352,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tutorial
       objectReference: {fileID: 0}
-    - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_Tiles.Array.data[12681].second.m_TileObjectToInstantiateIndex
-      value: 65535
-      objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -407,13 +399,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6446479999002691263, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 6489815283124935995, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf9ff075889653145904aa04bae7428c, type: 3}
 --- !u!1 &1013759790
 GameObject:

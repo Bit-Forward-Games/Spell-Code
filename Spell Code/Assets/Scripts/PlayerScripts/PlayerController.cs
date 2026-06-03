@@ -2449,15 +2449,15 @@ public class PlayerController : MonoBehaviour
 
 
 
-        if (stockStabilityModified > 0)
-        {
-            //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
-        }
-        else
-        {
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
-        }
+        //if (stockStabilityModified > 0)
+        //{
+        //    //play the stock aura visual effect 
+        //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
+        //}
+        //else
+        //{
+        //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
+        //}
 
 
 

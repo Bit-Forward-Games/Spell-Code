@@ -110,6 +110,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MultiplayerPauseButtonPredictionHoldFrames = 0; // Decay predicted pause immediately - online pause is not networked anyway
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
+        [SerializeField] public int LobbySnapshotPacingGraceFrames = 90; // Lobby-only grace after authoritative snapshots so stale frame packets cannot hitch late joiners.
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -792,7 +793,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lastDroppedFrame = -1;
             remoteFrameStallTicks = 0;
             lastRemoteFrameForTimeout = remoteFrame;
-            int graceFrames = Mathf.Max(InputDelay + MultiplayerMaxPredictionAheadFrames + 12, MaxRollBackFrames * 3);
+            int graceFrames = Mathf.Max(
+                Mathf.Max(0, LobbySnapshotPacingGraceFrames),
+                Mathf.Max(InputDelay + MultiplayerMaxPredictionAheadFrames + 12, MaxRollBackFrames * 3));
             lobbySnapshotPacingGraceUntilFrame = Mathf.Max(lobbySnapshotPacingGraceUntilFrame, snapshotAnchor + graceFrames);
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
 
@@ -2616,25 +2619,60 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// <summary> Updates the latest known frame from the opponent and estimates their current frame. Called by MatchMessageManager. </summary>
         public void SetRemoteFrame(int frame)
         {
+            if (ShouldPreserveLobbyRemoteFrameProgress() && frame < remoteFrame)
+            {
+                frame = remoteFrame;
+            }
+
             remoteFrame = frame; // Last frame opponent confirmed sending/receiving input for
             // Predict current remote frame based on ping (needs ping calculation from MatchMessageManager)
             int pingMs = matchManager?.Ping ?? 200; // Default ping if manager missing
             // Integer-only: one-way ping in frames = (pingMs / 2) * 60 / 1000, rounded up
             // Equivalent to CeilToInt((pingMs/2) / 16.667) but fully deterministic
             int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
-            predictedRemoteFrame = frame + pingFrames;
+            int predictedFrame = frame + pingFrames;
+            if (ShouldPreserveLobbyRemoteFrameProgress() && predictedFrame < predictedRemoteFrame)
+            {
+                predictedFrame = predictedRemoteFrame;
+            }
+
+            predictedRemoteFrame = predictedFrame;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
         }
 
         public void SetRemoteFrame(int slot, int frame)
         {
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
+            bool preserveLobbyProgress = ShouldPreserveLobbyRemoteFrameProgress();
+            if (preserveLobbyProgress
+                && remoteFrameBySlot.TryGetValue(slot, out int previousRemoteFrame)
+                && adjustedFrame < previousRemoteFrame)
+            {
+                adjustedFrame = previousRemoteFrame;
+            }
+
             remoteFrameBySlot[slot] = adjustedFrame;
             int pingMs = matchManager != null ? matchManager.GetPingForSlot(slot) : 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
-            predictedRemoteFrameBySlot[slot] = adjustedFrame + pingFrames;
+            int predictedFrame = adjustedFrame + pingFrames;
+            if (preserveLobbyProgress
+                && predictedRemoteFrameBySlot.TryGetValue(slot, out int previousPredictedFrame)
+                && predictedFrame < previousPredictedFrame)
+            {
+                predictedFrame = previousPredictedFrame;
+            }
+
+            predictedRemoteFrameBySlot[slot] = predictedFrame;
             remoteFrame = GetEffectiveRemoteFrame(adjustedFrame);
-            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(adjustedFrame + pingFrames);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(predictedFrame);
+        }
+
+        private bool ShouldPreserveLobbyRemoteFrameProgress()
+        {
+            return GameManager.Instance != null
+                && GameManager.Instance.isOnlineMatchActive
+                && !GameManager.Instance.isTransitioning
+                && SceneManager.GetActiveScene().name == "MainMenu";
         }
 
         public void ResetTimeoutGrace(float graceSeconds)

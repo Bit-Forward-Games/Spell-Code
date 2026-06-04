@@ -43,6 +43,8 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
+
+    [Header("Spell Glossary Variables")]
  
     private string[] brandName = {"MySpells", "DemonX", "BigStoX", "Killeez", "VWave", "AllSpells"};
     public TextMeshProUGUI spellAddress;

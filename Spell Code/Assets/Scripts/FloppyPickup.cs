@@ -86,6 +86,11 @@ public class FloppyPickup : MonoBehaviour
 
             if (overlappingPlayer != null)
             {
+                if(selectHoldCounter == timeToFill)
+                {
+                    diskDisplay.showDesc = !diskDisplay.showDesc;
+                    diskDisplay.FloppyDisplayUpdate();
+                }
                 if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
                 {
                     selectHoldCounter++;
@@ -104,16 +109,13 @@ public class FloppyPickup : MonoBehaviour
                                 Destroy(gameObject);
                             //}
                         }
-                        else
-                        {
-                            selectHoldCounter = 0;
-                        }
+                        // else
+                        // {
+                        //     selectHoldCounter = 0;
+                        // }
                     }
-                    else
-                    {
-                        diskDisplay.showDesc = !diskDisplay.showDesc;
-                        diskDisplay.FloppyDisplayUpdate();
-                    }
+                    selectHoldCounter = 0;
+                    
                     
                     
                 }

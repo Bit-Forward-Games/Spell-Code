@@ -1259,7 +1259,21 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             int maxPredictionAhead = GetMaxPredictionAheadFrames();
-            if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
+
+            // Pace against the LATER of the slowest received remote frame and syncFrame. After an
+            // authoritative lobby snapshot, ResetRollbackBaseline sets syncFrame to the snapshot
+            // frame i.e. every peer's state is authoritatively confirmed up to there but the
+            // per-slot effectiveRemoteFrame is still the stale pre-snapshot value. Measuring the gap
+            // from effectiveRemoteFrame therefore manufactures a large phantom gap
+            // that freezes late joiners in a prediction hold and feeds the rollback
+            // storm, even though their state is fully confirmed to syncFrame. (StabilizeLobbySnapshotPacing
+            // tried to fix this by writing remoteFrameBySlot = snapshotFrame, but SetRemoteFrameAdvantage
+            // overwrites that with the peer's real behind-frame on the next tick, so it never sticks.)
+            // Clamping here is robust because it's read-time. It is a no-op in normal play (syncFrame
+            // <= effectiveRemoteFrame there) and only affects local frame pacing -- never sim state,
+            // input application, or the hash -- so it cannot cause a desync.
+            int pacingRemoteFrame = Mathf.Max(effectiveRemoteFrame, syncFrame);
+            if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - pacingRemoteFrame > maxPredictionAhead)
             {
                 consecutiveDrop++;
                 // Online-only: in 3/4P we want to ENFORCE the prediction-ahead cap. Pulsing

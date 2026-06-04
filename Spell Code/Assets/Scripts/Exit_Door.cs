@@ -23,6 +23,10 @@ public class Exit_Door : MonoBehaviour
 
     public bool CheckAllPlayersReady()
     {
+        if(Time.timeScale == 0)
+        {
+            return false;
+        }
         PlayerController player;
         // check if all active players are within a certain range of the door
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
@@ -48,8 +52,9 @@ public class Exit_Door : MonoBehaviour
         }
 
         //all players are in range and the door is open, then return true
-        GameManager.Instance.ExecuteOrder66();
-        SceneManager.LoadScene("MainMenu");
+        // GameManager.Instance.ExecuteOrder66();
+        // SceneManager.LoadScene("MainMenu");
+        GameManager.Instance.sceneManager.MainMenu();
         return true;
     }
 }

@@ -10,30 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: TutorialStageDataSO
-  m_EditorClassIdentifier: 
+  m_Name: Tutorial StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 3712, y: -500}
-  - {x: 3856, y: -596}
-  - {x: 3568, y: -596}
-  - {x: 3136, y: -596}
-  - {x: 3088, y: -596}
-  - {x: 3040, y: -596}
-  - {x: 2992, y: -596}
-  - {x: 2944, y: -596}
-  - {x: 2896, y: -596}
   - {x: 1072, y: -260}
   - {x: 1072, y: 108}
   platformExtent:
-  - {x: 48, y: 4}
-  - {x: 48, y: 4}
-  - {x: 48, y: 4}
-  - {x: 16, y: 4}
-  - {x: 16, y: 4}
-  - {x: 16, y: 4}
-  - {x: 16, y: 4}
-  - {x: 16, y: 4}
-  - {x: 16, y: 4}
   - {x: 80, y: 4}
   - {x: 80, y: 4}
   solidCenter:
@@ -89,8 +71,7 @@ MonoBehaviour:
   - {x: -336, y: -192}
   - {x: -336, y: -192}
   - {x: -336, y: -192}
-  npcSpawnTransform:
-  - {x: 3715, y: -688}
+  npcSpawnTransform: []
   activatableSolidCenter:
   - {x: 4080, y: -608, z: 0}
   - {x: 2672, y: -176, z: 0}
@@ -106,5 +87,5 @@ MonoBehaviour:
   camBorderMin: {x: -2000, y: -2000, z: 0}
   camBorderMax: {x: 6000, y: 6000, z: 0}
   borderType: 0
-  stageType: 0
+  stageType: 3
   dynamicCamera: 1

@@ -39,6 +39,16 @@ public class CoinToss : SpellData
             if (owner != null && projectilePrefabs.Length > 1)
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+
+                //if the spell will crit,...
+                if (doesCrit)
+                {
+                    //Play the Critical Cast VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CRITICAL_CAST, new FixedVec2(owner.position.X + Fixed.FromInt(spawnOffsetX), owner.position.Y + Fixed.FromInt(spawnOffsetY)), owner.pID, owner.facingRight);
+
+                    //Play the Critical Cast SFX
+                    SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_CAST);
+                }
             }
             cooldownCounter = cooldown;
         }

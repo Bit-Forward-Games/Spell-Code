@@ -1,7 +1,7 @@
 {
   "CharacterData": [
     {
-      "character": "Code-E",
+      "character": "R-Cade",
       "basicAttackProjId": "R-Cade Basic Attack",
       "startingInventory": [
         "Skillshot Slash"
@@ -146,8 +146,8 @@
             42
           ],
           "frameLengths": [
-            5,
-            5,
+            4,
+            4,
             6,
             6,
             5,

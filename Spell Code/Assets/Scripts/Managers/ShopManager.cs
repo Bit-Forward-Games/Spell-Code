@@ -62,17 +62,17 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    private int p1_index
-    {
-        get => gameManager.p1_shopIndex;
-        set => gameManager.p1_shopIndex = value;
-    }
+    // private int p1_index
+    // {
+    //     get => gameManager.p1_shopIndex;
+    //     set => gameManager.p1_shopIndex = value;
+    // }
 
-    private int p2_index
-    {
-        get => gameManager.p2_shopIndex;
-        set => gameManager.p2_shopIndex = value;
-    }
+    // private int p2_index
+    // {
+    //     get => gameManager.p2_shopIndex;
+    //     set => gameManager.p2_shopIndex = value;
+    // }
 
     private int p3_index
     {

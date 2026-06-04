@@ -7,6 +7,7 @@ using UnityEngine.Audio;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
+using YamlDotNet.Serialization;
 
 public class Pause : MonoBehaviour
 {
@@ -27,8 +28,10 @@ public class Pause : MonoBehaviour
     public AudioMixer sfxAudioMixer;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
-    public bool shakeEnabled = true;
+    public bool screenShake = true;
     public bool dynamicCameraOverride = true;
+    public Toggle screenShakeToggle;
+    public Toggle dynamicCameraToggle;
     private SceneUiManager sceneUiManager;
  
     public GameObject _pauseMenuFirst;
@@ -105,6 +108,7 @@ public class Pause : MonoBehaviour
     void Awake()
     {
         input = new InputSystem_Actions();
+        LoadSettings();
     }
  
     private void Start()
@@ -211,7 +215,13 @@ public class Pause : MonoBehaviour
  
         lastNavValue = nav;
 
-        spellAddress.text = "http://www.myspellcodelist.com/" + brandName[tab].Replace(" ", "") + "/" + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+        if (grid[tab] != null && grid[tab].spells.Length > 0 && grid[tab].spells[selectedSpell] != null)
+        {
+            spellAddress.text = "http://www.myspellcodelist.com/"
+                + brandName[tab].Replace(" ", "") + "/"
+                + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+        }
+        else spellAddress.text = "http://www.myspellcodelist.com/";
 
     }
  
@@ -263,8 +273,30 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
- 
+        SaveSettings();
         Time.timeScale = 1f;    
+    }
+
+    public void SaveSettings()
+    {
+        SettingsManager settings = SettingsManager.Instance;
+        settings.SetDynamicCamera(dynamicCameraOverride);
+        settings.SetScreenshake(screenShake);
+        settings.SetFullscreen(true);
+        settings.SetMusicVolume(musicVolumeSlider.value);
+        settings.SetSfxVolume(sfxVolumeSlider.value);
+    }
+
+    public void LoadSettings()
+    {
+        SettingsManager.Instance.Load();
+        GameSettingsData settings = SettingsManager.Instance.Settings;
+        dynamicCameraOverride = settings.dynamicCamera;
+        screenShake = settings.screenshake;
+        dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+        screenShakeToggle.SetIsOnWithoutNotify(screenShake);
+        musicVolumeSlider.value = settings.musicVolume;
+        sfxVolumeSlider.value = settings.sfxVolume;
     }
  
     public void Pausing()
@@ -399,8 +431,9 @@ public class Pause : MonoBehaviour
             {
                 spellTabList.Add(spellGlossaryList[i]);
                 spellGlossaryList[i].SetActive(true);
-                spellGlossaryList[i].transform.position = new Vector2(spellGlossaryList[i].transform.position.x, spellListParent.transform.position.y - (j * 200));
-                if (spellTabList[j].transform.position.y < spellListParent.transform.position.y - (6 * 200)) spellTabList[j].SetActive(false);
+                RectTransform rt = spellGlossaryList[i].GetComponent<RectTransform>();
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -(j * 66.666667f));
+                if (spellTabList[j].GetComponent<RectTransform>().anchoredPosition.y < -(6 * 66.666667f)) spellTabList[j].SetActive(false);
                 j++;
             }
             else
@@ -433,13 +466,10 @@ public class Pause : MonoBehaviour
             if (one == -1) listScrollOffset++;
             else listScrollOffset--;
 
-            Vector3 targetListPos = spellListParent.transform.position + new Vector3(0, -one * 200f, 0);
-
-            DOTween.Kill(spellListParent.transform);
-            spellListParent.transform
-                .DOMove(targetListPos, 0.12f)
-                .SetEase(Ease.OutQuad)
-                .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
+            RectTransform listRT = spellListParent.GetComponent<RectTransform>();
+            Vector2 targetListPos = listRT.anchoredPosition + new Vector2(0, -one * 66.666667f);
+            DOTween.Kill(listRT);
+            listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)
@@ -480,7 +510,7 @@ public class Pause : MonoBehaviour
  
     public void ToggleCameraShake()
     {
-        shakeEnabled = !shakeEnabled;
+        screenShake = !screenShake;
     }
  
     public void ToggleDynamicCamera()

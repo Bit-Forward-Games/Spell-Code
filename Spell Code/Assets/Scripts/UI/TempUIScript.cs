@@ -261,8 +261,8 @@ public class TempUIScript : MonoBehaviour
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
             float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
-            playerRamVals[i].text = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < 100)?"MATCH POINT!":$"{GameManager.Instance.players[i].roundRam}";
-            playerGoldBar[i].fillAmount = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < 100)?1:fillGoldAmountVal;
+            playerRamVals[i].text = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?"MATCH POINT!":$"{GameManager.Instance.players[i].roundRam}";
+            playerGoldBar[i].fillAmount = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?1:fillGoldAmountVal;
 
             emptyQuadrants[i].SetActive(false);
 

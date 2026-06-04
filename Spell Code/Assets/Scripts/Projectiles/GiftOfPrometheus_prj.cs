@@ -16,7 +16,7 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
@@ -105,6 +105,9 @@ public class GiftOfPrometheus_Projectile : BaseProjectile
         if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
         {
             hSpeed = Fixed.FromInt(0);
+
+            //Play the Gift Of Prometheus SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus Explosion");
         }
     }
 }

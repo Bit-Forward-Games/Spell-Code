@@ -1,12 +1,42 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
+using System;
+using System.Linq.Expressions;
 
 public class SceneUiManager : MonoBehaviour
 {
     public string sceneName;
 
+    //screen transtition things
+    public Image ScreenCover;
+    Vector3 preStartLoadPos = new Vector3(2500,0,0);
+    Vector3 preEndLoadPos = new Vector3(-1500,0,0);
+
+    Vector3 postStartLoadPos = new Vector3(-1500,0,0);
+    Vector3 postEndLoadPos = new Vector3(2500,0,0);
+
+    private bool sceneLoadInProgress;
+
+
+
     private DataManager dm;
+
+
+
+    private void FindScreenCoverIfNeeded()
+    {
+        if (ScreenCover != null)
+            return;
+
+        GameObject screenCoverObject = GameObject.Find("ScreenCover");
+        if (screenCoverObject != null)
+        {
+            ScreenCover = screenCoverObject.GetComponent<Image>();
+        }
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -27,14 +57,79 @@ public class SceneUiManager : MonoBehaviour
     /// <param name="sceneName"></param>
     public void LoadScene(string sceneName)
     {
+
         //stop repeating all sounds
         if (SFX_Manager.Instance != null)
         {
             SFX_Manager.Instance.StopRepeatingAllSounds();
         }
-
-        SceneManager.LoadScene(sceneName);
+        ApplyScreenCover(() =>
+        {
+            //beforeSceneLoad?.Invoke();
+            SceneManager.LoadScene(sceneName);
+        });
     }
+
+    public void ApplyScreenCover( Action onComplete)
+    {
+        Time.timeScale = 0f;
+        FindScreenCoverIfNeeded();
+        //screen transtion things
+        if (ScreenCover != null)
+        {
+            ScreenCover.transform.localPosition = preStartLoadPos;
+            Tween tween = ScreenCover.transform
+                .DOLocalMoveX(preEndLoadPos.x, .5f)
+                .SetUpdate(true);
+            tween.OnComplete(() => {
+                    onComplete();
+                    Time.timeScale = 1f;
+                });
+            return;
+        }
+
+        onComplete();
+        Time.timeScale = 1f;
+    }
+
+    public void RemoveScreenCover()
+    {
+        FindScreenCoverIfNeeded();
+
+        if(ScreenCover != null)
+        {
+            ScreenCover.transform.localPosition = postStartLoadPos;
+            //
+            Tween tween = ScreenCover.transform
+                .DOLocalMoveX(postEndLoadPos.x, .5f)
+                .SetUpdate(true);
+            return;
+        }
+
+
+    }
+
+    public void RemoveScreenCover(Action onComplete)
+    {
+        FindScreenCoverIfNeeded();
+
+
+        if(ScreenCover != null)
+        {
+            ScreenCover.transform.localPosition = postStartLoadPos;
+            Tween tween = ScreenCover.transform
+                .DOLocalMoveX(postEndLoadPos.x, .5f)
+                .SetUpdate(true);
+            tween.OnComplete(() =>
+            {
+                onComplete();
+            });
+            return;
+        }
+        onComplete();
+
+    }
+
 
     /// <summary>
     /// Reset Data objects as well as all players
@@ -65,17 +160,17 @@ public class SceneUiManager : MonoBehaviour
 
     public void MainMenu()
     {
+#if !UNITY_EDITOR
         if (DataManager.Instance != null)
         {
             DataManager.Instance.SaveToFile();
         }
+#endif
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.ExecuteOrder66();
+            GameManager.Instance.sceneManager.ApplyScreenCover(()=>GameManager.Instance.ExecuteOrder66());
         }
-
-        this.LoadScene("MainMenu");
     }
 
     public void QuitGame()

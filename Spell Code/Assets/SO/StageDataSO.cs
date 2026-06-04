@@ -13,9 +13,17 @@ public enum StageType
 {
     General,
     Duel,
-    Party
+    Party,
+    Special
 }
 
+public enum StageSize
+{
+    Small,
+    Medium,
+    Large,
+    Custom
+}
 
 [CreateAssetMenu(fileName = "StageDataSO", menuName = "Scriptable Objects/StageDataSO")]
 public class StageDataSO : ScriptableObject

@@ -14,8 +14,6 @@ TagManager:
   - 'Player 2 Spawn '
   - Player 3 Spawn
   - Player 4 Spawn
-  - NPC Spawn
-  - LoadCurtain
   layers:
   - Default
   - TransparentFX

@@ -10,35 +10,35 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: duel_Glasses_Aren StageDataSO
+  m_Name: duel_Glasses_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 11.491608, y: -67.81462}
-  - {x: -148.50839, y: -67.81462}
-  - {x: -308.5084, y: -67.81462}
+  - {x: 160, y: -4}
+  - {x: 0, y: -4}
+  - {x: -160, y: -4}
   platformExtent:
   - {x: 32, y: 4}
   - {x: 64, y: 4}
   - {x: 32, y: 4}
   solidCenter:
-  - {x: -52.508392, y: -63.81462}
-  - {x: -244.50839, y: -63.81462}
-  - {x: -148.50839, y: 104.18538}
-  - {x: -148.50839, y: -231.81464}
-  - {x: 91.49161, y: -63.81463}
-  - {x: -388.5084, y: -63.81463}
+  - {x: 96, y: 0}
+  - {x: -96, y: 0}
+  - {x: 0, y: 168}
+  - {x: 0, y: -168}
+  - {x: 240, y: 0}
+  - {x: -240, y: 0}
   solidExtent:
   - {x: 32, y: 32}
   - {x: 32, y: 32}
   - {x: 286, y: 56}
-  - {x: 286, y: 56.000008}
+  - {x: 286, y: 56}
   - {x: 48, y: 224}
   - {x: 48, y: 224}
   playerSpawnTransform:
-  - {x: -308.5084, y: -63.81462}
-  - {x: 11.491608, y: -63.81462}
-  - {x: -308.5084, y: -175.81462}
-  - {x: 11.491608, y: -175.81462}
+  - {x: -160, y: 0}
+  - {x: 160, y: 0}
+  - {x: -160, y: -112}
+  - {x: 160, y: -112}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []

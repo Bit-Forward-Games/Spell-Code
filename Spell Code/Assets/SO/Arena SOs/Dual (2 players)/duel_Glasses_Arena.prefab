@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5621602568436360190}
   - component: {fileID: 94468472745656752}
   m_Layer: 0
-  m_Name: duel_Glasses_Aren
+  m_Name: duel_Glasses_Arena
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

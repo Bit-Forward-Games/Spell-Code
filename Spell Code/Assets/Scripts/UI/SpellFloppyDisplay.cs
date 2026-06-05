@@ -106,6 +106,29 @@ public class SpellFloppyDisplay : MonoBehaviour
         }
     }
 
+    public void SetDescriptionVisible(bool visible, bool animate)
+    {
+        showDesc = visible;
+
+        if (animate)
+        {
+            FloppyDisplayUpdate();
+            return;
+        }
+
+        if (SpellGifGO != null)
+        {
+            SpellGifGO.transform.DOKill();
+            SpellGifGO.transform.localScale = new Vector3(showDesc ? gifScaleDesc : gifScaleNoDesc, showDesc ? gifScaleDesc : gifScaleNoDesc, 1);
+        }
+
+        if (spellDesc != null)
+        {
+            spellDesc.DOKill();
+            spellDesc.color = showDesc ? Color.black : Color.clear;
+        }
+    }
+
     public void SetFloppyDisplayPosition(int index)
     {
         Background.rectTransform.anchoredPosition = displayLocations[index];

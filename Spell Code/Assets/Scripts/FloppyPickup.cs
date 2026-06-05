@@ -88,8 +88,7 @@ public class FloppyPickup : MonoBehaviour
             {
                 if(selectHoldCounter == timeToFill)
                 {
-                    diskDisplay.showDesc = !diskDisplay.showDesc;
-                    diskDisplay.FloppyDisplayUpdate();
+                    diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
                 }
                 if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
                 {
@@ -160,13 +159,10 @@ public class FloppyPickup : MonoBehaviour
             }
 
             if (isRealFrame
-                && GameManager.Instance != null
-                && ownerIndex == GameManager.Instance.localPlayerIndex
                 && inputSnapshot.ButtonStates[0] == ButtonState.Released
                 && selectHoldCounter < 60)
             {
-                diskDisplay.showDesc = !diskDisplay.showDesc;
-                diskDisplay.FloppyDisplayUpdate();
+                diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
             }
 
             if (inputSnapshot.ButtonStates[0] == ButtonState.Held)
@@ -254,6 +250,19 @@ public class FloppyPickup : MonoBehaviour
     public void SetSelectHoldCounter(byte value)
     {
         selectHoldCounter = value;
+    }
+
+    public bool IsDescriptionVisible()
+    {
+        return diskDisplay != null && diskDisplay.showDesc;
+    }
+
+    public void SetDescriptionVisible(bool visible, bool animate)
+    {
+        if (diskDisplay != null)
+        {
+            diskDisplay.SetDescriptionVisible(visible, animate);
+        }
     }
 
     private float GetFillPercent()

@@ -2545,6 +2545,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(0f);
                 bw.Write(0f);
                 bw.Write((byte)0);
+                bw.Write(false);
                 continue;
             }
 
@@ -2553,13 +2554,14 @@ public class GameManager : MonoBehaviour
             bw.Write(floppy.transform.position.x);
             bw.Write(floppy.transform.position.y);
             bw.Write(disk.GetSelectHoldCounter());
+            bw.Write(disk.IsDescriptionVisible());
         }
     }
 
     private void DeserializeFloppyState(BinaryReader br)
     {
         int floppyCount = br.ReadInt32();
-        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter)> savedFloppies = new List<(int, string, Vector2, byte)>(floppyCount);
+        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription)> savedFloppies = new List<(int, string, Vector2, byte, bool)>(floppyCount);
 
         for (int i = 0; i < floppyCount; i++)
         {
@@ -2568,7 +2570,8 @@ public class GameManager : MonoBehaviour
             float posX = br.ReadSingle();
             float posY = br.ReadSingle();
             byte holdCounter = br.ReadByte();
-            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter));
+            bool showDescription = br.ReadBoolean();
+            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription));
         }
 
         FindAllFloppyDisks();
@@ -2618,6 +2621,7 @@ public class GameManager : MonoBehaviour
                     if (disk != null)
                     {
                         disk.SetSelectHoldCounter(savedFloppy.holdCounter);
+                        disk.SetDescriptionVisible(savedFloppy.showDescription, false);
                     }
                 }
                 break;

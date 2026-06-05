@@ -102,6 +102,7 @@ public class SceneUiManager : MonoBehaviour
             //
             Tween tween = ScreenCover.transform
                 .DOLocalMoveX(postEndLoadPos.x, .5f)
+                .SetDelay(.75f)
                 .SetUpdate(true);
             return;
         }
@@ -119,6 +120,7 @@ public class SceneUiManager : MonoBehaviour
             ScreenCover.transform.localPosition = postStartLoadPos;
             Tween tween = ScreenCover.transform
                 .DOLocalMoveX(postEndLoadPos.x, .5f)
+                .SetDelay(.75f)
                 .SetUpdate(true);
             tween.OnComplete(() =>
             {

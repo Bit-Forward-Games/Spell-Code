@@ -31,10 +31,10 @@ public class SpellFloppyDisplay : MonoBehaviour
 
     [NonSerialized]
     public Vector2[] displayLocations = new Vector2[4] { 
-        new Vector2(-400, 260),
-        new Vector2(400, 260), 
-        new Vector2(-400, -260), 
-        new Vector2(400, -260) };
+        new Vector2(-360, 250),
+        new Vector2(360, 250), 
+        new Vector2(-360, -250), 
+        new Vector2(360, -250) };
 
     public GameObject canvasObject;
 
@@ -103,6 +103,29 @@ public class SpellFloppyDisplay : MonoBehaviour
                     SpellGifGO.transform.DOScale(gifScaleNoDesc, .25f);
                 });
             }
+        }
+    }
+
+    public void SetDescriptionVisible(bool visible, bool animate)
+    {
+        showDesc = visible;
+
+        if (animate)
+        {
+            FloppyDisplayUpdate();
+            return;
+        }
+
+        if (SpellGifGO != null)
+        {
+            SpellGifGO.transform.DOKill();
+            SpellGifGO.transform.localScale = new Vector3(showDesc ? gifScaleDesc : gifScaleNoDesc, showDesc ? gifScaleDesc : gifScaleNoDesc, 1);
+        }
+
+        if (spellDesc != null)
+        {
+            spellDesc.DOKill();
+            spellDesc.color = showDesc ? Color.black : Color.clear;
         }
     }
 

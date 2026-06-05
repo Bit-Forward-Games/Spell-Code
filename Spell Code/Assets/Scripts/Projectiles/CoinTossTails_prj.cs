@@ -16,9 +16,9 @@ public class CoinTossTails_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Coin Toss");
         activeHitboxGroupIndex = 0;
         hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4); // Set horizontal speed based on facing direction
         vSpeed = Fixed.FromInt(10); // No vertical speed

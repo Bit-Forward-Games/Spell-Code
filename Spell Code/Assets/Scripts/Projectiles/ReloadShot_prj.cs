@@ -19,7 +19,7 @@ public class ReloadShot_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset)
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;

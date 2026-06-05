@@ -85,6 +85,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<StageDataSO> gameStages = new List<StageDataSO>();
     public StageDataSO lobbySO;
     public StageDataSO TutorialSO;
+    public StageDataSO trainingGroundsSO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
     public SceneUiManager sceneManager;
@@ -92,6 +93,7 @@ public class GameManager : MonoBehaviour
     public List<GameObject> tempMapGOs = new List<GameObject>();
     public GameObject lobbyMapGO;
     public GameObject tutorialMapGO;
+    public GameObject trainingGroundsGO;
     public string currentStage;
 
     [HideInInspector]
@@ -283,6 +285,8 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             
         }
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void SetResolution()
@@ -340,6 +344,7 @@ public class GameManager : MonoBehaviour
 
     public void ExecuteOrder66()
     {
+
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
         DontDestroyOnLoad(dontDestroyProbe);
 
@@ -356,12 +361,21 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
+        SceneManager.LoadScene("MainMenu");
+        //Camera.main.GetComponentInChildren<Image>().enabled = false;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        SetResolution();
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.ApplySettings();
+        }
+        else
+        {
+            SetResolution();
+        }
 
         isOnlineMatchActive = false;
         isWaitingForOpponent = false;
@@ -428,36 +442,42 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
         //if = is pressed, player 1 win
         if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
         {
             players[0].roundRam = 600;
         }
 
-        // if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
-        // {
-        //     sceneManager.LoadScene("Tutorial");
-        //     SetStage(-2);
-        //     ResetPlayers();
-        // }
+        if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
+        {
+            loadTrainingGrounds();
+        }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
         {
             players[0].ClearSpellList();
         }
-//#endif
+#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 
     }
 
-    public void loadTutorial()
+    public void LoadTutorial()
     {
         
         sceneManager.LoadScene("Tutorial");
         SetStage(-2);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
+    public void loadTrainingGrounds()
+    {
+        sceneManager.LoadScene("TrainingGrounds");
+        SetStage(-3);
         ResetPlayers();
         players[0].ClearSpellList();
     }
@@ -1102,7 +1122,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        byte[] stateData = SerializeManagedState();
+        SendAuthoritativeOnlineLobbySnapshotData(SerializeManagedState());
+    }
+
+    // Sends already-serialized authoritative state to every remote peer. Split out from the method
+    // above so the authoritative-broadcast path can serialize ONCE and reuse the same bytes for both
+    // the network send and the host's own self-apply (see BroadcastAuthoritativeOnlineStateSnapshot).
+    private void SendAuthoritativeOnlineLobbySnapshotData(byte[] stateData)
+    {
+        if (stateData == null || activeOnlineRoster == null || MatchMessageManager.Instance == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
@@ -1117,20 +1149,32 @@ public class GameManager : MonoBehaviour
 
     public void BroadcastAuthoritativeOnlineStateSnapshot(string reason = "")
     {
-        if (!isOnlineMatchActive || !IsOnlineHostAuthority())
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || activeOnlineRoster == null
+            || MatchMessageManager.Instance == null
+            || !IsOnlineSimulationScene(SceneManager.GetActiveScene()))
         {
             return;
         }
 
-        SendAuthoritativeOnlineLobbySnapshot();
+        int snapshotFrame = frameNumber;
+        byte[] stateData = SerializeManagedState();
+        SendAuthoritativeOnlineLobbySnapshotData(stateData);
+
+        // Host self-apply (round-trip)
+        DeserializeManagedState(stateData);
+        ForceSetFrame(snapshotFrame);
+        RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(frameNumber);
+            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(snapshotFrame);
         }
+        RollbackManager.Instance?.SaveState();
 
         if (!string.IsNullOrEmpty(reason))
         {
-            Debug.Log($"[OnlineState] Broadcast authoritative snapshot after {reason}. Frame={frameNumber}");
+            Debug.Log($"[OnlineState] Broadcast authoritative snapshot after {reason}. Frame={snapshotFrame}");
         }
     }
 
@@ -2152,7 +2196,7 @@ public class GameManager : MonoBehaviour
         }
 
         // General cleanup
-        ProjectileManager.Instance.DeleteAllProjectiles();
+        ProjectileManager.Instance.DestroyAllProjectiles();
 
         //Debug.Log("Match stopped and state reset");
     }
@@ -2296,7 +2340,7 @@ public class GameManager : MonoBehaviour
         {
             GameObject floppy = floppyObjects[i];
             if (floppy == null) continue;
-            SpellCode_FloppyDisk disk = floppy.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
             if (disk != null)
             {
                 disk.SimulateOnline(inputs, isRealFrame);
@@ -2493,7 +2537,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < activeFloppies.Length; i++)
         {
             GameObject floppy = activeFloppies[i];
-            SpellCode_FloppyDisk disk = floppy != null ? floppy.GetComponent<SpellCode_FloppyDisk>() : null;
+            FloppyPickup disk = floppy != null ? floppy.GetComponent<FloppyPickup>() : null;
             if (floppy == null || disk == null)
             {
                 bw.Write(0);
@@ -2501,6 +2545,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(0f);
                 bw.Write(0f);
                 bw.Write((byte)0);
+                bw.Write(false);
                 continue;
             }
 
@@ -2509,13 +2554,14 @@ public class GameManager : MonoBehaviour
             bw.Write(floppy.transform.position.x);
             bw.Write(floppy.transform.position.y);
             bw.Write(disk.GetSelectHoldCounter());
+            bw.Write(disk.IsDescriptionVisible());
         }
     }
 
     private void DeserializeFloppyState(BinaryReader br)
     {
         int floppyCount = br.ReadInt32();
-        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter)> savedFloppies = new List<(int, string, Vector2, byte)>(floppyCount);
+        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription)> savedFloppies = new List<(int, string, Vector2, byte, bool)>(floppyCount);
 
         for (int i = 0; i < floppyCount; i++)
         {
@@ -2524,7 +2570,8 @@ public class GameManager : MonoBehaviour
             float posX = br.ReadSingle();
             float posY = br.ReadSingle();
             byte holdCounter = br.ReadByte();
-            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter));
+            bool showDescription = br.ReadBoolean();
+            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription));
         }
 
         FindAllFloppyDisks();
@@ -2570,10 +2617,11 @@ public class GameManager : MonoBehaviour
                 GameObject restoredDisk = gamba.SpawnFloppyDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.diskName, false, false);
                 if (restoredDisk != null)
                 {
-                    SpellCode_FloppyDisk disk = restoredDisk.GetComponent<SpellCode_FloppyDisk>();
+                    FloppyPickup disk = restoredDisk.GetComponent<FloppyPickup>();
                     if (disk != null)
                     {
                         disk.SetSelectHoldCounter(savedFloppy.holdCounter);
+                        disk.SetDescriptionVisible(savedFloppy.showDescription, false);
                     }
                 }
                 break;
@@ -2704,9 +2752,19 @@ public class GameManager : MonoBehaviour
     {
         //if (!isRunning)
         //    return;
+        Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            playerInputManager.enabled = true;
+            if (activeScene.name == "MainMenu")
+            {
+                playerInputManager.enabled = true;
+                playerInputManager.EnableJoining();
+            }
+            else
+            {
+                playerInputManager.DisableJoining();
+                playerInputManager.enabled = false;
+            }
         }
 
         ulong[] inputs = new ulong[playerCount];
@@ -2714,10 +2772,6 @@ public class GameManager : MonoBehaviour
         {
             inputs[i] = players[i].GetInputs();
         }
-
-        Scene activeScene = SceneManager.GetActiveScene();
-        if (activeScene.name != "MainMenu") { playerInputManager.DisableJoining(); }
-        else { playerInputManager.EnableJoining(); }
 
         if (activeScene.name == "End")
         {
@@ -2781,13 +2835,6 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
-            //if (lastSceneName == "End")
-            //{
-            //for (int i = 0; i < gates.Length; i++)
-            //{
-            //    gates[i].SetOpen(true);
-            //}
-
 
             goDoorPrefab.CheckOpenDoor();
 
@@ -2914,7 +2961,7 @@ public class GameManager : MonoBehaviour
     //gets called everytime a new player enters, recreates player array
     public void GetPlayerControllers(PlayerInput playerInput)
     {
-        if (playerInput == null)
+        if (playerInput == null || playerCount >= players.Length)
         {
             return;
         }
@@ -2927,17 +2974,22 @@ public class GameManager : MonoBehaviour
 
         // Check if this player is already registered
         PlayerController existingPlayer = playerInput.GetComponent<PlayerController>();
+        if (existingPlayer == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < playerCount; i++)
         {
             if (players[i] == existingPlayer)
             {
-                //Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
+                Debug.LogWarning($"Player {existingPlayer.name} already registered at index {i} - ignoring duplicate registration");
                 return; // Already registered, don't add again!
             }
         }
 
         //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
-        if (!playerInput.user.valid)
+        if (!playerInput.user.valid || existingPlayer.npcOverride)
         {
             if (!playerNPCs.Contains(existingPlayer)){
                 playerNPCs.Add(existingPlayer);
@@ -3143,7 +3195,7 @@ public class GameManager : MonoBehaviour
 
                 // Clear lingering projectiles from the dead player so both clients respawn
                 // into the same clean state instead of carrying old shots across deaths.
-                ProjectileManager.Instance.DeleteAllPlayerProjectiles(player.pID);
+                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(player.pID);
 
                 // Respawn position is deterministic state and must be recomputed during rollback too.
                 FixedVec2 spawnPos = GetRandomSpawnVec2();
@@ -3289,6 +3341,10 @@ public class GameManager : MonoBehaviour
         {
             return TutorialSO.playerSpawnTransform;
         }
+        if (currentStageIndex == -3)
+        {
+            return trainingGroundsSO.playerSpawnTransform;
+        }
         else
         {
             return stages[currentStageIndex].playerSpawnTransform;
@@ -3304,6 +3360,10 @@ public class GameManager : MonoBehaviour
         if (currentStageIndex == -2)
         {
             return TutorialSO.npcSpawnTransform;
+        }
+        if (currentStageIndex == -3)
+        {
+            return trainingGroundsSO.npcSpawnTransform;
         }
         else
         {
@@ -3543,7 +3603,7 @@ public class GameManager : MonoBehaviour
         roundOver = false;
 
         dataManager.SaveToFile();
-        ProjectileManager.Instance.DeleteAllProjectiles();
+        ProjectileManager.Instance.DestroyAllProjectiles();
         if (isOnlineMatchActive)
         {
             int winnerPid = endWinnerPid > 0 ? endWinnerPid : (bigWinner != null ? bigWinner.pID : -1);
@@ -3667,6 +3727,12 @@ public class GameManager : MonoBehaviour
         {
             tutorialMapGO.SetActive(true);
             currentStage = tutorialMapGO.name;
+            return;
+        }
+        if (currentStageIndex == -3)
+        {
+            trainingGroundsGO.SetActive(true);
+            currentStage = trainingGroundsGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
@@ -3823,6 +3889,7 @@ public class GameManager : MonoBehaviour
 
         RefreshSceneObjectReferences();
         HitboxManager.Instance.GetActiveCamera();
+        ProjectileManager.Instance.DeleteAllProjectiles();
 
         if (scene.name == "End")
         {
@@ -4048,6 +4115,13 @@ public class GameManager : MonoBehaviour
             CheckSceneTransitionReady();
             // Ready flags are already reset in RoundEnd()
         }
+            GameObject[] curtains = GameObject.FindGameObjectsWithTag("LoadCurtain");
+            Debug.Log(curtains.Length);
+            if(curtains.Length > 0)
+            {
+                curtains[0].SetActive(true);
+            }
+        sceneManager.RemoveScreenCover();
     }
 
     private void ResetOnlineShopChoiceFlags()
@@ -4074,6 +4148,7 @@ public class GameManager : MonoBehaviour
         }
         lobbyMapGO.SetActive(false);
         tutorialMapGO.SetActive(false);
+        trainingGroundsGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()
@@ -4156,6 +4231,16 @@ public class GameManager : MonoBehaviour
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(isActive);
+            FirstTimeBootTutorial();
+        }
+    }
+
+    public void FirstTimeBootTutorial()
+    {
+        if (SettingsManager.Instance.IsFirstLaunch())
+        {
+            SettingsManager.Instance.MarkFirstLaunchComplete();
+            LoadTutorial();
         }
     }
 
@@ -4176,14 +4261,14 @@ public class GameManager : MonoBehaviour
         floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk")
             .OrderBy(go =>
             {
-                SpellCode_FloppyDisk disk = go != null ? go.GetComponent<SpellCode_FloppyDisk>() : null;
+                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
                 return disk != null ? disk.ownerPID : int.MaxValue;
             })
             .ThenBy(go => go != null ? go.transform.position.x : float.MaxValue)
             .ThenBy(go => go != null ? go.transform.position.y : float.MaxValue)
             .ThenBy(go =>
             {
-                SpellCode_FloppyDisk disk = go != null ? go.GetComponent<SpellCode_FloppyDisk>() : null;
+                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
                 return disk != null ? disk.diskName : string.Empty;
             })
             .ToArray();

@@ -642,6 +642,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -663,9 +665,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
   m_SortingLayer: 3
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &2713965554629369797
 MonoBehaviour:
@@ -725,6 +729,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -818,6 +823,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -839,9 +846,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
   m_SortingLayer: 3
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &8759932525811072817
 MonoBehaviour:
@@ -901,6 +910,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1267,7 +1277,7 @@ MonoBehaviour:
   playerSpriteRenderer: {fileID: -1293374541561941338}
   inputs: {fileID: 8219335073837037833}
   playerInputs: {fileID: -944628639613478452, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  characterName: Code-E
+  characterName: R-Cade
   enableHitRumble: 1
   hitRumbleLow: 0.2
   hitRumbleHigh: 0.6
@@ -1287,6 +1297,7 @@ MonoBehaviour:
   maxJumpCount: 0
   flowState: 0
   stockStability: 0
+  stockStabilityModified: 0
   demonAura: 0
   demonAuraLifeSpanTimer: 0
   reps: 0
@@ -1320,10 +1331,10 @@ MonoBehaviour:
   comboResetTimer: 0
   hitstop: 0
   hitstopActive: 0
-  hitstunOverride: 0
+  superArmor: 0
   iframes: 0
-  lightArmor: 0
-  spellList: []
+  armor: 0
+  universalSpells: []
   basicProjectileInstance: {fileID: 0}
   inputDisplay: {fileID: 8759932525811072817}
   removeInputDisplay: 0
@@ -1346,7 +1357,7 @@ MonoBehaviour:
   startingSpell: 
   startingSpellAdded: 0
   suppressSpellLoadSideEffects: 0
-  pID: 0
+  npcOverride: 0
   vWave: 0
   killeez: 0
   DemonX: 0
@@ -1354,6 +1365,7 @@ MonoBehaviour:
   _playerPauseIndex: 0
 --- !u!212 &-1293374541561941338
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1372,6 +1384,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1393,9 +1407,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
   m_SortingLayer: 3
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1405,7 +1421,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &2545922301449357389
 MonoBehaviour:
@@ -1529,6 +1544,8 @@ SpriteMask:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1550,9 +1567,11 @@ SpriteMask:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}
   m_MaskAlphaCutoff: 0.2
   m_FrontSortingLayerID: 0

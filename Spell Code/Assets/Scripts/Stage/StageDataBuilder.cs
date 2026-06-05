@@ -10,10 +10,12 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using FixedVec3 = BestoNet.Types.Vector3<BestoNet.Types.Fixed32>;
 using System.Linq;
 
-
 public class StageDataBuilder : MonoBehaviour
 {
     public StageDataSO stageDataSO;
+    public BorderType _borderType = BorderType.Collision;
+    public StageType _stageType = StageType.General;
+    public StageSize _stageSize = StageSize.Medium;
 
     private GameObject[] platforms;
     private GameObject[] solids;
@@ -57,12 +59,9 @@ public class StageDataBuilder : MonoBehaviour
         if (Input.GetKey("s") && Input.GetKeyDown("o"))
         {
             GetStageData();
-            #if UNITY_EDITOR
             SaveStageData();
-            #endif
         }
     }
-
 #endif
 
     void GetStageData()
@@ -117,14 +116,67 @@ public class StageDataBuilder : MonoBehaviour
             stageDataSO.activatableSolidExtent[l] = activatableSolidColliderBounds.extents;
             l++;
         }
+
+        //apply the inspector set variables _borderType and _stageType
+        stageDataSO.borderType = _borderType;
+        stageDataSO.stageType = _stageType;
+
+        //set stage borders based on _stageSize
+        switch (_stageSize)
+        {
+            case StageSize.Small:
+                //set borders to defualt small size
+                stageDataSO.borderMin = new Vector3(-300f, -220f, 0f);
+                stageDataSO.borderMax = new Vector3(300, 220, 0f);
+
+                //break
+                break;
+
+            case StageSize.Medium:
+                //set borders to defualt medium size
+                stageDataSO.borderMin = new Vector3(-300f, -220f, 0f);
+                stageDataSO.borderMax = new Vector3(300, 220, 0f);
+
+                //if this is suppose to be a looping stage, set the cameraBorderMin and cameraBorderMax
+                if (_borderType == BorderType.Loop)
+                {
+                    stageDataSO.camBorderMin = new Vector3(-300, -205f, 0f);
+                    stageDataSO.camBorderMax = new Vector3(300f, 205f, 0f);
+                }
+                
+                //break
+                break;
+
+            case StageSize.Large:
+                //set borders to defualt large size
+                stageDataSO.borderMin = new Vector3(-654f, -520f, 0f);
+                stageDataSO.borderMax = new Vector3(654, 520, 0f);
+
+                //break
+                break;
+
+            case StageSize.Custom:
+                //get previous SOs values
+
+
+                //set border and camera mins and maxs to the previous SOs values
+                stageDataSO.borderMin = Vector3.zero;
+                stageDataSO.borderMax = Vector3.zero;
+
+                //break
+                break;
+        }
+
+        //set dynamic camera toggle
+        stageDataSO.dynamicCamera = (_borderType != BorderType.Loop) ? true : false;
     }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     void SaveStageData()
     {
         // Specify the path where you want to save it
         // Must start with "Assets/" and include file extension
-        string directory = "Assets/SO";
+        string directory = "Assets/SO/Arena SOs";
         
         // Make sure the directory exists
         if (!System.IO.Directory.Exists(directory))
@@ -132,10 +184,11 @@ public class StageDataBuilder : MonoBehaviour
             System.IO.Directory.CreateDirectory(directory);
         }
 
-        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-    
-        // Create the path with scene name + "StageDataSO"
-        string path = $"{directory}/{sceneName}StageDataSO.asset";
+        //string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        string sceneName = this.gameObject.name;
+
+        // Create the path with scene name + "_StageDataSO"
+        string path = $"{directory}/{sceneName} StageDataSO.asset";
         
         // Create the asset at the specified path
         AssetDatabase.CreateAsset(stageDataSO, path);
@@ -145,7 +198,7 @@ public class StageDataBuilder : MonoBehaviour
         AssetDatabase.Refresh();
 
         //log a message
-        Debug.Log(sceneName + "StageDataSO.asset has been saved to: " + directory);
+        Debug.Log(sceneName + " StageDataSO.asset has been saved to: " + directory);
     }
-    #endif
+#endif
 }

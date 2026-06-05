@@ -48,6 +48,8 @@ public class HitboxManager : MonoBehaviour
 
     private StageCamera cachedForScreenShakeCamera;
 
+    public byte hitstopVal = 8;
+
     // ===== | Methods | =====
     private void Start()
     {
@@ -125,7 +127,7 @@ public class HitboxManager : MonoBehaviour
                         {
                             defendingPlayer.facingRight = !projectile.facingRight;
                             
-                            byte hitstopVal = 8;
+                            
                             if(hitbox.hitstun > 0)
                             {
                                 if (projectile.meleeProjectile)
@@ -199,14 +201,15 @@ public class HitboxManager : MonoBehaviour
                         projectile.facingRight, defenderFacingRight))
             {
                 collidedHitbox = hitbox;
-                //defendingPlayer.facingRight = !projectile.facingRight;
-                //byte hitstopVal = 5;
-                //defendingPlayer.hitstop = hitstopVal;
-                //defendingPlayer.hitboxData = hitbox;
-                //defendingPlayer.isHit = true;
-                //cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                //projectile.playerIgnoreArr[Array.IndexOf(GameManager.Instance.players, defendingPlayer)] = true;
-                //projectile.owner.spellsHit++;
+                if(hitbox.hitstun > 0)
+                    {
+                        if (projectile.meleeProjectile)
+                        {
+                            projectile.owner.hitstop = hitstopVal;
+                        }
+                        //defendingPlayer.hitstop = hitstopVal;
+                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                    }
                 return true;
             }
         }

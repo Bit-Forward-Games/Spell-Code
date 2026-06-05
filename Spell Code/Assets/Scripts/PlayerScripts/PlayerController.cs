@@ -172,7 +172,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector]
     public Fixed playerHeight;
 
-    [HideInInspector]
+    [NonSerialized]
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
 
@@ -273,8 +273,10 @@ public class PlayerController : MonoBehaviour
     public string startingSpell;
     public bool startingSpellAdded = false;
     public bool suppressSpellLoadSideEffects = false;
+    [NonSerialized]
+    public int pID = -1;
 
-    public int pID = 0;
+    public bool npcOverride = false;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
@@ -339,8 +341,11 @@ public class PlayerController : MonoBehaviour
         ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
-        SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
-        StopHitRumble();
+        if (this.gameObject != null)
+        {
+            SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+            StopHitRumble();
+        }
     }
 
     private void OnDestroy()
@@ -348,8 +353,11 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         ClearDamageNumbers();
 
-        //stop playing all repeating sounds for this player
-        if(SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        if (this.gameObject != null)
+        {
+            //stop playing all repeating sounds for this player
+            if (SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
+        }
         StopHitRumble();
     }
 
@@ -366,16 +374,19 @@ public class PlayerController : MonoBehaviour
     {
         //Set Player Values 
         charData = CharacterDataDictionary.GetCharacterData(characterName);
+        if(charData != null)
+        {
+            currentPlayerHealth = charData.playerHealth;
+            runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
+            slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
+            maxJumpCount = (byte)charData.jumpCount;
+            jumpForce = Fixed.FromInt(charData.jumpForce);
+            playerWidth = Fixed.FromInt(charData.playerWidth);
+            playerHeight = Fixed.FromInt(charData.playerHeight);
 
-        currentPlayerHealth = charData.playerHealth;
-        runSpeed = Fixed.FromInt(charData.runSpeed) / Fixed.FromInt(10);
-        slideSpeed = Fixed.FromInt(charData.slideSpeed) / Fixed.FromInt(10);
-        maxJumpCount = (byte)charData.jumpCount;
-        jumpForce = Fixed.FromInt(charData.jumpForce);
-        playerWidth = Fixed.FromInt(charData.playerWidth);
-        playerHeight = Fixed.FromInt(charData.playerHeight);
-
-        startingSpell = charData.startingInventory[0];
+            startingSpell = charData.startingInventory[0];
+        }
+        
 
         //fill the spell list with the character's initial spells
         //for (int i = 0; i < charData.startingInventory.Count /*&& i < spellList.Count*/; i++)
@@ -1080,13 +1091,20 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if (input.Direction == 2 && onPlatform)
+                    if(input.Direction == 2 && onPlatform)
                     {
                         break;
                     }
                     SetState(PlayerState.Slide);
                     break;
                 }
+
+                if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
+                {
+                    DoJump();
+                    break;
+                }
+                
                 //Check Direction Inputs
                 if (input.Direction % 3 == 0) //3 6 or 9
                 {
@@ -1108,11 +1126,6 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.CodeWeave);
                     break;
                 }
-                else if (jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump? input.Direction > 6:false) && tapJumpPrimed)))
-                {
-                    DoJump();
-                    break;
-                }
                 LerpHspd(Fixed.FromInt(0), 3);
                 break;
             case PlayerState.Run:
@@ -1130,7 +1143,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1204,6 +1217,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
+                    if(input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -1903,7 +1917,8 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         onPlatform = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: GameManager.Instance.TutorialSO) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
@@ -2455,15 +2470,15 @@ public class PlayerController : MonoBehaviour
 
 
 
-        if (stockStabilityModified > 0)
-        {
-            //play the stock aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
-        }
-        else
-        {
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
-        }
+        //if (stockStabilityModified > 0)
+        //{
+        //    //play the stock aura visual effect 
+        //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
+        //}
+        //else
+        //{
+        //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
+        //}
 
 
 
@@ -2492,6 +2507,9 @@ public class PlayerController : MonoBehaviour
 
         if(damageTextColor == GameManager.colors["blue"])
         {
+            //Play the critical hit VFX on top of the hit VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.CRITICAL_HIT, position + FixedVec2.FromFloat(0f, 42f), pID);
+
             //Play the critical hit noise on top of the hit SFX
             SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_HIT);
         }

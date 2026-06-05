@@ -10,7 +10,7 @@ public enum Sounds //enum to store the names of the sounds that can play
 { 
     JUMP, RUN, HIT, DEATH, ENTER_CODE_WEAVE, EXIT_CODE_WEAVE, CONTINUOUS_CODE_WEAVE, FAILED_EXIT_CODE_WEAVE, INPUT_CODE_UP, INPUT_CODE_RIGHT, INPUT_CODE_DOWN, INPUT_CODE_LEFT,
     ARMOR_HIT,
-    SLIDE, CRITICAL_HIT
+    SLIDE, CRITICAL_HIT, CRITICAL_CAST, SWEET_SPOT_HIT
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -205,6 +205,12 @@ public class SFX_Manager : MonoBehaviour
         //    //return
         //    return;
         //}
+        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        {
+            //return
+            return;
+        }
 
         //save the appropriate SoundObject since we know it exists
         AudioClip _audioClip = spellcodeAudioClips.Find(x => x.name == _soundName);
@@ -214,6 +220,7 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
+        //Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
     }
 
     /// <summary>

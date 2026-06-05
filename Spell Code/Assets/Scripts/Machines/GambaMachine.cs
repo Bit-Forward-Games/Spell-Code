@@ -46,6 +46,7 @@ public class GambaMachine : MonoBehaviour
     public GameObject floppy;
     public Vector2[] diskLocations;
     public Vector2[] tutorialLocs;
+    public Vector2[] trainingLocs;
     private Scene activeScene;
     public bool facingRight = true;
 
@@ -293,6 +294,63 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, tutorialLocs[4], "Trickshot Alley");
                         SpawnFloppyDisk(ownerPID, tutorialLocs[5], "Mine Crafter");
                         SpawnFloppyDisk(ownerPID, tutorialLocs[6], "No-Scope Shot");
+                        break;
+                }
+
+            }
+        }
+
+        else if (activeScene.name == "TrainingGrounds")
+        {
+
+            if (isActive && CheckHitboxCollision() && machineID == 3)
+            {
+                foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                p1_floppys.Clear();
+
+                isActive = false;
+
+                //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave
+                counter++;
+                if (counter > 4) { counter = 1; }
+
+                switch (counter)
+                {
+                    //DemonX
+                    case 1:
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Amon Slash");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Asuran Blades");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Bifrons Blade");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "Abaddon Uppercut");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Hell-Chain Sweep");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demonic Descent");
+                        break;
+                    //BigStox
+                    case 2:
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Quarter Report");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Coin Toss");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Get A Job");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "Cash Out");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Blue Chip Trader");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
+                        break;
+                    //Killeez
+                    case 3:
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Blade Of Ares");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Might Of Zeus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trident Of Poseidon");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Boots Of Hermes");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");
+                        break;
+                    //VWave
+                    case 4:
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Skillshot Slash");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Reload Shot");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
                         break;
                 }
 
@@ -672,7 +730,7 @@ public class GambaMachine : MonoBehaviour
                 continue;
             }
 
-            SpellCode_FloppyDisk diskInfo = floppyDisk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup diskInfo = floppyDisk.GetComponent<FloppyPickup>();
             if (diskInfo != null)
             {
                 spells.Remove(diskInfo.diskName);
@@ -700,7 +758,7 @@ public class GambaMachine : MonoBehaviour
             string spellToAdd = spells[randomInt];
 
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
-            SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup info = disk.GetComponent<FloppyPickup>();
             info.diskName = spellToAdd;
             info.ownerPID = ownerPID;
             floppys.Add(disk);
@@ -761,7 +819,7 @@ public class GambaMachine : MonoBehaviour
         else
         {
             GameObject disk = Instantiate(floppy, location, Quaternion.identity);
-            SpellCode_FloppyDisk info = disk.GetComponent<SpellCode_FloppyDisk>();
+            FloppyPickup info = disk.GetComponent<FloppyPickup>();
             disk.transform.position = new Vector3(disk.transform.position.x, disk.transform.position.y, -1);
             info.diskName = name;
             info.ownerPID = ownerPID;

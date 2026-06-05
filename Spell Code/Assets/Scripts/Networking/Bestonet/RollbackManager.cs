@@ -173,7 +173,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int highestRemoteInputFrameSeen = -1; // Highest frame number ever inserted into receivedInputs
         private int lossAwareHoldsThisStreak = 0;     // Bounded by MaxLossAwareHolds
         private int lastLossAwareHoldFrame = -1;      // Last local frame we held due to loss
-        private int lobbySnapshotPacingGraceUntilFrame = -1;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
@@ -502,7 +501,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             highestRemoteInputFrameSeen = -1;
             lossAwareHoldsThisStreak = 0;
             lastLossAwareHoldFrame = -1;
-            lobbySnapshotPacingGraceUntilFrame = -1;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
@@ -792,22 +790,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lastDroppedFrame = -1;
             remoteFrameStallTicks = 0;
             lastRemoteFrameForTimeout = remoteFrame;
-            int graceFrames = Mathf.Max(InputDelay + MultiplayerMaxPredictionAheadFrames + 12, MaxRollBackFrames * 3);
-            lobbySnapshotPacingGraceUntilFrame = Mathf.Max(lobbySnapshotPacingGraceUntilFrame, snapshotAnchor + graceFrames);
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
 
             if (stabilizedStreams > 0)
             {
-                Debug.Log($"[Rollback] Stabilized lobby snapshot pacing. Frame={snapshotAnchor} Streams={stabilizedStreams} PendingStreams={pendingRemoteInputSlots.Count} GraceUntil={lobbySnapshotPacingGraceUntilFrame}.");
+                Debug.Log($"[Rollback] Stabilized lobby snapshot pacing. Frame={snapshotAnchor} Streams={stabilizedStreams} PendingStreams={pendingRemoteInputSlots.Count}.");
             }
-        }
-
-        private bool IsLobbySnapshotPacingGraceActive(int currentFrame)
-        {
-            return GameManager.Instance != null
-                && GameManager.Instance.isOnlineMatchActive
-                && SceneManager.GetActiveScene().name == "MainMenu"
-                && currentFrame <= lobbySnapshotPacingGraceUntilFrame;
         }
 
         public bool IsWaitingForInitialRemoteInputStreams()
@@ -1189,7 +1177,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int effectiveRemoteFrame = GetEffectiveRemoteFrame(currentFrame);
             bool timeoutGraceActive = UnityEngine.Time.unscaledTime < timeoutGraceUntilRealtime
                 || GameManager.Instance.isTransitioning;
-            bool lobbySnapshotPacingGraceActive = IsLobbySnapshotPacingGraceActive(currentFrame);
 
             if (effectiveRemoteFrame != lastRemoteFrameForTimeout)
             {
@@ -1280,24 +1267,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             int maxPredictionAhead = GetMaxPredictionAheadFrames();
-
-            // Pace against the LATER of the slowest received remote frame and syncFrame. After an
-            // authoritative lobby snapshot, ResetRollbackBaseline sets syncFrame to the snapshot
-            // frame i.e. every peer's state is authoritatively confirmed up to there but the
-            // per-slot effectiveRemoteFrame is still the stale pre-snapshot value. Measuring the gap
-            // from effectiveRemoteFrame therefore manufactures a large phantom gap
-            // that freezes late joiners in a prediction hold and feeds the rollback
-            // storm, even though their state is fully confirmed to syncFrame. (StabilizeLobbySnapshotPacing
-            // tried to fix this by writing remoteFrameBySlot = snapshotFrame, but SetRemoteFrameAdvantage
-            // overwrites that with the peer's real behind-frame on the next tick, so it never sticks.)
-            // Clamping here is robust because it's read-time. It is a no-op in normal play (syncFrame
-            // <= effectiveRemoteFrame there) and only affects local frame pacing -- never sim state,
-            // input application, or the hash -- so it cannot cause a desync.
-            int pacingRemoteFrame = Mathf.Max(effectiveRemoteFrame, syncFrame);
-            if (!lobbySnapshotPacingGraceActive
-                && !isRollbackFrame
-                && effectiveRemoteFrame > 0
-                && currentFrame - pacingRemoteFrame > maxPredictionAhead)
+            if (!isRollbackFrame && effectiveRemoteFrame > 0 && currentFrame - effectiveRemoteFrame > maxPredictionAhead)
             {
                 consecutiveDrop++;
                 // Online-only: in 3/4P we want to ENFORCE the prediction-ahead cap. Pulsing
@@ -1322,15 +1292,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             // --- Packet-Loss-Aware Soft Hold ---
-            if (lobbySnapshotPacingGraceActive)
-            {
-                packetLossSignal = 0;
-                lossAwareHoldsThisStreak = 0;
-                lastLossAwareHoldFrame = -1;
-            }
-
             // Decay the loss signal each tick. Costs a single int subtract when no loss is happening.
-            if (!lobbySnapshotPacingGraceActive && packetLossSignal > 0)
+            if (packetLossSignal > 0)
             {
                 packetLossSignal = Mathf.Max(0, packetLossSignal - PacketLossDecayPerTick);
             }
@@ -1343,7 +1306,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             if (EnablePacketLossSmoothing
-                && !lobbySnapshotPacingGraceActive
                 && packetLossSignal >= PacketLossHoldThreshold
                 && lossAwareHoldsThisStreak < MaxLossAwareHolds
                 && !isRollbackFrame)
@@ -2395,7 +2357,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             if (EnablePacketLossSmoothing && isNewFrame)
             {
-                bool suppressPacketLossSignal = IsLobbySnapshotPacingGraceActive(localFrame);
                 // The Bestonet input transport (UnreliableNoDelay + resend window) means a frame
                 // arriving "fresh" after a higher one has already arrived is a recovered loss,
                 // and a brand-new highest frame that skips frames over the previous high-water
@@ -2408,13 +2369,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 {
                     int skipped = frame - highestRemoteInputFrameSeen - 1;
                     highestRemoteInputFrameSeen = frame;
-                    if (skipped > 0 && !suppressPacketLossSignal)
+                    if (skipped > 0)
                     {
                         // Multiple gaps in a single forward jump weight more heavily.
                         packetLossSignal = Mathf.Min(packetLossSignal + skipped * PacketLossEventWeight, PacketLossHoldThreshold * 4);
                     }
                 }
-                else if (!suppressPacketLossSignal)
+                else
                 {
                     // A late packet that filled an earlier gap. Treat as a recovered loss event.
                     packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
@@ -2463,7 +2424,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             if (EnablePacketLossSmoothing && isNewFrame)
             {
-                bool suppressPacketLossSignal = IsLobbySnapshotPacingGraceActive(localFrame);
                 int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int seen) ? seen : -1;
                 if (highestSeen < 0)
                 {
@@ -2473,12 +2433,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 {
                     int skipped = adjustedFrame - highestSeen - 1;
                     highestRemoteInputFrameSeenBySlot[slot] = adjustedFrame;
-                    if (skipped > 0 && !suppressPacketLossSignal)
+                    if (skipped > 0)
                     {
                         packetLossSignal = Mathf.Min(packetLossSignal + skipped * PacketLossEventWeight, PacketLossHoldThreshold * 4);
                     }
                 }
-                else if (!suppressPacketLossSignal)
+                else
                 {
                     packetLossSignal = Mathf.Min(packetLossSignal + PacketLossEventWeight, PacketLossHoldThreshold * 4);
                 }
@@ -2616,25 +2576,60 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// <summary> Updates the latest known frame from the opponent and estimates their current frame. Called by MatchMessageManager. </summary>
         public void SetRemoteFrame(int frame)
         {
+            if (ShouldPreserveLobbyRemoteFrameProgress() && frame < remoteFrame)
+            {
+                frame = remoteFrame;
+            }
+
             remoteFrame = frame; // Last frame opponent confirmed sending/receiving input for
             // Predict current remote frame based on ping (needs ping calculation from MatchMessageManager)
             int pingMs = matchManager?.Ping ?? 200; // Default ping if manager missing
             // Integer-only: one-way ping in frames = (pingMs / 2) * 60 / 1000, rounded up
             // Equivalent to CeilToInt((pingMs/2) / 16.667) but fully deterministic
             int pingFrames = (pingMs * 60 + 1999) / 2000; // ceiling division without floats
-            predictedRemoteFrame = frame + pingFrames;
+            int predictedFrame = frame + pingFrames;
+            if (ShouldPreserveLobbyRemoteFrameProgress() && predictedFrame < predictedRemoteFrame)
+            {
+                predictedFrame = predictedRemoteFrame;
+            }
+
+            predictedRemoteFrame = predictedFrame;
             // Optional: Clamp predictedRemoteFrame to reasonable bounds?
         }
 
         public void SetRemoteFrame(int slot, int frame)
         {
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
+            bool preserveLobbyProgress = ShouldPreserveLobbyRemoteFrameProgress();
+            if (preserveLobbyProgress
+                && remoteFrameBySlot.TryGetValue(slot, out int previousRemoteFrame)
+                && adjustedFrame < previousRemoteFrame)
+            {
+                adjustedFrame = previousRemoteFrame;
+            }
+
             remoteFrameBySlot[slot] = adjustedFrame;
             int pingMs = matchManager != null ? matchManager.GetPingForSlot(slot) : 200;
             int pingFrames = (pingMs * 60 + 1999) / 2000;
-            predictedRemoteFrameBySlot[slot] = adjustedFrame + pingFrames;
+            int predictedFrame = adjustedFrame + pingFrames;
+            if (preserveLobbyProgress
+                && predictedRemoteFrameBySlot.TryGetValue(slot, out int previousPredictedFrame)
+                && predictedFrame < previousPredictedFrame)
+            {
+                predictedFrame = previousPredictedFrame;
+            }
+
+            predictedRemoteFrameBySlot[slot] = predictedFrame;
             remoteFrame = GetEffectiveRemoteFrame(adjustedFrame);
-            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(adjustedFrame + pingFrames);
+            predictedRemoteFrame = GetEffectivePredictedRemoteFrame(predictedFrame);
+        }
+
+        private bool ShouldPreserveLobbyRemoteFrameProgress()
+        {
+            return GameManager.Instance != null
+                && GameManager.Instance.isOnlineMatchActive
+                && !GameManager.Instance.isTransitioning
+                && SceneManager.GetActiveScene().name == "MainMenu";
         }
 
         public void ResetTimeoutGrace(float graceSeconds)

@@ -68,7 +68,6 @@ public class MatchMessageManager : MonoBehaviour
 
     [Header("Network Settings")]
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
-    [SerializeField] private int LOBBY_SNAPSHOT_CHANNEL = 1;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
     [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
@@ -117,7 +116,6 @@ public class MatchMessageManager : MonoBehaviour
         public byte[] data;
         public P2PSend sendType;
         public float deliverTime;
-        public int channel;
     }
 
     private struct PendingInboundPacket
@@ -216,26 +214,9 @@ public class MatchMessageManager : MonoBehaviour
             return;
         }
 
-        // Drain channel 0 (inputs / acks / roster updates) and the dedicated snapshot channel.
-        // Both feed the same ProcessPacket dispatch; the channel is only a delivery lane.
-        DrainChannel(MATCH_MESSAGE_CHANNEL);
-        DrainChannel(LOBBY_SNAPSHOT_CHANNEL);
-
-        ProcessOutboundQueue();
-        ProcessInboundQueue();
-        TryReplayBufferedSceneMismatchedInputs();
-        MaintainPeerHandshakes();
-        RefreshAggregatePing();
-    }
-
-    // Pull and dispatch every available packet on a single Steam P2P channel. Channel 0 carries
-    // inputs/acks/roster updates; LOBBY_SNAPSHOT_CHANNEL carries only the bulky state snapshots.
-    // Keeping them on separate channels stops a snapshot's reliable burst from starving inputs.
-    private void DrainChannel(int channel)
-    {
-        while (SteamNetworking.IsP2PPacketAvailable(channel))
+        while (SteamNetworking.IsP2PPacketAvailable(MATCH_MESSAGE_CHANNEL))
         {
-            P2Packet? packet = SteamNetworking.ReadP2PPacket(channel);
+            P2Packet? packet = SteamNetworking.ReadP2PPacket(MATCH_MESSAGE_CHANNEL);
             if (!packet.HasValue)
             {
                 continue;
@@ -275,6 +256,12 @@ public class MatchMessageManager : MonoBehaviour
                 Debug.LogError($"Error processing packet: {e}");
             }
         }
+
+        ProcessOutboundQueue();
+        ProcessInboundQueue();
+        TryReplayBufferedSceneMismatchedInputs();
+        MaintainPeerHandshakes();
+        RefreshAggregatePing();
     }
 
     // Replay any input packets that were buffered because they arrived while
@@ -1005,7 +992,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(forceApply);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
-                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable, LOBBY_SNAPSHOT_CHANNEL);
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
         catch (Exception e)
@@ -1635,16 +1622,11 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    private bool SendPacket(SteamId peerId, byte[] data, P2PSend sendType, int channel = -1)
+    private bool SendPacket(SteamId peerId, byte[] data, P2PSend sendType)
     {
         if (!peerId.IsValid || !isRunning)
         {
             return false;
-        }
-
-        if (channel < 0)
-        {
-            channel = MATCH_MESSAGE_CHANNEL;
         }
 
         if (IsChaosActive() && StressTestController.Instance.affectOutbound)
@@ -1654,11 +1636,11 @@ public class MatchMessageManager : MonoBehaviour
                 return false;
             }
 
-            EnqueueOutbound(peerId, data, sendType, GetChaosDelaySeconds(), channel);
+            EnqueueOutbound(peerId, data, sendType, GetChaosDelaySeconds());
             return true;
         }
 
-        return SteamNetworking.SendP2PPacket(peerId, data, data.Length, channel, sendType);
+        return SteamNetworking.SendP2PPacket(peerId, data, data.Length, MATCH_MESSAGE_CHANNEL, sendType);
     }
 
     private bool IsChaosActive()
@@ -1674,7 +1656,7 @@ public class MatchMessageManager : MonoBehaviour
         return Mathf.Max(0f, delayMs / 1000f);
     }
 
-    private void EnqueueOutbound(SteamId peerId, byte[] data, P2PSend sendType, float delaySeconds, int channel)
+    private void EnqueueOutbound(SteamId peerId, byte[] data, P2PSend sendType, float delaySeconds)
     {
         byte[] copy = new byte[data.Length];
         Buffer.BlockCopy(data, 0, copy, 0, data.Length);
@@ -1684,8 +1666,7 @@ public class MatchMessageManager : MonoBehaviour
             peerId = peerId,
             data = copy,
             sendType = sendType,
-            deliverTime = Time.unscaledTime + delaySeconds,
-            channel = channel
+            deliverTime = Time.unscaledTime + delaySeconds
         };
 
         if (StressTestController.Instance.ShouldReorder() && outboundQueue.Count > 0)
@@ -1731,7 +1712,7 @@ public class MatchMessageManager : MonoBehaviour
             {
                 PendingOutboundPacket packet = outboundQueue[i];
                 outboundQueue.RemoveAt(i);
-                SteamNetworking.SendP2PPacket(packet.peerId, packet.data, packet.data.Length, packet.channel, packet.sendType);
+                SteamNetworking.SendP2PPacket(packet.peerId, packet.data, packet.data.Length, MATCH_MESSAGE_CHANNEL, packet.sendType);
             }
         }
     }

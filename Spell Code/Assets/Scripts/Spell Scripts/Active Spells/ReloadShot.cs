@@ -24,7 +24,7 @@ public class ReloadShot : SpellData
                 if (currentFlow > 0)
                 {
                     // Integer-only cooldown reduction: (cooldown * flow) / maxFlow
-                    cooldownCounter = (int)((long)cooldownCounter * currentFlow / VWavePassive.maxFlowState);
+                    cooldownCounter = (int)((long)cooldownCounter * currentFlow / FlowState.maxFlowState);
                     //if we dont hit the sweet spot, set flow state to 0
                     if (!defender.hitboxData.sweetSpot)
                     {

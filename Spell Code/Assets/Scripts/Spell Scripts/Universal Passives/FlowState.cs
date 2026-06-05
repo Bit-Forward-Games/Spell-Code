@@ -3,13 +3,13 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class VWavePassive : SpellData
+public class FlowState : SpellData
 {
     public static ushort maxFlowState = 600;
     public static ushort flowstateExtraDamage = 10;
-    public VWavePassive()
+    public FlowState()
     {
-        spellName = "VWave Passive";
+        spellName = "Flow State";
         brands = new Brand[]{ Brand.VWave };
         cooldown = 1;
         priorityOverride = 3;

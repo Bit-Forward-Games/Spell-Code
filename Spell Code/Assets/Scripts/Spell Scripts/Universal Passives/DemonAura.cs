@@ -3,12 +3,12 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class DemonXPassive : SpellData
+public class DemonAura : SpellData
 {
     public static ushort DemonAuraResetTime = 180;
-    public DemonXPassive()
+    public DemonAura()
     {
-        spellName = "Demon-X Passive";
+        spellName = "Demon Aura";
         brands = new Brand[]{ Brand.DemonX };
         cooldown = 1;
         priorityOverride = 3;

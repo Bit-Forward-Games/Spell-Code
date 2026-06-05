@@ -3717,7 +3717,7 @@ public class GameManager : MonoBehaviour
 
         if (playerCount == 2)
         {
-            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
+            gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.Duel);
         }
         else if (playerCount > 2)
         {

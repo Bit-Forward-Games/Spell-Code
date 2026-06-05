@@ -3,12 +3,12 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class KilleezPassive : SpellData
+public class Reps : SpellData
 {
     public static ushort DemonAuraResetTime = 180;
-    public KilleezPassive()
+    public Reps()
     {
-        spellName = "Killeez Passive";
+        spellName = "Reps";
         brands = new Brand[]{ Brand.Killeez };
         cooldown = 1;
         priorityOverride = 3;

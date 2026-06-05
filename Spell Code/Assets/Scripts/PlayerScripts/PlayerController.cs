@@ -2442,7 +2442,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)VWavePassive.maxFlowState * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)FlowState.maxFlowState * 100f);
 
             flowState--;
         }

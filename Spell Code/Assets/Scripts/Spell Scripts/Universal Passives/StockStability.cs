@@ -3,12 +3,12 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class BigStoxPassive : SpellData
+public class StockStability : SpellData
 {
     public static ushort bigStoxCritDamage = 15;
-    public BigStoxPassive()
+    public StockStability()
     {
-        spellName = "BigStox Passive";
+        spellName = "Stock Stability";
         brands = new Brand[]{ Brand.BigStox };
         cooldown = 1;
         priorityOverride = 5;

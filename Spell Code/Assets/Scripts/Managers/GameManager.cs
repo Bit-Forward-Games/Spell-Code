@@ -3721,7 +3721,7 @@ public class GameManager : MonoBehaviour
                 gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.Duel);
                 break;
             case 3:
-                gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+                gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.General);
                 break;
             case 4:
                 gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);

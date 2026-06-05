@@ -147,7 +147,7 @@ public class FloppyPickup : MonoBehaviour
         {
             if (isRealFrame && !diskDisplay.IsDisplayCanvasEnabled())
             {
-                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
+                diskDisplay.StartFloppyDisplay();
                 diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
             }
 
@@ -158,9 +158,7 @@ public class FloppyPickup : MonoBehaviour
                 inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
             }
 
-            if (isRealFrame
-                && inputSnapshot.ButtonStates[0] == ButtonState.Released
-                && selectHoldCounter < 60)
+            if (isRealFrame && selectHoldCounter == timeToFill)
             {
                 diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
             }
@@ -169,41 +167,41 @@ public class FloppyPickup : MonoBehaviour
             {
                 selectHoldCounter++;
             }
+            else if (inputSnapshot.ButtonStates[0] == ButtonState.Released)
+            {
+                if (selectHoldCounter < timeToFill)
+                {
+                    if (HasOwnerAlreadyChosenOnlineSpell())
+                    {
+                        selectHoldCounter = 0;
+                        return;
+                    }
+
+                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    {
+                        if (SceneManager.GetActiveScene().name == "Shop")
+                        {
+                            overlappingPlayer.chosenSpell = true;
+                        }
+
+                        if (isRealFrame)
+                        {
+                            diskDisplay.StopFloppyDisplay();
+                        }
+                        gameObject.SetActive(false);
+                        if (isRealFrame)
+                        {
+                            GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"floppy pickup P{ownerPID} {diskName}");
+                        }
+                        Destroy(gameObject);
+                    }
+                }
+
+                selectHoldCounter = 0;
+            }
             else
             {
                 selectHoldCounter = 0;
-            }
-
-            if (selectHoldCounter >= 60)
-            {
-                if (HasOwnerAlreadyChosenOnlineSpell())
-                {
-                    selectHoldCounter = 0;
-                    return;
-                }
-
-                if (overlappingPlayer.AddSpellToSpellList(diskName))
-                {
-                    if (SceneManager.GetActiveScene().name == "Shop")
-                    {
-                        overlappingPlayer.chosenSpell = true;
-                    }
-
-                    if (isRealFrame)
-                    {
-                        diskDisplay.StopFloppyDisplay();
-                    }
-                    gameObject.SetActive(false);
-                    if (isRealFrame)
-                    {
-                        GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"floppy pickup P{ownerPID} {diskName}");
-                    }
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    selectHoldCounter = 0;
-                }
             }
         }
         else
@@ -218,6 +216,7 @@ public class FloppyPickup : MonoBehaviour
         if (isRealFrame)
         {
             diskDisplay.selectFill.fillAmount = GetFillPercent();
+            diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1 ? "purple" : "grey"];
         }
     }
 

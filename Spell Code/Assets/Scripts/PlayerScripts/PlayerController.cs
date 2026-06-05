@@ -479,6 +479,9 @@ public class PlayerController : MonoBehaviour
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
 
+        //stop super armor VFX
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
+
         if(pID == 0)return;
 
         //initialize resources
@@ -724,18 +727,44 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.SetPropertyBlock(propertyBlock);
         }
 
-        //if the player does not have light armor,...
-        if (!armor)
+        //if this player has super armor,...
+        if (superArmor)
         {
-            //disable blocking VFX
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
+            //start playing the super armor VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
         }
-        //else the player does have light armer,...
+        //else this player does NOT have super armor,...
         else
         {
-            //begin to play the blobking visual effect
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
+            //stop playing the super armor VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
         }
+
+        //if this player is blocking,...
+        if (armor)
+        {
+            //start playing the blocking VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID);
+        }
+        //else this player is NOT blocking,...
+        else
+        {
+            //stop playing the blocking VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
+        }
+
+        ////if this player is blocking and the blockinf=g VFX is NOT playing,...
+        //if (armor && !VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //{
+        //    //start playing the blocking VFX
+        //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
+        //}
+        ////else this player is NOT blocking and the blocking VFX is playing,...
+        //else if (!armor && VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //{
+        //    //stop playing the blocking VFX
+        //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
+        //}
     }
 
 
@@ -989,8 +1018,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        
-
+        //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
+        AdjustIframeAndArmorVFX();
 
         CheckHit(input);
 
@@ -1457,7 +1486,6 @@ public class PlayerController : MonoBehaviour
                     facingRight = false;
                 }
 
-                
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
@@ -1767,9 +1795,6 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.spellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
         }
         
-
-        //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
-        AdjustIframeAndArmorVFX();
 
         //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
         Scene activeScene = SceneManager.GetActiveScene();

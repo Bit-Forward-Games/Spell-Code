@@ -352,6 +352,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tutorial
       objectReference: {fileID: 0}
+    - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+      propertyPath: m_Tiles.Array.data[12681].second.m_TileObjectToInstantiateIndex
+      value: 65535
+      objectReference: {fileID: 0}
+    - target: {fileID: 4879613695797683855, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+      propertyPath: passiveDisplay
+      value: 
+      objectReference: {fileID: 978990244}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -401,6 +413,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+--- !u!114 &978990244 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5401109512636955610, guid: cf9ff075889653145904aa04bae7428c, type: 3}
+  m_PrefabInstance: {fileID: 978990243}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1013759790
 GameObject:
   m_ObjectHideFlags: 0

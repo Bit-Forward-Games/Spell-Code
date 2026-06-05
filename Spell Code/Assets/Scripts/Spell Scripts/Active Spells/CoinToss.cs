@@ -77,7 +77,7 @@ public class CoinToss : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
                 {
-                    defender.TakeEffectDamage(BigStoxPassive.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
                 }
                 break;
             default:

@@ -4964,13 +4964,17 @@ public class GameManager : MonoBehaviour
     {
         gameStages = new List<StageDataSO>(stages);
 
-        if (playerCount == 2)
+        switch (playerCount)
         {
-            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
-        }
-        else if (playerCount > 2)
-        {
-            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+            case 2:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.Duel);
+                break;
+            case 3:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.General);
+                break;
+            case 4:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+                break;
         }
     }
 

@@ -39,9 +39,12 @@ public class Pause : MonoBehaviour
     public GameObject _controlsMenuFirst;
     public GameObject _spellsMenuFirst;
  
+    public TextMeshProUGUI playerPausedText;
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
+
+    [Header("Spell Glossary Variables")]
  
     private string[] brandName = {"MySpells", "DemonX", "BigStoX", "Killeez", "VWave", "AllSpells"};
     public TextMeshProUGUI spellAddress;
@@ -310,6 +313,8 @@ public class Pause : MonoBehaviour
         controlsMenu.SetActive(false);
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
+
+        playerPausedText.text = "P" + (playerPauseIndex + 1) + " Paused";
  
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);

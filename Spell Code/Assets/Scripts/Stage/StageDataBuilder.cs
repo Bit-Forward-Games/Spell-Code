@@ -129,6 +129,14 @@ public class StageDataBuilder : MonoBehaviour
                 stageDataSO.borderMin = new Vector3(-300f, -220f, 0f);
                 stageDataSO.borderMax = new Vector3(300, 220, 0f);
 
+
+                //if this is suppose to be a looping stage, set the cameraBorderMin and cameraBorderMax
+                if (_borderType == BorderType.Loop)
+                {
+                    stageDataSO.camBorderMin = new Vector3(-300, -205f, 0f);
+                    stageDataSO.camBorderMax = new Vector3(300f, 205f, 0f);
+                }
+
                 //break
                 break;
 

@@ -1122,7 +1122,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        byte[] stateData = SerializeManagedState();
+        SendAuthoritativeOnlineLobbySnapshotData(SerializeManagedState());
+    }
+
+    // Sends already-serialized authoritative state to every remote peer. Split out from the method
+    // above so the authoritative-broadcast path can serialize ONCE and reuse the same bytes for both
+    // the network send and the host's own self-apply (see BroadcastAuthoritativeOnlineStateSnapshot).
+    private void SendAuthoritativeOnlineLobbySnapshotData(byte[] stateData)
+    {
+        if (stateData == null || activeOnlineRoster == null || MatchMessageManager.Instance == null)
+        {
+            return;
+        }
+
         for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
@@ -1137,20 +1149,32 @@ public class GameManager : MonoBehaviour
 
     public void BroadcastAuthoritativeOnlineStateSnapshot(string reason = "")
     {
-        if (!isOnlineMatchActive || !IsOnlineHostAuthority())
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || activeOnlineRoster == null
+            || MatchMessageManager.Instance == null
+            || !IsOnlineSimulationScene(SceneManager.GetActiveScene()))
         {
             return;
         }
 
-        SendAuthoritativeOnlineLobbySnapshot();
+        int snapshotFrame = frameNumber;
+        byte[] stateData = SerializeManagedState();
+        SendAuthoritativeOnlineLobbySnapshotData(stateData);
+
+        // Host self-apply (round-trip)
+        DeserializeManagedState(stateData);
+        ForceSetFrame(snapshotFrame);
+        RollbackManager.Instance?.ResetRollbackBaseline(snapshotFrame);
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(frameNumber);
+            RollbackManager.Instance?.StabilizeLobbySnapshotPacing(snapshotFrame);
         }
+        RollbackManager.Instance?.SaveState();
 
         if (!string.IsNullOrEmpty(reason))
         {
-            Debug.Log($"[OnlineState] Broadcast authoritative snapshot after {reason}. Frame={frameNumber}");
+            Debug.Log($"[OnlineState] Broadcast authoritative snapshot after {reason}. Frame={snapshotFrame}");
         }
     }
 

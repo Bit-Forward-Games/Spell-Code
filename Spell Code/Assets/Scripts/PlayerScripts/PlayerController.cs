@@ -3255,6 +3255,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private readonly List<SavedSpellState> savedSpellStateBuffer = new List<SavedSpellState>(8);
+
     // Spell strings in the serialization hot path are written as a stable int id (index
     // into SpellDictionary.spellList, identical on every client) instead of a length-prefixed
     // string, so a save-state / rollback no longer allocates a string per spell via ReadString.
@@ -3393,7 +3395,8 @@ public class PlayerController : MonoBehaviour
         // Read serialized spell payload ranges first. Spell identity is now a stable int id
         // rather than a per-spell string, and payloads stay in the parent snapshot stream
         // instead of being copied to a fresh byte[] per spell.
-        List<SavedSpellState> savedSpells = new List<SavedSpellState>(spellCount);
+        List<SavedSpellState> savedSpells = savedSpellStateBuffer;
+        savedSpells.Clear();
         for (int i = 0; i < spellCount; i++)
         {
             int spellId = br.ReadInt32();

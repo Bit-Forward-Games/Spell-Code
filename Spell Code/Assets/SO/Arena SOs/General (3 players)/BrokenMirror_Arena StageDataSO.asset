@@ -77,5 +77,5 @@ MonoBehaviour:
   camBorderMin: {x: -300, y: -205, z: 0}
   camBorderMax: {x: 300, y: 205, z: 0}
   borderType: 1
-  stageType: 2
+  stageType: 0
   dynamicCamera: 0

@@ -75,7 +75,7 @@ public class FloppyPickup : MonoBehaviour
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
-            if (!diskDisplay.canvasObject.GetComponent<Canvas>().enabled)
+            if (!diskDisplay.IsDisplayCanvasEnabled())
             {
                 diskDisplay.StartFloppyDisplay();
                 diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
@@ -103,7 +103,7 @@ public class FloppyPickup : MonoBehaviour
                             Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
                             //if (SceneManager.GetActiveScene().name != "Tutorial")
                             //{
-                                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                                diskDisplay.StopFloppyDisplay();
                                 //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
                                 Destroy(gameObject);
                             //}
@@ -133,7 +133,7 @@ public class FloppyPickup : MonoBehaviour
         else
         {
             selectHoldCounter = 0;
-            diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;    
+            diskDisplay.StopFloppyDisplay();
         }
         diskDisplay.selectFill.fillAmount = GetFillPercent();
         diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1? "purple":"grey"];
@@ -145,7 +145,7 @@ public class FloppyPickup : MonoBehaviour
 
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
-            if (isRealFrame)
+            if (isRealFrame && !diskDisplay.IsDisplayCanvasEnabled())
             {
                 diskDisplay.canvasObject.GetComponent<Canvas>().enabled = true;
                 diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
@@ -191,7 +191,7 @@ public class FloppyPickup : MonoBehaviour
 
                     if (isRealFrame)
                     {
-                        diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                        diskDisplay.StopFloppyDisplay();
                     }
                     gameObject.SetActive(false);
                     if (isRealFrame)
@@ -211,7 +211,7 @@ public class FloppyPickup : MonoBehaviour
             selectHoldCounter = 0;
             if (isRealFrame)
             {
-                diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;
+                diskDisplay.StopFloppyDisplay();
             }
         }
 

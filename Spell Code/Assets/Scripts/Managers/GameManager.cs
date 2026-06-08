@@ -2278,9 +2278,8 @@ public class GameManager : MonoBehaviour
             {
                 players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
             }
-            goDoorPrefab.CheckOpenDoor();
-
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+            goDoorPrefab.CheckOpenDoor();
             foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
             {
                 if (gambaGO == null) continue;
@@ -2420,6 +2419,7 @@ public class GameManager : MonoBehaviour
             }
 
             goDoorPrefab.CheckOpenDoor();
+            goDoorPrefab.BroadcastSnapshotForNewOnlineEntries(rbManager.isRollbackFrame);
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {

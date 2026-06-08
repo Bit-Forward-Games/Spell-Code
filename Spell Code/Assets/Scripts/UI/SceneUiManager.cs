@@ -66,6 +66,7 @@ public class SceneUiManager : MonoBehaviour
         ApplyScreenCover(() =>
         {
             //beforeSceneLoad?.Invoke();
+            BGM_Manager.Instance.StopSong();
             SceneManager.LoadScene(sceneName);
         });
     }

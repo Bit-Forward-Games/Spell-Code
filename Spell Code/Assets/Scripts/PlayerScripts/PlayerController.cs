@@ -156,7 +156,7 @@ public class PlayerController : MonoBehaviour
 
     //money things
     [NonSerialized]
-    public ushort totalRam = 0;
+    public ushort storedKillBonus = 0;
     [NonSerialized]
     public ushort roundRam = 0;
     [NonSerialized]
@@ -325,7 +325,7 @@ public class PlayerController : MonoBehaviour
         ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
-        if (this.gameObject != null)
+        if (this.gameObject != null && GameManager.Instance != null)
         {
             SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
             StopHitRumble();
@@ -337,7 +337,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         ClearDamageNumbers();
 
-        if (this.gameObject != null)
+        if (this.gameObject != null && GameManager.Instance != null)
         {
             //stop playing all repeating sounds for this player
             if (SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -1180,6 +1180,8 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 1 : 0))
                 {
                     facingRight = !facingRight;
+                    //play the dash dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, pID, facingRight);
                     break;
                 }
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
@@ -2778,9 +2780,8 @@ public class PlayerController : MonoBehaviour
             //award the killer with the extra bonus ram
             if (hasAttacker)
             {
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
+                attacker.storedKillBonus += baseRamKillBonus;
+                //attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
             }
 
         }
@@ -3031,7 +3032,7 @@ public class PlayerController : MonoBehaviour
         //bw.Write(slimed);
         bw.Write(isSpawned);
         bw.Write(roundsWon);
-        bw.Write(totalRam);
+        bw.Write(storedKillBonus);
         bw.Write(roundRam);
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
@@ -3234,7 +3235,7 @@ public class PlayerController : MonoBehaviour
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();
         roundsWon = br.ReadInt32();
-        totalRam = br.ReadUInt16();
+        storedKillBonus = br.ReadUInt16();
         roundRam = br.ReadUInt16();
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();

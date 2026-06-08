@@ -942,7 +942,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                    $"roundRam={p.roundRam} totalRam={p.totalRam} hash={ComputePlayerHash(p)}";
+                    $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
 
             for (int s = 0; s < p.spellList.Count; s++)
             {

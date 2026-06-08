@@ -23,7 +23,7 @@ public class Exit_Door : MonoBehaviour
 
     public bool CheckAllPlayersReady()
     {
-        if(Time.timeScale == 0)
+        if(Time.timeScale == 0 || GameManager.Instance == null)
         {
             return false;
         }

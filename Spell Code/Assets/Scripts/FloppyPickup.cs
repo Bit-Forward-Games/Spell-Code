@@ -71,10 +71,10 @@ public class FloppyPickup : MonoBehaviour
             return;
         }
         colliding = CheckPlayerCollision() != null;
-
-
+        
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
+            
             if (!diskDisplay.canvasObject.GetComponent<Canvas>().enabled)
             {
                 diskDisplay.StartFloppyDisplay();
@@ -85,7 +85,7 @@ public class FloppyPickup : MonoBehaviour
             //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
-            {
+            {   
                 if(selectHoldCounter == timeToFill)
                 {
                     diskDisplay.showDesc = !diskDisplay.showDesc;

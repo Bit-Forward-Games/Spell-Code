@@ -285,7 +285,7 @@ public class GambaMachine : MonoBehaviour
                     case 3:
                         SpawnFloppyDisk(ownerPID, trainingLocs[0], "Blade Of Ares");
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Might Of Zeus");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Sun Of Apollo");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trident Of Poseidon");
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Boots Of Hermes");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");

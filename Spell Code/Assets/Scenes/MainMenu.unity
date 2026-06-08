@@ -3147,6 +3147,22 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
+    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: playerVisualEffectObjects.Array.data[9].numParticleSystemsPerPlayer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: playerVisualEffectObjects.Array.data[10].numParticleSystemsPerPlayer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: playerVisualEffectObjects.Array.data[11].numParticleSystemsPerPlayer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: playerVisualEffectObjects.Array.data[12].numParticleSystemsPerPlayer
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3155,18 +3171,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 3482084119599465952, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: ScreenCover
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_PlayerJoinedEvent.m_PersistentCalls.m_Calls.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 4648917945992217794, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_PlayerJoinedEvent.m_PersistentCalls.m_Calls.Array.data[2].m_Target
-      value: 
-      objectReference: {fileID: 182008658}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3220,8 +3224,7 @@ PrefabInstance:
       value: pfb_GameManager
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4335698777096406234, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}

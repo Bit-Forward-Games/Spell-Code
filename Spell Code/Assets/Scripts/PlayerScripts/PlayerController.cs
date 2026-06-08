@@ -276,7 +276,7 @@ public class PlayerController : MonoBehaviour
     {
         if (GetComponent<PlayerInput>().user.valid)
         {
-            DontDestroyOnLoad(this.gameObject);
+            DontDestroyOnLoad(gameObject);
         }
 
         EnsureUniversalSpells();
@@ -2618,6 +2618,7 @@ public class PlayerController : MonoBehaviour
                     SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
                     iframes = 120;
                     comboCounter = 0;
+                    SetState(PlayerState.Tech);
 
                     //Play the combo break VFX
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);

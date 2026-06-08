@@ -13,7 +13,7 @@ public class SunOfApollo_prj : BaseProjectile
     {
         projName = "Sun Of Apollo";
         lifeSpan = 0;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4 }, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")

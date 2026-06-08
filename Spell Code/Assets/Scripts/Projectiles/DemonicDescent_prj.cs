@@ -18,6 +18,7 @@ public class DemonicDescent_prj : BaseProjectile
         meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3}, false);
         ignoreBrand = true;
+        ignoreEffectDamage = true;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -45,7 +46,7 @@ public class DemonicDescent_prj : BaseProjectile
                     damage = 2,
                     hitstun = 0,
                     attackLvl = 1,
-                    basicAttackHitbox = true
+                    //basicAttackHitbox = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

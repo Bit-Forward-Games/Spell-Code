@@ -269,8 +269,9 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Asuran Blades");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Bifrons Blade");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Abaddon Uppercut");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Hell-Chain Sweep");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demonic Descent");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Hell-Chain Sweep");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Demonic Descent");
                         break;
                     //BigStox
                     case 2:
@@ -278,8 +279,9 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Coin Toss");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Get A Job");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Cash Out");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Blue Chip Trader");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Blue Chip Trader");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Let It Ride");
                         break;
                     //Killeez
                     case 3:
@@ -287,8 +289,9 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Might Of Zeus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Sun Of Apollo");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trident Of Poseidon");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Boots Of Hermes");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Boots Of Hermes");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Rod Of Asclepius");
                         break;
                     //VWave
                     case 4:
@@ -296,8 +299,9 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Reload Shot");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Mine Crafter");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "No-Scope Shot");
                         break;
                 }
 

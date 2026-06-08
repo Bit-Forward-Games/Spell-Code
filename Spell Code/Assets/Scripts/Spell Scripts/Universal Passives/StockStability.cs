@@ -27,7 +27,7 @@ public class StockStability : SpellData
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox  /*|| !defender.hitboxData.sweetSpot*/)
                 {
                     //non bigstox spells can crit here
-                    if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified)
+                    if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified && !defender.hitboxData.parentProjectile.ignoreEffectDamage)
                     {
                         defender.TakeEffectDamage(bigStoxCritDamage,owner, GameManager.colors["blue"]);
                     }

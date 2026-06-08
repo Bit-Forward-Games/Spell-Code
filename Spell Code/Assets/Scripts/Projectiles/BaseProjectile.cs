@@ -10,13 +10,10 @@ using System;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
-    [NonSerialized]
-    public string projName;
-    [NonSerialized]
-    public HitboxGroup[] projectileHitboxes;
+    [NonSerialized]  public string projName;
+    [NonSerialized]  public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
-    [NonSerialized]
-    public byte activeHitboxGroupIndex = 0;
+    [NonSerialized]  public byte activeHitboxGroupIndex = 0;
     public Fixed hSpeed;
     public Fixed vSpeed;
     public FixedVec2 position;
@@ -24,24 +21,26 @@ public abstract class BaseProjectile : MonoBehaviour
     public bool facingRight;
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on
-    [NonSerialized]
-    public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
-    [NonSerialized]
-    public PlayerController owner;
-    [NonSerialized]
-    public SpellData ownerSpell;
-    [NonSerialized]
-    public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
-    [NonSerialized]
-    public AnimFrames animFrames;
-    [NonSerialized]
-    public bool deleteOnHit = false;
-    [NonSerialized]
-    public bool ignoreBrand = false;
-    [NonSerialized]
-    public bool meleeProjectile = false;
+    [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
+    [NonSerialized] public PlayerController owner;
+    [NonSerialized] public SpellData ownerSpell;
+    [NonSerialized] public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
 
-    public FrameData frameData = null;//NOTE: IF FRAMEDATA IS NOT NULL HITBOX[0] MUST ALWAYS BE A NULL HITBOX
+    //Multihit projectile fields
+    [NonSerialized] public ushort[] multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
+    [NonSerialized] public byte multiHitCount = 0;
+    [NonSerialized] public byte maxMultiHitCount = 0;
+    [NonSerialized] public byte multiHitCooldown = 0;
+
+    //anim frames
+    [NonSerialized] public AnimFrames animFrames;
+    [NonSerialized]  public bool deleteOnHit = false;
+    [NonSerialized] public bool ignoreBrand = false;
+    [NonSerialized] public bool ignoreEffectDamage = false;
+    [NonSerialized] public bool meleeProjectile = false;
+    [NonSerialized] public Action onHitAction = null;
+
+    [NonSerialized] public FrameData frameData = null;//NOTE: IF FRAMEDATA IS NOT NULL HITBOX[0] MUST ALWAYS BE A NULL HITBOX
 
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
@@ -64,12 +63,10 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         //this.owner = owner;
         this.facingRight = facingRight;
-        this.position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
-        //this.hSpeed = hSpeed;
-        //this.vSpeed = vSpeed;
-        //this.hitboxDatas = hitboxDatas;
-        this.activeHitboxGroupIndex = 0;
-        this.logicFrame = 0;
+        position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
+        activeHitboxGroupIndex = 0;
+        logicFrame = 0;
+        multiHitCount = maxMultiHitCount;
 
         //if nameOverride is empty,...
         if (nameOverride == "")
@@ -94,6 +91,8 @@ public abstract class BaseProjectile : MonoBehaviour
         vSpeed = Fixed.FromInt(0);
         position = FixedVec2.Zero;
         playerIgnoreArr = new bool[4] { false, false, false, false };
+        multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
+        multiHitCount = maxMultiHitCount;
         facingRight = true;
         _tempOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
@@ -124,7 +123,12 @@ public abstract class BaseProjectile : MonoBehaviour
             InitializeDefaults();
         }
     }
+
     public virtual void ProjectileUpdate()
+    {
+        ProjectileUpdate(null);   
+    }
+    public virtual void ProjectileUpdate(Action onHitAction)
     {
         
         logicFrame++;
@@ -173,16 +177,49 @@ public abstract class BaseProjectile : MonoBehaviour
         }
 
 
-
-        //check if the projectile hit something and if it did, delete if necessary
-        if (deleteOnHit)
+        //this is what happens when this projectile hits something
+        if(playerIgnoreArr.Any(ignore => ignore))
         {
-            if (playerIgnoreArr.Any(ignore => ignore))
+            //first, if we've added an onhit action in an override for a projectile, do it
+            if(onHitAction != null) onHitAction();
+
+            //then check if the projectile is a multihit, and if it has any hits left
+            if(maxMultiHitCount != 0 && multiHitCount > 0)
+            {
+                //loop through all the players
+                for(int i = 0; i < multiHitPlayerIgnoreCounterArr.Length; i++)
+                {
+                    if (playerIgnoreArr[i])
+                    {
+                        //if a given player was hit and has had long enough since last hit, consume a hit, restart the cooldown per that player, and set that player back to false
+                        if( multiHitPlayerIgnoreCounterArr[i] >= multiHitCooldown)
+                        {
+                            multiHitCount --;
+                            
+                            playerIgnoreArr[i] = false;
+                            multiHitPlayerIgnoreCounterArr[i] = 0;
+                        }   
+                        else
+                        {
+                            multiHitPlayerIgnoreCounterArr[i]++;
+                        }
+                    }
+                    
+                }   
+                
+                
+             
+            }
+            //if the projectile either isnt a multihit or has no more hits left, check if it should be deleted on hit
+            else if (deleteOnHit)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
                 return;
             }
+            
         }
+
+        
 
 
         // Update animation frame
@@ -225,12 +262,14 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
+        bw.Write(multiHitCount);
         bw.Write(ignoreBrand);
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)
         {
             bw.Write(playerIgnoreArr[i]);
+            bw.Write(multiHitPlayerIgnoreCounterArr[i]);
         }
 
         // References as IDs
@@ -266,12 +305,14 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
+        multiHitCooldown = br.ReadByte();
         ignoreBrand = br.ReadBoolean();
 
         // Player Ignore Array
         for (int i = 0; i < 4; i++)
         {
             playerIgnoreArr[i] = br.ReadBoolean();
+            multiHitPlayerIgnoreCounterArr[i] = br.ReadUInt16();
         }
 
         // References as IDs

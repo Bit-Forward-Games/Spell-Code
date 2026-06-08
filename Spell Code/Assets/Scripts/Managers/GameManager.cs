@@ -362,7 +362,9 @@ public class GameManager : MonoBehaviour
             onlineMenuUI.SetActive(false);
         }
 
-        seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
+        int offlineSeed = UnityEngine.Random.Range(1, int.MaxValue);
+        seededRandom = new System.Random(offlineSeed);
+        InitializeWithSeed(offlineSeed);
 
 
         SetStage(-1);

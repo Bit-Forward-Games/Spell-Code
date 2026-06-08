@@ -3190,6 +3190,19 @@ public class GameManager : MonoBehaviour
             .ToArray();
     }
 
+    public GameObject[] FindFloppyDisksofPID(int ownerPID)
+    {
+        FindAllFloppyDisks();
+
+        return (floppyObjects ?? Array.Empty<GameObject>())
+            .Where(go =>
+            {
+                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
+                return disk != null && disk.ownerPID == ownerPID;
+            })
+            .ToArray();
+    }
+
     // ---------------------------------------------------------Central State Serialization Methods-----------------------------------------
 
     /// <summary>

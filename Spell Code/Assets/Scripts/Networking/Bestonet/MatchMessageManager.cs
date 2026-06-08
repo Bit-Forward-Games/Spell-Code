@@ -109,7 +109,6 @@ public class MatchMessageManager : MonoBehaviour
     private readonly Dictionary<SteamId, float> peerLastHandshakeSendTime = new Dictionary<SteamId, float>();
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
     private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
-    private bool loggedSnapshotCompression = false; // one-time [SnapshotSize] log to confirm payload size + compression ratio
 
     private struct PendingOutboundPacket
     {
@@ -973,43 +972,6 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    // Deflate-compress the authoritative state payload on the wire only. Lossless, so the receiver's
-    // DeserializeManagedState gets byte-identical input -> zero determinism impact (and the host's own
-    // self-apply uses the uncompressed bytes directly, never this path). Shrinking the payload is the
-    // only lever that cuts the snapshot's network burst WITHOUT making it arrive later, which is what
-    // made the channel-split / staggered-send ideas backfire into staler snapshots + deeper rollbacks.
-    private static byte[] CompressBytes(byte[] data)
-    {
-        using (MemoryStream output = new MemoryStream())
-        {
-            using (System.IO.Compression.DeflateStream deflate = new System.IO.Compression.DeflateStream(output, System.IO.Compression.CompressionLevel.Fastest, true))
-            {
-                deflate.Write(data, 0, data.Length);
-            }
-            return output.ToArray();
-        }
-    }
-
-    private static byte[] DecompressBytes(byte[] compressed, int uncompressedLength)
-    {
-        byte[] result = new byte[uncompressedLength];
-        using (MemoryStream input = new MemoryStream(compressed))
-        using (System.IO.Compression.DeflateStream deflate = new System.IO.Compression.DeflateStream(input, System.IO.Compression.CompressionMode.Decompress))
-        {
-            int read = 0;
-            while (read < uncompressedLength)
-            {
-                int n = deflate.Read(result, read, uncompressedLength - read);
-                if (n <= 0)
-                {
-                    break;
-                }
-                read += n;
-            }
-        }
-        return result;
-    }
-
     public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData, bool forceApply = false)
     {
         if (!peerId.IsValid || roster == null || stateData == null || stateData.Length == 0)
@@ -1025,15 +987,8 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT);
                 WriteRoster(writer, roster);
                 writer.Write(frame);
-                byte[] compressedState = CompressBytes(stateData);
-                if (!loggedSnapshotCompression)
-                {
-                    loggedSnapshotCompression = true;
-                    Debug.Log($"[SnapshotSize] Lobby snapshot payload {stateData.Length} bytes -> {compressedState.Length} bytes deflated ({(stateData.Length > 0 ? (100 * compressedState.Length / stateData.Length) : 0)}%).");
-                }
-                writer.Write(compressedState.Length);
                 writer.Write(stateData.Length);
-                writer.Write(compressedState);
+                writer.Write(stateData);
                 writer.Write(forceApply);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
@@ -1263,10 +1218,8 @@ public class MatchMessageManager : MonoBehaviour
                     }
 
                     int frame = reader.ReadInt32();
-                    int compressedLength = reader.ReadInt32();
-                    int uncompressedLength = reader.ReadInt32();
-                    byte[] compressedState = reader.ReadBytes(compressedLength);
-                    byte[] stateData = DecompressBytes(compressedState, uncompressedLength);
+                    int stateLength = reader.ReadInt32();
+                    byte[] stateData = reader.ReadBytes(stateLength);
                     bool forceApply = reader.BaseStream.Position < reader.BaseStream.Length && reader.ReadBoolean();
                     byte snapshotSceneType = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadByte() : (byte)0;
                     int snapshotSceneSignature = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;

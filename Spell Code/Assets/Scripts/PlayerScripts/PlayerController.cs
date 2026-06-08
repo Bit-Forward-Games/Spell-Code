@@ -214,6 +214,7 @@ public class PlayerController : MonoBehaviour
     public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
+    [NonSerialized] public bool collidingWithFloppy = false;
     private int _pendingHitboxProjectileIndex = -1;
 
     //TMPro
@@ -1147,7 +1148,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.ButtonStates[0] == ButtonState.Pressed)
+                else if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1181,7 +1182,7 @@ public class PlayerController : MonoBehaviour
                 //Check Direction Inputs
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1232,7 +1233,7 @@ public class PlayerController : MonoBehaviour
                     vSpd -= gravity * Fixed.FromInt(2);
                     
                 }
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1766,7 +1767,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1869,10 +1870,8 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerWorldCollisionCheck()
     {
-        //isGrounded = CheckGrounded();
-        //CheckWall(facingRight);
-        //CheckWall(!facingRight);
         CheckStageDataSOCollision();
+        CheckFloppyCollision();
         //CheckCameraCollision();
         //PlayerCollisionCheck();
     }
@@ -1936,7 +1935,25 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
+    public bool CheckFloppyCollision()
+    {
+        if(GameManager.Instance.currentStageIndex >= 0)
+        {
+            return false;
+        }
+        GameObject[] floppies = GameManager.Instance.FindFloppyDisksofPID(pID);
+        for(int i =0 ; i < floppies.Length; i++)
+        {
+            if(floppies[i].GetComponent<FloppyPickup>().colliding&&floppies[i].GetComponent<FloppyPickup>().overlappingPlayer == this)
+            {
+                collidingWithFloppy = true;
+                return true;
+            }
+        }
+        collidingWithFloppy = false;
+        return false;
 
+    }
     public bool CheckStageDataSOCollision(bool checkOnly = false)
     {
         isGrounded = false;

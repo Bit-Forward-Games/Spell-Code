@@ -1425,6 +1425,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < playerCount; i++)
             {
                 players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+                players[i].storedKillBonus = 0;
             }
             goDoorPrefab.CheckOpenDoor();
 
@@ -1879,6 +1880,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < playerCount; i++)
             {
                 players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
+                players[i].storedKillBonus = 0;
             }
             shopImage.enabled = true;
             goDoorPrefab.CheckOpenDoor();
@@ -1985,6 +1987,7 @@ public class GameManager : MonoBehaviour
                         for (int i = 0; i < playerCount; i++)
                         {
                             players[i].roundRam = 0; // reset round RAM
+                            players[i].storedKillBonus = 0;
                         }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
@@ -2156,22 +2159,28 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    public void UpdatePlayerBounties(bool applyVisuals = true)
+    public void UpdatePlayerBounties(bool applyVisuals = true, bool roundOver = false)
     {
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
+        //bool disregardRam = false;
         for (int i = 0; i < playerCount; i++)
         {
+            // if(players[i].roundRam >= ramNeededToWinRound)
+            // {
+            //     disregardRam = true;
+            // }
             averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
         }
         averageRoundRam = (ushort)(averageRoundRam / playerCount);
         averageRoundWins = averageRoundWins / playerCount;
-
+        
 
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].ramBounty = (short)(((players[i].roundRam - averageRoundRam)/2) + (100*(players[i].roundsWon - averageRoundWins)));
+            int ramRoundBounty = roundOver? 0: (players[i].roundRam - averageRoundRam)/3;
+            players[i].ramBounty = (short)( ramRoundBounty + (100*(players[i].roundsWon - averageRoundWins)));
         }
 
         if (!applyVisuals)
@@ -2180,15 +2189,17 @@ public class GameManager : MonoBehaviour
         }
 
         //give the player with the highest bounty the bounty aura VFX
-        int playerWithHighestBountyIndex = 0;
+        int playerWithHighestBountyIndex = -1;
+        int largestBounty = 0;
         for (int i = 0; i < playerCount; i++)
         {
             //remove the bounty VFX from this player
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1, true);
 
-            if (players[i].ramBounty > players[playerWithHighestBountyIndex].ramBounty)
+            if (players[i].ramBounty > largestBounty)
             {
                 playerWithHighestBountyIndex = i;
+                largestBounty = players[i].ramBounty;
             }
             //else
             //{
@@ -2202,7 +2213,7 @@ public class GameManager : MonoBehaviour
 
         //give the bounty VFX to the player with the highest bounty
         //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+        if(playerWithHighestBountyIndex >=0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
@@ -2266,16 +2277,18 @@ public class GameManager : MonoBehaviour
                 {
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
-                    int totalRamEarned = (damagePercent * PlayerController.baseRamLifeWorth) / 100 + bountyCut;
-                    int CollectedGold = Mathf.Clamp((int)totalRamEarned,0,ramNeededToWinRound-1-p.roundRam);
+                    int totalKillParticipationRamEarned = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;
+                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned,0,ramNeededToWinRound-1-p.roundRam);
                     p.roundRam += (ushort)CollectedGold;
-                    p.totalRam += (ushort)CollectedGold;
-                    p.SpawnToast($"+{totalRamEarned} RAM", GameManager.colors["yellow"]);
+                    p.roundRam = (ushort)Mathf.Clamp(p.roundRam + p.storedKillBonus,0,ramNeededToWinRound);
+                    p.SpawnToast($"+{totalKillParticipationRamEarned + p.storedKillBonus} RAM", GameManager.colors["yellow"]);
+                    p.storedKillBonus = 0;
+                    
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
 
-                UpdatePlayerBounties(!isRollback);
+                
 
                 // Clear lingering projectiles from the dead player so both clients respawn
                 // into the same clean state instead of carrying old shots across deaths.
@@ -2315,7 +2328,6 @@ public class GameManager : MonoBehaviour
 
                         for (int i = 0; i < playerCount; i++)
                         {
-                            //players[i].roundRam = 0;
                             if (!isRollback)
                             {
                                 players[i].playerNum.enabled = false;
@@ -2338,11 +2350,14 @@ public class GameManager : MonoBehaviour
                         {
                             playerWinText.enabled = true;
                         }
+                        UpdatePlayerBounties(!isRollback, true);
                     }
                 }
+                
                 return true;
             }
         }
+        UpdatePlayerBounties(!isRollback);
         return false;
     }
 
@@ -2645,8 +2660,8 @@ public class GameManager : MonoBehaviour
         //reset all ram values for players so they don't carry over to the end screen or next match
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].totalRam = 0;
             players[i].roundRam = 0;
+            players[i].storedKillBonus = 0;
 
         }
 
@@ -3086,7 +3101,10 @@ public class GameManager : MonoBehaviour
             {
                 curtains[0].SetActive(true);
             }
-        sceneManager.RemoveScreenCover();
+        sceneManager.RemoveScreenCover(()=>
+        {
+            BGM_Manager.Instance.StartAndPlaySong();
+        });
     }
 
     public void ClearStages()

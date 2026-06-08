@@ -86,7 +86,7 @@ public class TempUIScript : MonoBehaviour
 
         previousRamVals = new int[4];
         for (int i = 0; i < gameManager.playerCount; i++)
-            previousRamVals[i] = gameManager.players[i]?.totalRam ?? 0;
+            previousRamVals[i] = gameManager.players[i]?.roundRam ?? 0;
     }
 
     void OnEnable()
@@ -221,7 +221,7 @@ public class TempUIScript : MonoBehaviour
             float smoothedScale = Mathf.Lerp(currentScale.x, targetScale, Time.deltaTime * 10f);
             SpellInputBorder[i].localScale = new Vector3(smoothedScale, 0.025f, 1f);
 
-            int _ramIncrease = GameManager.Instance.players[i].totalRam;
+            int _ramIncrease = GameManager.Instance.players[i].roundRam;
 
             // Initialize tracking for newly joined players
             if (previousRamVals[i] == 0 && _ramIncrease != 0)
@@ -245,7 +245,7 @@ public class TempUIScript : MonoBehaviour
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
             float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
-            playerRamVals[i].text = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?"MATCH POINT!":$"{GameManager.Instance.players[i].roundRam}";
+            playerRamVals[i].text = /*(GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?"MATCH POINT!":*/$"{GameManager.Instance.players[i].roundRam}";
             playerGoldBar[i].fillAmount = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?1:fillGoldAmountVal;
 
             emptyQuadrants[i].SetActive(false);

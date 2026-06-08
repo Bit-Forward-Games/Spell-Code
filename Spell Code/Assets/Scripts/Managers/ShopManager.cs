@@ -44,21 +44,42 @@ public class ShopManager : MonoBehaviour
 
     public void SetChoicesForPlayer(int playerIndex, List<string> choices)
     {
-        List<string> copy = choices != null ? new List<string>(choices) : new List<string>();
         switch (playerIndex)
         {
             case 0:
-                p1_choices = copy;
+                CopyChoicesInto(ref p1_choices, choices);
                 break;
             case 1:
-                p2_choices = copy;
+                CopyChoicesInto(ref p2_choices, choices);
                 break;
             case 2:
-                p3_choices = copy;
+                CopyChoicesInto(ref p3_choices, choices);
                 break;
             case 3:
-                p4_choices = copy;
+                CopyChoicesInto(ref p4_choices, choices);
                 break;
+        }
+    }
+
+    private static void CopyChoicesInto(ref List<string> target, List<string> source)
+    {
+        if (target == null)
+        {
+            target = new List<string>(source != null ? source.Count : 0);
+        }
+        else
+        {
+            target.Clear();
+        }
+
+        if (source == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            target.Add(source[i]);
         }
     }
 

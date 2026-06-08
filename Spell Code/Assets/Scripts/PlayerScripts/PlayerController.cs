@@ -214,6 +214,7 @@ public class PlayerController : MonoBehaviour
     public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
+    [NonSerialized] public bool collidingWithFloppy = false;
     private int _pendingHitboxProjectileIndex = -1;
 
     //TMPro
@@ -497,6 +498,9 @@ public class PlayerController : MonoBehaviour
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
 
+        //stop super armor VFX
+        VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
+
         if(pID == 0)return;
 
         //initialize resources
@@ -742,18 +746,44 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.SetPropertyBlock(propertyBlock);
         }
 
-        //if the player does not have light armor,...
-        if (!armor)
+        //if this player has super armor,...
+        if (superArmor)
         {
-            //disable blocking VFX
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
+            //start playing the super armor VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
         }
-        //else the player does have light armer,...
+        //else this player does NOT have super armor,...
         else
         {
-            //begin to play the blobking visual effect
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID, true, this.gameObject.transform);
+            //stop playing the super armor VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
         }
+
+        //if this player is blocking,...
+        if (armor)
+        {
+            //start playing the blocking VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID);
+        }
+        //else this player is NOT blocking,...
+        else
+        {
+            //stop playing the blocking VFX
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
+        }
+
+        ////if this player is blocking and the blockinf=g VFX is NOT playing,...
+        //if (armor && !VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //{
+        //    //start playing the blocking VFX
+        //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
+        //}
+        ////else this player is NOT blocking and the blocking VFX is playing,...
+        //else if (!armor && VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //{
+        //    //stop playing the blocking VFX
+        //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
+        //}
     }
 
 
@@ -1007,8 +1037,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        
-
+        //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
+        AdjustIframeAndArmorVFX();
 
         CheckHit(input);
 
@@ -1118,7 +1148,7 @@ public class PlayerController : MonoBehaviour
                     SetState(PlayerState.Run);
                     break;
                 }
-                else if (input.ButtonStates[0] == ButtonState.Pressed)
+                else if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1152,7 +1182,7 @@ public class PlayerController : MonoBehaviour
                 //Check Direction Inputs
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1203,7 +1233,7 @@ public class PlayerController : MonoBehaviour
                     vSpd -= gravity * Fixed.FromInt(2);
                     
                 }
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1475,7 +1505,6 @@ public class PlayerController : MonoBehaviour
                     facingRight = false;
                 }
 
-                
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
                 {
@@ -1738,7 +1767,7 @@ public class PlayerController : MonoBehaviour
                 }
 
 
-                if (input.ButtonStates[0] == ButtonState.Pressed)
+                if (input.ButtonStates[0] == ButtonState.Pressed && !collidingWithFloppy)
                 {
                     //play the enter weave sound
                     SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -1785,9 +1814,6 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.spellDisplays[playerIndex].UpdateCooldownDisplay(playerIndex);
         }
         
-
-        //if the hurtboxgroup at your current logic frame and state has width and height of 0, then make the sprite renderer brighter to indicate invulnerability frames
-        AdjustIframeAndArmorVFX();
 
         //check if we are in gameplay scene and if not, reset health to max to avoid dying in non-gameplay scenes
         Scene activeScene = SceneManager.GetActiveScene();
@@ -1844,10 +1870,8 @@ public class PlayerController : MonoBehaviour
 
     public void PlayerWorldCollisionCheck()
     {
-        //isGrounded = CheckGrounded();
-        //CheckWall(facingRight);
-        //CheckWall(!facingRight);
         CheckStageDataSOCollision();
+        CheckFloppyCollision();
         //CheckCameraCollision();
         //PlayerCollisionCheck();
     }
@@ -1911,7 +1935,25 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
+    public bool CheckFloppyCollision()
+    {
+        if(GameManager.Instance.currentStageIndex >= 0)
+        {
+            return false;
+        }
+        GameObject[] floppies = GameManager.Instance.FindFloppyDisksofPID(pID);
+        for(int i =0 ; i < floppies.Length; i++)
+        {
+            if(floppies[i].GetComponent<FloppyPickup>().colliding&&floppies[i].GetComponent<FloppyPickup>().overlappingPlayer == this)
+            {
+                collidingWithFloppy = true;
+                return true;
+            }
+        }
+        collidingWithFloppy = false;
+        return false;
 
+    }
     public bool CheckStageDataSOCollision(bool checkOnly = false)
     {
         isGrounded = false;
@@ -2435,7 +2477,7 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)VWavePassive.maxFlowState * 100f);
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)FlowState.maxFlowState * 100f);
 
             flowState--;
         }
@@ -3230,6 +3272,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private readonly List<SavedSpellState> savedSpellStateBuffer = new List<SavedSpellState>(8);
+
     // Spell strings in the serialization hot path are written as a stable int id (index
     // into SpellDictionary.spellList, identical on every client) instead of a length-prefixed
     // string, so a save-state / rollback no longer allocates a string per spell via ReadString.
@@ -3368,7 +3412,8 @@ public class PlayerController : MonoBehaviour
         // Read serialized spell payload ranges first. Spell identity is now a stable int id
         // rather than a per-spell string, and payloads stay in the parent snapshot stream
         // instead of being copied to a fresh byte[] per spell.
-        List<SavedSpellState> savedSpells = new List<SavedSpellState>(spellCount);
+        List<SavedSpellState> savedSpells = savedSpellStateBuffer;
+        savedSpells.Clear();
         for (int i = 0; i < spellCount; i++)
         {
             int spellId = br.ReadInt32();

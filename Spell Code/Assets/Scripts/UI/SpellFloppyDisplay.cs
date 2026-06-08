@@ -41,6 +41,8 @@ public class SpellFloppyDisplay : MonoBehaviour
     [HideInInspector]
     public SpellData spellData;
 
+    private Canvas displayCanvas;
+
 
     public void SetSpellFloppyDisplay( string spellString)
     {
@@ -73,34 +75,61 @@ public class SpellFloppyDisplay : MonoBehaviour
 
     public void StartFloppyDisplay()
     {
-        canvasObject.GetComponent<Canvas>().enabled = true;
-        SpellGifPlayer.Reset();
-        showDesc = false;
-        SpellGifGO.transform.localScale = new Vector3(gifScaleNoDesc, gifScaleNoDesc, 1);
-        spellDesc.color = Color.clear;
+        SetCanvasEnabled(true);
+        if (SpellGifPlayer != null)
+        {
+            SpellGifPlayer.Reset();
+        }
+        SetDescriptionVisible(false, false);
+    }
+
+    public void StopFloppyDisplay()
+    {
+        Canvas canvas = GetDisplayCanvas();
+        if (canvas == null || !canvas.enabled)
+        {
+            return;
+        }
+
+        KillDisplayTweens();
+        canvas.enabled = false;
+    }
+
+    public bool IsDisplayCanvasEnabled()
+    {
+        Canvas canvas = GetDisplayCanvas();
+        return canvas != null && canvas.enabled;
     }
 
     public void FloppyDisplayUpdate()
     {
+        KillDisplayTweens();
+
         if (showDesc)
         {
             if (SpellGifGO != null)
             {
-                Tween tween = SpellGifGO.transform.DOScale(gifScaleDesc, .25f);
+                Tween tween = SpellGifGO.transform.DOScale(gifScaleDesc, .25f).SetLink(SpellGifGO);
                 tween.OnComplete(() =>
                 {
-                    spellDesc.DOColor(Color.black, .25f);
+                    if (spellDesc != null)
+                    {
+                        spellDesc.DOColor(Color.black, .25f).SetLink(spellDesc.gameObject);
+                    }
                 });
             }
         }
         else
         {
-            if (SpellGifGO != null)
+            if (spellDesc != null)
             {
-                Tween tween = spellDesc.DOColor(Color.clear, .25f);
+                Tween tween = spellDesc.DOColor(Color.clear, .25f).SetLink(spellDesc.gameObject);
                 tween.OnComplete(() =>
                 {
-                    SpellGifGO.transform.DOScale(gifScaleNoDesc, .25f);
+                    if (SpellGifGO != null)
+                    {
+                        SpellGifGO.transform.DOScale(gifScaleNoDesc, .25f).SetLink(SpellGifGO);
+                    }
                 });
             }
         }
@@ -116,15 +145,15 @@ public class SpellFloppyDisplay : MonoBehaviour
             return;
         }
 
+        KillDisplayTweens();
+
         if (SpellGifGO != null)
         {
-            SpellGifGO.transform.DOKill();
             SpellGifGO.transform.localScale = new Vector3(showDesc ? gifScaleDesc : gifScaleNoDesc, showDesc ? gifScaleDesc : gifScaleNoDesc, 1);
         }
 
         if (spellDesc != null)
         {
-            spellDesc.DOKill();
             spellDesc.color = showDesc ? Color.black : Color.clear;
         }
     }
@@ -132,5 +161,47 @@ public class SpellFloppyDisplay : MonoBehaviour
     public void SetFloppyDisplayPosition(int index)
     {
         Background.rectTransform.anchoredPosition = displayLocations[index];
+    }
+
+    private void OnDisable()
+    {
+        KillDisplayTweens();
+    }
+
+    private void OnDestroy()
+    {
+        KillDisplayTweens();
+    }
+
+    private void SetCanvasEnabled(bool enabled)
+    {
+        Canvas canvas = GetDisplayCanvas();
+        if (canvas != null)
+        {
+            canvas.enabled = enabled;
+        }
+    }
+
+    private Canvas GetDisplayCanvas()
+    {
+        if (displayCanvas == null && canvasObject != null)
+        {
+            displayCanvas = canvasObject.GetComponent<Canvas>();
+        }
+
+        return displayCanvas;
+    }
+
+    private void KillDisplayTweens()
+    {
+        if (SpellGifGO != null)
+        {
+            SpellGifGO.transform.DOKill();
+        }
+
+        if (spellDesc != null)
+        {
+            spellDesc.DOKill();
+        }
     }
 }

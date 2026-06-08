@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: Tutorial StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
+  platformCenter:
+  - {x: 1072, y: -260}
+  - {x: 1072, y: 108}
+  platformExtent:
+  - {x: 80, y: 4}
+  - {x: 80, y: 4}
+  solidCenter:
+  - {x: 575.9, y: -112.3}
+  - {x: 1536, y: 112}
+  - {x: 1904, y: -368}
+  - {x: 4080, y: -63.99997}
+  - {x: 4368, y: -1016}
+  - {x: 4192, y: -632}
+  - {x: 4080, y: -880}
+  - {x: 2672, y: -7.9999924}
+  - {x: 2288, y: -7.9999924}
+  - {x: 2288, y: -248}
+  - {x: 1904, y: -248}
+  - {x: 1904, y: -7.9999924}
+  - {x: 2672, y: -560}
+  - {x: 1168, y: 140}
+  - {x: 872, y: -184}
+  - {x: 560, y: -288.2}
+  - {x: 3375.7769, y: -704}
+  - {x: 4264, y: -960}
+  - {x: 4224, y: -1072}
+  - {x: 4136, y: -360}
+  - {x: 1072, y: -368}
+  - {x: 0, y: -208}
+  - {x: -384, y: 16}
+  solidExtent:
+  - {x: 175.43195, y: 16}
+  - {x: 352.51892, y: 16}
+  - {x: 752.5245, y: 112}
+  - {x: 16, y: 480.11856}
+  - {x: 16, y: 40.09973}
+  - {x: 16, y: 312.10254}
+  - {x: 16, y: 208.11569}
+  - {x: 16, y: 104.139175}
+  - {x: 16, y: 104.139175}
+  - {x: 16, y: 8.143677}
+  - {x: 16, y: 8.143677}
+  - {x: 16, y: 104.139175}
+  - {x: 16, y: 320.12872}
+  - {x: 16, y: 364.81906}
+  - {x: 120, y: 296}
+  - {x: 192, y: 191.99487}
+  - {x: 688.2241, y: 16}
+  - {x: 88.328125, y: 16}
+  - {x: 128.32812, y: 16}
+  - {x: 40.328125, y: 8}
+  - {x: 80.32947, y: 16}
+  - {x: 373.97403, y: 16}
+  - {x: 16, y: 239.9936}
+  playerSpawnTransform:
+  - {x: -336, y: -192}
+  - {x: -336, y: -192}
+  - {x: -336, y: -192}
+  - {x: -336, y: -192}
+  npcSpawnTransform: []
+  activatableSolidCenter:
+  - {x: 4080, y: -608, z: 0}
+  - {x: 2672, y: -176, z: 0}
+  - {x: 2288, y: -176, z: 0}
+  - {x: 1904, y: -176, z: 0}
+  activatableSolidExtent:
+  - {x: 8, y: 64, z: 0.5}
+  - {x: 8, y: 64, z: 0.5}
+  - {x: 8, y: 64, z: 0.5}
+  - {x: 8, y: 64, z: 0.5}
+  borderMin: {x: -2000, y: -2000, z: 0}
+  borderMax: {x: 6000, y: 6000, z: 0}
+  camBorderMin: {x: -2000, y: -2000, z: 0}
+  camBorderMax: {x: 6000, y: 6000, z: 0}
+  borderType: 0
+  stageType: 3
+  dynamicCamera: 1

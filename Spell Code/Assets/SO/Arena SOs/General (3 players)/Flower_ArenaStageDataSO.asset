@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: Flower_ArenaStageDataSO
+  m_EditorClassIdentifier: 
+  platformCenter:
+  - {x: 144, y: -100}
+  - {x: -144, y: -100}
+  - {x: 144, y: 44}
+  - {x: -144, y: 44}
+  - {x: 0, y: 92}
+  - {x: 208, y: -36}
+  - {x: -208, y: -36}
+  platformExtent:
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  - {x: 64, y: 4}
+  - {x: 48, y: 4}
+  - {x: 48, y: 4}
+  solidCenter:
+  - {x: 0, y: 176}
+  - {x: 0, y: -176}
+  - {x: 0, y: -24}
+  - {x: 272, y: 0}
+  - {x: 0, y: 208}
+  - {x: 0, y: -208}
+  - {x: -272, y: 0}
+  solidExtent:
+  - {x: 256, y: 16}
+  - {x: 256, y: 16}
+  - {x: 64, y: 40}
+  - {x: 16, y: 224}
+  - {x: 286, y: 16}
+  - {x: 286, y: 16}
+  - {x: 16, y: 224}
+  playerSpawnTransform:
+  - {x: -144, y: 48, z: 0}
+  - {x: 144, y: 48, z: 0}
+  - {x: -144, y: -96, z: 0}
+  - {x: 144, y: -96, z: 0}
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: -350, y: -220, z: 0}
+  borderMax: {x: 350, y: 220, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
+  borderType: 0
+  stageType: 0
+  dynamicCamera: 1

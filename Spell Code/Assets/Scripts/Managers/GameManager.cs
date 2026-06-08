@@ -397,7 +397,9 @@ public class GameManager : MonoBehaviour
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
 
-        seededRandom = new System.Random(UnityEngine.Random.Range(0, 10000));
+        int offlineSeed = UnityEngine.Random.Range(1, int.MaxValue);
+        seededRandom = new System.Random(offlineSeed);
+        InitializeWithSeed(offlineSeed);
 
 
         SetStage(-1);
@@ -2278,9 +2280,8 @@ public class GameManager : MonoBehaviour
             {
                 players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
             }
-            goDoorPrefab.CheckOpenDoor();
-
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
+            goDoorPrefab.CheckOpenDoor();
             foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
             {
                 if (gambaGO == null) continue;
@@ -2420,6 +2421,7 @@ public class GameManager : MonoBehaviour
             }
 
             goDoorPrefab.CheckOpenDoor();
+            goDoorPrefab.BroadcastSnapshotForNewOnlineEntries(rbManager.isRollbackFrame);
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
@@ -2561,7 +2563,7 @@ public class GameManager : MonoBehaviour
     private void DeserializeFloppyState(BinaryReader br)
     {
         int floppyCount = br.ReadInt32();
-        List<(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription)> savedFloppies = new List<(int, string, Vector2, byte, bool)>(floppyCount);
+        savedFloppyStateBuffer.Clear();
 
         for (int i = 0; i < floppyCount; i++)
         {
@@ -2571,7 +2573,7 @@ public class GameManager : MonoBehaviour
             float posY = br.ReadSingle();
             byte holdCounter = br.ReadByte();
             bool showDescription = br.ReadBoolean();
-            savedFloppies.Add((ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription));
+            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription));
         }
 
         FindAllFloppyDisks();
@@ -2581,24 +2583,28 @@ public class GameManager : MonoBehaviour
             {
                 GameObject floppy = floppyObjects[i];
                 if (floppy == null) continue;
-                floppy.SetActive(false);
-                Destroy(floppy);
+
+                FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
+                int savedIndex = FindMatchingSavedFloppyIndex(disk, floppy.transform.position);
+                if (savedIndex < 0)
+                {
+                    floppy.SetActive(false);
+                    Destroy(floppy);
+                    continue;
+                }
+
+                SavedFloppyState savedFloppy = savedFloppyStateBuffer[savedIndex];
+                ApplySavedFloppyState(floppy, disk, savedFloppy);
+                savedFloppy.restored = true;
+                savedFloppyStateBuffer[savedIndex] = savedFloppy;
             }
         }
 
         List<GameObject> validGambas = GetValidGambaObjects(refreshIfNeeded: true);
-        foreach (GameObject gambaGO in validGambas)
+        for (int savedIndex = 0; savedIndex < savedFloppyStateBuffer.Count; savedIndex++)
         {
-            GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
-            if (gamba != null)
-            {
-                gamba.ClearTrackedFloppyReferences();
-            }
-        }
-
-        foreach (var savedFloppy in savedFloppies)
-        {
-            if (savedFloppy.ownerPid <= 0 || string.IsNullOrEmpty(savedFloppy.diskName))
+            SavedFloppyState savedFloppy = savedFloppyStateBuffer[savedIndex];
+            if (savedFloppy.restored || savedFloppy.ownerPid <= 0 || string.IsNullOrEmpty(savedFloppy.diskName))
             {
                 continue;
             }
@@ -2620,8 +2626,7 @@ public class GameManager : MonoBehaviour
                     FloppyPickup disk = restoredDisk.GetComponent<FloppyPickup>();
                     if (disk != null)
                     {
-                        disk.SetSelectHoldCounter(savedFloppy.holdCounter);
-                        disk.SetDescriptionVisible(savedFloppy.showDescription, false);
+                        ApplySavedFloppyState(restoredDisk, disk, savedFloppy);
                     }
                 }
                 break;
@@ -2629,6 +2634,56 @@ public class GameManager : MonoBehaviour
         }
 
         FindAllFloppyDisks();
+    }
+
+    private int FindMatchingSavedFloppyIndex(FloppyPickup disk, Vector3 currentPosition)
+    {
+        if (disk == null)
+        {
+            return -1;
+        }
+
+        for (int i = 0; i < savedFloppyStateBuffer.Count; i++)
+        {
+            SavedFloppyState savedFloppy = savedFloppyStateBuffer[i];
+            if (savedFloppy.restored
+                || savedFloppy.ownerPid != disk.ownerPID
+                || savedFloppy.diskName != disk.diskName
+                || !ApproximatelySameFloppyPosition(currentPosition, savedFloppy.position))
+            {
+                continue;
+            }
+
+            return i;
+        }
+
+        return -1;
+    }
+
+    private static bool ApproximatelySameFloppyPosition(Vector3 currentPosition, Vector2 savedPosition)
+    {
+        const float tolerance = 0.01f;
+        return Mathf.Abs(currentPosition.x - savedPosition.x) <= tolerance
+            && Mathf.Abs(currentPosition.y - savedPosition.y) <= tolerance;
+    }
+
+    private static void ApplySavedFloppyState(GameObject floppy, FloppyPickup disk, SavedFloppyState savedFloppy)
+    {
+        if (floppy != null)
+        {
+            floppy.transform.position = new Vector3(savedFloppy.position.x, savedFloppy.position.y, floppy.transform.position.z);
+            floppy.SetActive(true);
+        }
+
+        if (disk == null)
+        {
+            return;
+        }
+
+        disk.ownerPID = savedFloppy.ownerPid;
+        disk.diskName = savedFloppy.diskName;
+        disk.SetSelectHoldCounter(savedFloppy.holdCounter);
+        disk.SetDescriptionVisible(savedFloppy.showDescription, false);
     }
 
     private void PerformRoundTransition()
@@ -3803,15 +3858,36 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Disabled PlayerInputManager before scene load");
         }
 
+        ////if gameStages is empty,...
+        //if (gameStages.Count <= 0)
+        //{
+        //    //fill it back up
+        //    FillGameStages();
+        //}
+
+        //int _gameStageIndex = GetNextRandom(0, gameStages.Count);
+        //int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
+
+        int _gameStageIndex;
+        int _newStageIndex;
+
         //if gameStages is empty,...
         if (gameStages.Count <= 0)
         {
-            //fill it back up
+            //fill gameStages back up
             FillGameStages();
+
+            //Get the stage index of a random non looping stage
+            _gameStageIndex = GetStageIndexWithoutLooping();
+        }
+        else
+        {
+            //Get the stage index of a random stage
+            _gameStageIndex = GetNextStageRandom(0, gameStages.Count);
         }
 
-        int _gameStageIndex = GetNextRandom(0, gameStages.Count);
-        int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
+        //get the actual stage index from gameStageIndex
+        _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
 
         //remove the stage associated with newStageIndex so it does not repeat for the rest of the game
         gameStages.Remove(stages[_newStageIndex]);
@@ -3829,13 +3905,27 @@ public class GameManager : MonoBehaviour
 
     private void SelectAndBroadcastStage(int transitionId)
     {
+        int gameStageIndex;
+        int newStageIndex;
+
+        //if gameStages is empty,...
         if (gameStages.Count <= 0)
         {
+            //fill gameStages back up
             FillGameStages();
+
+            //Get the stage index of a random non looping stage
+            gameStageIndex = GetStageIndexWithoutLooping();
+        }
+        else
+        {
+            //Get the stage index of a random stage
+            gameStageIndex = GetNextStageRandom(0, gameStages.Count);
         }
 
-        int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
-        int newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+        //get the actual stage index from gameStageIndex
+        newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+
         if (activeOnlineTransitionId == 0)
         {
             BeginTrackedOnlineTransition(transitionId);
@@ -3852,6 +3942,14 @@ public class GameManager : MonoBehaviour
     }
 
     public void ApplyOnlineStageSelection(int stageIndex, uint? syncedStageRngState = null)
+    {
+        ApplyOnlineStageSelectionState(stageIndex, syncedStageRngState);
+        isTransitioning = true;
+        localSceneTransitionReady = false;
+        sceneManager.LoadScene("Gameplay");
+    }
+
+    private void ApplyOnlineStageSelectionState(int stageIndex, uint? syncedStageRngState = null)
     {
         if (syncedStageRngState.HasValue)
         {
@@ -3875,9 +3973,98 @@ public class GameManager : MonoBehaviour
         }
 
         SetStage(stageIndex);
-        isTransitioning = true;
-        localSceneTransitionReady = false;
-        sceneManager.LoadScene("Gameplay");
+    }
+
+    private bool TryApplyPendingGameplayStageSelectForLoadedGameplay()
+    {
+        if (!hasPendingStageSelect || pendingStageSelectSceneType != 1)
+        {
+            return false;
+        }
+
+        int expectedTransitionId = activeOnlineTransitionId > 0 ? activeOnlineTransitionId : GetExpectedOnlineTransitionId();
+        if (pendingStageSelectTransitionId != expectedTransitionId
+            || pendingStageSelectIndex < 0
+            || pendingStageSelectIndex >= stages.Count)
+        {
+            return false;
+        }
+
+        int pendingTransitionId = pendingStageSelectTransitionId;
+        int pendingIndex = pendingStageSelectIndex;
+        uint pendingRngState = pendingStageSelectRngState;
+        int pendingTotalRoundsPlayed = pendingStageSelectTotalRoundsPlayed;
+        uint pendingGameplayRngState = pendingStageSelectGameplayRngState;
+        int pendingRandomCallCount = pendingStageSelectRandomCallCount;
+
+        ClearPendingStageSelect();
+
+        if (activeOnlineTransitionId == 0)
+        {
+            BeginTrackedOnlineTransition(pendingTransitionId);
+        }
+
+        if (pendingTotalRoundsPlayed >= 0)
+        {
+            ApplyOnlineTotalRoundsPlayed(pendingTotalRoundsPlayed);
+        }
+
+        ApplyOnlineGameplayRngState(pendingGameplayRngState, pendingRandomCallCount);
+        MarkGameplayStageTransitionApplied(pendingTransitionId);
+        ApplyOnlineStageSelectionState(pendingIndex, pendingRngState);
+        return true;
+    }
+
+    private void SelectFallbackOnlineGameplayStage()
+    {
+        int selectedStageIndex = SelectRandomGameplayStageIndex(useStageRng: true);
+        if (selectedStageIndex < 0)
+        {
+            return;
+        }
+
+        SetStage(selectedStageIndex);
+
+        if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
+        {
+            int transitionId = activeOnlineTransitionId > 0 ? activeOnlineTransitionId : GetExpectedOnlineTransitionId();
+            MarkGameplayStageTransitionApplied(transitionId);
+            MatchMessageManager.Instance.SendStageSelect(transitionId, selectedStageIndex, stageRngState);
+        }
+    }
+
+    private int SelectRandomGameplayStageIndex(bool useStageRng)
+    {
+        if (gameStages.Count <= 0)
+        {
+            FillGameStages();
+        }
+
+        if (gameStages.Count <= 0)
+        {
+            return stages.Count > 0 ? 0 : -1;
+        }
+
+        int gameStageIndex = useStageRng
+            ? GetNextStageRandom(0, gameStages.Count)
+            : GetNextRandom(0, gameStages.Count);
+        StageDataSO selectedStage = gameStages[gameStageIndex];
+        int selectedStageIndex = stages.FindIndex(stage => stage == selectedStage);
+        gameStages.RemoveAt(gameStageIndex);
+        return selectedStageIndex;
+    }
+
+    private void ClearPendingStageSelect()
+    {
+        hasPendingStageSelect = false;
+        pendingStageSelectTransitionId = 0;
+        pendingStageSelectSceneType = 0;
+        pendingStageSelectSceneSignature = 0;
+        pendingStageSelectIndex = -1;
+        pendingStageSelectRngState = 0;
+        pendingStageSelectTotalRoundsPlayed = -1;
+        pendingStageSelectGameplayRngState = 0;
+        pendingStageSelectRandomCallCount = -1;
     }
 
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
@@ -3980,6 +4167,7 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
             //Debug.Log("Gameplay Scene Loaded - Resuming Online Match");
+            bool appliedPendingGameplayStageSelect = TryApplyPendingGameplayStageSelectForLoadedGameplay();
             onlineRoundAdvanceApplied = false;
             roundOver = false;
             gameOver = false;
@@ -3999,13 +4187,10 @@ public class GameManager : MonoBehaviour
             localGameplayReadyTransitionId = 0;
             remoteGameplayReadyTransitionId = 0;
             pendingRemoteGameplayReadyTransitionId = 0;
-            hasPendingStageSelect = false;
-            pendingStageSelectTransitionId = 0;
-            pendingStageSelectSceneType = 0;
-            pendingStageSelectSceneSignature = 0;
-            pendingStageSelectIndex = -1;
-            pendingStageSelectRngState = 0;
-            pendingStageSelectTotalRoundsPlayed = -1;
+            if (!appliedPendingGameplayStageSelect)
+            {
+                ClearPendingStageSelect();
+            }
             localSceneTransitionReady = false;
             frameNumber = 0;
             localPlayerInput = 5;
@@ -4031,7 +4216,7 @@ public class GameManager : MonoBehaviour
 
             if (currentStageIndex < 0)
             {
-                SetStage(1);
+                SelectFallbackOnlineGameplayStage();
             }
 
             ResetPlayers();
@@ -4274,7 +4459,63 @@ public class GameManager : MonoBehaviour
             .ToArray();
     }
 
+    public GameObject[] FindFloppyDisksofPID(int ownerPID)
+    {
+        FindAllFloppyDisks();
+
+        return (floppyObjects ?? Array.Empty<GameObject>())
+            .Where(go =>
+            {
+                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
+                return disk != null && disk.ownerPID == ownerPID;
+            })
+            .ToArray();
+    }
+
     // ---------------------------------------------------------Central State Serialization Methods-----------------------------------------
+
+    private struct SavedProjectileState
+    {
+        public int prefabIndex;
+        public long dataStart;
+        public int dataLength;
+
+        public SavedProjectileState(int prefabIndex, long dataStart, int dataLength)
+        {
+            this.prefabIndex = prefabIndex;
+            this.dataStart = dataStart;
+            this.dataLength = dataLength;
+        }
+    }
+
+    private readonly List<SavedProjectileState> savedProjectileStateBuffer = new List<SavedProjectileState>(32);
+    private readonly HashSet<int> savedProjectileIndexSet = new HashSet<int>();
+
+    private struct SavedFloppyState
+    {
+        public int ownerPid;
+        public string diskName;
+        public Vector2 position;
+        public byte holdCounter;
+        public bool showDescription;
+        public bool restored;
+
+        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription)
+        {
+            this.ownerPid = ownerPid;
+            this.diskName = diskName;
+            this.position = position;
+            this.holdCounter = holdCounter;
+            this.showDescription = showDescription;
+            this.restored = false;
+        }
+    }
+
+    private readonly List<SavedFloppyState> savedFloppyStateBuffer = new List<SavedFloppyState>(12);
+    private readonly List<string> savedP1ChoiceBuffer = new List<string>(3);
+    private readonly List<string> savedP2ChoiceBuffer = new List<string>(3);
+    private readonly List<string> savedP3ChoiceBuffer = new List<string>(3);
+    private readonly List<string> savedP4ChoiceBuffer = new List<string>(3);
 
     /// <summary>
     /// Serializes the entire deterministic game state managed by GameManager.
@@ -4374,27 +4615,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
-                    .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
-                    .ToList();
-                bw.Write(activeProjectiles.Count);
-
-                foreach (BaseProjectile projectile in activeProjectiles)
-                {
-                    // Save an identifier to find this projectile instance later during Deserialize
-                    // Using its index in the *master* prefab list is generally reliable if that list never changes order after init.
-                    int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
-                    if (prefabIndex == -1)
-                    {
-                        //Debug.LogError($"Active projectile {projectile.projName} (Owner: {projectile.owner?.characterName}) not found in master prefab list during Serialize!");
-                        bw.Write(-1);
-                    }
-                    else
-                    {
-                        bw.Write(prefabIndex);
-                        projectile.Serialize(bw);
-                    }
-                }
+                SerializeActiveProjectileStates(bw);
 
                 bw.Write(includeLobbyShopState);
                 if (includeLobbyShopState)
@@ -4537,6 +4758,104 @@ public class GameManager : MonoBehaviour
 
             return memoryStream.ToArray();
         }
+    }
+
+    private void SerializeActiveProjectileStates(BinaryWriter bw)
+    {
+        List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
+        Stream stream = bw.BaseStream;
+        long countPosition = stream.Position;
+        bw.Write(0);
+        int activeCount = 0;
+
+        for (int prefabIndex = 0; prefabIndex < masterList.Count; prefabIndex++)
+        {
+            BaseProjectile projectile = masterList[prefabIndex];
+            if (projectile == null || !projectile.gameObject.activeSelf)
+            {
+                continue;
+            }
+
+            activeCount++;
+            bw.Write(prefabIndex);
+            WriteLengthPrefixedProjectileState(bw, projectile);
+        }
+
+        long endPosition = stream.Position;
+        stream.Position = countPosition;
+        bw.Write(activeCount);
+        stream.Position = endPosition;
+    }
+
+    private static void WriteLengthPrefixedProjectileState(BinaryWriter bw, BaseProjectile projectile)
+    {
+        Stream stream = bw.BaseStream;
+        long lengthPosition = stream.Position;
+        bw.Write(0);
+        long dataStart = stream.Position;
+
+        projectile.Serialize(bw);
+
+        long dataEnd = stream.Position;
+        int dataLength = checked((int)(dataEnd - dataStart));
+        stream.Position = lengthPosition;
+        bw.Write(dataLength);
+        stream.Position = dataEnd;
+    }
+
+    private void DeserializeActiveProjectileStates(BinaryReader br)
+    {
+        int savedProjectileCount = br.ReadInt32();
+        List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
+        savedProjectileStateBuffer.Clear();
+        savedProjectileIndexSet.Clear();
+
+        for (int i = 0; i < savedProjectileCount; i++)
+        {
+            int prefabIndex = br.ReadInt32();
+            int dataLength = br.ReadInt32();
+            long dataStart = br.BaseStream.Position;
+            long dataEnd = dataStart + dataLength;
+
+            if (prefabIndex >= 0 && prefabIndex < masterList.Count && masterList[prefabIndex] != null)
+            {
+                savedProjectileStateBuffer.Add(new SavedProjectileState(prefabIndex, dataStart, dataLength));
+                savedProjectileIndexSet.Add(prefabIndex);
+            }
+
+            br.BaseStream.Position = dataEnd;
+        }
+
+        long projectilePayloadEnd = br.BaseStream.Position;
+
+        for (int prefabIndex = 0; prefabIndex < masterList.Count; prefabIndex++)
+        {
+            BaseProjectile projectile = masterList[prefabIndex];
+            if (projectile == null || !projectile.gameObject.activeSelf || savedProjectileIndexSet.Contains(prefabIndex))
+            {
+                continue;
+            }
+
+            ProjectileManager.Instance.DeleteProjectile(projectile);
+        }
+
+        for (int i = 0; i < savedProjectileStateBuffer.Count; i++)
+        {
+            SavedProjectileState savedProjectile = savedProjectileStateBuffer[i];
+            BaseProjectile projectile = masterList[savedProjectile.prefabIndex];
+            if (!projectile.gameObject.activeSelf)
+            {
+                projectile.ResetValues();
+                projectile.gameObject.SetActive(true);
+            }
+
+            br.BaseStream.Position = savedProjectile.dataStart;
+            projectile.Deserialize(br);
+            br.BaseStream.Position = savedProjectile.dataStart + savedProjectile.dataLength;
+        }
+
+        br.BaseStream.Position = projectilePayloadEnd;
+        ProjectileManager.Instance.SynchronizeActiveProjectiles();
     }
 
     private bool ShouldIncludeLobbyShopState()
@@ -4732,16 +5051,16 @@ public class GameManager : MonoBehaviour
                     p2_lastCycleFrame = br.ReadInt32();
 
                     // Deserialize shop spell choices
-                    List<string> savedP1Choices = DeserializeStringList(br);
-                    List<string> savedP2Choices = DeserializeStringList(br);
-                    List<string> savedP3Choices = DeserializeStringList(br);
-                    List<string> savedP4Choices = DeserializeStringList(br);
+                    DeserializeStringListInto(br, savedP1ChoiceBuffer);
+                    DeserializeStringListInto(br, savedP2ChoiceBuffer);
+                    DeserializeStringListInto(br, savedP3ChoiceBuffer);
+                    DeserializeStringListInto(br, savedP4ChoiceBuffer);
                     if (shopManager != null)
                     {
-                        shopManager.SetChoicesForPlayer(0, savedP1Choices);
-                        shopManager.SetChoicesForPlayer(1, savedP2Choices);
-                        shopManager.SetChoicesForPlayer(2, savedP3Choices);
-                        shopManager.SetChoicesForPlayer(3, savedP4Choices);
+                        shopManager.SetChoicesForPlayer(0, savedP1ChoiceBuffer);
+                        shopManager.SetChoicesForPlayer(1, savedP2ChoiceBuffer);
+                        shopManager.SetChoicesForPlayer(2, savedP3ChoiceBuffer);
+                        shopManager.SetChoicesForPlayer(3, savedP4ChoiceBuffer);
                     }
 
                     for (int i = 0; i < playersToRead; i++)
@@ -4768,103 +5087,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
 
-                // Projectile State
-                int savedProjectileCount = br.ReadInt32();
-                List<BaseProjectile> masterList = ProjectileManager.Instance.projectilePrefabs;
-                List<BaseProjectile> currentlyActive = masterList
-                    .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
-                    .ToList();
-                List<BaseProjectile> shouldBeActive = new List<BaseProjectile>(); // Track projectiles loaded from state
-
-                // Read data and identify which projectiles should be active
-                Dictionary<int, byte[]> projectileStateData = new Dictionary<int, byte[]>(); // Store raw state data temporarily
-                List<int> activePrefabIndices = new List<int>();
-
-                for (int i = 0; i < savedProjectileCount; i++)
-                {
-                    int prefabIndex = br.ReadInt32();
-                    if (prefabIndex == -1 || prefabIndex >= masterList.Count)
-                    {
-                        //Debug.LogError($"Invalid prefab index ({prefabIndex}) read during projectile Deserialize. Skipping projectile state.");
-                        // Need robust skipping logic here if SpellData.Deserialize can vary in length
-                        continue; // Skip this entry
-                    }
-                    activePrefabIndices.Add(prefabIndex);
-
-                    // Read the projectile's state into a temporary buffer
-                    // This requires knowing the exact size of a serialized projectile, OR read until end marker (complex)
-                    // A simpler (but less efficient) approach: Serialize includes size, or use fixed size
-                    // Assuming BaseProjectile.Deserialize reads exactly its data:
-                    // Need to temporarily store the BinaryReader position or read into temp memory.
-
-                    // Re-seek or re-read approach (Less efficient but simpler to write now):
-                    long currentPos = br.BaseStream.Position;
-                    // Dummy deserialize to advance stream (inefficient - better to calculate size)
-                    if (prefabIndex >= 0 && prefabIndex < masterList.Count && masterList[prefabIndex] != null)
-                    {
-                        masterList[prefabIndex].Deserialize(br);
-                    }
-                    else
-                    {
-                        // Cannot determine size to skip - this approach has issues.
-                        //Debug.LogError("Cannot skip unknown projectile data.");
-                        // Alternative: Calculate exact size of serialized projectile data.
-                    }
-                    long nextPos = br.BaseStream.Position;
-                    long dataSize = nextPos - currentPos;
-                    br.BaseStream.Position = currentPos; // Rewind
-                    byte[] projData = br.ReadBytes((int)dataSize); // Read the exact bytes
-                    projectileStateData[prefabIndex] = projData; // Store bytes keyed by prefab index
-                }
-
-
-                // Synchronize active state
-                // Deactivate projectiles that are currently active but shouldn't be
-                foreach (BaseProjectile activeProj in currentlyActive)
-                {
-                    int currentPrefabIndex = masterList.IndexOf(activeProj);
-                    if (!activePrefabIndices.Contains(currentPrefabIndex))
-                    {
-                        // This projectile shouldn't be active, deactivate it
-                        ProjectileManager.Instance.DeleteProjectile(activeProj); // Use manager's method to handle pool state
-                    }
-                }
-
-                // Activate projectiles that should be active but aren't
-                foreach (int prefabIndex in activePrefabIndices)
-                {
-                    BaseProjectile projectileInstance = masterList[prefabIndex];
-                    if (!projectileInstance.gameObject.activeSelf)
-                    {
-                        // Activate from pool (Reset values first)
-                        projectileInstance.ResetValues();
-                        projectileInstance.gameObject.SetActive(true);
-                    }
-                    shouldBeActive.Add(projectileInstance); // Add to the list of projectiles to load state for
-                }
-
-
-                // Load state into the now-correctly-active projectiles
-                foreach (BaseProjectile projectileToLoad in shouldBeActive)
-                {
-                    int prefabIndex = masterList.IndexOf(projectileToLoad);
-                    if (projectileStateData.TryGetValue(prefabIndex, out byte[] projData))
-                    {
-                        using (MemoryStream projStream = new MemoryStream(projData))
-                        {
-                            using (BinaryReader projReader = new BinaryReader(projStream))
-                            {
-                                projectileToLoad.Deserialize(projReader);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Debug.LogError($"State data for prefab index {prefabIndex} not found during load pass.");
-                    }
-                }
-
-                ProjectileManager.Instance.SynchronizeActiveProjectiles();
+                DeserializeActiveProjectileStates(br);
 
                 bool hasLobbyShopTail = br.ReadBoolean();
                 if (hasLobbyShopTail)
@@ -4945,16 +5168,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private List<string> DeserializeStringList(BinaryReader br)
+    private void DeserializeStringListInto(BinaryReader br, List<string> list)
     {
+        list.Clear();
         int count = br.ReadInt32();
-        List<string> list = new List<string>();
         for (int i = 0; i < count; i++)
         {
             list.Add(br.ReadString());
         }
-
-        return list;
     }
 
     /// <summary>
@@ -4962,15 +5183,21 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void FillGameStages()
     {
+        //first, fill gameStages with all possible stages,...
         gameStages = new List<StageDataSO>(stages);
 
-        if (playerCount == 2)
+        //then, based on playerCount, remove all irrelevant stages from gameStages 
+        switch (playerCount)
         {
-            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Party);
-        }
-        else if (playerCount > 2)
-        {
-            gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+            case 2:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.Duel);
+                break;
+            case 3:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.General);
+                break;
+            case 4:
+                gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
+                break;
         }
     }
 
@@ -5237,5 +5464,32 @@ public class GameManager : MonoBehaviour
         }
 
         //Debug.Log("After culling: gameStages.Count = " + gameStages.Count);
+    }
+
+    /// <summary>
+    /// Get the stage index of a random, non looping stage within gameStages
+    /// </summary>
+    /// <returns>The stage index as an int</returns>
+    private int GetStageIndexWithoutLooping()
+    {
+        //integer to make sure while loop does not go forever
+        int _loopCheck = 0;
+
+        //temp integer to store and return the stage index
+        int _gameStageIndex;
+
+        //get a new random stage until the found stage is NOT looping
+        do
+        {
+            //find a new random stage index
+            _gameStageIndex = GetNextStageRandom(0, gameStages.Count);
+
+            //increment _loopCheck
+            _loopCheck++;
+        }
+        while (gameStages[_gameStageIndex].borderType == BorderType.Loop && _loopCheck < 100);
+
+        //return _gameStageIndex
+        return _gameStageIndex;
     }
 }

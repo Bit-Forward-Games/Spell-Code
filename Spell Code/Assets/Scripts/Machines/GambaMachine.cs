@@ -245,59 +245,6 @@ public class GambaMachine : MonoBehaviour
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
             }
-
-            if (isActive && CheckHitboxCollision() && machineID == 2)
-            {
-                foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                p1_floppys.Clear();
-
-                isActive = false;
-
-                //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave
-                counter++;
-                if (counter > 4) { counter = 1; }
-
-                switch (counter)
-                {
-                    //DemonX
-                    case 1:
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Amon Slash");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[2], "Asuran Blades");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[3], "Bifrons Blade");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[4], "Abaddon Uppercut");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[5], "Hell-Chain Sweep");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[6], "Demonic Descent");
-                        break;
-                    //BigStox
-                    case 2:
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Quarter Report");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[2], "Coin Toss");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[3], "Get A Job");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[4], "Cash Out");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[5], "Blue Chip Trader");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[6], "Let It Ride");
-                        break;
-                    //Killeez
-                    case 3:
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Blade Of Ares");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[2], "Might Of Zeus");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[3], "Gift Of Prometheus");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[4], "Trident Of Poseidon");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[5], "Boots Of Hermes");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[6], "Rod Of Asclepius");
-                        break;
-                    //VWave
-                    case 4:
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Skillshot Slash");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[2], "Reload Shot");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[3], "Pong Shot");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[4], "Trickshot Alley");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[5], "Mine Crafter");
-                        SpawnFloppyDisk(ownerPID, tutorialLocs[6], "No-Scope Shot");
-                        break;
-                }
-
-            }
         }
 
         else if (activeScene.name == "TrainingGrounds")

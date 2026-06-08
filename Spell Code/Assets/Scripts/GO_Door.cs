@@ -12,6 +12,7 @@ public class GO_Door : MonoBehaviour
     public bool isPrimed = true;
     public bool soloModes = true;
     float colliderRadius = 36;
+    private readonly bool[] onlineEntrySnapshotSent = new bool[4];
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -38,18 +39,7 @@ public class GO_Door : MonoBehaviour
         {
             player = GameManager.Instance.players[i];
 
-            FixedVec2 doorPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
-            // Compute squared distance (avoid square root):
-            Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(100);
-            Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(100);
-            Fixed distSq = (dx * dx) + (dy * dy);
-
-            // Convert collider radius to Fixed and square it
-            Fixed radius = Fixed.FromFloat(colliderRadius/100);
-            Fixed radiusSq = radius * radius;
-
-            // Determine overlap using squared values
-            if (distSq > radiusSq || !player.isGrounded)
+            if (!IsPlayerInsideDoor(player))
             {
                 //player is out of range
                 isPrimed = true;
@@ -60,6 +50,79 @@ public class GO_Door : MonoBehaviour
 
         //all players are in range and the door is open, then return true
         return true;
+    }
+
+    public void BroadcastSnapshotForNewOnlineEntries(bool isRollback)
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || !gameManager.isOnlineMatchActive || !isOpen)
+        {
+            ResetOnlineEntrySnapshotSent();
+            return;
+        }
+
+        if (isRollback)
+        {
+            return;
+        }
+
+        bool newEntryDetected = false;
+        int firstNewEntryPid = -1;
+
+        for (int i = 0; i < gameManager.playerCount && i < onlineEntrySnapshotSent.Length; i++)
+        {
+            PlayerController player = gameManager.players[i];
+            bool isInsideDoor = IsPlayerInsideDoor(player);
+
+            if (isInsideDoor && !onlineEntrySnapshotSent[i])
+            {
+                onlineEntrySnapshotSent[i] = true;
+                newEntryDetected = true;
+                if (firstNewEntryPid < 0 && player != null)
+                {
+                    firstNewEntryPid = player.pID;
+                }
+            }
+            else if (!isInsideDoor)
+            {
+                onlineEntrySnapshotSent[i] = false;
+            }
+        }
+
+        if (newEntryDetected)
+        {
+            string reason = firstNewEntryPid > 0 ? $"go door enter P{firstNewEntryPid}" : "go door enter";
+            gameManager.BroadcastAuthoritativeOnlineStateSnapshot(reason);
+        }
+    }
+
+    private bool IsPlayerInsideDoor(PlayerController player)
+    {
+        if (player == null)
+        {
+            return false;
+        }
+
+        FixedVec2 doorPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
+        // Compute squared distance (avoid square root):
+        Fixed dx = Fixed.Abs(player.position.X - doorPos.X) / Fixed.FromInt(100);
+        Fixed dy = Fixed.Abs(player.position.Y - doorPos.Y) / Fixed.FromInt(100);
+        Fixed distSq = (dx * dx) + (dy * dy);
+
+        // Convert collider radius to Fixed and square it
+        Fixed radius = Fixed.FromFloat(colliderRadius / 100);
+        Fixed radiusSq = radius * radius;
+
+        // Determine overlap using squared values
+        return distSq <= radiusSq && player.isGrounded;
+    }
+
+    private void ResetOnlineEntrySnapshotSent()
+    {
+        for (int i = 0; i < onlineEntrySnapshotSent.Length; i++)
+        {
+            onlineEntrySnapshotSent[i] = false;
+        }
     }
 
     public bool CheckOpenDoor()

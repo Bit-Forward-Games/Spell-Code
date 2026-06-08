@@ -16,7 +16,6 @@ public class Tutorial : MonoBehaviour
 {
     public Exit_Door door;
     public GambaMachine machine;
-    public GambaMachine machine2;
     private GameManager gM;
 
     public SpriteRenderer gambaHitGif;
@@ -24,6 +23,12 @@ public class Tutorial : MonoBehaviour
 
     public TextMeshProUGUI gambaHitText;
     public TextMeshProUGUI floppyPickupText;
+    public TextMeshProUGUI passiveDisplay;
+
+    string bigStox;
+    string demonX;
+    string vWave;
+    string killeez;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -33,6 +38,13 @@ public class Tutorial : MonoBehaviour
         gM = GameManager.Instance;
         floppyPickupGif.enabled = false;
         floppyPickupText.enabled = false;
+
+        bigStox = "BigStox has Stock Stability<sprite name=\"StockStability\">";
+        killeez = "Killeez has Reps<sprite name=\"Reps\">";
+        demonX = "Demon-X has Demon Aura<sprite name=\"DemonAura\">";
+        vWave = "VWave has Flow State<sprite name=\"FlowState\">";
+
+        passiveDisplay.text = demonX + "\n" + bigStox + "\n" + killeez + "\n" + vWave;
     }
 
     // Update is called once per frame

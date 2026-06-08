@@ -3785,15 +3785,22 @@ public class GameManager : MonoBehaviour
     /// <returns>The stage index as an int</returns>
     private int GetStageIndexWithoutLooping()
     {
+        //integer to make sure while loop does not go forever
+        int _loopCheck = 0;
+
         //temp integer to store and return the stage index
         int _gameStageIndex;
 
         //get a new random stage until the found stage is NOT looping
         do
         {
+            //find a new random stage index
             _gameStageIndex = GetNextStageRandom(0, gameStages.Count);
+
+            //increment _loopCheck
+            _loopCheck++;
         }
-        while (gameStages[_gameStageIndex].borderType == BorderType.Loop);
+        while (gameStages[_gameStageIndex].borderType == BorderType.Loop && _loopCheck < 100);
 
         //return _gameStageIndex
         return _gameStageIndex;

@@ -107,6 +107,7 @@ public class TempUIScript : MonoBehaviour
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         input.Disable();
+        StopDamageBarCoroutines();
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -338,9 +339,28 @@ public class TempUIScript : MonoBehaviour
 
     public IEnumerator DamageBar(int playerIndex)
     {
-        // Transform childTransform = GameManager.Instance.players[playerIndex].transform.Find("Damage Bar");
-        followPlayerDamageBar[playerIndex] = FindChildContainingName(GameManager.Instance.players[playerIndex].gameObject, "Damage Bar").GetComponent<Image>();
+        if (GameManager.Instance == null
+            || playerIndex < 0
+            || playerIndex >= GameManager.Instance.players.Length
+            || GameManager.Instance.players[playerIndex] == null)
+        {
+            yield break;
+        }
+
         PlayerController player = GameManager.Instance.players[playerIndex];
+        if (player.charData == null)
+        {
+            yield break;
+        }
+
+        GameObject damageBarObject = FindChildContainingName(player.gameObject, "Damage Bar");
+        Image damageBar = damageBarObject != null ? damageBarObject.GetComponent<Image>() : null;
+        if (damageBar == null)
+        {
+            yield break;
+        }
+
+        followPlayerDamageBar[playerIndex] = damageBar;
 
         // Note: previously we did `player.isHit = false` here to "consume" the trigger flag,
         // but that was UI code writing to a field that's part of the deterministic sim's
@@ -351,7 +371,7 @@ public class TempUIScript : MonoBehaviour
         
         float newHealthAmount = (float)player.currentPlayerHealth / player.charData.playerHealth;
         
-        followPlayerDamageBar[playerIndex].fillAmount = previousHealthAmount;
+        damageBar.fillAmount = previousHealthAmount;
 
         yield return new WaitForSeconds(1f);
 
@@ -360,14 +380,41 @@ public class TempUIScript : MonoBehaviour
 
         while (elapsedTime < animationDuration)
         {
+            if (damageBar == null)
+            {
+                yield break;
+            }
+
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / animationDuration;
-            followPlayerDamageBar[playerIndex].fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
+            damageBar.fillAmount = Mathf.Lerp(previousHealthAmount, newHealthAmount, t);
             yield return null;
         }
 
-        followPlayerDamageBar[playerIndex].fillAmount = newHealthAmount;
+        if (damageBar == null)
+        {
+            yield break;
+        }
+
+        damageBar.fillAmount = newHealthAmount;
         damageBarDisplayFill[playerIndex] = newHealthAmount;
+    }
+
+    private void StopDamageBarCoroutines()
+    {
+        if (damageBarCoroutines == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < damageBarCoroutines.Length; index++)
+        {
+            if (damageBarCoroutines[index] != null)
+            {
+                StopCoroutine(damageBarCoroutines[index]);
+                damageBarCoroutines[index] = null;
+            }
+        }
     }
 
     public IEnumerator DisplayTransitionScreen(float transitionTime, string text)

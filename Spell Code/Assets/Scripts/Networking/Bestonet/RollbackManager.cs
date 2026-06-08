@@ -2833,6 +2833,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remotePlayerSlots.Remove(slot);
             pendingRemoteInputSlots.Remove(slot);
             PruneRemoteSlotTracking(new HashSet<int>(remotePlayerSlots));
+            matchManager?.DropPeerTransport(slot);
 
             SetRollbackStatus(true);
             ResetRemotePredictionStreaksForResim();

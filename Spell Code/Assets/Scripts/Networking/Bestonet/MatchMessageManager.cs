@@ -87,6 +87,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
+    private const byte PACKET_TYPE_PEER_DROP = 50;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
 
     [Header("Ping Calculation")]
@@ -415,6 +416,14 @@ public class MatchMessageManager : MonoBehaviour
         {
             OnlineMatchPeerInfo peer = activeRoster.Peers[i];
             if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            // A peer that has already been dropped from the match is no longer expected to
+            // send packets — skip it so it neither re-triggers a timeout nor masks a second
+            // peer's genuine disconnect.
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlayerSlotConnected(peer.PlayerSlot))
             {
                 continue;
             }
@@ -832,6 +841,67 @@ public class MatchMessageManager : MonoBehaviour
         {
             Debug.LogError($"Error sending end transition signal: {e}");
         }
+    }
+
+    /// <summary>
+    /// Host-authoritative notification that a peer has dropped from the match.
+    /// All surviving peers apply the drop deterministically at <paramref name="dropFrame"/>.
+    /// </summary>
+    public void SendPeerDrop(int slot, int dropFrame)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_PEER_DROP);
+                writer.Write(slot);
+                writer.Write(dropFrame);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending peer drop signal: {e}");
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the peer occupying <paramref name="playerSlot"/> has sent a packet
+    /// within <paramref name="timeoutSeconds"/>. Used to tell a real host disconnect apart
+    /// from a guest disconnect while waiting for the host's authoritative drop.
+    /// </summary>
+    public bool IsPeerResponsive(int playerSlot, float timeoutSeconds)
+    {
+        if (activeRoster == null)
+        {
+            return false;
+        }
+
+        float now = Time.unscaledTime;
+        for (int i = 0; i < activeRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+            if (peer == null || peer.PlayerSlot != playerSlot)
+            {
+                continue;
+            }
+
+            if (SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                return true; // The local player is always "responsive" to itself.
+            }
+
+            return peerLastPacketTime.TryGetValue(peer.SteamId, out float lastPacketTime)
+                && now - lastPacketTime <= timeoutSeconds;
+        }
+
+        return false;
     }
 
     public void SendInputs()
@@ -1337,6 +1407,21 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         GameManager.Instance?.OnPeerEndTransition(senderSlot, transitionId, sceneType, sceneSignature, winnerPid);
                     }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_PEER_DROP)
+                {
+                    int droppedSlot = reader.ReadInt32();
+                    int dropFrame = reader.ReadInt32();
+                    // Only the host adjudicates drops; ignore any spoofed/non-host sender.
+                    if (activeRoster != null && activeRoster.HostSteamId.IsValid
+                        && !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    {
+                        return;
+                    }
+
+                    RollbackManager.Instance.DropRemoteSlot(droppedSlot, dropFrame);
                     return;
                 }
 

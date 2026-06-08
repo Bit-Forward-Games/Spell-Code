@@ -70,6 +70,11 @@ public class PlayerController : MonoBehaviour
     }
 
     public bool isAlive = true;
+    // False once this player has disconnected from an online match. A disconnected
+    // player is permanently eliminated: it never respawns, is skipped by round/win
+    // logic, and is inert. This is part of the rollback-serialized state so a
+    // rollback can never resurrect a dropped player (which would desync peers).
+    public bool isConnected = true;
     public SpriteRenderer playerSpriteRenderer;
     //INPUTS
     public InputPlayerBindings inputs;
@@ -3096,6 +3101,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
+        bw.Write(isConnected);
         bw.Write(isHit);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
@@ -3193,6 +3199,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
+        bw.Write(isConnected);
         bw.Write(isHit);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
@@ -3323,6 +3330,7 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = br.ReadUInt32();
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
+        isConnected = br.ReadBoolean();
         isHit = br.ReadBoolean();
         damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();

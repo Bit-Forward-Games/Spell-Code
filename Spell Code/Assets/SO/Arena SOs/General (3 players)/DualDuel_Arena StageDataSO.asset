@@ -10,10 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: DualDuel_ArenaStageDataSO
-  m_EditorClassIdentifier: 
+  m_Name: DualDuel_Arena StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 0, y: 156}
   - {x: 224, y: 92}
   - {x: 0, y: 60}
   - {x: -224, y: 92}
@@ -22,7 +21,6 @@ MonoBehaviour:
   - {x: 0, y: -196}
   - {x: -224, y: -100}
   platformExtent:
-  - {x: 32, y: 4}
   - {x: 32, y: 4}
   - {x: 32, y: 4}
   - {x: 32, y: 4}

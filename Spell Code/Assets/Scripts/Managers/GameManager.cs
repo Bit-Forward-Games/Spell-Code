@@ -2772,15 +2772,36 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Disabled PlayerInputManager before scene load");
         }
 
+        ////if gameStages is empty,...
+        //if (gameStages.Count <= 0)
+        //{
+        //    //fill it back up
+        //    FillGameStages();
+        //}
+
+        //int _gameStageIndex = GetNextRandom(0, gameStages.Count);
+        //int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
+
+        int _gameStageIndex;
+        int _newStageIndex;
+
         //if gameStages is empty,...
         if (gameStages.Count <= 0)
         {
-            //fill it back up
+            //fill gameStages back up
             FillGameStages();
+
+            //Get the stage index of a random non looping stage
+            _gameStageIndex = GetStageIndexWithoutLooping();
+        }
+        else
+        {
+            //Get the stage index of a random stage
+            _gameStageIndex = GetNextStageRandom(0, gameStages.Count);
         }
 
-        int _gameStageIndex = GetNextRandom(0, gameStages.Count);
-        int _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
+        //get the actual stage index from gameStageIndex
+        _newStageIndex = stages.FindIndex(x => x == gameStages[_gameStageIndex]);
 
         //remove the stage associated with newStageIndex so it does not repeat for the rest of the game
         gameStages.Remove(stages[_newStageIndex]);
@@ -2798,13 +2819,27 @@ public class GameManager : MonoBehaviour
 
     private void SelectAndBroadcastStage(int transitionId)
     {
+        int gameStageIndex;
+        int newStageIndex;
+
+        //if gameStages is empty,...
         if (gameStages.Count <= 0)
         {
+            //fill gameStages back up
             FillGameStages();
+
+            //Get the stage index of a random non looping stage
+            gameStageIndex = GetStageIndexWithoutLooping();
+        }
+        else
+        {
+            //Get the stage index of a random stage
+            gameStageIndex = GetNextStageRandom(0, gameStages.Count);
         }
 
-        int gameStageIndex = GetNextStageRandom(0, gameStages.Count);
-        int newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+        //get the actual stage index from gameStageIndex
+        newStageIndex = stages.FindIndex(x => x == gameStages[gameStageIndex]);
+
         if (activeOnlineTransitionId == 0)
         {
             BeginTrackedOnlineTransition(transitionId);
@@ -3713,8 +3748,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void FillGameStages()
     {
+        //first, fill gameStages with all possible stages,...
         gameStages = new List<StageDataSO>(stages);
 
+        //then, based on playerCount, remove all irrelevant stages from gameStages 
         switch (playerCount)
         {
             case 2:
@@ -3727,5 +3764,25 @@ public class GameManager : MonoBehaviour
                 gameStages.RemoveAll(stage => stage != null && stage.stageType == StageType.Duel);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Get the stage index of a random, non looping stage within gameStages
+    /// </summary>
+    /// <returns>The stage index as an int</returns>
+    private int GetStageIndexWithoutLooping()
+    {
+        //temp integer to store and return the stage index
+        int _gameStageIndex;
+
+        //get a new random stage until the found stage is NOT looping
+        do
+        {
+            _gameStageIndex = GetNextStageRandom(0, gameStages.Count);
+        }
+        while (gameStages[_gameStageIndex].borderType == BorderType.Loop);
+
+        //return _gameStageIndex
+        return _gameStageIndex;
     }
 }

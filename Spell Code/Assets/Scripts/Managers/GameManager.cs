@@ -2483,6 +2483,7 @@ public class GameManager : MonoBehaviour
         }
 
         timeoutFrames = 0;
+        rbManager.DiagBeginTick();
         rbManager.RollbackEvent();
 
         localPlayerInput = GatherInputForOnline();
@@ -2497,6 +2498,7 @@ public class GameManager : MonoBehaviour
         //jumpPrevFrame = jumpCurrentFrame;
 
         frameNumber++;
+        rbManager.DiagMarkAdvance();
         syncedInput = rbManager.SynchronizeInput();
 
         Scene activeScene = SceneManager.GetActiveScene();

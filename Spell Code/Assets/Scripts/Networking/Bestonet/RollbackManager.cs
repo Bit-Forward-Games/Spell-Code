@@ -1149,6 +1149,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         SetRollbackStatus(false);
         ProcessPendingRemoteHashes();
         LogPredictionSnapDelta(syncFrame, framesBeforeRollback, preRollbackPosX, preRollbackPosY);
+        diagRollbacks++;
+        diagResimFrames += RollbackFrames;
+        diagMaxResim = Mathf.Max(diagMaxResim, RollbackFrames);
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
@@ -2889,6 +2892,51 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 GameManager.Instance.WinAsLastPlayer();
             }
         }
+
+        // --- Temporary pacing diagnostics ---
+        // Emits a once-per-second summary of the online sim's real pacing so we can tell
+        // whether a perceived slowdown is rollback-resim CPU cost (high resimFrames) or the
+        // sim being starved/held (advances well under ~60/s). Remove once pacing is dialed in.
+        private float diagNextFlushRealtime = 0f;
+        private int diagTicks, diagAdvances, diagRollbacks, diagResimFrames, diagMaxResim;
+
+        /// <summary> Call once per online sim tick (start of RunOnlineFrame). </summary>
+        public void DiagBeginTick()
+        {
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                return;
+            }
+
+            diagTicks++;
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            if (diagNextFlushRealtime <= 0f)
+            {
+                diagNextFlushRealtime = now + 1f;
+                return;
+            }
+            if (now < diagNextFlushRealtime)
+            {
+                return;
+            }
+
+            int gap = localFrame - GetEffectiveRemoteFrame(localFrame);
+            Debug.Log($"[PaceDiag] advances/s={diagAdvances} holds={diagTicks - diagAdvances} ticks={diagTicks} rollbacks={diagRollbacks} resimFrames={diagResimFrames} maxResim={diagMaxResim} gap={gap} dropped={peerDroppedThisMatch} remoteSlots={remotePlayerSlots.Count} scene={SceneManager.GetActiveScene().name}");
+
+            diagTicks = 0;
+            diagAdvances = 0;
+            diagRollbacks = 0;
+            diagResimFrames = 0;
+            diagMaxResim = 0;
+            diagNextFlushRealtime = now + 1f;
+        }
+
+        /// <summary> Call once after the sim actually advances a frame (frameNumber++). </summary>
+        public void DiagMarkAdvance()
+        {
+            diagAdvances++;
+        }
+        // --- End pacing diagnostics ---
 
         public void TriggerMatchTimeout()
         {

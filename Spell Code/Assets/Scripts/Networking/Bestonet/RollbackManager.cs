@@ -88,6 +88,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
         private OnlineMatchRoster activeRoster;
+        // True once a peer has been dropped from this match. While set, the surviving
+        // (now-smaller) match is allowed to pulse past the prediction cap like a 2-player
+        // match, instead of the strict 3/4P "never pulse" hold. Without this, an idle period
+        // after a drop (e.g. the Shop) deadlocks every survivor against the prediction cap
+        // and the game crawls/freezes. Reset only on a fresh match (Init), not scene loads.
+        private bool peerDroppedThisMatch = false;
         // --- End Core Data Structures ---
 
 
@@ -241,6 +247,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             this.opponentNetworkId = opponentNetId;
             usePeerRoster = false;
             activeRoster = null;
+            peerDroppedThisMatch = false;
             remotePlayerSlots.Clear();
 
         // Find MatchMessageManager instance
@@ -267,6 +274,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             activeRoster = roster;
             usePeerRoster = roster != null;
             opponentNetworkId = 0;
+            peerDroppedThisMatch = false;
             remotePlayerSlots.Clear();
 
             matchManager = FindFirstObjectByType<MatchMessageManager>();
@@ -1414,7 +1422,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // path needs to pulse to avoid both-sides-waiting deadlocks during scene transition.
         private int GetPredictionHoldDropLimit()
         {
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            // After a disconnect the match is smaller and the strict 3/4P "never pulse" hold
+            // would deadlock the survivors against the prediction cap (idle Shop crawl/freeze).
+            // Fall back to the 2P-style pulse so the match keeps pacing forward.
+            if (usePeerRoster && !peerDroppedThisMatch && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
             {
                 return Mathf.Max(0, MultiplayerMaxConsecutiveFrameDrops);
             }
@@ -2826,6 +2837,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 rebaseFrame = syncFrame;
             }
+
+            // From now on, let the (smaller) surviving match pulse past the prediction cap
+            // instead of hard-holding, so idle periods after the drop (e.g. the Shop) don't
+            // deadlock every survivor against the cap.
+            peerDroppedThisMatch = true;
 
             // Stop predicting / waiting on the dropped slot from here on. Once removed,
             // SynchronizeInput leaves inputs[slot] at neutral (5) and AllowUpdate no longer

@@ -66,7 +66,7 @@ public class GambaMachine : MonoBehaviour
         gameManager.FindAllFloppyDisks();
         hurtbox = new HurtboxData() { height = 36, width = 20, xOffset = -10, yOffset = 36};
 
-        startingSpells = new string[4] { "Amon Slash", "Use The Credit", "Blade Of Ares", "Skillshot Slash" };
+        startingSpells = new string[4] { "Amon Slash", "Use The Card", "Blade Of Ares", "Skillshot Slash" };
         ResetLobbyState();
     }
 
@@ -275,7 +275,7 @@ public class GambaMachine : MonoBehaviour
                         break;
                     //BigStox
                     case 2:
-                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Use The Credit");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Use The Card");
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Quarter Report");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Coin Toss");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Get A Job");

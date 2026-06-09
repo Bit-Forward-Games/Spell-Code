@@ -9,7 +9,7 @@ public class UseTheCredit : SpellData
     public bool doesCrit = false;
     public UseTheCredit()
     {
-        spellName = "Use The Credit";
+        spellName = "Use The Card";
         brands = new Brand[] { Brand.BigStox };
         cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0000_0001_0000_0010; // Example input sequence

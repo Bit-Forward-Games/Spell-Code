@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7745486899729457613}
   - component: {fileID: 436999142475797276}
   m_Layer: 0
-  m_Name: UseTheCredit
+  m_Name: UseTheCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -51,5 +51,5 @@ MonoBehaviour:
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 778aca859a0eb2545a5f8f0612787162, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 778aca859a0eb2545a5f8f0612787162, type: 3}
-  SpellGIF: {fileID: 0}
+  SpellGIF: {fileID: 11400000, guid: 9866f91ca638d944392cf777c9f047ed, type: 2}
   doesCrit: 0

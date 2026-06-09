@@ -6,15 +6,15 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class UseTheCredit_crit_prj : BaseProjectile
+public class UseTheCard_crit_prj : BaseProjectile
 {
 
     protected override void InitializeDefaults()
     {
-        projName = "Use The Credit Crit";
+        projName = "Use The Card Crit";
         lifeSpan = 0;
         meleeProjectile = true;
-        multiHitCooldown = 10;
+        multiHitCooldown = 20;
         maxMultiHitCount = 6;//its 6 so all 3 other players can be hit twice
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 4, 4, 4, 4, 4, 3}, false);
     }

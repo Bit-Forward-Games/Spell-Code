@@ -6,12 +6,12 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class UseTheCredit_prj : BaseProjectile
+public class UseTheCard_prj : BaseProjectile
 {
 
     protected override void InitializeDefaults()
     {
-        projName = "Use The Credit";
+        projName = "Use The Card";
         lifeSpan = 0;
         meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 5, 5, 5, 3}, false);

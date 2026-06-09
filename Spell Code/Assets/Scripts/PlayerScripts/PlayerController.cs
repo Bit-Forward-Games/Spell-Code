@@ -425,7 +425,7 @@ public class PlayerController : MonoBehaviour
 
         // Lock starter selection by PID using the actual dictionary keys.
         if (pID == 1) { startingSpell = "Amon Slash"; }
-        else if (pID == 2) { startingSpell = " Use The Credit"; }
+        else if (pID == 2) { startingSpell = " Use The Card"; }
         else if (pID == 3) { startingSpell = "Blade Of Ares"; }
         else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 

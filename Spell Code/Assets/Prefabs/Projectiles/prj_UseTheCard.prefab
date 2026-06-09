@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2816024633464485900}
   - component: {fileID: 7265437768916896761}
-  - component: {fileID: -8346318643534407411}
+  - component: {fileID: 2788312321006507892}
   m_Layer: 0
-  m_Name: prj_UseTheCreditCrit
+  m_Name: prj_UseTheCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 3
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1595638611, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  m_Sprite: {fileID: 6240208613559548508, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &-8346318643534407411
+--- !u!114 &2788312321006507892
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,19 +101,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3c9ad8662b78204489b0a8316e1ddd7, type: 3}
+  m_Script: {fileID: 11500000, guid: 9660eb5749ee9ac4993f58494e0fbada, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UseTheCredit_crit_prj
+  m_EditorClassIdentifier: Assembly-CSharp::UseTheCredit_prj
   sprites:
-  - {fileID: 6853399382004713447, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: 7288759205906064103, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: -8029455734231700104, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: -1669894434, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: 1595638611, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: -304144067, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: -1093664509, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: -2019291716, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: 982797525, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
-  - {fileID: 1083910878, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 2486313254529206278, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 1804723532750398, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 1197870294915814135, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: -3942814260962906780, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 6240208613559548508, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 7129902146671014412, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
+  - {fileID: 6282995923130990461, guid: 3966a0c741939b94e8df433805b9bff4, type: 3}
   logicFrame: 0
   animationFrame: 0

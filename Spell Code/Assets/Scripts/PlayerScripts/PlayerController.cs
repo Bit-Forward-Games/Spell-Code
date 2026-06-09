@@ -2511,7 +2511,8 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, this.gameObject.transform, (float)reps * 20f);
+            //position + FixedVec2.FromFloat(0f, 42f)
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)) , pID, true, this.gameObject.transform, (float)reps * 20f);
         }
         else
         {

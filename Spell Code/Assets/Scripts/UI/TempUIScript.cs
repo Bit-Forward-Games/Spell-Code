@@ -209,6 +209,39 @@ public class TempUIScript : MonoBehaviour
 
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            PlayerController quadrantPlayer = GameManager.Instance.players[i];
+
+            // A player who disconnected mid-match is eliminated: clear their quadrant so a
+            // stale health bar and chosen-spell display don't linger. Mirror the empty-slot look.
+            if (quadrantPlayer != null && !quadrantPlayer.isConnected)
+            {
+                GameObject onPlayerUiGO = FindChildContainingName(quadrantPlayer.gameObject, "On-Player UI");
+                if (onPlayerUiGO != null) onPlayerUiGO.SetActive(false);
+
+                if (emptyQuadrants != null && i < emptyQuadrants.Length && emptyQuadrants[i] != null)
+                    emptyQuadrants[i].SetActive(true);
+
+                if (GameManager.Instance.spellDisplays != null && i < GameManager.Instance.spellDisplays.Length
+                    && GameManager.Instance.spellDisplays[i] != null)
+                    GameManager.Instance.spellDisplays[i].ClearForDisconnect();
+
+                // Clear the rest of this quadrant's live readouts so nothing stale lingers.
+                if (i < playerRamVals.Length && playerRamVals[i] != null) playerRamVals[i].text = "";
+                if (i < playerGoldBar.Length && playerGoldBar[i] != null) playerGoldBar[i].fillAmount = 0f;
+                if (i < playerStoreBar.Length && playerStoreBar[i] != null) playerStoreBar[i].fillAmount = 0f;
+                if (i < flowStateVals.Length && flowStateVals[i] != null) flowStateVals[i].enabled = false;
+                if (i < flowStateDim.Length && flowStateDim[i] != null) flowStateDim[i].enabled = false;
+                if (i < stockStabilityVals.Length && stockStabilityVals[i] != null) stockStabilityVals[i].enabled = false;
+                if (i < stockStabilityIcons.Length && stockStabilityIcons[i] != null) stockStabilityIcons[i].enabled = false;
+                if (i < stockStabilityDim.Length && stockStabilityDim[i] != null) stockStabilityDim[i].enabled = false;
+                if (i < demonAuraVals.Length && demonAuraVals[i] != null) demonAuraVals[i].enabled = false;
+                if (i < demonAuraDim.Length && demonAuraDim[i] != null) demonAuraDim[i].enabled = false;
+                if (i < repsVals.Length && repsVals[i] != null) repsVals[i].enabled = false;
+                if (i < repsIcons.Length && repsIcons[i] != null) repsIcons[i].enabled = false;
+                if (i < repsDim.Length && repsDim[i] != null) repsDim[i].enabled = false;
+                continue;
+            }
+
             onPlayerUI[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "On-Player UI").gameObject;
             // if (currentScene.name == "MainMenu" || currentScene.name == "Shop")
             // {

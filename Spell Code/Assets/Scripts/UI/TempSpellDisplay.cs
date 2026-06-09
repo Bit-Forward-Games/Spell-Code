@@ -242,6 +242,42 @@ public class TempSpellDisplay : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Blanks this quadrant's spell display when its player disconnects mid-match:
+    /// hides the chosen-spell slots, cooldown bars, ready/recharge icons and round-win pips.
+    /// </summary>
+    public void ClearForDisconnect()
+    {
+        for (int i = 0; i < spellSlots.Count; i++)
+        {
+            if (spellSlots[i] != null) spellSlots[i].text = "";
+        }
+        for (int i = 0; i < cooldownBars.Count; i++)
+        {
+            if (cooldownBars[i] != null) cooldownBars[i].SetActive(false);
+        }
+        for (int i = 0; i < cooldownFills.Count; i++)
+        {
+            if (cooldownFills[i] != null) cooldownFills[i].fillAmount = 0f;
+        }
+        for (int i = 0; i < spellReadyIcons.Count; i++)
+        {
+            if (spellReadyIcons[i] != null) spellReadyIcons[i].enabled = false;
+        }
+        for (int i = 0; i < spellRechargingIcons.Count; i++)
+        {
+            if (spellRechargingIcons[i] != null) spellRechargingIcons[i].enabled = false;
+        }
+        for (int i = 0; i < spellReadyEffect.Count; i++)
+        {
+            if (spellReadyEffect[i] != null) spellReadyEffect[i].Stop();
+        }
+        for (int i = 0; i < roundWinsIcons.Count; i++)
+        {
+            if (roundWinsIcons[i] != null) roundWinsIcons[i].enabled = false;
+        }
+    }
+
     public IEnumerator CoolDownFlashAppear(int i)
     {
         float elapsed = 0f;

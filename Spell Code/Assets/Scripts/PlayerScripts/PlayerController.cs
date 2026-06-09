@@ -425,7 +425,7 @@ public class PlayerController : MonoBehaviour
 
         // Lock starter selection by PID using the actual dictionary keys.
         if (pID == 1) { startingSpell = "Amon Slash"; }
-        else if (pID == 2) { startingSpell = "Quarter Report"; }
+        else if (pID == 2) { startingSpell = " Use The Credit"; }
         else if (pID == 3) { startingSpell = "Blade Of Ares"; }
         else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
@@ -642,30 +642,6 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
-
-    // private ushort GetPersistentStockStabilityFromSpellList()
-    // {
-    //     ushort totalStockStability = 0;
-
-    //     for (int i = 0; i < spellList.Count; i++)
-    //     {
-    //         SpellData spell = spellList[i];
-    //         if (spell == null) continue;
-
-    //         switch (spell.spellName)
-    //         {
-    //             case "Quarter Report":
-    //             case "Coin Toss":
-    //             case "Get A Job":
-    //             case "Penny Stock Peddler":
-    //             case "Cash Out":
-    //                 totalStockStability += 10;
-    //                 break;
-    //         }
-    //     }
-
-    //     return totalStockStability;
-    // }
 
 
     public void ClearSpellList()
@@ -3010,6 +2986,8 @@ public class PlayerController : MonoBehaviour
             bw.Write(hitboxData.yKnockback);
             bw.Write(hitboxData.attackLvl);
             bw.Write(hitboxData.basicAttackHitbox);
+            bw.Write(hitboxData.ignoreEffectDamage);
+
             int ownerIndex = hitboxData.parentProjectile?.owner != null
                 ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
                 : -1;
@@ -3123,6 +3101,7 @@ public class PlayerController : MonoBehaviour
             bw.Write(hitboxData.yKnockback);
             bw.Write(hitboxData.attackLvl);
             bw.Write(hitboxData.basicAttackHitbox);
+            bw.Write(hitboxData.ignoreEffectDamage);
             int ownerIndex = hitboxData.parentProjectile?.owner != null
                 ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
                 : -1;
@@ -3212,6 +3191,7 @@ public class PlayerController : MonoBehaviour
             hitboxData.yKnockback = br.ReadInt32();
             hitboxData.attackLvl = br.ReadInt32();
             hitboxData.basicAttackHitbox = br.ReadBoolean();
+            hitboxData.ignoreEffectDamage = br.ReadBoolean();
             _pendingHitboxOwnerIndex = br.ReadInt32();
             _pendingHitboxProjectileIndex = br.ReadInt32();
         }

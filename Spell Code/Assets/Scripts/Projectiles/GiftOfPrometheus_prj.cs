@@ -20,7 +20,6 @@ public class GiftOfPrometheus_prj : BaseProjectile
         //ignoreBrand = true;
         multiHitCooldown = 30;
         maxMultiHitCount = 5;
-        ignoreEffectDamage = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}, false);
     }
 
@@ -52,7 +51,8 @@ public class GiftOfPrometheus_prj : BaseProjectile
                     yKnockback = 0,
                     damage = 1,
                     hitstun = 0,
-                    attackLvl = 1
+                    attackLvl = 1,
+                    ignoreEffectDamage = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

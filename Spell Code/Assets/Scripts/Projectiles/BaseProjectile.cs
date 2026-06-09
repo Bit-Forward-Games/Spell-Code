@@ -36,7 +36,7 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public AnimFrames animFrames;
     [NonSerialized]  public bool deleteOnHit = false;
     [NonSerialized] public bool ignoreBrand = false;
-    [NonSerialized] public bool ignoreEffectDamage = false;
+    // [NonSerialized] public bool ignoreEffectDamage = false;
     [NonSerialized] public bool meleeProjectile = false;
     [NonSerialized] public Action onHitAction = null;
 

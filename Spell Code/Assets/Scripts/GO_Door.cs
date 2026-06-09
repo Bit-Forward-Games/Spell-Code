@@ -39,12 +39,19 @@ public class GO_Door : MonoBehaviour
         {
             player = GameManager.Instance.players[i];
 
+            // A disconnected player is gone from the match and will never reach the door;
+            // don't block the transition waiting on them.
+            if (player == null || !player.isConnected)
+            {
+                continue;
+            }
+
             if (!IsPlayerInsideDoor(player))
             {
                 //player is out of range
                 isPrimed = true;
                 return false;
-                
+
             }
         }
 
@@ -72,6 +79,10 @@ public class GO_Door : MonoBehaviour
         for (int i = 0; i < gameManager.playerCount && i < onlineEntrySnapshotSent.Length; i++)
         {
             PlayerController player = gameManager.players[i];
+            if (player == null || !player.isConnected)
+            {
+                continue;
+            }
             bool isInsideDoor = IsPlayerInsideDoor(player);
 
             if (isInsideDoor && !onlineEntrySnapshotSent[i])

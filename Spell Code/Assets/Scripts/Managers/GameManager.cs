@@ -1611,6 +1611,19 @@ public class GameManager : MonoBehaviour
         // clean state (mirrors the death cleanup in CheckDeathsAndRoundEnd).
         ProjectileManager.Instance?.DeleteTargetPlayerProjectiles(p.pID);
 
+        // Stop the dropped player's looping auras/VFX. A disconnected player no longer runs
+        // PlayerUpdate -> UpdateResources, so these would otherwise emit forever (lingering
+        // visuals and a steadily worsening particle load that follows the player into the
+        // Shop scene). Stop*() is intentionally not rollback-gated, so this clears cleanly.
+        if (VFX_Manager.Instance != null)
+        {
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, p.pID, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, p.pID, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, p.pID, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, p.pID, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, p.pID, true);
+        }
+
         // Drop the player from all transition bookkeeping so scene transitions, which gate
         // on "all connected players ready", no longer wait on a peer that will never report.
         readyPeerSlots.Remove(slot);

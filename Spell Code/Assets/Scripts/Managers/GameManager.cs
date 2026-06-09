@@ -182,6 +182,7 @@ public class GameManager : MonoBehaviour
     private OnlineMatchRoster activeOnlineRoster;
     private readonly Dictionary<int, Steamworks.SteamId> onlineSlotToPeer = new Dictionary<int, Steamworks.SteamId>();
     private readonly Dictionary<Steamworks.SteamId, int> onlinePeerToSlot = new Dictionary<Steamworks.SteamId, int>();
+    private readonly HashSet<int> onlineDisconnectedSlots = new HashSet<int>();
     private readonly HashSet<int> readyPeerSlots = new HashSet<int>();
     private readonly HashSet<int> gameplayReadyPeerSlots = new HashSet<int>();
     private readonly HashSet<int> sceneReadyPeerSlots = new HashSet<int>();
@@ -756,6 +757,7 @@ public class GameManager : MonoBehaviour
         }
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
+        onlineDisconnectedSlots.Clear();
         ResetOnlineRosterState();
         activeOnlineRoster = roster;
         syncedInput = new ulong[Mathf.Max(2, roster.PlayerCount)];
@@ -1211,6 +1213,7 @@ public class GameManager : MonoBehaviour
     public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
     {
         onboardManager = null;
+        onlineDisconnectedSlots.Clear();
         ResetOnlineRosterState();
         syncedInput = new ulong[2] { 0, 0 };
 
@@ -1471,6 +1474,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (!IsPlayerSlotConnected(playerSlot))
+        {
+            return;
+        }
+
         readyPeerSlots.Add(playerSlot);
         opponentIsReady = readyPeerSlots.Count > 0;
 
@@ -1592,36 +1600,68 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void MarkPlayerDisconnected(int slot, int frame)
     {
-        if (slot < 0 || slot >= players.Length || players[slot] == null)
+        if (slot < 0 || slot >= players.Length)
+        {
+            return;
+        }
+
+        bool newlyMarked = onlineDisconnectedSlots.Add(slot);
+        ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: true);
+
+        if (newlyMarked)
+        {
+            PlayerController p = players[slot];
+            int pID = p != null ? p.pID : slot + 1;
+            Debug.LogWarning($"[GameManager] Player {pID} (slot {slot}) disconnected at frame {frame}; eliminated from match.");
+        }
+    }
+
+    private void ApplyDisconnectedPlayerSlots(bool cleanupProjectiles)
+    {
+        if (onlineDisconnectedSlots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (int slot in onlineDisconnectedSlots)
+        {
+            ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles);
+        }
+    }
+
+    private void ApplyDisconnectedPlayerSlot(int slot, bool cleanupProjectiles)
+    {
+        if (slot < 0 || slot >= players.Length)
         {
             return;
         }
 
         PlayerController p = players[slot];
-        if (!p.isConnected)
+        if (p != null)
         {
-            return; // Already eliminated.
-        }
+            p.isConnected = false;
+            p.isAlive = false;
+            p.currentPlayerHealth = 0;
 
-        p.isConnected = false;
-        p.isAlive = false;
-        p.currentPlayerHealth = 0;
+            // Clear the dropped player's lingering shots so every peer converges on the same
+            // clean state (mirrors the death cleanup in CheckDeathsAndRoundEnd).
+            if (cleanupProjectiles)
+            {
+                ProjectileManager.Instance?.DeleteTargetPlayerProjectiles(p.pID);
+            }
 
-        // Clear the dropped player's lingering shots so every peer converges on the same
-        // clean state (mirrors the death cleanup in CheckDeathsAndRoundEnd).
-        ProjectileManager.Instance?.DeleteTargetPlayerProjectiles(p.pID);
-
-        // Stop the dropped player's looping auras/VFX. A disconnected player no longer runs
-        // PlayerUpdate -> UpdateResources, so these would otherwise emit forever (lingering
-        // visuals and a steadily worsening particle load that follows the player into the
-        // Shop scene). Stop*() is intentionally not rollback-gated, so this clears cleanly.
-        if (VFX_Manager.Instance != null)
-        {
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, p.pID, true);
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, p.pID, true);
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, p.pID, true);
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, p.pID, true);
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, p.pID, true);
+            // Stop the dropped player's looping auras/VFX. A disconnected player no longer runs
+            // PlayerUpdate -> UpdateResources, so these would otherwise emit forever (lingering
+            // visuals and a steadily worsening particle load that follows the player into the
+            // Shop scene). Stop*() is intentionally not rollback-gated, so this clears cleanly.
+            if (VFX_Manager.Instance != null)
+            {
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, p.pID, true);
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, p.pID, true);
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, p.pID, true);
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, p.pID, true);
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, p.pID, true);
+            }
         }
 
         // Drop the player from all transition bookkeeping so scene transitions, which gate
@@ -1632,8 +1672,6 @@ public class GameManager : MonoBehaviour
         pendingGameplayReadyBySlot.Remove(slot);
         pendingGameplayReadyTransitionBySlot.Remove(slot);
         pendingSceneReadyBySlot.Remove(slot);
-
-        Debug.LogWarning($"[GameManager] Player {p.pID} (slot {slot}) disconnected at frame {frame}; eliminated from match.");
     }
 
     /// <summary>
@@ -1642,7 +1680,11 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool IsPlayerSlotConnected(int slot)
     {
-        return slot >= 0 && slot < players.Length && players[slot] != null && players[slot].isConnected;
+        return slot >= 0
+            && slot < players.Length
+            && !onlineDisconnectedSlots.Contains(slot)
+            && players[slot] != null
+            && players[slot].isConnected;
     }
 
     /// <summary>
@@ -1653,7 +1695,7 @@ public class GameManager : MonoBehaviour
         int count = 0;
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i] != null && players[i].isConnected)
+            if (IsPlayerSlotConnected(i))
             {
                 count++;
             }
@@ -1676,7 +1718,7 @@ public class GameManager : MonoBehaviour
         int winnerSlot = -1;
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i] != null && players[i].isConnected)
+            if (IsPlayerSlotConnected(i))
             {
                 winnerSlot = i;
                 break;
@@ -1761,6 +1803,11 @@ public class GameManager : MonoBehaviour
 
     private void OnOpponentReadyForGameplay(int playerSlot, GameplayReadyContext readyContext, int transitionId)
     {
+        if (!IsPlayerSlotConnected(playerSlot))
+        {
+            return;
+        }
+
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         if (transitionId < expectedTransitionId)
         {
@@ -1793,6 +1840,11 @@ public class GameManager : MonoBehaviour
 
     public void OnPeerSceneTransitionReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
     {
+        if (!IsPlayerSlotConnected(playerSlot))
+        {
+            return;
+        }
+
         if (!isTransitioning)
         {
             return;
@@ -2271,6 +2323,7 @@ public class GameManager : MonoBehaviour
             SetNetworkInfoVisible(false);
             localPlayerReadyForGameplay = false;
             remotePlayerReadyForGameplay = false;
+            onlineDisconnectedSlots.Clear();
             readyPeerSlots.Clear();
             gameplayReadyPeerSlots.Clear();
             sceneReadyPeerSlots.Clear();
@@ -3390,7 +3443,7 @@ public class GameManager : MonoBehaviour
                     PlayerController winner = null;
                     for (int i = 0; i < playerCount; i++)
                     {
-                        if (players[i].isConnected && players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
+                        if (IsPlayerSlotConnected(i) && players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
                         {
                             winner = players[i];
                             highestRam = players[i].roundRam;
@@ -3448,8 +3501,9 @@ public class GameManager : MonoBehaviour
             if (players[i] != null)
             {
                 // A disconnected player stays eliminated across rounds — don't respawn it.
-                if (!players[i].isConnected)
+                if (!IsPlayerSlotConnected(i))
                 {
+                    players[i].isConnected = false;
                     players[i].isAlive = false;
                     continue;
                 }
@@ -3473,6 +3527,7 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         gameOver = false;
+        onlineDisconnectedSlots.Clear();
         Vector2[] spawnPositions = GetSpawnPositions();
         // Convert spawn positions to FixedVec2
         FixedVec2[] fixedSpawnPositions = spawnPositions
@@ -3500,6 +3555,7 @@ public class GameManager : MonoBehaviour
     {
         gameOver = false;
         playerCount = 0;
+        onlineDisconnectedSlots.Clear();
 
         SetMenuActive(true);
 
@@ -5116,6 +5172,7 @@ public class GameManager : MonoBehaviour
                         throw new InvalidDataException($"Cannot deserialize saved player slot {i}; no player object is available.");
                     }
                 }
+                ApplyDisconnectedPlayerSlots(cleanupProjectiles: false);
 
                 roundOver = br.ReadBoolean();
                 gameOver = br.ReadBoolean();
@@ -5215,6 +5272,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 DeserializeActiveProjectileStates(br);
+                ApplyDisconnectedPlayerSlots(cleanupProjectiles: true);
 
                 bool hasLobbyShopTail = br.ReadBoolean();
                 if (hasLobbyShopTail)
@@ -5441,7 +5499,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer != null)
+            if (peer != null && IsPlayerSlotConnected(peer.PlayerSlot))
             {
                 validSlots.Add(peer.PlayerSlot);
             }
@@ -5554,7 +5612,22 @@ public class GameManager : MonoBehaviour
 
     private int GetExpectedRemotePeerCount()
     {
-        return IsRosterBasedOnlineMatch() ? Mathf.Max(0, activeOnlineRoster.PlayerCount - 1) : (isOnlineMatchActive ? 1 : 0);
+        if (!IsRosterBasedOnlineMatch())
+        {
+            return isOnlineMatchActive ? 1 : 0;
+        }
+
+        int count = 0;
+        for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
+            if (peer != null && peer.PlayerSlot != localPlayerIndex && IsPlayerSlotConnected(peer.PlayerSlot))
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public int ResolvePlayerSlotForSteamId(Steamworks.SteamId steamId)

@@ -377,7 +377,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return false;
             }
 
-            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            if (GameManager.Instance == null)
             {
                 return true;
             }
@@ -2871,10 +2871,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return;
             }
 
+            if (activeRoster != null && slot == activeRoster.LocalPlayerSlot)
+            {
+                return;
+            }
+
             // Idempotent: a slot already removed (e.g. host + local both detected the drop)
             // must not be processed twice.
             if (!remotePlayerSlots.Contains(slot))
             {
+                GameManager.Instance.MarkPlayerDisconnected(slot, dropFrame);
+                pendingRemoteInputSlots.Remove(slot);
+                PruneRemoteSlotTracking(new HashSet<int>(remotePlayerSlots));
+                matchManager?.DropPeerTransport(slot);
                 return;
             }
 

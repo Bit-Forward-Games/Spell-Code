@@ -294,7 +294,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 for (int i = 0; i < roster.Peers.Count; i++)
                 {
                     OnlineMatchPeerInfo peer = roster.Peers[i];
-                    if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                    if (ShouldTrackRemoteRosterPeer(peer))
                     {
                         remotePlayerSlots.Add(peer.PlayerSlot);
                     }
@@ -320,7 +320,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             for (int i = 0; i < roster.Peers.Count; i++)
             {
                 OnlineMatchPeerInfo peer = roster.Peers[i];
-                if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                if (ShouldTrackRemoteRosterPeer(peer))
                 {
                     remotePlayerSlots.Add(peer.PlayerSlot);
                     validRemoteSlots.Add(peer.PlayerSlot);
@@ -368,6 +368,45 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             return false;
+        }
+
+        private bool ShouldTrackRemoteRosterPeer(OnlineMatchPeerInfo peer)
+        {
+            if (peer == null || activeRoster == null || peer.PlayerSlot == activeRoster.LocalPlayerSlot)
+            {
+                return false;
+            }
+
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                return true;
+            }
+
+            return GameManager.Instance.IsPlayerSlotConnected(peer.PlayerSlot);
+        }
+
+        private HashSet<int> RebuildRemoteSlotsFromActiveRoster()
+        {
+            HashSet<int> validRemoteSlots = new HashSet<int>();
+            if (!usePeerRoster || activeRoster == null)
+            {
+                return validRemoteSlots;
+            }
+
+            remotePlayerSlots.Clear();
+            for (int i = 0; i < activeRoster.Peers.Count; i++)
+            {
+                OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+                if (!ShouldTrackRemoteRosterPeer(peer))
+                {
+                    continue;
+                }
+
+                remotePlayerSlots.Add(peer.PlayerSlot);
+                validRemoteSlots.Add(peer.PlayerSlot);
+            }
+
+            return validRemoteSlots;
         }
 
         private void ResetRollbackHistoryForRosterChange()
@@ -468,6 +507,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// </summary>
         public void ClearVars()
         {
+            if (usePeerRoster)
+            {
+                PruneRemoteSlotTracking(RebuildRemoteSlotsFromActiveRoster());
+            }
+
             receivedInputs.Clear();
             opponentInputs.Clear();
             clientInputs.Clear();

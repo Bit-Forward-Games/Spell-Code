@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: duel_TwoDots_ArenaStageDataSO
-  m_EditorClassIdentifier: 
+  m_Name: duel_TwoDots_Arena StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
   - {x: 128, y: 60}
   - {x: -160, y: 60}
   - {x: 160, y: -36}
-  - {x: 0, y: 12}
   - {x: -128, y: -36}
   platformExtent:
   - {x: 64, y: 4}
-  - {x: 32, y: 4}
   - {x: 32, y: 4}
   - {x: 32, y: 4}
   - {x: 64, y: 4}
@@ -39,14 +37,15 @@ MonoBehaviour:
   - {x: 48, y: 224}
   - {x: 48, y: 224}
   playerSpawnTransform:
-  - {x: -160, y: -32, z: 0}
-  - {x: 160, y: -32, z: 0}
-  - {x: -160, y: -128, z: 0}
-  - {x: 160, y: -128, z: 0}
+  - {x: -160, y: -32}
+  - {x: 160, y: -32}
+  - {x: -160, y: -128}
+  - {x: 160, y: -128}
+  npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
-  borderMin: {x: -350, y: -220, z: 0}
-  borderMax: {x: 350, y: 220, z: 0}
+  borderMin: {x: -200, y: -160, z: 0}
+  borderMax: {x: 200, y: 160, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0

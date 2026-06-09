@@ -31,14 +31,15 @@ MonoBehaviour:
   - {x: 48, y: 224}
   - {x: 48, y: 224}
   playerSpawnTransform:
-  - {x: -160, y: -16, z: 0}
-  - {x: 160, y: -16, z: 0}
-  - {x: -160, y: -112, z: 0}
-  - {x: 160, y: -112, z: 0}
+  - {x: -160, y: -16}
+  - {x: 160, y: -16}
+  - {x: -160, y: -112}
+  - {x: 160, y: -112}
+  npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
-  borderMin: {x: -350, y: -220, z: 0}
-  borderMax: {x: 350, y: 220, z: 0}
+  borderMin: {x: -200, y: -160, z: 0}
+  borderMax: {x: 200, y: 160, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0

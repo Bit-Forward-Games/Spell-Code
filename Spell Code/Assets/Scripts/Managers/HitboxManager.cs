@@ -125,11 +125,12 @@ public class HitboxManager : MonoBehaviour
                         if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                         {
-                            defendingPlayer.facingRight = !projectile.facingRight;
+                            
                             
                             
                             if(hitbox.hitstun > 0)
                             {
+                                defendingPlayer.facingRight = !projectile.facingRight;
                                 if (projectile.meleeProjectile)
                                 {
                                     projectile.owner.hitstop = hitstopVal;

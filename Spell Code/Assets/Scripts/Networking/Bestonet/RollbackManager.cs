@@ -179,6 +179,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int highestRemoteInputFrameSeen = -1; // Highest frame number ever inserted into receivedInputs
         private int lossAwareHoldsThisStreak = 0;     // Bounded by MaxLossAwareHolds
         private int lastLossAwareHoldFrame = -1;      // Last local frame we held due to loss
+        private int lastTimeSyncHoldFrame = -1;       // Last local frame held by the time-sync rift hold
+        // One time-sync hold at most every N ticks (~5 holds/s) -> drains a wall-clock rift
+        // gently (about 5 frames/s) without a perceptible stutter on the ahead client.
+        private const int TimeSyncHoldCooldownTicks = 12;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
@@ -553,6 +557,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             highestRemoteInputFrameSeen = -1;
             lossAwareHoldsThisStreak = 0;
             lastLossAwareHoldFrame = -1;
+            lastTimeSyncHoldFrame = -1;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
@@ -1440,6 +1445,38 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
             // --- End Packet-Loss-Aware Soft Hold ---
 
+            // --- Time-Sync Rift Hold (online match scenes) ---
+            // When one client runs a few wall-clock frames ahead of the other (e.g. the peer
+            // hitched during scene load), NOTHING above pulls the rift back down: the prediction
+            // cap only stops it growing past MaxPredictionAhead, so the rift parks just under the
+            // cap -- the ahead client predicts the opponent at max depth (continuous rollbacks)
+            // while the behind client buffers (opponent's actions feel delayed). The 2P duel logs
+            // show exactly this: one side gap=-8 rollbacks=0, the other 15-30 rollbacks/s, for an
+            // entire round, holds=0 on both. The sleep-based frame extension (RunFramePacing /
+            // ExtendFrame) cannot fix it because the sim is a fixed-60Hz accumulator: after a
+            // 1.5ms sleep the accumulator simply catches up -- the same logs show a rock-steady
+            // 60-61 advances/s on the ahead client while its measured advantage averaged ~11.
+            // The only tool that actually drains a rift here is skipping a sim tick, so: when the
+            // exchanged frame-advantage average says we are ahead of the slowest peer by more than
+            // FrameAdvantageLimit, hold ONE tick, at most once per TimeSyncHoldCooldownTicks.
+            // GetAverageFrameAdvantage() is clamped >= 0, so only the AHEAD client ever holds --
+            // a mutual-hold deadlock is impossible. Pacing only: this changes WHEN frames advance,
+            // never what they compute, so it cannot affect determinism. Lobby (MainMenu) is
+            // excluded -- it has its own pacing ecosystem (lead frames + authoritative snapshots).
+            if (!isRollbackFrame
+                && !DelayBased
+                && GameManager.Instance != null
+                && GameManager.Instance.isOnlineMatchActive
+                && SceneManager.GetActiveScene().name != "MainMenu"
+                && (lastTimeSyncHoldFrame < 0 || currentFrame - lastTimeSyncHoldFrame >= TimeSyncHoldCooldownTicks)
+                && !CheckTimeSync(out float timeSyncAdvantage))
+            {
+                lastTimeSyncHoldFrame = currentFrame;
+                Debug.Log($"[Rollback] TimeSync hold at frame={currentFrame}: ahead of slowest peer by {timeSyncAdvantage:F1} frames (avg). Holding one tick to rebalance.");
+                return false;
+            }
+            // --- End Time-Sync Rift Hold ---
+
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
             return true;
@@ -2160,7 +2197,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                    $"roundRam={p.roundRam} totalRam={p.totalRam} hash={ComputePlayerHash(p)}";
+                    $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
 
             for (int s = 0; s < p.spellList.Count; s++)
             {
@@ -2617,7 +2654,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int currentFrame = localFrame;
             int frameOffset;
-            if (pendingRosterFrameOffset.HasValue)
+            if (SceneManager.GetActiveScene().name != "MainMenu")
+            {
+                // Deterministic match scenes (duel/shop): every client restarts its frame counter
+                // from the same synchronized state at scene load, so the sender's frame number IS
+                // the shared timeline -- remote inputs must apply at the exact frame they were
+                // polled for. The arrival-time alignment below (currentFrame - frame) is LOBBY-ONLY
+                // machinery: in the lobby, clients' counters legitimately differ by hundreds of
+                // frames and authoritative snapshots correct the drift. Running it here baked the
+                // packet transit time into the offset (e.g. -2 on BOTH clients in the same duel --
+                // impossible as a consistent relabeling, the two offsets must sum to 0), which
+                // silently time-shifted each remote player's input timeline relative to that
+                // player's own simulation. Rollback cannot detect that divergence (each client's
+                // input history is internally consistent -- the 2P duel logs show ZERO rollbacks
+                // while the per-frame state hashes diverge from the first exchange onward), and
+                // duels have no authoritative snapshots to repair it, so it persisted all round.
+                frameOffset = 0;
+            }
+            else if (pendingRosterFrameOffset.HasValue)
             {
                 frameOffset = pendingRosterFrameOffset.Value;
             }

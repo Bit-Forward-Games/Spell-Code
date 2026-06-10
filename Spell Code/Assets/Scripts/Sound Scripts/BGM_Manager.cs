@@ -96,7 +96,7 @@ public class BGM_Manager : MonoBehaviour
         }
 
         //assign the a custom callback method OnSceneLoaded to the sceneLoaded event so that BGM_Manager receives the notification when a new scene is loaded
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        //SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     /// <summary>

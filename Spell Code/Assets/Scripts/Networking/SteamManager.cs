@@ -6,10 +6,7 @@ using System; // Needed for Exception
 [DefaultExecutionOrder(-100)]
 public class SteamManager : MonoBehaviour
 {
-    // Use 480 in the Editor, real App ID in builds.
-#if UNITY_EDITOR
-    private const uint SteamAppId = 480;
-#elif STEAM_PLAYTEST
+#if STEAM_PLAYTEST
     // Playtest App ID
     private const uint SteamAppId = 4569980;
 #else
@@ -22,7 +19,10 @@ public class SteamManager : MonoBehaviour
 
     void Awake()
     {
-        // Singleton pattern to prevent multiple managers
+#if UNITY_EDITOR
+        enabled = false;
+#else
+// Singleton pattern to prevent multiple managers
         if (instance != null)
         {
             Destroy(gameObject);
@@ -82,6 +82,7 @@ public class SteamManager : MonoBehaviour
             // Handle exceptions (e.g., Steam not running, DLL issues)
         }
         // --- End Initialization ---
+#endif
     }
 
     void Update()

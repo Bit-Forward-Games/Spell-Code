@@ -45,7 +45,8 @@ public class DemonicDescent_prj : BaseProjectile
                     damage = 2,
                     hitstun = 0,
                     attackLvl = 1,
-                    basicAttackHitbox = true
+                    ignoreEffectDamage = true
+                    //basicAttackHitbox = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

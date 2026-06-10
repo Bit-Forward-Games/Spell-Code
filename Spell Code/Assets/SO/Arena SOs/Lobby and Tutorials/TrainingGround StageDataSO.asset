@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: TrainingGround StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
+  - {x: 75.650696, y: -19.444777}
   - {x: 331.6507, y: 76.55522}
   - {x: 459.6507, y: -19.444777}
   - {x: 203.6507, y: -19.444777}
@@ -23,6 +24,7 @@ MonoBehaviour:
   - {x: -164.3493, y: -19.444777}
   - {x: -212.3493, y: -19.444778}
   platformExtent:
+  - {x: 16.000801, y: 4}
   - {x: 48.000793, y: 4}
   - {x: 48.000793, y: 4}
   - {x: 48.00081, y: 4}
@@ -33,17 +35,17 @@ MonoBehaviour:
   - {x: 16.000793, y: 4}
   - {x: 16.000793, y: 4}
   solidCenter:
-  - {x: -452.3493, y: -63.44478}
   - {x: 651.6507, y: 152.55524}
+  - {x: -660.3493, y: 200.55524}
+  - {x: -452.3493, y: -63.44478}
   - {x: -452.3493, y: 248.55522}
   - {x: 203.6507, y: -159.44478}
-  - {x: -660.3493, y: 200.55524}
   solidExtent:
-  - {x: 143.99007, y: 48.01686}
   - {x: 63.98993, y: 264.00012}
+  - {x: 63.989197, y: 216.00577}
+  - {x: 143.99007, y: 48.01686}
   - {x: 143.99007, y: 168.00862}
   - {x: 512.0016, y: 48}
-  - {x: 63.989197, y: 216.00577}
   playerSpawnTransform:
   - {x: -164, y: -104}
   - {x: -164, y: -104}
@@ -58,5 +60,5 @@ MonoBehaviour:
   camBorderMin: {x: -2000, y: -2000, z: 0}
   camBorderMax: {x: 2000, y: 2000, z: 0}
   borderType: 0
-  stageType: 0
+  stageType: 3
   dynamicCamera: 1

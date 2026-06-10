@@ -5,28 +5,25 @@ public class GiftOfPrometheus : SpellData
     public GiftOfPrometheus()
     {
         spellName = "Gift Of Prometheus";
-        cooldown = 480;
         brands = new Brand[] { Brand.Killeez };
-        spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
+        cooldown = 300;
+        spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0010; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        description = "Delayed massive explosion.\nDeals Massively increased damage based on Reps<sprite name=\"Reps\">.";
-
+        procConditions = new ProcCondition[] {};
+        description = "Spawn flames around you.\nThis Spellcode deals damage over time to those in it\nThis Spellcode's duration increases with Reps<sprite name=\"Reps\">.";
         projectilePrefabs = new GameObject[1];
+        spawnOffsetX = 0;
+        spawnOffsetY = 0;
     }
-
-    
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
-        switch(targetProcCon)
+        //all of the special effect logic for this spellcode lies in the projectile script
+        switch (targetProcCon)
         {
-            case ProcCondition.ActiveOnHit: // ActiveOnHit proc: On hitting an enemy with THIS spell, gain 2 reps and deal damage based on current reps.
-                defender.TakeEffectDamage(owner.reps * 4, owner, GameManager.colors["yellow"]);
-                break;
+            
             default:
                 break;
         }
-        ;
     }
 }

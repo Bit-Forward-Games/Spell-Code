@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 7c0f799891c016c43a2eca2cf552dbaf
+guid: cd9696b0b3ffab04892f7a026ff4a608
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -32,138 +32,6 @@ TextureImporter:
   - first:
       213: 5318810535350308302
     second: GiftOfPromethius-Sheet_9
-  - first:
-      213: 4089996998777489116
-    second: GiftOfPromethius-Sheet_10
-  - first:
-      213: 2778228704269318565
-    second: GiftOfPromethius-Sheet_11
-  - first:
-      213: 1870768965708268731
-    second: GiftOfPromethius-Sheet_12
-  - first:
-      213: 6098896062932949785
-    second: GiftOfPromethius-Sheet_13
-  - first:
-      213: 4865697732949020836
-    second: GiftOfPromethius-Sheet_14
-  - first:
-      213: 4448128728712592331
-    second: GiftOfPromethius-Sheet_15
-  - first:
-      213: 3164038090613922718
-    second: GiftOfPromethius-Sheet_16
-  - first:
-      213: 3599115312141433367
-    second: GiftOfPromethius-Sheet_17
-  - first:
-      213: -1692795709104502935
-    second: GiftOfPromethius-Sheet_18
-  - first:
-      213: 302061230165610959
-    second: GiftOfPromethius-Sheet_19
-  - first:
-      213: 1518819878803702678
-    second: GiftOfPromethius-Sheet_20
-  - first:
-      213: -2128066505099943208
-    second: GiftOfPromethius-Sheet_21
-  - first:
-      213: -3210379727386058541
-    second: GiftOfPromethius-Sheet_22
-  - first:
-      213: 5402140395568057734
-    second: GiftOfPromethius-Sheet_23
-  - first:
-      213: -6771004096747214297
-    second: GiftOfPromethius-Sheet_24
-  - first:
-      213: -2578924460297306682
-    second: GiftOfPromethius-Sheet_25
-  - first:
-      213: 2334710253116268873
-    second: GiftOfPromethius-Sheet_26
-  - first:
-      213: -5129143544507751937
-    second: GiftOfPromethius-Sheet_27
-  - first:
-      213: -7772931195528922949
-    second: GiftOfPromethius-Sheet_28
-  - first:
-      213: -7541520250364132344
-    second: GiftOfPromethius-Sheet_29
-  - first:
-      213: 8395778932108296996
-    second: GiftOfPromethius-Sheet_30
-  - first:
-      213: 9178349106859427672
-    second: GiftOfPromethius-Sheet_31
-  - first:
-      213: -2432426914895543846
-    second: GiftOfPromethius-Sheet_32
-  - first:
-      213: -447843327490815358
-    second: GiftOfPromethius-Sheet_33
-  - first:
-      213: -7720451464732124731
-    second: GiftOfPromethius-Sheet_34
-  - first:
-      213: 1224334907900695915
-    second: GiftOfPromethius-Sheet_35
-  - first:
-      213: -8732006291456440677
-    second: GiftOfPromethius-Sheet_36
-  - first:
-      213: 3952308528904383505
-    second: GiftOfPromethius-Sheet_37
-  - first:
-      213: 3617325409262165209
-    second: GiftOfPromethius-Sheet_38
-  - first:
-      213: 479313183107427717
-    second: GiftOfPromethius-Sheet_39
-  - first:
-      213: -7745813107247173730
-    second: GiftOfPromethius-Sheet_40
-  - first:
-      213: -8705969350189060508
-    second: GiftOfPromethius-Sheet_41
-  - first:
-      213: -8509488743983027280
-    second: GiftOfPromethius-Sheet_42
-  - first:
-      213: 6394138235620484802
-    second: GiftOfPromethius-Sheet_43
-  - first:
-      213: 2109360288551348168
-    second: GiftOfPromethius-Sheet_44
-  - first:
-      213: 3437043798453877169
-    second: GiftOfPromethius-Sheet_45
-  - first:
-      213: 2491559791340414113
-    second: GiftOfPromethius-Sheet_46
-  - first:
-      213: 4675818091702503356
-    second: GiftOfPromethius-Sheet_47
-  - first:
-      213: -4997908288044407240
-    second: GiftOfPromethius-Sheet_48
-  - first:
-      213: -8591137768478422759
-    second: GiftOfPromethius-Sheet_49
-  - first:
-      213: -1057334744741754377
-    second: GiftOfPromethius-Sheet_50
-  - first:
-      213: -3284889374707984660
-    second: GiftOfPromethius-Sheet_51
-  - first:
-      213: 2054430989983088134
-    second: GiftOfPromethius-Sheet_52
-  - first:
-      213: 8362056431587494335
-    second: GiftOfPromethius-Sheet_53
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -281,32 +149,6 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WindowsStoreApps
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 0
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -315,11 +157,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -336,12 +178,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_1
       rect:
         serializedVersion: 2
-        x: 128
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -358,12 +200,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_2
       rect:
         serializedVersion: 2
-        x: 256
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -380,12 +222,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_3
       rect:
         serializedVersion: 2
-        x: 384
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -402,12 +244,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_4
       rect:
         serializedVersion: 2
-        x: 512
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 256
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -424,12 +266,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_5
       rect:
         serializedVersion: 2
-        x: 640
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 320
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -446,12 +288,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_6
       rect:
         serializedVersion: 2
-        x: 768
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 384
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -468,12 +310,12 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_7
       rect:
         serializedVersion: 2
-        x: 896
-        y: 128
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 448
+        y: 0
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -490,20 +332,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_8
       rect:
         serializedVersion: 2
-        x: 0
+        x: 512
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8248b226f8e5b9050800000000000000
-      internalID: 5808340114344739880
+      spriteID: 17e385fa09d26724ca57b0d7bc97f62d
+      internalID: 1184823786
       vertices: []
       indices: 
       edges: []
@@ -512,20 +354,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_9
       rect:
         serializedVersion: 2
-        x: 128
+        x: 576
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ecd092b600630d940800000000000000
-      internalID: 5318810535350308302
+      spriteID: 13cf678e6f4e15946a5a1e609d676f07
+      internalID: 214374860
       vertices: []
       indices: 
       edges: []
@@ -534,20 +376,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_10
       rect:
         serializedVersion: 2
-        x: 256
+        x: 640
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: cd6cb84c99692c830800000000000000
-      internalID: 4089996998777489116
+      spriteID: 6a05d13d4b1f38945b5460e1ac61080f
+      internalID: 491723569
       vertices: []
       indices: 
       edges: []
@@ -556,20 +398,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_11
       rect:
         serializedVersion: 2
-        x: 384
+        x: 704
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 5a934ce69404e8620800000000000000
-      internalID: 2778228704269318565
+      spriteID: bf84e77cf2e87b047a92eab14ccd3fbc
+      internalID: 2042358351
       vertices: []
       indices: 
       edges: []
@@ -578,20 +420,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_12
       rect:
         serializedVersion: 2
-        x: 512
+        x: 768
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: bb4cdd9667e46f910800000000000000
-      internalID: 1870768965708268731
+      spriteID: 93ee016acf49d1745815731653c663b2
+      internalID: 2100163573
       vertices: []
       indices: 
       edges: []
@@ -600,20 +442,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_13
       rect:
         serializedVersion: 2
-        x: 640
+        x: 832
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 91b9529e7a1a3a450800000000000000
-      internalID: 6098896062932949785
+      spriteID: 17d921206991a184a806d47e0e1e5364
+      internalID: 370068481
       vertices: []
       indices: 
       edges: []
@@ -622,20 +464,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_14
       rect:
         serializedVersion: 2
-        x: 768
+        x: 896
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 4a099dcfe4e668340800000000000000
-      internalID: 4865697732949020836
+      spriteID: ec3c73c2a63f0be429b2c5cc57d210b2
+      internalID: 680712595
       vertices: []
       indices: 
       edges: []
@@ -644,64 +486,20 @@ TextureImporter:
       name: GiftOfPromethius-Sheet_15
       rect:
         serializedVersion: 2
-        x: 896
+        x: 960
         y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: bcbbf16f28deabd30800000000000000
-      internalID: 4448128728712592331
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GiftOfPromethius-Sheet_16
-      rect:
-        serializedVersion: 2
-        x: 1024
-        y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e9b19de21ebe8eb20800000000000000
-      internalID: 3164038090613922718
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GiftOfPromethius-Sheet_17
-      rect:
-        serializedVersion: 2
-        x: 1152
-        y: 0
-        width: 128
-        height: 128
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 71afbd5be40a2f130800000000000000
-      internalID: 3599115312141433367
+      spriteID: 90469aba4159b6f4cb04bd300707f317
+      internalID: -1734783507
       vertices: []
       indices: 
       edges: []
@@ -710,7 +508,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 90d326fedebac78459e07eeec66c3d93
+    spriteID: 63abb3d1e26fe584fb7035b66bf1bb10
     internalID: 0
     vertices: []
     indices: 
@@ -718,26 +516,26 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":16.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       GiftOfPromethius-Sheet_0: -201807648554350201
       GiftOfPromethius-Sheet_1: 5877301698871383775
-      GiftOfPromethius-Sheet_10: 4089996998777489116
-      GiftOfPromethius-Sheet_11: 2778228704269318565
-      GiftOfPromethius-Sheet_12: 1870768965708268731
-      GiftOfPromethius-Sheet_13: 6098896062932949785
-      GiftOfPromethius-Sheet_14: 4865697732949020836
-      GiftOfPromethius-Sheet_15: 4448128728712592331
-      GiftOfPromethius-Sheet_16: 3164038090613922718
-      GiftOfPromethius-Sheet_17: 3599115312141433367
+      GiftOfPromethius-Sheet_10: 491723569
+      GiftOfPromethius-Sheet_11: 2042358351
+      GiftOfPromethius-Sheet_12: 2100163573
+      GiftOfPromethius-Sheet_13: 370068481
+      GiftOfPromethius-Sheet_14: 680712595
+      GiftOfPromethius-Sheet_15: -1734783507
       GiftOfPromethius-Sheet_2: -5853617114049381708
       GiftOfPromethius-Sheet_3: 1492552429837083490
       GiftOfPromethius-Sheet_4: 9145078495978135771
       GiftOfPromethius-Sheet_5: 3938463514646526290
       GiftOfPromethius-Sheet_6: 9185304639867017395
       GiftOfPromethius-Sheet_7: -7206576884354644768
-      GiftOfPromethius-Sheet_8: 5808340114344739880
-      GiftOfPromethius-Sheet_9: 5318810535350308302
+      GiftOfPromethius-Sheet_8: 1184823786
+      GiftOfPromethius-Sheet_9: 214374860
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

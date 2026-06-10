@@ -2617,7 +2617,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             int currentFrame = localFrame;
             int frameOffset;
-            if (pendingRosterFrameOffset.HasValue)
+            if (SceneManager.GetActiveScene().name != "MainMenu")
+            {
+                // Deterministic match scenes (duel/shop): every client restarts its frame counter
+                // from the same synchronized state at scene load, so the sender's frame number IS
+                // the shared timeline -- remote inputs must apply at the exact frame they were
+                // polled for. The arrival-time alignment below (currentFrame - frame) is LOBBY-ONLY
+                // machinery: in the lobby, clients' counters legitimately differ by hundreds of
+                // frames and authoritative snapshots correct the drift. Running it here baked the
+                // packet transit time into the offset (e.g. -2 on BOTH clients in the same duel --
+                // impossible as a consistent relabeling, the two offsets must sum to 0), which
+                // silently time-shifted each remote player's input timeline relative to that
+                // player's own simulation. Rollback cannot detect that divergence (each client's
+                // input history is internally consistent -- the 2P duel logs show ZERO rollbacks
+                // while the per-frame state hashes diverge from the first exchange onward), and
+                // duels have no authoritative snapshots to repair it, so it persisted all round.
+                frameOffset = 0;
+            }
+            else if (pendingRosterFrameOffset.HasValue)
             {
                 frameOffset = pendingRosterFrameOffset.Value;
             }

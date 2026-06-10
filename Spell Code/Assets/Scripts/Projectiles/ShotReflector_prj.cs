@@ -11,7 +11,7 @@ using DG.Tweening.Core.Easing;
 public class ShotReflector_prj : BaseProjectile
 {
     public const ushort slowSpeed = 1;
-    public const ushort fastSpeed = 6;
+    public const ushort fastSpeed = 8;
     public HurtboxData hurtbox = new HurtboxData
     {
         xOffset = -16,
@@ -35,7 +35,7 @@ public class ShotReflector_prj : BaseProjectile
         activeHitboxGroupIndex = 0;
         
         //bounceCount = 0; // reset bounce count on spawn
-        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 1); 
+        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * slowSpeed); 
     }
     public override void LoadProjectile()
     {
@@ -113,14 +113,20 @@ public class ShotReflector_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        ProcessTrickshotCollisisons();
+
+        if(logicFrame < animFrames.frameLengths.Take(16).Sum()) ProcessReflectorCollisisons();
+        
         if (logicFrame == animFrames.frameLengths.Take(16).Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
+        if(logicFrame == animFrames.frameLengths.Take(20).Sum())
+        {
+            hSpeed = Fixed.FromInt(fastSpeed * (facingRight ? 1 : -1)); 
+        }
     }
 
-    public void ProcessTrickshotCollisisons()
+    public void ProcessReflectorCollisisons()
     {
         List<BaseProjectile> opponentProjectiles = ProjectileManager.Instance.activeProjectiles
         .Where(projectile => projectile != null && projectile.owner != owner )
@@ -130,7 +136,7 @@ public class ShotReflector_prj : BaseProjectile
         {
             if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, out HitboxData hitbox, facingRight))
             {
-                hSpeed = Fixed.FromInt(fastSpeed * (facingRight ? 1 : -1)); 
+                
                 proj.playerIgnoreArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
                 ownerSpell.cooldownCounter-= 60;

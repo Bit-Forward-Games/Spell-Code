@@ -23,6 +23,7 @@ public class HitboxData
     public BaseProjectile parentProjectile;
     public bool sweetSpot = false;
     public bool basicAttackHitbox = false;
+    public bool ignoreEffectDamage = false;
     //we don't have to worry about serilizing hitbox data as we are doing a hitbox lookup based on logic frame anyway, so we can properties as bloated as this.
     //That being side design within reason
 

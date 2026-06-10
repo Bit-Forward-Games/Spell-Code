@@ -3147,22 +3147,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: playerVisualEffectObjects.Array.data[9].numParticleSystemsPerPlayer
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: playerVisualEffectObjects.Array.data[10].numParticleSystemsPerPlayer
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: playerVisualEffectObjects.Array.data[11].numParticleSystemsPerPlayer
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 1389845099637775970, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: playerVisualEffectObjects.Array.data[12].numParticleSystemsPerPlayer
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 

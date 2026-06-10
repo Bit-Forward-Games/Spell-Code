@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: duel_TheRoom_ArenaStageDataSO
-  m_EditorClassIdentifier: 
+  m_Name: duel_TheRoom_Arena StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 160, y: -20}
-  - {x: 0, y: 28}
-  - {x: -160, y: -20}
+  - {x: 160, y: -18}
+  - {x: 0, y: 30}
+  - {x: -160, y: -18}
   platformExtent:
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
   solidCenter:
   - {x: 0, y: 168}
   - {x: 0, y: -168}
@@ -39,7 +39,7 @@ MonoBehaviour:
   activatableSolidCenter: []
   activatableSolidExtent: []
   borderMin: {x: -300, y: -200, z: 0}
-  borderMax: {x: 300, y: 200, z: 0}
+  borderMax: {x: 300, y: 300, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0

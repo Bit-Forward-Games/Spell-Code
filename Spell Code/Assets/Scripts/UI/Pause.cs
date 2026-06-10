@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
 using YamlDotNet.Serialization;
+using GifImporter; 
 
 public class Pause : MonoBehaviour
 {
@@ -59,6 +60,7 @@ public class Pause : MonoBehaviour
     public List<GameObject> spellTabList = new List<GameObject>();
     public Image colorLayer;
     public Image colorLayer2;
+    public GifPlayer gifPlayer;
  
     private int tab = 0;
     private int selectedSpell;
@@ -170,7 +172,7 @@ public class Pause : MonoBehaviour
         if (spells)
         {
             SpellGlossaryNavigation();
-            UpdateSpellDisplay();
+            // UpdateSpellDisplay();
         }
  
         if (input.UI.Cancel.WasPressedThisFrame())
@@ -237,6 +239,8 @@ public class Pause : MonoBehaviour
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
 
+        UpdateSpellDisplay();
+
     }
  
     private void UpdateSpellDisplay()
@@ -246,6 +250,7 @@ public class Pause : MonoBehaviour
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
             displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
             spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
+            gifPlayer.Gif = grid[tab].spells[selectedSpell].SpellGIF;
  
             if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
             {

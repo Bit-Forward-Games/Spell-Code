@@ -3908,7 +3908,6 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             if (players[i] == null) continue;
-            players[i].totalRam = 0;
             players[i].roundRam = 0;
         }
 

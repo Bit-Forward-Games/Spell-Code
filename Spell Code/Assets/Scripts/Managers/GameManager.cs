@@ -4409,6 +4409,7 @@ public class GameManager : MonoBehaviour
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.ClearVars();
+                RollbackManager.Instance.MarkAllRemoteSlotsPendingUntilInput();
             }
 
             if (currentStageIndex < 0)
@@ -4478,6 +4479,7 @@ public class GameManager : MonoBehaviour
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.ClearVars();
+                RollbackManager.Instance.MarkAllRemoteSlotsPendingUntilInput();
             }
 
             InitializeOnlineShopSceneState();

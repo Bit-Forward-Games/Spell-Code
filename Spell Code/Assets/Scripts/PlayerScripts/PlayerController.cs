@@ -161,7 +161,7 @@ public class PlayerController : MonoBehaviour
 
     //money things
     [NonSerialized]
-    public ushort totalRam = 0;
+    public ushort storedKillBonus = 0;
     [NonSerialized]
     public ushort roundRam = 0;
     [NonSerialized]
@@ -298,7 +298,7 @@ public class PlayerController : MonoBehaviour
     {
         if (GetComponent<PlayerInput>().user.valid)
         {
-            DontDestroyOnLoad(this.gameObject);
+            DontDestroyOnLoad(gameObject);
         }
 
         EnsureUniversalSpells();
@@ -347,7 +347,7 @@ public class PlayerController : MonoBehaviour
         ClearDamageNumbers();
 
         //stop playing all repeating sounds for this player
-        if (this.gameObject != null)
+        if (this.gameObject != null && GameManager.Instance != null)
         {
             SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
             StopHitRumble();
@@ -359,7 +359,7 @@ public class PlayerController : MonoBehaviour
         ClearToasts();
         ClearDamageNumbers();
 
-        if (this.gameObject != null)
+        if (this.gameObject != null && GameManager.Instance != null)
         {
             //stop playing all repeating sounds for this player
             if (SFX_Manager.Instance != null) SFX_Manager.Instance.StopRepeatingPlayerSounds(Array.IndexOf(GameManager.Instance.players, this));
@@ -447,7 +447,7 @@ public class PlayerController : MonoBehaviour
 
         // Lock starter selection by PID using the actual dictionary keys.
         if (pID == 1) { startingSpell = "Amon Slash"; }
-        else if (pID == 2) { startingSpell = "Quarter Report"; }
+        else if (pID == 2) { startingSpell = " Use The Card"; }
         else if (pID == 3) { startingSpell = "Blade Of Ares"; }
         else if (pID == 4) { startingSpell = "Skillshot Slash"; }
 
@@ -665,30 +665,6 @@ public class PlayerController : MonoBehaviour
 
         return true;
     }
-
-    // private ushort GetPersistentStockStabilityFromSpellList()
-    // {
-    //     ushort totalStockStability = 0;
-
-    //     for (int i = 0; i < spellList.Count; i++)
-    //     {
-    //         SpellData spell = spellList[i];
-    //         if (spell == null) continue;
-
-    //         switch (spell.spellName)
-    //         {
-    //             case "Quarter Report":
-    //             case "Coin Toss":
-    //             case "Get A Job":
-    //             case "Penny Stock Peddler":
-    //             case "Cash Out":
-    //                 totalStockStability += 10;
-    //                 break;
-    //         }
-    //     }
-
-    //     return totalStockStability;
-    // }
 
 
     public void ClearSpellList()
@@ -1203,6 +1179,8 @@ public class PlayerController : MonoBehaviour
                 else if (input.Direction % 3 == (facingRight ? 1 : 0))
                 {
                     facingRight = !facingRight;
+                    //play the dash dust VFX
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DASH_DUST, position, pID, facingRight);
                     break;
                 }
                 else if (input.Direction % 3 == (facingRight ? 0 : 1))
@@ -2532,7 +2510,8 @@ public class PlayerController : MonoBehaviour
         if (reps > 0)
         {
             //play the reps visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + FixedVec2.FromFloat(0f, 42f), pID, true, this.gameObject.transform, (float)reps * 20f);
+            //position + FixedVec2.FromFloat(0f, 42f)
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)) , pID, true, this.gameObject.transform, (float)reps * 20f);
         }
         else
         {
@@ -2640,6 +2619,7 @@ public class PlayerController : MonoBehaviour
                     SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
                     iframes = 120;
                     comboCounter = 0;
+                    SetState(PlayerState.Tech);
 
                     //Play the combo break VFX
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.COMBO_BREAKER, position + FixedVec2.FromFloat(0f, 38f), pID);
@@ -2807,9 +2787,8 @@ public class PlayerController : MonoBehaviour
             //award the killer with the extra bonus ram
             if (hasAttacker)
             {
-                attacker.roundRam += baseRamKillBonus;
-                attacker.totalRam += baseRamKillBonus;
-                attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
+                attacker.storedKillBonus += baseRamKillBonus;
+                //attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
             }
 
         }
@@ -3117,6 +3096,8 @@ public class PlayerController : MonoBehaviour
             bw.Write(hitboxData.yKnockback);
             bw.Write(hitboxData.attackLvl);
             bw.Write(hitboxData.basicAttackHitbox);
+            bw.Write(hitboxData.ignoreEffectDamage);
+
             int ownerIndex = hitboxData.parentProjectile?.owner != null
                 ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
                 : -1;
@@ -3141,7 +3122,7 @@ public class PlayerController : MonoBehaviour
         //bw.Write(slimed);
         bw.Write(isSpawned);
         bw.Write(roundsWon);
-        bw.Write(totalRam);
+        bw.Write(storedKillBonus);
         bw.Write(roundRam);
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
@@ -3214,6 +3195,7 @@ public class PlayerController : MonoBehaviour
             bw.Write(hitboxData.yKnockback);
             bw.Write(hitboxData.attackLvl);
             bw.Write(hitboxData.basicAttackHitbox);
+            bw.Write(hitboxData.ignoreEffectDamage);
             int ownerIndex = hitboxData.parentProjectile?.owner != null
                 ? Array.IndexOf(GameManager.Instance.players, hitboxData.parentProjectile.owner)
                 : -1;
@@ -3347,6 +3329,7 @@ public class PlayerController : MonoBehaviour
             hitboxData.yKnockback = br.ReadInt32();
             hitboxData.attackLvl = br.ReadInt32();
             hitboxData.basicAttackHitbox = br.ReadBoolean();
+            hitboxData.ignoreEffectDamage = br.ReadBoolean();
             _pendingHitboxOwnerIndex = br.ReadInt32();
             _pendingHitboxProjectileIndex = br.ReadInt32();
         }
@@ -3372,7 +3355,7 @@ public class PlayerController : MonoBehaviour
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();
         roundsWon = br.ReadInt32();
-        totalRam = br.ReadUInt16();
+        storedKillBonus = br.ReadUInt16();
         roundRam = br.ReadUInt16();
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();

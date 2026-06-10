@@ -27,7 +27,7 @@ public class DemonAura : SpellData
                 owner.demonAuraLifeSpanTimer = DemonAuraResetTime; //refresh demon aura lifespan timer on spell hit to 3 seconds (360 frames)
                 break;
             case ProcCondition.OnHitSpell:
-                if(owner.demonAura > 0)
+                if(owner.demonAura > 0 && !defender.hitboxData.ignoreEffectDamage)
                 {
                     // deal extra damage based on demon aura
                     defender.TakeEffectDamage(owner.demonAura/5, owner, GameManager.colors["red"]);

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4133405011881084956
+--- !u!1 &3884774707739521384
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 385533811009496428}
-  - component: {fileID: 140728963025960245}
+  - component: {fileID: 7745486899729457613}
+  - component: {fileID: 8780890658155075051}
   m_Layer: 0
   m_Name: GiftOfPrometheus
   m_TagString: Untagged
@@ -17,13 +17,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &385533811009496428
+--- !u!4 &7745486899729457613
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4133405011881084956}
+  m_GameObject: {fileID: 3884774707739521384}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -32,22 +32,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &140728963025960245
+--- !u!114 &8780890658155075051
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4133405011881084956}
+  m_GameObject: {fileID: 3884774707739521384}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 08dc1ca7c5669674081f2388edf67fde, type: 3}
+  m_Script: {fileID: 11500000, guid: 26372bea29ab68d4cb4ac6a3907b3161, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::GiftOfPrometheus
   projectilePrefabs:
-  - {fileID: 7323394407539773554, guid: fa2262d33190d954a9949f7c00f6d18d, type: 3}
+  - {fileID: 3459829395073810853, guid: 00e76ea2cb7ae9b4faa5a2541ff11f2a, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: 87ec5c8d769b540059a66ca3fbc55731, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 6746945f3489840658f72a478fef8ab5, type: 3}
-  SpellGIF: {fileID: 11400000, guid: 80c75a7ac1ae4c541844f54ab924b417, type: 2}
+  readyIcon: {fileID: 21300000, guid: 758b1c42a1dfab9488a5ab974fcc98a9, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: e83385b9137ab9d4eb67416827da731e, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 9edb0f31094cfe446b38fbc57c654d27, type: 2}

@@ -1,0 +1,113 @@
+using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+using BestoNet.Types;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+
+public class SunOfApollo_prj : BaseProjectile
+{
+    
+    protected override void InitializeDefaults()
+    {
+        projName = "Sun Of Apollo";
+        lifeSpan = 0;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() {  6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4 }, false);
+    }
+    
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    {
+        base.SpawnProjectile(facingRight, spawnOffset);
+        activeHitboxGroupIndex = 0;
+        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 2); // Set horizontal speed based on facing direction
+    }
+    public override void LoadProjectile()
+    {
+
+        deleteOnHit = false;
+        projectileHitboxes = new HitboxGroup[3];
+
+        projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[1] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -64,
+                    yOffset = 64,
+                    width = 128,
+                    height = 128,
+                    xKnockback = 5,
+                    yKnockback = 15,
+                    damage = 15,
+                    hitstun = 30,
+                    attackLvl = 3,
+                    //cancelOptions = new List<int> { } // No cancel options
+                }
+            },
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[2] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -96,
+                    yOffset = 96,
+                    width = 96*2,
+                    height = 96*2,
+                    xKnockback = 5,
+                    yKnockback = 15,
+                    damage = 15,
+                    hitstun = 30,
+                    attackLvl = 3,
+                    //cancelOptions = new List<int> { } // No cancel options
+                }
+            },
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(11).Sum()+1,
+                animFrames.frameLengths.Take(12).Sum()+1
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(12).Sum(),
+                animFrames.frameLengths.Take(14).Sum()
+
+            }
+        };
+        base.LoadProjectile();
+    }
+
+    public override void ProjectileUpdate()
+    {
+        base.ProjectileUpdate();
+        //okay so this logic is a bit wonky to understand but basically if the projectile hits something,
+        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
+        //and then waits until the animation is done to delete itself.
+        if (logicFrame == animFrames.frameLengths.Take(8).Sum() + 1)
+        {
+            hSpeed = Fixed.FromInt(0);
+
+            //Play the  Sun Of Apollo SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Sun Of Apollo Explosion");
+        }
+    }
+}

@@ -1,0 +1,1614 @@
+{
+  "dateTime": "6/8/2026 10:57:27 AM",
+  "matchData": [
+    {
+      "matchNum": 1,
+      "matchLength": 5.41666651,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 1,
+          "basicsFired": 0,
+          "codesHit": 1,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 54600
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 54600
+            }
+          ],
+          "spellList": [
+            "Amon Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Quarter Report"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 2,
+      "matchLength": 3.63333344,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Trident Of Poseidon"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Quarter Report",
+            "Get A Job"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 3,
+      "matchLength": 42.7,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": false,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Trident Of Poseidon"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 16,
+          "basicsFired": 15,
+          "codesHit": 24,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 50505
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 43680
+            },
+            {
+              "RawValue": 36036
+            },
+            {
+              "RawValue": 78624
+            },
+            {
+              "RawValue": 28392
+            },
+            {
+              "RawValue": 107016
+            },
+            {
+              "RawValue": 41496
+            },
+            {
+              "RawValue": 33852
+            },
+            {
+              "RawValue": 95004
+            },
+            {
+              "RawValue": 30576
+            },
+            {
+              "RawValue": 77532
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 49140
+            },
+            {
+              "RawValue": 29484
+            },
+            {
+              "RawValue": 53508
+            },
+            {
+              "RawValue": 24024
+            },
+            {
+              "RawValue": 46956
+            }
+          ],
+          "spellList": [
+            "Quarter Report",
+            "Get A Job"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 4,
+      "matchLength": 40.3833351,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": false,
+          "times": [],
+          "spellList": [
+            "Amon Slash",
+            "Trident Of Poseidon"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 15,
+          "basicsFired": 9,
+          "codesHit": 22,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 55837
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 34944
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 65520
+            },
+            {
+              "RawValue": 28392
+            },
+            {
+              "RawValue": 54600
+            },
+            {
+              "RawValue": 33852
+            },
+            {
+              "RawValue": 98280
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 68796
+            },
+            {
+              "RawValue": 37128
+            },
+            {
+              "RawValue": 77532
+            },
+            {
+              "RawValue": 36036
+            },
+            {
+              "RawValue": 115752
+            },
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 88452
+            }
+          ],
+          "spellList": [
+            "Quarter Report",
+            "Get A Job"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 5,
+      "matchLength": 29.75,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 7,
+          "basicsFired": 5,
+          "codesHit": 13,
+          "synthesizer": "R-Cade",
+          "accuracy": 1.0,
+          "avgTimeToCast": {
+            "RawValue": 64584
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 32760
+            },
+            {
+              "RawValue": 122304
+            },
+            {
+              "RawValue": 69888
+            },
+            {
+              "RawValue": 65520
+            },
+            {
+              "RawValue": 34944
+            },
+            {
+              "RawValue": 95004
+            },
+            {
+              "RawValue": 31668
+            }
+          ],
+          "spellList": [
+            "Amon Slash",
+            "Trident Of Poseidon"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 1,
+          "basicsFired": 0,
+          "codesHit": 1,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 37128
+          },
+          "matchWon": false,
+          "times": [
+            {
+              "RawValue": 37128
+            }
+          ],
+          "spellList": [
+            "Quarter Report",
+            "Get A Job"
+          ]
+        }
+      ]
+    }
+  ],
+  "arenaData": {
+    "deathDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "duel_TheRoom_Arena": [
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        }
+      ],
+      "duel_TwoDots_Arena": [
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        }
+      ],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": [],
+      "duel_Glasses_Arena": [],
+      "BrokenMirror_Arena": [],
+      "duel_TinyHallway_Arena": [
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        }
+      ]
+    },
+    "hitDict": {
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": [],
+      "Birdcage_Arena": [],
+      "Crossroads_Arena": [],
+      "DualDuel_Arena": [],
+      "duel_TheRoom_Arena": [
+        {
+          "x": 160.0,
+          "y": -16.0,
+          "normalized": {
+            "x": 0.9950372,
+            "y": -0.0995037258,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 160.798,
+          "sqrMagnitude": 25856.0
+        },
+        {
+          "x": -160.0,
+          "y": -16.0,
+          "normalized": {
+            "x": -0.9950372,
+            "y": -0.0995037258,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 160.798,
+          "sqrMagnitude": 25856.0
+        },
+        {
+          "x": -129.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.75510937,
+            "y": -0.6555988,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 170.836182,
+          "sqrMagnitude": 29185.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": -180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 160.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8192319,
+            "y": -0.573462367,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 195.304886,
+          "sqrMagnitude": 38144.0
+        },
+        {
+          "x": 160.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8192319,
+            "y": -0.573462367,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 195.304886,
+          "sqrMagnitude": 38144.0
+        },
+        {
+          "x": 165.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8273926,
+            "y": -0.56162405,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 199.421661,
+          "sqrMagnitude": 39769.0
+        },
+        {
+          "x": 165.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8273926,
+            "y": -0.56162405,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 199.421661,
+          "sqrMagnitude": 39769.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        },
+        {
+          "x": 180.0,
+          "y": -112.0,
+          "normalized": {
+            "x": 0.8490566,
+            "y": -0.5283019,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 212.0,
+          "sqrMagnitude": 44944.0
+        }
+      ],
+      "duel_TwoDots_Arena": [
+        {
+          "x": -15.0,
+          "y": 16.0,
+          "normalized": {
+            "x": -0.6839411,
+            "y": 0.7295372,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 21.9317131,
+          "sqrMagnitude": 481.0
+        },
+        {
+          "x": -84.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.93448776,
+            "y": -0.355995327,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 89.88882,
+          "sqrMagnitude": 8080.0
+        },
+        {
+          "x": -171.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9829372,
+            "y": -0.183941469,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 173.968384,
+          "sqrMagnitude": 30265.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 160.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9805807,
+            "y": -0.196116135,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 163.168625,
+          "sqrMagnitude": 26624.0
+        },
+        {
+          "x": 160.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9805807,
+            "y": -0.196116135,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 163.168625,
+          "sqrMagnitude": 26624.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": 0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": 160.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.7805053,
+            "y": -0.6251492,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 204.9954,
+          "sqrMagnitude": 42023.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        },
+        {
+          "x": 180.0,
+          "y": -128.15271,
+          "normalized": {
+            "x": 0.8146288,
+            "y": -0.5799827,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 220.959534,
+          "sqrMagnitude": 48823.1172
+        }
+      ],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": [],
+      "duel_Glasses_Arena": [],
+      "BrokenMirror_Arena": [],
+      "duel_TinyHallway_Arena": [
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -148.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.977414131,
+            "y": -0.211332783,
+            "normalized": {
+              "x": -0.9774142,
+              "y": -0.2113328,
+              "magnitude": 1.0,
+              "sqrMagnitude": 1.0
+            },
+            "magnitude": 0.99999994,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 151.419952,
+          "sqrMagnitude": 22928.0
+        },
+        {
+          "x": -88.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.6757246,
+            "y": -0.7371542,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 130.23056,
+          "sqrMagnitude": 16960.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": -116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": -0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": -0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": -0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 88.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.6757246,
+            "y": -0.7371542,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 130.23056,
+          "sqrMagnitude": 16960.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        },
+        {
+          "x": 116.0,
+          "y": -96.0,
+          "normalized": {
+            "x": 0.7703944,
+            "y": -0.637567759,
+            "normalized": {
+              "x": 0.770394266,
+              "y": -0.6375677,
+              "normalized": {
+                "x": 0.7703943,
+                "y": -0.637567759,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 0.99999994,
+              "sqrMagnitude": 0.9999999
+            },
+            "magnitude": 1.00000012,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 150.572235,
+          "sqrMagnitude": 22672.0
+        }
+      ]
+    }
+  }
+}

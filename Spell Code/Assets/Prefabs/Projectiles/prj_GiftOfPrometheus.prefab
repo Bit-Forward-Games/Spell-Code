@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7323394407539773554
+--- !u!1 &3459829395073810853
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,9 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 389584798577933438}
-  - component: {fileID: -4727238776019900093}
-  - component: {fileID: 4063394636849562880}
+  - component: {fileID: 2816024633464485900}
+  - component: {fileID: 7265437768916896761}
+  - component: {fileID: 2183720932637829270}
   m_Layer: 0
   m_Name: prj_GiftOfPrometheus
   m_TagString: Untagged
@@ -18,13 +18,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &389584798577933438
+--- !u!4 &2816024633464485900
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -33,13 +33,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &-4727238776019900093
+--- !u!212 &7265437768916896761
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -53,6 +54,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -74,52 +77,49 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 1
-  m_Sprite: {fileID: 1870768965708268731, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 1492552429837083490, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.5019608}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 64, y: 64.125}
+  m_Size: {x: 64, y: 64}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4063394636849562880
+--- !u!114 &2183720932637829270
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7323394407539773554}
+  m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b730826e0549525468634d95a47f40a8, type: 3}
+  m_Script: {fileID: 11500000, guid: b4b18293c109cec419545e932012d448, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::GiftOfPrometheus_prj
   sprites:
-  - {fileID: -201807648554350201, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 5877301698871383775, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: -5853617114049381708, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 1492552429837083490, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 9145078495978135771, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 3938463514646526290, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 9185304639867017395, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: -7206576884354644768, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 5808340114344739880, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 5318810535350308302, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 4089996998777489116, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 2778228704269318565, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 1870768965708268731, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 6098896062932949785, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 4865697732949020836, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 4448128728712592331, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 3164038090613922718, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  - {fileID: 3599115312141433367, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
-  facingRight: 0
+  - {fileID: -201807648554350201, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 5877301698871383775, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: -5853617114049381708, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 1492552429837083490, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 9145078495978135771, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 3938463514646526290, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 9185304639867017395, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: -7206576884354644768, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 1184823786, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 214374860, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 491723569, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 2042358351, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 2100163573, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 370068481, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: 680712595, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
+  - {fileID: -1734783507, guid: cd9696b0b3ffab04892f7a026ff4a608, type: 3}
   logicFrame: 0
   animationFrame: 0
-  deleteOnHit: 0

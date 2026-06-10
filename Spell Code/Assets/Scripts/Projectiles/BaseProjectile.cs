@@ -305,7 +305,7 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
-        multiHitCooldown = br.ReadByte();
+        multiHitCount = br.ReadByte();
         ignoreBrand = br.ReadBoolean();
 
         // Player Ignore Array

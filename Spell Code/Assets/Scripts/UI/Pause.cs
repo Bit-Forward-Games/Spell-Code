@@ -175,7 +175,7 @@ public class Pause : MonoBehaviour
         if (spells)
         {
             SpellGlossaryNavigation();
-            // UpdateSpellDisplay();
+            UpdateSpellDisplay();
         }
  
         if (input.UI.Cancel.WasPressedThisFrame())
@@ -241,9 +241,6 @@ public class Pause : MonoBehaviour
                 + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
-
-        UpdateSpellDisplay();
-
     }
  
     private void UpdateSpellDisplay()
@@ -455,6 +452,8 @@ public class Pause : MonoBehaviour
         listScrollOffset = 0;
         
         spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
+
+        SpellSelectBorderAnimation();
         
         int j = 0;
         spellTabList.Clear();
@@ -498,6 +497,8 @@ public class Pause : MonoBehaviour
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
 
+            SpellSelectBorderAnimation();
+
             for (int i = 0; i < spellTabList.Count; i++)
                 spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
         }
@@ -511,6 +512,8 @@ public class Pause : MonoBehaviour
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
+            SpellSelectBorderAnimation();
+
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)
                 spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
@@ -523,6 +526,15 @@ public class Pause : MonoBehaviour
         {
             spellGlossaryPanel[i].SetActive(i == index);
         }
+    }
+
+    void SpellSelectBorderAnimation()
+    {
+        spellSelectedBorderTransform.localScale = new Vector3(0f, spellSelectedBorderTransform.localScale.y, spellSelectedBorderTransform.localScale.z);
+        spellSelectedBorderTransform
+            .DOScaleX(3f, 0.15f)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
  
     public void ReturnToLobby()

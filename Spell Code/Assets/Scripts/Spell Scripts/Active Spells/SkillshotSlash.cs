@@ -25,7 +25,7 @@ public class SkillshotSlash : SpellData
                 //ActiveOnHit proc: when this spell hits an enemy, refund some cooldown if in Flow State
                 if (owner.flowState > 0)
                 {
-                    cooldownCounter/=2;
+                    cooldownCounter-=60;
                 }
                 break;
             default:

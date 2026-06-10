@@ -9,7 +9,7 @@ public class TrickshotAlley : SpellData
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0011_1000_0000_0011; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
+        procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[1];
         description = "Lobbing Grenade.\nHit the grenade to launch it, partially refunding this spell's cooldown.";
 

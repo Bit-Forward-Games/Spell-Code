@@ -129,8 +129,8 @@ public class StageDataBuilder : MonoBehaviour
                 if (_borderType == BorderType.Loop)
                 {
                     //set borders to a super small size
-                    stageDataSO.borderMin = new Vector3(-240f, -130f, 0f);
-                    stageDataSO.borderMax = new Vector3(240, 130, 0f);
+                    stageDataSO.borderMin = new Vector3(-240f, -200f, 0f);
+                    stageDataSO.borderMax = new Vector3(240, 200, 0f);
 
                     //set the cameraBorderMin and cameraBorderMax
                     stageDataSO.camBorderMin = new Vector3(-300, -130f, 0f);

@@ -42,8 +42,8 @@ MonoBehaviour:
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
-  borderMin: {x: -240, y: -130, z: 0}
-  borderMax: {x: 240, y: 130, z: 0}
+  borderMin: {x: -240, y: -200, z: 0}
+  borderMax: {x: 240, y: 200, z: 0}
   camBorderMin: {x: -300, y: -130, z: 0}
   camBorderMax: {x: 300, y: 130, z: 0}
   borderType: 1

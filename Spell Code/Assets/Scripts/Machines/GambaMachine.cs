@@ -299,7 +299,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Reload Shot");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Shot Reflector");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Mine Crafter");
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "No-Scope Shot");
                         break;

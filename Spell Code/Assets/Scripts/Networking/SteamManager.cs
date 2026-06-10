@@ -19,7 +19,10 @@ public class SteamManager : MonoBehaviour
 
     void Awake()
     {
-        // Singleton pattern to prevent multiple managers
+#if UNITY_EDITOR
+        enabled = false;
+#else
+// Singleton pattern to prevent multiple managers
         if (instance != null)
         {
             Destroy(gameObject);
@@ -79,6 +82,7 @@ public class SteamManager : MonoBehaviour
             // Handle exceptions (e.g., Steam not running, DLL issues)
         }
         // --- End Initialization ---
+#endif
     }
 
     void Update()

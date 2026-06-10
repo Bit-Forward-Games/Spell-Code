@@ -185,7 +185,10 @@ public abstract class SpellData : MonoBehaviour
         activateFlag = br.ReadBoolean();
         // Derived classes should call base.Deserialize(br) then read their own state.
     }
-
+    public bool IsFirstMultiHitAgainstTargetPlayer(PlayerController defender, BaseProjectile projectile)
+    {
+        return projectile.maxMultiHitCount != 0 && projectile.multiHitCount[defender.pID == 0? owner.pID-1: defender.pID-1] < projectile.maxMultiHitCount;
+    }
     public virtual void ShareHitIgnoreList()
     {
         if (projectileInstances == null || projectileInstances.Count <= 1) return;

@@ -28,7 +28,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
     //Multihit projectile fields
     [NonSerialized] public ushort[] multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
-    [NonSerialized] public byte multiHitCount = 0;
+    [NonSerialized] public byte[] multiHitCount = new byte[]{ 0, 0, 0, 0 };
     [NonSerialized] public byte maxMultiHitCount = 0;
     [NonSerialized] public byte multiHitCooldown = 0;
 
@@ -66,7 +66,7 @@ public abstract class BaseProjectile : MonoBehaviour
         position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
-        multiHitCount = maxMultiHitCount;
+        Array.Fill(multiHitCount, maxMultiHitCount);
 
         //if nameOverride is empty,...
         if (nameOverride == "")
@@ -92,7 +92,7 @@ public abstract class BaseProjectile : MonoBehaviour
         position = FixedVec2.Zero;
         playerIgnoreArr = new bool[4] { false, false, false, false };
         multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
-        multiHitCount = maxMultiHitCount;
+        Array.Fill(multiHitCount, maxMultiHitCount);
         facingRight = true;
         _tempOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
@@ -183,8 +183,8 @@ public abstract class BaseProjectile : MonoBehaviour
             //first, if we've added an onhit action in an override for a projectile, do it
             if(onHitAction != null) onHitAction();
 
-            //then check if the projectile is a multihit, and if it has any hits left
-            if(maxMultiHitCount != 0 && multiHitCount > 0)
+            //then check if the projectile is a multihit
+            if(maxMultiHitCount != 0 && multiHitCount != new byte[]{0,0,0,0})
             {
                 //loop through all the players
                 for(int i = 0; i < multiHitPlayerIgnoreCounterArr.Length; i++)
@@ -192,9 +192,9 @@ public abstract class BaseProjectile : MonoBehaviour
                     if (playerIgnoreArr[i])
                     {
                         //if a given player was hit and has had long enough since last hit, consume a hit, restart the cooldown per that player, and set that player back to false
-                        if( multiHitPlayerIgnoreCounterArr[i] >= multiHitCooldown)
+                        if( multiHitPlayerIgnoreCounterArr[i] >= multiHitCooldown && multiHitCount[i] > 0)
                         {
-                            multiHitCount --;
+                            multiHitCount[i] --;
                             
                             playerIgnoreArr[i] = false;
                             multiHitPlayerIgnoreCounterArr[i] = 0;

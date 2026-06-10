@@ -87,6 +87,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT = 41;
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
+    private const byte PACKET_TYPE_PEER_DROP = 50;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
 
     [Header("Ping Calculation")]
@@ -109,6 +110,7 @@ public class MatchMessageManager : MonoBehaviour
     private readonly Dictionary<SteamId, float> peerLastHandshakeSendTime = new Dictionary<SteamId, float>();
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
     private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
+    private readonly HashSet<int> locallyRemovedPeerSlots = new HashSet<int>();
 
     private struct PendingOutboundPacket
     {
@@ -170,6 +172,13 @@ public class MatchMessageManager : MonoBehaviour
 
     private void OnP2PSessionRequest(SteamId steamId)
     {
+        int slot = ResolveSlot(steamId);
+        if (IsPeerSlotRemovedFromTransport(slot))
+        {
+            SteamNetworking.CloseP2PSessionWithUser(steamId);
+            return;
+        }
+
         if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId) || (!opponentSteamId.IsValid && activeRoster == null))
         {
             SteamNetworking.AcceptP2PSessionWithUser(steamId);
@@ -187,17 +196,50 @@ public class MatchMessageManager : MonoBehaviour
     private void OnP2PConnectionFailed(SteamId steamId, P2PSessionError error)
     {
         Debug.LogError($"P2P Connection failed with {steamId}: {error}");
-        handshakeSentToPeers.Remove(steamId);
-        handshakeSeenFromPeers.Remove(steamId);
-        peerLastHandshakeSendTime.Remove(steamId);
+        int slot = ResolveSlot(steamId);
+        bool wasConnected = connectedPeers.Contains(steamId);
+        bool wasAlreadyRemoved = IsPeerSlotRemovedFromTransport(slot);
+        ForgetPeerTransport(steamId, closeSession: true);
 
-        if (connectedPeers.Contains(steamId))
+        if (wasAlreadyRemoved)
+        {
+            Debug.LogWarning($"[P2P] Ignoring connection failure from already removed peer P{slot + 1}: {error}");
+            return;
+        }
+
+        if (activeRoster != null
+            && slot >= 0
+            && GameManager.Instance != null
+            && GameManager.Instance.isOnlineMatchActive)
+        {
+            if (GameManager.Instance.IsOnlineHostSlot(slot))
+            {
+                GameManager.Instance.StopMatch($"Host connection failed: {error}");
+                return;
+            }
+
+            if (GameManager.Instance.IsOnlineHostAuthority())
+            {
+                int dropFrame = RollbackManager.Instance != null
+                    ? RollbackManager.Instance.syncFrame
+                    : GameManager.Instance.frameNumber;
+                Debug.LogWarning($"[P2P] Guest P{slot + 1} connection failed ({error}); host adjudicating drop at frame {dropFrame}.");
+                SendPeerDrop(slot, dropFrame);
+                RollbackManager.Instance?.DropRemoteSlot(slot, dropFrame);
+                return;
+            }
+
+            locallyRemovedPeerSlots.Add(slot);
+            Debug.LogWarning($"[P2P] Guest P{slot + 1} connection failed ({error}); waiting for host drop adjudication.");
+            return;
+        }
+
+        if (wasConnected)
         {
             GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
         }
         else if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId))
         {
-            SteamNetworking.CloseP2PSessionWithUser(steamId);
             SendHandshakeToPeer(steamId);
         }
     }
@@ -225,6 +267,11 @@ public class MatchMessageManager : MonoBehaviour
             if (!IsKnownPeer(packet.Value.SteamId) && !IsCurrentLobbyMember(packet.Value.SteamId))
             {
                 Debug.LogWarning($"Received packet from unknown SteamId: {packet.Value.SteamId}");
+                continue;
+            }
+
+            if (ShouldIgnorePacketFromPeer(packet.Value.SteamId))
+            {
                 continue;
             }
 
@@ -419,6 +466,14 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
+            // A peer that has already been dropped from the match is no longer expected to
+            // send packets — skip it so it neither re-triggers a timeout nor masks a second
+            // peer's genuine disconnect.
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlayerSlotConnected(peer.PlayerSlot))
+            {
+                continue;
+            }
+
             if (!peerLastPacketTime.TryGetValue(peer.SteamId, out float lastPacketTime)
                 || now - lastPacketTime > timeoutSeconds)
             {
@@ -466,6 +521,7 @@ public class MatchMessageManager : MonoBehaviour
         sentFrameTimesByPeer.Clear();
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
+        locallyRemovedPeerSlots.Clear();
         ResetReadyFlags();
         SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -508,6 +564,11 @@ public class MatchMessageManager : MonoBehaviour
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
             if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            if (IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
             {
                 continue;
             }
@@ -571,6 +632,11 @@ public class MatchMessageManager : MonoBehaviour
         {
             OnlineMatchPeerInfo peer = activeRoster.Peers[i];
             if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            if (IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
             {
                 continue;
             }
@@ -645,9 +711,11 @@ public class MatchMessageManager : MonoBehaviour
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
         peerLastPacketTime.Clear();
+        peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
+        locallyRemovedPeerSlots.Clear();
         sceneMismatchedInputByPeer.Clear();
         sceneMismatchedInputAgeByPeer.Clear();
         lastLoggedMismatchSignatureByPeer.Clear();
@@ -832,6 +900,67 @@ public class MatchMessageManager : MonoBehaviour
         {
             Debug.LogError($"Error sending end transition signal: {e}");
         }
+    }
+
+    /// <summary>
+    /// Host-authoritative notification that a peer has dropped from the match.
+    /// All surviving peers apply the drop deterministically at <paramref name="dropFrame"/>.
+    /// </summary>
+    public void SendPeerDrop(int slot, int dropFrame)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_PEER_DROP);
+                writer.Write(slot);
+                writer.Write(dropFrame);
+                SendPacketToAllExceptSlot(memoryStream.ToArray(), P2PSend.Reliable, slot);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending peer drop signal: {e}");
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the peer occupying <paramref name="playerSlot"/> has sent a packet
+    /// within <paramref name="timeoutSeconds"/>. Used to tell a real host disconnect apart
+    /// from a guest disconnect while waiting for the host's authoritative drop.
+    /// </summary>
+    public bool IsPeerResponsive(int playerSlot, float timeoutSeconds)
+    {
+        if (activeRoster == null)
+        {
+            return false;
+        }
+
+        float now = Time.unscaledTime;
+        for (int i = 0; i < activeRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+            if (peer == null || peer.PlayerSlot != playerSlot)
+            {
+                continue;
+            }
+
+            if (SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                return true; // The local player is always "responsive" to itself.
+            }
+
+            return peerLastPacketTime.TryGetValue(peer.SteamId, out float lastPacketTime)
+                && now - lastPacketTime <= timeoutSeconds;
+        }
+
+        return false;
     }
 
     public void SendInputs()
@@ -1340,6 +1469,21 @@ public class MatchMessageManager : MonoBehaviour
                     return;
                 }
 
+                if (packetType == PACKET_TYPE_PEER_DROP)
+                {
+                    int droppedSlot = reader.ReadInt32();
+                    int dropFrame = reader.ReadInt32();
+                    // Only the host adjudicates drops; ignore any spoofed/non-host sender.
+                    if (activeRoster != null && activeRoster.HostSteamId.IsValid
+                        && !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    {
+                        return;
+                    }
+
+                    RollbackManager.Instance.DropRemoteSlot(droppedSlot, dropFrame);
+                    return;
+                }
+
                 if (packetType == 0)
                 {
                     if (GameManager.Instance != null && GameManager.Instance.isWaitingForOpponent)
@@ -1471,6 +1615,20 @@ public class MatchMessageManager : MonoBehaviour
         return isRunning && activeRoster != null && activeRoster.PlayerCount > 1;
     }
 
+    public void DropPeerTransport(int slot)
+    {
+        if (slot < 0)
+        {
+            return;
+        }
+
+        locallyRemovedPeerSlots.Add(slot);
+        if (activeRoster != null && activeRoster.TryGetSteamIdForSlot(slot, out SteamId peerId))
+        {
+            ForgetPeerTransport(peerId, closeSession: true);
+        }
+    }
+
     private bool IsKnownPeer(SteamId steamId)
     {
         if (activeRoster != null)
@@ -1502,6 +1660,32 @@ public class MatchMessageManager : MonoBehaviour
         foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
         {
             if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            if (IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
+            {
+                continue;
+            }
+
+            any |= SendPacket(peer.SteamId, data, sendType);
+        }
+
+        return any;
+    }
+
+    private bool SendPacketToAllExceptSlot(byte[] data, P2PSend sendType, int excludedSlot)
+    {
+        bool any = false;
+        foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+        {
+            if (peer == null || peer.PlayerSlot == excludedSlot || SameSteamId(peer.SteamId, SteamClient.SteamId))
+            {
+                continue;
+            }
+
+            if (IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
             {
                 continue;
             }
@@ -1578,6 +1762,11 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
+            if (IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
+            {
+                continue;
+            }
+
             if (!sentFrameTimesByPeer.TryGetValue(peer.SteamId, out CircularArray<float> peerTimes))
             {
                 peerTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -1625,6 +1814,11 @@ public class MatchMessageManager : MonoBehaviour
     private bool SendPacket(SteamId peerId, byte[] data, P2PSend sendType)
     {
         if (!peerId.IsValid || !isRunning)
+        {
+            return false;
+        }
+
+        if (IsPeerSlotRemovedFromTransport(ResolveSlot(peerId)))
         {
             return false;
         }
@@ -1712,6 +1906,11 @@ public class MatchMessageManager : MonoBehaviour
             {
                 PendingOutboundPacket packet = outboundQueue[i];
                 outboundQueue.RemoveAt(i);
+                if (IsPeerSlotRemovedFromTransport(ResolveSlot(packet.peerId)))
+                {
+                    continue;
+                }
+
                 SteamNetworking.SendP2PPacket(packet.peerId, packet.data, packet.data.Length, MATCH_MESSAGE_CHANNEL, packet.sendType);
             }
         }
@@ -1728,8 +1927,64 @@ public class MatchMessageManager : MonoBehaviour
             {
                 PendingInboundPacket packet = inboundQueue[i];
                 inboundQueue.RemoveAt(i);
+                if (ShouldIgnorePacketFromPeer(packet.peerId))
+                {
+                    continue;
+                }
+
                 ProcessPacket(packet.peerId, packet.data);
             }
+        }
+    }
+
+    private bool ShouldIgnorePacketFromPeer(SteamId peerId)
+    {
+        return IsPeerSlotRemovedFromTransport(ResolveSlot(peerId));
+    }
+
+    private bool IsPeerSlotRemovedFromTransport(int slot)
+    {
+        if (slot < 0)
+        {
+            return false;
+        }
+
+        if (locallyRemovedPeerSlots.Contains(slot))
+        {
+            return true;
+        }
+
+        return GameManager.Instance != null
+            && GameManager.Instance.isOnlineMatchActive
+            && slot < GameManager.Instance.playerCount
+            && !GameManager.Instance.IsPlayerSlotConnected(slot);
+    }
+
+    private void ForgetPeerTransport(SteamId peerId, bool closeSession)
+    {
+        if (!peerId.IsValid)
+        {
+            return;
+        }
+
+        connectedPeers.Remove(peerId);
+        remoteReadyReceived.Remove(peerId);
+        handshakeSentToPeers.Remove(peerId);
+        handshakeSeenFromPeers.Remove(peerId);
+        peerHighestRemoteFrameSeen.Remove(peerId);
+        peerPingMs.Remove(peerId);
+        peerLastPacketTime.Remove(peerId);
+        peerLastHandshakeSendTime.Remove(peerId);
+        sentFrameTimesByPeer.Remove(peerId);
+        sceneMismatchedInputByPeer.Remove(peerId);
+        sceneMismatchedInputAgeByPeer.Remove(peerId);
+        lastLoggedMismatchSignatureByPeer.Remove(peerId);
+        outboundQueue.RemoveAll(packet => SameSteamId(packet.peerId, peerId));
+        inboundQueue.RemoveAll(packet => SameSteamId(packet.peerId, peerId));
+
+        if (closeSession)
+        {
+            SteamNetworking.CloseP2PSessionWithUser(peerId);
         }
     }
 

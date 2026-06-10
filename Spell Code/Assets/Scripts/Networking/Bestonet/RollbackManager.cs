@@ -88,6 +88,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly List<int> remotePlayerSlots = new List<int>();
         private bool usePeerRoster = false;
         private OnlineMatchRoster activeRoster;
+        // True once a peer has been dropped from this match. While set, the surviving
+        // (now-smaller) match is allowed to pulse past the prediction cap like a 2-player
+        // match, instead of the strict 3/4P "never pulse" hold. Without this, an idle period
+        // after a drop (e.g. the Shop) deadlocks every survivor against the prediction cap
+        // and the game crawls/freezes. Reset only on a fresh match (Init), not scene loads.
+        private bool peerDroppedThisMatch = false;
         // --- End Core Data Structures ---
 
 
@@ -241,6 +247,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             this.opponentNetworkId = opponentNetId;
             usePeerRoster = false;
             activeRoster = null;
+            peerDroppedThisMatch = false;
             remotePlayerSlots.Clear();
 
         // Find MatchMessageManager instance
@@ -267,6 +274,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             activeRoster = roster;
             usePeerRoster = roster != null;
             opponentNetworkId = 0;
+            peerDroppedThisMatch = false;
             remotePlayerSlots.Clear();
 
             matchManager = FindFirstObjectByType<MatchMessageManager>();
@@ -286,7 +294,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 for (int i = 0; i < roster.Peers.Count; i++)
                 {
                     OnlineMatchPeerInfo peer = roster.Peers[i];
-                    if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                    if (ShouldTrackRemoteRosterPeer(peer))
                     {
                         remotePlayerSlots.Add(peer.PlayerSlot);
                     }
@@ -312,7 +320,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             for (int i = 0; i < roster.Peers.Count; i++)
             {
                 OnlineMatchPeerInfo peer = roster.Peers[i];
-                if (peer != null && peer.PlayerSlot != roster.LocalPlayerSlot)
+                if (ShouldTrackRemoteRosterPeer(peer))
                 {
                     remotePlayerSlots.Add(peer.PlayerSlot);
                     validRemoteSlots.Add(peer.PlayerSlot);
@@ -360,6 +368,45 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             return false;
+        }
+
+        private bool ShouldTrackRemoteRosterPeer(OnlineMatchPeerInfo peer)
+        {
+            if (peer == null || activeRoster == null || peer.PlayerSlot == activeRoster.LocalPlayerSlot)
+            {
+                return false;
+            }
+
+            if (GameManager.Instance == null)
+            {
+                return true;
+            }
+
+            return GameManager.Instance.IsPlayerSlotConnected(peer.PlayerSlot);
+        }
+
+        private HashSet<int> RebuildRemoteSlotsFromActiveRoster()
+        {
+            HashSet<int> validRemoteSlots = new HashSet<int>();
+            if (!usePeerRoster || activeRoster == null)
+            {
+                return validRemoteSlots;
+            }
+
+            remotePlayerSlots.Clear();
+            for (int i = 0; i < activeRoster.Peers.Count; i++)
+            {
+                OnlineMatchPeerInfo peer = activeRoster.Peers[i];
+                if (!ShouldTrackRemoteRosterPeer(peer))
+                {
+                    continue;
+                }
+
+                remotePlayerSlots.Add(peer.PlayerSlot);
+                validRemoteSlots.Add(peer.PlayerSlot);
+            }
+
+            return validRemoteSlots;
         }
 
         private void ResetRollbackHistoryForRosterChange()
@@ -460,6 +507,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// </summary>
         public void ClearVars()
         {
+            if (usePeerRoster)
+            {
+                PruneRemoteSlotTracking(RebuildRemoteSlotsFromActiveRoster());
+            }
+
             receivedInputs.Clear();
             opponentInputs.Clear();
             clientInputs.Clear();
@@ -1141,6 +1193,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         SetRollbackStatus(false);
         ProcessPendingRemoteHashes();
         LogPredictionSnapDelta(syncFrame, framesBeforeRollback, preRollbackPosX, preRollbackPosY);
+        diagRollbacks++;
+        diagResimFrames += RollbackFrames;
+        diagMaxResim = Mathf.Max(diagMaxResim, RollbackFrames);
         Debug.Log($"Rollback Complete. Resimulated {RollbackFrames} frames.");
     }
 
@@ -1207,14 +1262,64 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     return true;
                 }
 
-                if (stalePeerSlot >= 0)
+                // A roster-based online match can survive a disconnect: drop the stale peer
+                // and keep playing, rather than ending the match for everyone.
+                if (usePeerRoster && stalePeerSlot >= 0 && GameManager.Instance != null)
                 {
-                    Debug.LogWarning($"Frame stall timeout from stale peer P{stalePeerSlot + 1}. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
+                    bool staleIsTracked = remotePlayerSlots.Contains(stalePeerSlot);
+                    bool soleSurvivor = (remotePlayerSlots.Count - (staleIsTracked ? 1 : 0)) <= 0;
+
+                    if (soleSurvivor)
+                    {
+                        // Only the local player would remain — they win the match outright.
+                        // This also covers a 2-player match where the host is the one leaving.
+                        Debug.LogWarning($"Frame stall timeout: last remaining peer P{stalePeerSlot + 1} dropped. Local player wins. Local={currentFrame}, Sync={syncFrame}.");
+                        if (staleIsTracked)
+                        {
+                            DropRemoteSlot(stalePeerSlot, syncFrame); // removes the last peer, then declares the win
+                        }
+                        else
+                        {
+                            GameManager.Instance.WinAsLastPlayer();
+                        }
+                        return false;
+                    }
+
+                    if (GameManager.Instance.IsOnlineHostSlot(stalePeerSlot))
+                    {
+                        // The host dropped while other players remain. We have no host
+                        // migration, so the match ends for everyone (accepted limitation).
+                        Debug.LogWarning($"Frame stall timeout: host P{stalePeerSlot + 1} dropped with others present; ending match. Local={currentFrame}, Sync={syncFrame}.");
+                        TriggerMatchTimeout();
+                        return false;
+                    }
+
+                    // A guest dropped and 2+ players remain. The host adjudicates the drop
+                    // frame so every surviving peer eliminates the player on the same frame.
+                    if (GameManager.Instance.IsOnlineHostAuthority())
+                    {
+                        Debug.LogWarning($"Frame stall timeout: guest P{stalePeerSlot + 1} dropped. Host adjudicating drop at frame {syncFrame}. Local={currentFrame}.");
+                        matchManager.SendPeerDrop(stalePeerSlot, syncFrame);
+                        DropRemoteSlot(stalePeerSlot, syncFrame);
+                        return false;
+                    }
+
+                    // Non-host: wait for the host's authoritative PEER_DROP rather than
+                    // dropping on our own (which could pick a divergent drop frame). Only
+                    // bail if the host itself has gone unresponsive.
+                    if (matchManager.IsPeerResponsive(GetOnlineHostSlot(), 3f))
+                    {
+                        remoteFrameStallTicks = 0;
+                        ResetTimeoutGrace(1f);
+                        return false;
+                    }
+
+                    Debug.LogWarning($"Frame stall timeout: guest P{stalePeerSlot + 1} dropped but host is also unresponsive; ending match. Local={currentFrame}, Sync={syncFrame}.");
+                    TriggerMatchTimeout();
+                    return false;
                 }
-                else
-                {
-                    Debug.LogWarning($"Frame stall timeout. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
-                }
+
+                Debug.LogWarning($"Frame stall timeout. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
 
                 TriggerMatchTimeout(); // Handle timeout disconnect
                 return false; // Don't allow update if timed out
@@ -1364,7 +1469,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // path needs to pulse to avoid both-sides-waiting deadlocks during scene transition.
         private int GetPredictionHoldDropLimit()
         {
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            // After a disconnect the match is smaller and the strict 3/4P "never pulse" hold
+            // would deadlock the survivors against the prediction cap (idle Shop crawl/freeze).
+            // Fall back to the 2P-style pulse so the match keeps pacing forward.
+            if (usePeerRoster && !peerDroppedThisMatch && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
             {
                 return Mathf.Max(0, MultiplayerMaxConsecutiveFrameDrops);
             }
@@ -2392,6 +2500,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input, int alignmentFrame)
         {
+            // Ignore stray/late packets from a slot that has been dropped from the match;
+            // re-adding its tracking would corrupt the effective-remote-frame calculation.
+            if (usePeerRoster && !remotePlayerSlots.Contains(slot))
+            {
+                return;
+            }
+
             int frameOffset = AlignRemoteFrameForSlot(slot, alignmentFrame);
             frameOffset = RebaseMultiplayerLobbyInputOffset(slot, alignmentFrame, frameOffset);
             int adjustedFrame = frame + frameOffset;
@@ -2599,6 +2714,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteFrame(int slot, int frame)
         {
+            // Ignore stray/late frame updates from a slot dropped from the match.
+            if (usePeerRoster && !remotePlayerSlots.Contains(slot))
+            {
+                return;
+            }
+
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
             bool preserveLobbyProgress = ShouldPreserveLobbyRemoteFrameProgress();
             if (preserveLobbyProgress
@@ -2723,6 +2844,153 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // public void TriggerDesyncedStatus() { ... }
 
         /// <summary> Triggers the match timeout sequence. </summary>
+        /// <summary>
+        /// Resolves the player slot of the match host from the active roster, or -1.
+        /// </summary>
+        private int GetOnlineHostSlot()
+        {
+            if (activeRoster != null && activeRoster.TryGetSlotForSteamId(activeRoster.HostSteamId, out int slot))
+            {
+                return slot;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Permanently removes a disconnected peer from an online match and keeps the
+        /// remaining players in sync. The elimination is baked into the saved state at
+        /// <paramref name="dropFrame"/> and the simulation is replayed forward, so every
+        /// surviving peer that applies the same drop frame stays deterministic. If no
+        /// remote peers remain afterwards, the local player wins the match.
+        /// </summary>
+        public void DropRemoteSlot(int slot, int dropFrame)
+        {
+            if (!usePeerRoster || GameManager.Instance == null)
+            {
+                return;
+            }
+
+            if (activeRoster != null && slot == activeRoster.LocalPlayerSlot)
+            {
+                return;
+            }
+
+            // Idempotent: a slot already removed (e.g. host + local both detected the drop)
+            // must not be processed twice.
+            if (!remotePlayerSlots.Contains(slot))
+            {
+                GameManager.Instance.MarkPlayerDisconnected(slot, dropFrame);
+                pendingRemoteInputSlots.Remove(slot);
+                PruneRemoteSlotTracking(new HashSet<int>(remotePlayerSlots));
+                matchManager?.DropPeerTransport(slot);
+                return;
+            }
+
+            int framesBeforeRollback = localFrame;
+            int rebaseFrame = Mathf.Clamp(dropFrame, syncFrame, framesBeforeRollback);
+            if (!HasStateForFrame(rebaseFrame))
+            {
+                rebaseFrame = syncFrame;
+            }
+
+            // From now on, let the (smaller) surviving match pulse past the prediction cap
+            // instead of hard-holding, so idle periods after the drop (e.g. the Shop) don't
+            // deadlock every survivor against the cap.
+            peerDroppedThisMatch = true;
+
+            // Stop predicting / waiting on the dropped slot from here on. Once removed,
+            // SynchronizeInput leaves inputs[slot] at neutral (5) and AllowUpdate no longer
+            // stalls waiting for its packets.
+            remotePlayerSlots.Remove(slot);
+            pendingRemoteInputSlots.Remove(slot);
+            PruneRemoteSlotTracking(new HashSet<int>(remotePlayerSlots));
+            matchManager?.DropPeerTransport(slot);
+
+            SetRollbackStatus(true);
+            ResetRemotePredictionStreaksForResim();
+            if (HasStateForFrame(rebaseFrame) && LoadState(rebaseFrame))
+            {
+                // Inject the elimination into the snapshot at the drop frame, then replay
+                // forward so every frame >= dropFrame reflects the removed player.
+                GameManager.Instance.MarkPlayerDisconnected(slot, rebaseFrame);
+                SaveState();
+                syncFrame = rebaseFrame;
+
+                for (int i = rebaseFrame + 1; i <= framesBeforeRollback; i++)
+                {
+                    ulong[] inputsForResim = SynchronizeInput(i);
+                    GameManager.Instance.UpdateGameState(inputsForResim);
+                    GameManager.Instance.UpdateSceneLogic(inputsForResim);
+                    GameManager.Instance.ForceSetFrame(i);
+                    SaveState();
+                }
+            }
+            else
+            {
+                // Could not rebase (snapshot missing) — apply on the live state as a fallback.
+                GameManager.Instance.MarkPlayerDisconnected(slot, framesBeforeRollback);
+            }
+            SetRollbackStatus(false);
+
+            remoteFrameStallTicks = 0;
+            lastRemoteFrameForTimeout = GetEffectiveRemoteFrame(framesBeforeRollback);
+            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+
+            Debug.LogWarning($"[Rollback] Dropped remote slot P{slot + 1} at frame {rebaseFrame}. Remaining remote slots={remotePlayerSlots.Count}.");
+
+            if (remotePlayerSlots.Count == 0)
+            {
+                // Local player is the sole survivor — win the match outright.
+                GameManager.Instance.WinAsLastPlayer();
+            }
+        }
+
+        // --- Temporary pacing diagnostics ---
+        // Emits a once-per-second summary of the online sim's real pacing so we can tell
+        // whether a perceived slowdown is rollback-resim CPU cost (high resimFrames) or the
+        // sim being starved/held (advances well under ~60/s). Remove once pacing is dialed in.
+        private float diagNextFlushRealtime = 0f;
+        private int diagTicks, diagAdvances, diagRollbacks, diagResimFrames, diagMaxResim;
+
+        /// <summary> Call once per online sim tick (start of RunOnlineFrame). </summary>
+        public void DiagBeginTick()
+        {
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                return;
+            }
+
+            diagTicks++;
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            if (diagNextFlushRealtime <= 0f)
+            {
+                diagNextFlushRealtime = now + 1f;
+                return;
+            }
+            if (now < diagNextFlushRealtime)
+            {
+                return;
+            }
+
+            int gap = localFrame - GetEffectiveRemoteFrame(localFrame);
+            Debug.Log($"[PaceDiag] advances/s={diagAdvances} holds={diagTicks - diagAdvances} ticks={diagTicks} rollbacks={diagRollbacks} resimFrames={diagResimFrames} maxResim={diagMaxResim} gap={gap} dropped={peerDroppedThisMatch} remoteSlots={remotePlayerSlots.Count} scene={SceneManager.GetActiveScene().name}");
+
+            diagTicks = 0;
+            diagAdvances = 0;
+            diagRollbacks = 0;
+            diagResimFrames = 0;
+            diagMaxResim = 0;
+            diagNextFlushRealtime = now + 1f;
+        }
+
+        /// <summary> Call once after the sim actually advances a frame (frameNumber++). </summary>
+        public void DiagMarkAdvance()
+        {
+            diagAdvances++;
+        }
+        // --- End pacing diagnostics ---
+
         public void TriggerMatchTimeout()
         {
             Debug.LogError("Match Timeout Triggered!");

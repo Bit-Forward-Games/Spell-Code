@@ -13,21 +13,21 @@ MonoBehaviour:
   m_Name: DualDuel_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 224, y: 92}
-  - {x: 0, y: 60}
-  - {x: -224, y: 92}
-  - {x: 224, y: -100}
-  - {x: 0, y: -132}
-  - {x: 0, y: -196}
-  - {x: -224, y: -100}
+  - {x: 224, y: 94}
+  - {x: 0, y: 94}
+  - {x: -224, y: 94}
+  - {x: 224, y: -98}
+  - {x: 0, y: -130}
+  - {x: 0, y: -194}
+  - {x: -224, y: -98}
   platformExtent:
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
   solidCenter:
   - {x: 0, y: -16}
   - {x: 272, y: 0}

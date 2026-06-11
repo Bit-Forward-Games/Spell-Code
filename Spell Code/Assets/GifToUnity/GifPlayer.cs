@@ -36,7 +36,7 @@ namespace GifImporter
 
             int index = _index;
 
-            if (Application.isPlaying && _flip < Time.time)
+            if (Application.isPlaying && _flip < Time.unscaledTime)
             {
                 index++;
             }
@@ -59,7 +59,7 @@ namespace GifImporter
             Image image = null;
             if (TryGetComponent<SpriteRenderer>(out var spriteRenderer) || TryGetComponent(out image))
             {
-                _flip = Time.time + frame.DelayInMs * 0.001f;
+                _flip = Time.unscaledTime + frame.DelayInMs * 0.001f;
 
                 if (spriteRenderer != null) spriteRenderer.sprite = frame.Sprite;
                 else if (image != null) image.sprite              = frame.Sprite;

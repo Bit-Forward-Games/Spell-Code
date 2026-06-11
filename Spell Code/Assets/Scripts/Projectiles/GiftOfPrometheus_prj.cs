@@ -12,6 +12,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
 
     [NonSerialized] public bool isGrounded = false;
     [NonSerialized] public ushort lifeTime = 0;
+    [NonSerialized] private ushort baseLifeTime = 60;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
@@ -93,10 +94,10 @@ public class GiftOfPrometheus_prj : BaseProjectile
         {
             logicFrame = animFrames.frameLengths.Take(4).Sum() + 1; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
         }
-        if (lifeTime == owner.reps*8 + animFrames.frameLengths.Take(4).Sum() + 1 || multiHitCount == 0)
+        if (lifeTime == owner.reps*15 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
         {
             logicFrame = animFrames.frameLengths.Take(12).Sum() + 1;
-            multiHitCount = maxMultiHitCount;
+            Array.Fill(multiHitCount, maxMultiHitCount);
         }
         lifeTime ++;
     }

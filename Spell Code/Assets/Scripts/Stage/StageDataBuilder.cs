@@ -148,17 +148,25 @@ public class StageDataBuilder : MonoBehaviour
                 break;
 
             case StageSize.Medium:
-                //set borders to defualt medium size
-                stageDataSO.borderMin = new Vector3(-300f, -220f, 0f);
-                stageDataSO.borderMax = new Vector3(300, 220, 0f);
-
-                //if this is suppose to be a looping stage, set the cameraBorderMin and cameraBorderMax
+                //if this is suppose to be a looping stage,...
                 if (_borderType == BorderType.Loop)
                 {
+                    //set borders to a smaller but medium size
+                    stageDataSO.borderMin = new Vector3(-300f, -220f, 0f);
+                    stageDataSO.borderMax = new Vector3(300, 220, 0f);
+
+                    //set the cameraBorderMin and cameraBorderMax
                     stageDataSO.camBorderMin = new Vector3(-300, -205f, 0f);
                     stageDataSO.camBorderMax = new Vector3(300f, 205f, 0f);
                 }
-                
+                //else this stage does not loop,...
+                else
+                {
+                    //set borders to defualt medium size
+                    stageDataSO.borderMin = new Vector3(-350f, -220f, 0f);
+                    stageDataSO.borderMax = new Vector3(350, 220, 0f);
+                }
+
                 //break
                 break;
 

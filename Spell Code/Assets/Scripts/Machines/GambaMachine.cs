@@ -269,7 +269,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Asuran Blades");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Bifrons Blade");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "Abaddon Uppercut");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[4], "Gift Of Prometheus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Rip And Tear");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Hell-Chain Sweep");
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Demonic Descent");
                         break;

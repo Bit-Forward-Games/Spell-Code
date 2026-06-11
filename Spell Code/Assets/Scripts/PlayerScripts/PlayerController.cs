@@ -110,6 +110,8 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
+    public bool touchingLeftWall = false;
+    public bool touchingRightWall = false;
     public bool onPlatform = false;
     public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     public bool toggleCodeInput = false;
@@ -1941,6 +1943,8 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = false;
         onPlatform = false;
+        touchingLeftWall = false;
+        touchingRightWall = false;
         bool returnVal = false;
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
@@ -1998,7 +2002,7 @@ public class PlayerController : MonoBehaviour
                         // Numerical edge-case: treat as no collision
                         continue;
                     }
-
+                    
                     // Resolve along the smallest penetration axis
                     if (overlapX < overlapY)
                     {
@@ -2008,12 +2012,14 @@ public class PlayerController : MonoBehaviour
                             // Player is left of solid -> push left
                             //position.x -= overlapX;
                             position = new FixedVec2(sMin.X - halfW, position.Y);
+                            touchingRightWall = true;
                         }
                         else
                         {
                             // Player is right of solid -> push right
                             //position.x += overlapX;
                             position = new FixedVec2(sMax.X + halfW, position.Y);
+                            touchingLeftWall = true;
                         }
                         hSpd = Fixed.FromInt(0);
                     }
@@ -2186,12 +2192,14 @@ public class PlayerController : MonoBehaviour
                                 // Player is left of solid -> push left
                                 //position.x -= overlapX;
                                 position = new FixedVec2(sMin.X - halfW, position.Y);
+                                touchingRightWall = true;
                             }
                             else
                             {
                                 // Player is right of solid -> push right
                                 //position.x += overlapX;
                                 position = new FixedVec2(sMax.X + halfW, position.Y);
+                                touchingLeftWall = true;
                             }
                             hSpd = Fixed.FromInt(0);
                         }

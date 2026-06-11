@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 using Fixed = BestoNet.Types.Fixed32;
@@ -15,7 +16,6 @@ public class Reps : SpellData
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[1] { ProcCondition.OnHitSpell};
         description = $"Hit Killeez Spellcodes to Gain Reps<sprite name=\"Reps\">.\nOn Respawn, lose all Reps<sprite name=\"Reps\">.\nSpellcodes deal increased damage based on Reps<sprite name=\"Reps\">.";
-
     }
 
 
@@ -31,9 +31,15 @@ public class Reps : SpellData
                 }
                 
 
-                //increase demon aura by 20 if its a Demon-X spellcode
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.Killeez && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
+                    //only grant resource on the first hit of a multihit per player
+                    if(IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                    {
+                        break;
+                    }
+
+                    //grant the resource
                     owner.reps++;
                     owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
                 }

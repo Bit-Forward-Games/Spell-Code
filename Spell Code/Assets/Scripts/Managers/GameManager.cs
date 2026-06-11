@@ -2369,6 +2369,13 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Match stopped and state reset");
     }
 
+    public void ResetToMainMenuAfterHostDisconnect(string reason = "Host disconnected")
+    {
+        Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to MainMenu.");
+        StopMatch(reason);
+        ExecuteOrder66();
+    }
+
     private void ClearPlayerObjects()
     {
         for (int i = 0; i < players.Length; i++)

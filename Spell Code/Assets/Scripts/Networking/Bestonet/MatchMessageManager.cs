@@ -214,7 +214,7 @@ public class MatchMessageManager : MonoBehaviour
         {
             if (GameManager.Instance.IsOnlineHostSlot(slot))
             {
-                GameManager.Instance.StopMatch($"Host connection failed: {error}");
+                GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed: {error}");
                 return;
             }
 
@@ -236,7 +236,14 @@ public class MatchMessageManager : MonoBehaviour
 
         if (wasConnected)
         {
-            GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+            if (GameManager.Instance != null && GameManager.Instance.IsOnlineHostSlot(slot))
+            {
+                GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed: {error}");
+            }
+            else
+            {
+                GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+            }
         }
         else if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId))
         {

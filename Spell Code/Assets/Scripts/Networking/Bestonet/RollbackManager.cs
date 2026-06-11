@@ -1305,10 +1305,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     bool staleIsTracked = remotePlayerSlots.Contains(stalePeerSlot);
                     bool soleSurvivor = (remotePlayerSlots.Count - (staleIsTracked ? 1 : 0)) <= 0;
 
+                    if (GameManager.Instance.IsOnlineHostSlot(stalePeerSlot))
+                    {
+                        Debug.LogWarning($"Frame stall timeout: host P{stalePeerSlot + 1} dropped. Returning survivors to MainMenu. Local={currentFrame}, Sync={syncFrame}.");
+                        GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host P{stalePeerSlot + 1} disconnected");
+                        return false;
+                    }
+
                     if (soleSurvivor)
                     {
                         // Only the local player would remain — they win the match outright.
-                        // This also covers a 2-player match where the host is the one leaving.
                         Debug.LogWarning($"Frame stall timeout: last remaining peer P{stalePeerSlot + 1} dropped. Local player wins. Local={currentFrame}, Sync={syncFrame}.");
                         if (staleIsTracked)
                         {
@@ -1318,15 +1324,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                         {
                             GameManager.Instance.WinAsLastPlayer();
                         }
-                        return false;
-                    }
-
-                    if (GameManager.Instance.IsOnlineHostSlot(stalePeerSlot))
-                    {
-                        // The host dropped while other players remain. We have no host
-                        // migration, so the match ends for everyone (accepted limitation).
-                        Debug.LogWarning($"Frame stall timeout: host P{stalePeerSlot + 1} dropped with others present; ending match. Local={currentFrame}, Sync={syncFrame}.");
-                        TriggerMatchTimeout();
                         return false;
                     }
 
@@ -1350,8 +1347,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                         return false;
                     }
 
-                    Debug.LogWarning($"Frame stall timeout: guest P{stalePeerSlot + 1} dropped but host is also unresponsive; ending match. Local={currentFrame}, Sync={syncFrame}.");
-                    TriggerMatchTimeout();
+                    Debug.LogWarning($"Frame stall timeout: guest P{stalePeerSlot + 1} dropped but host is also unresponsive. Returning survivors to MainMenu. Local={currentFrame}, Sync={syncFrame}.");
+                    GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host unresponsive while guest P{stalePeerSlot + 1} stalled");
                     return false;
                 }
 

@@ -89,7 +89,7 @@ public class SunOfApollo_prj : BaseProjectile
             endFrames = new List<int>
             {
                 animFrames.frameLengths.Take(12).Sum(),
-                animFrames.frameLengths.Take(14).Sum()
+                animFrames.frameLengths.Take(13).Sum()
 
             }
         };

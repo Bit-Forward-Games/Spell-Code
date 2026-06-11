@@ -26,7 +26,7 @@ public class Reps : SpellData
             case ProcCondition.OnHitSpell:
                 // deal extra damage based on demon aura
                 if(owner.reps > 0 && !defender.hitboxData.ignoreEffectDamage &&
-                !IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
                     defender.TakeEffectDamage(owner.reps, owner, GameManager.colors["yellow"]);
                 }

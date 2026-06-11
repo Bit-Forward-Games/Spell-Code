@@ -43,7 +43,6 @@ public class UseTheCard_crit_prj : BaseProjectile
                     damage = 10,
                     hitstun = 20,
                     attackLvl = 2,
-                    ignoreEffectDamage = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

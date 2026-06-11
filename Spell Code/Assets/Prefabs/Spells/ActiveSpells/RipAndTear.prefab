@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1da1a265a3cc751408486d1f47e70cf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RipAndTear
+  vibeCasted: 0
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: b7af9bc7c0f0b614795c8b98f1209c21, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 3903601416199896070, guid: d67269815d36e034f957e6af8b3fdcde, type: 3}
-  notReadyIcon: {fileID: -1137970043924826147, guid: a330600eff4a050498d1d968b3a26c2c, type: 3}
+  readyIcon: {fileID: 21300000, guid: d67269815d36e034f957e6af8b3fdcde, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: a330600eff4a050498d1d968b3a26c2c, type: 3}
   SpellGIF: {fileID: 11400000, guid: 7093dfe43eb19d34fb3443198349cdf0, type: 2}

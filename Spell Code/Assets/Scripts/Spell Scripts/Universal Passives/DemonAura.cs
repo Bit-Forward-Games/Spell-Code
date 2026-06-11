@@ -30,7 +30,7 @@ public class DemonAura : SpellData
             case ProcCondition.OnHitSpell:
                 if(owner.demonAura > 0 && 
                 !defender.hitboxData.ignoreEffectDamage &&
-                !IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
                     // deal extra damage based on demon aura
                     defender.TakeEffectDamage(owner.demonAura/5, owner, GameManager.colors["red"]);

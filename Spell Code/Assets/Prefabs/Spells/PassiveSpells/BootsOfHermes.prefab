@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e4e8f965593ff14ba5e32958bb75a02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vibeCasted: 0
   projectilePrefabs:
   - {fileID: 7323394407539773554, guid: 0c68b00523c7c4a4fa040243a07b7d9d, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 945f9ac1743e14ca2bfe474e3987b716, type: 3}
-  notReadyIcon: {fileID: 6683371080485467210, guid: 853e29d41a529f249a4d8a596bc3a434, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 853e29d41a529f249a4d8a596bc3a434, type: 3}
   SpellGIF: {fileID: 11400000, guid: 2e437efe55d58ae45874836860d4b5b6, type: 2}

@@ -24,8 +24,8 @@ public class StockStability : SpellData
         {
             case ProcCondition.OnHitSpell:
                 // we let Bigstox Spells handle their own Crit logic, this is so that we dont roll for crit 2 times for a bigstox spell on both cast and hit
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox  /*|| !defender.hitboxData.sweetSpot*/&&
-                !IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] != Brand.BigStox &&
+                IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
                     //non bigstox spells can crit here
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified && !defender.hitboxData.ignoreEffectDamage)

@@ -44,6 +44,7 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
+    public Toggle vibeCodingToggleGraphic;
 
     [Header("Spell Glossary Variables")]
  
@@ -107,6 +108,15 @@ public class Pause : MonoBehaviour
         set 
         {
             gameManager.players[playerPauseIndex].tapJump = value; 
+        }
+    }
+
+    public bool UIVibeCode
+    {
+        get { return gameManager.players[playerPauseIndex].vibeCoding; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].vibeCoding = value; 
         }
     }
  
@@ -350,6 +360,8 @@ public class Pause : MonoBehaviour
  
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
+        tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
+        vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
  
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
  
@@ -585,5 +597,10 @@ public class Pause : MonoBehaviour
     public void ToggleTapJump()
     {
         UITapJump = !UITapJump;
+    }
+
+    public void ToggleVibeCoding()
+    {
+        UIVibeCode = !UIVibeCode;
     }
 }

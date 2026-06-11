@@ -11,13 +11,13 @@ public class RipAndTear_prj : BaseProjectile
 {
     
     [NonSerialized] public ushort lifeTime = 0;
-    [NonSerialized] private ushort baseLifeTime = 30;
+    [NonSerialized] private ushort baseLifeTime = 15;
     protected override void InitializeDefaults()
     {
         projName = "Rip And Tear";
         lifeSpan = 0;
         maxMultiHitCount = 10;
-        multiHitCooldown = 15;
+        multiHitCooldown = 10;
         meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 4, 4, 4, 4}, false);
     }
@@ -38,10 +38,10 @@ public class RipAndTear_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -25*2,
-                    yOffset = 25*2,
-                    width = 50*2,
-                    height = 50*2,
+                    xOffset = -20*2,
+                    yOffset = 20*2,
+                    width = 40*2,
+                    height = 40*2,
                     xKnockback = 3,
                     yKnockback = 4,
                     damage = 5,

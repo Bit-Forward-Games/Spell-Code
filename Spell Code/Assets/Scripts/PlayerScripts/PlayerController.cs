@@ -1864,11 +1864,11 @@ public class PlayerController : MonoBehaviour
                 case 1://down
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
                     break;
-                case 2://left
-                    codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
-                    break;
-                case 3://right
+                case 2://right
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0001_0000_0001;
+                    break;
+                case 3://left
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
                     break;
                 default:
                     codeToMatch = 255;
@@ -2647,8 +2647,10 @@ public class PlayerController : MonoBehaviour
             }
 
             HandleDamage(attacker, hitboxData.damage);
-
-            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
+            //this basically only applies comboCount on the first damage instance per player of a multihit
+            bool multiHitDamageInstance = hitboxData.parentProjectile.multiHitCount[pID == 0? attacker.pID-1: pID-1] < hitboxData.parentProjectile.maxMultiHitCount;
+            
+            if(hitboxData.hitstun > 0 && !multiHitDamageInstance)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
                 //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Linq;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -38,6 +39,13 @@ public class DemonAura : SpellData
                 //increase demon aura by 20 if its a Demon-X spellcode
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.DemonX && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
+                    //only grant resource on the first hit of a multihit per player
+                    if(IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                    {
+                        break;
+                    }
+
+                    //grant the resource
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                     owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 }

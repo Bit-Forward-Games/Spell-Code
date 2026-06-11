@@ -2161,15 +2161,12 @@ public class GameManager : MonoBehaviour
 
     public void UpdatePlayerBounties(bool applyVisuals = true, bool roundOver = false)
     {
+        Debug.Log($"-----------------Updating Bounties------------------");
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
         //bool disregardRam = false;
         for (int i = 0; i < playerCount; i++)
         {
-            // if(players[i].roundRam >= ramNeededToWinRound)
-            // {
-            //     disregardRam = true;
-            // }
             averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
         }
@@ -2180,9 +2177,11 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             int ramRoundBounty = roundOver? 0: (players[i].roundRam - averageRoundRam)/3;
+            Debug.Log($"Player {i+1} Old Bounty: {players[i].ramBounty}");
             players[i].ramBounty = (short)( ramRoundBounty + (100*(players[i].roundsWon - averageRoundWins)));
+            Debug.Log($"Player {i+1} New Bounty: {players[i].ramBounty}");
         }
-
+        
         if (!applyVisuals)
         {
             return;
@@ -2271,7 +2270,7 @@ public class GameManager : MonoBehaviour
             //check for player deaths
             if(!player.isAlive)
             {
-
+                Debug.Log($"-----------------Player {player.pID} Has just died ------------------");
                 //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
                 foreach (PlayerController p in playerControllers)
                 {
@@ -2282,12 +2281,13 @@ public class GameManager : MonoBehaviour
                     p.roundRam += (ushort)CollectedGold;
                     p.roundRam = (ushort)Mathf.Clamp(p.roundRam + p.storedKillBonus,0,ramNeededToWinRound);
                     p.SpawnToast($"+{totalKillParticipationRamEarned + p.storedKillBonus} RAM", GameManager.colors["yellow"]);
+                    Debug.Log($" player {p.pID}: +{totalKillParticipationRamEarned + p.storedKillBonus} RAM");
                     p.storedKillBonus = 0;
                     
 
                     damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
                 }
-
+                Debug.Log($"-------------------------------------------------------------------");
                 
 
                 // Clear lingering projectiles from the dead player so both clients respawn
@@ -2312,6 +2312,7 @@ public class GameManager : MonoBehaviour
                     PlayerController winner = null;
                     for (int i = 0; i < playerCount; i++)
                     {
+                        Debug.Log($"player {i+1} RAM: {players[i].roundRam}");
                         if (players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
                         {
                             winner = players[i];

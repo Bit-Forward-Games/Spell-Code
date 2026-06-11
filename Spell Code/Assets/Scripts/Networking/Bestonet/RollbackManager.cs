@@ -183,6 +183,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // One time-sync hold at most every N ticks (~5 holds/s) -> drains a wall-clock rift
         // gently (about 5 frames/s) without a perceptible stutter on the ahead client.
         private const int TimeSyncHoldCooldownTicks = 12;
+        // Right after a baseline reset (scene start), the slowest loader is genuinely behind by
+        // 10-16 frames and every faster client shallowly predicts it until the rift drains -- the
+        // brief "remote player corrects a couple of frames" window seen at round starts. Drain at
+        // double cadence during this window (~10 frames/s) to roughly halve that window, then drop
+        // back to the gentle steady-state cadence.
+        private const int TimeSyncFastDrainWindowTicks = 180;
+        private const int TimeSyncFastDrainCooldownTicks = 6;
+        private int timeSyncFastDrainUntilFrame = -1;
+        // A freshly activated stream's owner keeps REPORTING advantage values measured against its
+        // half-built session view for a moment after activation (observed as "ahead by 25-27"
+        // host holds at joins even with the stale array cleared). A slot's reports only join the
+        // time-sync average after a full window of fresh post-activation samples has arrived.
+        private readonly Dictionary<int, int> remoteAdvantageFreshSamplesBySlot = new Dictionary<int, int>();
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
@@ -445,6 +458,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // future and lock the hold out for the whole next scene.
             ClearFrameAdvantageHistory();
             lastTimeSyncHoldFrame = -1;
+            timeSyncFastDrainUntilFrame = baselineFrame + TimeSyncFastDrainWindowTicks;
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
         }
 
@@ -463,6 +477,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(receivedInputsBySlot, validRemoteSlots);
             PruneSlotDictionary(usedInputsBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteFrameAdvantagesBySlot, validRemoteSlots);
+            PruneSlotDictionary(remoteAdvantageFreshSamplesBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteLastAppliedInputBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteFrameBySlot, validRemoteSlots);
             PruneSlotDictionary(predictedRemoteFrameBySlot, validRemoteSlots);
@@ -1487,7 +1502,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 && !DelayBased
                 && GameManager.Instance != null
                 && GameManager.Instance.isOnlineMatchActive
-                && (lastTimeSyncHoldFrame < 0 || currentFrame - lastTimeSyncHoldFrame >= TimeSyncHoldCooldownTicks)
+                && (lastTimeSyncHoldFrame < 0 || currentFrame - lastTimeSyncHoldFrame >=
+                    (currentFrame <= timeSyncFastDrainUntilFrame ? TimeSyncFastDrainCooldownTicks : TimeSyncHoldCooldownTicks))
                 && !CheckTimeSync(out float timeSyncAdvantage))
             {
                 lastTimeSyncHoldFrame = currentFrame;
@@ -2713,6 +2729,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 staleSlotAdvantages.Clear();
             }
+            remoteAdvantageFreshSamplesBySlot[slot] = 0;
             remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
             remoteFrame = GetEffectiveRemoteFrame(currentFrame);
@@ -2762,6 +2779,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int adjustedFrame = frame + (remoteFrameOffsetBySlot.TryGetValue(slot, out int frameOffset) ? frameOffset : 0);
             remoteFrameAdvantagesBySlot[slot].Insert(adjustedFrame, advantage);
             remoteFrameAdvantages.Insert(adjustedFrame, advantage);
+            int freshSamples = remoteAdvantageFreshSamplesBySlot.TryGetValue(slot, out int existingSamples) ? existingSamples : 0;
+            if (freshSamples <= FrameAdvantageArraySize)
+            {
+                remoteAdvantageFreshSamplesBySlot[slot] = freshSamples + 1;
+            }
         }
 
         /// <summary> Stores the calculated local frame advantage for the current frame. </summary>
@@ -2872,6 +2894,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                         continue;
                     }
 
+                    // Count the slot as checked even while freshness-gated so we never fall
+                    // through to the legacy global-array path (which would re-include the very
+                    // reports this gate is excluding).
+                    checkedActiveSlot = true;
+                    if (!remoteAdvantageFreshSamplesBySlot.TryGetValue(slot, out int freshSamples)
+                        || freshSamples < FrameAdvantageArraySize)
+                    {
+                        continue;
+                    }
+
                     long rosterRemoteSum = 0;
                     CircularArray<int> remoteAdvantages = entry.Value;
                     int[] rosterRemoteValues = remoteAdvantages.GetValues();
@@ -2882,7 +2914,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
                     float rosterRemoteAverage = (float)rosterRemoteSum / FrameAdvantageArraySize;
                     worstDifference = Mathf.Max(worstDifference, Mathf.Max(0f, rosterLocalAverage - rosterRemoteAverage));
-                    checkedActiveSlot = true;
                 }
 
                 if (checkedActiveSlot)

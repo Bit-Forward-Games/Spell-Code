@@ -114,7 +114,7 @@ public class HitboxManager : MonoBehaviour
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
                 if (defendingPlayerIndex < 0) continue;
-                if (projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID : defendingPlayerIndex]) continue;
+                if (projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]) continue;
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
@@ -162,7 +162,7 @@ public class HitboxManager : MonoBehaviour
                                 defendingPlayer.hitboxData = hitbox;
                             }
 
-                            projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
+                            projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID-1:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                             
                             projectile.ownerSpell?.ShareHitIgnoreList();
                             // Stat counter only — gate behind rollback so resim doesn't

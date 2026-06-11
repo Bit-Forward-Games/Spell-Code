@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
 using YamlDotNet.Serialization;
+using GifImporter; 
 
 public class Pause : MonoBehaviour
 {
@@ -46,17 +47,23 @@ public class Pause : MonoBehaviour
 
     [Header("Spell Glossary Variables")]
  
-    private string[] brandName = {"MySpells", "DemonX", "BigStoX", "Killeez", "VWave", "AllSpells"};
+    private string[] brandName = {"MySpells", "Resources", "DemonX", "BigStoX", "Killeez", "VWave"};
     public TextMeshProUGUI spellAddress;
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
     public TextMeshProUGUI spellSelectedText;
+    public TextMeshProUGUI cooldownText;
+    public TextMeshProUGUI inputText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
     public GameObject unselectedSpell;
     public GameObject spellListParent;
     public GameObject[] spellGlossaryList;
     public List<GameObject> spellTabList = new List<GameObject>();
+    public Image colorLayer;
+    public Image colorLayer2;
+    public Image colorLayer3;
+    public GifPlayer gifPlayer;
  
     private int tab = 0;
     private int selectedSpell;
@@ -129,22 +136,31 @@ public class Pause : MonoBehaviour
         {
             SpellData spell = SpellDictionary.Instance.spellList[i];
             spellGlossaryList[i] = Instantiate(unselectedSpell, spellListParent.transform);
+            Transform childTransform = spellGlossaryList[i].transform.Find("Panel Color");
+
+            GameObject panel = null;
+
+            if (childTransform != null)
+            {
+                panel = childTransform.gameObject;
+            }
+            Image panelColor = panel.GetComponent<Image>();
             Image spellGraphic = spellGlossaryList[i].GetComponent<Image>();
             TextMeshProUGUI spellNameText = spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>();
  
             switch (spell.brands[0])
             {
                 case Brand.VWave:
-                    spellGraphic.color = GameManager.colors["green"];
+                    panelColor.color = GameManager.colors["green"];
                     break;
                 case Brand.BigStox:
-                    spellGraphic.color = GameManager.colors["blue"];
+                    panelColor.color = GameManager.colors["blue"];
                     break;
                 case Brand.DemonX:
-                    spellGraphic.color = GameManager.colors["red"];
+                    panelColor.color = GameManager.colors["red"];
                     break;
                 case Brand.Killeez:
-                    spellGraphic.color = GameManager.colors["yellow"];
+                    panelColor.color = GameManager.colors["yellow"];
                     break;
             }
  
@@ -203,11 +219,13 @@ public class Pause : MonoBehaviour
             {
                 tab = (tab == 0) ? 5 : tab - 1;
                 SpellGlossaryNewTab();
+                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
             }
             else if (nav.x > 0)
             {
                 tab = (tab == 5) ? 0 : tab + 1;
                 SpellGlossaryNewTab();
+                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
             }
  
             ActivateOnly(tab);
@@ -225,7 +243,6 @@ public class Pause : MonoBehaviour
                 + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
-
     }
  
     private void UpdateSpellDisplay()
@@ -235,6 +252,9 @@ public class Pause : MonoBehaviour
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
             displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
             spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
+            gifPlayer.Gif = grid[tab].spells[selectedSpell].SpellGIF;
+            cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
+            inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
  
             if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
             {
@@ -242,15 +262,27 @@ public class Pause : MonoBehaviour
                 {
                     case Brand.VWave:
                         spellSelectedBorder.color = GameManager.colors["green"];
+                        colorLayer.color = GameManager.colors["green"];
+                        colorLayer2.color = GameManager.colors["green"];
+                        colorLayer3.color = GameManager.colors["green"];
                         break;
                     case Brand.BigStox:
                         spellSelectedBorder.color = GameManager.colors["blue"];
+                        colorLayer.color = GameManager.colors["blue"];
+                        colorLayer2.color = GameManager.colors["blue"];
+                        colorLayer3.color = GameManager.colors["blue"];
                         break;
                     case Brand.DemonX:
                         spellSelectedBorder.color = GameManager.colors["red"];
+                        colorLayer.color = GameManager.colors["red"];
+                        colorLayer2.color = GameManager.colors["red"];
+                        colorLayer3.color = GameManager.colors["red"];
                         break;
                     case Brand.Killeez:
                         spellSelectedBorder.color = GameManager.colors["yellow"];
+                        colorLayer.color = GameManager.colors["yellow"];
+                        colorLayer2.color = GameManager.colors["yellow"];
+                        colorLayer3.color = GameManager.colors["yellow"];
                         break;
                 }
             }
@@ -362,7 +394,7 @@ public class Pause : MonoBehaviour
  
         tab = 0;
  
-        Brand[] brandPerColumn = { Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
+        Brand[] brandPerColumn = { Brand.None, Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
  
         for (int i = 0; i < 6; i++)
         {
@@ -378,11 +410,11 @@ public class Pause : MonoBehaviour
                     foreach (SpellData spell in gameManager.players[playerPauseIndex].spellList)
                         if (spell != null) columnSpells.Add(spell);
             }
-            else if (i == 5)
+            else if (i == 1)
             {
                 foreach (SpellData spell in SpellDictionary.Instance.spellList)
                 {
-                    if (spell != null)
+                    if (spell != null && spell.spellType == SpellType.Universal)
                     {
                         columnSpells.Add(spell);
                     }
@@ -410,6 +442,8 @@ public class Pause : MonoBehaviour
  
     public void SpellGlossaryNewTab()
     {
+        DOTween.Kill(spellSelectedBorderTransform);
+        
         spellListParent.transform.position = new Vector3(
             spellListParent.transform.position.x,
             spellListInitialY,
@@ -419,7 +453,9 @@ public class Pause : MonoBehaviour
         selectedSpell = 0;
         listScrollOffset = 0;
         
-        spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 200f);
+        spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
+
+        SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
         
         int j = 0;
         spellTabList.Clear();
@@ -437,8 +473,8 @@ public class Pause : MonoBehaviour
                 spellTabList.Add(spellGlossaryList[i]);
                 spellGlossaryList[i].SetActive(true);
                 RectTransform rt = spellGlossaryList[i].GetComponent<RectTransform>();
-                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -(j * 66.666667f));
-                if (spellTabList[j].GetComponent<RectTransform>().anchoredPosition.y < -(6 * 66.666667f)) spellTabList[j].SetActive(false);
+                rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -(j * 80f));
+                if (spellTabList[j].GetComponent<RectTransform>().anchoredPosition.y < -(4 * 80f)) spellTabList[j].SetActive(false);
                 j++;
             }
             else
@@ -450,12 +486,12 @@ public class Pause : MonoBehaviour
  
     public void SpellGlossaryListSelection(float one)
     {
-        if ((one == -1 && ((spellSelectedBorderTransform.anchoredPosition.y > -133 && selectedSpell < spellTabList.Count) || selectedSpell >= spellTabList.Count - 1))
-        || (one == 1 && ((spellSelectedBorderTransform.anchoredPosition.y < 133 && selectedSpell > 0) || selectedSpell <= 0))
+        if ((one == -1 && ((spellSelectedBorderTransform.anchoredPosition.y > -440 && selectedSpell < spellTabList.Count) || selectedSpell >= spellTabList.Count - 1))
+        || (one == 1 && ((spellSelectedBorderTransform.anchoredPosition.y < 40 && selectedSpell > 0) || selectedSpell <= 0))
         )
         {
             // Derive target deterministically from logical state — never accumulates float error
-            float targetY = 200f - (selectedSpell - listScrollOffset) * 66.666667f;
+            float targetY = 280f - (selectedSpell - listScrollOffset) * 240f;
 
             DOTween.Kill(spellSelectedBorderTransform);
             spellSelectedBorderTransform
@@ -463,8 +499,10 @@ public class Pause : MonoBehaviour
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
 
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
+
             for (int i = 0; i < spellTabList.Count; i++)
-                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
         }
         else
         {
@@ -472,13 +510,15 @@ public class Pause : MonoBehaviour
             else listScrollOffset--;
 
             RectTransform listRT = spellListParent.GetComponent<RectTransform>();
-            Vector2 targetListPos = listRT.anchoredPosition + new Vector2(0, -one * 66.666667f);
+            Vector2 targetListPos = listRT.anchoredPosition + new Vector2(0, -one * 240f);
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
+
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)
-                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 7);
+                spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
         }
     }
  
@@ -488,6 +528,15 @@ public class Pause : MonoBehaviour
         {
             spellGlossaryPanel[i].SetActive(i == index);
         }
+    }
+
+    void SpellSelectBorderAnimation(RectTransform border, float scale)
+    {
+        border.localScale = new Vector3(0f, border.localScale.y, border.localScale.z);
+        border
+            .DOScaleX(scale, 0.15f)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
  
     public void ReturnToLobby()

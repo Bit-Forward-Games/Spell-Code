@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: duel_TwoDots_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 128, y: 60}
-  - {x: -160, y: 60}
-  - {x: 160, y: -36}
-  - {x: -128, y: -36}
+  - {x: 128, y: 62}
+  - {x: -160, y: 62}
+  - {x: 160, y: -34}
+  - {x: -128, y: -34}
   platformExtent:
-  - {x: 64, y: 4}
-  - {x: 32, y: 4}
-  - {x: 32, y: 4}
-  - {x: 64, y: 4}
+  - {x: 64, y: 2}
+  - {x: 32, y: 2}
+  - {x: 32, y: 2}
+  - {x: 64, y: 2}
   solidCenter:
   - {x: 112, y: -48}
   - {x: -112, y: 48}
@@ -45,7 +45,7 @@ MonoBehaviour:
   activatableSolidCenter: []
   activatableSolidExtent: []
   borderMin: {x: -300, y: -200, z: 0}
-  borderMax: {x: 300, y: 200, z: 0}
+  borderMax: {x: 300, y: 300, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0

@@ -26,7 +26,8 @@ public class FlowState : SpellData
         {
             case ProcCondition.OnHitSpell:
                 // deal extra damage based on demon aura
-                if(owner.flowState > 0 && !defender.hitboxData.ignoreEffectDamage)
+                if(owner.flowState > 0 && !defender.hitboxData.ignoreEffectDamage &&
+                !IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
                     defender.TakeEffectDamage(flowstateExtraDamage, owner, GameManager.colors["green"]);
                 }

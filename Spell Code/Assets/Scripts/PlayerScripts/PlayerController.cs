@@ -2651,7 +2651,7 @@ public class PlayerController : MonoBehaviour
             if(hitboxData.hitstun > 0 && !multiHitDamageInstance)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
-                //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID);
                 comboCounter++;
                 if (comboCounter >= 4)
                 {

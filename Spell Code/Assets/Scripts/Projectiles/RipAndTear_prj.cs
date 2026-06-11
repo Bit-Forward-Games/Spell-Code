@@ -19,6 +19,7 @@ public class RipAndTear_prj : BaseProjectile
         maxMultiHitCount = 10;
         multiHitCooldown = 10;
         meleeProjectile = true;
+        deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 4, 4, 4, 4}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

@@ -51,7 +51,9 @@ public class CashOut : SpellData
             
 
             
-            cooldownCounter = cooldown;
+            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            vibeCasted = false;
         }
 
 

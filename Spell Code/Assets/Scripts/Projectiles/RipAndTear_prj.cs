@@ -26,6 +26,7 @@ public class RipAndTear_prj : BaseProjectile
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
+        lifeTime = 0;
     }
 
     public override void LoadProjectile()

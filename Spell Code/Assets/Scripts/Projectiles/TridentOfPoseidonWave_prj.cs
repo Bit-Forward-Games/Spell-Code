@@ -27,7 +27,6 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset);
         isGrounded = false;
         lifeTime = 0;
-        activeHitboxGroupIndex = 0;
         hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 3); // Set horizontal speed based on facing direction
         vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
     }

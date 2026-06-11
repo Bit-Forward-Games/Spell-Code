@@ -61,7 +61,9 @@ public class GetAJob : SpellData
                     SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_CAST);
                 }
             }
-            cooldownCounter = cooldown;
+            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            vibeCasted = false;
         }
 
     }

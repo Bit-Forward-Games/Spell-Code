@@ -1756,6 +1756,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ScreenTransition
       objectReference: {fileID: 0}
+    - target: {fileID: 1417234062282770246, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3147,10 +3151,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 2089636075677912858, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2540009027480356084, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3159,10 +3159,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 1452465067}
-    - target: {fileID: 4514749682352393449, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -90
-      objectReference: {fileID: 0}
     - target: {fileID: 4753628182098822857, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Camera
       value: 
@@ -3211,10 +3207,6 @@ PrefabInstance:
       propertyPath: onboardManager
       value: 
       objectReference: {fileID: 312826359}
-    - target: {fileID: 7933505618978169326, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -3.8879795
-      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager

@@ -1390,9 +1390,7 @@ public class PlayerController : MonoBehaviour
                     bool trueInput;
                     bool matched = CheckSpellCodeInput(i,out trueInput);
                     
-
-                    //standard spellcode matching code
-                    if (matched)
+                    if (matched && trueInput)
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)

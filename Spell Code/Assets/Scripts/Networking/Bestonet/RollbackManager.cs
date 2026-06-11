@@ -827,6 +827,18 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             EnsureRemoteCollectionsInitialized();
             int stabilizedStreams = 0;
             int snapshotAnchor = Mathf.Max(0, snapshotFrame);
+            // A forced lobby snapshot puts EVERY client's frame counter on the host's numbering
+            // (each peer ForceSetFrames to the same host-stamped frame within a transit window),
+            // and every peer's future input labels continue from that shared numbering. So the
+            // correct post-snapshot stream mapping is ABSOLUTE: offset 0, views anchored at the
+            // snapshot frame. The previous relative form (offset += anchor - remoteView) aligned
+            // to each peer's OLD labeling and left a residual every snapshot because the peers'
+            // own labels jump at the same moment; the residual showed up as a +6..+12 gap spike
+            // right after each snapshot that pacing then clawed back with ~30-40 held ticks --
+            // the lobby "hitch during snapshots". Absolute anchoring is also idempotent, so it
+            // cannot compound across snapshots the way relative adjustments did. In-flight inputs
+            // still labeled with pre-snapshot numbering map below syncFrame and are dropped,
+            // which is correct: their effects are already baked into the authoritative snapshot.
             for (int i = 0; i < remotePlayerSlots.Count; i++)
             {
                 int slot = remotePlayerSlots[i];
@@ -835,29 +847,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     continue;
                 }
 
-                int remote = remoteFrameBySlot.TryGetValue(slot, out int existingRemote) ? existingRemote : snapshotAnchor;
-                int frameDelta = snapshotAnchor - remote;
-                if (highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int highestSeen))
-                {
-                    highestRemoteInputFrameSeenBySlot[slot] = Mathf.Max(highestSeen, snapshotAnchor);
-                }
-                else
-                {
-                    highestRemoteInputFrameSeenBySlot[slot] = snapshotAnchor;
-                }
-
-                if (frameDelta > 0)
-                {
-                    remoteFrameOffsetBySlot[slot] = (remoteFrameOffsetBySlot.TryGetValue(slot, out int offset) ? offset : 0) + frameDelta;
-                    remoteFrameBySlot[slot] = snapshotAnchor;
-                    int predicted = predictedRemoteFrameBySlot.TryGetValue(slot, out int existingPredicted) ? existingPredicted : remote;
-                    predictedRemoteFrameBySlot[slot] = Mathf.Max(snapshotAnchor, predicted + frameDelta);
-                    stabilizedStreams++;
-                }
-                else if (!predictedRemoteFrameBySlot.ContainsKey(slot) || predictedRemoteFrameBySlot[slot] < snapshotAnchor)
-                {
-                    predictedRemoteFrameBySlot[slot] = snapshotAnchor;
-                }
+                remoteFrameOffsetBySlot[slot] = 0;
+                remoteFrameBySlot[slot] = snapshotAnchor;
+                predictedRemoteFrameBySlot[slot] = snapshotAnchor;
+                highestRemoteInputFrameSeenBySlot[slot] = snapshotAnchor;
+                stabilizedStreams++;
             }
 
             remoteFrame = GetEffectiveRemoteFrame(snapshotAnchor);
@@ -2710,6 +2704,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             remoteFrameOffsetBySlot[slot] = frameOffset;
+            // A freshly (re)activated stream's owner was just bootstrapping: any frame-advantage
+            // values it reported before/during that window are measured against its half-built
+            // view of the session and are garbage for time-sync purposes (observed: the host
+            // firing TimeSync holds "ahead by 26-31 frames" right as a joiner's stream went
+            // active). Drop them so the average restarts from fresh post-activation reports.
+            if (remoteFrameAdvantagesBySlot.TryGetValue(slot, out CircularArray<int> staleSlotAdvantages))
+            {
+                staleSlotAdvantages.Clear();
+            }
             remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
             remoteFrame = GetEffectiveRemoteFrame(currentFrame);

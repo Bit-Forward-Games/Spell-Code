@@ -433,7 +433,29 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             pendingRemoteHashes.Clear();
             remoteFrameStallTicks = 0;
             lastRemoteFrameForTimeout = remoteFrame;
+            // A baseline reset accompanies a timeline jump (scene activation, lobby snapshot
+            // apply, bootstrap). Frame-advantage history recorded BEFORE the jump is meaningless
+            // afterwards -- e.g. a lobby ForceSetFrame yanks localFrame ~35 ahead of the stale
+            // per-slot stream readings, which would read as a huge phantom "ahead" average and
+            // make the time-sync hold fire spuriously right after every snapshot. Clearing means
+            // "assume balanced until fresh measurements accumulate" (~half a second), which is
+            // the conservative direction: a real rift just starts draining slightly later.
+            // lastTimeSyncHoldFrame must also reset because localFrame can jump BACKWARD across
+            // scene changes, which would otherwise leave the cooldown comparison far in the
+            // future and lock the hold out for the whole next scene.
+            ClearFrameAdvantageHistory();
+            lastTimeSyncHoldFrame = -1;
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+        }
+
+        private void ClearFrameAdvantageHistory()
+        {
+            localFrameAdvantages.Clear();
+            remoteFrameAdvantages.Clear();
+            foreach (CircularArray<int> slotFrameAdvantages in remoteFrameAdvantagesBySlot.Values)
+            {
+                slotFrameAdvantages.Clear();
+            }
         }
 
         private void PruneRemoteSlotTracking(HashSet<int> validRemoteSlots)
@@ -1445,7 +1467,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
             // --- End Packet-Loss-Aware Soft Hold ---
 
-            // --- Time-Sync Rift Hold (online match scenes) ---
+            // --- Time-Sync Rift Hold (all online scenes) ---
             // When one client runs a few wall-clock frames ahead of the other (e.g. the peer
             // hitched during scene load), NOTHING above pulls the rift back down: the prediction
             // cap only stops it growing past MaxPredictionAhead, so the rift parks just under the
@@ -1461,13 +1483,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // FrameAdvantageLimit, hold ONE tick, at most once per TimeSyncHoldCooldownTicks.
             // GetAverageFrameAdvantage() is clamped >= 0, so only the AHEAD client ever holds --
             // a mutual-hold deadlock is impossible. Pacing only: this changes WHEN frames advance,
-            // never what they compute, so it cannot affect determinism. Lobby (MainMenu) is
-            // excluded -- it has its own pacing ecosystem (lead frames + authoritative snapshots).
+            // never what they compute, so it cannot affect determinism. Runs in the LOBBY too:
+            // late joiners there parked 8-12 frames ahead of the slowest stream and slammed into
+            // the hard prediction cap (whole seconds of advances/s=0 freezes); draining at the
+            // advantage threshold keeps them off the cap entirely. Lobby snapshot ForceSetFrame
+            // jumps are safe because ResetRollbackBaseline clears the advantage history at every
+            // timeline jump, so the average can never contain cross-jump garbage.
             if (!isRollbackFrame
                 && !DelayBased
                 && GameManager.Instance != null
                 && GameManager.Instance.isOnlineMatchActive
-                && SceneManager.GetActiveScene().name != "MainMenu"
                 && (lastTimeSyncHoldFrame < 0 || currentFrame - lastTimeSyncHoldFrame >= TimeSyncHoldCooldownTicks)
                 && !CheckTimeSync(out float timeSyncAdvantage))
             {

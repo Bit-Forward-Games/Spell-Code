@@ -219,11 +219,13 @@ public class Pause : MonoBehaviour
             {
                 tab = (tab == 0) ? 5 : tab - 1;
                 SpellGlossaryNewTab();
+                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
             }
             else if (nav.x > 0)
             {
                 tab = (tab == 5) ? 0 : tab + 1;
                 SpellGlossaryNewTab();
+                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
             }
  
             ActivateOnly(tab);
@@ -453,7 +455,7 @@ public class Pause : MonoBehaviour
         
         spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
 
-        SpellSelectBorderAnimation();
+        SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
         
         int j = 0;
         spellTabList.Clear();
@@ -497,7 +499,7 @@ public class Pause : MonoBehaviour
                 .SetEase(Ease.OutQuad)
                 .SetUpdate(true); // timeScale = 0 while paused — unscaled time required
 
-            SpellSelectBorderAnimation();
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
 
             for (int i = 0; i < spellTabList.Count; i++)
                 spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
@@ -512,7 +514,7 @@ public class Pause : MonoBehaviour
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-            SpellSelectBorderAnimation();
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
 
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)
@@ -528,11 +530,11 @@ public class Pause : MonoBehaviour
         }
     }
 
-    void SpellSelectBorderAnimation()
+    void SpellSelectBorderAnimation(RectTransform border, float scale)
     {
-        spellSelectedBorderTransform.localScale = new Vector3(0f, spellSelectedBorderTransform.localScale.y, spellSelectedBorderTransform.localScale.z);
-        spellSelectedBorderTransform
-            .DOScaleX(3f, 0.15f)
+        border.localScale = new Vector3(0f, border.localScale.y, border.localScale.z);
+        border
+            .DOScaleX(scale, 0.15f)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
     }

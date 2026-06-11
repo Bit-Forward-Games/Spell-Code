@@ -184,7 +184,7 @@ public abstract class BaseProjectile : MonoBehaviour
             if(onHitAction != null) onHitAction();
 
             //then check if the projectile is a multihit
-            if(maxMultiHitCount != 0 && multiHitCount != new byte[]{0,0,0,0})
+            if(maxMultiHitCount != 0 && multiHitCount != null && multiHitCount.Any(count => count > 0))
             {
                 //loop through all the players
                 for(int i = 0; i < multiHitPlayerIgnoreCounterArr.Length; i++)
@@ -262,7 +262,10 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
-        bw.Write(multiHitCount);
+        for (int i = 0; i < 4; i++)
+        {
+            bw.Write(multiHitCount != null && i < multiHitCount.Length ? multiHitCount[i] : (byte)0);
+        }
         bw.Write(ignoreBrand);
 
         // Player Ignore Array
@@ -305,7 +308,14 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
-        multiHitCount = br.ReadByte();
+        if (multiHitCount == null || multiHitCount.Length != 4)
+        {
+            multiHitCount = new byte[4];
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            multiHitCount[i] = br.ReadByte();
+        }
         ignoreBrand = br.ReadBoolean();
 
         // Player Ignore Array

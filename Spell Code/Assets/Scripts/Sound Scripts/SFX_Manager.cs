@@ -394,29 +394,19 @@ public class SFX_Manager : MonoBehaviour
             return;
         }
 
-        //sanity check to make sure that StopRepeatingSound was not already called for _soundName
-        if (spellcodeAudioSources[_playerIndex].isPlaying == false)
+        //iterate through _playerIndex's audiosources,...
+        for (int i = (int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1); i < ((int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1)) + (int)numSpellcodeAudioSources; i++)
         {
-            //return
-            return;
+            //find an AudioSource that matches _soundname and is playing
+            if (spellcodeAudioSources[i].resource.name == _soundName && spellcodeAudioSources[i].isPlaying)
+            {
+                //assign _availableAudioSource to the AudioSource that is not playing
+                spellcodeAudioSources[i].Stop();
+
+                ////break out of the for loop
+                //break;
+            }
         }
-
-        ////iterate through _playerIndex's audiosources,...
-        //for (int i = (int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1); i < ((int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1)) + (int)numSpellcodeAudioSources; i++)
-        //{
-        //    //find an AudioSource that is NOT playing
-        //    if (!spellcodeAudioSources[i].isPlaying)
-        //    {
-        //        //assign _availableAudioSource to the AudioSource that is not playing
-        //        _availableAudioSource = spellcodeAudioSources[i];
-
-        //        //break out of the for loop
-        //        break;
-        //    }
-        //}
-
-        //stop playing _soundname of _playerIndex
-        spellcodeAudioSources[_playerIndex].Stop();
     }
 
     /// <summary>

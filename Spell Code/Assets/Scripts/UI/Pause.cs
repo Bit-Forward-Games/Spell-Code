@@ -34,6 +34,7 @@ public class Pause : MonoBehaviour
     public Toggle screenShakeToggle;
     public Toggle dynamicCameraToggle;
     private SceneUiManager sceneUiManager;
+    private const float MinMixerVolume = 0.0001f;
  
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
@@ -71,6 +72,7 @@ public class Pause : MonoBehaviour
     private int tab = 0;
     private int selectedSpell;
     private float spellListInitialY;
+    private int openedFrame = -1;
  
     // Cooldown to prevent held-stick from firing every frame
     private float navCooldown = 0f;
@@ -190,12 +192,12 @@ public class Pause : MonoBehaviour
             UpdateSpellDisplay();
         }
  
-        if (input.UI.Cancel.WasPressedThisFrame())
+        if (paused && Time.frameCount != openedFrame && input.UI.Cancel.WasPressedThisFrame())
         {
             Resume();
         }
 
-        if (input.UI.Back.WasPressedThisFrame() && !controls && paused)
+        if (input.UI.Back.WasPressedThisFrame() && !controls && paused && Time.frameCount != openedFrame)
         {
             Pausing();
         }
@@ -329,7 +331,9 @@ public class Pause : MonoBehaviour
     {
         paused = false;
         options = false;
+        controls = false;
         spells = false;
+        openedFrame = -1;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
@@ -344,23 +348,36 @@ public class Pause : MonoBehaviour
     public void SaveSettings()
     {
         SettingsManager settings = SettingsManager.Instance;
+        if (settings == null)
+        {
+            return;
+        }
+
         settings.SetDynamicCamera(dynamicCameraOverride);
         settings.SetScreenshake(screenShake);
         settings.SetFullscreen(true);
-        settings.SetMusicVolume(musicVolumeSlider.value);
-        settings.SetSfxVolume(sfxVolumeSlider.value);
+        if (musicVolumeSlider != null) settings.SetMusicVolume(musicVolumeSlider.value);
+        if (sfxVolumeSlider != null) settings.SetSfxVolume(sfxVolumeSlider.value);
     }
 
     public void LoadSettings()
     {
-        SettingsManager.Instance.Load();
-        GameSettingsData settings = SettingsManager.Instance.Settings;
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (settingsManager == null)
+        {
+            return;
+        }
+
+        settingsManager.Load();
+        GameSettingsData settings = settingsManager.Settings;
         dynamicCameraOverride = settings.dynamicCamera;
         screenShake = settings.screenshake;
-        dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
-        screenShakeToggle.SetIsOnWithoutNotify(screenShake);
-        musicVolumeSlider.value = settings.musicVolume;
-        sfxVolumeSlider.value = settings.sfxVolume;
+        if (dynamicCameraToggle != null) dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+        if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
+        if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
+        if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
+        ApplyMusicMixerVolume(settings.musicVolume);
+        ApplySfxMixerVolume(settings.sfxVolume);
     }
  
     public void Pausing()
@@ -369,13 +386,14 @@ public class Pause : MonoBehaviour
         options = false;
         controls = false;
         spells = false;
+        openedFrame = Time.frameCount;
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
-        playerPausedText.text = "P" + (playerPauseIndex + 1) + " Paused";
+        playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
  
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
@@ -384,7 +402,7 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
     }
  
     public void Options()
@@ -397,7 +415,7 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
     }
  
     public void Controls()
@@ -410,7 +428,7 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
     }
     
     public void Spells()
@@ -466,7 +484,7 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
     }
  
     private int listScrollOffset = 0;
@@ -585,22 +603,77 @@ public class Pause : MonoBehaviour
  
     public void MusicVolume()
     {
-        musicAudioMixer.SetFloat("MusicVolume", Mathf.Log10(musicVolumeSlider.value) * 20f);
+        float volume = musicVolumeSlider != null ? musicVolumeSlider.value : 1f;
+        ApplyMusicMixerVolume(volume);
+
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetMusicVolume(volume);
+        }
     }
  
     public void SFXVolume()
     {
-        musicAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
+        float volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
+        ApplySfxMixerVolume(volume);
+
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetSfxVolume(volume);
+        }
     }
  
     public void ToggleCameraShake()
     {
-        screenShake = !screenShake;
+        screenShake = screenShakeToggle != null ? screenShakeToggle.isOn : !screenShake;
+
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetScreenshake(screenShake);
+        }
     }
  
     public void ToggleDynamicCamera()
     {
-        dynamicCameraOverride = !dynamicCameraOverride;
+        dynamicCameraOverride = dynamicCameraToggle != null ? dynamicCameraToggle.isOn : !dynamicCameraOverride;
+
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetDynamicCamera(dynamicCameraOverride);
+        }
+    }
+
+    private void ApplyMusicMixerVolume(float volume)
+    {
+        if (musicAudioMixer != null)
+        {
+            musicAudioMixer.SetFloat("MusicVolume", VolumeToDecibels(volume));
+        }
+    }
+
+    private void ApplySfxMixerVolume(float volume)
+    {
+        AudioMixer mixer = sfxAudioMixer != null ? sfxAudioMixer : musicAudioMixer;
+        if (mixer != null)
+        {
+            mixer.SetFloat("SFXVolume", VolumeToDecibels(volume));
+        }
+    }
+
+    private static float VolumeToDecibels(float volume)
+    {
+        return Mathf.Log10(Mathf.Max(MinMixerVolume, volume)) * 20f;
+    }
+
+    private void SetMenuTimeScale()
+    {
+        Time.timeScale = IsOnlineMatchActive() ? 1f : 0f;
+    }
+
+    private bool IsOnlineMatchActive()
+    {
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        return manager != null && manager.isOnlineMatchActive;
     }
  
     public void ToggleRelativeInput()

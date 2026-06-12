@@ -17,7 +17,7 @@ public class RipAndTear_prj : BaseProjectile
         projName = "Rip And Tear";
         lifeSpan = 0;
         maxMultiHitCount = 10;
-        multiHitCooldown = 10;
+        multiHitCooldown = 5;
         meleeProjectile = true;
         deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 4, 4, 4, 4}, false);

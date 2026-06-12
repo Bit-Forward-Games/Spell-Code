@@ -345,6 +345,7 @@ public class PlayerController : MonoBehaviour
     {
         UpdateToasts();
         UpdateDamageNumbers();
+        HandleLocalOnlinePauseInput();
     }
 
     private void OnDisable()
@@ -877,6 +878,11 @@ public class PlayerController : MonoBehaviour
             // Only gather input if this is the local player
             if (myIndex == GameManager.Instance.localPlayerIndex)
             {
+                if (IsLocalOnlinePauseMenuOpen())
+                {
+                    return 5;
+                }
+
                 //input = GetRawKeyboardInput(); // Old Input API method
                 long longInput = inputs.UpdateInputs();
                 input = (ulong)longInput; // Input System method
@@ -896,6 +902,23 @@ public class PlayerController : MonoBehaviour
         }
 
         return input;
+    }
+
+    public bool IsLocalOnlinePauseMenuOpen()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || !manager.isOnlineMatchActive)
+        {
+            return false;
+        }
+
+        if (Array.IndexOf(manager.players, this) != manager.localPlayerIndex)
+        {
+            return false;
+        }
+
+        Pause pause = GetPauseMenu();
+        return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
     /// <summary>
@@ -1816,6 +1839,65 @@ public class PlayerController : MonoBehaviour
             currentPlayerHealth = charData.playerHealth;
         }
         logicFrame++;
+    }
+
+    private void HandleLocalOnlinePauseInput()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || !manager.isOnlineMatchActive)
+        {
+            return;
+        }
+
+        if (Array.IndexOf(manager.players, this) != manager.localPlayerIndex)
+        {
+            return;
+        }
+
+        if (!WasPausePressedThisFrame())
+        {
+            return;
+        }
+
+        Pause pause = GetPauseMenu();
+        if (pause == null)
+        {
+            return;
+        }
+
+        pause.playerPauseIndex = manager.localPlayerIndex;
+
+        if (pause.paused)
+        {
+            pause.Resume();
+        }
+        else
+        {
+            pause.Pausing();
+        }
+    }
+
+    private bool WasPausePressedThisFrame()
+    {
+        if (pauseAction != null && pauseAction.WasPressedThisFrame())
+        {
+            return true;
+        }
+
+        return inputs != null
+            && inputs.PauseAction != null
+            && inputs.PauseAction.WasPressedThisFrame();
+    }
+
+    private Pause GetPauseMenu()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || manager.tempUI == null)
+        {
+            return null;
+        }
+
+        return manager.tempUI.gameObject.GetComponent<Pause>();
     }
 
     private bool ShouldLogDesyncFrame()

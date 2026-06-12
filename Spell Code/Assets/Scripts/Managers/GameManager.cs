@@ -571,6 +571,12 @@ public class GameManager : MonoBehaviour
         PlayerController localPlayer = players[localPlayerIndex];
         if (localPlayer != null && localPlayer.inputs.IsActive)
         {
+            if (localPlayer.IsLocalOnlinePauseMenuOpen())
+            {
+                RollbackManager.Instance?.NeutralizePendingLocalInputs();
+                return 5;
+            }
+
             return (ulong)localPlayer.inputs.UpdateInputs();
         }
         return 5; // neutral

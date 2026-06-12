@@ -133,7 +133,12 @@ public class ProjectileManager : MonoBehaviour
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
                 RegisterActiveProjectile(projectilePrefabs[i]);
-                projectilePrefabs[i].ProjectileUpdate();
+                //dont update the projectile if the projectile is a melee projectile and its owner is in hitstop
+                if(!(projectilePrefabs[i].meleeProjectile && projectilePrefabs[i].owner.hitstopActive))
+                {
+                    projectilePrefabs[i].ProjectileUpdate();
+                }
+                
             }
             else
             {
@@ -183,7 +188,14 @@ public class ProjectileManager : MonoBehaviour
 
     public void DeleteTargetPlayerProjectiles(int pID)
     {
-        PlayerController targetPlayer = GameManager.Instance.players[pID-1];
+        PlayerController targetPlayer;
+        if(pID == 0)
+        {targetPlayer = GameManager.Instance.playerNPCs[0];
+        }
+        else
+        {targetPlayer = GameManager.Instance.players[pID-1];
+        }
+        
         List<BaseProjectile> projList = new List<BaseProjectile>();
         foreach(BaseProjectile proj in activeProjectiles)
         {

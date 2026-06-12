@@ -188,6 +188,11 @@ public class TempUIScript : MonoBehaviour
 
     private void CloseGamemodesMenuForOnlineInvite()
     {
+        if (pause != null)
+        {
+            pause.SaveSettings();
+        }
+
         soloGamemodesMenuOpened = false;
 
         if (soloGamemodesMenu != null)

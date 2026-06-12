@@ -2517,6 +2517,17 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
+        public void NeutralizePendingLocalInputs()
+        {
+            int startFrame = localFrame;
+            int endFrame = localFrame + InputDelay;
+
+            for (int frame = startFrame; frame <= endFrame; frame++)
+            {
+                SetClientInput(frame, 5UL);
+            }
+        }
+
         /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>
         public void SetOpponentInput(int frame, ulong input)
         {

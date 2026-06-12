@@ -878,13 +878,13 @@ public class PlayerController : MonoBehaviour
             // Only gather input if this is the local player
             if (myIndex == GameManager.Instance.localPlayerIndex)
             {
-                //input = GetRawKeyboardInput(); // Old Input API method
-                long longInput = inputs.UpdateInputs();
                 if (IsLocalOnlinePauseMenuOpen())
                 {
                     return 5;
                 }
 
+                //input = GetRawKeyboardInput(); // Old Input API method
+                long longInput = inputs.UpdateInputs();
                 input = (ulong)longInput; // Input System method
                 return input;
             }
@@ -902,6 +902,23 @@ public class PlayerController : MonoBehaviour
         }
 
         return input;
+    }
+
+    public bool IsLocalOnlinePauseMenuOpen()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || !manager.isOnlineMatchActive)
+        {
+            return false;
+        }
+
+        if (Array.IndexOf(manager.players, this) != manager.localPlayerIndex)
+        {
+            return false;
+        }
+
+        Pause pause = GetPauseMenu();
+        return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
     /// <summary>
@@ -1858,23 +1875,6 @@ public class PlayerController : MonoBehaviour
         {
             pause.Pausing();
         }
-    }
-
-    private bool IsLocalOnlinePauseMenuOpen()
-    {
-        GameManager manager = GameManager.Instance;
-        if (manager == null || !manager.isOnlineMatchActive)
-        {
-            return false;
-        }
-
-        if (Array.IndexOf(manager.players, this) != manager.localPlayerIndex)
-        {
-            return false;
-        }
-
-        Pause pause = GetPauseMenu();
-        return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
     private bool WasPausePressedThisFrame()

@@ -44,8 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b3747597a10a6e4d9e50799c84aff00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vibeCasted: 0
   projectilePrefabs: []
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: -2932047659398842904, guid: 2c71671d6766fab41ac7d7ff4755750d, type: 3}
   notReadyIcon: {fileID: -2932047659398842904, guid: 2c71671d6766fab41ac7d7ff4755750d, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 4a551407973a79444a4cf1d45f4edb1b, type: 2}

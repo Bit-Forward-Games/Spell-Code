@@ -10,7 +10,7 @@ using DG.Tweening.Core.Easing;
 
 public class ShotReflector_prj : BaseProjectile
 {
-    public const ushort slowSpeed = 1;
+    public const ushort slowSpeed = 3;
     public const ushort fastSpeed = 8;
     public HurtboxData hurtbox = new HurtboxData
     {
@@ -26,7 +26,7 @@ public class ShotReflector_prj : BaseProjectile
         // vSpeed = Fixed.FromInt(0);
         lifeSpan = 0; 
         deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() {6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }, false);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
@@ -99,11 +99,11 @@ public class ShotReflector_prj : BaseProjectile
             startFrames = new List<int>
             {
                 0,
-                animFrames.frameLengths.Take(16).Sum()+1
+                animFrames.frameLengths.Take(24).Sum()+1
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(16).Sum(),
+                animFrames.frameLengths.Take(24).Sum(),
                 animFrames.frameLengths.Sum()
             }
         };
@@ -114,13 +114,17 @@ public class ShotReflector_prj : BaseProjectile
     {
         base.ProjectileUpdate();
 
-        if(logicFrame < animFrames.frameLengths.Take(16).Sum()) ProcessReflectorCollisisons();
+        if(logicFrame < animFrames.frameLengths.Take(24).Sum())
+        {
+            LerpHspdToZero(Fixed.FromFloat(.1f));
+            ProcessReflectorCollisisons();
+        }
         
-        if (logicFrame == animFrames.frameLengths.Take(16).Sum())
+        if (logicFrame == animFrames.frameLengths.Take(24).Sum())
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
-        if(logicFrame == animFrames.frameLengths.Take(20).Sum())
+        if(logicFrame == animFrames.frameLengths.Take(28).Sum())
         {
             hSpeed = Fixed.FromInt(fastSpeed * (facingRight ? 1 : -1)); 
         }
@@ -138,14 +142,26 @@ public class ShotReflector_prj : BaseProjectile
             {
                 
                 proj.playerIgnoreArr[owner.pID-1] = true;
-                logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
-                ownerSpell.cooldownCounter-= 60;
+                logicFrame = animFrames.frameLengths.Take(24).Sum()+1;
+                ownerSpell.cooldownCounter-= 120;
 
                 //Play the Shot Reflector Break SFX
                 SFX_Manager.Instance.PlaySpellcodeSound("Shot Reflector Break");
             }
         }
 
+    }
+
+    private void LerpHspdToZero( Fixed lerpVal)
+    {
+        if(hSpeed > Fixed.FromFloat(0))
+        {
+            hSpeed = hSpeed - lerpVal < Fixed.FromInt(0)? Fixed.FromInt(0) : hSpeed - lerpVal;
+        }
+        if(hSpeed < Fixed.FromFloat(0))
+        {
+            hSpeed = hSpeed + lerpVal > Fixed.FromInt(0)? Fixed.FromInt(0) : hSpeed + lerpVal;
+        }
     }
 
 }

@@ -14,9 +14,9 @@ public class UseTheCard_crit_prj : BaseProjectile
         projName = "Use The Card Crit";
         lifeSpan = 0;
         meleeProjectile = true;
-        multiHitCooldown = 20;
+        multiHitCooldown = 10;
         maxMultiHitCount = 2;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 4, 4, 4, 4, 4, 3}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3, 4, 4, 3}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -38,8 +38,8 @@ public class UseTheCard_crit_prj : BaseProjectile
                     yOffset = 13*2,
                     width = 48*2,
                     height = 26*2,
-                    xKnockback = 2,
-                    yKnockback = 3,
+                    xKnockback = 1,
+                    yKnockback = 4,
                     damage = 10,
                     hitstun = 20,
                     attackLvl = 2,
@@ -67,7 +67,7 @@ public class UseTheCard_crit_prj : BaseProjectile
                     width = 48*2,
                     height = 26*2,
                     xKnockback = -3,
-                    yKnockback = 2,
+                    yKnockback = 3,
                     damage = 10,
                     hitstun = 20,
                     attackLvl = 2,

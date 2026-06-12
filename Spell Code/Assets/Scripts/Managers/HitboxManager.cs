@@ -48,7 +48,7 @@ public class HitboxManager : MonoBehaviour
 
     private StageCamera cachedForScreenShakeCamera;
 
-    public byte hitstopVal = 8;
+    [NonSerialized] public byte hitstopVal = 8;
 
     // ===== | Methods | =====
     private void Start()

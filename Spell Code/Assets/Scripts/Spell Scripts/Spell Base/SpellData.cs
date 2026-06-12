@@ -190,7 +190,7 @@ public abstract class SpellData : MonoBehaviour
     }
     public bool IsFirstMultiHitAgainstTargetPlayer(PlayerController defender, BaseProjectile projectile)
     {
-        return projectile.maxMultiHitCount != 0 && projectile.multiHitCount[defender.pID == 0? owner.pID-1: defender.pID-1] < projectile.maxMultiHitCount;
+        return !(projectile.maxMultiHitCount != 0 && projectile.multiHitCount[defender.pID == 0? owner.pID-1: defender.pID-1] != projectile.maxMultiHitCount);
     }
     public virtual void ShareHitIgnoreList()
     {

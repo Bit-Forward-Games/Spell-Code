@@ -136,6 +136,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
         if (meleeProjectile)
         {
+            
             Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
             Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
             Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);

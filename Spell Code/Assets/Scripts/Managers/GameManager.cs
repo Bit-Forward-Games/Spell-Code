@@ -194,6 +194,13 @@ public class GameManager : MonoBehaviour
     public int randomCallCount = 0;
     private uint rngState = 0;
     private uint stageRngState;
+
+
+    // Host-side counterpart of ApplyOnlineGameplayRngState
+    private bool hasPendingHostGameplayRngRestore = false;
+    private uint pendingHostGameplayRngRestoreState = 0;
+    private int pendingHostGameplayRngRestoreCallCount = -1;
+
     public uint CurrentRngState => rngState;
     public uint CurrentStageRngState => stageRngState;
     public int CurrentTotalRoundsPlayed
@@ -2227,6 +2234,39 @@ public class GameManager : MonoBehaviour
         onlineRoundAdvanceApplied = true;
     }
 
+    public void StashHostGameplayRngFromStageSelect(uint sentRngState, int sentRandomCallCount)
+    {
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority())
+        {
+            return;
+        }
+
+        hasPendingHostGameplayRngRestore = true;
+        pendingHostGameplayRngRestoreState = sentRngState;
+        pendingHostGameplayRngRestoreCallCount = sentRandomCallCount;
+    }
+
+    private void ApplyPendingHostGameplayRngRestoreIfAvailable()
+    {
+        if (!hasPendingHostGameplayRngRestore)
+        {
+            return;
+        }
+
+        hasPendingHostGameplayRngRestore = false;
+        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || GetNetworkSceneTypeCode() != 1)
+        {
+            return;
+        }
+
+        uint discardedState = rngState;
+        ApplyOnlineGameplayRngState(pendingHostGameplayRngRestoreState, pendingHostGameplayRngRestoreCallCount);
+        if (discardedState != pendingHostGameplayRngRestoreState)
+        {
+            Debug.Log($"[OnlineState] Host restored gameplay RNG to the stage-select value it broadcast (state {discardedState} -> {pendingHostGameplayRngRestoreState}). Transition-window draws discarded.");
+        }
+    }
+
     private void ApplyOnlineGameplayRngState(uint hostGameplayRngState, int hostRandomCallCount)
     {
         if (hostRandomCallCount < 0)
@@ -2530,6 +2570,15 @@ public class GameManager : MonoBehaviour
     {
         RollbackManager rbManager = RollbackManager.Instance;
         if (rbManager == null) return;
+
+        // Round-start registration gate
+        if (frameNumber == 0
+            && activeOnlineRoster != null
+            && playerCount < activeOnlineRoster.PlayerCount)
+        {
+            Debug.Log($"[OnlineState] Holding round start: {playerCount}/{activeOnlineRoster.PlayerCount} players registered.");
+            return;
+        }
 
         LogSimHeartbeatIfDue();
 
@@ -4277,6 +4326,11 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         //Debug.Log($"Scene loaded: {scene.name}");
+
+        // Must run before anything in the new scene can consume the gameplay RNG: the old scene's
+        // sim is finished at this point, the new round's sim has not started. See the comment on
+        // StashHostGameplayRngFromStageSelect.
+        ApplyPendingHostGameplayRngRestoreIfAvailable();
 
         RefreshSceneObjectReferences();
         HitboxManager.Instance.GetActiveCamera();

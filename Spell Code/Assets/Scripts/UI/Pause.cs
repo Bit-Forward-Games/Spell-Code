@@ -197,9 +197,14 @@ public class Pause : MonoBehaviour
             Resume();
         }
 
-        if (input.UI.Back.WasPressedThisFrame() && !controls && paused)
+        if (input.UI.Back.WasPressedThisFrame() && paused)
         {
             Pausing();
+        }
+
+        if (input.UI.Submit.WasPressedThisFrame())
+        {
+            TriggerSelectedButton();
         }
     }
  
@@ -561,6 +566,22 @@ public class Pause : MonoBehaviour
                 spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
         }
     }
+
+    // private void TriggerSelectedButton()
+    // {
+    //     // Get the currently selected GameObject from the EventSystem
+    //     GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
+
+    //     if (selectedObject == null) return;
+
+    //     // Check if it has a Button component
+    //     Button selectedButton = selectedObject.GetComponent<Button>();
+
+    //     if (selectedButton != null && selectedButton.interactable)
+    //     {
+    //         selectedButton.onClick.Invoke();
+    //     }
+    // }
  
     void ActivateOnly(int index)
     {
@@ -577,6 +598,22 @@ public class Pause : MonoBehaviour
             .DOScaleX(scale, 0.15f)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
+    }
+
+    private void TriggerSelectedButton()
+    {
+        // Get the currently selected GameObject from the EventSystem
+        GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
+
+        if (selectedObject == null) return;
+
+        // Check if it has a Button component
+        Button selectedButton = selectedObject.GetComponent<Button>();
+
+        if (selectedButton != null && selectedButton.interactable)
+        {
+            selectedButton.onClick.Invoke();
+        }
     }
  
     public void ReturnToLobby()

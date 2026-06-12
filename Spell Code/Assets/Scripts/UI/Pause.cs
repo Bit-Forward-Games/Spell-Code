@@ -57,6 +57,9 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI inputText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
+    public RectTransform descriptionPanel;
+    public RectTransform gifDisplayPanel;
+    public RectTransform gifTransform;
     public GameObject unselectedSpell;
     public GameObject spellListParent;
     public GameObject[] spellGlossaryList;
@@ -67,6 +70,7 @@ public class Pause : MonoBehaviour
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
+    private bool showDescription = false;
  
     private int tab = 0;
     private int selectedSpell;
@@ -202,7 +206,7 @@ public class Pause : MonoBehaviour
             Pausing();
         }
 
-        if (input.UI.Submit.WasPressedThisFrame())
+        if (input.UI.Submit.WasPressedThisFrame() && !spells)
         {
             TriggerSelectedButton();
         }
@@ -268,6 +272,14 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
+        if (input.UI.Submit.WasPressedThisFrame() && spells)
+        {
+            if (!showDescription)
+                ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
+            else if (showDescription)
+                ChangeSpellPanelView(-2500f, new Vector2(753.12f, -248.62f), new Vector2(1813.76f, 1189.24f), new Vector2(615f, -305f), new Vector2(1.1f, 1.1f), new Vector2(396f, 152f));
+        }
+        
         if (grid[tab] != null && grid[tab].spells.Length > 0)
         {
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
@@ -566,22 +578,6 @@ public class Pause : MonoBehaviour
                 spellTabList[i].SetActive(i >= listScrollOffset && i < listScrollOffset + 5);
         }
     }
-
-    // private void TriggerSelectedButton()
-    // {
-    //     // Get the currently selected GameObject from the EventSystem
-    //     GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
-
-    //     if (selectedObject == null) return;
-
-    //     // Check if it has a Button component
-    //     Button selectedButton = selectedObject.GetComponent<Button>();
-
-    //     if (selectedButton != null && selectedButton.interactable)
-    //     {
-    //         selectedButton.onClick.Invoke();
-    //     }
-    // }
  
     void ActivateOnly(int index)
     {
@@ -598,6 +594,18 @@ public class Pause : MonoBehaviour
             .DOScaleX(scale, 0.15f)
             .SetEase(Ease.OutQuad)
             .SetUpdate(true);
+    }
+
+    void ChangeSpellPanelView(float descriptionPanelYPos, Vector2 gifDisplayPanelPos, Vector2 gifDisplayPanelScale, Vector2 gifTransformPos, Vector2 gifTransformScale, Vector2 colorLayer3Pos)
+    {
+        showDescription = !showDescription;
+
+        descriptionPanel.DOAnchorPos(new Vector2(descriptionPanel.anchoredPosition.x, descriptionPanelYPos), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        gifDisplayPanel.DOAnchorPos(new Vector2(gifDisplayPanelPos.x, gifDisplayPanelPos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        gifDisplayPanel.DOSizeDelta(new Vector2(gifDisplayPanelScale.x, gifDisplayPanelScale.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        gifTransform.DOAnchorPos(new Vector2(gifTransformPos.x, gifTransformPos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        gifTransform.DOScale(new Vector2(gifTransformScale.x, gifTransformScale.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        colorLayer3.gameObject.GetComponent<RectTransform>().DOAnchorPos(new Vector2(colorLayer3Pos.x, colorLayer3Pos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
     private void TriggerSelectedButton()

@@ -737,13 +737,13 @@ public class PlayerController : MonoBehaviour
         }
 
         ////if this player is blocking and the blockinf=g VFX is NOT playing,...
-        //if (armor && !VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //if (armor && !VFX_Manager.Instance.IsVisualEffectPlaying(VisualEffects.SUPER_ARMOR, pID))
         //{
         //    //start playing the blocking VFX
         //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
         //}
         ////else this player is NOT blocking and the blocking VFX is playing,...
-        //else if (!armor && VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //else if (!armor && VFX_Manager.Instance.IsVisualEffectPlaying(VisualEffects.SUPER_ARMOR, pID))
         //{
         //    //stop playing the blocking VFX
         //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);

@@ -180,6 +180,8 @@ public class Pause : MonoBehaviour
             
             spellGlossaryList[i].SetActive(false);
         }
+
+        spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
     }
  
     void Update()
@@ -491,6 +493,7 @@ public class Pause : MonoBehaviour
         listScrollOffset = 0;
         
         spellSelectedBorderTransform.anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
+        spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
 
         SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
         

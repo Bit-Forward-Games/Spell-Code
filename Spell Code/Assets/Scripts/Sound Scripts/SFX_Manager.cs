@@ -319,6 +319,10 @@ public class SFX_Manager : MonoBehaviour
                 //break out of the for loop
                 break;
             }
+            else if(spellcodeAudioSources[i].isPlaying && spellcodeAudioSources[i].resource.name == _soundName)
+            {
+                return;
+            }
         }
 
         //set the resource of the spellcodeAudioSourceObject

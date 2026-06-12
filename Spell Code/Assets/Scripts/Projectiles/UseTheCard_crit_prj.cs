@@ -14,7 +14,7 @@ public class UseTheCard_crit_prj : BaseProjectile
         projName = "Use The Card Crit";
         lifeSpan = 0;
         meleeProjectile = true;
-        multiHitCooldown = 20;
+        multiHitCooldown = 10;
         maxMultiHitCount = 2;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3, 4, 4, 3}, false);
     }

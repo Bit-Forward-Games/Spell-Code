@@ -2936,10 +2936,7 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         AdvanceRoundCountOnce();
 
-        bool hasMaxSpells = playerCount > 0
-            && players[0] != null
-            && players[0].spellList != null
-            && players[0].spellList.Count >= 6;
+        bool hasMaxSpells = AllActivePlayersHaveMaxSpells();
 
         if (hasMaxSpells)
         {
@@ -3177,7 +3174,7 @@ public class GameManager : MonoBehaviour
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
-                    else if (players[0].spellList.Count >= 6)
+                    else if (AllActivePlayersHaveMaxSpells())
                     {
                         for (int i = 0; i < playerCount; i++)
                         {
@@ -3238,6 +3235,33 @@ public class GameManager : MonoBehaviour
                 players[i].ProcEffectUpdate();
             }
         }
+    }
+
+    private bool AllActivePlayersHaveMaxSpells()
+    {
+        bool foundActivePlayer = false;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null)
+            {
+                continue;
+            }
+
+            if (isOnlineMatchActive && !IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
+            foundActivePlayer = true;
+            if (player.spellList == null || player.spellList.Count < 6)
+            {
+                return false;
+            }
+        }
+
+        return foundActivePlayer;
     }
 
     //gets called everytime a new player enters, recreates player array

@@ -60,6 +60,9 @@ public class GameEndScreen : MonoBehaviour
         restartTriggered = true;
         GameManager.Instance.endInputEnabled = false;
 
+        // Tear the online session down on a NORMAL match end
+        GameManager.Instance.StopMatch("Match completed");
+
         if (GameManager.Instance.sceneManager != null)
         {
             GameManager.Instance.sceneManager.MainMenu();

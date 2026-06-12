@@ -35,7 +35,7 @@ public class Reps : SpellData
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.Killeez && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
-                    if(IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                    if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                     {
                         break;
                     }

@@ -17,7 +17,7 @@ public class RipAndTear_prj : BaseProjectile
         projName = "Rip And Tear";
         lifeSpan = 0;
         maxMultiHitCount = 10;
-        multiHitCooldown = 5;
+        multiHitCooldown = 10;
         meleeProjectile = true;
         deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 4, 4, 4, 4}, false);
@@ -84,7 +84,7 @@ public class RipAndTear_prj : BaseProjectile
         }
 
 
-        if (lifeTime == owner.demonAura + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
+        if (lifeTime == owner.demonAura/2 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
         {
             logicFrame = animFrames.frameLengths.Sum();
             Array.Fill(multiHitCount, maxMultiHitCount);

@@ -342,7 +342,10 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings();
-        Time.timeScale = 1f;    
+        Time.timeScale = 1f;
+
+        //unmute all sfx
+        SFXVolume();
     }
 
     public void SaveSettings()

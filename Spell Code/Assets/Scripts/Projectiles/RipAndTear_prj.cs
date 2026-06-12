@@ -43,7 +43,7 @@ public class RipAndTear_prj : BaseProjectile
                     yOffset = 20*2,
                     width = 40*2,
                     height = 40*2,
-                    xKnockback = 3,
+                    xKnockback = 4,
                     yKnockback = 4,
                     damage = 5,
                     hitstun = 25,

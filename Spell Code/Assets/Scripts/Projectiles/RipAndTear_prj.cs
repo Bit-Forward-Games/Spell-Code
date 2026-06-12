@@ -84,7 +84,7 @@ public class RipAndTear_prj : BaseProjectile
         }
 
 
-        if (lifeTime == owner.demonAura + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
+        if (lifeTime == owner.demonAura/2 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
         {
             logicFrame = animFrames.frameLengths.Sum();
             Array.Fill(multiHitCount, maxMultiHitCount);

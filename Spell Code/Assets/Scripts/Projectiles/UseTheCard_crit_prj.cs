@@ -15,7 +15,7 @@ public class UseTheCard_crit_prj : BaseProjectile
         lifeSpan = 0;
         meleeProjectile = true;
         multiHitCooldown = 20;
-        maxMultiHitCount = 6;//its 6 so all 3 other players can be hit twice
+        maxMultiHitCount = 2;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 4, 4, 4, 4, 4, 3}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -43,7 +43,6 @@ public class UseTheCard_crit_prj : BaseProjectile
                     damage = 10,
                     hitstun = 20,
                     attackLvl = 2,
-                    ignoreEffectDamage = true
                 }
             },
             hitbox2 = new List<HitboxData>(),

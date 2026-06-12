@@ -35,6 +35,7 @@ public abstract class BaseProjectile : MonoBehaviour
     //anim frames
     [NonSerialized] public AnimFrames animFrames;
     [NonSerialized]  public bool deleteOnHit = false;
+    [NonSerialized] public bool deleteOnHurt = false;
     [NonSerialized] public bool ignoreBrand = false;
     // [NonSerialized] public bool ignoreEffectDamage = false;
     [NonSerialized] public bool meleeProjectile = false;
@@ -262,6 +263,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
+        bw.Write(deleteOnHurt);
         for (int i = 0; i < 4; i++)
         {
             bw.Write(multiHitCount != null && i < multiHitCount.Length ? multiHitCount[i] : (byte)0);
@@ -308,6 +310,7 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
+        deleteOnHurt = br.ReadBoolean();
         if (multiHitCount == null || multiHitCount.Length != 4)
         {
             multiHitCount = new byte[4];

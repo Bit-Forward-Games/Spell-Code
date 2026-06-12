@@ -214,7 +214,7 @@ public class MatchMessageManager : MonoBehaviour
         {
             if (GameManager.Instance.IsOnlineHostSlot(slot))
             {
-                GameManager.Instance.StopMatch($"Host connection failed: {error}");
+                GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed: {error}");
                 return;
             }
 
@@ -236,7 +236,14 @@ public class MatchMessageManager : MonoBehaviour
 
         if (wasConnected)
         {
-            GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+            if (GameManager.Instance != null && GameManager.Instance.IsOnlineHostSlot(slot))
+            {
+                GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed: {error}");
+            }
+            else
+            {
+                GameManager.Instance?.StopMatch($"Peer connection failed: {error}");
+            }
         }
         else if (IsKnownPeer(steamId) || IsCurrentLobbyMember(steamId))
         {
@@ -1080,6 +1087,10 @@ public class MatchMessageManager : MonoBehaviour
 
         try
         {
+            // Hoisted so the values written into the packet and the values stashed for the host's
+            // own scene-in restore are guaranteed identical (captured once, same call stack).
+            uint gameplayRngState = GameManager.Instance != null ? GameManager.Instance.CurrentRngState : 0u;
+            int gameplayRandomCallCount = GameManager.Instance != null ? GameManager.Instance.randomCallCount : -1;
             using (MemoryStream memoryStream = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
@@ -1090,10 +1101,16 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(stageIndex);
                 writer.Write(stageRngState);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentTotalRoundsPlayed : -1);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentRngState : 0u);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.randomCallCount : -1);
+                writer.Write(gameplayRngState);
+                writer.Write(gameplayRandomCallCount);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
+
+            // Every peer will adopt EXACTLY the rng state written above. The host must land on the
+            // same value at the next round, no matter what its own sim consumes between this send
+            // and its scene switch (e.g. respawn rolls in the dying seconds of the old round) --
+            // see GameManager.StashHostGameplayRngFromStageSelect.
+            GameManager.Instance?.StashHostGameplayRngFromStageSelect(gameplayRngState, gameplayRandomCallCount);
         }
         catch (Exception e)
         {

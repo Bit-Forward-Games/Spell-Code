@@ -9,7 +9,7 @@ public class RipAndTear : SpellData
     {
         spellName = "Rip And Tear";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 240;
+        cooldown = 360;
         spellInput = 0b_0000_0000_0000_0000_1110_0001_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
@@ -59,7 +59,9 @@ public class RipAndTear : SpellData
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = cooldown;
+            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            vibeCasted = false;
         }
 
     }

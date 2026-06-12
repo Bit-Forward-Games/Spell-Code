@@ -187,7 +187,7 @@ public class ProjectileManager : MonoBehaviour
         List<BaseProjectile> projList = new List<BaseProjectile>();
         foreach(BaseProjectile proj in activeProjectiles)
         {
-            if(proj.owner == targetPlayer)
+            if(proj.owner == targetPlayer && proj.deleteOnHurt)
             {
                 projList.Add(proj);
             }

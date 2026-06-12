@@ -50,7 +50,9 @@ public class UseTheCredit : SpellData
                     SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_CAST);
                 }
             }
-            cooldownCounter = cooldown;
+            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            vibeCasted = false;
         }
     }
 
@@ -73,7 +75,7 @@ public class UseTheCredit : SpellData
                 doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified;
                 break;
             case ProcCondition.ActiveOnHit:
-                if (doesCrit && !defender.hitboxData.ignoreEffectDamage)
+                if (doesCrit && !defender.hitboxData.ignoreEffectDamage && IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
                     defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
                 }

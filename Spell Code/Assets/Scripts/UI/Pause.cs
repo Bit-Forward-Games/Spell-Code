@@ -44,6 +44,7 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
+    public Toggle vibeCodingToggleGraphic;
 
     [Header("Spell Glossary Variables")]
  
@@ -64,6 +65,8 @@ public class Pause : MonoBehaviour
     public Image colorLayer2;
     public Image colorLayer3;
     public GifPlayer gifPlayer;
+    public Sprite[] fellas;
+    public GameObject fella;
  
     private int tab = 0;
     private int selectedSpell;
@@ -107,6 +110,15 @@ public class Pause : MonoBehaviour
         set 
         {
             gameManager.players[playerPauseIndex].tapJump = value; 
+        }
+    }
+
+    public bool UIVibeCode
+    {
+        get { return gameManager.players[playerPauseIndex].vibeCoding; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].vibeCoding = value; 
         }
     }
  
@@ -244,6 +256,8 @@ public class Pause : MonoBehaviour
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
     }
+
+    private Brand lastFellaBrand = (Brand)(-1);
  
     private void UpdateSpellDisplay()
     {
@@ -255,6 +269,21 @@ public class Pause : MonoBehaviour
             gifPlayer.Gif = grid[tab].spells[selectedSpell].SpellGIF;
             cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
             inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
+            
+            if (grid[tab].spells[selectedSpell].brands[0] == lastFellaBrand) return;
+            else
+            {
+                lastFellaBrand = grid[tab].spells[selectedSpell].brands[0];
+                fella.GetComponent<Image>().sprite = fellas[(int)grid[tab].spells[selectedSpell].brands[0] - 1];
+
+                RectTransform fellaTransform = fella.GetComponent<RectTransform>();
+
+                fellaTransform.localScale = new Vector3(fellaTransform.localScale.x, 0f, fellaTransform.localScale.z);
+                fellaTransform
+                    .DOScaleY(1f, 0.15f)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+            }
  
             if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
             {
@@ -350,6 +379,8 @@ public class Pause : MonoBehaviour
  
         relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
+        tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
+        vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
  
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
  
@@ -585,5 +616,10 @@ public class Pause : MonoBehaviour
     public void ToggleTapJump()
     {
         UITapJump = !UITapJump;
+    }
+
+    public void ToggleVibeCoding()
+    {
+        UIVibeCode = !UIVibeCode;
     }
 }

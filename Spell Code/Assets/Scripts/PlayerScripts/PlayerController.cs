@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
+using UnityEditor;
+
 
 //using UnityEditor.Experimental.GraphView;
 
@@ -113,10 +115,12 @@ public class PlayerController : MonoBehaviour
     public bool touchingLeftWall = false;
     public bool touchingRightWall = false;
     public bool onPlatform = false;
-    public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
-    public bool toggleCodeInput = false;
-    public bool tapJump = false;
-    private bool tapJumpPrimed = true;
+
+    [NonSerialized] public bool vibeCoding = false;
+    [NonSerialized] public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
+    [NonSerialized] public bool toggleCodeInput = false;
+    [NonSerialized] public bool tapJump = false;
+    [NonSerialized] private bool tapJumpPrimed = true;
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -1270,7 +1274,7 @@ public class PlayerController : MonoBehaviour
                     ClearInputDisplay();
                 }
 
-                //keep track of how lojng player is in state for
+                //keep track of how long player is in state for
                 timer += FixedDeltaTime;
 
                 if (vSpd <= Fixed.FromInt(0) && !isGrounded)
@@ -1347,7 +1351,6 @@ public class PlayerController : MonoBehaviour
                             if(relativeInputs)
                             {
                                 tempInput = facingRight ? (byte)0b10 : (byte)0b01;
-
                             }
                             else
                             {
@@ -1403,11 +1406,14 @@ public class PlayerController : MonoBehaviour
 
                 //loop through spells to see if your current input matches any of your spells
                 bool spellMatched = false;
-                for (int i = i = 0; i < spellList.Count; i++)
+
+                //uint codeToMatch;
+                for (int i = 0; i < spellList.Count; i++)
                 {
-                    if (spellList[i].spellInput == (stateSpecificArg& ~(1u << 4)) &&
-                        spellList[i].spellType == SpellType.Active &&
-                        spellList[i].cooldownCounter <= 0)
+                    bool trueInput;
+                    bool matched = CheckSpellCodeInput(i,out trueInput);
+                    
+                    if (matched && trueInput)
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
@@ -1541,14 +1547,17 @@ public class PlayerController : MonoBehaviour
                         SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
                     }
 #endregion
+                    //uint codeToMatchRelease;
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        if (spellList[i].spellInput == stateSpecificArg &&
-                            spellList[i].spellType == SpellType.Active &&
-                            spellList[i].cooldownCounter <= 0)
+                        bool trueInput;
+                        bool matched = CheckSpellCodeInput(i, out trueInput);
+                        //standard spellcode matching code
+                        if (matched)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
+                            spellList[i].vibeCasted = !trueInput;
                             spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
@@ -1859,6 +1868,50 @@ public class PlayerController : MonoBehaviour
         CheckFloppyCollision();
         //CheckCameraCollision();
         //PlayerCollisionCheck();
+    }
+
+
+    public bool CheckSpellCodeInput( int spellListIndex, out bool _trueInput)
+    {
+        uint codeToMatch;
+        //vibeCoding shortcuts for the first 4 spells
+        if (vibeCoding)
+        {
+            switch (spellListIndex)
+            {
+                case 0://up
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0011_0000_0001;
+                    break;
+                case 1://down
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
+                    break;
+                case 2://right
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0001_0000_0001;
+                    break;
+                case 3://left
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
+                    break;
+                default:
+                    codeToMatch = 255;
+                    break;
+            }
+        }
+        else
+        {
+            codeToMatch = 255;
+        }
+
+            //standard spellcode matching code
+        if ((codeToMatch == (stateSpecificArg& ~(1u << 4)) || spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4))) &&
+        spellList[spellListIndex].spellType == SpellType.Active &&
+        spellList[spellListIndex].cooldownCounter <= 0)
+        {
+            //basically if your input matches the TRUE spell input, its not vibeCoded
+            _trueInput = spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4));
+            return true;
+        }
+        _trueInput = false;
+        return false;
     }
 
     /// <summary>
@@ -2616,11 +2669,13 @@ public class PlayerController : MonoBehaviour
             }
 
             HandleDamage(attacker, hitboxData.damage);
-
-            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
+            //this basically only applies comboCount on the first damage instance per player of a multihit
+            bool multiHitDamageInstance = hitboxData.parentProjectile.multiHitCount[pID == 0? attacker.pID-1: pID-1] < hitboxData.parentProjectile.maxMultiHitCount;
+            
+            if(hitboxData.hitstun > 0 && !multiHitDamageInstance)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
-                //ProjectileManager.Instance.DeleteAllPlayerProjectiles(pID);
+                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID);
                 comboCounter++;
                 if (comboCounter >= 4)
                 {

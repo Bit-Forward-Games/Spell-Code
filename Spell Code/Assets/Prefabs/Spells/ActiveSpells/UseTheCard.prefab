@@ -44,12 +44,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e3834cfc4991b46adec1abec331a2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UseTheCredit
+  vibeCasted: 0
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 02fe756274044164dba7d8411c9d24e9, type: 3}
   - {fileID: 3459829395073810853, guid: ff55be61bad781b42b91c5ca9c0b9681, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 778aca859a0eb2545a5f8f0612787162, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 778aca859a0eb2545a5f8f0612787162, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: a0d41f68d0133544597acba2de41c54f, type: 3}
   SpellGIF: {fileID: 11400000, guid: 9866f91ca638d944392cf777c9f047ed, type: 2}
   doesCrit: 0

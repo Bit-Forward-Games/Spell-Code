@@ -141,8 +141,8 @@ public class ShotReflector_prj : BaseProjectile
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
                 ownerSpell.cooldownCounter-= 60;
 
-                //Play the Shot Reflector Hit SFX
-                //SFX_Manager.Instance.PlaySpellcodeSound("Shot Reflector Hit");
+                //Play the Shot Reflector Break SFX
+                SFX_Manager.Instance.PlaySpellcodeSound("Shot Reflector Break");
             }
         }
 

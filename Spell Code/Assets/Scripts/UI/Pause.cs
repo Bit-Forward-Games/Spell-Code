@@ -338,7 +338,10 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings();
-        Time.timeScale = 1f;    
+        Time.timeScale = 1f;
+
+        //unmute all sfx
+        SFXVolume();
     }
 
     public void SaveSettings()
@@ -385,6 +388,9 @@ public class Pause : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
  
         Time.timeScale = 0f;
+
+        //mute all sfx
+        sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
  
     public void Options()
@@ -590,7 +596,7 @@ public class Pause : MonoBehaviour
  
     public void SFXVolume()
     {
-        musicAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
+        sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
     }
  
     public void ToggleCameraShake()

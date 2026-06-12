@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 //using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.Audio;
+using static SFX_Manager;
 
 public enum Sounds //enum to store the names of the sounds that can play
 { 
@@ -38,6 +39,11 @@ public class SFX_Manager : MonoBehaviour
     [Header("Sounds that SFX Manager can play")]
     [SerializeField] public List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
     [SerializeField] public List<AudioClip> spellcodeAudioClips; //list of Spellcode specific SFX
+
+    [Header("AudioSources for spellcodes")]
+    [SerializeField] public uint numSpellcodeAudioSourcesPerPlayer = 5;
+    private uint numSpellcodeAudioSources;
+    private AudioSource[] spellcodeAudioSources; //list of 5 spellcode audiosources per player
 
     void Awake()
     {
@@ -89,18 +95,40 @@ public class SFX_Manager : MonoBehaviour
                     }
 
                     //create the audio source object
-                    GameObject audioSourceObject = Instantiate(audioSourcePrefab, this.gameObject.transform);
+                    GameObject _audioSourceObject = Instantiate(audioSourcePrefab, this.gameObject.transform);
 
                     //assign the audio source of the audio source object
-                    _soundObject.audioSources[i] = audioSourceObject.GetComponent<AudioSource>();
+                    _soundObject.audioSources[i] = _audioSourceObject.GetComponent<AudioSource>();
 
                     //assign the mixer output channel to the SFX mixer channel
                     _soundObject.audioSources[i].outputAudioMixerGroup = sfxAudioSource.outputAudioMixerGroup;
 
                     //give the audio source object a unique name
-                    audioSourceObject.name = _soundObject.possibleSounds[0].name + " Audio Source #" + (i + 1).ToString();
+                    _audioSourceObject.name = _soundObject.possibleSounds[0].name + " Audio Source #" + (i + 1).ToString();
                 }
             }
+        }
+
+        //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
+        numSpellcodeAudioSources = 4 * numSpellcodeAudioSourcesPerPlayer;
+
+        //create space for spellcodeAudioSources
+        spellcodeAudioSources = new AudioSource[numSpellcodeAudioSources];
+
+        //iterate through each element of spellcodeAudioSources,...
+        for (int j = 0; j < numSpellcodeAudioSources; j++)
+        {
+            //create the audio source object
+            GameObject _audioSourceObject = Instantiate(audioSourcePrefab, this.gameObject.transform);
+
+            //assign the audio source of the audio source object
+            spellcodeAudioSources[j] = _audioSourceObject.GetComponent<AudioSource>();
+
+            //assign the mixer output channel to the SFX mixer channel
+            spellcodeAudioSources[j].outputAudioMixerGroup = sfxAudioSource.outputAudioMixerGroup;
+
+            //give the audio source object a name
+            spellcodeAudioSources[j].name = "Spellcode AudioSource #" + (j + 1).ToString();
         }
     }
 
@@ -193,7 +221,7 @@ public class SFX_Manager : MonoBehaviour
     }
 
     /// <summary>
-    /// Start to repeatedly play the sound specified by _soundName. Note: "StartRepeatingSound()" cannot play secret versions of sounds
+    /// Start to repeatedly play the sound specified by enumerator "_soundName". Note: "StartRepeatingSound()" cannot play secret versions of sounds
     /// </summary>
     /// <param name="_soundName"> Sound to be start be played by the SFX Handler. This sound will play on repeat until StopRepeatingSound(_soundName) is called</param>
     /// <param name="_playRate"> [CURRENTLY NOT IN USE] Rate at which this sound will repeat. Note that this is the time between the start of each sound</param>
@@ -258,7 +286,54 @@ public class SFX_Manager : MonoBehaviour
     }
 
     /// <summary>
-    /// Stop playing the sound specified by _soundName
+    /// Start to repeatedly play the sound specified by the string "_soundName"
+    /// </summary>
+    /// <param name="_soundName"> Sound to be start be played by the SFX Handler. This sound will play on repeat until StopRepeatingSound(_soundName) is called</param>
+    /// <param name="_playerIndex"> player index of the player who is repeatedly playing the sound. Note that player 1 is _playerIndex == 0 and so on</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for SFX. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for SFX. By default, set to 1.2f</param>
+    public void StartRepeatingSpellcodeSound(string _soundName, int _playerIndex, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
+    {
+        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        {
+            //return
+            return;
+        }
+
+        //save the appropriate audioclip since we know it exists
+        AudioClip _audioClip = spellcodeAudioClips.Find(x => x.name == _soundName);
+
+        //create an AudioSource to record the first available AudioSource in spellcodeAudioSources and set it to the first appropriate value just in case
+        AudioSource _availableAudioSource = spellcodeAudioSources[(int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1)];
+
+        //iterate through _playerIndex's audiosources,...
+        for (int i = (int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1); i < ((int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1)) + (int)numSpellcodeAudioSources; i++)
+        {
+            //find an AudioSource that is NOT playing
+            if (!spellcodeAudioSources[i].isPlaying)
+            {
+                //assign _availableAudioSource to the AudioSource that is not playing
+                _availableAudioSource = spellcodeAudioSources[i];
+
+                //break out of the for loop
+                break;
+            }
+        }
+
+        //set the resource of the spellcodeAudioSourceObject
+        _availableAudioSource.resource = _audioClip;
+
+        //Randomize pitch between _minPitchShift and _maxPitchShift
+        _availableAudioSource.pitch = UnityEngine.Random.Range(_minPitchShift, _maxPitchShift);
+
+        //start to repeatedly play the sound 
+        _availableAudioSource.Play();
+        //Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
+    }
+
+    /// <summary>
+    /// Stop playing the sound specified by the enumerator "_soundName"
     /// </summary>
     /// <param name="_soundName"> Sound to be start be played by the SFX Handler. This sound will play on repeat until StopRepeatingSound(_soundName) is called</param>
     /// <param name="_playerIndex"> Player index of player that is playing this sound. Note that player 1 is _playerIndex == 0 and so on</param>
@@ -305,6 +380,43 @@ public class SFX_Manager : MonoBehaviour
 
         //stop playing _soundname of _playerIndex
         _soundObject.audioSources[_playerIndex].Stop();
+    }
+
+    /// <summary>
+    /// Stop playing the sound specified by the string "_soundName"
+    /// </summary>
+    public void StopRepeatingSpellcodeSounds(string _soundName, int _playerIndex)
+    {
+        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
+        {
+            //return
+            return;
+        }
+
+        //sanity check to make sure that StopRepeatingSound was not already called for _soundName
+        if (spellcodeAudioSources[_playerIndex].isPlaying == false)
+        {
+            //return
+            return;
+        }
+
+        ////iterate through _playerIndex's audiosources,...
+        //for (int i = (int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1); i < ((int)numSpellcodeAudioSourcesPerPlayer * (_playerIndex - 1)) + (int)numSpellcodeAudioSources; i++)
+        //{
+        //    //find an AudioSource that is NOT playing
+        //    if (!spellcodeAudioSources[i].isPlaying)
+        //    {
+        //        //assign _availableAudioSource to the AudioSource that is not playing
+        //        _availableAudioSource = spellcodeAudioSources[i];
+
+        //        //break out of the for loop
+        //        break;
+        //    }
+        //}
+
+        //stop playing _soundname of _playerIndex
+        spellcodeAudioSources[_playerIndex].Stop();
     }
 
     /// <summary>

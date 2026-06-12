@@ -42,7 +42,7 @@ public class DemonAura : SpellData
                 if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.DemonX && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
-                    if(IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                    if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                     {
                         break;
                     }

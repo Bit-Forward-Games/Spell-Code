@@ -10,7 +10,6 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem.Users;
 using BestoNet.Types;
-using System.Threading.Tasks;
 
 
 using Fixed = BestoNet.Types.Fixed32;
@@ -778,63 +777,16 @@ public class GameManager : MonoBehaviour
     }
 
     // Routes a joining client to the online lobby scene (MainMenu) when an invite is accepted from
-    // any other scene -- training room, tutorial, a leftover match scene, etc.
+    // any other scene -- training room, tutorial, a leftover match scene, etc
     public void EnsureLobbySceneForOnlineJoin()
-    {
-        _ = EnsureLobbySceneForOnlineJoinAsync();
-    }
-
-    public async Task EnsureLobbySceneForOnlineJoinAsync()
     {
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            PrepareMainMenuForOnlineJoin();
             return;
         }
 
         Debug.Log("[OnlineLobby] Invite accepted from a non-lobby scene; routing to MainMenu so the join can bootstrap.");
-        AsyncOperation loadOperation = SceneManager.LoadSceneAsync("MainMenu", LoadSceneMode.Single);
-        if (loadOperation != null)
-        {
-            while (!loadOperation.isDone)
-            {
-                await Task.Yield();
-            }
-        }
-
-        int guardFrames = 0;
-        while (SceneManager.GetActiveScene().name != "MainMenu" && guardFrames < 120)
-        {
-            guardFrames++;
-            await Task.Yield();
-        }
-
-        PrepareMainMenuForOnlineJoin();
-    }
-
-    private void PrepareMainMenuForOnlineJoin()
-    {
-        ForceResumeLocalPauseMenuForOnline();
-        SetStage(-1);
-        if (MainMenuScreen != null)
-        {
-            MainMenuScreen.SetActive(false);
-        }
-
-        if (shopImage != null)
-        {
-            shopImage.enabled = false;
-        }
-
-        if (roundEndedText != null)
-        {
-            roundEndedText.enabled = false;
-        }
-
-        if (playerWinText != null)
-        {
-            playerWinText.enabled = false;
-        }
+        SceneManager.LoadScene("MainMenu");
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)

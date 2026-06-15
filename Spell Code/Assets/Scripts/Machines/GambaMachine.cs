@@ -495,6 +495,7 @@ public class GambaMachine : MonoBehaviour
     {
         resetTimer = 0;
         activatedCount = 0;
+        ownerPlayer = null;
 
         if (ownerPID == 1) { startingSpellPos = 0; }
         if (ownerPID == 2) { startingSpellPos = 1; }
@@ -505,6 +506,23 @@ public class GambaMachine : MonoBehaviour
         
         isActive = true;
         ApplyVisualState();
+    }
+
+    public bool HasFloppyChoicesForOwner()
+    {
+        List<GameObject> floppyList = GetFloppyListForPID(ownerPID);
+        for (int i = floppyList.Count - 1; i >= 0; i--)
+        {
+            if (floppyList[i] == null)
+            {
+                floppyList.RemoveAt(i);
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
@@ -530,6 +548,8 @@ public class GambaMachine : MonoBehaviour
 
     public void ApplyVisualState()
     {
+        ApplyLobbyFacingFromOwnerPid();
+
         if (gambaAnimator == null)
         {
             gambaAnimator = GetComponent<Animator>();
@@ -542,6 +562,23 @@ public class GambaMachine : MonoBehaviour
 
         gambaAnimator.SetBool("facingLeft", !facingRight);
         gambaAnimator.SetBool("isActive", isActive);
+    }
+
+    private void ApplyLobbyFacingFromOwnerPid()
+    {
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        if (ownerPID == 1 || ownerPID == 3)
+        {
+            facingRight = true;
+        }
+        else if (ownerPID == 2 || ownerPID == 4)
+        {
+            facingRight = false;
+        }
     }
 
     public bool CheckHitboxCollision()

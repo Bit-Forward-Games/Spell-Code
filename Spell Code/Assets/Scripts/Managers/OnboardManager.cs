@@ -20,7 +20,6 @@ public class OnboardManager : MonoBehaviour
     public bool p1_jumpComplete = false;
     public bool p1_atkComplete = false;
     public bool p1_glassBroken = false;
-    private bool p1_onlineJoined = true;
 
     public Image p1_moveGraphic;
     public TextMeshProUGUI p1_moveTxt;
@@ -133,25 +132,6 @@ public class OnboardManager : MonoBehaviour
             return;
         }
 
-        ResetOnboardingFlags();
-        ApplyInitialUiState();
-    }
-
-    public void ResetOnlineOnboarding()
-    {
-        if (!HasRequiredUiReferences())
-        {
-            Debug.LogWarning("[OnboardManager] Some MainMenu onboarding references are missing; continuing online onboarding with available references.");
-        }
-
-        enabled = true;
-        ResetOnboardingFlags();
-        ApplyInitialOnlineUiState();
-    }
-
-    private void ResetOnboardingFlags()
-    {
-        p1_onlineJoined = true;
         p1_moveComplete = false;
         p1_jumpComplete = false;
         p1_atkComplete = false;
@@ -174,6 +154,8 @@ public class OnboardManager : MonoBehaviour
         p4_jumpComplete = false;
         p4_atkComplete = false;
         p4_glassBroken = false;
+
+        ApplyInitialUiState();
     }
 
     private void ApplyInitialUiState()
@@ -222,50 +204,6 @@ public class OnboardManager : MonoBehaviour
         p4_castTxt.enabled = false;
         p4_gambaActive = false;
         p4_breakWSpellcode.enabled = false;
-        if (p4_gamba != null) p4_gamba.isActive = false;
-    }
-
-    private void ApplyInitialOnlineUiState()
-    {
-        SetEnabled(p1_atkGraphic, false);
-        SetEnabled(p1_atkTxt, false);
-        SetEnabled(p1_castGraphic, false);
-        SetEnabled(p1_castTxt, false);
-        p1_gambaActive = false;
-        SetEnabled(p1_breakWSpellcode, false);
-        if (p1_gamba != null) p1_gamba.isActive = false;
-
-        SetText(p2_atkTxt, "Join");
-        SetEnabled(p2_moveGraphic, false);
-        SetEnabled(p2_moveTxt, false);
-        SetEnabled(p2_jumpGraphic, false);
-        SetEnabled(p2_jumpTxt, false);
-        SetEnabled(p2_castGraphic, false);
-        SetEnabled(p2_castTxt, false);
-        p2_gambaActive = false;
-        SetEnabled(p2_breakWSpellcode, false);
-        if (p2_gamba != null) p2_gamba.isActive = false;
-
-        SetText(p3_atkTxt, "Join");
-        SetEnabled(p3_moveGraphic, false);
-        SetEnabled(p3_moveTxt, false);
-        SetEnabled(p3_jumpGraphic, false);
-        SetEnabled(p3_jumpTxt, false);
-        SetEnabled(p3_castGraphic, false);
-        SetEnabled(p3_castTxt, false);
-        p3_gambaActive = false;
-        SetEnabled(p3_breakWSpellcode, false);
-        if (p3_gamba != null) p3_gamba.isActive = false;
-
-        SetText(p4_atkTxt, "Join");
-        SetEnabled(p4_moveGraphic, false);
-        SetEnabled(p4_moveTxt, false);
-        SetEnabled(p4_jumpGraphic, false);
-        SetEnabled(p4_jumpTxt, false);
-        SetEnabled(p4_castGraphic, false);
-        SetEnabled(p4_castTxt, false);
-        p4_gambaActive = false;
-        SetEnabled(p4_breakWSpellcode, false);
         if (p4_gamba != null) p4_gamba.isActive = false;
     }
 
@@ -672,208 +610,6 @@ public class OnboardManager : MonoBehaviour
 
                 p4_breakWSpellcode.enabled = false;
             }
-        }
-    }
-
-    public void OnboardUpdateOnline(ulong[] playerInputs)
-    {
-        if (!enabled || gM == null)
-        {
-            return;
-        }
-
-        int inputCount = Mathf.Min(playerInputs.Length, inputSnapshots.Length);
-        for (int i = 0; i < inputCount; i++)
-        {
-            inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
-        }
-
-        UpdatePlayerOnboardingOnline(0, false, ref p1_onlineJoined, ref p1_moveComplete, ref p1_jumpComplete, ref p1_atkComplete,
-            ref p1_glassBroken, p1_moveGraphic, p1_moveTxt, p1_jumpGraphic, p1_jumpTxt, p1_atkGraphic, p1_atkTxt,
-            p1_castTxt, p1_castGraphic, p1_breakWSpellcode, p1_gamba, ref p1_gambaActive);
-        UpdatePlayerOnboardingOnline(1, true, ref p2_joined, ref p2_moveComplete, ref p2_jumpComplete, ref p2_atkComplete,
-            ref p2_glassBroken, p2_moveGraphic, p2_moveTxt, p2_jumpGraphic, p2_jumpTxt, p2_atkGraphic, p2_atkTxt,
-            p2_castTxt, p2_castGraphic, p2_breakWSpellcode, p2_gamba, ref p2_gambaActive);
-        UpdatePlayerOnboardingOnline(2, true, ref p3_joined, ref p3_moveComplete, ref p3_jumpComplete, ref p3_atkComplete,
-            ref p3_glassBroken, p3_moveGraphic, p3_moveTxt, p3_jumpGraphic, p3_jumpTxt, p3_atkGraphic, p3_atkTxt,
-            p3_castTxt, p3_castGraphic, p3_breakWSpellcode, p3_gamba, ref p3_gambaActive);
-        UpdatePlayerOnboardingOnline(3, true, ref p4_joined, ref p4_moveComplete, ref p4_jumpComplete, ref p4_atkComplete,
-            ref p4_glassBroken, p4_moveGraphic, p4_moveTxt, p4_jumpGraphic, p4_jumpTxt, p4_atkGraphic, p4_atkTxt,
-            p4_castTxt, p4_castGraphic, p4_breakWSpellcode, p4_gamba, ref p4_gambaActive);
-    }
-
-    private void UpdatePlayerOnboardingOnline(
-        int playerIndex,
-        bool usesJoinPrompt,
-        ref bool joined,
-        ref bool moveComplete,
-        ref bool jumpComplete,
-        ref bool atkComplete,
-        ref bool glassBroken,
-        Image moveGraphic,
-        TextMeshProUGUI moveTxt,
-        Image jumpGraphic,
-        TextMeshProUGUI jumpTxt,
-        Image atkGraphic,
-        TextMeshProUGUI atkTxt,
-        TextMeshProUGUI castTxt,
-        Image castGraphic,
-        SpriteRenderer breakWSpellcode,
-        GambaMachine gamba,
-        ref bool gambaActive)
-    {
-        if (gM.players == null || playerIndex >= gM.players.Length || gM.players[playerIndex] == null)
-        {
-            return;
-        }
-
-        PlayerController player = gM.players[playerIndex];
-        InputSnapshot input = inputSnapshots[playerIndex];
-
-        if (usesJoinPrompt && !joined)
-        {
-            SetText(atkTxt, "Attack");
-            SetEnabled(atkTxt, false);
-            SetEnabled(atkGraphic, false);
-            SetEnabled(moveGraphic, true);
-            SetEnabled(moveTxt, true);
-            SetEnabled(jumpGraphic, true);
-            SetEnabled(jumpTxt, true);
-            joined = true;
-        }
-
-        if (!moveComplete && (input.Direction == 4 || input.Direction == 6))
-        {
-            moveComplete = true;
-            SetColor(moveTxt, GameManager.colors["green"]);
-            Debug.Log("Move Onboard Complete");
-        }
-
-        if (!jumpComplete && input.ButtonStates[1] == ButtonState.Pressed)
-        {
-            jumpComplete = true;
-            SetColor(jumpTxt, GameManager.colors["green"]);
-            Debug.Log("Jump Onboard Complete");
-        }
-
-        if (moveComplete && jumpComplete && !atkComplete)
-        {
-            SetEnabled(moveGraphic, false);
-            SetEnabled(moveTxt, false);
-            SetEnabled(jumpGraphic, false);
-            SetEnabled(jumpTxt, false);
-            SetEnabled(atkGraphic, true);
-            SetEnabled(atkTxt, true);
-            TryActivateGamba(gamba, ref gambaActive);
-
-            if (player.basicsFired > 0)
-            {
-                atkComplete = true;
-                Debug.Log("Atk Onboard Complete");
-            }
-        }
-
-        if (atkComplete && player.spellList.Count == 0)
-        {
-            SetEnabled(atkGraphic, false);
-            SetEnabled(atkTxt, false);
-            SetEnabled(moveGraphic, false);
-            SetEnabled(moveTxt, false);
-            SetEnabled(jumpGraphic, false);
-            SetEnabled(jumpTxt, false);
-        }
-
-        if (player.spellList.Count > 0 && !glassBroken)
-        {
-            SetEnabled(castTxt, true);
-            SetEnabled(castGraphic, true);
-            SetEnabled(atkGraphic, false);
-            SetEnabled(atkTxt, false);
-            SetEnabled(breakWSpellcode, true);
-
-            if (input.ButtonStates[0] == ButtonState.Held)
-            {
-                SetSprite(castGraphic, inputGraphic);
-                SetText(castTxt, "Input");
-            }
-            else
-            {
-                SetText(castTxt, "Hold");
-                SetSprite(castGraphic, this.atkGraphic);
-            }
-
-            if (IsGateOpen(playerIndex))
-            {
-                glassBroken = true;
-            }
-        }
-
-        if (glassBroken)
-        {
-            SetColor(castTxt, GameManager.colors["green"]);
-            SetEnabled(castTxt, false);
-            SetEnabled(castGraphic, false);
-            SetEnabled(breakWSpellcode, false);
-        }
-    }
-
-    private bool IsGateOpen(int playerIndex)
-    {
-        return gM.gates != null
-            && playerIndex >= 0
-            && playerIndex < gM.gates.Length
-            && gM.gates[playerIndex] != null
-            && gM.gates[playerIndex].isOpen;
-    }
-
-    private static void TryActivateGamba(GambaMachine gamba, ref bool gambaActive)
-    {
-        if (gambaActive || gamba == null)
-        {
-            return;
-        }
-
-        gamba.isActive = true;
-        gambaActive = true;
-    }
-
-    private static void SetEnabled(Behaviour component, bool value)
-    {
-        if (component != null)
-        {
-            component.enabled = value;
-        }
-    }
-
-    private static void SetEnabled(Renderer renderer, bool value)
-    {
-        if (renderer != null)
-        {
-            renderer.enabled = value;
-        }
-    }
-
-    private static void SetText(TextMeshProUGUI text, string value)
-    {
-        if (text != null)
-        {
-            text.text = value;
-        }
-    }
-
-    private static void SetColor(TextMeshProUGUI text, Color value)
-    {
-        if (text != null)
-        {
-            text.color = value;
-        }
-    }
-
-    private static void SetSprite(Image image, Sprite sprite)
-    {
-        if (image != null)
-        {
-            image.sprite = sprite;
         }
     }
 

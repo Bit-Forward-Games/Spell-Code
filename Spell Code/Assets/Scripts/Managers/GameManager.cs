@@ -50,6 +50,7 @@ public class GameManager : MonoBehaviour
     public int playerCount = 0;
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
+    public static ushort baseRamNeeddedtowin = 400;
 
     public SpriteRenderer shopImage;
 
@@ -756,6 +757,25 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Initializes and starts an online match. Requires RollbackManager.
     /// </summary>
+    // Closes the local pause menu if it is open and guarantees real-time playback. Called when an
+    // online match starts so a pre-match pause (Time.timeScale=0) cannot freeze the
+    // FixedUpdate-driven online simulation. timeScale and the pause UI are purely local and
+    // cosmetic, so this has zero effect on the deterministic simulation or its hashes.
+    private void ForceResumeLocalPauseMenuForOnline()
+    {
+        if (tempUI != null)
+        {
+            Pause pauseMenu = tempUI.gameObject.GetComponent<Pause>();
+            if (pauseMenu != null && pauseMenu.paused)
+            {
+                pauseMenu.Resume();
+            }
+        }
+
+        // Hard guarantee regardless of menu state: an active online match always runs at real time.
+        Time.timeScale = 1f;
+    }
+
     public void StartOnlineMatch(OnlineMatchRoster roster)
     {
         if (roster == null || roster.PlayerCount < 2)
@@ -768,6 +788,16 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+
+        // An online match must never start with the local sim frozen. The pause menu sets
+        // Time.timeScale=0 while in menus, and Unity halts FixedUpdate -- and therefore
+        // RunOnlineFrame -- entirely at timeScale=0. If the player had the pause menu open when an
+        // invite arrived, the match would begin with the sim dead: this client can't advance, send
+        // inputs, or run its bootstrap, so it reads as the slowest peer and drags every client
+        // until the player happens to touch the menu again (the "fixes after the snapshot"
+        // symptom). This runs from the network receive path in Update, which is not gated by
+        // timeScale, so it reliably fires even while the client is frozen.
+        ForceResumeLocalPauseMenuForOnline();
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
@@ -1216,180 +1246,6 @@ public class GameManager : MonoBehaviour
     public void OnOnlineLobbySnapshotAcknowledged(Steamworks.SteamId peerId)
     {
         SteamLobbyManager.Instance?.OnLobbySnapshotAcknowledged(peerId);
-    }
-
-    /// <summary>
-    /// Initializes and starts an online match. Requires RollbackManager.
-    /// </summary>
-    /// <param name="localIndex">Player index (0 or 1) for this client.</param>
-    /// <param name="remoteIndex">Player index (0 or 1) for the opponent.</param>
-    public void StartOnlineMatch(int localIndex, int remoteIndex, Steamworks.SteamId opponentId)
-    {
-        onboardManager = null;
-        onlineDisconnectedSlots.Clear();
-        ResetOnlineRosterState();
-        syncedInput = new ulong[2] { 0, 0 };
-
-        //Debug.Log("Starting Online Match...");
-        if (RollbackManager.Instance == null)
-        {
-            //Debug.LogError("Cannot start online match: RollbackManager not found!");
-            return;
-        }
-
-        // Public internet matches were staying correct but rollback-heavy with a 2-frame baseline delay.
-        // Clamp the live online setting here so both peers negotiate the same safer value without
-        // touching offline simulation or relying on stale inspector defaults.
-        RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
-
-        if (!opponentId.IsValid)
-        {
-            //Debug.LogError("Cannot start online match: Invalid Opponent SteamId provided!");
-            return;
-        }
-
-        onboardManager = FindFirstObjectByType<OnboardManager>();
-        if (onboardManager != null)
-        {
-            onboardManager.ResetOnboarding();
-        }
-
-        for (int i = 0; i < gates.Length; i++)
-        {
-            if (gates[i] != null)
-            {
-                gates[i].isOpen = false;
-                gates[i].SetOpen(false);
-            }
-        }
-
-        foreach (GameObject gambaGO in GetValidGambaObjects())
-        {
-            if (gambaGO == null) continue;
-            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-            if (gamba != null)
-            {
-                gamba.ResetLobbyState();
-            }
-        }
-
-
-        isOnlineMatchActive = false;
-        isWaitingForOpponent = false;
-        opponentIsReady = false;
-        isRunning = false;
-        isTransitioning = false;
-        localPlayerReadyForGameplay = false;
-        remotePlayerReadyForGameplay = false;
-        localGameplayReadyContext = GameplayReadyContext.None;
-        remoteGameplayReadyContext = GameplayReadyContext.None;
-        pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
-        hasPendingStageSelect = false;
-        pendingStageSelectSceneType = 0;
-        pendingStageSelectSceneSignature = 0;
-        pendingStageSelectIndex = -1;
-        pendingStageSelectRngState = 0;
-        pendingStageSelectTotalRoundsPlayed = -1;
-        localSceneTransitionReady = false;
-        remoteSceneTransitionReady = false;
-        hasPendingRemoteSceneReady = false;
-        ResetOnlineTransitionTracking();
-        pendingRemoteSceneReadyType = 0;
-        pendingRemoteSceneReadySignature = 0;
-
-        // Disable PlayerInputManager
-        if (playerInputManager != null)
-        {
-            playerInputManager.DisableJoining();
-            playerInputManager.enabled = false;
-            //Debug.Log("PlayerInputManager disabled");
-        }
-
-        lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
-        lastPacketReceivedTime = 0f;
-
-        localPlayerIndex = localIndex;
-        remotePlayerIndex = remoteIndex;
-        ResetMatchState();
-
-        ClearPlayerObjects();
-        this.playerCount = 2;
-
-        if (playerPrefab == null)
-        {
-            //Debug.LogError("Player Prefab is not assigned in GameManager Inspector!");
-            return;
-        }
-
-        // Create players but don't start simulation
-        for (int i = 0; i < 2; i++)
-        {
-            GameObject p = InstantiateOnlinePlayerObject();
-            players[i] = p.GetComponent<PlayerController>();
-            AnimationManager.Instance.InitializePlayerVisuals(players[i], i);
-
-            if (players[i].playerNum != null)
-            {
-                players[i].playerNum.text = "P" + (i + 1);
-            }
-
-            var pInput = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-
-            if (i == remotePlayerIndex)
-            {
-                MarkOnlineRemotePlayerInputInactive(players[i]);
-            }
-            else if (i == localIndex)
-            {
-                players[i].inputs.AssignInputDevice(null);
-                ConfigureOnlineLocalPlayerInput(pInput, players[i].inputs);
-                players[i].CheckForInputs(true, false);
-            }
-        }
-
-        EnsureOnlineLocalPlayerInputActive();
-
-        for (int i = 0; i < players.Length; i++)
-        {
-            if (players[i] != null)
-            {
-                players[i].InitCharacter();
-            }
-        }
-
-        // Initialize managers
-        // Keep the configured/default input delay until synchronized settings arrive
-        // instead of forcing an immediate zero-delay startup.
-        RollbackManager.Instance.Init(opponentId.Value);
-
-        if (MatchMessageManager.Instance != null)
-        {
-            if (StressTestController.Instance != null && StressTestController.Instance.enableStressTest)
-            {
-                StressTestController.Instance.ResetForNewMatch();
-            }
-            MatchMessageManager.Instance.StartMatch(opponentId);
-            // Send ready signal to opponent
-            MatchMessageManager.Instance.SendReadySignal();
-        }
-        else
-        {
-            //Debug.LogError("MatchMessageManager not found during StartOnlineMatch!");
-        }
-
-        // Set up online state but DON'T start simulation yet
-        isOnlineMatchActive = true;
-        isWaitingForOpponent = true; // Enter lobby wait state
-        SetNetworkInfoVisible(true);
-
-        ProjectileManager.Instance.InitializeAllProjectiles();
-
-        SetStage(-1); // Lobby stage
-        ResetPlayers();
-
-        isRunning = true;
-
-        //Debug.Log($"Entered Online Lobby - Waiting for opponent... LocalPlayer={localPlayerIndex}");
     }
 
     public void OnPacketReceived()
@@ -4425,7 +4281,7 @@ public class GameManager : MonoBehaviour
             roundsPlayed = 1;
         }
 
-        ramNeededToWinRound = (ushort)(300 + 100 * roundsPlayed);
+        ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + 100 * roundsPlayed);
 
         if (scene.name != "MainMenu")
         {

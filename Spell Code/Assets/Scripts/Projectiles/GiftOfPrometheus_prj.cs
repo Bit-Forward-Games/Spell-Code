@@ -94,6 +94,14 @@ public class GiftOfPrometheus_prj : BaseProjectile
         {
             logicFrame = animFrames.frameLengths.Take(4).Sum() + 1; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
         }
+
+        //if this is the start of the looping animation,...
+        if (logicFrame == animFrames.frameLengths.Take(5).Sum() + 1)
+        {
+            //Replay the Rip and Tear looping SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus", 1.0f, 1.0f);
+        }
+
         if (lifeTime == owner.reps*15 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
         {
             logicFrame = animFrames.frameLengths.Take(12).Sum() + 1;

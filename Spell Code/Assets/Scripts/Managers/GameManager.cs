@@ -887,7 +887,7 @@ public class GameManager : MonoBehaviour
         onboardManager = FindActiveSceneOnboardManager();
         if (onboardManager != null)
         {
-            onboardManager.ResetOnboarding();
+            onboardManager.ResetOnlineOnboarding();
         }
 
         for (int i = 0; i < gates.Length; i++)
@@ -2416,7 +2416,16 @@ public class GameManager : MonoBehaviour
             if (onboardManager == null || onboardManager.gameObject.scene != activeScene)
                 onboardManager = FindActiveSceneOnboardManager();
             if (onboardManager != null)
-                onboardManager.OnboardUpdate(inputs);
+            {
+                if (isOnline)
+                {
+                    onboardManager.OnboardUpdateOnline(inputs);
+                }
+                else
+                {
+                    onboardManager.OnboardUpdate(inputs);
+                }
+            }
 
             if (isOnline)
             {

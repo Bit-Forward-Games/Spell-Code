@@ -60,18 +60,20 @@ public class SpellCode_Gate : MonoBehaviour
 
             foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
             {
-                if (projectile.ownerSpell == null)
-                {
-                    //play the armor hit sfx
-                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
-
-                    break;
-                }     
+                     
                 
                 if (projectile.owner.pID != ownerPID) continue;
 
                 if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                 {
+                    if (projectile.ownerSpell == null)
+                    {
+                        //play the armor hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                        ProjectileManager.Instance.DeleteProjectile(projectile);
+                        return;//maybe this should be break? idk this def works tho
+                    }
+
                     isOpen = true;
 
                     //play the armor break sfx

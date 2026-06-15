@@ -757,6 +757,38 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Initializes and starts an online match. Requires RollbackManager.
     /// </summary>
+    // Closes the local pause menu if it is open and guarantees real-time playback. Called when an
+    // online match starts so a pre-match pause (Time.timeScale=0) cannot freeze the
+    // FixedUpdate-driven online simulation. timeScale and the pause UI are purely local and
+    // cosmetic, so this has zero effect on the deterministic simulation or its hashes.
+    private void ForceResumeLocalPauseMenuForOnline()
+    {
+        if (tempUI != null)
+        {
+            Pause pauseMenu = tempUI.gameObject.GetComponent<Pause>();
+            if (pauseMenu != null && pauseMenu.paused)
+            {
+                pauseMenu.Resume();
+            }
+        }
+
+        // Hard guarantee regardless of menu state: an active online match always runs at real time.
+        Time.timeScale = 1f;
+    }
+
+    // Routes a joining client to the online lobby scene (MainMenu) when an invite is accepted from
+    // any other scene -- training room, tutorial, a leftover match scene, etc
+    public void EnsureLobbySceneForOnlineJoin()
+    {
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            return;
+        }
+
+        Debug.Log("[OnlineLobby] Invite accepted from a non-lobby scene; routing to MainMenu so the join can bootstrap.");
+        SceneManager.LoadScene("MainMenu");
+    }
+
     public void StartOnlineMatch(OnlineMatchRoster roster)
     {
         if (roster == null || roster.PlayerCount < 2)
@@ -769,6 +801,16 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+
+        // An online match must never start with the local sim frozen. The pause menu sets
+        // Time.timeScale=0 while in menus, and Unity halts FixedUpdate -- and therefore
+        // RunOnlineFrame -- entirely at timeScale=0. If the player had the pause menu open when an
+        // invite arrived, the match would begin with the sim dead: this client can't advance, send
+        // inputs, or run its bootstrap, so it reads as the slowest peer and drags every client
+        // until the player happens to touch the menu again (the "fixes after the snapshot"
+        // symptom). This runs from the network receive path in Update, which is not gated by
+        // timeScale, so it reliably fires even while the client is frozen.
+        ForceResumeLocalPauseMenuForOnline();
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();

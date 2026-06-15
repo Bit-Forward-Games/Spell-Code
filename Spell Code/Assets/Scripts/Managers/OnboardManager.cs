@@ -100,17 +100,19 @@ public class OnboardManager : MonoBehaviour
 
     private void Awake()
     {
-        // if an instance already exists and it's not this one, destroy this duplicate
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            Destroy(Instance.gameObject);
         }
-        else
+
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
         {
-            // otherwise, set this as the instance
-            Instance = this;
-            // optional: prevent the gameobject from being destroyed when loading new scenes
-            DontDestroyOnLoad(gameObject);
+            Instance = null;
         }
     }
 
@@ -123,6 +125,13 @@ public class OnboardManager : MonoBehaviour
 
     public void ResetOnboarding()
     {
+        if (!HasRequiredUiReferences())
+        {
+            Debug.LogWarning("[OnboardManager] Missing MainMenu UI references; disabling onboarding for this scene.");
+            enabled = false;
+            return;
+        }
+
         p1_moveComplete = false;
         p1_jumpComplete = false;
         p1_atkComplete = false;
@@ -200,6 +209,11 @@ public class OnboardManager : MonoBehaviour
 
     public void OnboardUpdate(ulong[] playerInputs)
     {
+        if (!enabled || !HasRequiredUiReferences())
+        {
+            return;
+        }
+
         for (int i = 0; i < playerInputs.Length; i++)
         {
             inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
@@ -597,5 +611,29 @@ public class OnboardManager : MonoBehaviour
                 p4_breakWSpellcode.enabled = false;
             }
         }
+    }
+
+    private bool HasRequiredUiReferences()
+    {
+        return p1_moveGraphic != null && p1_moveTxt != null
+            && p1_jumpGraphic != null && p1_jumpTxt != null
+            && p1_atkGraphic != null && p1_atkTxt != null
+            && p1_castGraphic != null && p1_castTxt != null
+            && p1_breakWSpellcode != null && p1_gamba != null
+            && p2_moveGraphic != null && p2_moveTxt != null
+            && p2_jumpGraphic != null && p2_jumpTxt != null
+            && p2_atkGraphic != null && p2_atkTxt != null
+            && p2_castGraphic != null && p2_castTxt != null
+            && p2_breakWSpellcode != null && p2_gamba != null
+            && p3_moveGraphic != null && p3_moveTxt != null
+            && p3_jumpGraphic != null && p3_jumpTxt != null
+            && p3_atkGraphic != null && p3_atkTxt != null
+            && p3_castGraphic != null && p3_castTxt != null
+            && p3_breakWSpellcode != null && p3_gamba != null
+            && p4_moveGraphic != null && p4_moveTxt != null
+            && p4_jumpGraphic != null && p4_jumpTxt != null
+            && p4_atkGraphic != null && p4_atkTxt != null
+            && p4_castGraphic != null && p4_castTxt != null
+            && p4_breakWSpellcode != null && p4_gamba != null;
     }
 }

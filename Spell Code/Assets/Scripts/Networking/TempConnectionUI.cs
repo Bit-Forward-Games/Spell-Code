@@ -75,7 +75,7 @@ public class TempConnectionUI : MonoBehaviour
             //GameManager.Instance.StartOnlineMatch(localPlayerIndex, remotePlayerIndex, opponentSteamId);
             try
             {
-                GameManager.Instance.StartOnlineMatch(localPlayerIndex, remotePlayerIndex, opponentSteamId);
+                //GameManager.Instance.StartOnlineMatch(localPlayerIndex, remotePlayerIndex, opponentSteamId);
             }
             catch (Exception ex)
             {

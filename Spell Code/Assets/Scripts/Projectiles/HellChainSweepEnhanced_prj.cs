@@ -34,9 +34,9 @@ public class HellChainSweepEnhanced_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 0,
+                    xOffset = -8,
                     yOffset = 16,
-                    width = 38,
+                    width = 42,
                     height = 20,
                     xKnockback = 5,
                     yKnockback = 1,

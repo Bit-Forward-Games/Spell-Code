@@ -50,6 +50,7 @@ public class GameManager : MonoBehaviour
     public int playerCount = 0;
     [NonSerialized]
     public ushort ramNeededToWinRound = 1;
+    public static ushort baseRamNeeddedtowin = 400;
 
     public SpriteRenderer shopImage;
 
@@ -4425,7 +4426,7 @@ public class GameManager : MonoBehaviour
             roundsPlayed = 1;
         }
 
-        ramNeededToWinRound = (ushort)(300 + 100 * roundsPlayed);
+        ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + 100 * roundsPlayed);
 
         if (scene.name != "MainMenu")
         {

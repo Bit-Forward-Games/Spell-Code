@@ -327,7 +327,7 @@ public class GambaMachine : MonoBehaviour
     public void SimulateOnline(int ownerPlayerIndex, bool isRollback = false)
     {
         activeScene = SceneManager.GetActiveScene();
-        if (ownerPlayer == null) ownerPlayer = gameManager.players[ownerPID - 1];
+        ownerPlayer = ResolveOnlineOwnerPlayer();
         if (ownerPlayer == null)
         {
             ApplyVisualState();
@@ -369,6 +369,22 @@ public class GambaMachine : MonoBehaviour
         }
 
         ApplyVisualState();
+    }
+
+    private PlayerController ResolveOnlineOwnerPlayer()
+    {
+        if (gameManager == null)
+        {
+            gameManager = GameManager.Instance;
+        }
+
+        int ownerIndex = ownerPID - 1;
+        if (gameManager == null || gameManager.players == null || ownerIndex < 0 || ownerIndex >= gameManager.players.Length)
+        {
+            return null;
+        }
+
+        return gameManager.players[ownerIndex];
     }
 
     private void SimulateShopOnline(bool isRollback = false)

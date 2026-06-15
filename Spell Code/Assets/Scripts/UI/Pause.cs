@@ -35,6 +35,7 @@ public class Pause : MonoBehaviour
     public Toggle screenShakeToggle;
     public Toggle dynamicCameraToggle;
     private SceneUiManager sceneUiManager;
+    public TempUIScript uiScript;
  
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
@@ -221,6 +222,7 @@ public class Pause : MonoBehaviour
         {
             TriggerSelectedButton();
         }
+
     }
  
     private void SpellGlossaryNavigation()
@@ -386,7 +388,8 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings();
-        Time.timeScale = 1f;
+        // if (!uiScript.soloGamemodesMenuOpened) 
+            Time.timeScale = 1f;
         //unmute all sfx
         SFXVolume();
     }
@@ -438,7 +441,6 @@ public class Pause : MonoBehaviour
 
         //mute all sfx
         sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
-        Debug.Log($"[Frame {Time.frameCount}] Back button OnClick fired, called from selected={EventSystem.current?.currentSelectedGameObject?.name}");
     }
  
     public void Options()

@@ -102,6 +102,10 @@ public class FloppyPickup : MonoBehaviour
                         if (overlappingPlayer.AddSpellToSpellList(diskName))
                         {
                             Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
+
+                            //play the floppy pick up sfx
+                            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
+
                             //if (SceneManager.GetActiveScene().name != "Tutorial")
                             //{
                                 diskDisplay.canvasObject.GetComponent<Canvas>().enabled = false;

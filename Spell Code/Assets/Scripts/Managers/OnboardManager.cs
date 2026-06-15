@@ -729,7 +729,6 @@ public class OnboardManager : MonoBehaviour
 
         PlayerController player = gM.players[playerIndex];
         InputSnapshot input = inputSnapshots[playerIndex];
-        GambaMachine onlineGamba = ResolveOnlineGamba(playerIndex, gamba);
 
         if (usesJoinPrompt && !joined)
         {
@@ -765,7 +764,7 @@ public class OnboardManager : MonoBehaviour
             SetEnabled(jumpTxt, false);
             SetEnabled(atkGraphic, true);
             SetEnabled(atkTxt, true);
-            TryActivateGamba(onlineGamba, ref gambaActive);
+            TryActivateGamba(gamba, ref gambaActive);
 
             if (player.basicsFired > 0)
             {
@@ -776,7 +775,6 @@ public class OnboardManager : MonoBehaviour
 
         if (atkComplete && player.spellList.Count == 0)
         {
-            TryActivateGambaIfNoFloppyChoices(onlineGamba, ref gambaActive);
             SetEnabled(atkGraphic, false);
             SetEnabled(atkTxt, false);
             SetEnabled(moveGraphic, false);
@@ -819,26 +817,6 @@ public class OnboardManager : MonoBehaviour
         }
     }
 
-    private GambaMachine ResolveOnlineGamba(int playerIndex, GambaMachine assignedGamba)
-    {
-        int ownerPid = playerIndex + 1;
-        if (assignedGamba != null && assignedGamba.ownerPID == ownerPid)
-        {
-            return assignedGamba;
-        }
-
-        GambaMachine[] gambas = FindObjectsByType<GambaMachine>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-        foreach (GambaMachine candidate in gambas)
-        {
-            if (candidate != null && candidate.ownerPID == ownerPid && candidate.gameObject.scene == gameObject.scene)
-            {
-                return candidate;
-            }
-        }
-
-        return assignedGamba;
-    }
-
     private bool IsGateOpen(int playerIndex)
     {
         return gM.gates != null
@@ -850,28 +828,13 @@ public class OnboardManager : MonoBehaviour
 
     private static void TryActivateGamba(GambaMachine gamba, ref bool gambaActive)
     {
-        if (gamba == null)
+        if (gambaActive || gamba == null)
         {
             return;
         }
 
-        if (!gambaActive || !gamba.isActive)
-        {
-            gamba.isActive = true;
-            gamba.ApplyVisualState();
-        }
-
+        gamba.isActive = true;
         gambaActive = true;
-    }
-
-    private static void TryActivateGambaIfNoFloppyChoices(GambaMachine gamba, ref bool gambaActive)
-    {
-        if (gamba == null || gamba.HasFloppyChoicesForOwner())
-        {
-            return;
-        }
-
-        TryActivateGamba(gamba, ref gambaActive);
     }
 
     private static void SetEnabled(Behaviour component, bool value)

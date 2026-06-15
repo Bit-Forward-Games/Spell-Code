@@ -265,10 +265,6 @@ public class SteamLobbyManager : MonoBehaviour
                 LeaveLobbyInternal();
             }
 
-            // If the invite is accepted from anywhere but the lobby scene (training room, tutorial,
-            // etc.), get this client into MainMenu now. The online lobby only simulates in MainMenu
-            GameManager.Instance?.EnsureLobbySceneForOnlineJoin();
-
             if (debugLogs)
             {
                 Debug.Log($"[SteamLobbyManager] Joining requested lobby. LobbyId={lobby.Id.Value} Inviter={friendId.Value}");

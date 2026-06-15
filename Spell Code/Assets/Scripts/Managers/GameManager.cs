@@ -776,19 +776,6 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    // Routes a joining client to the online lobby scene (MainMenu) when an invite is accepted from
-    // any other scene -- training room, tutorial, a leftover match scene, etc
-    public void EnsureLobbySceneForOnlineJoin()
-    {
-        if (SceneManager.GetActiveScene().name == "MainMenu")
-        {
-            return;
-        }
-
-        Debug.Log("[OnlineLobby] Invite accepted from a non-lobby scene; routing to MainMenu so the join can bootstrap.");
-        SceneManager.LoadScene("MainMenu");
-    }
-
     public void StartOnlineMatch(OnlineMatchRoster roster)
     {
         if (roster == null || roster.PlayerCount < 2)

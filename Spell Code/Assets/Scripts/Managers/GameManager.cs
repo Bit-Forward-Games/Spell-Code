@@ -884,7 +884,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        onboardManager = FindActiveSceneOnboardManager();
+        onboardManager = FindFirstObjectByType<OnboardManager>();
         if (onboardManager != null)
         {
             onboardManager.ResetOnboarding();
@@ -2385,22 +2385,6 @@ public class GameManager : MonoBehaviour
         return gambas;
     }
 
-    private OnboardManager FindActiveSceneOnboardManager()
-    {
-        Scene activeScene = SceneManager.GetActiveScene();
-        OnboardManager[] managers = FindObjectsByType<OnboardManager>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-
-        foreach (OnboardManager manager in managers)
-        {
-            if (manager != null && manager.gameObject.scene == activeScene)
-            {
-                return manager;
-            }
-        }
-
-        return null;
-    }
-
     public void UpdateSceneLogic(ulong[] inputs)
     {
         Scene activeScene = SceneManager.GetActiveScene();
@@ -2413,8 +2397,8 @@ public class GameManager : MonoBehaviour
             ApplyPendingGameplayReadyIfAvailable();
             goDoorPrefab?.CheckOpenDoor();
 
-            if (onboardManager == null || onboardManager.gameObject.scene != activeScene)
-                onboardManager = FindActiveSceneOnboardManager();
+            if (onboardManager == null)
+                onboardManager = FindFirstObjectByType<OnboardManager>();
             if (onboardManager != null)
                 onboardManager.OnboardUpdate(inputs);
 
@@ -3030,14 +3014,11 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
-            if (onboardManager == null || onboardManager.gameObject.scene != activeScene)
+            if (onboardManager == null)
             {
-                onboardManager = FindActiveSceneOnboardManager();
+                onboardManager = FindAnyObjectByType<OnboardManager>();
             }
-            if (onboardManager != null)
-            {
-                onboardManager.OnboardUpdate(inputs);
-            }
+            onboardManager.OnboardUpdate(inputs);
         }
         else
         {

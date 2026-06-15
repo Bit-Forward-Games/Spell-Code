@@ -67,11 +67,20 @@ public class SpellCode_Gate : MonoBehaviour
                 {
                     isOpen = true;
 
+                    //play the armor break sfx
+                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_BREAK, 1.0f, 1.0f);
+
                     //Play the glass break visual effect at the gate position
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
 
                     return;
                 }
+                /*
+                 * else if the projectile was a basic attack and it collided with the spellgate,...
+                 * {
+                 *      play the armor hit sfx
+                 * }
+                 */
             }
         }
     }

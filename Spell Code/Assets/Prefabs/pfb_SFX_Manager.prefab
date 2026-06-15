@@ -335,6 +335,16 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+  - soundName: 19
+    possibleSounds:
+    - {fileID: 8300000, guid: f0701d06a77e7f54a8d375e124637c43, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   spellcodeAudioClips:
   - {fileID: 8300000, guid: debebf0e38917ef40ac68ac672f36ce5, type: 3}
   - {fileID: 8300000, guid: c843570f8addcd1489af3e2149e5fa6c, type: 3}

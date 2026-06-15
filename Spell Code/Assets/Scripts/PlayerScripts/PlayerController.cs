@@ -761,13 +761,13 @@ public class PlayerController : MonoBehaviour
         }
 
         ////if this player is blocking and the blockinf=g VFX is NOT playing,...
-        //if (armor && !VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //if (armor && !VFX_Manager.Instance.IsVisualEffectPlaying(VisualEffects.SUPER_ARMOR, pID))
         //{
         //    //start playing the blocking VFX
         //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
         //}
         ////else this player is NOT blocking and the blocking VFX is playing,...
-        //else if (!armor && VFX_Manager.Instance.IsVisualEffecyPlaying(VisualEffects.SUPER_ARMOR, pID))
+        //else if (!armor && VFX_Manager.Instance.IsVisualEffectPlaying(VisualEffects.SUPER_ARMOR, pID))
         //{
         //    //stop playing the blocking VFX
         //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
@@ -2754,11 +2754,12 @@ public class PlayerController : MonoBehaviour
             //this basically only applies comboCount on the first damage instance per player of a multihit
             bool multiHitDamageInstance = hitboxData.parentProjectile.multiHitCount[pID == 0? attacker.pID-1: pID-1] < hitboxData.parentProjectile.maxMultiHitCount;
             
-            if(hitboxData.hitstun > 0 && !multiHitDamageInstance)//this allows for things like D.O.T. A.O.E.s like morgana w
+            if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
                 ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID);
-                comboCounter++;
+
+                if(!multiHitDamageInstance) comboCounter++;
                 if (comboCounter >= 4)
                 {
                     SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
@@ -2771,13 +2772,13 @@ public class PlayerController : MonoBehaviour
                 }
                 //GameSessionManager.Instance.UpdatePlayerHealthText(Array.IndexOf(GameSessionManager.Instance.playerControllers, this));
 
-            //play the damaged sound
-            SFX_Manager.Instance.PlaySound(Sounds.HIT);
+                //play the damaged sound
+                SFX_Manager.Instance.PlaySound(Sounds.HIT);
 
-            //play the damage VFX
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
+                //play the damage VFX
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DAMAGE, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
 
-            SetState(PlayerState.Hitstun);
+                SetState(PlayerState.Hitstun);
 
             }
             

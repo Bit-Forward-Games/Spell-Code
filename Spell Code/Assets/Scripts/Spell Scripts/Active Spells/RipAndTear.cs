@@ -9,7 +9,7 @@ public class RipAndTear : SpellData
     {
         spellName = "Rip And Tear";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 360;
+        cooldown = 480;
         spellInput = 0b_0000_0000_0000_0000_1110_0001_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};

@@ -378,7 +378,7 @@ public class VFX_Manager : MonoBehaviour
         }
     }
 
-    public bool IsVisualEffecyPlaying(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
+    public bool IsVisualEffectPlaying(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0)
     {
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {

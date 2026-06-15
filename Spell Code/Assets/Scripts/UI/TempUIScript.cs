@@ -149,10 +149,10 @@ public class TempUIScript : MonoBehaviour
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
 
-        // if (Input.GetKeyDown(KeyCode.Space))
-        // {
-        //     SetSoloMenuActive(true);
-        // }
+        if (soloGamemodesMenuOpened || pause.paused)
+        {
+            Time.timeScale = 0f;
+        }
 
         if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
         {

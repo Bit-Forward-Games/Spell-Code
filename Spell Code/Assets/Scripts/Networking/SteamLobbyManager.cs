@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Steamworks;
 using Steamworks.Data;
 
@@ -266,8 +267,12 @@ public class SteamLobbyManager : MonoBehaviour
             }
 
             // If the invite is accepted from anywhere but the lobby scene (training room, tutorial,
-            // etc.), get this client into MainMenu now. The online lobby only simulates in MainMenu
-            GameManager.Instance?.EnsureLobbySceneForOnlineJoin();
+            // etc.), get this client into MainMenu before joining. The online lobby only simulates
+            // in MainMenu, so don't let Steam's lobby callbacks bootstrap against the old scene.
+            if (GameManager.Instance != null)
+            {
+                await GameManager.Instance.EnsureLobbySceneForOnlineJoinAsync();
+            }
 
             if (debugLogs)
             {
@@ -345,6 +350,15 @@ public class SteamLobbyManager : MonoBehaviour
         if (GameManager.Instance == null)
         {
             Debug.LogWarning("GameManager not found; cannot start online match.");
+            return;
+        }
+
+        if (!GameManager.Instance.isOnlineMatchActive && SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Waiting for MainMenu before starting online match. ActiveScene={SceneManager.GetActiveScene().name}");
+            }
             return;
         }
 

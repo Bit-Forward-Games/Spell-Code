@@ -21,8 +21,11 @@ public class SFX_Manager : MonoBehaviour
     /// <value>Property <c>Instance</c> is the single instance of the SFX_Manager.</value>
     public static SFX_Manager Instance { get; private set; }
 
-    //AudioSource that will play sounds
+    //AudioSource that will play gameplay sounds
     private AudioSource sfxAudioSource;
+
+    //AudioSource that will play menu sounds
+    private AudioSource menuSfxAudioSource;
 
     //prefab for instantiated audio sources
     [SerializeField] private GameObject audioSourcePrefab;
@@ -40,6 +43,7 @@ public class SFX_Manager : MonoBehaviour
     [Header("Sounds that SFX Manager can play")]
     [SerializeField] public List<SoundObject> soundObjects; //list of sounds that the SFX Manager can play
     [SerializeField] public List<AudioClip> spellcodeAudioClips; //list of Spellcode specific SFX
+    [SerializeField] public List<AudioClip> menuAudioClips; //list of menu specific SFX
 
     [Header("AudioSources for spellcodes")]
     [SerializeField] public uint numSpellcodeAudioSourcesPerPlayer = 5;
@@ -48,8 +52,9 @@ public class SFX_Manager : MonoBehaviour
 
     void Awake()
     {
-        //assign sfxAudioSource
-        sfxAudioSource = gameObject.GetComponent<AudioSource>();
+        //assign sfxAudioSource and menuSfxAudioSource
+        sfxAudioSource = gameObject.GetComponents<AudioSource>()[0];
+        menuSfxAudioSource = gameObject.GetComponents<AudioSource>()[1];
 
         //if there is an instance of SFX_Manager that is NOT this one,...
         if (Instance != null && Instance != this)
@@ -218,6 +223,27 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_audioClip, sfxAudioSource.volume);
+        //Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
+    }
+
+    /// <summary>
+    /// Play a menu sound with the name defined by "_soundName"
+    /// </summary>
+    /// <param name="_soundName"> Name of the sound to be played by the SFX Handler</param>
+    public void PlayMenuSound(string _soundName)
+    {
+        //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
+        if (menuAudioClips.Find(x => x.name == _soundName) == null)
+        {
+            //return
+            return;
+        }
+
+        //save the appropriate SoundObject since we know it exists
+        AudioClip _audioClip = menuAudioClips.Find(x => x.name == _soundName);
+
+        //load and play the sound with name equal to nameOfSoundToPlay
+        menuSfxAudioSource.PlayOneShot(_audioClip, menuSfxAudioSource.volume);
         //Debug.Log("SFX Manager | Played the Spellcode SFX: " + _soundName);
     }
 

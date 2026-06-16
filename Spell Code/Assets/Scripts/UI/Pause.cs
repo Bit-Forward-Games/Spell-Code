@@ -28,6 +28,7 @@ public class Pause : MonoBehaviour
     public AudioMixer masterAudioMixer;
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
+    public AudioMixer menuSfxAudioMixer;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
     public bool screenShake = true;
@@ -210,16 +211,30 @@ public class Pause : MonoBehaviour
  
         if (input.UI.Cancel.WasPressedThisFrame())
         {
+            //play the resume sfx
+            SFX_Manager.Instance.PlayMenuSound("Pause");
+
             Resume();
+        }
+        else if (input.UI.Cancel.WasPressedThisFrame() && !paused)
+        {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Pause");
         }
 
         if (input.UI.Back.WasPressedThisFrame() && paused)
         {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Pause");
+
             Pausing();
         }
 
-        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells)
+        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
         {
+            //play the positive select sfx
+            SFX_Manager.Instance.PlayMenuSound("Positive Select");
+
             TriggerSelectedButton();
         }
 
@@ -239,14 +254,21 @@ public class Pause : MonoBehaviour
         if (freshPress || heldAndReady)
         {
             navCooldown = NAV_COOLDOWN_TIME;
-            
-            if (!spells); // regular pause menu navigation sound
+
+            // regular pause menu navigation sound
+            if (!spells && paused)
+            {
+                //play the neutral select sound
+                SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+            }
  
             if (nav.y > 0)
             {
                 if (spells && selectedSpell > 0) 
                 {
-                    // spell select sound
+                    //play the neutral select sound
+                    SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+
                     selectedSpell--;
                     SpellGlossaryListSelection(1);
                 }
@@ -255,7 +277,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells && selectedSpell < grid[tab].spells.Length - 1)
                 {
-                    // spell select sound
+                    //play the neutral select sound
+                    SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+
                     selectedSpell++;
                     SpellGlossaryListSelection(-1);
                 }
@@ -265,7 +289,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells)
                 {
-                    // tab select sound
+                    //play the tab select sound
+                    SFX_Manager.Instance.PlayMenuSound("Tab Select");
+
                     tab = (tab == 0) ? 5 : tab - 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
@@ -275,7 +301,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells)
                 {
-                    // tab select sound
+                    //play the tab select sound
+                    SFX_Manager.Instance.PlayMenuSound("Tab Select");
+
                     tab = (tab == 5) ? 0 : tab + 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
@@ -439,7 +467,8 @@ public class Pause : MonoBehaviour
  
         Time.timeScale = 0f;
 
-        //mute all sfx
+        //mute all gameplay sfx but not menu sfx
+        menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
  
@@ -688,6 +717,7 @@ public class Pause : MonoBehaviour
     public void SFXVolume()
     {
         sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
+        menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
     }
  
     public void ToggleCameraShake()

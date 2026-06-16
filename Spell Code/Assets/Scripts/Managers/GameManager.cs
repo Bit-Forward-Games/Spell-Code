@@ -2871,7 +2871,8 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! Beginning Shop Phase...";
+            string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
+            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! " + nextPhase;
             if (roundEndedText != null)
             {
                 roundEndedText.text = message;

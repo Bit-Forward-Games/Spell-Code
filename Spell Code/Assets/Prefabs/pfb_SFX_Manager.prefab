@@ -315,6 +315,56 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
+  - soundName: 17
+    possibleSounds:
+    - {fileID: 8300000, guid: c6790483734d66f428dd2f93c4712941, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - soundName: 18
+    possibleSounds:
+    - {fileID: 8300000, guid: 19da1672d1605bb409be14798b92f867, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - soundName: 19
+    possibleSounds:
+    - {fileID: 8300000, guid: f0701d06a77e7f54a8d375e124637c43, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - soundName: 20
+    possibleSounds:
+    - {fileID: 8300000, guid: e27f356350c652643bd3ac584e5d3f10, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - soundName: 21
+    possibleSounds:
+    - {fileID: 8300000, guid: 6940bae40264f4e43b781d9554965859, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
   spellcodeAudioClips:
   - {fileID: 8300000, guid: debebf0e38917ef40ac68ac672f36ce5, type: 3}
   - {fileID: 8300000, guid: c843570f8addcd1489af3e2149e5fa6c, type: 3}

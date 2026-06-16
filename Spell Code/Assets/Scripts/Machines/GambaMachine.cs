@@ -121,6 +121,10 @@ public class GambaMachine : MonoBehaviour
             {
                 Debug.Log("Hitbox collision detected!");
                 Debug.Log("LOBBY GAMBA");
+
+                //play the gamba hit sfx
+                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
                 isActive = false;
 
                 if (ownerPID == 1) {
@@ -196,6 +200,10 @@ public class GambaMachine : MonoBehaviour
                 {
                     Debug.Log("Hitbox collision detected!");
                     Debug.Log("SHOP GAMBA");
+
+                    //play the gamba hit sfx
+                    SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
                     isActive = false;
                     activatedCount++;
 
@@ -241,6 +249,10 @@ public class GambaMachine : MonoBehaviour
             {
                 Debug.Log("Hitbox collision detected!");
                 Debug.Log("TUTORIAL GAMBA");
+
+                //play the gamba hit sfx
+                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
                 isActive = false;
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
@@ -254,6 +266,9 @@ public class GambaMachine : MonoBehaviour
             {
                 foreach (GameObject flop in p1_floppys) { Destroy(flop); }
                 p1_floppys.Clear();
+
+                //play the gamba hit sfx
+                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
 
                 isActive = false;
 

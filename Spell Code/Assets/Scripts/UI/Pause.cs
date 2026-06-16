@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
@@ -34,6 +35,7 @@ public class Pause : MonoBehaviour
     public Toggle screenShakeToggle;
     public Toggle dynamicCameraToggle;
     private SceneUiManager sceneUiManager;
+    public TempUIScript uiScript;
     private const float MinMixerVolume = 0.0001f;
  
     public GameObject _pauseMenuFirst;
@@ -129,13 +131,23 @@ public class Pause : MonoBehaviour
     }
  
     private InputSystem_Actions input;
+    private SCMaster scInput;
  
-    void OnEnable()  { input.Enable(); }
-    void OnDisable() { input.Disable(); }
+    void OnEnable()  
+    { 
+        input.Enable(); 
+        scInput.Enable(); 
+    }
+    void OnDisable() 
+    { 
+        input.Disable(); 
+        scInput.Disable(); 
+    }
  
     void Awake()
     {
         input = new InputSystem_Actions();
+        scInput = new SCMaster();
         LoadSettings();
     }
  
@@ -194,9 +206,9 @@ public class Pause : MonoBehaviour
     {
         if (spells)
         {
-            SpellGlossaryNavigation();
             UpdateSpellDisplay();
         }
+        SpellGlossaryNavigation();
  
         if (paused && Time.frameCount != openedFrame && input.UI.Cancel.WasPressedThisFrame())
         {
@@ -208,10 +220,11 @@ public class Pause : MonoBehaviour
             Pausing();
         }
 
-        if (input.UI.Submit.WasPressedThisFrame() && !spells)
+        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells)
         {
             TriggerSelectedButton();
         }
+
     }
  
     private void SpellGlossaryNavigation()
@@ -228,29 +241,47 @@ public class Pause : MonoBehaviour
         if (freshPress || heldAndReady)
         {
             navCooldown = NAV_COOLDOWN_TIME;
+            
+            if (!spells); // regular pause menu navigation sound
  
-            if (nav.y > 0 && selectedSpell > 0)
+            if (nav.y > 0)
             {
-                selectedSpell--;
-                SpellGlossaryListSelection(1);
+                if (spells && selectedSpell > 0) 
+                {
+                    // spell select sound
+                    selectedSpell--;
+                    SpellGlossaryListSelection(1);
+                }
             }
-            else if (nav.y < 0 && selectedSpell < grid[tab].spells.Length - 1)
+            else if (nav.y < 0)
             {
-                selectedSpell++;
-                SpellGlossaryListSelection(-1);
+                if (spells && selectedSpell < grid[tab].spells.Length - 1)
+                {
+                    // spell select sound
+                    selectedSpell++;
+                    SpellGlossaryListSelection(-1);
+                }
             }
  
             if (nav.x < 0)
             {
-                tab = (tab == 0) ? 5 : tab - 1;
-                SpellGlossaryNewTab();
-                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                if (spells)
+                {
+                    // tab select sound
+                    tab = (tab == 0) ? 5 : tab - 1;
+                    SpellGlossaryNewTab();
+                    SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                }
             }
             else if (nav.x > 0)
             {
-                tab = (tab == 5) ? 0 : tab + 1;
-                SpellGlossaryNewTab();
-                SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                if (spells)
+                {
+                    // tab select sound
+                    tab = (tab == 5) ? 0 : tab + 1;
+                    SpellGlossaryNewTab();
+                    SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                }
             }
  
             ActivateOnly(tab);
@@ -361,8 +392,8 @@ public class Pause : MonoBehaviour
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings();
-        Time.timeScale = 1f;
-
+        // if (!uiScript.soloGamemodesMenuOpened) 
+            Time.timeScale = 1f;
         //unmute all sfx
         SFXVolume();
     }
@@ -422,7 +453,7 @@ public class Pause : MonoBehaviour
         tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
         vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
  
-        EventSystem.current.SetSelectedGameObject(_pauseMenuFirst);
+        StartCoroutine(SelectFirst(_pauseMenuFirst));
  
         SetMenuTimeScale();
     }
@@ -435,9 +466,15 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
  
-        EventSystem.current.SetSelectedGameObject(_optionsMenuFirst);
- 
-        SetMenuTimeScale();
+        Time.timeScale = 0f;
+
+        StartCoroutine(SelectFirst(_optionsMenuFirst));
+    }
+
+    IEnumerator SelectFirst(GameObject target)
+    {
+        yield return new WaitForSecondsRealtime(0.02f);
+        EventSystem.current.SetSelectedGameObject(target);
     }
  
     public void Controls()
@@ -625,18 +662,24 @@ public class Pause : MonoBehaviour
 
     private void TriggerSelectedButton()
     {
-        // Get the currently selected GameObject from the EventSystem
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
-
         if (selectedObject == null) return;
 
-        // Check if it has a Button component
         Button selectedButton = selectedObject.GetComponent<Button>();
-
         if (selectedButton != null && selectedButton.interactable)
         {
             selectedButton.onClick.Invoke();
+            StartCoroutine(SuppressSelectionForOneFrame());
         }
+    }
+
+    private System.Collections.IEnumerator SuppressSelectionForOneFrame()
+    {
+        var current = EventSystem.current.currentSelectedGameObject;
+        EventSystem.current.SetSelectedGameObject(null);
+        yield return null;
+        if (EventSystem.current.currentSelectedGameObject == null)
+            EventSystem.current.SetSelectedGameObject(current);
     }
  
     public void ReturnToLobby()

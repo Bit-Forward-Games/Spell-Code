@@ -140,6 +140,7 @@ public class TempUIScript : MonoBehaviour
         {
             soloGamemodesMenuOpened = false;
             soloGamemodesMenu.SetActive(false);
+            // pause._pauseMenuFirst.Select();
             Time.timeScale = 1f;
         }
         
@@ -158,14 +159,15 @@ public class TempUIScript : MonoBehaviour
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
 
-        // if (Input.GetKeyDown(KeyCode.Space))
+        // if (soloGamemodesMenuOpened || pause.paused)
         // {
-        //     SetSoloMenuActive(true);
+        //     Time.timeScale = 0f;
         // }
 
         if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
         {
             SetSoloMenuActive(false);
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 

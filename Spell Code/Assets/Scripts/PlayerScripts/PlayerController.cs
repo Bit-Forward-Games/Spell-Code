@@ -2733,6 +2733,9 @@ public class PlayerController : MonoBehaviour
                 {
                     SpawnToast($"ARMOR BREAK!", GameManager.colors["white"]);
 
+                    //play the armor break sfx
+                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_BREAK, 1.0f, 1.0f);
+
                     //play armor shatter visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.ARMOR_BREAK, position + FixedVec2.FromFloat(0f, 42f), pID, facingRight);
 

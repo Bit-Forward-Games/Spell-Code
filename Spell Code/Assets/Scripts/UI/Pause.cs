@@ -410,8 +410,12 @@ public class Pause : MonoBehaviour
         SaveSettings();
         // if (!uiScript.soloGamemodesMenuOpened) 
             Time.timeScale = 1f;
+
         //unmute all sfx
-        SFXVolume();
+        SFX_Manager.Instance.UnMuteGamePlaySFX();
+
+        //apply volume
+        //SFXVolume();
     }
 
     public void SaveSettings()
@@ -472,8 +476,9 @@ public class Pause : MonoBehaviour
         Time.timeScale = 0f;
 
         //mute all gameplay sfx but not menu sfx
-        menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
-        sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
+        SFX_Manager.Instance.MuteGamePlaySFX();
+        //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
+        //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
  
     public void Options()

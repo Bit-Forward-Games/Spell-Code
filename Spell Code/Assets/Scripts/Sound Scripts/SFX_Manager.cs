@@ -37,7 +37,8 @@ public class SFX_Manager : MonoBehaviour
         public List<AudioClip> possibleSounds; //list of sounds that can play when this sound object is told to play
         public AudioClip secretVersionOfSound; //secret version of the sound to play
         public bool canRepeat = false; //whether or not this sound can repeat
-        [HideInInspector] public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for if and when this song repeats 
+        public AudioSource[] audioSources = new AudioSource[4]; //array to hold audio sources for if and when this song repeats 
+        //[HideInInspector]
     }
 
     [Header("Sounds that SFX Manager can play")]
@@ -147,6 +148,13 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_chanceToPlaySecretVersion"> change (out of 1f) to play the secret version of the sound</param>
     public void PlaySound(Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        //if the sfxAudioSource is muted,...
+        if (sfxAudioSource.mute == true)
+        {
+            //return
+            return;
+        }
+
         //clamp _chanceToPlaySecretVersion between 0 and 1
         _chanceToPlaySecretVersion = Mathf.Clamp01(_chanceToPlaySecretVersion);
 
@@ -208,6 +216,13 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySpellcodeSound(string _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f)
     {
+        //if the menuSfxAudioSource is muted,...
+        if (menuSfxAudioSource.mute == true)
+        {
+            //return
+            return;
+        }
+
         //sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
         if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
         {
@@ -484,5 +499,81 @@ public class SFX_Manager : MonoBehaviour
             }
         }
         //Debug.Log("SFX Manager | Stopped repeating all sounds");
+    }
+
+    public void MuteGamePlaySFX()
+    {
+        Debug.Log("Muting sfx audio source");
+        //mute the sfx audio source
+        sfxAudioSource.mute = true;
+
+        //iterate through each SoundObject in soundObjects,...
+        foreach (SoundObject _soundObject in soundObjects)
+        {
+            Debug.Log("Here " + _soundObject.audioSources.Length);
+
+            foreach (AudioSource x in _soundObject.audioSources)
+            {
+                x.mute = true;
+                Debug.Log("Muting all sub audio sources");
+            }
+
+            //iterate through each AudioSource in the audioSources array for each _soundObject,...
+            for (int i = 0; i < _soundObject.audioSources.Length; i++)
+            {
+                //mute each gameplay audio source
+                _soundObject.audioSources[i].mute = true;
+                
+            }
+        }
+
+        //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
+        numSpellcodeAudioSources = 4 * numSpellcodeAudioSourcesPerPlayer;
+
+        //iterate through each element of spellcodeAudioSources,...
+        for (int i = 0; i < numSpellcodeAudioSources; i++)
+        {
+            //mute each spellcode audio source
+            spellcodeAudioSources[i].mute = true;
+        }
+    }
+
+    public void UnMuteGamePlaySFX()
+    {
+        //unmute the sfx audio source
+        sfxAudioSource.mute = false;
+
+        //iterate through each SoundObject in soundObjects,...
+        foreach (SoundObject _soundObject in soundObjects)
+        {
+            //iterate through each AudioSource in the audioSources array for each _soundObject,...
+            for (int i = 0; i < _soundObject.audioSources.Length; i++)
+            {
+                //unmute each gameplay audio source
+                _soundObject.audioSources[i].mute = false;
+            }
+        }
+
+        //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
+        numSpellcodeAudioSources = 4 * numSpellcodeAudioSourcesPerPlayer;
+
+        //iterate through each element of spellcodeAudioSources,...
+        for (int i = 0; i < numSpellcodeAudioSources; i++)
+        {
+            //mute each spellcode audio source
+            spellcodeAudioSources[i].mute = false;
+        }
+    }
+
+    public void MuteMenuSFX()
+    {
+        //mute the menu sfx audio source
+        menuSfxAudioSource.mute = true;
+    }
+
+    public void UnMuteMenuSFX()
+    {
+        //unmute the menu sfx audio source
+        menuSfxAudioSource.mute = false;
     }
 }

@@ -96,10 +96,10 @@ public class SpellCode_Gate : MonoBehaviour
                         }
 
                         return;
-                    }
                 }
 
             }
+
         }
     }
 
@@ -125,13 +125,17 @@ public class SpellCode_Gate : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// Get the X Offset for the Hitbox or HurtBox
-    /// </summary>
-    /// <param name="hitData"></param>
-    /// <param name="isRight"></param>
-    /// <returns></returns>
-    private int GetAttackerOffsetX(HitboxData hitData, bool isRight)
+private bool HasGateBounds()
+{
+    return gateBounds.size.x > 0 && gateBounds.size.y > 0;
+}
+/// <summary>
+/// Get the X Offset for the Hitbox or HurtBox
+/// </summary>
+/// <param name="hitData"></param>
+/// <param name="isRight"></param>
+/// <returns></returns>
+private int GetAttackerOffsetX(HitboxData hitData, bool isRight)
     {
         //return isRight ? hitData.xOffset : -hitData.xOffset;
         return isRight ? hitData.xOffset : -(hitData.xOffset + hitData.width);

@@ -211,30 +211,16 @@ public class Pause : MonoBehaviour
  
         if (input.UI.Cancel.WasPressedThisFrame())
         {
-            //play the resume sfx
-            SFX_Manager.Instance.PlayMenuSound("Pause");
-
             Resume();
-        }
-        else if (input.UI.Cancel.WasPressedThisFrame() && !paused)
-        {
-            //play the pause sfx
-            SFX_Manager.Instance.PlayMenuSound("Pause");
         }
 
         if (input.UI.Back.WasPressedThisFrame() && paused)
         {
-            //play the pause sfx
-            SFX_Manager.Instance.PlayMenuSound("Pause");
-
             Pausing();
         }
 
         if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
         {
-            //play the positive select sfx
-            SFX_Manager.Instance.PlayMenuSound("Positive Select");
-
             TriggerSelectedButton();
         }
 
@@ -405,6 +391,12 @@ public class Pause : MonoBehaviour
  
     public void Resume()
     {
+        if (paused)
+        {
+            //play the resume sfx
+            SFX_Manager.Instance.PlayMenuSound("Resume");
+        }
+
         paused = false;
         options = false;
         spells = false;
@@ -446,6 +438,18 @@ public class Pause : MonoBehaviour
  
     public void Pausing()
     {
+        if(spells || options || controls)
+        {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Negative Select");
+        }
+
+        if (!paused)
+        {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Pause");
+        }
+
         paused = true;
         options = false;
         controls = false;
@@ -684,6 +688,17 @@ public class Pause : MonoBehaviour
         {
             selectedButton.onClick.Invoke();
             StartCoroutine(SuppressSelectionForOneFrame());
+        }
+
+        if(selectedObject.name == "Back")
+        {
+            //play the positive select sfx
+            SFX_Manager.Instance.PlayMenuSound("Negative Select");
+        }
+        else
+        {
+            //play the positive select sfx
+            SFX_Manager.Instance.PlayMenuSound("Positive Select");
         }
     }
 

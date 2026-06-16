@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Steamworks;
 using Steamworks.Data;
 
@@ -25,6 +26,12 @@ public class SteamLobbyManager : MonoBehaviour
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
     private readonly Dictionary<SteamId, float> pendingLobbySnapshotPeers = new Dictionary<SteamId, float>();
     private const float LobbySnapshotResendSeconds = 1f;
+
+    // A lobby join requested while the player is outside MainMenu is deferred across the clean
+    // return-to-lobby teardown (ExecuteOrder66 destroys this manager), so these are static to
+    // survive it; the rebuilt SteamLobbyManager consumes them in TryResumePendingOnlineJoin.
+    private static SteamId? pendingJoinLobbyId;
+    private static SteamId? pendingJoinInviterId;
 
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
@@ -124,7 +131,14 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void Update()
     {
-        if (isShuttingDown || !currentLobby.HasValue)
+        if (isShuttingDown)
+        {
+            return;
+        }
+
+        TryResumePendingOnlineJoin();
+
+        if (!currentLobby.HasValue)
         {
             return;
         }
@@ -250,7 +264,30 @@ public class SteamLobbyManager : MonoBehaviour
         pendingLobbySnapshotPeers.Clear();
     }
 
-    private async void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
+    private void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
+    {
+        if (isShuttingDown || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        // The online lobby only simulates in MainMenu. If the invite is accepted from anywhere
+        // else (training room, tutorial, a leftover match scene), joining in place fails
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            pendingJoinLobbyId = lobby.Id;
+            pendingJoinInviterId = friendId;
+            Debug.Log($"[SteamLobbyManager] Invite accepted outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene before joining lobby {lobby.Id.Value}.");
+            GameManager.Instance?.ExecuteOrder66();
+            return;
+        }
+
+        JoinRequestedLobbyAsync(lobby.Id, friendId);
+    }
+
+    // Joins a requested lobby and kicks off the online match handshake. Split out from the invite
+    // callback so a join deferred across a MainMenu transition can resume through the same path.
+    private async void JoinRequestedLobbyAsync(SteamId lobbyId, SteamId inviterId)
     {
         if (isShuttingDown || !SteamClient.IsValid)
         {
@@ -259,7 +296,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         try
         {
-            if (currentLobby.HasValue && currentLobby.Value.Id != lobby.Id)
+            if (currentLobby.HasValue && currentLobby.Value.Id != lobbyId)
             {
                 hostFlowVersion++;
                 LeaveLobbyInternal();
@@ -267,10 +304,10 @@ public class SteamLobbyManager : MonoBehaviour
 
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] Joining requested lobby. LobbyId={lobby.Id.Value} Inviter={friendId.Value}");
+                Debug.Log($"[SteamLobbyManager] Joining requested lobby. LobbyId={lobbyId.Value} Inviter={inviterId.Value}");
             }
 
-            Lobby? joined = await SteamMatchmaking.JoinLobbyAsync(lobby.Id);
+            Lobby? joined = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
             if (joined.HasValue)
             {
                 currentLobby = joined.Value;
@@ -289,6 +326,29 @@ public class SteamLobbyManager : MonoBehaviour
         {
             Debug.LogError($"Failed to join lobby: {e.Message}");
         }
+    }
+
+    // Resumes a lobby join that was deferred while the player was outside MainMenu. Fires once the
+    // SteamLobbyManager rebuilt by the freshly loaded lobby scene is alive and Steam is ready.
+    private void TryResumePendingOnlineJoin()
+    {
+        if (!pendingJoinLobbyId.HasValue || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        SteamId lobbyId = pendingJoinLobbyId.Value;
+        SteamId inviterId = pendingJoinInviterId ?? default;
+        pendingJoinLobbyId = null;
+        pendingJoinInviterId = null;
+
+        Debug.Log($"[SteamLobbyManager] Resuming deferred lobby join in MainMenu. LobbyId={lobbyId.Value}.");
+        JoinRequestedLobbyAsync(lobbyId, inviterId);
     }
 
     private void HandleLobbyEntered(Lobby lobby)

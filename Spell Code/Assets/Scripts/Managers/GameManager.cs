@@ -2482,6 +2482,11 @@ public class GameManager : MonoBehaviour
         // ONLINE LOBBY LOGIC (MainMenu scene)
         if (activeScene.name == "MainMenu")
         {
+            if (!rbManager.isRollbackFrame && MainMenuScreen != null && players[0] != null)
+            {
+                MainMenuScreen.SetActive(false);
+            }
+
             for (int i = 0; i < gates.Length; i++)
             {
                 if (gates[i] != null)

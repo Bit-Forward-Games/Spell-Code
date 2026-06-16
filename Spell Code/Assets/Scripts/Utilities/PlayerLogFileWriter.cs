@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerLogFileWriter : MonoBehaviour
 {
@@ -27,9 +28,25 @@ public class PlayerLogFileWriter : MonoBehaviour
         if (!subscribed)
         {
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
+            // ExecuteOrder66 (the return-to-menu reset) destroys every DontDestroyOnLoad object,
+            // this logger included, and RuntimeInitializeOnLoadMethod only runs once per process.
+            // Without re-creating the logger, logging dies for the rest of the session after the
+            // first menu return -- and a player who joins from another scene (routed through
+            // ExecuteOrder66) never gets a log file at all
+            SceneManager.sceneLoaded += OnSceneLoadedEnsureInstance;
             subscribed = true;
         }
 
+        EnsureInstance();
+    }
+
+    private static void OnSceneLoadedEnsureInstance(Scene scene, LoadSceneMode mode)
+    {
+        EnsureInstance();
+    }
+
+    private static void EnsureInstance()
+    {
         if (instance != null)
         {
             return;

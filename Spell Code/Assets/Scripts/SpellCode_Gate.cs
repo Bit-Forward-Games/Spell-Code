@@ -66,15 +66,22 @@ public class SpellCode_Gate : MonoBehaviour
             foreach (BaseProjectile projectile in ProjectileManager.Instance.activeProjectiles)
             {
                      
-                
+                // an active projectile can momentarily be a null entry or have a null owner
+                if (projectile == null || projectile.owner == null) continue;
+
                 if (projectile.owner.pID != ownerPID) continue;
 
                 if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                 {
                     if (projectile.ownerSpell == null)
                     {
-                        //play the armor hit sfx
-                        SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                        // Play the armor-hit SFX only on real frames; rollback resim revisits this
+                        // collision and would otherwise replay the sound every resim
+                        if (!isRollback && SFX_Manager.Instance != null)
+                        {
+                            //play the armor hit sfx
+                            SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                        }
                         ProjectileManager.Instance.DeleteProjectile(projectile);
                         return;//maybe this should be break? idk this def works tho
                     }

@@ -4231,11 +4231,14 @@ public class GameManager : MonoBehaviour
         if (scene.name == "End")
         {
             endInputEnabled = false;
+
+            // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
+            ClearStages();
+            HidePersistentUiForEndScene();
+
             if (isOnlineMatchActive)
             {
                 isRunning = false;
-                ClearStages();
-                HidePersistentUiForEndScene();
                 if (isTransitioning)
                 {
                     if (MatchMessageManager.Instance != null)

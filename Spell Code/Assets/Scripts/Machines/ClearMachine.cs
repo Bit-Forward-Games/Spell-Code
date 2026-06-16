@@ -50,6 +50,10 @@ public class ClearMachine : MonoBehaviour
         if (isActive && CheckHitboxCollision())
         {
             Debug.Log("CLEARING");
+
+            //play the clear machine hit
+            SFX_Manager.Instance.PlaySound(Sounds.CLEAR_MACHINE_HIT, 1.0f, 1.0f);
+
             ownerPlayer.ClearSpellList();
             isActive = false;
         }

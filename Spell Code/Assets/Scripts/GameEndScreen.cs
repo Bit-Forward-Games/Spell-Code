@@ -22,8 +22,11 @@ public class GameEndScreen : MonoBehaviour
         if (useOnlineEndFlow)
         {
             Time.timeScale = 1f;
-            DisableOnlineEndUi();
         }
+
+        // Player UI and other Selectables are DontDestroyOnLoad / carried in from the match and
+        // otherwise linger on the end screen. Clear them for offline as well as online
+        DisableEndSceneUi();
 
         ApplyWinnerPresentation(useOnlineEndFlow);
 
@@ -119,7 +122,7 @@ public class GameEndScreen : MonoBehaviour
         }
     }
 
-    private void DisableOnlineEndUi()
+    private void DisableEndSceneUi()
     {
         Selectable[] selectables = FindObjectsByType<Selectable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         for (int i = 0; i < selectables.Length; i++)

@@ -243,8 +243,10 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_particleLifetime"> How long (in seconds) each particle emitted by the particle system will last for. By default, set to -1 which indicates that the particles will last for their default lifetime.</param>
     public void PlayVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, Transform _parentTransform = null, float _emissionRate = -1f, float _particleLifetime = -1f)
     {
+        //if the visual effect object does NOT exist,...
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
+            //return
             return;
         }
 
@@ -310,6 +312,7 @@ public class VFX_Manager : MonoBehaviour
         //if _emissionRate is not the garbage default value,...
         if (_emissionRate != -1f && _visualEffectObject.numParticleSystemsPerPlayer == 1)
         {
+            
             ParticleSystem emissionTarget = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
             if (emissionTarget == null)
             {
@@ -317,6 +320,8 @@ public class VFX_Manager : MonoBehaviour
             }
 
             var em = emissionTarget.emission;
+
+            Debug.Log("Changing emission rate from " + em.rateOverTime + " to " + _emissionRate + " for vfx");
 
             //turn off emmision
             emissionTarget.Stop();
@@ -418,6 +423,46 @@ public class VFX_Manager : MonoBehaviour
         //play the visual effect
         _particleSystem.Play();
     }
+
+    //public void UpdateVisualEffectValues(VisualEffects _nameOfVisualEffectToUpdate, int _playerNum = 0, float _emissionRate = -1f, float _particleLifetime = -1f)
+    //{
+    //    //if the visual effect object does NOT exist,...
+    //    if (!TryGetVisualEffectObject(_nameOfVisualEffectToUpdate, _playerNum, out VisualEffectObject _visualEffectObject))
+    //    {
+    //        //return
+    //        return;
+    //    }
+
+    //    //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
+    //    ParticleSystem _particleSystem = null;
+    //    foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
+    //    {
+    //        if (_listedParticleSystem == null)
+    //        {
+    //            continue;
+    //        }
+    //        //if the particle system is NOT already playing,...
+    //        if (!_listedParticleSystem.isPlaying)
+    //        {
+    //            //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
+    //            //set _particleSystem to the particle system in question
+    //            _particleSystem = _listedParticleSystem;
+
+    //            //break out of the foreach loop
+    //            break;
+    //        }
+    //    }
+
+    //    //if no available particle system was found,...
+    //    if (_particleSystem == null)
+    //    {
+    //        _particleSystem = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
+    //        if (_particleSystem == null)
+    //        {
+    //            return;
+    //        }
+    //    }
+    //}
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {

@@ -190,6 +190,13 @@ public class FloppyPickup : MonoBehaviour
                         if (isRealFrame)
                         {
                             diskDisplay.StopFloppyDisplay();
+                            // Play the floppy pick-up sfx on real frames only (rollback resim
+                            // replays this pickup and would otherwise replay the sound). Null-guarded
+                            // so a missing SFX_Manager can't throw mid-simulation
+                            if (SFX_Manager.Instance != null)
+                            {
+                                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
+                            }
                         }
                         gameObject.SetActive(false);
                         if (isRealFrame)

@@ -363,6 +363,13 @@ public class GambaMachine : MonoBehaviour
                 SpawnFloppysForOwnerOnline(isRollback);
                 if (!isRollback)
                 {
+                    // Play the gamba hit sfx on real frames only (rollback resim revisits this hit
+                    // and would otherwise replay the sound). Null-guarded so a missing SFX_Manager
+                    // can't throw mid-simulation
+                    if (SFX_Manager.Instance != null)
+                    {
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+                    }
                     GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"lobby gamba P{ownerPID}");
                 }
             }
@@ -411,6 +418,13 @@ public class GambaMachine : MonoBehaviour
             if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
             if (!isRollback)
             {
+                // Play the gamba hit sfx on real frames only (rollback resim revisits this hit and
+                // would otherwise replay the sound). Null-guarded so a missing SFX_Manager can't
+                // throw mid-simulation
+                if (SFX_Manager.Instance != null)
+                {
+                    SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+                }
                 GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"shop gamba P{ownerPID} activation {activatedCount}");
             }
         }

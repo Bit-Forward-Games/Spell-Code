@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7938718223334097556}
   - component: {fileID: 7108996257177461571}
+  - component: {fileID: 9129939321300093860}
   - component: {fileID: 8921497308674347015}
   m_Layer: 0
   m_Name: pfb_SFX_Manager
@@ -47,6 +48,103 @@ AudioSource:
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 0.5
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!82 &9129939321300093860
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4707198319043590537}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -171618993147419514, guid: b6810bb5be8e14c41a9bb2415473b898, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -397,12 +495,19 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 9bcc111eb3f5dc545b2be91851b8d4f0, type: 3}
   - {fileID: 8300000, guid: 31743314160be7e4d8692d3b576c0ed4, type: 3}
   - {fileID: 8300000, guid: 93a8cc60d99f7d74fb8ea5150b40ba97, type: 3}
-  - {fileID: 8300000, guid: 6e7a8a1ed3bb2bc4d852cb05f581d9ec, type: 3}
-  - {fileID: 8300000, guid: f3894fc63b0a97144ab3bcd17a7925ef, type: 3}
+  - {fileID: 8300000, guid: 5547ff49a2c4821488ba179b4676a855, type: 3}
+  - {fileID: 8300000, guid: d8ca0934948ee3d4aa42dbcde0100a4d, type: 3}
   - {fileID: 8300000, guid: 11cb6d9fca5753f4cb5a9d9875f17ab9, type: 3}
-  - {fileID: 8300000, guid: faf916b0f54a9b74eac2e7ae4ae8aa3a, type: 3}
+  - {fileID: 8300000, guid: fd93dcf376873af4baf712fde47cfadb, type: 3}
   - {fileID: 8300000, guid: d2b5ab36c18aff14a89398e9f2117cf4, type: 3}
   - {fileID: 8300000, guid: 087eda904068c374c95c8be40ba2e634, type: 3}
   - {fileID: 8300000, guid: 98cf0bd552eabee49bf022b374b2fa6a, type: 3}
   - {fileID: 8300000, guid: fd93dcf376873af4baf712fde47cfadb, type: 3}
+  menuAudioClips:
+  - {fileID: 8300000, guid: b800095153aedac4f80b5be7e465a5e0, type: 3}
+  - {fileID: 8300000, guid: 1176057e31493644ba8aa253359aa2de, type: 3}
+  - {fileID: 8300000, guid: d5dc904fda860754596354a9ae0641bc, type: 3}
+  - {fileID: 8300000, guid: 2876cf9f3f9f9394182cad4905df8ce1, type: 3}
+  - {fileID: 8300000, guid: 1f3bc5cd8795be94f9d0847f602e4a80, type: 3}
+  - {fileID: 8300000, guid: c1610b33b70128445b53e227cf072e8c, type: 3}
   numSpellcodeAudioSourcesPerPlayer: 5

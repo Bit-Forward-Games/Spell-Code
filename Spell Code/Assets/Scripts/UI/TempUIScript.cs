@@ -167,6 +167,7 @@ public class TempUIScript : MonoBehaviour
         if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
         {
             SetSoloMenuActive(false);
+            Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
         }
     }

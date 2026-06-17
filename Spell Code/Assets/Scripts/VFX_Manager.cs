@@ -341,6 +341,84 @@ public class VFX_Manager : MonoBehaviour
         _particleSystem.Play();
     }
 
+    public void PlayVisualEffectWithSortingID(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, int _sortingLayerID = -1)
+    {
+        if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
+        {
+            return;
+        }
+
+        //Debug.Log("PlayerNum = " + _playerNum + ". And particleSystems has size = " + _visualEffectObject.particleSystems.Length);
+
+        //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
+        ParticleSystem _particleSystem = null;
+        foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
+        {
+            if (_listedParticleSystem == null)
+            {
+                continue;
+            }
+            //if the particle system is NOT already playing,...
+            if (!_listedParticleSystem.isPlaying)
+            {
+                //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
+                //set _particleSystem to the particle system in question
+                _particleSystem = _listedParticleSystem;
+
+                //break out of the foreach loop
+                break;
+            }
+        }
+
+        //if no available particle system was found,...
+        if (_particleSystem == null)
+        {
+            _particleSystem = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
+            if (_particleSystem == null)
+            {
+                return;
+            }
+        }
+
+        //convert _spawnPos to a Vector3
+        Vector3 _spawnPosVector3 = new Vector3(_spawnPos.X.ToFloat(), _spawnPos.Y.ToFloat(), 0f);
+
+        //set position of particle system to Vector2 version of _spawnPos
+        _particleSystem.gameObject.transform.position = _spawnPosVector3;
+
+        //change particle system direction based on _spawnFacingRight
+        if (_spawnFacingRight == true)
+        {
+            _particleSystem.gameObject.transform.localScale = new Vector3(1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localEulerAngles = new Vector3(_visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.x, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.y, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.z);
+        }
+        else
+        {
+            _particleSystem.gameObject.transform.localScale = new Vector3(-1f, _particleSystem.gameObject.transform.localScale.y, _particleSystem.gameObject.transform.localScale.z);
+            _particleSystem.gameObject.transform.localEulerAngles = new Vector3(_visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.x, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.y, _visualEffectObject.particleSystemPrefab.gameObject.transform.eulerAngles.z * -1f);
+        }
+
+        //if a sorting layer is specified,...
+        if(_sortingLayerID != -1)
+        {
+            //set the sorting layer of the particle system
+            ParticleSystemRenderer pr = _particleSystem.GetComponent<ParticleSystemRenderer>();
+            if(pr != null)
+            {
+                pr.sortingLayerID = _sortingLayerID;
+
+                //if (_nameOfVisualEffectToPlay == VisualEffects.BLOCKING) { 
+                //    Debug.Log("VFX MASK | sorting layer ID of blocking VFX is " + _sortingLayerID);
+                //}
+            }
+        }
+
+        //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
+
+        //play the visual effect
+        _particleSystem.Play();
+    }
+
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))

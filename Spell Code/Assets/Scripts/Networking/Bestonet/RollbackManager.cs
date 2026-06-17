@@ -117,6 +117,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 
+        [Header("Adaptive Input Delay")]
+        [SerializeField] public bool EnableAdaptiveInputDelay = true;
+        [SerializeField] public int AdaptiveInputDelayBaseFrames = 3;  // Floor (the historical fixed value)
+        [SerializeField] public int AdaptiveInputDelayMaxFrames = 6;   // Ceiling (~+50ms local input lag at most)
+        [SerializeField] public int AdaptiveInputDelayPingStepMs = 80; // +1 delay frame per this much worst-peer ping (ms)
+        private int lastAdaptiveInputDelayEvalFrame = -1;
+        private const int AdaptiveInputDelayReevalTicks = 180; // re-evaluate at most ~once per 3s between resets
+
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
         // shrinking the prediction window so visible rollback corrections (teleports) stay small.
@@ -458,6 +466,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // future and lock the hold out for the whole next scene.
             ClearFrameAdvantageHistory();
             lastTimeSyncHoldFrame = -1;
+            // Re-evaluate adaptive input delay fresh after a timeline jump (round/scene reset):
+            // localFrame can move backward, which would otherwise leave the throttle comparison far
+            // in the future. A reset is also the ideal cadence -- a round boundary, between fights.
+            lastAdaptiveInputDelayEvalFrame = -1;
             timeSyncFastDrainUntilFrame = baselineFrame + TimeSyncFastDrainWindowTicks;
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
         }
@@ -1255,6 +1267,55 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             matchManager.SendInputs(); // Send target frame and input
             return true;
     }
+
+        /// <summary>
+        /// Nudges local InputDelay toward a value matched to the worst
+        /// measured peer ping, so our inputs land before peers need them and their prediction/
+        /// rollback of us stays shallow at high ping. Self-throttled (re-evaluates at round resets
+        /// and at most ~once per 3s otherwise), so it is safe to call every frame. Determinism:
+        /// InputDelay is a purely local scheduling choice; the brief gap a change creates is
+        /// neutral (5) in both SynchronizeInput and SendInputs, identical on the wire and in the
+        /// sim, so no desync and no cross-client agreement is required.
+        /// </summary>
+        public void MaybeApplyAdaptiveInputDelay()
+        {
+            if (!EnableAdaptiveInputDelay || DelayBased) return;
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive) return;
+            // Adapt only during combat: the lobby/shop schedule inputs differently (lobby input
+            // lead) and don't carry the high-ping rollback depth this targets.
+            if (SceneManager.GetActiveScene().name != "Gameplay") return;
+
+            int currentFrame = localFrame;
+            if (lastAdaptiveInputDelayEvalFrame >= 0
+                && currentFrame - lastAdaptiveInputDelayEvalFrame < AdaptiveInputDelayReevalTicks)
+            {
+                return;
+            }
+            lastAdaptiveInputDelayEvalFrame = currentFrame;
+
+            int maxFrames = Mathf.Max(AdaptiveInputDelayBaseFrames, AdaptiveInputDelayMaxFrames);
+            int step = Mathf.Max(1, AdaptiveInputDelayPingStepMs);
+            int worstPingMs = GetWorstPeerPingMs();
+            int target = Mathf.Clamp(AdaptiveInputDelayBaseFrames + worstPingMs / step, AdaptiveInputDelayBaseFrames, maxFrames);
+
+            if (target == InputDelay) return;
+
+            int previous = InputDelay;
+            InputDelay = target;
+            Debug.Log($"[Rollback] Adaptive input delay {previous} -> {InputDelay} frames (worst peer ping {worstPingMs}ms) at frame {currentFrame}.");
+        }
+
+        private int GetWorstPeerPingMs()
+        {
+            int worst = 0;
+            if (matchManager == null) return worst;
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                int ping = matchManager.GetPingForSlot(remotePlayerSlots[i]);
+                if (ping > worst) worst = ping;
+            }
+            return worst;
+        }
 
         /// <summary>
         /// Determines if the simulation should run this frame based on input availability (for delay-based)

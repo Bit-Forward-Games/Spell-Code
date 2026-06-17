@@ -2471,6 +2471,7 @@ public class GameManager : MonoBehaviour
 
         frameNumber++;
         rbManager.DiagMarkAdvance();
+        rbManager.MaybeApplyAdaptiveInputDelay();
         syncedInput = rbManager.SynchronizeInput();
 
         Scene activeScene = SceneManager.GetActiveScene();

@@ -1284,15 +1284,15 @@ MonoBehaviour:
   hitRumbleDuration: 0.12
   facingRight: 1
   isGrounded: 0
+  touchingLeftWall: 0
+  touchingRightWall: 0
   onPlatform: 0
-  relativeInputs: 0
-  toggleCodeInput: 0
-  tapJump: 0
   logicFrame: 0
   animationFrame: 0
   state: 0
   prevState: 0
   spriteRenderer: {fileID: -1293374541561941338}
+  spriteMask: {fileID: 2212921169824715940}
   jumpCount: 0
   maxJumpCount: 0
   flowState: 0
@@ -1309,19 +1309,6 @@ MonoBehaviour:
   secretEpicPalette: {fileID: 2800000, guid: 89351bb7c23086143aa9af4dd52f4a4e, type: 3}
   secretNormalPalette: {fileID: 2800000, guid: 0c90348273f52834e837604d57f76e1b, type: 3}
   currentPlayerHealth: 0
-  hitboxData:
-    xOffset: 0
-    yOffset: 0
-    width: 0
-    height: 0
-    xKnockback: 0
-    yKnockback: 0
-    damage: 0
-    hitstun: 0
-    attackLvl: 0
-    parentProjectile: {fileID: 0}
-    sweetSpot: 0
-    basicAttackHitbox: 0
   isHit: 0
   stateSpecificArg: 0
   storedCode: 0
@@ -1578,9 +1565,9 @@ SpriteMask:
   m_BackSortingLayerID: 0
   m_FrontSortingLayer: 0
   m_BackSortingLayer: 0
-  m_FrontSortingOrder: 0
+  m_FrontSortingOrder: 1
   m_BackSortingOrder: 0
-  m_IsCustomRangeActive: 0
+  m_IsCustomRangeActive: 1
   m_SpriteSortPoint: 0
   m_MaskSource: 1
 --- !u!1 &8879918758412812615

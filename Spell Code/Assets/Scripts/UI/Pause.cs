@@ -505,7 +505,6 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
         SetMenuTimeScale();
-        Time.timeScale = 0f;
 
         //mute all gameplay sfx but not menu sfx
         SFX_Manager.Instance.MuteGamePlaySFX();
@@ -775,15 +774,15 @@ public class Pause : MonoBehaviour
  
     public void SFXVolume()
     {
-        float volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
-        ApplySfxMixerVolume(volume);
+        float sfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
+        float menuSfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
+        ApplySfxMixerVolume(sfx_volume);
+        ApplyMenuSfxMixerVolume(menuSfx_volume);
 
         if (SettingsManager.Instance != null)
         {
-            SettingsManager.Instance.SetSfxVolume(volume);
+            SettingsManager.Instance.SetSfxVolume(sfx_volume);
         }
-        sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
-        menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
     }
  
     public void ToggleCameraShake()
@@ -820,6 +819,15 @@ public class Pause : MonoBehaviour
         if (mixer != null)
         {
             mixer.SetFloat("SFXVolume", VolumeToDecibels(volume));
+        }
+    }
+
+    private void ApplyMenuSfxMixerVolume(float volume)
+    {
+        AudioMixer mixer = menuSfxAudioMixer != null ? menuSfxAudioMixer : musicAudioMixer;
+        if (mixer != null)
+        {
+            mixer.SetFloat("MenuSFXVolume", VolumeToDecibels(volume));
         }
     }
 

@@ -238,15 +238,6 @@ public class SFX_Manager : MonoBehaviour
             return;
         }
 
-        ////sanity check to make sure that there is a sound with name equal to _soundName that exists within spellcodeAudioClips
-        //if (spellcodeAudioClips.Find(x => x.name == _soundName) == null)
-        //{
-        //    //log a warning
-        //    Debug.LogWarning(gameObject.name + ": Specified sound of name = \"" + _soundName + "\" does not exist within spellcodeAudioClips of the SFX_Manager script. Please specify a sound that exists with spellcodeAudioClips");
-
-        //    //return
-        //    return;
-        //}
         //if the menuSfxAudioSource is muted,...
         if (menuSfxAudioSource.mute == true)
         {

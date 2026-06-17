@@ -223,6 +223,11 @@ public class Pause : MonoBehaviour
             TriggerSelectedButton();
         }
 
+        if (!uiScript.soloGamemodesMenuOpened && !paused) 
+        {
+            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
  
     private void SpellGlossaryNavigation()
@@ -387,11 +392,20 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
-        SaveSettings();
-        // if (!uiScript.soloGamemodesMenuOpened) 
-            Time.timeScale = 1f;
+        SaveSettings(); 
+        Time.timeScale = 1f;
+
+        if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
+
         //unmute all sfx
         SFXVolume();
+    }
+
+    public IEnumerator BackToGameModeSelector()
+    {
+        yield return new WaitForSeconds(0.02f);
+        Time.timeScale = 0f;
+        EventSystem.current.SetSelectedGameObject(uiScript._soloGamemodesMenuFirst);
     }
 
     public void SaveSettings()
@@ -470,7 +484,7 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
  
-        EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
+        StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         Time.timeScale = 0f;
     }
@@ -526,7 +540,8 @@ public class Pause : MonoBehaviour
             grid[i].spells = columnSpells.ToArray();
         }
  
-        EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
+        StartCoroutine(SelectFirst(_spellsMenuFirst));
+        
  
         Time.timeScale = 0f;
     }

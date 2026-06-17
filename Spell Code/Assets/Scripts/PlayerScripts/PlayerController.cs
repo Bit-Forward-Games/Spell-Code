@@ -958,7 +958,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened)
             {
                 pause.playerPauseIndex = _playerPauseIndex;
 

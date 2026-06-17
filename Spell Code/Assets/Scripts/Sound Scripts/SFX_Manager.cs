@@ -514,8 +514,6 @@ public class SFX_Manager : MonoBehaviour
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
         {
-            //Debug.Log("Here " + _soundObject.audioSources.Length);
-
             //iterate through each audio source in audioSources array 
             foreach (AudioSource _audioSource in _soundObject.audioSources)
             {
@@ -529,21 +527,6 @@ public class SFX_Manager : MonoBehaviour
                 _audioSource.mute = true;
                 //Debug.Log("Muting all sub audio sources");
             }
-
-            ////iterate through each AudioSource in the audioSources array for each _soundObject,...
-            //for (int i = 0; i < _soundObject.audioSources.Length; i++)
-            //{
-            //    //if this audio source is NOT defined,...
-            //    if (!_soundObject.audioSources[i])
-            //    {
-            //        //skip this audio source
-            //        continue;
-            //    }
-
-            //    //mute each gameplay audio source
-            //    _soundObject.audioSources[i].mute = true;
-                
-            //}
         }
 
         //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
@@ -610,7 +593,6 @@ public class SFX_Manager : MonoBehaviour
 
     public void UnMuteMenuSFX()
     {
-
         //if this audio source is NOT defined,...
         if (!menuSfxAudioSource)
         {

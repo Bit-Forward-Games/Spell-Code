@@ -401,7 +401,7 @@ public class PlayerController : MonoBehaviour
                 playerIndexImages[0].color = GameManager.colors["red"];
 
                 //set the front and back sorting layers for masking
-                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 1");
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 1 Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 1 Back");
 
                 break;
@@ -413,7 +413,7 @@ public class PlayerController : MonoBehaviour
                 playerIndexImages[1].color = GameManager.colors["blue"];
 
                 //set the front and back sorting layers for masking
-                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 2");
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 2 Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 2 Back");
 
                 break;
@@ -425,7 +425,7 @@ public class PlayerController : MonoBehaviour
                 playerIndexImages[2].color = GameManager.colors["yellow"];
 
                 //set the front and back sorting layers for masking
-                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 3");
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 3 Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 3 Back");
 
                 break;
@@ -437,7 +437,7 @@ public class PlayerController : MonoBehaviour
                 playerIndexImages[3].color = GameManager.colors["green"];
 
                 //set the front and back sorting layers for masking
-                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 4");
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 4 Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 4 Back");
 
                 break;
@@ -445,7 +445,7 @@ public class PlayerController : MonoBehaviour
                 pID = 0;
 
                 //set the front and back sorting layers for masking
-                spriteMask.frontSortingLayerID = SortingLayer.NameToID("NPC");
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("NPC Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("NPC Back");
 
                 Vector2 spawnPosNPC = GameManager.Instance.GetNPCSpawnPositions()[0];

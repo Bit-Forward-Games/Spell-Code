@@ -321,7 +321,7 @@ public class VFX_Manager : MonoBehaviour
 
             var em = emissionTarget.emission;
 
-            Debug.Log("Changing emission rate from " + em.rateOverTime + " to " + _emissionRate + " for vfx");
+            //Debug.Log("Changing emission rate from " + em.rateOverTime + " to " + _emissionRate + " for vfx");
 
             //turn off emmision
             emissionTarget.Stop();

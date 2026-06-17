@@ -469,12 +469,14 @@ public class SFX_Manager : MonoBehaviour
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
         {
-            //if this SoundObject can repeat,...
-            if (_soundObject.canRepeat)
+            //if this SoundObject CANNOT repeat,...
+            if (!_soundObject.canRepeat)
             {
-                //stop repeating the sound for the given player
-                StopRepeatingSound(_soundObject.soundName, _playerIndex);
+                continue;
             }
+
+            //stop repeating the sound for the given player
+            StopRepeatingSound(_soundObject.soundName, _playerIndex);
         }
         //Debug.Log("Stopped repeating all sounds for player #" + (_playerIndex + 1).ToString());
     }
@@ -487,15 +489,17 @@ public class SFX_Manager : MonoBehaviour
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
         {
-            //if this SoundObject can repeat,...
-            if (_soundObject.canRepeat)
+            //if this SoundObject CANNOT repeat,...
+            if (!_soundObject.canRepeat)
             {
-                //for each player,...
-                for (int i = 0; i < _soundObject.audioSources.Length; i++)
-                {
-                    //stop repeating the sound
-                    StopRepeatingSound(_soundObject.soundName, i);
-                }
+                continue;
+            }
+
+            //for each player,...
+            for (int i = 0; i < _soundObject.audioSources.Length; i++)
+            {
+                //stop repeating the sound
+                StopRepeatingSound(_soundObject.soundName, i);
             }
         }
         //Debug.Log("SFX Manager | Stopped repeating all sounds");
@@ -503,28 +507,43 @@ public class SFX_Manager : MonoBehaviour
 
     public void MuteGamePlaySFX()
     {
-        Debug.Log("Muting sfx audio source");
+        //Debug.Log("Muting sfx audio source");
         //mute the sfx audio source
         sfxAudioSource.mute = true;
 
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
         {
-            Debug.Log("Here " + _soundObject.audioSources.Length);
+            //Debug.Log("Here " + _soundObject.audioSources.Length);
 
-            foreach (AudioSource x in _soundObject.audioSources)
+            //iterate through each audio source in audioSources array 
+            foreach (AudioSource _audioSource in _soundObject.audioSources)
             {
-                x.mute = true;
-                Debug.Log("Muting all sub audio sources");
+                //if this audio source is NOT defined,...
+                if(!_audioSource)
+                {
+                    //skip this audio source
+                    continue;
+                }
+
+                _audioSource.mute = true;
+                //Debug.Log("Muting all sub audio sources");
             }
 
-            //iterate through each AudioSource in the audioSources array for each _soundObject,...
-            for (int i = 0; i < _soundObject.audioSources.Length; i++)
-            {
-                //mute each gameplay audio source
-                _soundObject.audioSources[i].mute = true;
+            ////iterate through each AudioSource in the audioSources array for each _soundObject,...
+            //for (int i = 0; i < _soundObject.audioSources.Length; i++)
+            //{
+            //    //if this audio source is NOT defined,...
+            //    if (!_soundObject.audioSources[i])
+            //    {
+            //        //skip this audio source
+            //        continue;
+            //    }
+
+            //    //mute each gameplay audio source
+            //    _soundObject.audioSources[i].mute = true;
                 
-            }
+            //}
         }
 
         //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
@@ -540,8 +559,12 @@ public class SFX_Manager : MonoBehaviour
 
     public void UnMuteGamePlaySFX()
     {
-        //unmute the sfx audio source
-        sfxAudioSource.mute = false;
+        //if this audio source is defined,...
+        if (sfxAudioSource)
+        {
+            //unmute the sfx audio source
+            sfxAudioSource.mute = false;
+        }
 
         //iterate through each SoundObject in soundObjects,...
         foreach (SoundObject _soundObject in soundObjects)
@@ -549,6 +572,13 @@ public class SFX_Manager : MonoBehaviour
             //iterate through each AudioSource in the audioSources array for each _soundObject,...
             for (int i = 0; i < _soundObject.audioSources.Length; i++)
             {
+                //if this audio source is NOT defined,...
+                if (!_soundObject.audioSources[i])
+                {
+                    //skip this audio source
+                    continue;
+                }
+
                 //unmute each gameplay audio source
                 _soundObject.audioSources[i].mute = false;
             }
@@ -567,12 +597,27 @@ public class SFX_Manager : MonoBehaviour
 
     public void MuteMenuSFX()
     {
+        //if this audio source is NOT defined,...
+        if (!menuSfxAudioSource)
+        {
+            //return
+            return;
+        }
+
         //mute the menu sfx audio source
         menuSfxAudioSource.mute = true;
     }
 
     public void UnMuteMenuSFX()
     {
+
+        //if this audio source is NOT defined,...
+        if (!menuSfxAudioSource)
+        {
+            //return
+            return;
+        }
+
         //unmute the menu sfx audio source
         menuSfxAudioSource.mute = false;
     }

@@ -520,7 +520,7 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
 
         StartCoroutine(SelectFirst(_optionsMenuFirst));
     }

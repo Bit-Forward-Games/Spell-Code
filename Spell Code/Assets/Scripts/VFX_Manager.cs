@@ -263,7 +263,6 @@ public class VFX_Manager : MonoBehaviour
             //if the particle system is NOT already playing,...
             if(!_listedParticleSystem.isPlaying)
             {
-                //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
                 //set _particleSystem to the particle system in question
                 _particleSystem = _listedParticleSystem;
 
@@ -312,19 +311,16 @@ public class VFX_Manager : MonoBehaviour
         //if _emissionRate is not the garbage default value,...
         if (_emissionRate != -1f && _visualEffectObject.numParticleSystemsPerPlayer == 1)
         {
-            
-            ParticleSystem emissionTarget = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
-            if (emissionTarget == null)
+            //get the emissin module
+            //ParticleSystem emissionTarget = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
+            if (_particleSystem == null)
             {
                 return;
             }
-
-            var em = emissionTarget.emission;
-
-            //Debug.Log("Changing emission rate from " + em.rateOverTime + " to " + _emissionRate + " for vfx");
+            var em = _particleSystem.emission;
 
             //turn off emmision
-            emissionTarget.Stop();
+            _particleSystem.Stop();
             em.enabled = false;
 
             //set emission rate over time of the particle system to _emissionRate
@@ -340,10 +336,70 @@ public class VFX_Manager : MonoBehaviour
             main.startLifetime = _particleLifetime;
         }
 
-        //Debug.Log(gameObject.name + ": Playing visual effect of name = \"" + _nameOfVisualEffectToPlay + "\"");
-
         //play the visual effect
         _particleSystem.Play();
+    }
+
+    /// <summary>
+    /// Play a visual effect with the name defined by "_nameOfSoundToPlay" at the position defined by "_spawnPos"
+    /// </summary>
+    /// <param name="_nameOfVisualEffectToPlay"> Name of the visual effect to be played</param>
+    /// <param name="_spawnPos"> Position of the visual effect to be played.</param>
+    /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player).</param>
+    /// <param name="_parentTransform"> Parent transform that this particle effect should follow. By default, set to null.</param>
+    /// <param name="_emissionRate"> Rate at which particles are emitted from the particle system. By default, set to -1 which indicates that the particle system should emit at its default rate.</param>
+    public void PlayAuraVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum, Transform _parentTransform, float _emissionRate)
+    {
+        //if the visual effect object does NOT exist,...
+        if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
+        {
+            //return
+            return;
+        }
+
+        //if _playerNum is 0,...
+        if(_playerNum == 0)
+        {
+            //return
+            return;
+        }
+
+        //if _parentTransform is null,...
+        if (_parentTransform == null)
+        {
+            //return
+            return;
+        }
+
+        //get the particle system of _playerNum
+        ParticleSystem _particleSystem = _visualEffectObject.particleSystems[_playerNum][0];
+
+        //if the found particle system does not exist,...
+        if (_particleSystem == null)
+        {
+            //return
+            return;
+        }
+
+        //make particle system a child of the _parentTransform
+        _particleSystem.gameObject.transform.parent = _parentTransform;
+
+        //convert _spawnPos to a Vector3
+        Vector3 _spawnPosVector3 = new Vector3(_spawnPos.X.ToFloat(), _spawnPos.Y.ToFloat(), 0f);
+
+        //set position of particle system to Vector2 version of _spawnPos
+        _particleSystem.gameObject.transform.position = _spawnPosVector3;
+
+        //set the emission rate;
+        var em = _particleSystem.emission;
+        em.rateOverTime = _emissionRate;
+
+        //play the visual effect
+        if (!_particleSystem.isPlaying)
+        {
+            //Debug.Log("Starting particle system");
+            _particleSystem.Play();
+        }
     }
 
     public void PlayVisualEffectWithSortingID(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum = 0, bool _spawnFacingRight = true, int _sortingLayerID = -1)

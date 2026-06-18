@@ -224,7 +224,7 @@ public class Pause : MonoBehaviour
             TriggerSelectedButton();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -405,11 +405,13 @@ public class Pause : MonoBehaviour
         paused = false;
         options = false;
         spells = false;
+        uiScript.tutorialPromptMenuOpened = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
+        uiScript.tutorialPromptMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings(); 
@@ -507,7 +509,7 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_optionsMenuFirst));
     }
 
-    IEnumerator SelectFirst(GameObject target)
+    public IEnumerator SelectFirst(GameObject target)
     {
         yield return new WaitForSecondsRealtime(0.02f);
         EventSystem.current.SetSelectedGameObject(target);

@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using DG.Tweening;
 
-public class TempUIScript : MonoBehaviour
+public class TempUIScript : MonoBehaviour, ISelectHandler
 {
     public TextMeshProUGUI[] playerRamVals;
     public GameManager gameManager;
@@ -72,7 +72,17 @@ public class TempUIScript : MonoBehaviour
     public Pause pause;
 
     private InputSystem_Actions input;
- 
+
+    public RectTransform highlightOverlay; // lives outside the Layout Group, e.g. sibling of the panel
+
+    public void OnSelect(BaseEventData eventData)
+    {
+        RectTransform myRect = (RectTransform)transform;
+        highlightOverlay.position = myRect.position;
+        highlightOverlay.sizeDelta = myRect.sizeDelta;
+        highlightOverlay.SetAsLastSibling();
+    }
+
     void Awake()
     {
         input = new InputSystem_Actions();
@@ -160,6 +170,14 @@ public class TempUIScript : MonoBehaviour
             SetSoloMenuActive(false);
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            tutorialPromptMenu.SetActive(true);
+            Time.timeScale = 0f;
+            tutorialPromptMenuOpened = true;
+            StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         }
     }
 

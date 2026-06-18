@@ -3293,6 +3293,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(tapJump);
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
+        bw.Write(tapJumpPrimed); // rollback-critical
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
@@ -3390,6 +3391,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(tapJump);
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
+        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3526,6 +3528,7 @@ public class PlayerController : MonoBehaviour
         tapJump = br.ReadBoolean();
         jumpCount = br.ReadByte();
         maxJumpCount = br.ReadByte();
+        tapJumpPrimed = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();

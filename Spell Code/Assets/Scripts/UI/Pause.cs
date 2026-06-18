@@ -849,21 +849,42 @@ public class Pause : MonoBehaviour
  
     public void ToggleRelativeInput()
     {
+        // relativeInputs, toggleCodeInput, tapJump and vibeCoding are all deterministic sim state
+        if (IsOnlineMatchActive())
+        {
+            if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
+            return;
+        }
         UIRelativeInput = !UIRelativeInput;
     }
- 
+
     public void ToggleCodeInput()
     {
+        if (IsOnlineMatchActive())
+        {
+            if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
+            return;
+        }
         UIToggleCodeInput = !UIToggleCodeInput;
     }
- 
+
     public void ToggleTapJump()
     {
+        if (IsOnlineMatchActive())
+        {
+            if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
+            return;
+        }
         UITapJump = !UITapJump;
     }
 
     public void ToggleVibeCoding()
     {
+        if (IsOnlineMatchActive())
+        {
+            if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+            return;
+        }
         UIVibeCode = !UIVibeCode;
     }
 }

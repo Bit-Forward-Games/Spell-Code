@@ -3380,6 +3380,16 @@ public class GameManager : MonoBehaviour
                 foreach (PlayerController p in playerControllers)
                 {
                     if (!p.isConnected) { continue; }
+
+                    // Never credit the victim for their own death
+                    // Keep their contributions against other players and any legitimate pending kill bonus intact for those players' death payouts
+                    if (isOnlineMatchActive && p == player)
+                    {
+                        damageMatrix[player.pID - 1, p.pID - 1] = 0;
+                        Debug.Log($"[OnlineScoring] Player {p.pID} received no RAM for their own death.");
+                        continue;
+                    }
+
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
                     int totalKillParticipationRamEarned = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;

@@ -2935,8 +2935,9 @@ public class PlayerController : MonoBehaviour
 
             currentPlayerHealth = 0;
 
-            //award the killer with the extra bonus ram
-            if (hasAttacker)
+            // Online self-damage must not award the victim a kill bonus
+            bool isOnlineSelfKill = GameManager.Instance.isOnlineMatchActive && attacker == this;
+            if (hasAttacker && !isOnlineSelfKill)
             {
                 attacker.storedKillBonus += baseRamKillBonus;
                 //attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);

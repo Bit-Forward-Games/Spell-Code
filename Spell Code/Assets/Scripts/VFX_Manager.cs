@@ -253,6 +253,7 @@ public class VFX_Manager : MonoBehaviour
             return;
         }
 
+        //if the visual effect object does NOT exist,...
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
         {
             //return

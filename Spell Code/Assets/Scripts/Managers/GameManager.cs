@@ -2857,6 +2857,11 @@ public class GameManager : MonoBehaviour
 
         roundEndUIShown = true;
 
+        // Online scene transitions wait for BOTH clients to reach the destination scene; at high
+        // ping that scene-sync can take several seconds (the client that arrives first buffers the
+        // laggard's inputs until they align)
+        float transitionMessageSeconds = isOnlineMatchActive ? 30f : 4f;
+
         string message;
         if (gameOver)
         {
@@ -2867,7 +2872,7 @@ public class GameManager : MonoBehaviour
             }
             if (tempUI != null)
             {
-                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
+                StartCoroutine(tempUI.DisplayTransitionScreen(transitionMessageSeconds, message));
             }
         }
         else
@@ -2880,7 +2885,7 @@ public class GameManager : MonoBehaviour
             }
             if (tempUI != null)
             {
-                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
+                StartCoroutine(tempUI.DisplayTransitionScreen(transitionMessageSeconds, message));
             }
         }
     }

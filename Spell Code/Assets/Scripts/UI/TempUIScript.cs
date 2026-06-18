@@ -72,6 +72,11 @@ public class TempUIScript : MonoBehaviour
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
+
+    public GameObject _tutorialPromptMenuFirst;
+    public GameObject tutorialPromptMenu;
+    public bool tutorialPromptMenuOpened;
+
     public Pause pause;
 
     private InputSystem_Actions input;
@@ -158,11 +163,6 @@ public class TempUIScript : MonoBehaviour
             transitionScreenDisplayed = true;
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
-
-        // if (soloGamemodesMenuOpened || pause.paused)
-        // {
-        //     Time.timeScale = 0f;
-        // }
 
         if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
         {

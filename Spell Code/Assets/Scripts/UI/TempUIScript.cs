@@ -495,6 +495,13 @@ public class TempUIScript : MonoBehaviour
         
         yield return new WaitForSeconds(transitionTime);
 
+        // The scene (and this HUD) can be torn down during the wait -- the online round-end message
+        // is shown long enough to persist until the next scene loads -- so bail before touching
+        // now-destroyed UI. This coroutine is started from GameManager, so it survives the HUD's
+        // destruction and would otherwise wake on a dead instance and throw.
+        if (textBoxUI == null || textBoxAnim == null)
+            yield break;
+
         if (requestId != activeTransitionRequestId)
             yield break;
 

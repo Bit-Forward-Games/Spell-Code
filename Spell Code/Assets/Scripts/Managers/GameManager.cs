@@ -2860,6 +2860,9 @@ public class GameManager : MonoBehaviour
         string message;
         if (gameOver)
         {
+            // Match over -> the End scene shows the winner. Keep this banner SHORT (4s) so it does
+            // NOT linger onto the End screen: unlike Shop/Gameplay, the End scene has no transition
+            // banner of its own to supersede it, so a long-lived banner here bleeds onto it.
             message = "Game Over : Player " + lastRoundWinnerPID + " wins the match! Congratulations!!!";
             if (roundEndedText != null)
             {
@@ -2874,13 +2877,25 @@ public class GameManager : MonoBehaviour
         {
             string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
             message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! " + nextPhase;
+
+            // Online scene transitions wait for BOTH clients to reach the destination scene
+            // (scene-sync); at high ping that can take several seconds with the round over and the
+            // sim idle, so a fixed 4s message vanishes and looks frozen. Keep the banner up for the
+            // whole wait with a "syncing" note.
+            float transitionMessageSeconds = 4f;
+            if (isOnlineMatchActive)
+            {
+                message += " Syncing players...";
+                transitionMessageSeconds = 30f;
+            }
+
             if (roundEndedText != null)
             {
                 roundEndedText.text = message;
             }
             if (tempUI != null)
             {
-                StartCoroutine(tempUI.DisplayTransitionScreen(4f, message));
+                StartCoroutine(tempUI.DisplayTransitionScreen(transitionMessageSeconds, message));
             }
         }
     }

@@ -2212,7 +2212,8 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
-        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, players[playerWithHighestBountyIndex].gameObject.transform);
+        //if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty

@@ -348,7 +348,7 @@ public class VFX_Manager : MonoBehaviour
     /// <param name="_playerNum"> Player number of the player who is spawning this visual effect. To spawn a visual effect without it being associated with a player, set _playerNum to 0. By default, set to 0 (not associated with a player).</param>
     /// <param name="_parentTransform"> Parent transform that this particle effect should follow. By default, set to null.</param>
     /// <param name="_emissionRate"> Rate at which particles are emitted from the particle system. By default, set to -1 which indicates that the particle system should emit at its default rate.</param>
-    public void PlayAuraVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum, Transform _parentTransform, float _emissionRate)
+    public void PlayAuraVisualEffect(VisualEffects _nameOfVisualEffectToPlay, FixedVec2 _spawnPos, int _playerNum, Transform _parentTransform, float _emissionRate = -1)
     {
         //if the visual effect object does NOT exist,...
         if (!TryGetVisualEffectObject(_nameOfVisualEffectToPlay, _playerNum, out VisualEffectObject _visualEffectObject))
@@ -390,9 +390,13 @@ public class VFX_Manager : MonoBehaviour
         //set position of particle system to Vector2 version of _spawnPos
         _particleSystem.gameObject.transform.position = _spawnPosVector3;
 
-        //set the emission rate;
-        var em = _particleSystem.emission;
-        em.rateOverTime = _emissionRate;
+        //if _emissionRate is NOT the default garbge value,...
+        if (_emissionRate != -1)
+        {
+            //set the emission rate
+            var em = _particleSystem.emission;
+            em.rateOverTime = _emissionRate;
+        }
 
         //play the visual effect
         if (!_particleSystem.isPlaying)

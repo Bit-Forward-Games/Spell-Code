@@ -14,6 +14,8 @@ TagManager:
   - 'Player 2 Spawn '
   - Player 3 Spawn
   - Player 4 Spawn
+  - LoadCurtain
+  - NPC Spawn
   layers:
   - Default
   - TransparentFX
@@ -59,6 +61,36 @@ TagManager:
     locked: 0
   - name: GameplayEffects
     uniqueID: 3204368189
+    locked: 0
+  - name: NPC Back
+    uniqueID: 342844471
+    locked: 0
+  - name: NPC
+    uniqueID: 3658521637
+    locked: 0
+  - name: Player 1 Back
+    uniqueID: 609972905
+    locked: 0
+  - name: Player 1
+    uniqueID: 679571897
+    locked: 0
+  - name: Player 2 Back
+    uniqueID: 2187584341
+    locked: 0
+  - name: Player 2
+    uniqueID: 677243407
+    locked: 0
+  - name: Player 3 Back
+    uniqueID: 913932493
+    locked: 0
+  - name: Player 3
+    uniqueID: 1152335575
+    locked: 0
+  - name: Player 4 Back
+    uniqueID: 1134415217
+    locked: 0
+  - name: Player 4
+    uniqueID: 3342369721
     locked: 0
   - name: UI
     uniqueID: 1388315005

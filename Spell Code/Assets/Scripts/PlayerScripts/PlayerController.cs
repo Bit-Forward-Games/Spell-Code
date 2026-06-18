@@ -132,6 +132,7 @@ public class PlayerController : MonoBehaviour
     public PlayerState state;
     public PlayerState prevState;
     public SpriteRenderer spriteRenderer;
+    public SpriteMask spriteMask;
 
     //Character Data
     public CharacterData charData { get; private set; }
@@ -421,6 +422,11 @@ public class PlayerController : MonoBehaviour
                 pID = 1;
                 playerIndexImages[0].enabled = true;
                 playerIndexImages[0].color = GameManager.colors["red"];
+
+                //set the front and back sorting layers for masking
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 1 Front");
+                spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 1 Back");
+
                 break;
             case 1:
                 InitializePalette(matchPalette[1]);
@@ -428,6 +434,11 @@ public class PlayerController : MonoBehaviour
                 pID = 2;
                 playerIndexImages[1].enabled = true;
                 playerIndexImages[1].color = GameManager.colors["blue"];
+
+                //set the front and back sorting layers for masking
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 2 Front");
+                spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 2 Back");
+
                 break;
             case 2:
                 InitializePalette(matchPalette[2]);
@@ -435,6 +446,11 @@ public class PlayerController : MonoBehaviour
                 pID = 3;
                 playerIndexImages[2].enabled = true;
                 playerIndexImages[2].color = GameManager.colors["yellow"];
+
+                //set the front and back sorting layers for masking
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 3 Front");
+                spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 3 Back");
+
                 break;
             case 3:
                 InitializePalette(matchPalette[3]);
@@ -442,9 +458,19 @@ public class PlayerController : MonoBehaviour
                 pID = 4;
                 playerIndexImages[3].enabled = true;
                 playerIndexImages[3].color = GameManager.colors["green"];
+
+                //set the front and back sorting layers for masking
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("Player 4 Front");
+                spriteMask.backSortingLayerID = SortingLayer.NameToID("Player 4 Back");
+
                 break;
             default:
                 pID = 0;
+
+                //set the front and back sorting layers for masking
+                spriteMask.frontSortingLayerID = SortingLayer.NameToID("NPC Front");
+                spriteMask.backSortingLayerID = SortingLayer.NameToID("NPC Back");
+
                 Vector2 spawnPosNPC = GameManager.Instance.GetNPCSpawnPositions()[0];
                 FixedVec2 startPosNPC = FixedVec2.FromFloat(spawnPosNPC.x, spawnPosNPC.y);
                 SpawnPlayer(startPosNPC);
@@ -738,7 +764,7 @@ public class PlayerController : MonoBehaviour
         if (superArmor)
         {
             //start playing the super armor VFX
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SUPER_ARMOR, position, pID);
+            VFX_Manager.Instance.PlayVisualEffectWithSortingID(VisualEffects.SUPER_ARMOR, position, pID, true, spriteMask.frontSortingLayerID);
         }
         //else this player does NOT have super armor,...
         else
@@ -751,7 +777,7 @@ public class PlayerController : MonoBehaviour
         if (armor)
         {
             //start playing the blocking VFX
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKING, position, pID);
+            VFX_Manager.Instance.PlayVisualEffectWithSortingID(VisualEffects.BLOCKING, position, pID, true, spriteMask.frontSortingLayerID);
         }
         //else this player is NOT blocking,...
         else
@@ -1004,7 +1030,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened)
             {
                 pause.playerPauseIndex = _playerPauseIndex;
 

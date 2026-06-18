@@ -28,6 +28,7 @@ public class Pause : MonoBehaviour
     public AudioMixer masterAudioMixer;
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
+    public AudioMixer menuSfxAudioMixer;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
     public bool screenShake = true;
@@ -220,11 +221,16 @@ public class Pause : MonoBehaviour
             Pausing();
         }
 
-        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells)
+        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
         {
             TriggerSelectedButton();
         }
 
+        if (!uiScript.soloGamemodesMenuOpened && !paused) 
+        {
+            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
  
     private void SpellGlossaryNavigation()
@@ -241,14 +247,21 @@ public class Pause : MonoBehaviour
         if (freshPress || heldAndReady)
         {
             navCooldown = NAV_COOLDOWN_TIME;
-            
-            if (!spells); // regular pause menu navigation sound
+
+            // regular pause menu navigation sound
+            if (!spells && paused)
+            {
+                //play the neutral select sound
+                SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+            }
  
             if (nav.y > 0)
             {
                 if (spells && selectedSpell > 0) 
                 {
-                    // spell select sound
+                    //play the neutral select sound
+                    SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+
                     selectedSpell--;
                     SpellGlossaryListSelection(1);
                 }
@@ -257,7 +270,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells && selectedSpell < grid[tab].spells.Length - 1)
                 {
-                    // spell select sound
+                    //play the neutral select sound
+                    SFX_Manager.Instance.PlayMenuSound("Neutral Select");
+
                     selectedSpell++;
                     SpellGlossaryListSelection(-1);
                 }
@@ -267,7 +282,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells)
                 {
-                    // tab select sound
+                    //play the tab select sound
+                    SFX_Manager.Instance.PlayMenuSound("Tab Select");
+
                     tab = (tab == 0) ? 5 : tab - 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
@@ -277,7 +294,9 @@ public class Pause : MonoBehaviour
             {
                 if (spells)
                 {
-                    // tab select sound
+                    //play the tab select sound
+                    SFX_Manager.Instance.PlayMenuSound("Tab Select");
+
                     tab = (tab == 5) ? 0 : tab + 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
@@ -379,6 +398,12 @@ public class Pause : MonoBehaviour
  
     public void Resume()
     {
+        if (paused)
+        {
+            //play the resume sfx
+            SFX_Manager.Instance.PlayMenuSound("Resume");
+        }
+
         paused = false;
         options = false;
         controls = false;
@@ -391,11 +416,23 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
-        SaveSettings();
-        // if (!uiScript.soloGamemodesMenuOpened) 
-            Time.timeScale = 1f;
+        SaveSettings(); 
+        Time.timeScale = 1f;
+
+        if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
+
         //unmute all sfx
-        SFXVolume();
+        SFX_Manager.Instance.UnMuteGamePlaySFX();
+
+        //apply volume
+        //SFXVolume();
+    }
+
+    public IEnumerator BackToGameModeSelector()
+    {
+        yield return new WaitForSeconds(0.02f);
+        Time.timeScale = 0f;
+        EventSystem.current.SetSelectedGameObject(uiScript._soloGamemodesMenuFirst);
     }
 
     public void SaveSettings()
@@ -435,6 +472,18 @@ public class Pause : MonoBehaviour
  
     public void Pausing()
     {
+        if(spells || options || controls)
+        {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Negative Select");
+        }
+
+        if (!paused)
+        {
+            //play the pause sfx
+            SFX_Manager.Instance.PlayMenuSound("Pause");
+        }
+
         paused = true;
         options = false;
         controls = false;
@@ -456,6 +505,11 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
         SetMenuTimeScale();
+
+        //mute all gameplay sfx but not menu sfx
+        SFX_Manager.Instance.MuteGamePlaySFX();
+        //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
+        //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
  
     public void Options()
@@ -466,7 +520,7 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
  
-        Time.timeScale = 0f;
+        SetMenuTimeScale();
 
         StartCoroutine(SelectFirst(_optionsMenuFirst));
     }
@@ -485,7 +539,7 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
  
-        EventSystem.current.SetSelectedGameObject(_controlsMenuFirst);
+        StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();
     }
@@ -541,7 +595,8 @@ public class Pause : MonoBehaviour
             grid[i].spells = columnSpells.ToArray();
         }
  
-        EventSystem.current.SetSelectedGameObject(_spellsMenuFirst);
+        StartCoroutine(SelectFirst(_spellsMenuFirst));
+        
  
         SetMenuTimeScale();
     }
@@ -671,6 +726,17 @@ public class Pause : MonoBehaviour
             selectedButton.onClick.Invoke();
             StartCoroutine(SuppressSelectionForOneFrame());
         }
+
+        if(selectedObject.name == "Back")
+        {
+            //play the positive select sfx
+            SFX_Manager.Instance.PlayMenuSound("Negative Select");
+        }
+        else
+        {
+            //play the positive select sfx
+            SFX_Manager.Instance.PlayMenuSound("Positive Select");
+        }
     }
 
     private System.Collections.IEnumerator SuppressSelectionForOneFrame()
@@ -708,12 +774,14 @@ public class Pause : MonoBehaviour
  
     public void SFXVolume()
     {
-        float volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
-        ApplySfxMixerVolume(volume);
+        float sfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
+        float menuSfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
+        ApplySfxMixerVolume(sfx_volume);
+        ApplyMenuSfxMixerVolume(menuSfx_volume);
 
         if (SettingsManager.Instance != null)
         {
-            SettingsManager.Instance.SetSfxVolume(volume);
+            SettingsManager.Instance.SetSfxVolume(sfx_volume);
         }
     }
  
@@ -751,6 +819,15 @@ public class Pause : MonoBehaviour
         if (mixer != null)
         {
             mixer.SetFloat("SFXVolume", VolumeToDecibels(volume));
+        }
+    }
+
+    private void ApplyMenuSfxMixerVolume(float volume)
+    {
+        AudioMixer mixer = menuSfxAudioMixer != null ? menuSfxAudioMixer : musicAudioMixer;
+        if (mixer != null)
+        {
+            mixer.SetFloat("MenuSFXVolume", VolumeToDecibels(volume));
         }
     }
 

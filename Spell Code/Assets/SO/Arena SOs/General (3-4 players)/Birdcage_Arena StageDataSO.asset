@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: Birdcage_Arena StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
+  platformCenter:
+  - {x: -120.45114, y: 181.74306}
+  - {x: -120.45114, y: 101.74306}
+  - {x: -120.45114, y: 21.743057}
+  - {x: -120.45114, y: -58.256943}
+  platformExtent:
+  - {x: 256, y: 2}
+  - {x: 256, y: 2}
+  - {x: 256, y: 2}
+  - {x: 256, y: 2}
+  solidCenter:
+  - {x: 151.54886, y: 71.74305}
+  - {x: -120.45114, y: 279.74304}
+  - {x: -120.45114, y: -136.25694}
+  - {x: -392.45114, y: 71.74305}
+  solidExtent:
+  - {x: 16, y: 224}
+  - {x: 286, y: 16}
+  - {x: 286, y: 16}
+  - {x: 16, y: 224}
+  playerSpawnTransform:
+  - {x: -312.45114, y: 183.74306}
+  - {x: 71.54885, y: 183.74306}
+  - {x: -312.45114, y: -120.25694}
+  - {x: 71.54885, y: -120.25694}
+  npcSpawnTransform: []
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: -350, y: -220, z: 0}
+  borderMax: {x: 350, y: 220, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
+  borderType: 0
+  stageType: 2
+  dynamicCamera: 1

@@ -2471,6 +2471,7 @@ public class GameManager : MonoBehaviour
 
         frameNumber++;
         rbManager.DiagMarkAdvance();
+        rbManager.MaybeApplyAdaptiveInputDelay();
         syncedInput = rbManager.SynchronizeInput();
 
         Scene activeScene = SceneManager.GetActiveScene();
@@ -3274,6 +3275,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        UpdateBountyVFX();
+    }
+
+    public void UpdateBountyVFX()
+    {
         //give the player with the highest bounty the bounty aura VFX
         int playerWithHighestBountyIndex = -1;
         int largestBounty = 0;
@@ -3287,19 +3293,13 @@ public class GameManager : MonoBehaviour
                 playerWithHighestBountyIndex = i;
                 largestBounty = players[i].ramBounty;
             }
-            //else
-            //{
-            //    //remove the bounty VFX from this player
-            //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1);
-            //}
 
             //Debug.Log("Bounty VFX | Player " + (i + 1) + " has a bounty of " + players[i].ramBounty);
         }
         //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
-        //VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position, playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform, players[playerWithHighestBountyIndex].ramBounty);
-        if(playerWithHighestBountyIndex >=0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
@@ -3659,8 +3659,12 @@ public class GameManager : MonoBehaviour
         }
         sceneManager.LoadScene("Shop");
         SetStage(-1);
-         //play a new shop song
-         //BGM_Manager.Instance.StartAndPlaySong();
+
+        //update bounty vfx
+        UpdateBountyVFX();
+        Debug.Log("HERE");
+        //play a new shop song
+        //BGM_Manager.Instance.StartAndPlaySong();
     }
 
     private void BeginOnlineShopTransition(int transitionId)

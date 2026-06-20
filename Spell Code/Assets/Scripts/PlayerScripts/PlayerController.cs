@@ -2629,61 +2629,37 @@ public class PlayerController : MonoBehaviour
         if (flowState > 0)
         {
             //play the flow state aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, true, this.gameObject.transform, (float)flowState / (float)FlowState.maxFlowState * 100f);
+            VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.FLOW_STATE_AURA, position, pID, this.gameObject.transform, (float)flowState / (float)FlowState.maxFlowState * 100f);
 
             flowState--;
         }
         else
         {
+            //stop playing the flow state aura visual effect
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pID);
         }
 
-
-
         if (demonAura > 0)
         {
-            //now handled in Demon-X universal passive
-            // if (demonAuraLifeSpanTimer > 0)
-            // {
-            //     demonAuraLifeSpanTimer--;
-            // }
-            // else
-            // {
-            //     demonAura = (ushort)Math.Clamp(demonAura - 1, 0, maxDemonAura);
-            // }
-
             //Debug.Log("VFX Debugging | Player " + pID + "'s Demon Aura at " + (float)demonAura + ". And maxdemonAura at " + (float)maxDemonAura + ". And particle count at " + (((float)demonAura / (float)maxDemonAura) * 50f));
 
             //play the demon aura visual effect 
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMON_AURA, position, pID, true, this.gameObject.transform, (((float)demonAura / (float)maxDemonAura) * 50f));
+            VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.DEMON_AURA, position, pID, this.gameObject.transform, (((float)demonAura / (float)maxDemonAura) * 50f));
         }
         else
         {
+            //stop playing the demon aura visual effect
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pID);
         }
-
-
-
-        //if (stockStabilityModified > 0)
-        //{
-        //    //play the stock aura visual effect 
-        //    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.STOCK_AURA, position, pID, true, this.gameObject.transform, Mathf.Clamp(((float)stockStability / 100f), 0f, 1f) * 100f);
-        //}
-        //else
-        //{
-        //    VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pID);
-        //}
-
-
 
         if (reps > 0)
         {
             //play the reps visual effect 
-            //position + FixedVec2.FromFloat(0f, 42f)
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.REPS_AURA, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)) , pID, true, this.gameObject.transform, (float)reps * 20f);
+            VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.REPS_AURA, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)) , pID, this.gameObject.transform, (float)reps * 20f);
         }
         else
         {
+            //stop playing the reps visual effect
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pID);
         }
     }
@@ -2959,8 +2935,9 @@ public class PlayerController : MonoBehaviour
 
             currentPlayerHealth = 0;
 
-            //award the killer with the extra bonus ram
-            if (hasAttacker)
+            // Online self-damage must not award the victim a kill bonus
+            bool isOnlineSelfKill = GameManager.Instance.isOnlineMatchActive && attacker == this;
+            if (hasAttacker && !isOnlineSelfKill)
             {
                 attacker.storedKillBonus += baseRamKillBonus;
                 //attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
@@ -3294,6 +3271,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // rollback-critical
+        bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
+                                   // or it drifts under rollback (sibling relativeInputs is already serialized)
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
@@ -3392,6 +3371,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
+        bw.Write(toggleCodeInput); // hashed for the same detection reason
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3529,6 +3509,7 @@ public class PlayerController : MonoBehaviour
         jumpCount = br.ReadByte();
         maxJumpCount = br.ReadByte();
         tapJumpPrimed = br.ReadBoolean();
+        toggleCodeInput = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();

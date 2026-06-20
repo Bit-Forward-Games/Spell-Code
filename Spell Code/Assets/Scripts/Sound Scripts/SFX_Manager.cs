@@ -600,6 +600,13 @@ public class SFX_Manager : MonoBehaviour
         //iterate through each element of spellcodeAudioSources,...
         for (int i = 0; i < numSpellcodeAudioSources; i++)
         {
+            //if this audio source is NOT defined,...
+            if (!spellcodeAudioSources[i])
+            {
+                //return
+                return;
+            }
+
             //mute each spellcode audio source
             spellcodeAudioSources[i].mute = false;
         }

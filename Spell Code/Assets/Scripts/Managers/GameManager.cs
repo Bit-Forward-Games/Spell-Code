@@ -3077,6 +3077,12 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
+                        // Reset round RAM HERE, not only once the Shop scene loads
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].storedKillBonus = 0;
+                        }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
@@ -3314,7 +3320,8 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
-        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
+        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, players[playerWithHighestBountyIndex].gameObject.transform);
+        //if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
     //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
@@ -3380,10 +3387,27 @@ public class GameManager : MonoBehaviour
                 foreach (PlayerController p in playerControllers)
                 {
                     if (!p.isConnected) { continue; }
+
+                    // Never credit the victim for their own death
+                    // Keep their contributions against other players and any legitimate pending kill bonus intact for those players' death payouts
+                    if (isOnlineMatchActive && p == player)
+                    {
+                        damageMatrix[player.pID - 1, p.pID - 1] = 0;
+                        Debug.Log($"[OnlineScoring] Player {p.pID} received no RAM for their own death.");
+                        continue;
+                    }
+
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
                     int totalKillParticipationRamEarned = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;
-                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned,0,ramNeededToWinRound-1-p.roundRam);
+                    // Guard the clamp's MAX with Max(0, ...): on a simultaneous multi-kill the death
+                    // loop runs again for this same killer, and an earlier victim's payout (kill
+                    // bonus) can already have pushed p.roundRam to/above the threshold. That makes
+                    // (ramNeededToWinRound-1-p.roundRam) negative; Mathf.Clamp(x, 0, negative) returns
+                    // the negative, and (ushort)(-1)=65535 then overflows p.roundRam back below the
+                    // threshold -- which is why killing 2+ players at once failed to win the round
+                    // Clamping the max at 0 awards 0 here instead of wrapping.
+                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned, 0, Mathf.Max(0, ramNeededToWinRound - 1 - p.roundRam));
                     p.roundRam += (ushort)CollectedGold;
                     p.roundRam = (ushort)Mathf.Clamp(p.roundRam + p.storedKillBonus,0,ramNeededToWinRound);
                     p.SpawnToast($"+{totalKillParticipationRamEarned + p.storedKillBonus} RAM", GameManager.colors["yellow"]);

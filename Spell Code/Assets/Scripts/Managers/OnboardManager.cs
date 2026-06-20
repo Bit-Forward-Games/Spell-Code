@@ -1,7 +1,11 @@
 using System.Security.Cryptography;
+using BestoNet.Types;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class OnboardManager : MonoBehaviour
 {
@@ -259,12 +263,19 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[0].spellList.Count>0 && !p1_glassBroken)
             {
-                p1_castTxt.enabled = true;
-                p1_castGraphic.enabled = true;
                 p1_atkGraphic.enabled = false;
                 p1_atkTxt.enabled = false;
 
                 p1_breakWSpellcode.enabled = true;
+
+                if (p1_castTxt.enabled == false)
+                {
+                    //play the graffiti spawn vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.y)), 1);
+                }
+
+                p1_castTxt.enabled = true;
+                p1_castGraphic.enabled = true;
 
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                 {
@@ -360,12 +371,19 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[1].spellList.Count > 0 && !p2_glassBroken)
             {
-                p2_castTxt.enabled = true;
-                p2_castGraphic.enabled = true;
                 p2_atkGraphic.enabled = false;
                 p2_atkTxt.enabled = false;
 
                 p2_breakWSpellcode.enabled = true;
+
+                if (p2_castTxt.enabled == false)
+                {
+                    //play the graffiti spawn vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.y)), 2);
+                }
+
+                p2_castTxt.enabled = true;
+                p2_castGraphic.enabled = true;
 
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                 {
@@ -463,12 +481,19 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[2].spellList.Count > 0 && !p3_glassBroken)
             {
-                p3_castTxt.enabled = true;
-                p3_castGraphic.enabled = true;
                 p3_atkGraphic.enabled = false;
                 p3_atkTxt.enabled = false;
 
                 p3_breakWSpellcode.enabled = true;
+
+                if (p3_castTxt.enabled == false)
+                {
+                    //play the graffiti spawn vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.y)), 3);
+                }
+
+                p3_castTxt.enabled = true;
+                p3_castGraphic.enabled = true;
 
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                 {
@@ -564,12 +589,19 @@ public class OnboardManager : MonoBehaviour
             //hold atk and input code to break free
             if (gM.players[3].spellList.Count > 0 && !p4_glassBroken)
             {
-                p4_castTxt.enabled = true;
-                p4_castGraphic.enabled = true;
                 p4_atkGraphic.enabled = false;
                 p4_atkTxt.enabled = false;
 
                 p4_breakWSpellcode.enabled = true;
+
+                if (p4_castTxt.enabled == false)
+                {
+                    //play the graffiti spawn vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.y)), 4);
+                }
+
+                p4_castTxt.enabled = true;
+                p4_castGraphic.enabled = true;
 
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                 {

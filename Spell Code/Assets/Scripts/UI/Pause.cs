@@ -416,7 +416,6 @@ public class Pause : MonoBehaviour
         controlsMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
-        uiScript.tutorialPromptMenu.SetActive(false);
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings(); 
@@ -667,7 +666,7 @@ public class Pause : MonoBehaviour
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3.2f);
 
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)

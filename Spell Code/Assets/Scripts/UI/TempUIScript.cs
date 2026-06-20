@@ -67,6 +67,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
+    public RectTransform tutorialPromptImage;
+    public RectTransform welcomeSign;
+    public RectTransform[] tutorialPrompButtons;
+    public RectTransform tutorialPromptSelector;
     public bool tutorialPromptMenuOpened;
 
     public Pause pause;
@@ -178,6 +182,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             Time.timeScale = 0f;
             tutorialPromptMenuOpened = true;
             StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
+            TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         }
     }
 
@@ -222,12 +227,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             onPlayerUI[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "On-Player UI").gameObject;
-            // if (currentScene.name == "MainMenu" || currentScene.name == "Shop")
-            // {
-            //     onPlayerUI[i].SetActive(false);
-            // }
-            // else
-            //     onPlayerUI[i].SetActive(true);
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
@@ -439,6 +438,29 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         textBoxAnim.SetInteger("Reverse", 0);
         textBoxUI.SetActive(false);
+    }
+
+    public void TutorialPromptAnimation(float tutorialPromptMenuYPos, Vector2 welcomeSignPos, Vector2 buttonScale, Vector2 tutorialSelectorPos)
+    {
+        Sequence mySequence = DOTween.Sequence();
+
+        tutorialPromptImage.DOAnchorPos(new Vector2(tutorialPromptImage.anchoredPosition.x, tutorialPromptMenuYPos), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+        welcomeSign.DOAnchorPos(new Vector2(welcomeSignPos.x, welcomeSignPos.y), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
+        for (int i = 0; i < 2; i++)
+        {
+            mySequence.AppendInterval(0.1f).SetUpdate(true);
+            mySequence.Append(tutorialPrompButtons[i].DOSizeDelta(new Vector2(buttonScale.x, buttonScale.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+        }
+        mySequence.AppendInterval(0.1f).SetUpdate(true);
+        mySequence.Append(tutorialPromptSelector.DOSizeDelta(new Vector2(tutorialSelectorPos.x, tutorialSelectorPos.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+
+        if (!tutorialPromptMenuOpened) mySequence.AppendCallback(() => tutorialPromptMenu.SetActive(false));
+    }
+
+    public void ExitTutorialPromptAnimation()
+    {
+        TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
     }
 
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse)

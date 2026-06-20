@@ -3077,6 +3077,12 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
+                        // Reset round RAM HERE, not only once the Shop scene loads
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].storedKillBonus = 0;
+                        }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();

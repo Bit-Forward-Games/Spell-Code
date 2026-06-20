@@ -3271,6 +3271,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // rollback-critical
+        bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
+                                   // or it drifts under rollback (sibling relativeInputs is already serialized)
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
@@ -3369,6 +3371,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
+        bw.Write(toggleCodeInput); // hashed for the same detection reason
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3506,6 +3509,7 @@ public class PlayerController : MonoBehaviour
         jumpCount = br.ReadByte();
         maxJumpCount = br.ReadByte();
         tapJumpPrimed = br.ReadBoolean();
+        toggleCodeInput = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();

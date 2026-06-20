@@ -3394,7 +3394,14 @@ public class GameManager : MonoBehaviour
                     int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
                     int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
                     int totalKillParticipationRamEarned = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;
-                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned,0,ramNeededToWinRound-1-p.roundRam);
+                    // Guard the clamp's MAX with Max(0, ...): on a simultaneous multi-kill the death
+                    // loop runs again for this same killer, and an earlier victim's payout (kill
+                    // bonus) can already have pushed p.roundRam to/above the threshold. That makes
+                    // (ramNeededToWinRound-1-p.roundRam) negative; Mathf.Clamp(x, 0, negative) returns
+                    // the negative, and (ushort)(-1)=65535 then overflows p.roundRam back below the
+                    // threshold -- which is why killing 2+ players at once failed to win the round
+                    // Clamping the max at 0 awards 0 here instead of wrapping.
+                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned, 0, Mathf.Max(0, ramNeededToWinRound - 1 - p.roundRam));
                     p.roundRam += (ushort)CollectedGold;
                     p.roundRam = (ushort)Mathf.Clamp(p.roundRam + p.storedKillBonus,0,ramNeededToWinRound);
                     p.SpawnToast($"+{totalKillParticipationRamEarned + p.storedKillBonus} RAM", GameManager.colors["yellow"]);

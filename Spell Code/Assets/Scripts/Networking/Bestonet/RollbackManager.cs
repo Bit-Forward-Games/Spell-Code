@@ -153,6 +153,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int FrameExtensionWindow = 7; // Frames over which extensions are averaged/limited
         [SerializeField] public int TimeoutFrames = 60; // Frames without sync before timeout
         [SerializeField] public float TransitionStartupTimeoutGraceSeconds = 10f; // Grace after scene loads/focus stalls
+        [SerializeField] public float PeerDropTimeoutGraceSeconds = 1f; // Brief rebase grace without masking another simultaneous drop
 
         // --- Constants ---
         // Make array sizes configurable or keep as constants
@@ -3117,7 +3118,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             remoteFrameStallTicks = 0;
             lastRemoteFrameForTimeout = GetEffectiveRemoteFrame(framesBeforeRollback);
-            ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
+            // A peer drop only needs a brief rebase grace. Reusing the 10-second scene
+            // transition grace here lets a second stale peer reach GameManager's hard
+            // network timeout before rollback can adjudicate that additional drop.
+            ResetTimeoutGrace(PeerDropTimeoutGraceSeconds);
 
             Debug.LogWarning($"[Rollback] Dropped remote slot P{slot + 1} at frame {rebaseFrame}. Remaining remote slots={remotePlayerSlots.Count}.");
 

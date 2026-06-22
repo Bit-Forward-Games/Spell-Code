@@ -667,23 +667,23 @@ public class GambaMachine : MonoBehaviour
                 switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
                 {
                     case Brand.VWave:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.DemonX:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.Killeez:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.BigStox:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     default:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                 }
@@ -757,23 +757,23 @@ public class GambaMachine : MonoBehaviour
                 switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
                 {
                     case Brand.VWave:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.DemonX:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.Killeez:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     case Brand.BigStox:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                     default:
-                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 1f, 1f, ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 30f, 1f, ownerPID);
                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
                         break;
                 }

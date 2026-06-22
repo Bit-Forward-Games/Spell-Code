@@ -634,55 +634,53 @@ public class VFX_Manager : MonoBehaviour
             }
         }
 
+        //define an apex position to calculate
+        Vector3 _apexPosition = Vector3.zero;
+
+        //calculate the x value of the apex position of the curve by finding the x-axis midpoint of the start and end points
+        _apexPosition.x = (_endPos.x + _startPos.x) / 2f;
+
+        //calculate the y value of the apex position of the curve by adding the heigher y value and _relativeApexHeight 
+        _apexPosition.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
+
         //set start position of particle system to _startPos
         _trailRenderer.transform.position = _startPos;
+
+        //clear the trail renderer
+        _trailRenderer.Clear();
 
         //tell the _trailRenderer to start emitting
         _trailRenderer.emitting = true;
 
         //play the lerp
-        return _trailRenderer.transform.DOMove(_endPos, _duration).SetEase(Ease.Linear).OnComplete(() => _onComplete?.Invoke());
+        //Debug.Log("VFX | start = " + _startPos + ". apex = " + _apexPosition + ". end = " + _endPos);
+        return _trailRenderer.transform.DOPath(new Vector3[]{_startPos, _apexPosition, _endPos}, _duration, PathType.CatmullRom, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time, _trailRenderer.transform.position)?.Invoke());
     }
 
-    //public void UpdateVisualEffectValues(VisualEffects _nameOfVisualEffectToUpdate, int _playerNum = 0, float _emissionRate = -1f, float _particleLifetime = -1f)
-    //{
-    //    //if the visual effect object does NOT exist,...
-    //    if (!TryGetVisualEffectObject(_nameOfVisualEffectToUpdate, _playerNum, out VisualEffectObject _visualEffectObject))
-    //    {
-    //        //return
-    //        return;
-    //    }
+    public static TweenCallback DelayedTrailClear(TrailRenderer _trailRenderer, float _delay, Vector3 _resetPos)
+    {
+        //return after a delay of _delay seconds and once _trailRenderer has been tried to be cleared
+        return () =>
+        {
+            DOVirtual.DelayedCall(_delay, 
+            () =>
+            {
+                //if _trailRenderer is valid,...
+                if (_trailRenderer != null)
+                {
+                    //turn off emitting for the trail renderer
+                    _trailRenderer.emitting = false;
 
-    //    //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
-    //    ParticleSystem _particleSystem = null;
-    //    foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
-    //    {
-    //        if (_listedParticleSystem == null)
-    //        {
-    //            continue;
-    //        }
-    //        //if the particle system is NOT already playing,...
-    //        if (!_listedParticleSystem.isPlaying)
-    //        {
-    //            //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
-    //            //set _particleSystem to the particle system in question
-    //            _particleSystem = _listedParticleSystem;
+                    //clear _trailRenderer
+                    _trailRenderer.Clear();
 
-    //            //break out of the foreach loop
-    //            break;
-    //        }
-    //    }
-
-    //    //if no available particle system was found,...
-    //    if (_particleSystem == null)
-    //    {
-    //        _particleSystem = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
-    //        if (_particleSystem == null)
-    //        {
-    //            return;
-    //        }
-    //    }
-    //}
+                    //set _trailRenderer's position to _resetPos
+                    _trailRenderer.transform.position = _resetPos;
+                }
+            }
+            );
+        };
+    }
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {

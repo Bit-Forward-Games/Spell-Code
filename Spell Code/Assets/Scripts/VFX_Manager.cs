@@ -1,14 +1,18 @@
-using System.Collections.Generic;
-using System;
-using UnityEngine;
-using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using BestoNet.Types;
-using UnityEngine.VFX;
-using static UnityEngine.ParticleSystem;
-using UnityEngine.UI.Extensions.Tweens;
-using static SFX_Manager;
-using UnityEditor;
+using DG.Tweening;
+using System;
+using System.Collections.Generic;
+using System.Transactions;
 using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI.Extensions.Tweens;
+using UnityEngine.VFX;
+using YamlDotNet.Serialization;
+using static SFX_Manager;
+using static UnityEditor.FilePathAttribute;
+using static UnityEngine.ParticleSystem;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public enum VisualEffects
 {
@@ -19,7 +23,9 @@ public enum VisualEffects
     VWAVE_CAST, KILLEEZ_CAST, DEMONX_CAST, BIGSTOX_CAST,
     BLOCKED, BLOCKING,
     SPAWN, GLASS_BREAK, ARMOR_BREAK,
-    CRITICAL_CAST, CRITICAL_HIT, SUPER_ARMOR
+    CRITICAL_CAST, CRITICAL_HIT, SUPER_ARMOR,
+    GRAFFITI_SPAWN,
+    VWAVE_FLOPPY_ARC, KILLEEZ_FLOPPY_ARC, DEMONX_FLOPPY_ARC, BIGSTOX_FLOPPY_ARC
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -40,13 +46,26 @@ public class VFX_Manager : MonoBehaviour
         [Range(1, 10)]
         public uint numParticleSystemsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
 
-        //[HideInInspector] public Transform parentTransform = null; //parent to follow if the particle system should continously follow a parent object
         [HideInInspector] public List<ParticleSystem>[] particleSystems; //Array of Lists of particle systems that each play the visual effect. Each list of particle systems in the array is associated with a unique player as well as a non player specific particle system list
+    }
+
+    [Serializable]
+    private class TrailObject
+    {
+        [Header("Mandatory variables")]
+        public VisualEffects trailName; //name of the visual effect
+        public GameObject trailPrefab; //prefab of the particle system for this visual effect
+
+        [Range(1, 10)]
+        public uint numTrailsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
+
+        [HideInInspector] public List<TrailRenderer>[] trailRenderers; //Array of Lists of trail renderers that each play the visual effect. Each list of trail renderers in the array is associated with a unique player as well as a non player specific trail renderer list
     }
 
     [Header("Visual effects that VFX Manager can play")]
     [SerializeField] private List<VisualEffectObject> playerVisualEffectObjects; //list of visual effects for players that the VFX Manager can play
     [SerializeField] private List<VisualEffectObject> spellVisualEffectObjects; //list of visual effects for spells that the VFX Manager can play
+    [SerializeField] private List<TrailObject> trailObjects; //list of trail renderer visual effects that the VFX Manager can play
 
     private bool TryGetVisualEffectObject(VisualEffects effectName, int playerNum, out VisualEffectObject visualEffectObject)
     {
@@ -74,6 +93,32 @@ public class VFX_Manager : MonoBehaviour
         return true;
     }
 
+    private bool TryGetTrailObject(VisualEffects effectName, int playerNum, out TrailObject trailObject)
+    {
+        trailObject = trailObjects.Find(x => x.trailName == effectName);
+        if (trailObject == null)
+        {
+            Debug.LogWarning(gameObject.name + ": Specified visual effect of name = \"" + effectName + "\" does not exist within trailObjects of the VFX_Manager script.");
+            return false;
+        }
+
+        if (playerNum < 0 || playerNum >= DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT)
+        {
+            Debug.LogWarning(gameObject.name + ": _playerNum of \"" + playerNum + "\" is not valid. Please make sure that _playerNum is either 0, 1, 2, 3, or 4");
+            return false;
+        }
+
+        if (trailObject.trailRenderers == null ||
+            playerNum >= trailObject.trailRenderers.Length ||
+            trailObject.trailRenderers[playerNum] == null ||
+            trailObject.trailRenderers[playerNum].Count == 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private ParticleSystem GetFirstValidParticleSystem(List<ParticleSystem> particleSystems)
     {
         if (particleSystems == null)
@@ -86,6 +131,24 @@ public class VFX_Manager : MonoBehaviour
             if (particleSystem != null)
             {
                 return particleSystem;
+            }
+        }
+
+        return null;
+    }
+
+    private TrailRenderer GetFirstValidTrailRenderer(List<TrailRenderer> _trailRenderers)
+    {
+        if (_trailRenderers == null)
+        {
+            return null;
+        }
+
+        foreach (TrailRenderer _trailRenderer in _trailRenderers)
+        {
+            if (_trailRenderer != null)
+            {
+                return _trailRenderer;
             }
         }
 
@@ -156,9 +219,6 @@ public class VFX_Manager : MonoBehaviour
             _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);
             _headingGameobject.name = _visualEffectObject.particleSystemPrefab.name + "s";
 
-            //calculate the number of particle systems for this visual effect object with where _numParticleSystemsToInstantiate is equal to 1 + (4 * numParticleSystemsPerPlayer)
-            //uint _numParticleSystemsToInstantiate = 1 + (4 * _visualEffectObject.numParticleSystemsPerPlayer);
-
             //allocate memory for the particleSystems array and each list for each element within that array 
             _visualEffectObject.particleSystems = new List<ParticleSystem>[DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT];
             for (int i = 0; i < _visualEffectObject.particleSystems.Length; i++)
@@ -179,6 +239,48 @@ public class VFX_Manager : MonoBehaviour
 
                     //add the newly created particle system to the particleSystems array for this player number (i)
                     _visualEffectObject.particleSystems[i].Add(_createdParticleSystem.GetComponent<ParticleSystem>());
+                }
+            }
+        }
+
+        //instantiate all trail renderer visual effects
+        foreach(TrailObject _trailObject in trailObjects)
+        {
+            //sanity check to make sure that trailPrefab has been assigned for this TrailObject
+            if (_trailObject.trailPrefab == null)
+            {
+                //log an error
+                Debug.LogError(gameObject.name + ": The trail renderer prefab for \"" + _trailObject.trailName + "\" has not been assigned within trailObjects. Assign a trail renderer prefab to \"" + _trailObject.trailName + "\"");
+
+                //skip the rest of this foreach loop iteration
+                continue;
+            }
+
+            //define and instantiate an empty gameobject to help organize the particle systems
+            GameObject _headingGameobject = new GameObject();
+            _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);
+            _headingGameobject.name = _trailObject.trailPrefab.name + "s";
+
+            //allocate memory for the particleSystems array and each list for each element within that array 
+            _trailObject.trailRenderers = new List<TrailRenderer>[DEFAULT_NUM_PARTICLESYSTEMS_PER_VFXOBJECT];
+            for (int i = 0; i < _trailObject.trailRenderers.Length; i++)
+            {
+                _trailObject.trailRenderers[i] = new List<TrailRenderer>();
+            }
+
+            //instantiate a particle system for each element of each list of each array
+            for (int i = 0; i < _trailObject.trailRenderers.Length; i++)
+            {
+                for (int j = 0; j < _trailObject.numTrailsPerPlayer; j++)
+                {
+                    //instantiate a particle system that is a child of the _headingGameobject 
+                    GameObject _createdParticleSystem = Instantiate(_trailObject.trailPrefab, _headingGameobject.transform);
+
+                    //give the newly created particle system a unique name
+                    _createdParticleSystem.name = _trailObject.trailPrefab.name + " #" + (i + j).ToString();
+
+                    //add the newly created particle system to the particleSystems array for this player number (i)
+                    _trailObject.trailRenderers[i].Add(_createdParticleSystem.GetComponent<TrailRenderer>());
                 }
             }
         }
@@ -494,45 +596,137 @@ public class VFX_Manager : MonoBehaviour
         _particleSystem.Play();
     }
 
-    //public void UpdateVisualEffectValues(VisualEffects _nameOfVisualEffectToUpdate, int _playerNum = 0, float _emissionRate = -1f, float _particleLifetime = -1f)
-    //{
-    //    //if the visual effect object does NOT exist,...
-    //    if (!TryGetVisualEffectObject(_nameOfVisualEffectToUpdate, _playerNum, out VisualEffectObject _visualEffectObject))
-    //    {
-    //        //return
-    //        return;
-    //    }
+    /// <summary>
+    /// Play an arcing trail visual effect from _startPos to _endPos with the apex of the curve at _relativeApexHeight above the higher point
+    /// </summary>
+    /// <param name="_nameOfVisualEffectToPlay">VisualEffects name of trail to play</param>
+    /// <param name="_startPos">Start position of the trail</param>
+    /// <param name="_endPos">End position of the trail</param>
+    /// <param name="_relativeApexHeight">The height from the higher point (either _startPos or _endPos) for the apex of the trail arc</param>
+    /// <param name="_playerNum">Player number of the player who owns this trail effect</param>
+    public Tween PlayTrailVisualEffect(VisualEffects _nameOfVisualEffectToPlay, Vector2 _startPos, Vector2 _endPos, float _relativeApexHeight, float _duration, int _playerNum = 0, Brand _floppyBrand = Brand.None)
+    {
+        //if the visual effect object does NOT exist,...
+        if (!TryGetTrailObject(_nameOfVisualEffectToPlay, _playerNum, out TrailObject _trailObject))
+        {
+            //return
+            return null;
+        }
 
-    //    //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
-    //    ParticleSystem _particleSystem = null;
-    //    foreach (ParticleSystem _listedParticleSystem in _visualEffectObject.particleSystems[_playerNum])
-    //    {
-    //        if (_listedParticleSystem == null)
-    //        {
-    //            continue;
-    //        }
-    //        //if the particle system is NOT already playing,...
-    //        if (!_listedParticleSystem.isPlaying)
-    //        {
-    //            //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
-    //            //set _particleSystem to the particle system in question
-    //            _particleSystem = _listedParticleSystem;
+        //Debug.Log("PlayerNum = " + _playerNum + ". And particleSystems has size = " + _visualEffectObject.particleSystems.Length);
 
-    //            //break out of the foreach loop
-    //            break;
-    //        }
-    //    }
+        //find the appropriate particle system based on playerNum and what particle systems associated with _playerNum are already playing
+        TrailRenderer _trailRenderer = null;
+        foreach (TrailRenderer _listedTrailRenderer in _trailObject.trailRenderers[_playerNum])
+        {
+            if (_listedTrailRenderer == null)
+            {
+                continue;
+            }
+            //if the particle system is NOT already playing,...
+            if (!_listedTrailRenderer.emitting)
+            {
+                //set _particleSystem to the particle system in question
+                _trailRenderer = _listedTrailRenderer;
 
-    //    //if no available particle system was found,...
-    //    if (_particleSystem == null)
-    //    {
-    //        _particleSystem = GetFirstValidParticleSystem(_visualEffectObject.particleSystems[_playerNum]);
-    //        if (_particleSystem == null)
-    //        {
-    //            return;
-    //        }
-    //    }
-    //}
+                //break out of the foreach loop
+                break;
+            }
+        }
+
+        //if no available trail renderer was found,...
+        if (_trailRenderer == null)
+        {
+            _trailRenderer = GetFirstValidTrailRenderer(_trailObject.trailRenderers[_playerNum]);
+            if (_trailRenderer == null)
+            {
+                return null;
+            }
+        }
+
+        //define an apex position to calculate
+        Vector3 _apexPos = Vector3.zero;
+
+        //calculate the x value of the apex position of the curve by finding the x-axis midpoint of the start and end points
+        _apexPos.x = (_endPos.x + _startPos.x) / 2f;
+
+        //calculate the y value of the apex position of the curve by adding the heigher y value and _relativeApexHeight 
+        _apexPos.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
+
+        //define and calculate a post end position to calculate so that the arc doesn't look weird
+        //Vector3 _postEndPos = _endPos + (Vector2.down * 30f);
+
+        //set start position of particle system to _startPos
+        _trailRenderer.transform.position = _startPos;
+
+        //clear the trail renderer
+        _trailRenderer.Clear();
+
+        //tell the _trailRenderer to start emitting
+        _trailRenderer.emitting = true;
+
+        //play the lerping arc
+        //Debug.Log("VFX | start = " + _startPos + ". apex = " + _apexPos + ". end = " + _endPos);
+        //return _trailRenderer.transform.DOPath(new Vector3[]{_apexPos, _startPos + (Vector2.up * 20f), _apexPos + (Vector3.left * 20f), _endPos, _apexPos + (Vector3.right * 20f), _endPos + (Vector2.up * 20f)}, _duration, PathType.CubicBezier, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time)?.Invoke());
+        return _trailRenderer.transform.DOPath
+        (
+            new Vector3[] {_apexPos, new Vector3(_startPos.x, (_apexPos.y + _startPos.y) / 2f), new Vector3((_startPos.x + _apexPos.x) / 2f, _apexPos.y), _endPos, new Vector3((_endPos.x + _apexPos.x) / 2f, _apexPos.y), new Vector3(_endPos.x, (_apexPos.y + _endPos.y) / 2f)}, 
+            _duration, 
+            PathType.CubicBezier, 
+            PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time, _playerNum, _floppyBrand)?.Invoke()
+        );
+    }
+
+    /// <summary>
+    /// Clear a TrailRenderer after a delay in seconds
+    /// </summary>
+    /// <param name="_trailRenderer">TrailRenderer to be cleared</param>
+    /// <param name="_delay">Delay in seconds to wait before clearing</param>
+    /// <returns></returns>
+    private static TweenCallback DelayedTrailClear(TrailRenderer _trailRenderer, float _delay, int _playerNum, Brand _floppyBrand = Brand.None)
+    {
+        //define _floppySpawnLocation based on _trailRenderer's position
+        Vector2 _floppySpawnLocation = new Vector2(_trailRenderer.transform.position.x, _trailRenderer.transform.position.y);
+
+        //play the floppy spawn VFX
+        switch (_floppyBrand)
+        {
+            case Brand.VWave:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.DemonX:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.Killeez:;
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.BigStox:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            default:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+        }
+
+        //return after a delay of _delay seconds and once _trailRenderer has been tried to be cleared
+        return () =>
+        {
+            DOVirtual.DelayedCall(_delay, 
+            () =>
+            {
+                //if _trailRenderer is valid,...
+                if (_trailRenderer != null)
+                {
+                    //turn off emitting for the trail renderer
+                    _trailRenderer.emitting = false;
+
+                    //clear _trailRenderer
+                    _trailRenderer.Clear();
+                }
+            }
+            );
+        };
+    }
 
     public void StopVisualEffect(VisualEffects _nameOfVisualEffectToPlay, int _playerNum = 0, bool clearParticles = false)
     {

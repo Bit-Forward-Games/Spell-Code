@@ -71,6 +71,7 @@ public class Pause : MonoBehaviour
     public Image colorLayer;
     public Image colorLayer2;
     public Image colorLayer3;
+    public Image colorLayer4;
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
@@ -226,7 +227,7 @@ public class Pause : MonoBehaviour
             TriggerSelectedButton();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -365,24 +366,28 @@ public class Pause : MonoBehaviour
                         colorLayer.color = GameManager.colors["green"];
                         colorLayer2.color = GameManager.colors["green"];
                         colorLayer3.color = GameManager.colors["green"];
+                        colorLayer4.color = GameManager.colors["green"];
                         break;
                     case Brand.BigStox:
                         spellSelectedBorder.color = GameManager.colors["blue"];
                         colorLayer.color = GameManager.colors["blue"];
                         colorLayer2.color = GameManager.colors["blue"];
                         colorLayer3.color = GameManager.colors["blue"];
+                        colorLayer4.color = GameManager.colors["blue"];
                         break;
                     case Brand.DemonX:
                         spellSelectedBorder.color = GameManager.colors["red"];
                         colorLayer.color = GameManager.colors["red"];
                         colorLayer2.color = GameManager.colors["red"];
                         colorLayer3.color = GameManager.colors["red"];
+                        colorLayer4.color = GameManager.colors["red"];
                         break;
                     case Brand.Killeez:
                         spellSelectedBorder.color = GameManager.colors["yellow"];
                         colorLayer.color = GameManager.colors["yellow"];
                         colorLayer2.color = GameManager.colors["yellow"];
                         colorLayer3.color = GameManager.colors["yellow"];
+                        colorLayer4.color = GameManager.colors["yellow"];
                         break;
                 }
             }
@@ -409,6 +414,7 @@ public class Pause : MonoBehaviour
         controls = false;
         spells = false;
         openedFrame = -1;
+        uiScript.tutorialPromptMenuOpened = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
@@ -525,7 +531,7 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_optionsMenuFirst));
     }
 
-    IEnumerator SelectFirst(GameObject target)
+    public IEnumerator SelectFirst(GameObject target)
     {
         yield return new WaitForSecondsRealtime(0.02f);
         EventSystem.current.SetSelectedGameObject(target);
@@ -678,7 +684,7 @@ public class Pause : MonoBehaviour
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3.2f);
 
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)

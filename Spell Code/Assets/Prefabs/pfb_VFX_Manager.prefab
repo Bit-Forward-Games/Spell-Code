@@ -129,4 +129,20 @@ MonoBehaviour:
   - visualEffectName: 27
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 2376bd6f66470a24b93acec85a1a6126, type: 3}
     numParticleSystemsPerPlayer: 1
+  - visualEffectName: 28
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 9fcce0098e56a0543815eb5ce16c3229, type: 3}
+    numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []
+  trailObjects:
+  - trailName: 29
+    trailPrefab: {fileID: 8156234568415061252, guid: b2daff341d5475c4d93fa400162ad3c3, type: 3}
+    numTrailsPerPlayer: 10
+  - trailName: 30
+    trailPrefab: {fileID: 8156234568415061252, guid: 5d003b88119516049a8b113b04512b5b, type: 3}
+    numTrailsPerPlayer: 10
+  - trailName: 31
+    trailPrefab: {fileID: 8156234568415061252, guid: 485a1c91919b68b4b9da27e2df2e4278, type: 3}
+    numTrailsPerPlayer: 10
+  - trailName: 32
+    trailPrefab: {fileID: 8156234568415061252, guid: c1f9d5300daad2841ac057ffcf090c24, type: 3}
+    numTrailsPerPlayer: 10

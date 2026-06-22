@@ -1,17 +1,18 @@
-using System.Collections.Generic;
-using System;
-using UnityEngine;
-using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using BestoNet.Types;
-using UnityEngine.VFX;
-using static UnityEngine.ParticleSystem;
-using UnityEngine.UI.Extensions.Tweens;
-using static SFX_Manager;
-using UnityEditor;
-using TMPro;
 using DG.Tweening;
-using YamlDotNet.Serialization;
+using System;
+using System.Collections.Generic;
 using System.Transactions;
+using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI.Extensions.Tweens;
+using UnityEngine.VFX;
+using YamlDotNet.Serialization;
+using static SFX_Manager;
+using static UnityEditor.FilePathAttribute;
+using static UnityEngine.ParticleSystem;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public enum VisualEffects
 {
@@ -586,14 +587,14 @@ public class VFX_Manager : MonoBehaviour
     }
 
     /// <summary>
-    /// Play an arcing trail visual effect from _startPos to _endPos with the apex of the curve at height _relativeApexHeight
+    /// Play an arcing trail visual effect from _startPos to _endPos with the apex of the curve at _relativeApexHeight above the higher point
     /// </summary>
-    /// <param name="_nameOfVisualEffectToPlay"></param>
-    /// <param name="_startPos"></param>
-    /// <param name="_endPos"></param>
-    /// <param name="_relativeApexHeight"></param>
-    /// <param name="_playerNum"></param>
-    public Tween PlayTrailVisualEffect(VisualEffects _nameOfVisualEffectToPlay, Vector2 _startPos, Vector2 _endPos, float _relativeApexHeight, float _duration, int _playerNum = 0, TweenCallback _onComplete = null)
+    /// <param name="_nameOfVisualEffectToPlay">VisualEffects name of trail to play</param>
+    /// <param name="_startPos">Start position of the trail</param>
+    /// <param name="_endPos">End position of the trail</param>
+    /// <param name="_relativeApexHeight">The height from the higher point (either _startPos or _endPos) for the apex of the trail arc</param>
+    /// <param name="_playerNum">Player number of the player who owns this trail effect</param>
+    public Tween PlayTrailVisualEffect(VisualEffects _nameOfVisualEffectToPlay, Vector2 _startPos, Vector2 _endPos, float _relativeApexHeight, float _duration, int _playerNum = 0, Brand _floppyBrand = Brand.None)
     {
         //if the visual effect object does NOT exist,...
         if (!TryGetTrailObject(_nameOfVisualEffectToPlay, _playerNum, out TrailObject _trailObject))
@@ -615,7 +616,6 @@ public class VFX_Manager : MonoBehaviour
             //if the particle system is NOT already playing,...
             if (!_listedTrailRenderer.emitting)
             {
-                //if (_visualEffectObject.visualEffectName == VisualEffects.DASH_DUST) { Debug.Log("VFX Debug | Dash dust particle found = " + _listedParticleSystem.gameObject.name); }
                 //set _particleSystem to the particle system in question
                 _trailRenderer = _listedTrailRenderer;
 
@@ -635,13 +635,16 @@ public class VFX_Manager : MonoBehaviour
         }
 
         //define an apex position to calculate
-        Vector3 _apexPosition = Vector3.zero;
+        Vector3 _apexPos = Vector3.zero;
 
         //calculate the x value of the apex position of the curve by finding the x-axis midpoint of the start and end points
-        _apexPosition.x = (_endPos.x + _startPos.x) / 2f;
+        _apexPos.x = (_endPos.x + _startPos.x) / 2f;
 
         //calculate the y value of the apex position of the curve by adding the heigher y value and _relativeApexHeight 
-        _apexPosition.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
+        _apexPos.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
+
+        //define and calculate a post end position to calculate so that the arc doesn't look weird
+        //Vector3 _postEndPos = _endPos + (Vector2.down * 30f);
 
         //set start position of particle system to _startPos
         _trailRenderer.transform.position = _startPos;
@@ -652,13 +655,49 @@ public class VFX_Manager : MonoBehaviour
         //tell the _trailRenderer to start emitting
         _trailRenderer.emitting = true;
 
-        //play the lerp
-        //Debug.Log("VFX | start = " + _startPos + ". apex = " + _apexPosition + ". end = " + _endPos);
-        return _trailRenderer.transform.DOPath(new Vector3[]{_startPos, _apexPosition, _endPos}, _duration, PathType.CatmullRom, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time, _trailRenderer.transform.position)?.Invoke());
+        //play the lerping arc
+        //Debug.Log("VFX | start = " + _startPos + ". apex = " + _apexPos + ". end = " + _endPos);
+        //return _trailRenderer.transform.DOPath(new Vector3[]{_apexPos, _startPos + (Vector2.up * 20f), _apexPos + (Vector3.left * 20f), _endPos, _apexPos + (Vector3.right * 20f), _endPos + (Vector2.up * 20f)}, _duration, PathType.CubicBezier, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time)?.Invoke());
+        return _trailRenderer.transform.DOPath
+        (
+            new Vector3[] {_apexPos, new Vector3(_startPos.x, (_apexPos.y + _startPos.y) / 2f), new Vector3((_startPos.x + _apexPos.x) / 2f, _apexPos.y), _endPos, new Vector3((_endPos.x + _apexPos.x) / 2f, _apexPos.y), new Vector3(_endPos.x, (_apexPos.y + _endPos.y) / 2f)}, 
+            _duration, 
+            PathType.CubicBezier, 
+            PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time, _playerNum, _floppyBrand)?.Invoke()
+        );
     }
 
-    public static TweenCallback DelayedTrailClear(TrailRenderer _trailRenderer, float _delay, Vector3 _resetPos)
+    /// <summary>
+    /// Clear a TrailRenderer after a delay in seconds
+    /// </summary>
+    /// <param name="_trailRenderer">TrailRenderer to be cleared</param>
+    /// <param name="_delay">Delay in seconds to wait before clearing</param>
+    /// <returns></returns>
+    private static TweenCallback DelayedTrailClear(TrailRenderer _trailRenderer, float _delay, int _playerNum, Brand _floppyBrand = Brand.None)
     {
+        //define _floppySpawnLocation based on _trailRenderer's position
+        Vector2 _floppySpawnLocation = new Vector2(_trailRenderer.transform.position.x, _trailRenderer.transform.position.y);
+
+        //play the floppy spawn VFX
+        switch (_floppyBrand)
+        {
+            case Brand.VWave:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.DemonX:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.Killeez:;
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.BigStox:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            default:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+        }
+
         //return after a delay of _delay seconds and once _trailRenderer has been tried to be cleared
         return () =>
         {
@@ -673,9 +712,6 @@ public class VFX_Manager : MonoBehaviour
 
                     //clear _trailRenderer
                     _trailRenderer.Clear();
-
-                    //set _trailRenderer's position to _resetPos
-                    _trailRenderer.transform.position = _resetPos;
                 }
             }
             );

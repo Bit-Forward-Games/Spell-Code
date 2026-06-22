@@ -208,9 +208,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
-        private int consecutiveHashMismatchCount = 0;
-        private int lastHashMismatchFrame = -1;
-        private bool authoritativeHashRecoverySent = false;
         private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
         // --- End Runtime State ---
 
@@ -613,9 +610,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lastTimeSyncHoldFrame = -1;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
-            consecutiveHashMismatchCount = 0;
-            lastHashMismatchFrame = -1;
-            authoritativeHashRecoverySent = false;
             pendingRemoteHashes.Clear();
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
@@ -1246,7 +1240,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         SetRollbackStatus(false);
-        GameManager.Instance.ReconcileOnlineRoundPresentationAfterRollback();
         ProcessPendingRemoteHashes();
         LogPredictionSnapDelta(syncFrame, framesBeforeRollback, preRollbackPosX, preRollbackPosY);
         diagRollbacks++;
@@ -2197,31 +2190,6 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 }
             }
             firstHashMismatchFrame = frame;
-
-            if (frame > lastHashMismatchFrame)
-            {
-                consecutiveHashMismatchCount = lastHashMismatchFrame >= 0 && frame - lastHashMismatchFrame <= 90
-                    ? consecutiveHashMismatchCount + 1
-                    : 1;
-                lastHashMismatchFrame = frame;
-            }
-
-            if (!authoritativeHashRecoverySent
-                && consecutiveHashMismatchCount >= 2
-                && GameManager.Instance != null
-                && GameManager.Instance.IsOnlineHostAuthority())
-            {
-                authoritativeHashRecoverySent = true;
-                GameManager.Instance.SendAuthoritativeOnlineStateSnapshotAtFrame(
-                    frame,
-                    states[index].state,
-                    $"{consecutiveHashMismatchCount} consecutive confirmed state-hash mismatches");
-            }
-        }
-        else
-        {
-            consecutiveHashMismatchCount = 0;
-            lastHashMismatchFrame = -1;
         }
     }
 

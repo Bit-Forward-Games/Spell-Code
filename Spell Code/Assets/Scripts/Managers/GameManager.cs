@@ -122,9 +122,6 @@ public class GameManager : MonoBehaviour
     public int roundEndTransitionTime = 5;
     private int roundEndFrameCounter = 0;
     private bool roundEndUIShown = false;
-    [NonSerialized] private bool roundEndPresentationActive = false;
-    [NonSerialized] private int presentedRoundWinnerPID = -1;
-    [NonSerialized] private bool presentedRoundWasGameOver = false;
     private int lastRoundWinnerPID = -1;
     private bool roundTransitionPending = false;
     private bool onlineRoundAdvanceApplied = false;
@@ -1178,7 +1175,7 @@ public class GameManager : MonoBehaviour
     // Sends already-serialized authoritative state to every remote peer. Split out from the method
     // above so the authoritative-broadcast path can serialize ONCE and reuse the same bytes for both
     // the network send and the host's own self-apply (see BroadcastAuthoritativeOnlineStateSnapshot).
-    private void SendAuthoritativeOnlineLobbySnapshotData(byte[] stateData, int? snapshotFrameOverride = null)
+    private void SendAuthoritativeOnlineLobbySnapshotData(byte[] stateData)
     {
         if (stateData == null || activeOnlineRoster == null || MatchMessageManager.Instance == null)
         {
@@ -1193,24 +1190,8 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            int snapshotFrame = snapshotFrameOverride ?? frameNumber;
-            MatchMessageManager.Instance.SendLobbyRosterSnapshot(peer.SteamId, activeOnlineRoster, snapshotFrame, stateData, forceApply: true);
+            MatchMessageManager.Instance.SendLobbyRosterSnapshot(peer.SteamId, activeOnlineRoster, frameNumber, stateData, forceApply: true);
         }
-    }
-
-    public void SendAuthoritativeOnlineStateSnapshotAtFrame(int snapshotFrame, byte[] stateData, string reason)
-    {
-        if (!isOnlineMatchActive
-            || !IsOnlineHostAuthority()
-            || stateData == null
-            || stateData.Length == 0
-            || !IsOnlineSimulationScene(SceneManager.GetActiveScene()))
-        {
-            return;
-        }
-
-        SendAuthoritativeOnlineLobbySnapshotData(stateData, snapshotFrame);
-        Debug.LogWarning($"[OnlineState] Sent authoritative recovery snapshot for verified frame {snapshotFrame}. Reason={reason}");
     }
 
     public void BroadcastAuthoritativeOnlineStateSnapshot(string reason = "")
@@ -2800,10 +2781,6 @@ public class GameManager : MonoBehaviour
 
     private void PerformRoundTransition()
     {
-        roundEndPresentationActive = false;
-        presentedRoundWinnerPID = -1;
-        presentedRoundWasGameOver = false;
-
         if (isOnlineMatchActive && !IsOnlineHostAuthority())
         {
             roundTransitionPending = true;
@@ -2879,9 +2856,6 @@ public class GameManager : MonoBehaviour
         }
 
         roundEndUIShown = true;
-        roundEndPresentationActive = true;
-        presentedRoundWinnerPID = lastRoundWinnerPID;
-        presentedRoundWasGameOver = gameOver;
 
         string message;
         if (gameOver)
@@ -2923,40 +2897,6 @@ public class GameManager : MonoBehaviour
             {
                 StartCoroutine(tempUI.DisplayTransitionScreen(transitionMessageSeconds, message));
             }
-        }
-    }
-
-    public void ReconcileOnlineRoundPresentationAfterRollback()
-    {
-        if (!isOnlineMatchActive || !roundEndPresentationActive)
-        {
-            return;
-        }
-
-        bool presentationStillValid = roundOver
-            && lastRoundWinnerPID == presentedRoundWinnerPID
-            && gameOver == presentedRoundWasGameOver;
-        if (presentationStillValid)
-        {
-            return;
-        }
-
-        roundEndPresentationActive = false;
-        presentedRoundWinnerPID = -1;
-        presentedRoundWasGameOver = false;
-        roundEndUIShown = false;
-
-        if (playerWinText != null)
-        {
-            playerWinText.enabled = false;
-        }
-        tempUI?.CancelTransitionScreenImmediately();
-
-        // A rollback can replace one predicted winner with another. Redisplay the corrected
-        // result immediately; if the round no longer ended, the banner simply stays hidden.
-        if (roundOver && lastRoundWinnerPID > 0)
-        {
-            HandleRoundEndUI(true);
         }
     }
 

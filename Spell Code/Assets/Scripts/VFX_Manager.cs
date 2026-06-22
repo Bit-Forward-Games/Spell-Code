@@ -1,5 +1,4 @@
 using BestoNet.Types;
-using DG.Tweening;
 using System;
 using System.Collections.Generic;
 using System.Transactions;
@@ -13,6 +12,7 @@ using static SFX_Manager;
 using static UnityEditor.FilePathAttribute;
 using static UnityEngine.ParticleSystem;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using DG.Tweening;
 
 public enum VisualEffects
 {

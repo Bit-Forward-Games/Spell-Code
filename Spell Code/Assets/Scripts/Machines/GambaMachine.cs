@@ -1,3 +1,4 @@
+using DG.Tweening;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -8,11 +9,12 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using UnityEngine.Windows;
-
-
+using static UnityEditor.FilePathAttribute;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -747,6 +749,9 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+            ToggleFloppyAfterDelay(disk, 0.5f);
+
             //play the new floppy disk VFX depending on disk brand
             if (playVfx)
             {
@@ -809,6 +814,9 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+            ToggleFloppyAfterDelay(disk, 0.5f);
+
             //play the floppy disk VFX depending on the disk brand
             if (playVfx)
             {
@@ -856,6 +864,32 @@ public class GambaMachine : MonoBehaviour
 
             return disk;
         }
+    }
+
+    /// <summary>
+    /// Toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+    /// </summary>
+    /// <param name="_disk">Disk to toggle</param>
+    /// <param name="_delay">Time to wait in seconds</param>
+    /// <returns></returns>
+    private void ToggleFloppyAfterDelay(GameObject _disk, float _delay)
+    {
+        //toggle the floppy off
+        _disk.SetActive(false);
+
+        //wait for _delay seconds,...
+        DOVirtual.DelayedCall(_delay, () =>
+        {
+            //if _disk is valid,...
+            if (_disk != null)
+            {
+                //toggle it back on
+                _disk.SetActive(true);
+            }
+        });
+
+        //return 
+        return;
     }
 
     private void SpawnThreeFloppysOnline(int pid, Vector2 loc1, Vector2 loc2, Vector2 loc3, bool isRollback = false)

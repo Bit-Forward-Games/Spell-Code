@@ -534,6 +534,29 @@ public class TempUIScript : MonoBehaviour
         textBoxUI.SetActive(false);
     }
 
+    public void CancelTransitionScreenImmediately()
+    {
+        // Invalidate the outer DisplayTransitionScreen coroutine. It may still be waiting,
+        // but its request-id check will prevent it from touching this presentation later.
+        activeTransitionRequestId++;
+        StopTransitionTextCoroutines();
+
+        if (announcer != null)
+        {
+            foreach (GameObject item in announcer)
+            {
+                if (item == null) continue;
+                item.transform.DOKill();
+                item.transform.localScale = Vector3.zero;
+            }
+        }
+
+        if (textBoxUI != null)
+        {
+            textBoxUI.SetActive(false);
+        }
+    }
+
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse)
     {
         if (!reverse)

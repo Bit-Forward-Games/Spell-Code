@@ -1062,6 +1062,7 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_STATE_HASH);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                 writer.Write(frame);
                 writer.Write(hash);
                 writer.Write(sharedHash);
@@ -1404,6 +1405,13 @@ public class MatchMessageManager : MonoBehaviour
 
                 if (packetType == PACKET_TYPE_STATE_HASH)
                 {
+                    int hashSceneSignature = reader.ReadInt32();
+                    if (GameManager.Instance == null
+                        || hashSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
+                    {
+                        return;
+                    }
+
                     int frame = reader.ReadInt32();
                     uint hash = reader.ReadUInt32();
                     uint sharedHash = reader.ReadUInt32();

@@ -2085,6 +2085,13 @@ public class PlayerController : MonoBehaviour
     {
         if(GameManager.Instance.currentStageIndex >= 0)
         {
+            // No floppies exist in gameplay stages, so clear the flag here every frame instead of
+            // leaving it at its last lobby value. collidingWithFloppy gates entering CodeWeave (the
+            // player state machine) and is [NonSerialized], so a stale value that rollback never
+            // restores drifts between clients and desyncs the CodeWeave state at high ping. Resetting
+            // it deterministically each gameplay frame (like the per-frame wall-touch flags) keeps
+            // the CodeWeave gate in sync and false is correct here since there are no floppies.
+            collidingWithFloppy = false;
             return false;
         }
         GameObject[] floppies = GameManager.Instance.FindFloppyDisksofPID(pID);

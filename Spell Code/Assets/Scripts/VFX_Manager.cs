@@ -9,7 +9,7 @@ using UnityEngine.UI.Extensions.Tweens;
 using UnityEngine.VFX;
 using YamlDotNet.Serialization;
 using static SFX_Manager;
-using static UnityEditor.FilePathAttribute;
+//using static UnityEditor.FilePathAttribute;
 using static UnityEngine.ParticleSystem;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using DG.Tweening;

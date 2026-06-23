@@ -14,7 +14,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using UnityEngine.Windows;
-using static UnityEditor.FilePathAttribute;
+//using static UnityEditor.FilePathAttribute;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 

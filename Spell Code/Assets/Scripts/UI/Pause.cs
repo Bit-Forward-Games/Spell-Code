@@ -75,7 +75,7 @@ public class Pause : MonoBehaviour
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
-    private bool showDescription = false;
+    private bool showDescription = true;
  
     private int tab = 0;
     private int selectedSpell;
@@ -202,6 +202,7 @@ public class Pause : MonoBehaviour
         }
 
         spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
+        ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
     }
  
     void Update()

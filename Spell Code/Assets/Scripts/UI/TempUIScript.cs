@@ -79,6 +79,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public RectTransform welcomeSign;
     public RectTransform[] tutorialPrompButtons;
     public RectTransform tutorialPromptSelector;
+    public TextMeshProUGUI tutorialPromptButtonText;
+    public TextMeshProUGUI tutorialPromptButtonText2;
     public bool tutorialPromptMenuOpened;
 
     public Pause pause;
@@ -133,7 +135,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         transitionScreenDisplayed = false;
         shopScreenDisplayed = false;
-        
+
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
@@ -507,7 +509,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (screenText != null)
         {
             screenText.text = "";
-            activeTypeCoroutine = StartCoroutine(TypeLine(screenText, text, false));
+            activeTypeCoroutine = StartCoroutine(TypeLine(screenText, text, false, textSpeed));
         }
         
         yield return new WaitForSeconds(transitionTime);
@@ -535,7 +537,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (screenText != null)
         {
             screenText.text = text;
-            activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true));
+            activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true, textSpeed));
             yield return activeReverseTypeCoroutine;
             activeReverseTypeCoroutine = null;
         }
@@ -557,6 +559,19 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         tutorialPromptImage.DOAnchorPos(new Vector2(tutorialPromptImage.anchoredPosition.x, tutorialPromptMenuYPos), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
         welcomeSign.DOAnchorPos(new Vector2(welcomeSignPos.x, welcomeSignPos.y), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+        if (tutorialPromptMenuOpened)
+        {
+            DOTween.To(() => tutorialPromptButtonText.text, 
+                    x => tutorialPromptButtonText.text = x, 
+                    "I'm good!", 1f)
+                .SetEase(Ease.Linear).SetUpdate(true);
+
+            DOTween.To(() => tutorialPromptButtonText2.text, 
+                    x => tutorialPromptButtonText2.text = x, 
+                    "Show Me!", 1f)
+                .SetEase(Ease.Linear).SetUpdate(true);
+        }
+
 
         for (int i = 0; i < 2; i++)
         {
@@ -569,12 +584,18 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (!tutorialPromptMenuOpened) mySequence.AppendCallback(() => tutorialPromptMenu.SetActive(false));
     }
 
+    public void RemoveButtonText()
+    {
+        StartCoroutine(TypeLine(tutorialPromptButtonText, "", true, 0.03f));
+        StartCoroutine(TypeLine(tutorialPromptButtonText2, "", true, 0.03f));
+    }
+
     public void ExitTutorialPromptAnimation()
     {
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
     }
 
-    IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse)
+    IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse, float textSpeed)
     {
         if (!reverse)
         {

@@ -3204,7 +3204,22 @@ public class PlayerController : MonoBehaviour
             : (previous ? ButtonState.Released : ButtonState.None);
     }
 
-    /// NETWORK CODE:
+    /// <summary>
+    /// Diagnostic-only: full per-player simulation field dump for desync reports.
+    /// </summary>
+    public string GetDesyncDiagString()
+    {
+        string inStr = (input.ButtonStates != null && input.ButtonStates.Length >= 3)
+            ? $"dir{input.Direction}/b0:{input.ButtonStates[0]}/b1:{input.ButtonStates[1]}/b2:{input.ButtonStates[2]}"
+            : "n/a";
+        return $"grav={gravity.RawValue} lerp={lerpDelay} ssArg={stateSpecificArg} jc={jumpCount}/{maxJumpCount} " +
+               $"grnd={isGrounded} plat={onPlatform} tmr={timer.RawValue} animF={animationFrame} prev={prevState} " +
+               $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
+               $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
+               $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
+               $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
+    }
+
     public void Serialize(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);

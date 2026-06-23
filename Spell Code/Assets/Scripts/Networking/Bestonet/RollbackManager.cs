@@ -2168,7 +2168,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
             {
-                string diag = BuildDesyncDiagnostics(frame);
+                string diag = BuildFrameAccurateDesyncDiagnostics(frame, index);
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
                 WriteDesyncTextReport(
@@ -2273,6 +2273,33 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
     }
 
+    /// <summary>
+    /// BuildDesyncDiagnostics reads LIVE player state, which at high ping is several frames ahead
+    /// of the mismatched frame (the remote hash for frame F arrives ~ping later)
+    /// </summary>
+    private string BuildFrameAccurateDesyncDiagnostics(int frame, int index)
+    {
+        if (GameManager.Instance == null) return BuildDesyncDiagnostics(frame);
+        byte[] frameBytes = states[index].state;
+        if (frameBytes == null || frameBytes.Length == 0) return BuildDesyncDiagnostics(frame);
+
+        byte[] liveSnapshot = GameManager.Instance.SerializeManagedState();
+        if (liveSnapshot == null) return BuildDesyncDiagnostics(frame);
+
+        bool prevRollback = isRollbackFrame;
+        SetRollbackStatus(true); // suppress cosmetic side effects during the temporary load
+        try
+        {
+            GameManager.Instance.DeserializeManagedState(frameBytes);
+            return BuildDesyncDiagnostics(frame);
+        }
+        finally
+        {
+            GameManager.Instance.DeserializeManagedState(liveSnapshot); // restore live state exactly
+            SetRollbackStatus(prevRollback);
+        }
+    }
+
     private string BuildDesyncDiagnostics(int frame)
     {
         if (GameManager.Instance == null) return string.Empty;
@@ -2292,6 +2319,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
                     $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
+            diag += $"\n      {p.GetDesyncDiagString()}";
 
             for (int s = 0; s < p.spellList.Count; s++)
             {

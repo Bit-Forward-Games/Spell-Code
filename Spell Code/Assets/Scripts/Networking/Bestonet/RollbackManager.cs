@@ -2169,6 +2169,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (firstHashMismatchFrame < 0)
             {
                 string diag = BuildFrameAccurateDesyncDiagnostics(frame, index);
+                diag += BuildInputBufferDump(frame);
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
                 WriteDesyncTextReport(
@@ -2297,6 +2298,56 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             GameManager.Instance.DeserializeManagedState(liveSnapshot); // restore live state exactly
             SetRollbackStatus(prevRollback);
+        }
+    }
+
+    /// <summary>
+    /// Dumps the raw rollback input buffers around the mismatched frame so the two PCs' reports can
+    /// be compared input-by-input. These buffers are historical (keyed by frame) and unaffected by
+    /// any state restore, so reading them directly is safe. On the local player's owner machine its
+    /// input lives in clientInputs; the same player on the other machine lives in receivedInputs
+    /// (authoritative) / opponentInputs (what was actually simulated). If those disagree for a frame,
+    /// the divergence is an input transmission/prediction problem rather than a sim-field bug.
+    /// </summary>
+    private string BuildInputBufferDump(int frame)
+    {
+        var sb = new System.Text.StringBuilder();
+        int localIdx = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : -1;
+        int remoteIdx = GameManager.Instance != null ? GameManager.Instance.remotePlayerIndex : -1;
+        sb.Append($"\n  [INPUT BUFFERS] localIdx={localIdx} remoteIdx={remoteIdx} (this machine's local player = clientInputs)");
+        int start = Mathf.Max(0, frame - 10);
+        for (int f = start; f <= frame + 1; f++)
+        {
+            sb.Append($"\n    f={f} local={DescribeBufferedInput(clientInputs, f)}");
+            if (usePeerRoster)
+            {
+                foreach (var kv in receivedInputsBySlot)
+                {
+                    sb.Append($" slot{kv.Key}rx={DescribeBufferedInput(kv.Value, f)}");
+                }
+            }
+            else
+            {
+                sb.Append($" rxRemote={DescribeBufferedInput(receivedInputs, f)} usedRemote={DescribeBufferedInput(opponentInputs, f)}");
+            }
+        }
+        return sb.ToString();
+    }
+
+    private static string DescribeBufferedInput(FrameMetadataArray arr, int f)
+    {
+        if (arr == null || !arr.ContainsKey(f)) return "-";
+        ulong raw = arr.GetInput(f);
+        try
+        {
+            InputSnapshot s = InputConverter.ConvertFromLong(raw);
+            string b0 = (s.ButtonStates != null && s.ButtonStates.Length > 0) ? s.ButtonStates[0].ToString().Substring(0, 1) : "?";
+            string b1 = (s.ButtonStates != null && s.ButtonStates.Length > 1) ? s.ButtonStates[1].ToString().Substring(0, 1) : "?";
+            return $"{raw}(d{s.Direction}/c{b0}/j{b1})";
+        }
+        catch
+        {
+            return raw.ToString();
         }
     }
 

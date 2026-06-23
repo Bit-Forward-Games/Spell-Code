@@ -874,6 +874,28 @@ public class GambaMachine : MonoBehaviour
     /// <returns></returns>
     private void ToggleFloppyAfterDelay(GameObject _disk, float _delay)
     {
+        // ONLINE: the deterministic sim only simulates ACTIVE, tagged floppies
+        // (FindAllFloppyDisks uses FindGameObjectsWithTag, which excludes inactive objects), so a
+        // floppy's *pickable* state is tied to GameObject.activeSelf
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            foreach (Renderer r in _disk.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r != null) r.enabled = false;
+            }
+            DOVirtual.DelayedCall(_delay, () =>
+            {
+                if (_disk != null)
+                {
+                    foreach (Renderer r in _disk.GetComponentsInChildren<Renderer>(true))
+                    {
+                        if (r != null) r.enabled = true;
+                    }
+                }
+            });
+            return;
+        }
+
         //toggle the floppy off
         _disk.SetActive(false);
 
@@ -888,7 +910,7 @@ public class GambaMachine : MonoBehaviour
             }
         });
 
-        //return 
+        //return
         return;
     }
 

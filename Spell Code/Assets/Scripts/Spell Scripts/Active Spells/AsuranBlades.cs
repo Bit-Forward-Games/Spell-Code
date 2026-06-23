@@ -66,7 +66,7 @@ public class AsuranBlades : SpellData
                 
                 }
             }
-            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            cooldownCounter = vibeCasted?(int)(cooldown*1.25f):cooldown;
             if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             vibeCasted = false;
         }

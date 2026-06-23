@@ -48,6 +48,7 @@ public class Pause : MonoBehaviour
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
     public Toggle vibeCodingToggleGraphic;
+    public Toggle downJumpSlideToggleGraphic;
 
     [Header("Spell Glossary Variables")]
  
@@ -127,6 +128,15 @@ public class Pause : MonoBehaviour
         set 
         {
             gameManager.players[playerPauseIndex].vibeCoding = value; 
+        }
+    }
+
+    public bool UIDownJumpSlide
+    {
+        get { return gameManager.players[playerPauseIndex].downJumpSlide; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].downJumpSlide = value; 
         }
     }
  
@@ -490,6 +500,8 @@ public class Pause : MonoBehaviour
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
         tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
         vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
+        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].downJumpSlide);
+        
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
@@ -789,5 +801,10 @@ public class Pause : MonoBehaviour
     public void ToggleVibeCoding()
     {
         UIVibeCode = !UIVibeCode;
+    }
+
+    public void ToggleDownJumpSlide()
+    {
+        UIDownJumpSlide = !UIDownJumpSlide;
     }
 }

@@ -117,7 +117,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public bool toggleCodeInput = false;
     [NonSerialized] public bool tapJump = false;
     [NonSerialized] private bool tapJumpPrimed = true;
-    [NonSerialized] public bool downAirSlide = false; 
+    [NonSerialized] public bool downJumpSlide = false; 
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -1097,8 +1097,10 @@ public class PlayerController : MonoBehaviour
 
         //check for releasing a stored code
         CheckReleaseCode(input);
-
-
+        if(pID != 0)
+        {
+            GameManager.Instance.spellDisplays[pID-1].UpdateSpellDisplay(pID-1);
+        }
 
 #region ---------------------------------PLAYER STATE MACHINE---------------------------------
         switch (state)
@@ -1111,7 +1113,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //check for slide input:
-                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     if(input.Direction == 2 && onPlatform)
                     {
@@ -1165,7 +1167,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && (downAirSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1241,7 +1243,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(downAirSlide? false : input.Direction == 2)break;
+                    if(downJumpSlide? false : input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -1403,7 +1405,7 @@ public class PlayerController : MonoBehaviour
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
-                inputDisplay.text = ConvertCodeToString(stateSpecificArg);
+                inputDisplay.text = ConvertCodeToString(stateSpecificArg, null, relativeInputs?facingRight:true);
 
                 //set the 5th bit to 0 to indicate we are no longer primed
                 //uint checkedSpellInput = stateSpecificArg &~(1u << 4);
@@ -1424,7 +1426,7 @@ public class PlayerController : MonoBehaviour
                         //increment the store code timer (charging up to store)
                         if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", GameManager.colors["white"]);
                         storedCodeDuration += 3;
-                        if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                        if (/*toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed :*/ input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             //lightArmor = false;
 
@@ -1467,7 +1469,7 @@ public class PlayerController : MonoBehaviour
                     //reset the storedCode timer
                         storedCodeDuration = 0;
                     //code button released
-                    if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                    if (/*toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed :*/ input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         armor = false;
 
@@ -1537,20 +1539,20 @@ public class PlayerController : MonoBehaviour
                             secretNormalPaletteActive = false;
                         }
                     }
-                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs for relative inputs
-                    {
-                        Debug.Log("Relative Inputs activated!");
-                        relativeInputs = !relativeInputs;
-                        string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
-                    }
-                    if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
-                    {
-                        Debug.Log("Toggle Code Input activated!");
-                        toggleCodeInput = !toggleCodeInput;
-                        string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
-                    }
+                    // if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs for relative inputs
+                    // {
+                    //     Debug.Log("Relative Inputs activated!");
+                    //     relativeInputs = !relativeInputs;
+                    //     string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
+                    //     SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
+                    // }
+                    // if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
+                    // {
+                    //     Debug.Log("Toggle Code Input activated!");
+                    //     toggleCodeInput = !toggleCodeInput;
+                    //     string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
+                    //     SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
+                    // }
 #endregion
                     //uint codeToMatchRelease;
                     for (int i = 0; i < spellList.Count; i++)
@@ -2462,10 +2464,6 @@ public class PlayerController : MonoBehaviour
                     gravity = Fixed.FromInt(0);
                 }
 
-                //update the player's spell display to show the spell inputs
-                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
-
                 break;
             case PlayerState.CodeRelease:
 
@@ -2497,7 +2495,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeWeave:
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
@@ -3710,7 +3707,7 @@ public class PlayerController : MonoBehaviour
         UpdateDamageNumberVisuals();
     }
 
-    public static string ConvertCodeToString(uint code, Color? color = null)
+    public static string ConvertCodeToString(uint code, Color? color = null, bool facingRight = true)
     {
         if (color == null) { color = GameManager.colors["white"]; }
 
@@ -3719,20 +3716,41 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < codeCount; i++)
         {
             byte currentInput = (byte)((code >> (8 + (i * 2))) & 0b11);
-            switch (currentInput)
+            if (facingRight)
             {
-                case 0b00:
-                    codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
-                    break;
-                case 0b01:
-                    codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
-                    break;
-                case 0b10:
-                    codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
-                    break;
-                case 0b11:
-                    codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
-                    break;
+                switch (currentInput)
+                {
+                    case 0b00:
+                        codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
+                        break;
+                    case 0b01:
+                        codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
+                        break;
+                    case 0b10:
+                        codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
+                        break;
+                    case 0b11:
+                        codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
+                        break;
+                }
+            }
+            else
+            {
+                switch (currentInput)
+                {
+                    case 0b00:
+                        codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
+                        break;
+                    case 0b01:
+                        codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
+                        break;
+                    case 0b10:
+                        codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
+                        break;
+                    case 0b11:
+                        codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
+                        break;
+                }
             }
         }
         return codeString.Trim();

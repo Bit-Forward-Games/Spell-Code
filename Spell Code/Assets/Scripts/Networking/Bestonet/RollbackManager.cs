@@ -2833,7 +2833,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             if (!pendingRemoteInputSlots.Remove(slot))
             {
-                return remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0;
+                int existingOffset = remoteFrameOffsetBySlot.TryGetValue(slot, out int cachedOffset) ? cachedOffset : 0;
+                // The offset is computed ONCE, at stream activation. For a peer that activated in the
+                // lobby that is a non-zero lobby alignment (currentFrame - frame)
+                if (existingOffset != 0 && SceneManager.GetActiveScene().name != "MainMenu")
+                {
+                    remoteFrameOffsetBySlot[slot] = 0;
+                    return 0;
+                }
+                return existingOffset;
             }
 
             int currentFrame = localFrame;

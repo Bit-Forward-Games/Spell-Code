@@ -576,12 +576,26 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         for (int i = 0; i < 2; i++)
         {
             mySequence.AppendInterval(0.1f).SetUpdate(true);
-            mySequence.Append(tutorialPrompButtons[i].DOSizeDelta(new Vector2(buttonScale.x, buttonScale.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+            // mySequence.Append(tutorialPrompButtons[i].DOSizeDelta(new Vector2(buttonScale.x, buttonScale.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+            tutorialPrompButtons[i].DOSizeDelta(new Vector2(buttonScale.x, buttonScale.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true);
         }
         mySequence.AppendInterval(0.1f).SetUpdate(true);
-        mySequence.Append(tutorialPromptSelector.DOSizeDelta(new Vector2(tutorialSelectorPos.x, tutorialSelectorPos.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+        // mySequence.Append(tutorialPromptSelector.DOSizeDelta(new Vector2(tutorialSelectorPos.x, tutorialSelectorPos.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true));
+        tutorialPromptSelector.DOSizeDelta(new Vector2(tutorialSelectorPos.x, tutorialSelectorPos.y), 0.35f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-        if (!tutorialPromptMenuOpened) mySequence.AppendCallback(() => tutorialPromptMenu.SetActive(false));
+        if (!tutorialPromptMenuOpened) 
+        {
+            DOTween.To(() => tutorialPromptButtonText.text, 
+                    x => tutorialPromptButtonText.text = x, 
+                    "", 0.01f)
+                .SetEase(Ease.Linear).SetUpdate(true);
+
+            DOTween.To(() => tutorialPromptButtonText2.text, 
+                    x => tutorialPromptButtonText2.text = x, 
+                    "qqq", 0.01f)
+                .SetEase(Ease.Linear).SetUpdate(true);
+            mySequence.AppendCallback(() => tutorialPromptMenu.SetActive(false));
+        }
     }
 
     public void RemoveButtonText()

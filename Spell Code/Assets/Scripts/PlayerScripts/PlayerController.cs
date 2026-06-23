@@ -1113,9 +1113,9 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
                 //check for slide input:
-                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2 && onPlatform)
+                    if(input.Direction == 2 && (onPlatform|| !downJumpSlide))
                     {
                         break;
                     }

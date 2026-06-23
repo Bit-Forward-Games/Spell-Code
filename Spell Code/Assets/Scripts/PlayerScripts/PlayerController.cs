@@ -116,11 +116,13 @@ public class PlayerController : MonoBehaviour
     public bool touchingRightWall = false;
     public bool onPlatform = false;
 
+// controls options
     [NonSerialized] public bool vibeCoding = false;
     [NonSerialized] public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     [NonSerialized] public bool toggleCodeInput = false;
     [NonSerialized] public bool tapJump = false;
     [NonSerialized] private bool tapJumpPrimed = true;
+    [NonSerialized] public bool downAirSlide = false; 
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -1209,7 +1211,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (downAirSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1285,7 +1287,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2)break;
+                    if(downAirSlide? false : input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }

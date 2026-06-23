@@ -65,31 +65,31 @@ TagManager:
   - name: NPC Back
     uniqueID: 342844471
     locked: 0
-  - name: NPC
+  - name: NPC Front
     uniqueID: 3658521637
     locked: 0
   - name: Player 1 Back
     uniqueID: 609972905
     locked: 0
-  - name: Player 1
+  - name: Player 1 Front
     uniqueID: 679571897
     locked: 0
   - name: Player 2 Back
     uniqueID: 2187584341
     locked: 0
-  - name: Player 2
+  - name: Player 2 Front
     uniqueID: 677243407
     locked: 0
   - name: Player 3 Back
     uniqueID: 913932493
     locked: 0
-  - name: Player 3
+  - name: Player 3 Front
     uniqueID: 1152335575
     locked: 0
   - name: Player 4 Back
     uniqueID: 1134415217
     locked: 0
-  - name: Player 4
+  - name: Player 4 Front
     uniqueID: 3342369721
     locked: 0
   - name: UI

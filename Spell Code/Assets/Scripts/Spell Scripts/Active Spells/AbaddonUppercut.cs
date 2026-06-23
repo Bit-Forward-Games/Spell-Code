@@ -40,7 +40,7 @@ public class AbaddonUppercut : SpellData
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            cooldownCounter = vibeCasted?(int)(cooldown*1.25f):cooldown;
             if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             vibeCasted = false;
         }

@@ -7,6 +7,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class BlueChipTrader : SpellData
 {
     public ushort storedStockStability = 0;
+    public const ushort stockStabilityProvidedAmount = 30;
 
     public BlueChipTrader()
     {
@@ -15,7 +16,7 @@ public class BlueChipTrader : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnHitBasic, ProcCondition.OnHitSpell };
         brands = new Brand[1] { Brand.BigStox };
-        description = "On Basic hit: gain 50% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
+        description = $"On Basic hit: gain {stockStabilityProvidedAmount}% Stock Stability<sprite name=\"StockStability\"> until next spell cast.";
     }
 
     public override void LoadSpell()
@@ -28,8 +29,8 @@ public class BlueChipTrader : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnHitBasic:
-                storedStockStability += 30;
-                owner.stockStability += 30;
+                storedStockStability += stockStabilityProvidedAmount;
+                owner.stockStability += stockStabilityProvidedAmount;
                 owner.stockStabilityModified = owner.stockStability;
                 if(owner.stockStability > 100)
                 {
@@ -43,7 +44,7 @@ public class BlueChipTrader : SpellData
                 //play the Blue Chip Trader SFX
                 SFX_Manager.Instance.PlaySpellcodeSound("Blue Chip Trader");
 
-                owner.SpawnToast("+30% STOCK STABILITY", GameManager.colors["blue"]);
+                owner.SpawnToast($"+{stockStabilityProvidedAmount}% STOCK STABILITY", GameManager.colors["blue"]);
                 break;
             case ProcCondition.OnHitSpell:
                 owner.SpawnToast($"RESET STOCK STABILITY", GameManager.colors["grey"]);

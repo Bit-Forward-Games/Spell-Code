@@ -472,12 +472,12 @@ public class Pause : MonoBehaviour
 
         if (!IsDynamicCameraForcedScene())
         {
-            settings.SetDynamicCamera(dynamicCameraOverride);
+            settingsManager.SetDynamicCamera(dynamicCameraOverride);
         }
-        settings.SetScreenshake(screenShake);
-        settings.SetFullscreen(true);
-        if (musicVolumeSlider != null) settings.SetMusicVolume(musicVolumeSlider.value);
-        if (sfxVolumeSlider != null) settings.SetSfxVolume(sfxVolumeSlider.value);
+        settingsManager.SetScreenshake(screenShake);
+        settingsManager.SetFullscreen(true);
+        if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
+        if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
     }
 
     public void LoadSettings()

@@ -149,11 +149,13 @@ public class Pause : MonoBehaviour
     { 
         input.Enable(); 
         scInput.Enable(); 
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
     void OnDisable() 
     { 
         input.Disable(); 
         scInput.Disable(); 
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
  
     void Awake()
@@ -213,6 +215,7 @@ public class Pause : MonoBehaviour
 
         spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
         ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
+        RefreshDynamicCameraOptionForScene();
     }
  
     void Update()
@@ -460,7 +463,10 @@ public class Pause : MonoBehaviour
             return;
         }
 
-        settings.SetDynamicCamera(dynamicCameraOverride);
+        if (!IsDynamicCameraForcedScene())
+        {
+            settings.SetDynamicCamera(dynamicCameraOverride);
+        }
         settings.SetScreenshake(screenShake);
         settings.SetFullscreen(true);
         if (musicVolumeSlider != null) settings.SetMusicVolume(musicVolumeSlider.value);
@@ -479,7 +485,7 @@ public class Pause : MonoBehaviour
         GameSettingsData settings = settingsManager.Settings;
         dynamicCameraOverride = settings.dynamicCamera;
         screenShake = settings.screenshake;
-        if (dynamicCameraToggle != null) dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+        RefreshDynamicCameraOptionForScene();
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
         if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
         if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
@@ -533,6 +539,8 @@ public class Pause : MonoBehaviour
  
     public void Options()
     {
+        RefreshDynamicCameraOptionForScene();
+
         options = true;
         controls = false;
         pausemenu.SetActive(false);
@@ -816,11 +824,53 @@ public class Pause : MonoBehaviour
  
     public void ToggleDynamicCamera()
     {
+        if (IsDynamicCameraForcedScene())
+        {
+            dynamicCameraOverride = true;
+            if (dynamicCameraToggle != null)
+            {
+                dynamicCameraToggle.SetIsOnWithoutNotify(true);
+                dynamicCameraToggle.interactable = false;
+            }
+            return;
+        }
+
         dynamicCameraOverride = dynamicCameraToggle != null ? dynamicCameraToggle.isOn : !dynamicCameraOverride;
 
         if (SettingsManager.Instance != null)
         {
             SettingsManager.Instance.SetDynamicCamera(dynamicCameraOverride);
+        }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RefreshDynamicCameraOptionForScene();
+    }
+
+    private bool IsDynamicCameraForcedScene()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        return sceneName == "Tutorial" || sceneName == "TrainingGrounds";
+    }
+
+    private void RefreshDynamicCameraOptionForScene()
+    {
+        bool forcedOn = IsDynamicCameraForcedScene();
+
+        if (forcedOn)
+        {
+            dynamicCameraOverride = true;
+        }
+        else if (SettingsManager.Instance != null && SettingsManager.Instance.Settings != null)
+        {
+            dynamicCameraOverride = SettingsManager.Instance.Settings.dynamicCamera;
+        }
+
+        if (dynamicCameraToggle != null)
+        {
+            dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+            dynamicCameraToggle.interactable = !forcedOn;
         }
     }
 

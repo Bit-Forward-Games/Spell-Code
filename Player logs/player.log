@@ -1,4 +1,4 @@
-=== PlayerLogFileWriter open slot=0 mode=create time=18:42:31.880Z ===
+=== PlayerLogFileWriter open slot=0 mode=create time=13:22:11.187Z ===
 2
 SpellDictionary: Loaded 32 spells into the dictionary.
 SpellDictionary: Spell 0: Demon Aura
@@ -33,6 +33,25 @@ SpellDictionary: Spell 28: Shot Reflector
 SpellDictionary: Spell 29: Mine Crafter
 SpellDictionary: Spell 30: No-Scope Shot
 SpellDictionary: Spell 31: Rip And Tear
-[SEED] Initialized RNG with seed: 1829538592
-[HitchDiag] InitializeAllProjectiles took 1.81 ms (n=1)
+[SEED] Initialized RNG with seed: 237199524
+[HitchDiag] InitializeAllProjectiles took 0.91 ms (n=1)
+Move Onboard Complete
+Jump Onboard Complete
+Atk Onboard Complete
+Hitbox collision detected!
+LOBBY GAMBA
+Player #1, Choice #0: Amon Slash
+Player has unlocked DemonX passives
+Player 1 has acquired: Amon Slash
+You Cast Amon Slash!
+Anotha player NPC added
+dummy
 1
+pfb_BGM_Manager: If you intend to play music in this scene, then please add an element to sceneAudioObjects for the current scene = TrainingGrounds
+Player #1, Choice #0: Amon Slash
+Player #1, Choice #1: Asuran Blades
+Player #1, Choice #2: Bifrons Blade
+Player #1, Choice #3: Abaddon Uppercut
+Player #1, Choice #4: Rip And Tear
+Player #1, Choice #5: Hell-Chain Sweep
+Player #1, Choice #6: Demonic Descent

@@ -1,4 +1,5 @@
 ﻿using BestoNet.Types;
+using DG.Tweening.Plugins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -95,6 +96,10 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[3];
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
+    private ushort prevDoubleTapDirection;
+    private bool doubleTapPrimed = false;
+    private ushort doubleTapCounter = 0; 
+    private const int doubleTapThreshold = 15;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
     [Header("Haptics")]
@@ -949,83 +954,24 @@ public class PlayerController : MonoBehaviour
         return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
-    /// <summary>
-    /// Gets keyboard input directly using Unity's old Input API.
-    /// This bypasses the Input System entirely.
-    /// </summary>
-    // private ulong GetRawKeyboardInput()
-    // {
-    //     // DEBUG: Check if ANY key is being pressed
-    //     if (UnityEngine.Input.anyKey)
-    //     {
-    //         //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
-    //         // Log specific keys
-    //         //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
-    //         //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
-    //         //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
-    //         //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
-    //     }
+   public bool DoubleTapDirectionCheck()
+    {
+        if (!doubleTapPrimed)
+        {
 
-    //     // Direction input (using numpad notation: 5 = neutral)
-    //     bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-    //     bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-    //     bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-    //     bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+            return false; 
+        }
+        else//if double tap is primed 
+        {
+            
+        }
 
-    //     // Button states (need to track previous state for Pressed/Released detection)
-    //     bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-    //     bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
-
-    //     // Store previous button states (you might need to add these as class fields)
-    //     bool codePrev = codePrevFrame;
-    //     bool jumpPrev = jumpPrevFrame;
-
-    //     // Update for next frame
-    //     codePrevFrame = codeNow;
-    //     jumpPrevFrame = jumpNow;
-
-    //     // Calculate direction (numpad notation)
-    //     byte direction = 5; // neutral
-
-    //     if (up && right) direction = 9;
-    //     else if (up && left) direction = 7;
-    //     else if (down && right) direction = 3;
-    //     else if (down && left) direction = 1;
-    //     else if (up) direction = 8;
-    //     else if (down) direction = 2;
-    //     else if (left) direction = 4;
-    //     else if (right) direction = 6;
-
-    //     // Calculate button states
-    //     ButtonState codeState = GetButtonState(codePrev, codeNow);
-    //     ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
-
-    //     ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-    //     bool[] dirs = new bool[4] { up, down, left, right };
-
-    //     //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
-
-    //     // Convert to ulong using your existing converter
-    //     return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    // }
-
-    // private bool codePrevFrame = false;
-    // private bool jumpPrevFrame = false;
-
-    // private ButtonState GetButtonState(bool previous, bool current)
-    // {
-    //     if (!previous && !current)
-    //         return ButtonState.None;
-    //     else if (current && !previous)
-    //         return ButtonState.Pressed;
-    //     else if (current && previous)
-    //         return ButtonState.Held;
-    //     else
-    //         return ButtonState.Released;
-    // }
+        return false; 
+    }
 
     public void PlayerUpdate(ulong rawInput)
     {
+        prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
         input = InputConverter.ConvertFromLong( pID == 0 ? 5 : (ulong)rawInput );
 
         // Pause logic
@@ -1994,11 +1940,11 @@ public class PlayerController : MonoBehaviour
                 case 0://up
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0011_0000_0001;
                     break;
-                case 1://down
-                    codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
-                    break;
-                case 2://right
+                case 1://right
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0001_0000_0001;
+                    break;
+                case 2://down
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
                     break;
                 case 3://left
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;

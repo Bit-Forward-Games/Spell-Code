@@ -356,6 +356,7 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer.spellList.Count > 0)
             {
                 isActive = false;
+                activatedCount = 3;
                 ClearFloppysForPID(ownerPID);
             }
 

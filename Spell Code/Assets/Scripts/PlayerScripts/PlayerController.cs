@@ -1,4 +1,5 @@
 ﻿using BestoNet.Types;
+using DG.Tweening.Plugins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -95,6 +96,10 @@ public class PlayerController : MonoBehaviour
     private readonly ButtonState[] buttons = new ButtonState[3];
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
+    private ushort prevDoubleTapDirection;
+    private bool doubleTapPrimed = false;
+    private ushort doubleTapCounter = 0; 
+    private const int doubleTapThreshold = 15;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
     [Header("Haptics")]
@@ -116,11 +121,13 @@ public class PlayerController : MonoBehaviour
     public bool touchingRightWall = false;
     public bool onPlatform = false;
 
+// controls options
     [NonSerialized] public bool vibeCoding = false;
     [NonSerialized] public bool relativeInputs = false; //whether the player's directional inputs should be relative to their facing direction, e.g. pressing left while facing left would give a 6 instead of a 4
     [NonSerialized] public bool toggleCodeInput = false;
     [NonSerialized] public bool tapJump = false;
     [NonSerialized] private bool tapJumpPrimed = true;
+    [NonSerialized] public bool downJumpSlide = false; 
 
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
@@ -947,90 +954,31 @@ public class PlayerController : MonoBehaviour
         return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
-    /// <summary>
-    /// Gets keyboard input directly using Unity's old Input API.
-    /// This bypasses the Input System entirely.
-    /// </summary>
-    // private ulong GetRawKeyboardInput()
-    // {
-    //     // DEBUG: Check if ANY key is being pressed
-    //     if (UnityEngine.Input.anyKey)
-    //     {
-    //         //Debug.LogWarning($"[GetRawKeyboardInput] SOME KEY IS PRESSED!");
-    //         // Log specific keys
-    //         //Debug.LogWarning($"W={UnityEngine.Input.GetKey(KeyCode.W)}, " +
-    //         //                $"A={UnityEngine.Input.GetKey(KeyCode.A)}, " +
-    //         //                $"S={UnityEngine.Input.GetKey(KeyCode.S)}, " +
-    //         //                $"D={UnityEngine.Input.GetKey(KeyCode.D)}");
-    //     }
+   public bool DoubleTapDirectionCheck()
+    {
+        if (!doubleTapPrimed)
+        {
 
-    //     // Direction input (using numpad notation: 5 = neutral)
-    //     bool up = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.UpArrow);
-    //     bool down = UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.DownArrow);
-    //     bool left = UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.LeftArrow);
-    //     bool right = UnityEngine.Input.GetKey(KeyCode.D) || UnityEngine.Input.GetKey(KeyCode.RightArrow);
+            return false; 
+        }
+        else//if double tap is primed 
+        {
+            
+        }
 
-    //     // Button states (need to track previous state for Pressed/Released detection)
-    //     bool codeNow = UnityEngine.Input.GetKey(KeyCode.R);
-    //     bool jumpNow = UnityEngine.Input.GetKey(KeyCode.T);
-
-    //     // Store previous button states (you might need to add these as class fields)
-    //     bool codePrev = codePrevFrame;
-    //     bool jumpPrev = jumpPrevFrame;
-
-    //     // Update for next frame
-    //     codePrevFrame = codeNow;
-    //     jumpPrevFrame = jumpNow;
-
-    //     // Calculate direction (numpad notation)
-    //     byte direction = 5; // neutral
-
-    //     if (up && right) direction = 9;
-    //     else if (up && left) direction = 7;
-    //     else if (down && right) direction = 3;
-    //     else if (down && left) direction = 1;
-    //     else if (up) direction = 8;
-    //     else if (down) direction = 2;
-    //     else if (left) direction = 4;
-    //     else if (right) direction = 6;
-
-    //     // Calculate button states
-    //     ButtonState codeState = GetButtonState(codePrev, codeNow);
-    //     ButtonState jumpState = GetButtonState(jumpPrev, jumpNow);
-
-    //     ButtonState[] buttons = new ButtonState[2] { codeState, jumpState };
-    //     bool[] dirs = new bool[4] { up, down, left, right };
-
-    //     //Debug.Log($"[GetRawKeyboardInput] Direction={direction}, Code={codeState}, Jump={jumpState}");
-
-    //     // Convert to ulong using your existing converter
-    //     return (ulong)InputConverter.ConvertToLong(buttons, dirs);
-    // }
-
-    // private bool codePrevFrame = false;
-    // private bool jumpPrevFrame = false;
-
-    // private ButtonState GetButtonState(bool previous, bool current)
-    // {
-    //     if (!previous && !current)
-    //         return ButtonState.None;
-    //     else if (current && !previous)
-    //         return ButtonState.Pressed;
-    //     else if (current && previous)
-    //         return ButtonState.Held;
-    //     else
-    //         return ButtonState.Released;
-    // }
+        return false; 
+    }
 
     public void PlayerUpdate(ulong rawInput)
     {
+        prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
         input = InputConverter.ConvertFromLong( pID == 0 ? 5 : (ulong)rawInput );
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
             {
                 pause.playerPauseIndex = _playerPauseIndex;
 
@@ -1141,8 +1089,10 @@ public class PlayerController : MonoBehaviour
 
         //check for releasing a stored code
         CheckReleaseCode(input);
-
-
+        if(pID != 0)
+        {
+            GameManager.Instance.spellDisplays[pID-1].UpdateSpellDisplay(pID-1);
+        }
 
 #region ---------------------------------PLAYER STATE MACHINE---------------------------------
         switch (state)
@@ -1157,7 +1107,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2 && onPlatform)
+                    if(input.Direction == 2 && (onPlatform|| !downJumpSlide))
                     {
                         break;
                     }
@@ -1209,7 +1159,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && input.Direction != 2 && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1285,7 +1235,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2)break;
+                    if(downJumpSlide? false : input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -1447,7 +1397,7 @@ public class PlayerController : MonoBehaviour
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                 }
 
-                inputDisplay.text = ConvertCodeToString(stateSpecificArg);
+                inputDisplay.text = ConvertCodeToString(stateSpecificArg, null, relativeInputs?facingRight:true);
 
                 //set the 5th bit to 0 to indicate we are no longer primed
                 //uint checkedSpellInput = stateSpecificArg &~(1u << 4);
@@ -1468,7 +1418,7 @@ public class PlayerController : MonoBehaviour
                         //increment the store code timer (charging up to store)
                         if(storedCodeDuration == 0) SpawnToast($"{spellList[i].spellName.ToUpper()}!", GameManager.colors["white"]);
                         storedCodeDuration += 3;
-                        if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                        if (/*toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed :*/ input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                         {
                             //lightArmor = false;
 
@@ -1511,7 +1461,7 @@ public class PlayerController : MonoBehaviour
                     //reset the storedCode timer
                         storedCodeDuration = 0;
                     //code button released
-                    if (toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed : input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
+                    if (/*toggleCodeInput? input.ButtonStates[0] is ButtonState.Pressed :*/ input.ButtonStates[0] is ButtonState.Released or ButtonState.None)
                     {
                         armor = false;
 
@@ -1581,20 +1531,20 @@ public class PlayerController : MonoBehaviour
                             secretNormalPaletteActive = false;
                         }
                     }
-                    if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs for relative inputs
-                    {
-                        Debug.Log("Relative Inputs activated!");
-                        relativeInputs = !relativeInputs;
-                        string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
-                    }
-                    if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
-                    {
-                        Debug.Log("Toggle Code Input activated!");
-                        toggleCodeInput = !toggleCodeInput;
-                        string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
-                        SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
-                    }
+                    // if (stateSpecificArg == 0b_0000_0000_0000_0000_0000_0000_0000_1100) //12 downs for relative inputs
+                    // {
+                    //     Debug.Log("Relative Inputs activated!");
+                    //     relativeInputs = !relativeInputs;
+                    //     string activeWord = relativeInputs?"ACTIVATED":"DEACTIVATED";
+                    //     SpawnToast($"RELATIVE INPUTS {activeWord}!", GameManager.colors["white"]);
+                    // }
+                    // if (stateSpecificArg == 0b_1111_1111_1111_1111_1111_1111_0000_1100) //12 Ups for toggle code input
+                    // {
+                    //     Debug.Log("Toggle Code Input activated!");
+                    //     toggleCodeInput = !toggleCodeInput;
+                    //     string activeWord = toggleCodeInput?"ACTIVATED":"DEACTIVATED";
+                    //     SpawnToast($"TOGGLE CODE INPUT {activeWord}!", GameManager.colors["white"]);
+                    // }
 #endregion
                     //uint codeToMatchRelease;
                     for (int i = 0; i < spellList.Count; i++)
@@ -1990,11 +1940,11 @@ public class PlayerController : MonoBehaviour
                 case 0://up
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0011_0000_0001;
                     break;
-                case 1://down
-                    codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
-                    break;
-                case 2://right
+                case 1://right
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0001_0000_0001;
+                    break;
+                case 2://down
+                    codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
                     break;
                 case 3://left
                     codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
@@ -2572,10 +2522,6 @@ public class PlayerController : MonoBehaviour
                     gravity = Fixed.FromInt(0);
                 }
 
-                //update the player's spell display to show the spell inputs
-                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, true);
-
                 break;
             case PlayerState.CodeRelease:
 
@@ -2607,7 +2553,6 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeWeave:
                 //update the player's spell display to show the spell names
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
-                GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex, false);
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
@@ -3204,7 +3149,22 @@ public class PlayerController : MonoBehaviour
             : (previous ? ButtonState.Released : ButtonState.None);
     }
 
-    /// NETWORK CODE:
+    /// <summary>
+    /// Diagnostic-only: full per-player simulation field dump for desync reports.
+    /// </summary>
+    public string GetDesyncDiagString()
+    {
+        string inStr = (input.ButtonStates != null && input.ButtonStates.Length >= 3)
+            ? $"dir{input.Direction}/b0:{input.ButtonStates[0]}/b1:{input.ButtonStates[1]}/b2:{input.ButtonStates[2]}"
+            : "n/a";
+        return $"grav={gravity.RawValue} lerp={lerpDelay} ssArg={stateSpecificArg} jc={jumpCount}/{maxJumpCount} " +
+               $"grnd={isGrounded} plat={onPlatform} tmr={timer.RawValue} animF={animationFrame} prev={prevState} " +
+               $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
+               $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
+               $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
+               $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
+    }
+
     public void Serialize(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);
@@ -3998,7 +3958,7 @@ public class PlayerController : MonoBehaviour
         UpdateDamageNumberVisuals();
     }
 
-    public static string ConvertCodeToString(uint code, Color? color = null)
+    public static string ConvertCodeToString(uint code, Color? color = null, bool facingRight = true)
     {
         if (color == null) { color = GameManager.colors["white"]; }
 
@@ -4007,20 +3967,41 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < codeCount; i++)
         {
             byte currentInput = (byte)((code >> (8 + (i * 2))) & 0b11);
-            switch (currentInput)
+            if (facingRight)
             {
-                case 0b00:
-                    codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
-                    break;
-                case 0b01:
-                    codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
-                    break;
-                case 0b10:
-                    codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
-                    break;
-                case 0b11:
-                    codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
-                    break;
+                switch (currentInput)
+                {
+                    case 0b00:
+                        codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
+                        break;
+                    case 0b01:
+                        codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
+                        break;
+                    case 0b10:
+                        codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
+                        break;
+                    case 0b11:
+                        codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
+                        break;
+                }
+            }
+            else
+            {
+                switch (currentInput)
+                {
+                    case 0b00:
+                        codeString += "<sprite name=\"ArrowDown\" tint=\"1\"> ";
+                        break;
+                    case 0b01:
+                        codeString += "<sprite name=\"ArrowLeft\" tint=\"1\"> ";
+                        break;
+                    case 0b10:
+                        codeString += "<sprite name=\"ArrowRight\" tint=\"1\"> ";
+                        break;
+                    case 0b11:
+                        codeString += "<sprite name=\"ArrowUp\" tint=\"1\"> ";
+                        break;
+                }
             }
         }
         return codeString.Trim();

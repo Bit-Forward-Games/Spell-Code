@@ -6,6 +6,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class AbaddonUppercut : SpellData
 {
     public bool doubleHitReady;
+    public const ushort demonAuraThreshold = 50;
     public AbaddonUppercut()
     {
         spellName = "Abaddon Uppercut";
@@ -15,7 +16,7 @@ public class AbaddonUppercut : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range rising Uppercut.\n This spell double-hits if over 50% Demon Aura<sprite name=\"DemonAura\">.\n This spell has Super Armor.";
+        description = $"Short-range rising Uppercut.\n This spell double-hits if over {demonAuraThreshold}% Demon Aura<sprite name=\"DemonAura\">.\n This spell has Super Armor.";
 
     }
 
@@ -40,7 +41,7 @@ public class AbaddonUppercut : SpellData
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = vibeCasted?cooldown+60:cooldown;
+            cooldownCounter = vibeCasted?(int)(cooldown*1.25f):cooldown;
             if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             vibeCasted = false;
         }
@@ -54,7 +55,7 @@ public class AbaddonUppercut : SpellData
         {
             //ActiveOnHit: Gain 10 Demon Aura on hitting an enemy with this spell.
             case ProcCondition.ActiveOnHit:
-                if(owner.demonAura > 50 && doubleHitReady)
+                if(owner.demonAura > demonAuraThreshold && doubleHitReady)
                 {
                     //effectively do the uppercut again
                     owner.vSpd = Fixed.FromInt(10); // Launch the player upwards slightly

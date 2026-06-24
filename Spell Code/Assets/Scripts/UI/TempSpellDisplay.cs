@@ -145,7 +145,7 @@ public class TempSpellDisplay : MonoBehaviour
 
     }
 
-    public void UpdateSpellDisplay(int playerIndex, bool showInputs = false)
+    public void UpdateSpellDisplay(int playerIndex)
     {
         if (IsRollbackFrame) return;
 
@@ -223,7 +223,11 @@ public class TempSpellDisplay : MonoBehaviour
 
                 if (playerSpells[i].spellType == SpellType.Active)
                 {
-                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput);
+                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput, 
+                    null, 
+                    player.relativeInputs ? 
+                    player.facingRight : 
+                    true);
                     spellSlots[i].fontSize =14;
                 }
                 else

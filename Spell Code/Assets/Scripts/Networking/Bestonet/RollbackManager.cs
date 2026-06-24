@@ -2168,7 +2168,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
             {
-                string diag = BuildDesyncDiagnostics(frame);
+                string diag = BuildFrameAccurateDesyncDiagnostics(frame, index);
+                diag += BuildInputBufferDump(frame);
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
                 WriteDesyncTextReport(
@@ -2273,6 +2274,89 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
     }
 
+    /// <summary>
+    /// BuildDesyncDiagnostics reads LIVE player state, which at high ping is several frames ahead
+    /// of the mismatched frame (the remote hash for frame F arrives ~ping later)
+    /// </summary>
+    private string BuildFrameAccurateDesyncDiagnostics(int frame, int index)
+    {
+        if (GameManager.Instance == null) return BuildDesyncDiagnostics(frame);
+        byte[] frameBytes = states[index].state;
+        if (frameBytes == null || frameBytes.Length == 0) return BuildDesyncDiagnostics(frame);
+
+        byte[] liveSnapshot = GameManager.Instance.SerializeManagedState();
+        if (liveSnapshot == null) return BuildDesyncDiagnostics(frame);
+
+        bool prevRollback = isRollbackFrame;
+        SetRollbackStatus(true); // suppress cosmetic side effects during the temporary load
+        try
+        {
+            GameManager.Instance.DeserializeManagedState(frameBytes);
+            return BuildDesyncDiagnostics(frame);
+        }
+        finally
+        {
+            GameManager.Instance.DeserializeManagedState(liveSnapshot); // restore live state exactly
+            SetRollbackStatus(prevRollback);
+        }
+    }
+
+    /// <summary>
+    /// Dumps the raw rollback input buffers around the mismatched frame so the two PCs' reports can
+    /// be compared input-by-input. These buffers are historical (keyed by frame) and unaffected by
+    /// any state restore, so reading them directly is safe. On the local player's owner machine its
+    /// input lives in clientInputs; the same player on the other machine lives in receivedInputs
+    /// (authoritative) / opponentInputs (what was actually simulated). If those disagree for a frame,
+    /// the divergence is an input transmission/prediction problem rather than a sim-field bug.
+    /// </summary>
+    private string BuildInputBufferDump(int frame)
+    {
+        var sb = new System.Text.StringBuilder();
+        int localIdx = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : -1;
+        int remoteIdx = GameManager.Instance != null ? GameManager.Instance.remotePlayerIndex : -1;
+        sb.Append($"\n  [INPUT BUFFERS] localIdx={localIdx} remoteIdx={remoteIdx} (this machine's local player = clientInputs)");
+        // Wide enough to reach the divergence onset: state-entry desyncs (e.g. a missed CodeWeave
+        // Press edge) surface at the next hash interval, up to ~30 frames after they happen, so a
+        // 10-frame window misses them. rx = received over the wire, used = what the slot actually
+        // simulated; rx != used at a frame means a prediction that never reconverged.
+        int start = Mathf.Max(0, frame - 50);
+        for (int f = start; f <= frame + 1; f++)
+        {
+            sb.Append($"\n    f={f} local={DescribeBufferedInput(clientInputs, f)}");
+            if (usePeerRoster)
+            {
+                foreach (var kv in receivedInputsBySlot)
+                {
+                    int s = kv.Key;
+                    string used = usedInputsBySlot.TryGetValue(s, out FrameMetadataArray ua) ? DescribeBufferedInput(ua, f) : "-";
+                    sb.Append($" slot{s}[rx={DescribeBufferedInput(kv.Value, f)} used={used}]");
+                }
+            }
+            else
+            {
+                sb.Append($" rxRemote={DescribeBufferedInput(receivedInputs, f)} usedRemote={DescribeBufferedInput(opponentInputs, f)}");
+            }
+        }
+        return sb.ToString();
+    }
+
+    private static string DescribeBufferedInput(FrameMetadataArray arr, int f)
+    {
+        if (arr == null || !arr.ContainsKey(f)) return "-";
+        ulong raw = arr.GetInput(f);
+        try
+        {
+            InputSnapshot s = InputConverter.ConvertFromLong(raw);
+            string b0 = (s.ButtonStates != null && s.ButtonStates.Length > 0) ? s.ButtonStates[0].ToString().Substring(0, 1) : "?";
+            string b1 = (s.ButtonStates != null && s.ButtonStates.Length > 1) ? s.ButtonStates[1].ToString().Substring(0, 1) : "?";
+            return $"{raw}(d{s.Direction}/c{b0}/j{b1})";
+        }
+        catch
+        {
+            return raw.ToString();
+        }
+    }
+
     private string BuildDesyncDiagnostics(int frame)
     {
         if (GameManager.Instance == null) return string.Empty;
@@ -2292,6 +2376,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
                     $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
+            diag += $"\n      {p.GetDesyncDiagString()}";
 
             for (int s = 0; s < p.spellList.Count; s++)
             {
@@ -2754,7 +2839,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             if (!pendingRemoteInputSlots.Remove(slot))
             {
-                return remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0;
+                int existingOffset = remoteFrameOffsetBySlot.TryGetValue(slot, out int cachedOffset) ? cachedOffset : 0;
+                // The offset is computed ONCE, at stream activation. For a peer that activated in the
+                // lobby that is a non-zero lobby alignment (currentFrame - frame)
+                if (existingOffset != 0 && SceneManager.GetActiveScene().name != "MainMenu")
+                {
+                    remoteFrameOffsetBySlot[slot] = 0;
+                    return 0;
+                }
+                return existingOffset;
             }
 
             int currentFrame = localFrame;

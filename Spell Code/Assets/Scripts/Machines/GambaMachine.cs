@@ -1,3 +1,4 @@
+using DG.Tweening;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -8,11 +9,12 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using UnityEngine.Windows;
-
-
+//using static UnityEditor.FilePathAttribute;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -354,6 +356,7 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer.spellList.Count > 0)
             {
                 isActive = false;
+                activatedCount = 3;
                 ClearFloppysForPID(ownerPID);
             }
 
@@ -651,6 +654,21 @@ public class GambaMachine : MonoBehaviour
             return false;
         }
 
+        //vibecoding case
+        if (player.vibeCoding)
+        {
+            if (player.spellList.Count < 4 && spellData.spellType == SpellType.Passive)
+            {
+                Debug.Log("Vibe Coding is on, passive: " + spellName + " has been removed");
+                return true;
+            }
+            if (player.spellList.Count >= 4 && spellData.spellType == SpellType.Active)
+            {
+                Debug.Log("Vibe Coding is on, active: " + spellName + " has been removed");
+                return true;
+            }
+        }
+
         if (player.HasReachedSpellCopyLimit(spellName))
         {
             Debug.Log("Copy cap reached: " + spellName + " has been removed");
@@ -747,25 +765,28 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
-            //play the floppy disk VFX depending on the disk brand
+            //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+            ToggleFloppyAfterDelay(disk, 0.5f);
+
+            //play the new floppy disk VFX depending on disk brand
             if (playVfx)
             {
                 switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
                 {
                     case Brand.VWave:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.DemonX:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.Killeez:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.BigStox:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     default:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                 }
             }
@@ -809,25 +830,28 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+            ToggleFloppyAfterDelay(disk, 0.5f);
+
             //play the floppy disk VFX depending on the disk brand
             if (playVfx)
             {
                 switch (SpellDictionary.Instance.spellDict[info.diskName].brands[0])
                 {
                     case Brand.VWave:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.DemonX:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.Killeez:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     case Brand.BigStox:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                     default:
-                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(location.x, location.y) + FixedVec2.FromFloat(0f, 11.5f), ownerPID);
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
                 }
             }
@@ -856,6 +880,54 @@ public class GambaMachine : MonoBehaviour
 
             return disk;
         }
+    }
+
+    /// <summary>
+    /// Toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+    /// </summary>
+    /// <param name="_disk">Disk to toggle</param>
+    /// <param name="_delay">Time to wait in seconds</param>
+    /// <returns></returns>
+    private void ToggleFloppyAfterDelay(GameObject _disk, float _delay)
+    {
+        // ONLINE: the deterministic sim only simulates ACTIVE, tagged floppies
+        // (FindAllFloppyDisks uses FindGameObjectsWithTag, which excludes inactive objects), so a
+        // floppy's *pickable* state is tied to GameObject.activeSelf
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            foreach (Renderer r in _disk.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r != null) r.enabled = false;
+            }
+            DOVirtual.DelayedCall(_delay, () =>
+            {
+                if (_disk != null)
+                {
+                    foreach (Renderer r in _disk.GetComponentsInChildren<Renderer>(true))
+                    {
+                        if (r != null) r.enabled = true;
+                    }
+                }
+            });
+            return;
+        }
+
+        //toggle the floppy off
+        _disk.SetActive(false);
+
+        //wait for _delay seconds,...
+        DOVirtual.DelayedCall(_delay, () =>
+        {
+            //if _disk is valid,...
+            if (_disk != null)
+            {
+                //toggle it back on
+                _disk.SetActive(true);
+            }
+        });
+
+        //return
+        return;
     }
 
     private void SpawnThreeFloppysOnline(int pid, Vector2 loc1, Vector2 loc2, Vector2 loc3, bool isRollback = false)

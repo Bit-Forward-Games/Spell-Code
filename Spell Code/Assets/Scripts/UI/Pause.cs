@@ -49,6 +49,7 @@ public class Pause : MonoBehaviour
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
     public Toggle vibeCodingToggleGraphic;
+    public Toggle downJumpSlideToggleGraphic;
 
     [Header("Spell Glossary Variables")]
  
@@ -71,10 +72,11 @@ public class Pause : MonoBehaviour
     public Image colorLayer;
     public Image colorLayer2;
     public Image colorLayer3;
+    public Image colorLayer4;
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
-    private bool showDescription = false;
+    private bool showDescription = true;
  
     private int tab = 0;
     private int selectedSpell;
@@ -130,6 +132,15 @@ public class Pause : MonoBehaviour
             gameManager.players[playerPauseIndex].vibeCoding = value; 
         }
     }
+
+    public bool UIDownJumpSlide
+    {
+        get { return gameManager.players[playerPauseIndex].downJumpSlide; }
+        set 
+        {
+            gameManager.players[playerPauseIndex].downJumpSlide = value; 
+        }
+    }
  
     private InputSystem_Actions input;
     private SCMaster scInput;
@@ -138,11 +149,13 @@ public class Pause : MonoBehaviour
     { 
         input.Enable(); 
         scInput.Enable(); 
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
     void OnDisable() 
     { 
         input.Disable(); 
         scInput.Disable(); 
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
  
     void Awake()
@@ -201,6 +214,8 @@ public class Pause : MonoBehaviour
         }
 
         spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
+        ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
+        RefreshDynamicCameraOptionForScene();
     }
  
     void Update()
@@ -226,7 +241,7 @@ public class Pause : MonoBehaviour
             TriggerSelectedButton();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -365,24 +380,28 @@ public class Pause : MonoBehaviour
                         colorLayer.color = GameManager.colors["green"];
                         colorLayer2.color = GameManager.colors["green"];
                         colorLayer3.color = GameManager.colors["green"];
+                        colorLayer4.color = GameManager.colors["green"];
                         break;
                     case Brand.BigStox:
                         spellSelectedBorder.color = GameManager.colors["blue"];
                         colorLayer.color = GameManager.colors["blue"];
                         colorLayer2.color = GameManager.colors["blue"];
                         colorLayer3.color = GameManager.colors["blue"];
+                        colorLayer4.color = GameManager.colors["blue"];
                         break;
                     case Brand.DemonX:
                         spellSelectedBorder.color = GameManager.colors["red"];
                         colorLayer.color = GameManager.colors["red"];
                         colorLayer2.color = GameManager.colors["red"];
                         colorLayer3.color = GameManager.colors["red"];
+                        colorLayer4.color = GameManager.colors["red"];
                         break;
                     case Brand.Killeez:
                         spellSelectedBorder.color = GameManager.colors["yellow"];
                         colorLayer.color = GameManager.colors["yellow"];
                         colorLayer2.color = GameManager.colors["yellow"];
                         colorLayer3.color = GameManager.colors["yellow"];
+                        colorLayer4.color = GameManager.colors["yellow"];
                         break;
                 }
             }
@@ -409,6 +428,7 @@ public class Pause : MonoBehaviour
         controls = false;
         spells = false;
         openedFrame = -1;
+        uiScript.tutorialPromptMenuOpened = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
@@ -443,7 +463,10 @@ public class Pause : MonoBehaviour
             return;
         }
 
-        settings.SetDynamicCamera(dynamicCameraOverride);
+        if (!IsDynamicCameraForcedScene())
+        {
+            settings.SetDynamicCamera(dynamicCameraOverride);
+        }
         settings.SetScreenshake(screenShake);
         settings.SetFullscreen(true);
         if (musicVolumeSlider != null) settings.SetMusicVolume(musicVolumeSlider.value);
@@ -462,7 +485,7 @@ public class Pause : MonoBehaviour
         GameSettingsData settings = settingsManager.Settings;
         dynamicCameraOverride = settings.dynamicCamera;
         screenShake = settings.screenshake;
-        if (dynamicCameraToggle != null) dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+        RefreshDynamicCameraOptionForScene();
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
         if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
         if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
@@ -501,6 +524,8 @@ public class Pause : MonoBehaviour
         codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
         tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
         vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
+        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].downJumpSlide);
+        
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
@@ -514,6 +539,8 @@ public class Pause : MonoBehaviour
  
     public void Options()
     {
+        RefreshDynamicCameraOptionForScene();
+
         options = true;
         controls = false;
         pausemenu.SetActive(false);
@@ -525,7 +552,7 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_optionsMenuFirst));
     }
 
-    IEnumerator SelectFirst(GameObject target)
+    public IEnumerator SelectFirst(GameObject target)
     {
         yield return new WaitForSecondsRealtime(0.02f);
         EventSystem.current.SetSelectedGameObject(target);
@@ -678,7 +705,7 @@ public class Pause : MonoBehaviour
             DOTween.Kill(listRT);
             listRT.DOAnchorPos(targetListPos, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
 
-            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
+            SpellSelectBorderAnimation(spellSelectedBorderTransform, 3.2f);
 
             // Apply immediately — children move with the parent, so no pop/flicker
             for (int i = 0; i < spellTabList.Count; i++)
@@ -797,11 +824,53 @@ public class Pause : MonoBehaviour
  
     public void ToggleDynamicCamera()
     {
+        if (IsDynamicCameraForcedScene())
+        {
+            dynamicCameraOverride = true;
+            if (dynamicCameraToggle != null)
+            {
+                dynamicCameraToggle.SetIsOnWithoutNotify(true);
+                dynamicCameraToggle.interactable = false;
+            }
+            return;
+        }
+
         dynamicCameraOverride = dynamicCameraToggle != null ? dynamicCameraToggle.isOn : !dynamicCameraOverride;
 
         if (SettingsManager.Instance != null)
         {
             SettingsManager.Instance.SetDynamicCamera(dynamicCameraOverride);
+        }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RefreshDynamicCameraOptionForScene();
+    }
+
+    private bool IsDynamicCameraForcedScene()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        return sceneName == "Tutorial" || sceneName == "TrainingGrounds";
+    }
+
+    private void RefreshDynamicCameraOptionForScene()
+    {
+        bool forcedOn = IsDynamicCameraForcedScene();
+
+        if (forcedOn)
+        {
+            dynamicCameraOverride = true;
+        }
+        else if (SettingsManager.Instance != null && SettingsManager.Instance.Settings != null)
+        {
+            dynamicCameraOverride = SettingsManager.Instance.Settings.dynamicCamera;
+        }
+
+        if (dynamicCameraToggle != null)
+        {
+            dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
+            dynamicCameraToggle.interactable = !forcedOn;
         }
     }
 
@@ -886,5 +955,10 @@ public class Pause : MonoBehaviour
             return;
         }
         UIVibeCode = !UIVibeCode;
+    }
+
+    public void ToggleDownJumpSlide()
+    {
+        UIDownJumpSlide = !UIDownJumpSlide;
     }
 }

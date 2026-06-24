@@ -469,13 +469,11 @@ public class GameManager : MonoBehaviour
         {
             players[0].ClearSpellList();
         }
-#endif
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
-
+#endif
     }
-
     public void LoadTutorial()
     {
         

@@ -71,20 +71,20 @@ public class SettingsManager : MonoBehaviour
 
     public void SetMasterVolume(float volume)
     {
-        Settings.masterVolume = Mathf.Clamp01(volume);
+        Settings.masterVolume = volume;
         ApplyAudioSettings();
         Save();
     }
 
     public void SetMusicVolume(float volume)
     {
-        Settings.musicVolume = Mathf.Clamp01(volume);
+        Settings.musicVolume = volume;
         Save();
     }
 
     public void SetSfxVolume(float volume)
     {
-        Settings.sfxVolume = Mathf.Clamp01(volume);
+        Settings.sfxVolume = volume;
         Save();
     }
 
@@ -125,7 +125,7 @@ public class SettingsManager : MonoBehaviour
 
     public void ApplyAudioSettings()
     {
-        AudioListener.volume = Mathf.Clamp01(Settings.masterVolume);
+        //AudioListener.volume = Mathf.Clamp01(Settings.masterVolume);
     }
 
     public void ApplyDisplaySettings()

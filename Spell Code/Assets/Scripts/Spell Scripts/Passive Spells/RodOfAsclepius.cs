@@ -7,6 +7,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class RodOfAsclepius : SpellData
 {
     public int nextRepProc = 3;
+    public const ushort healAmount = 15;
 
     public RodOfAsclepius()
     {
@@ -15,7 +16,7 @@ public class RodOfAsclepius : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[2] { ProcCondition.OnHitSpell, ProcCondition.OnDeath };
         brands = new Brand[1] { Brand.Killeez };
-        description = "Heal 15 hp after every 3rd Rep<sprite name=\"Reps\"> gained.";
+        description = $"Heal {healAmount} hp after every 3rd Rep<sprite name=\"Reps\"> gained.";
     }
 
     public override void LoadSpell()
@@ -32,8 +33,8 @@ public class RodOfAsclepius : SpellData
                 if(owner.reps >= nextRepProc)
                 {
                     nextRepProc += 3;
-                    owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + 15, owner.GetMaxHealth());
-                    owner.SpawnToast("+15 HP", GameManager.colors["green"]);
+                    owner.currentPlayerHealth = (ushort)Mathf.Min(owner.currentPlayerHealth + healAmount, owner.GetMaxHealth());
+                    owner.SpawnToast($"+{healAmount} HP", GameManager.colors["green"]);
 
                     //Play the Rod of Asclepius SFX
                     SFX_Manager.Instance.PlaySpellcodeSound("Rod Of Asclepius");

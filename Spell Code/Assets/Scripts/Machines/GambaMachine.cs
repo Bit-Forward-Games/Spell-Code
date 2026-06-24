@@ -653,6 +653,21 @@ public class GambaMachine : MonoBehaviour
             return false;
         }
 
+        //vibecoding case
+        if (player.vibeCoding)
+        {
+            if (player.spellList.Count < 4 && spellData.spellType == SpellType.Passive)
+            {
+                Debug.Log("Vibe Coding is on, passive: " + spellName + " has been removed");
+                return true;
+            }
+            if (player.spellList.Count >= 4 && spellData.spellType == SpellType.Active)
+            {
+                Debug.Log("Vibe Coding is on, active: " + spellName + " has been removed");
+                return true;
+            }
+        }
+
         if (player.HasReachedSpellCopyLimit(spellName))
         {
             Debug.Log("Copy cap reached: " + spellName + " has been removed");

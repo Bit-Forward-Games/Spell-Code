@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
         public Vector3 startOffset;
         public Vector3 drift;
     }
-
+    public NpcAI npcAI;
     public bool isAlive = true;
     // False once this player has disconnected from an online match. A disconnected
     // player is permanently eliminated: it never respawns, is skipped by round/win
@@ -98,9 +98,9 @@ public class PlayerController : MonoBehaviour
     public InputSnapshot input;
     private ushort prevDoubleTapDirection;
     private bool doubleTapPrimed = false;
-    [SerializeField]private ushort doubleTapCounter = 0; 
+    private ushort doubleTapCounter = 0; 
     private const int doubleTapThreshold = 15;
-    [SerializeField]private bool platDropping = false;
+    private bool platDropping = false;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
     [Header("Haptics")]
@@ -161,8 +161,6 @@ public class PlayerController : MonoBehaviour
     public const ushort maxDemonAura = 100;
     public ushort demonAuraLifeSpanTimer = 0;
     public ushort reps = 0;
-    //public ushort momentum = 0;
-    //public bool slimed = false;
 
 
 
@@ -339,6 +337,10 @@ public class PlayerController : MonoBehaviour
         //bufferInput = InputConverter.ConvertFromLong(5);
 
         hitboxData = null;
+        if(npcAI != null)
+        {
+            npcAI.owner = this;
+        }
 
         if (!GameManager.Instance.isOnlineMatchActive)
         {
@@ -990,7 +992,19 @@ public class PlayerController : MonoBehaviour
     public void PlayerUpdate(ulong rawInput)
     {
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
-        input = InputConverter.ConvertFromLong( pID == 0 ? 5 : (ulong)rawInput );
+        if(pID != 0)
+        {
+            input = InputConverter.ConvertFromLong(rawInput);
+        }
+        else
+        {
+            if(npcAI != null)
+            {
+                npcAI.NPCUpdate();
+                input = npcAI.npcInputSnapshot;
+            }
+        }
+        
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();

@@ -2315,7 +2315,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         int localIdx = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : -1;
         int remoteIdx = GameManager.Instance != null ? GameManager.Instance.remotePlayerIndex : -1;
         sb.Append($"\n  [INPUT BUFFERS] localIdx={localIdx} remoteIdx={remoteIdx} (this machine's local player = clientInputs)");
-        int start = Mathf.Max(0, frame - 10);
+        // Wide enough to reach the divergence onset: state-entry desyncs (e.g. a missed CodeWeave
+        // Press edge) surface at the next hash interval, up to ~30 frames after they happen, so a
+        // 10-frame window misses them. rx = received over the wire, used = what the slot actually
+        // simulated; rx != used at a frame means a prediction that never reconverged.
+        int start = Mathf.Max(0, frame - 50);
         for (int f = start; f <= frame + 1; f++)
         {
             sb.Append($"\n    f={f} local={DescribeBufferedInput(clientInputs, f)}");
@@ -2323,7 +2327,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             {
                 foreach (var kv in receivedInputsBySlot)
                 {
-                    sb.Append($" slot{kv.Key}rx={DescribeBufferedInput(kv.Value, f)}");
+                    int s = kv.Key;
+                    string used = usedInputsBySlot.TryGetValue(s, out FrameMetadataArray ua) ? DescribeBufferedInput(ua, f) : "-";
+                    sb.Append($" slot{s}[rx={DescribeBufferedInput(kv.Value, f)} used={used}]");
                 }
             }
             else
@@ -2833,7 +2839,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             if (!pendingRemoteInputSlots.Remove(slot))
             {
-                return remoteFrameOffsetBySlot.TryGetValue(slot, out int existingOffset) ? existingOffset : 0;
+                int existingOffset = remoteFrameOffsetBySlot.TryGetValue(slot, out int cachedOffset) ? cachedOffset : 0;
+                // The offset is computed ONCE, at stream activation. For a peer that activated in the
+                // lobby that is a non-zero lobby alignment (currentFrame - frame)
+                if (existingOffset != 0 && SceneManager.GetActiveScene().name != "MainMenu")
+                {
+                    remoteFrameOffsetBySlot[slot] = 0;
+                    return 0;
+                }
+                return existingOffset;
             }
 
             int currentFrame = localFrame;

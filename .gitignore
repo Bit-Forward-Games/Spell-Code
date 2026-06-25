@@ -10,3 +10,8 @@ Spell Code/Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Ban
 Spell Code/Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers SDF.asset
 Spell Code/Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Electronic Highway Sign SDF.asset
 Spell Code/Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Roboto-Bold SDF.asset
+
+# Runtime player logs. Builds write these next to the executable; editor logging is disabled in
+# PlayerLogFileWriter. This keeps both stray editor logs and any desync reports copied here from
+# ever being committed.
+/Player logs/

@@ -2082,7 +2082,7 @@ public class PlayerController : MonoBehaviour
         touchingLeftWall = false;
         touchingRightWall = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: (GameManager.Instance.currentStageIndex == -3?GameManager.Instance.trainingGroundsSO: GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {

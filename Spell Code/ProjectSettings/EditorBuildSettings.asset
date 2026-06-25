@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TrainingGrounds.unity
     guid: 08eff50806e2f424f8e651d50d39e9ea
+  - enabled: 1
+    path: Assets/Scenes/SoloLobby.unity
+    guid: b3d803a89b58b0b4f9ffce67c0e6e337
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

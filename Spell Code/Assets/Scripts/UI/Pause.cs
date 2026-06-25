@@ -102,7 +102,9 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].relativeInputs; }
         set 
         {
-            gameManager.players[playerPauseIndex].relativeInputs = value;
+            PlayerController player = gameManager.players[playerPauseIndex];
+            player.relativeInputs = value;
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
         }
     }
  
@@ -111,7 +113,9 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
         set 
         {
-            gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+            PlayerController player = gameManager.players[playerPauseIndex];
+            player.toggleCodeInput = value;
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
         }
     }
     
@@ -120,7 +124,9 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].tapJump; }
         set 
         {
-            gameManager.players[playerPauseIndex].tapJump = value; 
+            PlayerController player = gameManager.players[playerPauseIndex];
+            player.tapJump = value;
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
         }
     }
 
@@ -129,7 +135,9 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].vibeCoding; }
         set 
         {
-            gameManager.players[playerPauseIndex].vibeCoding = value; 
+            PlayerController player = gameManager.players[playerPauseIndex];
+            player.vibeCoding = value;
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
         }
     }
 
@@ -138,7 +146,9 @@ public class Pause : MonoBehaviour
         get { return gameManager.players[playerPauseIndex].downJumpSlide; }
         set 
         {
-            gameManager.players[playerPauseIndex].downJumpSlide = value; 
+            PlayerController player = gameManager.players[playerPauseIndex];
+            player.downJumpSlide = value;
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
         }
     }
  

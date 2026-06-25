@@ -648,6 +648,7 @@ public class GameManager : MonoBehaviour
         PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
         localPlayer.inputs.AssignInputDevice(null);
         ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(localPlayer);
         localPlayer.CheckForInputs(true, false);
     }
 
@@ -915,6 +916,7 @@ public class GameManager : MonoBehaviour
             {
                 players[i].inputs.AssignInputDevice(null);
                 ConfigureOnlineLocalPlayerInput(pInput, players[i].inputs);
+                SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[i]);
                 players[i].CheckForInputs(true, false);
             }
             else
@@ -3207,6 +3209,7 @@ public class GameManager : MonoBehaviour
 
         players[playerCount] = existingPlayer;
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[playerCount]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
 
         // INCREMENT FIRST
@@ -5495,6 +5498,7 @@ public class GameManager : MonoBehaviour
         {
             players[slot].inputs.AssignInputDevice(null);
             ConfigureOnlineLocalPlayerInput(pInput, players[slot].inputs);
+            SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[slot]);
             players[slot].CheckForInputs(true, false);
         }
         else

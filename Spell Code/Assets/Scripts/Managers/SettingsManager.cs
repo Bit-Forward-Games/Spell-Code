@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [Serializable]
 public class GameSettingsData
@@ -25,10 +27,13 @@ public class SettingsManager : MonoBehaviour
     public static SettingsManager Instance { get; private set; }
 
     private const string SettingsFileName = "settings.json";
+    private const string ControlOptionsFileName = "control_options_session.json";
 
     public GameSettingsData Settings { get; private set; }
+    public ControlOptionsSessionData ControlOptions { get; private set; }
 
     private string SavePath => Path.Combine(Application.persistentDataPath, SettingsFileName);
+    private string ControlOptionsSavePath => Path.Combine(Application.persistentDataPath, ControlOptionsFileName);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -55,7 +60,13 @@ public class SettingsManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         Load();
+        LoadControlOptions();
         ApplySettings();
+    }
+
+    private void OnApplicationQuit()
+    {
+        DeleteControlOptionsSave();
     }
 
     public bool IsFirstLaunch()
@@ -149,6 +160,66 @@ public class SettingsManager : MonoBehaviour
         File.WriteAllText(SavePath, json);
     }
 
+    public void SaveControlOptionsForPlayer(PlayerController player)
+    {
+        if (!TryGetControllerId(player, out int controllerId))
+        {
+            return;
+        }
+
+        if (ControlOptions == null)
+        {
+            ControlOptions = CreateDefaultControlOptions();
+        }
+
+        PlayerControlOptionsData options = GetOrCreateControlOptions(controllerId);
+        options.controllerId = controllerId;
+        options.relativeInputs = player.relativeInputs;
+        options.toggleCodeInput = player.toggleCodeInput;
+        options.tapJump = player.tapJump;
+        options.vibeCoding = player.vibeCoding;
+        options.downJumpSlide = player.downJumpSlide;
+
+        SaveControlOptions();
+    }
+
+    public bool TryApplyControlOptionsForPlayer(PlayerController player)
+    {
+        if (player == null || !TryGetControllerId(player, out int controllerId))
+        {
+            return false;
+        }
+
+        if (ControlOptions == null)
+        {
+            LoadControlOptions();
+        }
+
+        PlayerControlOptionsData options = FindControlOptions(controllerId);
+        if (options == null)
+        {
+            return false;
+        }
+
+        player.relativeInputs = options.relativeInputs;
+        player.toggleCodeInput = options.toggleCodeInput;
+        player.tapJump = options.tapJump;
+        player.vibeCoding = options.vibeCoding;
+        player.downJumpSlide = options.downJumpSlide;
+        return true;
+    }
+
+    public void SaveControlOptions()
+    {
+        if (ControlOptions == null)
+        {
+            ControlOptions = CreateDefaultControlOptions();
+        }
+
+        string json = JsonUtility.ToJson(ControlOptions, true);
+        File.WriteAllText(ControlOptionsSavePath, json);
+    }
+
     public void Load()
     {
         if (!File.Exists(SavePath))
@@ -176,6 +247,31 @@ public class SettingsManager : MonoBehaviour
         }
     }
 
+    public void LoadControlOptions()
+    {
+        if (!File.Exists(ControlOptionsSavePath))
+        {
+            ControlOptions = CreateDefaultControlOptions();
+            return;
+        }
+
+        try
+        {
+            string json = File.ReadAllText(ControlOptionsSavePath);
+            ControlOptions = JsonUtility.FromJson<ControlOptionsSessionData>(json);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to load temporary control options file. Creating new session options. Error: {exception.Message}");
+            ControlOptions = null;
+        }
+
+        if (ControlOptions == null)
+        {
+            ControlOptions = CreateDefaultControlOptions();
+        }
+    }
+
     public void ResetToDefaults()
     {
         bool firstLaunchComplete = Settings != null && Settings.firstLaunchComplete;
@@ -198,4 +294,114 @@ public class SettingsManager : MonoBehaviour
             fullscreen = Screen.fullScreen,
         };
     }
+
+    private ControlOptionsSessionData CreateDefaultControlOptions()
+    {
+        return new ControlOptionsSessionData();
+    }
+
+    private PlayerControlOptionsData GetOrCreateControlOptions(int controllerId)
+    {
+        PlayerControlOptionsData options = FindControlOptions(controllerId);
+        if (options != null)
+        {
+            return options;
+        }
+
+        options = new PlayerControlOptionsData
+        {
+            controllerId = controllerId
+        };
+        ControlOptions.playerOptions.Add(options);
+        return options;
+    }
+
+    private PlayerControlOptionsData FindControlOptions(int controllerId)
+    {
+        if (ControlOptions?.playerOptions == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < ControlOptions.playerOptions.Count; i++)
+        {
+            PlayerControlOptionsData options = ControlOptions.playerOptions[i];
+            if (options != null && options.controllerId == controllerId)
+            {
+                return options;
+            }
+        }
+
+        return null;
+    }
+
+    private bool TryGetControllerId(PlayerController player, out int controllerId)
+    {
+        controllerId = -1;
+
+        if (player == null)
+        {
+            return false;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.devices.Count > 0 && playerInput.devices[0] != null)
+        {
+            controllerId = playerInput.devices[0].deviceId;
+            return true;
+        }
+
+        InputDevice inputDevice = null;
+        try
+        {
+            inputDevice = player.inputs != null ? player.inputs.InputDevice : null;
+        }
+        catch (Exception)
+        {
+            inputDevice = null;
+        }
+
+        if (inputDevice == null)
+        {
+            return false;
+        }
+
+        controllerId = inputDevice.deviceId;
+        return true;
+    }
+
+    private void DeleteControlOptionsSave()
+    {
+        if (!File.Exists(ControlOptionsSavePath))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(ControlOptionsSavePath);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to delete temporary control options file. Error: {exception.Message}");
+        }
+    }
+}
+
+[Serializable]
+public class ControlOptionsSessionData
+{
+    public int version = 1;
+    public List<PlayerControlOptionsData> playerOptions = new List<PlayerControlOptionsData>();
+}
+
+[Serializable]
+public class PlayerControlOptionsData
+{
+    public int controllerId = -1;
+    public bool relativeInputs = false;
+    public bool toggleCodeInput = false;
+    public bool tapJump = false;
+    public bool vibeCoding = false;
+    public bool downJumpSlide = false;
 }

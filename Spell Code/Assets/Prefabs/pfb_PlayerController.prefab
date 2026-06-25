@@ -1273,7 +1273,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8d082d44c8ed57408fff74c92a74a82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  npcAI: {fileID: -8990131785682627797, guid: afdc3acf657e03c419dda74ba7b5ab5d, type: 3}
   isAlive: 1
+  isConnected: 1
   playerSpriteRenderer: {fileID: -1293374541561941338}
   inputs: {fileID: 8219335073837037833}
   playerInputs: {fileID: -944628639613478452, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1310,6 +1312,7 @@ MonoBehaviour:
   secretNormalPalette: {fileID: 2800000, guid: 0c90348273f52834e837604d57f76e1b, type: 3}
   currentPlayerHealth: 0
   isHit: 0
+  damageBarHitCount: 0
   stateSpecificArg: 0
   storedCode: 0
   storedCodeMaxDuration: 0

@@ -98,8 +98,9 @@ public class PlayerController : MonoBehaviour
     public InputSnapshot input;
     private ushort prevDoubleTapDirection;
     private bool doubleTapPrimed = false;
-    private ushort doubleTapCounter = 0; 
+    [SerializeField]private ushort doubleTapCounter = 0; 
     private const int doubleTapThreshold = 15;
+    [SerializeField]private bool platDropping = false;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
     [Header("Haptics")]
@@ -954,16 +955,33 @@ public class PlayerController : MonoBehaviour
         return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
-   public bool DoubleTapDirectionCheck()
+   public bool DoubleTapCheck(ushort direction)
     {
-        if (!doubleTapPrimed)
+        //if the direction is not the target direction, check for 
+        if (input.Direction != direction)
         {
-
-            return false; 
+            if(input.Direction == 5 && doubleTapCounter < doubleTapThreshold && prevDoubleTapDirection == direction)
+            {
+                doubleTapPrimed = true;
+                doubleTapCounter++;
+            }
+            else
+            {
+                doubleTapPrimed = false;
+                doubleTapCounter = 0;
+                prevDoubleTapDirection = 5;
+            }
+            return false;
         }
-        else//if double tap is primed 
+        else//if it is the target direction, check if double tap is primed and if the direction is the same as prev direction
         {
-            
+            if(direction == prevDoubleTapDirection && doubleTapPrimed)
+            {
+                doubleTapPrimed = false;
+                doubleTapCounter = 0;
+                prevDoubleTapDirection = 5;
+                return true;
+            }
         }
 
         return false; 
@@ -2170,6 +2188,16 @@ public class PlayerController : MonoBehaviour
 #region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
+            //logic for checking plat drop
+            if (DoubleTapCheck(2))
+            {
+                platDropping = true;
+            }
+            if(input.Direction > 3 && platDropping)
+            {
+                platDropping = false;
+                prevDoubleTapDirection = 5;
+            }
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
             if (platformCount == 0) return false;
 
@@ -2226,7 +2254,16 @@ public class PlayerController : MonoBehaviour
                 // This avoids blocking the player from jumping up through the platform.
                 if (pMinY <= platformTop && position.Y >= platformTop && vSpd <= Fixed.FromInt(0))
                 {
-                    if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
+                    // if (DoubleTapCheck(2))
+                    // {
+                    //     platDropping = true;
+                    // }
+                    // if(input.Direction > 3 && platDropping)
+                    // {
+                    //     platDropping = false;
+                    //     prevDoubleTapDirection = 5;
+                    // }
+                    if (((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)||platDropping)
                     {
                         // Player is pressing down-jump while above platform: ignore collision (drop through)
                         return returnVal;

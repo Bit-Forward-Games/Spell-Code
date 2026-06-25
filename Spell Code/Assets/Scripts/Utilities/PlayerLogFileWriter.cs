@@ -25,6 +25,12 @@ public class PlayerLogFileWriter : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
+        // Player logs are written from standalone/Steam builds ONLY, never from editor play mode
+        if (Application.isEditor)
+        {
+            return;
+        }
+
         if (!subscribed)
         {
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
@@ -199,11 +205,9 @@ public class PlayerLogFileWriter : MonoBehaviour
 
     private static string GetPlayerLogsDirectory()
     {
-        string root = Application.isEditor
-            ? FindWorkspaceRoot(Application.dataPath)
-            : FindBuildRoot(Application.dataPath);
-
-        return Path.Combine(root, "Player logs");
+        // The logger is disabled in the editor (see Bootstrap), so this only ever runs in a build
+        // and always resolves to the "Player logs" folder next to the executable.
+        return Path.Combine(FindBuildRoot(Application.dataPath), "Player logs");
     }
 
     private static string FindBuildRoot(string dataPath)
@@ -214,20 +218,4 @@ public class PlayerLogFileWriter : MonoBehaviour
             : Directory.GetCurrentDirectory();
     }
 
-    private static string FindWorkspaceRoot(string startPath)
-    {
-        DirectoryInfo directory = new DirectoryInfo(startPath);
-        for (int i = 0; i < 8 && directory != null; i++)
-        {
-            if (Directory.Exists(Path.Combine(directory.FullName, ".git"))
-                && Directory.Exists(Path.Combine(directory.FullName, "Spell Code")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        return Directory.GetCurrentDirectory();
-    }
 }

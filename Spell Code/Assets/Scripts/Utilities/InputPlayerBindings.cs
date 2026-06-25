@@ -110,6 +110,8 @@ public class InputPlayerBindings : MonoBehaviour
     private InputAction jumpAction;
     private InputAction pauseAction;
 
+    private InputAction slideMacroAction;
+
     private bool[] direction = new bool[4];
     private bool[] codeButton = new bool[2];
     private bool[] jumpButton = new bool[2];
@@ -127,9 +129,10 @@ public class InputPlayerBindings : MonoBehaviour
     public InputAction CodeAction { get { return codeAction; } }
     public InputAction JumpAction { get { return jumpAction; } }
     public InputAction PauseAction { get { return pauseAction; } }
+    public InputAction SlideMacroAction {get{return slideMacroAction;}}
     public InputDevice InputDevice { get { return inputActionAsset.devices.Value[0]; } }
     public InputActionMap PlayerActionMap { get { return playerActionMap; } }
-    public InputSnapshot CurrentSnapshop { get; private set; }
+    public InputSnapshot CurrentSnapshot { get; private set; }
 
     public InputBuffer InputBuffer
     {
@@ -153,6 +156,7 @@ public class InputPlayerBindings : MonoBehaviour
         codeAction = playerActionMap.FindAction("Code");
         jumpAction = playerActionMap.FindAction("Jump");
         pauseAction = playerActionMap.FindAction("Pause");
+        slideMacroAction = playerActionMap.FindAction("Slide");
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -207,6 +211,7 @@ public class InputPlayerBindings : MonoBehaviour
         codeAction = playerActionMap.AddAction("Code", InputActionType.Button);
         jumpAction = playerActionMap.AddAction("Jump", InputActionType.Button);
         pauseAction = playerActionMap.AddAction("Pause", InputActionType.Button);
+        slideMacroAction = playerActionMap.AddAction("Slide", InputActionType.Button);
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -313,21 +318,10 @@ public class InputPlayerBindings : MonoBehaviour
 
     public long UpdateInputs()
     {
-        //Debug.Log($"[UpdateInputs] IsActive={IsActive}, " +
-        //      $"Up={upAction.ReadValue<float>()}, " +
-        //      $"Down={downAction.ReadValue<float>()}, " +
-        //      $"Left={leftAction.ReadValue<float>()}, " +
-        //      $"Right={rightAction.ReadValue<float>()}, " +
-        //      $"Code={codeAction.inProgress}, " +
-        //      $"Jump={jumpAction.inProgress}");
         direction[0] = upAction.ReadValue<float>() > 0.33f;
         direction[1] = downAction.ReadValue<float>() > 0.33f;
         direction[2] = leftAction.ReadValue<float>() > 0.33f;
         direction[3] = rightAction.ReadValue<float>() > 0.33f;
-        //direction[0] = upAction.inProgress;
-        //direction[1] = downAction.inProgress;
-        //direction[2] = leftAction.inProgress;
-        //direction[3] = rightAction.inProgress;
 
         codeButton[0] = codeButton[1];
         jumpButton[0] = jumpButton[1];
@@ -338,14 +332,21 @@ public class InputPlayerBindings : MonoBehaviour
         jumpButton[1] = jumpAction.inProgress;
         pauseButton[1] = pauseAction.inProgress;
 
+        if (slideMacroAction.inProgress)
+        {
+            direction[1] = true;
+            jumpButton[1] = true;   
+        }
 
         buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
         buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
         buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
 
+        
+
         inputBuffer.Push(InputConverter.ConvertToShort(buttons, direction));
 
-        CurrentSnapshop = InputConverter.ConvertFromShort(InputConverter.ConvertToShort(buttons, direction));
+        CurrentSnapshot = InputConverter.ConvertFromShort(InputConverter.ConvertToShort(buttons, direction));
 
         return InputConverter.ConvertToLong(buttons, direction);
     }

@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
         { "yellow", HexToColor("#fbc800") },
         { "white", HexToColor("#ffffff") },
         { "purple", HexToColor("#b44cef") },
+        { "pink", HexToColor("#ec8cff") },
         { "gold", HexToColor("#dd8c00") },
         { "grey", HexToColor("#998d86") },
         { "black", HexToColor("#000000") }

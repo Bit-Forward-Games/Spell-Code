@@ -2867,7 +2867,7 @@ public class PlayerController : MonoBehaviour
         // Damage attribution is deterministic match state and must update during rollback replays too.
         if(pID != 0)
         {
-            if (hasAttacker && damageAmount > 0)
+            if (hasAttacker && damageAmount > 0 && attacker.pID != 0)
             {
                 GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }

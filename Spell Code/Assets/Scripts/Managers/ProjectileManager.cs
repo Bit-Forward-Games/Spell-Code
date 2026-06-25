@@ -267,6 +267,47 @@ public class ProjectileManager : MonoBehaviour
             }
         }
 
+        //loop through all npcs
+        for (int i = 0; i < GameManager.Instance.playerNPCs.Count; i++)
+        {
+            if (GameManager.Instance.playerNPCs[i] == null || GameManager.Instance.playerNPCs[i].charData == null)
+            {
+                continue;
+            }
+
+            if (!ProjectileDictionary.Instance.projectileDict.TryGetValue(GameManager.Instance.playerNPCs[i].charData.basicAttackProjId, out BaseProjectile basicProjectileTemplate) || basicProjectileTemplate == null)
+            {
+                Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Missing basic projectile '{GameManager.Instance.playerNPCs[i].charData.basicAttackProjId}' for npc {i + 1}.");
+                continue;
+            }
+
+            GameObject spawnedBaseProjectile = Instantiate(basicProjectileTemplate.gameObject);
+            spawnedBaseProjectile.GetComponent<BaseProjectile>().LoadProjectile();
+            projectilePrefabs.Add(spawnedBaseProjectile.GetComponent<BaseProjectile>());
+            spawnedBaseProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.playerNPCs[i];
+            GameManager.Instance.playerNPCs[i].basicProjectileInstance = spawnedBaseProjectile;
+            spawnedBaseProjectile.SetActive(false);
+
+            //all spells in the player's inventory for their spells
+            for (int j = 0; j < GameManager.Instance.playerNPCs[i].spellList.Count; j++)
+            {
+                //if (GameManager.Instance.playerNPCs[i].spellList[j] == null) break;
+                GameManager.Instance.playerNPCs[i].spellList[j].projectileInstances.Clear();
+                //all projectiles in each spelldata
+                for (int k = 0; k < GameManager.Instance.playerNPCs[i].spellList[j].projectilePrefabs.Length; k++)
+                {
+                    GameObject spawnedProjectile = Instantiate(GameManager.Instance.playerNPCs[i].spellList[j].projectilePrefabs[k]);
+                    spawnedProjectile.GetComponent<BaseProjectile>().LoadProjectile();
+                    projectilePrefabs.Add(spawnedProjectile.GetComponent<BaseProjectile>());
+                    spawnedProjectile.GetComponent<BaseProjectile>().owner = GameManager.Instance.playerNPCs[i];
+                    spawnedProjectile.GetComponent<BaseProjectile>().ownerSpell = GameManager.Instance.playerNPCs[i].spellList[j];
+                    GameManager.Instance.playerNPCs[i].spellList[j].projectileInstances.Add(spawnedProjectile);
+
+                    spawnedProjectile.SetActive(false);
+                }
+            }
+        }
+
         SynchronizeActiveProjectiles();
         if (__hitchSw != null && GameManager.Instance != null)
         {

@@ -37,6 +37,7 @@ public class CrossmapClip : SpellData
 
                 if (cooldownCounter <= 0 && IsFarEnough(defender))
                 {
+                    owner.SpawnToast($"+{flowStateIncrease/60}SEC FLOW STATE", GameManager.colors["green"]);
                     owner.flowState = (ushort)Mathf.Min(owner.flowState + flowStateIncrease,FlowState.maxFlowState);
                     cooldownCounter = cooldown;
                 }
@@ -50,11 +51,13 @@ public class CrossmapClip : SpellData
     {
         if (owner == null || defender == null) return false;
 
-        Fixed distanceX = owner.position.X - defender.position.X;
-        Fixed distanceY = owner.position.Y - defender.position.Y;
-        Fixed squaredDistance = (distanceX * distanceX) + (distanceY * distanceY);
-        Fixed squaredThreshold = Fixed.FromInt(rangeThreshold) * Fixed.FromInt(rangeThreshold);
+        
+        // Compute squared distance (avoid square root):
+        Fixed dx = Fixed.Abs(owner.position.X - defender.position.X) / Fixed.FromInt(100);
+        Fixed dy = Fixed.Abs(owner.position.Y - defender.position.Y) / Fixed.FromInt(100);
+        Fixed distSq = (dx * dx) + (dy * dy);
+        Fixed squaredThreshold = Fixed.FromInt(rangeThreshold)/ Fixed.FromInt(100) * Fixed.FromInt(rangeThreshold)/ Fixed.FromInt(100);
 
-        return squaredDistance > squaredThreshold;
+        return distSq > squaredThreshold;
     }
 }

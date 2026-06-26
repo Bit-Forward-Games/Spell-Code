@@ -48,6 +48,6 @@ MonoBehaviour:
   projectilePrefabs: []
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 80850399e57dd2a46908a6fde50aa7d8, type: 3}
-  SpellGIF: {fileID: 11400000, guid: f4fb1fcdd4576ed4cb88f32b18570597, type: 2}
+  readyIcon: {fileID: 21300000, guid: be6eebf370673aa4a849ff93ff420126, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 9e0967cf7019a264c8f05be91f2af58c, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 363d661b5f4612e439b87570b22ec1a9, type: 2}

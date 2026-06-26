@@ -16,7 +16,7 @@ public class BifronsBladeSpell_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 0;
         meleeProjectile = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 4, 4, 4, 4 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 3, 3, 3, 3, 3 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

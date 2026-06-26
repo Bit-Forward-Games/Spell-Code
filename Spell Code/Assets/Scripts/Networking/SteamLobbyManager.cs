@@ -32,6 +32,7 @@ public class SteamLobbyManager : MonoBehaviour
     // survive it; the rebuilt SteamLobbyManager consumes them in TryResumePendingOnlineJoin.
     private static SteamId? pendingJoinLobbyId;
     private static SteamId? pendingJoinInviterId;
+    private static bool launchConnectChecked;
 
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
@@ -111,6 +112,11 @@ public class SteamLobbyManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // If Steam launched to accept an invite while the game was closed, it appended
+        // "+connect_lobby <id>" to the command line. Seed the deferred join from it now; the
+        // existing TryResumePendingOnlineJoin (Update) completes it once we're in MainMenu.
+        CheckLaunchConnectLobby();
     }
 
     private void OnEnable()
@@ -262,6 +268,40 @@ public class SteamLobbyManager : MonoBehaviour
         currentMatchStartToken = string.Empty;
         activeMatchPeerIds.Clear();
         pendingLobbySnapshotPeers.Clear();
+    }
+
+    // When a friend clicks "Join Game" / accepts an invite while our game is NOT running, Steam
+    // launches the executable with "+connect_lobby <lobbyId>" appended to the command line. We read
+    // it once at startup and queue the join through the same deferred path used for in-game invites,
+    // so TryResumePendingOnlineJoin finishes it once MainMenu is loaded and Steam is initialized.
+    private static void CheckLaunchConnectLobby()
+    {
+        if (launchConnectChecked)
+        {
+            return;
+        }
+        launchConnectChecked = true;
+
+        try
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] == "+connect_lobby"
+                    && ulong.TryParse(args[i + 1], out ulong lobbyRaw)
+                    && lobbyRaw != 0)
+                {
+                    pendingJoinLobbyId = new SteamId { Value = lobbyRaw };
+                    pendingJoinInviterId = null;
+                    Debug.Log($"[SteamLobbyManager] Launched from a Steam invite (+connect_lobby {lobbyRaw}). Queued join for when MainMenu and Steam are ready.");
+                    return;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SteamLobbyManager] Failed to parse launch command line for +connect_lobby: {e.Message}");
+        }
     }
 
     private void HandleGameLobbyJoinRequested(Lobby lobby, SteamId friendId)

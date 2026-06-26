@@ -71,7 +71,7 @@ public class PlayerController : MonoBehaviour
         public Vector3 startOffset;
         public Vector3 drift;
     }
-
+    public NpcAI npcAI;
     public bool isAlive = true;
     // False once this player has disconnected from an online match. A disconnected
     // player is permanently eliminated: it never respawns, is skipped by round/win
@@ -100,6 +100,7 @@ public class PlayerController : MonoBehaviour
     private bool doubleTapPrimed = false;
     private ushort doubleTapCounter = 0; 
     private const int doubleTapThreshold = 15;
+    private bool platDropping = false;
     //public InputSnapshot bufferInput;
     public string characterName = "R-Cade";
     [Header("Haptics")]
@@ -160,8 +161,6 @@ public class PlayerController : MonoBehaviour
     public const ushort maxDemonAura = 100;
     public ushort demonAuraLifeSpanTimer = 0;
     public ushort reps = 0;
-    //public ushort momentum = 0;
-    //public bool slimed = false;
 
 
 
@@ -338,6 +337,10 @@ public class PlayerController : MonoBehaviour
         //bufferInput = InputConverter.ConvertFromLong(5);
 
         hitboxData = null;
+        if(npcAI != null)
+        {
+            npcAI.owner = this;
+        }
 
         if (!GameManager.Instance.isOnlineMatchActive)
         {
@@ -954,16 +957,33 @@ public class PlayerController : MonoBehaviour
         return pause != null && pause.paused && pause.playerPauseIndex == manager.localPlayerIndex;
     }
 
-   public bool DoubleTapDirectionCheck()
+   public bool DoubleTapCheck(ushort direction)
     {
-        if (!doubleTapPrimed)
+        //if the direction is not the target direction, check for 
+        if (input.Direction != direction)
         {
-
-            return false; 
+            if(input.Direction == 5 && doubleTapCounter < doubleTapThreshold && prevDoubleTapDirection == direction)
+            {
+                doubleTapPrimed = true;
+                doubleTapCounter++;
+            }
+            else
+            {
+                doubleTapPrimed = false;
+                doubleTapCounter = 0;
+                prevDoubleTapDirection = 5;
+            }
+            return false;
         }
-        else//if double tap is primed 
+        else//if it is the target direction, check if double tap is primed and if the direction is the same as prev direction
         {
-            
+            if(direction == prevDoubleTapDirection && doubleTapPrimed)
+            {
+                doubleTapPrimed = false;
+                doubleTapCounter = 0;
+                prevDoubleTapDirection = 5;
+                return true;
+            }
         }
 
         return false; 
@@ -972,7 +992,19 @@ public class PlayerController : MonoBehaviour
     public void PlayerUpdate(ulong rawInput)
     {
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
-        input = InputConverter.ConvertFromLong( pID == 0 ? 5 : (ulong)rawInput );
+        if(pID != 0)
+        {
+            input = InputConverter.ConvertFromLong(rawInput);
+        }
+        else
+        {
+            if(npcAI != null)
+            {
+                npcAI.NPCUpdate();
+                input = npcAI.npcInputSnapshot;
+            }
+        }
+        
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
@@ -2170,6 +2202,16 @@ public class PlayerController : MonoBehaviour
 #region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
+            //logic for checking plat drop
+            if (DoubleTapCheck(2))
+            {
+                platDropping = true;
+            }
+            if(input.Direction > 3 && platDropping)
+            {
+                platDropping = false;
+                prevDoubleTapDirection = 5;
+            }
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
             if (platformCount == 0) return false;
 
@@ -2226,7 +2268,16 @@ public class PlayerController : MonoBehaviour
                 // This avoids blocking the player from jumping up through the platform.
                 if (pMinY <= platformTop && position.Y >= platformTop && vSpd <= Fixed.FromInt(0))
                 {
-                    if ((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)
+                    // if (DoubleTapCheck(2))
+                    // {
+                    //     platDropping = true;
+                    // }
+                    // if(input.Direction > 3 && platDropping)
+                    // {
+                    //     platDropping = false;
+                    //     prevDoubleTapDirection = 5;
+                    // }
+                    if (((input.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held) && input.Direction == 2)||platDropping)
                     {
                         // Player is pressing down-jump while above platform: ignore collision (drop through)
                         return returnVal;
@@ -2816,7 +2867,7 @@ public class PlayerController : MonoBehaviour
         // Damage attribution is deterministic match state and must update during rollback replays too.
         if(pID != 0)
         {
-            if (hasAttacker && damageAmount > 0)
+            if (hasAttacker && damageAmount > 0 && attacker.pID != 0)
             {
                 GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }
@@ -3240,6 +3291,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(tapJumpPrimed); // rollback-critical
         bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
                                    // or it drifts under rollback (sibling relativeInputs is already serialized)
+        bw.Write(prevDoubleTapDirection);
+        bw.Write(doubleTapPrimed);
+        bw.Write(doubleTapCounter);
+        bw.Write(platDropping);
         //bw.Write(momentum);
         //bw.Write(slimed);
         bw.Write(isSpawned);
@@ -3339,6 +3394,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
         bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(prevDoubleTapDirection);
+        bw.Write(doubleTapPrimed);
+        bw.Write(doubleTapCounter);
+        bw.Write(platDropping);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3477,6 +3536,10 @@ public class PlayerController : MonoBehaviour
         maxJumpCount = br.ReadByte();
         tapJumpPrimed = br.ReadBoolean();
         toggleCodeInput = br.ReadBoolean();
+        prevDoubleTapDirection = br.ReadUInt16();
+        doubleTapPrimed = br.ReadBoolean();
+        doubleTapCounter = br.ReadUInt16();
+        platDropping = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
         isSpawned = br.ReadBoolean();

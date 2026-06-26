@@ -457,20 +457,27 @@ public class Pause : MonoBehaviour
 
     public void SaveSettings()
     {
-        SettingsManager settings = SettingsManager.Instance;
-        if (settings == null)
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (settingsManager == null)
         {
             return;
         }
 
+        settingsManager.SetDynamicCamera(dynamicCameraOverride);
+        settingsManager.SetScreenshake(screenShake);
+        settingsManager.SetFullscreen(true);
+        if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
+        if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
+        settingsManager.Save();
+
         if (!IsDynamicCameraForcedScene())
         {
-            settings.SetDynamicCamera(dynamicCameraOverride);
+            settingsManager.SetDynamicCamera(dynamicCameraOverride);
         }
-        settings.SetScreenshake(screenShake);
-        settings.SetFullscreen(true);
-        if (musicVolumeSlider != null) settings.SetMusicVolume(musicVolumeSlider.value);
-        if (sfxVolumeSlider != null) settings.SetSfxVolume(sfxVolumeSlider.value);
+        settingsManager.SetScreenshake(screenShake);
+        settingsManager.SetFullscreen(true);
+        if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
+        if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
     }
 
     public void LoadSettings()
@@ -487,10 +494,15 @@ public class Pause : MonoBehaviour
         screenShake = settings.screenshake;
         RefreshDynamicCameraOptionForScene();
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
-        if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
-        if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
-        ApplyMusicMixerVolume(settings.musicVolume);
-        ApplySfxMixerVolume(settings.sfxVolume);
+        //if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
+        //if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
+        if (musicVolumeSlider != null) musicVolumeSlider.value = settings.musicVolume;
+        if (sfxVolumeSlider != null) sfxVolumeSlider.value = settings.sfxVolume;
+        MusicVolume();
+        SFXVolume();
+        Debug.Log("HERE | LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
+        //ApplyMusicMixerVolume(settings.musicVolume);
+        //ApplySfxMixerVolume(settings.sfxVolume);
     }
  
     public void Pausing()
@@ -533,6 +545,8 @@ public class Pause : MonoBehaviour
 
         //mute all gameplay sfx but not menu sfx
         SFX_Manager.Instance.MuteGamePlaySFX();
+        Debug.Log("HERE");
+        LoadSettings();
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
@@ -550,6 +564,9 @@ public class Pause : MonoBehaviour
         SetMenuTimeScale();
 
         StartCoroutine(SelectFirst(_optionsMenuFirst));
+
+        if (musicVolumeSlider != null) musicVolumeSlider.value = SettingsManager.Instance.Settings.musicVolume;
+        if (sfxVolumeSlider != null) sfxVolumeSlider.value = SettingsManager.Instance.Settings.sfxVolume;
     }
 
     public IEnumerator SelectFirst(GameObject target)
@@ -779,6 +796,7 @@ public class Pause : MonoBehaviour
     {
         Resume();
         sceneUiManager.MainMenu();
+        LoadSettings();
     }
  
     public void QuitGame()
@@ -802,9 +820,7 @@ public class Pause : MonoBehaviour
     public void SFXVolume()
     {
         float sfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
-        float menuSfx_volume = sfxVolumeSlider != null ? sfxVolumeSlider.value : 1f;
         ApplySfxMixerVolume(sfx_volume);
-        ApplyMenuSfxMixerVolume(menuSfx_volume);
 
         if (SettingsManager.Instance != null)
         {
@@ -876,6 +892,11 @@ public class Pause : MonoBehaviour
 
     private void ApplyMusicMixerVolume(float volume)
     {
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.value = volume;
+        }
+
         if (musicAudioMixer != null)
         {
             musicAudioMixer.SetFloat("MusicVolume", VolumeToDecibels(volume));
@@ -884,19 +905,19 @@ public class Pause : MonoBehaviour
 
     private void ApplySfxMixerVolume(float volume)
     {
-        AudioMixer mixer = sfxAudioMixer != null ? sfxAudioMixer : musicAudioMixer;
-        if (mixer != null)
+        if (sfxVolumeSlider != null)
         {
-            mixer.SetFloat("SFXVolume", VolumeToDecibels(volume));
+            sfxVolumeSlider.value = volume;
         }
-    }
 
-    private void ApplyMenuSfxMixerVolume(float volume)
-    {
-        AudioMixer mixer = menuSfxAudioMixer != null ? menuSfxAudioMixer : musicAudioMixer;
-        if (mixer != null)
+        if (sfxAudioMixer != null)
         {
-            mixer.SetFloat("MenuSFXVolume", VolumeToDecibels(volume));
+            sfxAudioMixer.SetFloat("SFXVolume", VolumeToDecibels(volume));
+        }
+
+        if (menuSfxAudioMixer != null)
+        {
+            menuSfxAudioMixer.SetFloat("MenuSFXVolume", VolumeToDecibels(volume));
         }
     }
 

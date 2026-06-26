@@ -8,6 +8,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class Exit_Door : MonoBehaviour
 {
     float colliderRadius = 36;
+    public int doorID = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

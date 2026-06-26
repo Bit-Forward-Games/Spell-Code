@@ -15,6 +15,8 @@ public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameObject volumeMenu;
+    public GameObject displayMenu;
     public GameObject controlsMenu;
     public GameObject spellsMenu;
     public GameObject darkPanel;
@@ -23,6 +25,8 @@ public class Pause : MonoBehaviour
     public int playerPauseIndex;
     public bool paused;
     public bool options;
+    public bool volumeOptions;
+    public bool displayOptions;
     public bool controls;
     public bool spells;
     public AudioMixer masterAudioMixer;
@@ -42,6 +46,8 @@ public class Pause : MonoBehaviour
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
+    public GameObject _volumeMenuFirst;
+    public GameObject _displayMenuFirst;
     public GameObject _spellsMenuFirst;
  
     public TextMeshProUGUI playerPausedText;
@@ -570,6 +576,8 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
+        displayMenu.SetActive(false);
+        volumeMenu.SetActive(false);
  
         SetMenuTimeScale();
 
@@ -585,6 +593,38 @@ public class Pause : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(target);
     }
  
+    public void Volume()
+    {
+        volumeOptions = true;
+        displayOptions = false;
+        controls = false;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
+        volumeMenu.SetActive(true);
+ 
+        StartCoroutine(SelectFirst(_volumeMenuFirst));
+ 
+        SetMenuTimeScale();
+    }
+
+    public void Display()
+    {
+        displayOptions = true;
+        volumeOptions = false;
+        controls = false;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
+        displayMenu.SetActive(true);
+ 
+        StartCoroutine(SelectFirst(_displayMenuFirst));
+ 
+        SetMenuTimeScale();
+    }
+
     public void Controls()
     {
         controls = true;

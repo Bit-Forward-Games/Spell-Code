@@ -214,6 +214,7 @@ public class PlayerController : MonoBehaviour
 
     public ushort iframes = 0;
     public bool armor = false;
+    public const int parryThreshold = 10;
 
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
@@ -1298,6 +1299,16 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
+                if(logicFrame < parryThreshold)
+                {
+                    superArmor = true;
+                    armor = false;
+                }
+                else
+                {
+                    armor = true;
+                    superArmor = false;
+                }
                 //only reset the display at the start of CodeWeave state
                 if (removeInputDisplay)
                 {
@@ -2096,7 +2107,7 @@ public class PlayerController : MonoBehaviour
         touchingLeftWall = false;
         touchingRightWall = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: (GameManager.Instance.currentStageIndex == -3?GameManager.Instance.trainingGroundsSO: GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
@@ -2478,7 +2489,7 @@ public class PlayerController : MonoBehaviour
         HandleExitState(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        superArmor = false;
+        //superArmor = false;
     }
 
     private void DoJump()
@@ -2560,7 +2571,8 @@ public class PlayerController : MonoBehaviour
                 comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
-                armor = true;
+                //armor = true;
+                
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -2602,8 +2614,7 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
-                //update the player's spell display to show the spell names
-                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                superArmor = false;
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
@@ -2613,6 +2624,7 @@ public class PlayerController : MonoBehaviour
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 armor = false;
                 superArmor = false;
+                CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnCastEnd);
                 ClearInputDisplay();
                 break;
             case PlayerState.Slide:
@@ -2706,13 +2718,25 @@ public class PlayerController : MonoBehaviour
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (superArmor)
             {
-                SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
+                
 
                 //play the blocked sound
                 SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
 
                 //Play the blocked visual effect
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
+                
+                if(state == PlayerState.CodeWeave && logicFrame < parryThreshold)   
+                {
+                    SpawnToast("PARRY!", GameManager.colors["pink"]);
+                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnParry);
+                }
+                else
+                {
+                    SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
+                }
+
                 isHit = false;
                 hitboxData = null;
                 return;
@@ -2730,6 +2754,10 @@ public class PlayerController : MonoBehaviour
 
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
+                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnBlock);
+                    
+
                     isHit = false;
                     hitboxData = null;
                     return;

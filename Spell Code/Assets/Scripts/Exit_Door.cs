@@ -8,7 +8,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class Exit_Door : MonoBehaviour
 {
     float colliderRadius = 36;
-    public int doorID = 0;
+    public int doorID;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -52,10 +52,22 @@ public class Exit_Door : MonoBehaviour
             }
         }
 
+        if (doorID == 1)
+        {
+            GameManager.Instance.tempUI.SetSoloMenuActive(true);
+            return true;
+        }
+
+        if (doorID == 2)
+        {
+            GameManager.Instance.tempUI.SetMultiplayerMenuActive(true);
+            return true;
+        }
+      
         //all players are in range and the door is open, then return true
         // GameManager.Instance.ExecuteOrder66();
         // SceneManager.LoadScene("MainMenu");
         GameManager.Instance.sceneManager.MainMenu();
-        return true;
+        return true;       
     }
 }

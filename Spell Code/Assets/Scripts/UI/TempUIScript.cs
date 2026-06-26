@@ -73,6 +73,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
 
+    public GameObject _multiplayerGamemodesMenuFirst;
+    public GameObject multiplayerGamemodesMenu;
+    public bool multiplayerGamemodesMenuOpened;
+
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
     public RectTransform tutorialPromptImage;
@@ -167,6 +171,23 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         
     }
 
+    public void SetMultiplayerMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            multiplayerGamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            multiplayerGamemodesMenuOpened = false;
+            multiplayerGamemodesMenu.SetActive(false);
+            Time.timeScale = 1f;
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -186,6 +207,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
         }
+
+        if (multiplayerGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        {
+            SetMultiplayerMenuActive(false);
+            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Space))
         {

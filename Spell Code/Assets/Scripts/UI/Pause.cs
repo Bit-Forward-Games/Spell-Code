@@ -33,6 +33,7 @@ public class Pause : MonoBehaviour
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
     public AudioMixer menuSfxAudioMixer;
+    public Slider masterVolumeSlider;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
     public bool screenShake = true;
@@ -482,6 +483,7 @@ public class Pause : MonoBehaviour
         settingsManager.SetDynamicCamera(dynamicCameraOverride);
         settingsManager.SetScreenshake(screenShake);
         settingsManager.SetFullscreen(true);
+        if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
         settingsManager.Save();
@@ -492,6 +494,7 @@ public class Pause : MonoBehaviour
         }
         settingsManager.SetScreenshake(screenShake);
         settingsManager.SetFullscreen(true);
+        if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
     }
@@ -512,8 +515,10 @@ public class Pause : MonoBehaviour
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
         //if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
         //if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
+        if (masterVolumeSlider != null) masterVolumeSlider.value = settings.masterVolume;
         if (musicVolumeSlider != null) musicVolumeSlider.value = settings.musicVolume;
         if (sfxVolumeSlider != null) sfxVolumeSlider.value = settings.sfxVolume;
+        MasterVolume();
         MusicVolume();
         SFXVolume();
         Debug.Log("HERE | LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
@@ -583,6 +588,7 @@ public class Pause : MonoBehaviour
 
         StartCoroutine(SelectFirst(_optionsMenuFirst));
 
+        if (masterVolumeSlider != null) masterVolumeSlider.value = SettingsManager.Instance.Settings.masterVolume;
         if (musicVolumeSlider != null) musicVolumeSlider.value = SettingsManager.Instance.Settings.musicVolume;
         if (sfxVolumeSlider != null) sfxVolumeSlider.value = SettingsManager.Instance.Settings.sfxVolume;
     }
@@ -855,6 +861,17 @@ public class Pause : MonoBehaviour
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
     }
+
+    public void MasterVolume()
+    {
+        float volume = masterVolumeSlider != null ? masterVolumeSlider.value : 1f;
+        ApplyMasterMixerVolume(volume);
+
+        if(SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetMasterVolume(volume);
+        }
+    }
  
     public void MusicVolume()
     {
@@ -937,6 +954,19 @@ public class Pause : MonoBehaviour
         {
             dynamicCameraToggle.SetIsOnWithoutNotify(dynamicCameraOverride);
             dynamicCameraToggle.interactable = !forcedOn;
+        }
+    }
+
+    private void ApplyMasterMixerVolume(float volume)
+    {
+        if (masterVolumeSlider != null)
+        {
+            masterVolumeSlider.value = volume;
+        }
+
+        if (masterAudioMixer != null)
+        {
+            masterAudioMixer.SetFloat("MasterVolume", VolumeToDecibels(volume));
         }
     }
 

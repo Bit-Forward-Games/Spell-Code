@@ -3006,6 +3006,11 @@ public class GameManager : MonoBehaviour
 
         UpdateGameState(inputs);
 
+        if (activeScene.name == "SoloLobby")
+        {
+            
+        }
+
         if (activeScene.name == "MainMenu")
         {
 

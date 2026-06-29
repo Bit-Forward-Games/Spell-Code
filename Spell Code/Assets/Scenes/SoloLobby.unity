@@ -653,6 +653,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1046649987031184821, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -242.6
+      objectReference: {fileID: 0}
     - target: {fileID: 1688529594293961175, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -693,13 +697,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2395659288558886986, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -242.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4284917940589888464, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -242.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5639627549243245350, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -242.6
+      objectReference: {fileID: 0}
     - target: {fileID: 8583490360958171123, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
       propertyPath: m_Name
       value: SoloLobby
       objectReference: {fileID: 0}
     - target: {fileID: 8583490360958171123, guid: 9fb5a97adb5144e4c82fb2e9cff27a8f, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

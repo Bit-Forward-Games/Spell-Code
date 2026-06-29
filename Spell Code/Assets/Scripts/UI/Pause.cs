@@ -248,9 +248,9 @@ public class Pause : MonoBehaviour
             Resume();
         }
 
-        if (input.UI.Back.WasPressedThisFrame() && !controls && paused && Time.frameCount != openedFrame)
+        if (input.UI.Back.WasPressedThisFrame() && paused)
         {
-            Pausing();
+            Back();
         }
 
         if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
@@ -449,6 +449,8 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+        volumeMenu.SetActive(false);
+        displayMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
  
@@ -463,6 +465,22 @@ public class Pause : MonoBehaviour
 
         //apply volume
         //SFXVolume();
+    }
+
+    public void Back()
+    {
+        if (Time.frameCount != openedFrame)
+        {
+            if (controls || volumeOptions || displayOptions)
+            {
+                controlsMenu.SetActive(false);
+                volumeMenu.SetActive(false);
+                displayMenu.SetActive(false);
+                Options();
+            }
+            else if (options || spells) Pausing();
+            else Resume();
+        }
     }
 
     public IEnumerator BackToGameModeSelector()
@@ -548,6 +566,8 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+        volumeMenu.SetActive(false);
+        displayMenu.SetActive(false);
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
@@ -578,6 +598,8 @@ public class Pause : MonoBehaviour
 
         options = true;
         controls = false;
+        displayOptions = false;
+        volumeOptions = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);

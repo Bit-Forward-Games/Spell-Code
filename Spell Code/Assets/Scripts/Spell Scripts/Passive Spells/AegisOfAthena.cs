@@ -17,7 +17,7 @@ public class AegisOfAthena : SpellData
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 0;
         spawnOffsetY = 36;
-        description = "Upon landing a sucessful parry, your next cast gains Perfect Armor and grants +1 Rep<sprite name=\"Reps\"> on hit while the perfect armor is active.";
+        description = "Upon landing a successful parry, your next cast gains Super Armor and grants +1 Rep<sprite name=\"Reps\"> on hit while the perfect armor is active.";
     }
     public override void SpellUpdate()
     {

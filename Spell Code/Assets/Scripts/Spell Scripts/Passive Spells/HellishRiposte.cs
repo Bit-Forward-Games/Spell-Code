@@ -18,7 +18,7 @@ public class HellishRiposte : SpellData
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 0;
         spawnOffsetY = 36;
-        description = "Upon landing a sucessful parry, your next hit grants +20% Demon Aura<sprite name=\"DemonAura\"> on hit and deals extra Damage.";
+        description = "Upon landing a successful parry, your next cast grants +20% Demon Aura<sprite name=\"DemonAura\"> on hit and deals extra Damage.";
     }
     public override void SpellUpdate()
     {

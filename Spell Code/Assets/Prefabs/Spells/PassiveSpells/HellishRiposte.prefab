@@ -45,9 +45,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HellishRiposte
   vibeCasted: 0
-  projectilePrefabs: []
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 7a256eb3cc80d9e479ddb89d6394363a, type: 3}
+  - {fileID: 3459829395073810853, guid: 7a256eb3cc80d9e479ddb89d6394363a, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 80850399e57dd2a46908a6fde50aa7d8, type: 3}
-  SpellGIF: {fileID: 11400000, guid: 4a551407973a79444a4cf1d45f4edb1b, type: 2}
+  readyIcon: {fileID: 21300000, guid: 2a8f0c206866ad447b55940f6602e860, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 41564659c2e64fa43ae01439f01ecfbb, type: 3}
+  SpellGIF: {fileID: 11400000, guid: ab35338a923637d4e819fe67fa231381, type: 2}

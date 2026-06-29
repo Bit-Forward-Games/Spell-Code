@@ -14,6 +14,9 @@ public class AegisOfAthena : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnParry, ProcCondition.OnCast, ProcCondition.OnHit, ProcCondition.OnCastEnd };
         brands = new Brand[1] { Brand.Killeez };
+        projectilePrefabs = new GameObject[2];
+        spawnOffsetX = 0;
+        spawnOffsetY = 36;
         description = "Upon landing a sucessful parry, your next cast gains Perfect Armor and grants +1 Rep<sprite name=\"Reps\"> on hit while the perfect armor is active.";
     }
     public override void SpellUpdate()
@@ -23,6 +26,14 @@ public class AegisOfAthena : SpellData
         {
             cooldownCounter--;
             return;
+        }
+        if (!projectileInstances[0].activeSelf && parryStored)
+        {
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX ), Fixed.FromInt(spawnOffsetY)));
+        }
+        if (!parryStored)
+        {
+            ProjectileManager.Instance.DeleteProjectile(projectileInstances[0].GetComponent<BaseProjectile>());
         }
 
     }

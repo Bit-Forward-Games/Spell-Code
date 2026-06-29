@@ -648,11 +648,12 @@ public class VFX_Manager : MonoBehaviour
         Vector3 _apexPos = Vector3.zero;
 
         //calculate the x value of the apex position of the curve by finding the x-axis midpoint of the start and end points
-        _apexPos.x = (_endPos.x + _startPos.x) / 2f;
+        _apexPos.x = (_endPos.x + _startPos.x) * 0.5f;
 
         //calculate the y value of the apex position of the curve by adding the heigher y value and _relativeApexHeight 
         _apexPos.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
-
+        //_apexPos.y = (_endPos.y + _startPos.y) / 2f;
+ 
         //define and calculate a post end position to calculate so that the arc doesn't look weird
         //Vector3 _postEndPos = _endPos + (Vector2.down * 30f);
 
@@ -670,7 +671,7 @@ public class VFX_Manager : MonoBehaviour
         //return _trailRenderer.transform.DOPath(new Vector3[]{_apexPos, _startPos + (Vector2.up * 20f), _apexPos + (Vector3.left * 20f), _endPos, _apexPos + (Vector3.right * 20f), _endPos + (Vector2.up * 20f)}, _duration, PathType.CubicBezier, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time)?.Invoke());
         return _trailRenderer.transform.DOPath
         (
-            new Vector3[] {_apexPos, new Vector3(_startPos.x, (_apexPos.y + _startPos.y) / 2f), new Vector3((_startPos.x + _apexPos.x) / 2f, _apexPos.y), _endPos, new Vector3((_endPos.x + _apexPos.x) / 2f, _apexPos.y), new Vector3(_endPos.x, (_apexPos.y + _endPos.y) / 2f)}, 
+            new Vector3[] {_apexPos, new Vector3(_startPos.x, (_apexPos.y + _startPos.y) * 0.75f), new Vector3((_startPos.x + _apexPos.x) * 0.5f, _apexPos.y), _endPos, new Vector3((_endPos.x + _apexPos.x) * 0.5f, _apexPos.y), new Vector3(_endPos.x, (_apexPos.y + _endPos.y) * 0.5f)}, 
             _duration, 
             PathType.CubicBezier, 
             PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time, _playerNum, _floppyBrand)?.Invoke()

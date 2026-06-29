@@ -45,9 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AegisOfAthena
   vibeCasted: 0
-  projectilePrefabs: []
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 26f740d153418da4b9c8c3e81d254ccf, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 80850399e57dd2a46908a6fde50aa7d8, type: 3}
-  SpellGIF: {fileID: 11400000, guid: 1e862b5b52a7a444286b05748584e773, type: 2}
+  readyIcon: {fileID: 21300000, guid: 6bdc821daf263ea419409d6574542317, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: e17dc9c96512d074b8d20a12af51e253, type: 3}
+  SpellGIF: {fileID: 11400000, guid: f956d1965f09d054e961ff5a2212d502, type: 2}

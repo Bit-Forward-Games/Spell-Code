@@ -2664,14 +2664,17 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
-        public void NeutralizePendingLocalInputs()
+        public void NeutralizePendingLocalInputs(ulong neutralInput = 5UL)
         {
             int startFrame = localFrame;
             int endFrame = localFrame + InputDelay;
 
             for (int frame = startFrame; frame <= endFrame; frame++)
             {
-                SetClientInput(frame, 5UL);
+                ulong inputForFrame = clientInputs.ContainsKey(frame)
+                    ? PlayerController.ReplaceGameplayInputPreservingOnlineControlOptions(clientInputs.GetInput(frame), neutralInput)
+                    : neutralInput;
+                SetClientInput(frame, inputForFrame);
             }
         }
 

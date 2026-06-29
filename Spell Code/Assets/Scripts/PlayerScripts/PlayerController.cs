@@ -130,6 +130,10 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] private bool tapJumpPrimed = true;
     [NonSerialized] public bool downJumpSlide = false; 
 
+    private const int OnlineControlOptionsShift = 16;
+    private const ulong OnlineControlOptionsValidMask = 1UL << 63;
+    private const ulong OnlineControlOptionsBitsMask = 0x1FUL << OnlineControlOptionsShift;
+
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
     public Fixed vSpd = Fixed.FromInt(0); //vertical speed
@@ -917,13 +921,13 @@ public class PlayerController : MonoBehaviour
             {
                 if (IsLocalOnlinePauseMenuOpen())
                 {
-                    return 5;
+                    return PackOnlineControlOptions(5UL, this);
                 }
 
                 //input = GetRawKeyboardInput(); // Old Input API method
                 long longInput = inputs.UpdateInputs();
                 input = (ulong)longInput; // Input System method
-                return input;
+                return PackOnlineControlOptions(input, this);
             }
             else
             {
@@ -939,6 +943,74 @@ public class PlayerController : MonoBehaviour
         }
 
         return input;
+    }
+
+    public static ulong PackOnlineControlOptions(ulong rawInput, PlayerController player)
+    {
+        bool relativeInputs = player != null && player.relativeInputs;
+        bool toggleCodeInput = player != null && player.toggleCodeInput;
+        bool tapJump = player != null && player.tapJump;
+        bool vibeCoding = player != null && player.vibeCoding;
+        bool downJumpSlide = player != null && player.downJumpSlide;
+
+        if (player != null
+            && SettingsManager.Instance != null
+            && SettingsManager.Instance.TryGetControlOptionsForPlayer(player, out PlayerControlOptionsData options))
+        {
+            relativeInputs = options.relativeInputs;
+            toggleCodeInput = options.toggleCodeInput;
+            tapJump = options.tapJump;
+            vibeCoding = options.vibeCoding;
+            downJumpSlide = options.downJumpSlide;
+        }
+
+        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, downJumpSlide);
+    }
+
+    public static ulong ReplaceGameplayInputPreservingOnlineControlOptions(ulong existingInput, ulong gameplayInput)
+    {
+        if ((existingInput & OnlineControlOptionsValidMask) == 0)
+        {
+            return gameplayInput;
+        }
+
+        ulong controlOptions = existingInput & (OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        ulong gameplayOnly = gameplayInput & ~(OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        return gameplayOnly | controlOptions;
+    }
+
+    private static ulong PackOnlineControlOptions(
+        ulong rawInput,
+        bool relativeInputs,
+        bool toggleCodeInput,
+        bool tapJump,
+        bool vibeCoding,
+        bool downJumpSlide)
+    {
+        ulong flags = 0UL;
+        if (relativeInputs) flags |= 1UL << 0;
+        if (toggleCodeInput) flags |= 1UL << 1;
+        if (tapJump) flags |= 1UL << 2;
+        if (vibeCoding) flags |= 1UL << 3;
+        if (downJumpSlide) flags |= 1UL << 4;
+
+        ulong clearedInput = rawInput & ~(OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        return clearedInput | OnlineControlOptionsValidMask | (flags << OnlineControlOptionsShift);
+    }
+
+    private void ApplyOnlineControlOptionsFromInput(ulong rawInput)
+    {
+        if ((rawInput & OnlineControlOptionsValidMask) == 0)
+        {
+            return;
+        }
+
+        ulong flags = (rawInput & OnlineControlOptionsBitsMask) >> OnlineControlOptionsShift;
+        relativeInputs = (flags & (1UL << 0)) != 0;
+        toggleCodeInput = (flags & (1UL << 1)) != 0;
+        tapJump = (flags & (1UL << 2)) != 0;
+        vibeCoding = (flags & (1UL << 3)) != 0;
+        downJumpSlide = (flags & (1UL << 4)) != 0;
     }
 
     public bool IsLocalOnlinePauseMenuOpen()
@@ -996,6 +1068,10 @@ public class PlayerController : MonoBehaviour
         if(pID != 0)
         {
             input = InputConverter.ConvertFromLong(rawInput);
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+            {
+                ApplyOnlineControlOptionsFromInput(rawInput);
+            }
         }
         else
         {
@@ -3241,6 +3317,7 @@ public class PlayerController : MonoBehaviour
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
+               $"vibe={vibeCoding} djs={downJumpSlide} " +
                $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
     }
 
@@ -3319,6 +3396,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(tapJumpPrimed); // rollback-critical
         bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
                                    // or it drifts under rollback (sibling relativeInputs is already serialized)
+        bw.Write(vibeCoding);
+        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3422,6 +3501,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
         bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(vibeCoding);
+        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3564,6 +3645,8 @@ public class PlayerController : MonoBehaviour
         maxJumpCount = br.ReadByte();
         tapJumpPrimed = br.ReadBoolean();
         toggleCodeInput = br.ReadBoolean();
+        vibeCoding = br.ReadBoolean();
+        downJumpSlide = br.ReadBoolean();
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();

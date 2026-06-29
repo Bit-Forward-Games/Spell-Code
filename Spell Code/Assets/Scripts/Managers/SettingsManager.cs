@@ -166,6 +166,28 @@ public class SettingsManager : MonoBehaviour
             return;
         }
 
+        SaveControlOptionsForPlayer(
+            player,
+            player.relativeInputs,
+            player.toggleCodeInput,
+            player.tapJump,
+            player.vibeCoding,
+            player.downJumpSlide);
+    }
+
+    public void SaveControlOptionsForPlayer(
+        PlayerController player,
+        bool relativeInputs,
+        bool toggleCodeInput,
+        bool tapJump,
+        bool vibeCoding,
+        bool downJumpSlide)
+    {
+        if (!TryGetControllerId(player, out int controllerId))
+        {
+            return;
+        }
+
         if (ControlOptions == null)
         {
             ControlOptions = CreateDefaultControlOptions();
@@ -173,13 +195,31 @@ public class SettingsManager : MonoBehaviour
 
         PlayerControlOptionsData options = GetOrCreateControlOptions(controllerId);
         options.controllerId = controllerId;
-        options.relativeInputs = player.relativeInputs;
-        options.toggleCodeInput = player.toggleCodeInput;
-        options.tapJump = player.tapJump;
-        options.vibeCoding = player.vibeCoding;
-        options.downJumpSlide = player.downJumpSlide;
+        options.relativeInputs = relativeInputs;
+        options.toggleCodeInput = toggleCodeInput;
+        options.tapJump = tapJump;
+        options.vibeCoding = vibeCoding;
+        options.downJumpSlide = downJumpSlide;
 
         SaveControlOptions();
+    }
+
+    public bool TryGetControlOptionsForPlayer(PlayerController player, out PlayerControlOptionsData options)
+    {
+        options = null;
+
+        if (player == null || !TryGetControllerId(player, out int controllerId))
+        {
+            return false;
+        }
+
+        if (ControlOptions == null)
+        {
+            LoadControlOptions();
+        }
+
+        options = FindControlOptions(controllerId);
+        return options != null;
     }
 
     public bool TryApplyControlOptionsForPlayer(PlayerController player)

@@ -106,56 +106,46 @@ public class Pause : MonoBehaviour
  
     public bool UIRelativeInput
     {
-        get { return gameManager.players[playerPauseIndex].relativeInputs; }
+        get { return GetRelativeInputOption(); }
         set 
         {
-            PlayerController player = gameManager.players[playerPauseIndex];
-            player.relativeInputs = value;
-            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+            SetPauseControlOptions(value, UIToggleCodeInput, UITapJump, UIVibeCode, UIDownJumpSlide);
         }
     }
  
     public bool UIToggleCodeInput
     {
-        get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
+        get { return GetToggleCodeInputOption(); }
         set 
         {
-            PlayerController player = gameManager.players[playerPauseIndex];
-            player.toggleCodeInput = value;
-            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+            SetPauseControlOptions(UIRelativeInput, value, UITapJump, UIVibeCode, UIDownJumpSlide);
         }
     }
     
     public bool UITapJump
     {
-        get { return gameManager.players[playerPauseIndex].tapJump; }
+        get { return GetTapJumpOption(); }
         set 
         {
-            PlayerController player = gameManager.players[playerPauseIndex];
-            player.tapJump = value;
-            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, value, UIVibeCode, UIDownJumpSlide);
         }
     }
 
     public bool UIVibeCode
     {
-        get { return gameManager.players[playerPauseIndex].vibeCoding; }
+        get { return GetVibeCodingOption(); }
         set 
         {
-            PlayerController player = gameManager.players[playerPauseIndex];
-            player.vibeCoding = value;
-            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, UITapJump, value, UIDownJumpSlide);
         }
     }
 
     public bool UIDownJumpSlide
     {
-        get { return gameManager.players[playerPauseIndex].downJumpSlide; }
+        get { return GetDownJumpSlideOption(); }
         set 
         {
-            PlayerController player = gameManager.players[playerPauseIndex];
-            player.downJumpSlide = value;
-            SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, UITapJump, UIVibeCode, value);
         }
     }
  
@@ -573,11 +563,11 @@ public class Pause : MonoBehaviour
 
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
  
-        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
-        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
-        tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
-        vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
-        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].downJumpSlide);
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
+        tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
+        vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
         
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
@@ -1038,50 +1028,121 @@ public class Pause : MonoBehaviour
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         return manager != null && manager.isOnlineMatchActive;
     }
+
+    private PlayerController GetPausePlayer()
+    {
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        if (manager == null || manager.players == null || playerPauseIndex < 0 || playerPauseIndex >= manager.players.Length)
+        {
+            return null;
+        }
+
+        return manager.players[playerPauseIndex];
+    }
+
+    private bool TryGetOnlineControlOptions(PlayerController player, out PlayerControlOptionsData options)
+    {
+        options = null;
+        return IsOnlineMatchActive()
+            && SettingsManager.Instance != null
+            && SettingsManager.Instance.TryGetControlOptionsForPlayer(player, out options);
+    }
+
+    private bool GetRelativeInputOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.relativeInputs : player.relativeInputs;
+    }
+
+    private bool GetToggleCodeInputOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.toggleCodeInput : player.toggleCodeInput;
+    }
+
+    private bool GetTapJumpOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.tapJump : player.tapJump;
+    }
+
+    private bool GetVibeCodingOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.vibeCoding : player.vibeCoding;
+    }
+
+    private bool GetDownJumpSlideOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.downJumpSlide : player.downJumpSlide;
+    }
+
+    private void SetPauseControlOptions(bool relativeInputs, bool toggleCodeInput, bool tapJump, bool vibeCoding, bool downJumpSlide)
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return;
+        }
+
+        if (IsOnlineMatchActive())
+        {
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(
+                player,
+                relativeInputs,
+                toggleCodeInput,
+                tapJump,
+                vibeCoding,
+                downJumpSlide);
+            return;
+        }
+
+        player.relativeInputs = relativeInputs;
+        player.toggleCodeInput = toggleCodeInput;
+        player.tapJump = tapJump;
+        player.vibeCoding = vibeCoding;
+        player.downJumpSlide = downJumpSlide;
+        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+    }
+
+    private bool GetToggleValue(Toggle toggle, bool currentValue)
+    {
+        return toggle != null ? toggle.isOn : !currentValue;
+    }
  
     public void ToggleRelativeInput()
     {
-        // relativeInputs, toggleCodeInput, tapJump and vibeCoding are all deterministic sim state
-        if (IsOnlineMatchActive())
-        {
-            if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
-            return;
-        }
-        UIRelativeInput = !UIRelativeInput;
+        UIRelativeInput = GetToggleValue(relativeInputToggleGraphic, UIRelativeInput);
+        if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
     }
 
     public void ToggleCodeInput()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
-            return;
-        }
-        UIToggleCodeInput = !UIToggleCodeInput;
+        UIToggleCodeInput = GetToggleValue(codeInputToggleGraphic, UIToggleCodeInput);
+        if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
     }
 
     public void ToggleTapJump()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-            return;
-        }
-        UITapJump = !UITapJump;
+        UITapJump = GetToggleValue(tapJumpToggleGraphic, UITapJump);
+        if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
     }
 
     public void ToggleVibeCoding()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
-            return;
-        }
-        UIVibeCode = !UIVibeCode;
+        UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
+        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
     }
 
     public void ToggleDownJumpSlide()
     {
-        UIDownJumpSlide = !UIDownJumpSlide;
+        UIDownJumpSlide = GetToggleValue(downJumpSlideToggleGraphic, UIDownJumpSlide);
+        if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 }

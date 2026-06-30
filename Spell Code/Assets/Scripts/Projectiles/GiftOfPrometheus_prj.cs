@@ -114,8 +114,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
     public void CheckStageDataSOCollision()
     {
         isGrounded = false; //we set it true here, and will set it to false in the function if at some point the projectile has collided with ground
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2 ? GameManager.Instance.TutorialSO : GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
-        if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1 ? GameManager.Instance.lobbySO : (GameManager.Instance.currentStageIndex == -2 ? GameManager.Instance.TutorialSO : (GameManager.Instance.currentStageIndex == -3 ? GameManager.Instance.trainingGroundsSO : GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex]; if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
             if (stageDataSO == null) return;

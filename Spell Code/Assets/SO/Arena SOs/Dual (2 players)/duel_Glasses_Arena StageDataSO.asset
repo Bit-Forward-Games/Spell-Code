@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: duel_Glasses_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 160, y: -2}
-  - {x: 0, y: -2}
-  - {x: -160, y: -2}
+  - {x: 160, y: 30}
+  - {x: 0, y: 30}
+  - {x: -160, y: 30}
   platformExtent:
   - {x: 32, y: 2}
   - {x: 64, y: 2}
@@ -35,8 +35,8 @@ MonoBehaviour:
   - {x: 48, y: 224}
   - {x: 48, y: 224}
   playerSpawnTransform:
-  - {x: -160, y: 0}
-  - {x: 160, y: 0}
+  - {x: -160, y: 32}
+  - {x: 160, y: 32}
   - {x: -160, y: -112}
   - {x: 160, y: -112}
   npcSpawnTransform: []

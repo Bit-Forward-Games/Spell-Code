@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5983437789684646898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3960707798078531432}
+  - component: {fileID: -4744669766239299208}
+  m_Layer: 0
+  m_Name: HellishRiposte
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3960707798078531432
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5983437789684646898}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-4744669766239299208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5983437789684646898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31d819c0cd0552743beddecaaa9ffc70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HellishRiposte
+  vibeCasted: 0
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 7a256eb3cc80d9e479ddb89d6394363a, type: 3}
+  - {fileID: 3459829395073810853, guid: 7a256eb3cc80d9e479ddb89d6394363a, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: 2a8f0c206866ad447b55940f6602e860, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 41564659c2e64fa43ae01439f01ecfbb, type: 3}
+  SpellGIF: {fileID: 11400000, guid: ab35338a923637d4e819fe67fa231381, type: 2}

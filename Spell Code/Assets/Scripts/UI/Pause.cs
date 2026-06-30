@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
 using System.Collections;
@@ -15,6 +17,8 @@ public class Pause : MonoBehaviour
 {
     public GameObject pausemenu;
     public GameObject optionsMenu;
+    public GameObject volumeMenu;
+    public GameObject displayMenu;
     public GameObject controlsMenu;
     public GameObject spellsMenu;
     public GameObject darkPanel;
@@ -23,12 +27,15 @@ public class Pause : MonoBehaviour
     public int playerPauseIndex;
     public bool paused;
     public bool options;
+    public bool volumeOptions;
+    public bool displayOptions;
     public bool controls;
     public bool spells;
     public AudioMixer masterAudioMixer;
     public AudioMixer musicAudioMixer;
     public AudioMixer sfxAudioMixer;
     public AudioMixer menuSfxAudioMixer;
+    public Slider masterVolumeSlider;
     public Slider musicVolumeSlider;
     public Slider sfxVolumeSlider;
     public bool screenShake = true;
@@ -42,6 +49,8 @@ public class Pause : MonoBehaviour
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
+    public GameObject _volumeMenuFirst;
+    public GameObject _displayMenuFirst;
     public GameObject _spellsMenuFirst;
  
     public TextMeshProUGUI playerPausedText;
@@ -99,51 +108,55 @@ public class Pause : MonoBehaviour
  
     public bool UIRelativeInput
     {
-        get { return gameManager.players[playerPauseIndex].relativeInputs; }
+        get { return GetRelativeInputOption(); }
         set 
         {
-            gameManager.players[playerPauseIndex].relativeInputs = value;
+            SetPauseControlOptions(value, UIToggleCodeInput, UITapJump, UIVibeCode, UIDownJumpSlide);
         }
     }
  
     public bool UIToggleCodeInput
     {
-        get { return gameManager.players[playerPauseIndex].toggleCodeInput; }
+        get { return GetToggleCodeInputOption(); }
         set 
         {
-            gameManager.players[playerPauseIndex].toggleCodeInput = value; 
+            SetPauseControlOptions(UIRelativeInput, value, UITapJump, UIVibeCode, UIDownJumpSlide);
         }
     }
     
     public bool UITapJump
     {
-        get { return gameManager.players[playerPauseIndex].tapJump; }
+        get { return GetTapJumpOption(); }
         set 
         {
-            gameManager.players[playerPauseIndex].tapJump = value; 
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, value, UIVibeCode, UIDownJumpSlide);
         }
     }
 
     public bool UIVibeCode
     {
-        get { return gameManager.players[playerPauseIndex].vibeCoding; }
+        get { return GetVibeCodingOption(); }
         set 
         {
-            gameManager.players[playerPauseIndex].vibeCoding = value; 
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, UITapJump, value, UIDownJumpSlide);
         }
     }
 
     public bool UIDownJumpSlide
     {
-        get { return gameManager.players[playerPauseIndex].downJumpSlide; }
+        get { return GetDownJumpSlideOption(); }
         set 
         {
-            gameManager.players[playerPauseIndex].downJumpSlide = value; 
+            SetPauseControlOptions(UIRelativeInput, UIToggleCodeInput, UITapJump, UIVibeCode, value);
         }
     }
  
     private InputSystem_Actions input;
     private SCMaster scInput;
+    private InputSystemUIInputModule uiInputModule;
+    private InputActionAsset scopedUiActionsAsset;
+    private ReadOnlyArray<InputDevice>? previousUiInputDevices;
+    private bool uiInputDevicesScoped;
  
     void OnEnable()  
     { 
@@ -153,6 +166,7 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
+        RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -220,23 +234,25 @@ public class Pause : MonoBehaviour
  
     void Update()
     {
+        ScopeUiInputToPausePlayer();
+
         if (spells)
         {
             UpdateSpellDisplay();
         }
         SpellGlossaryNavigation();
  
-        if (paused && Time.frameCount != openedFrame && input.UI.Cancel.WasPressedThisFrame())
+        if (paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
         {
             Resume();
         }
 
-        if (input.UI.Back.WasPressedThisFrame() && !controls && paused && Time.frameCount != openedFrame)
+        if (WasPausePlayerBackPressedThisFrame() && paused)
         {
-            Pausing();
+            Back();
         }
 
-        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
+        if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
         {
             TriggerSelectedButton();
         }
@@ -245,12 +261,13 @@ public class Pause : MonoBehaviour
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
+            RestoreUiInputDevices();
         }
     }
  
     private void SpellGlossaryNavigation()
     {
-        Vector2 nav = input.UI.Navigate.ReadValue<Vector2>();
+        Vector2 nav = GetPausePlayerNavigation();
  
         // Tick down cooldown using unscaled time so it works while paused (timeScale = 0)
         navCooldown -= Time.unscaledDeltaTime;
@@ -339,7 +356,7 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
-        if (input.UI.Submit.WasPressedThisFrame() && spells)
+        if (WasPausePlayerSubmitPressedThisFrame() && spells)
         {
             if (!showDescription)
                 ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
@@ -432,8 +449,11 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+        volumeMenu.SetActive(false);
+        displayMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
+        RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings(); 
@@ -446,6 +466,22 @@ public class Pause : MonoBehaviour
 
         //apply volume
         //SFXVolume();
+    }
+
+    public void Back()
+    {
+        if (Time.frameCount != openedFrame)
+        {
+            if (controls || volumeOptions || displayOptions)
+            {
+                controlsMenu.SetActive(false);
+                volumeMenu.SetActive(false);
+                displayMenu.SetActive(false);
+                Options();
+            }
+            else if (options || spells) Pausing();
+            else Resume();
+        }
     }
 
     public IEnumerator BackToGameModeSelector()
@@ -466,6 +502,7 @@ public class Pause : MonoBehaviour
         settingsManager.SetDynamicCamera(dynamicCameraOverride);
         settingsManager.SetScreenshake(screenShake);
         settingsManager.SetFullscreen(true);
+        if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
         settingsManager.Save();
@@ -476,6 +513,7 @@ public class Pause : MonoBehaviour
         }
         settingsManager.SetScreenshake(screenShake);
         settingsManager.SetFullscreen(true);
+        if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
     }
@@ -496,8 +534,10 @@ public class Pause : MonoBehaviour
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
         //if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
         //if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
+        if (masterVolumeSlider != null) masterVolumeSlider.value = settings.masterVolume;
         if (musicVolumeSlider != null) musicVolumeSlider.value = settings.musicVolume;
         if (sfxVolumeSlider != null) sfxVolumeSlider.value = settings.sfxVolume;
+        MasterVolume();
         MusicVolume();
         SFXVolume();
         Debug.Log("HERE | LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
@@ -527,16 +567,19 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(true);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+        volumeMenu.SetActive(false);
+        displayMenu.SetActive(false);
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
+        ScopeUiInputToPausePlayer();
  
-        relativeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].relativeInputs);
-        codeInputToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].toggleCodeInput);
-        tapJumpToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].tapJump);
-        vibeCodingToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].vibeCoding);
-        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(gameManager.players[playerPauseIndex].downJumpSlide);
+        relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
+        codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
+        tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
+        vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
         
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
@@ -557,14 +600,19 @@ public class Pause : MonoBehaviour
 
         options = true;
         controls = false;
+        displayOptions = false;
+        volumeOptions = false;
         pausemenu.SetActive(false);
         optionsMenu.SetActive(true);
         controlsMenu.SetActive(false);
+        displayMenu.SetActive(false);
+        volumeMenu.SetActive(false);
  
         SetMenuTimeScale();
 
         StartCoroutine(SelectFirst(_optionsMenuFirst));
 
+        if (masterVolumeSlider != null) masterVolumeSlider.value = SettingsManager.Instance.Settings.masterVolume;
         if (musicVolumeSlider != null) musicVolumeSlider.value = SettingsManager.Instance.Settings.musicVolume;
         if (sfxVolumeSlider != null) sfxVolumeSlider.value = SettingsManager.Instance.Settings.sfxVolume;
     }
@@ -575,6 +623,38 @@ public class Pause : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(target);
     }
  
+    public void Volume()
+    {
+        volumeOptions = true;
+        displayOptions = false;
+        controls = false;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
+        volumeMenu.SetActive(true);
+ 
+        StartCoroutine(SelectFirst(_volumeMenuFirst));
+ 
+        SetMenuTimeScale();
+    }
+
+    public void Display()
+    {
+        displayOptions = true;
+        volumeOptions = false;
+        controls = false;
+        options = false;
+        pausemenu.SetActive(false);
+        optionsMenu.SetActive(false);
+        controlsMenu.SetActive(false);
+        displayMenu.SetActive(true);
+ 
+        StartCoroutine(SelectFirst(_displayMenuFirst));
+ 
+        SetMenuTimeScale();
+    }
+
     public void Controls()
     {
         controls = true;
@@ -805,6 +885,17 @@ public class Pause : MonoBehaviour
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
     }
+
+    public void MasterVolume()
+    {
+        float volume = masterVolumeSlider != null ? masterVolumeSlider.value : 1f;
+        ApplyMasterMixerVolume(volume);
+
+        if(SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.SetMasterVolume(volume);
+        }
+    }
  
     public void MusicVolume()
     {
@@ -890,6 +981,19 @@ public class Pause : MonoBehaviour
         }
     }
 
+    private void ApplyMasterMixerVolume(float volume)
+    {
+        if (masterVolumeSlider != null)
+        {
+            masterVolumeSlider.value = volume;
+        }
+
+        if (masterAudioMixer != null)
+        {
+            masterAudioMixer.SetFloat("MasterVolume", VolumeToDecibels(volume));
+        }
+    }
+
     private void ApplyMusicMixerVolume(float volume)
     {
         if (musicVolumeSlider != null)
@@ -936,50 +1040,319 @@ public class Pause : MonoBehaviour
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         return manager != null && manager.isOnlineMatchActive;
     }
+
+    private void ScopeUiInputToPausePlayer()
+    {
+        if (!paused)
+        {
+            RestoreUiInputDevices();
+            return;
+        }
+
+        InputSystemUIInputModule module = GetUiInputModule();
+        InputActionAsset actionsAsset = module != null ? module.actionsAsset : null;
+        if (actionsAsset == null || !TryGetPausePlayerDevices(out InputDevice[] devices))
+        {
+            return;
+        }
+
+        if (!uiInputDevicesScoped || scopedUiActionsAsset != actionsAsset)
+        {
+            RestoreUiInputDevices();
+            previousUiInputDevices = actionsAsset.devices;
+            scopedUiActionsAsset = actionsAsset;
+            uiInputDevicesScoped = true;
+        }
+
+        actionsAsset.devices = new ReadOnlyArray<InputDevice>(devices);
+    }
+
+    private void RestoreUiInputDevices()
+    {
+        if (!uiInputDevicesScoped)
+        {
+            return;
+        }
+
+        if (scopedUiActionsAsset != null)
+        {
+            scopedUiActionsAsset.devices = previousUiInputDevices;
+        }
+
+        scopedUiActionsAsset = null;
+        previousUiInputDevices = null;
+        uiInputDevicesScoped = false;
+    }
+
+    private InputSystemUIInputModule GetUiInputModule()
+    {
+        if (uiInputModule != null)
+        {
+            return uiInputModule;
+        }
+
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return null;
+        }
+
+        uiInputModule = eventSystem.GetComponent<InputSystemUIInputModule>();
+        return uiInputModule;
+    }
+
+    private bool TryGetPausePlayerDevices(out InputDevice[] devices)
+    {
+        devices = null;
+
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return false;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.devices.Count > 0)
+        {
+            devices = CopyValidDevices(playerInput.devices);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        if (player.playerInputs != null && player.playerInputs.devices.HasValue)
+        {
+            devices = CopyValidDevices(player.playerInputs.devices.Value);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private InputDevice[] CopyValidDevices(ReadOnlyArray<InputDevice> sourceDevices)
+    {
+        List<InputDevice> devices = new List<InputDevice>();
+
+        for (int i = 0; i < sourceDevices.Count; i++)
+        {
+            InputDevice device = sourceDevices[i];
+            if (device != null && InputDeviceManager.IsValidInput(device) && !devices.Contains(device))
+            {
+                devices.Add(device);
+            }
+        }
+
+        return devices.ToArray();
+    }
+
+    private Vector2 GetPausePlayerNavigation()
+    {
+        if (!paused)
+        {
+            return Vector2.zero;
+        }
+
+        Vector2 nav = Vector2.zero;
+
+        if (ReadPausePlayerActionValue("Left") > 0.33f)
+        {
+            nav.x -= 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Right") > 0.33f)
+        {
+            nav.x += 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Down") > 0.33f)
+        {
+            nav.y -= 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Up") > 0.33f)
+        {
+            nav.y += 1f;
+        }
+
+        return nav;
+    }
+
+    private float ReadPausePlayerActionValue(string actionName)
+    {
+        InputAction action = FindPausePlayerAction(actionName);
+        return action != null ? action.ReadValue<float>() : 0f;
+    }
+
+    private bool WasPausePlayerSubmitPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Jump");
+    }
+
+    private bool WasPausePlayerBackPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Code");
+    }
+
+    private bool WasPausePlayerCancelPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Pause");
+    }
+
+    private bool WasPausePlayerActionPressedThisFrame(string actionName)
+    {
+        InputAction action = FindPausePlayerAction(actionName);
+        return action != null && action.WasPressedThisFrame();
+    }
+
+    private InputAction FindPausePlayerAction(string actionName)
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return null;
+        }
+
+        InputPlayerBindings bindings = player.inputs;
+        if (bindings != null && bindings.PlayerActionMap != null)
+        {
+            InputAction action = bindings.PlayerActionMap.FindAction(actionName, false);
+            if (action != null)
+            {
+                return action;
+            }
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.actions != null)
+        {
+            InputAction action = playerInput.actions.FindAction($"Gameplay/{actionName}", false);
+            if (action != null)
+            {
+                return action;
+            }
+        }
+
+        return player.playerInputs != null ? player.playerInputs.FindAction($"Gameplay/{actionName}", false) : null;
+    }
+
+    private PlayerController GetPausePlayer()
+    {
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        if (manager == null || manager.players == null || playerPauseIndex < 0 || playerPauseIndex >= manager.players.Length)
+        {
+            return null;
+        }
+
+        return manager.players[playerPauseIndex];
+    }
+
+    private bool TryGetOnlineControlOptions(PlayerController player, out PlayerControlOptionsData options)
+    {
+        options = null;
+        return IsOnlineMatchActive()
+            && SettingsManager.Instance != null
+            && SettingsManager.Instance.TryGetControlOptionsForPlayer(player, out options);
+    }
+
+    private bool GetRelativeInputOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.relativeInputs : player.relativeInputs;
+    }
+
+    private bool GetToggleCodeInputOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.toggleCodeInput : player.toggleCodeInput;
+    }
+
+    private bool GetTapJumpOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.tapJump : player.tapJump;
+    }
+
+    private bool GetVibeCodingOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.vibeCoding : player.vibeCoding;
+    }
+
+    private bool GetDownJumpSlideOption()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null) return false;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.downJumpSlide : player.downJumpSlide;
+    }
+
+    private void SetPauseControlOptions(bool relativeInputs, bool toggleCodeInput, bool tapJump, bool vibeCoding, bool downJumpSlide)
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return;
+        }
+
+        if (IsOnlineMatchActive())
+        {
+            SettingsManager.Instance?.SaveControlOptionsForPlayer(
+                player,
+                relativeInputs,
+                toggleCodeInput,
+                tapJump,
+                vibeCoding,
+                downJumpSlide);
+            return;
+        }
+
+        player.relativeInputs = relativeInputs;
+        player.toggleCodeInput = toggleCodeInput;
+        player.tapJump = tapJump;
+        player.vibeCoding = vibeCoding;
+        player.downJumpSlide = downJumpSlide;
+        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+    }
+
+    private bool GetToggleValue(Toggle toggle, bool currentValue)
+    {
+        return toggle != null ? toggle.isOn : !currentValue;
+    }
  
     public void ToggleRelativeInput()
     {
-        // relativeInputs, toggleCodeInput, tapJump and vibeCoding are all deterministic sim state
-        if (IsOnlineMatchActive())
-        {
-            if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
-            return;
-        }
-        UIRelativeInput = !UIRelativeInput;
+        UIRelativeInput = GetToggleValue(relativeInputToggleGraphic, UIRelativeInput);
+        if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
     }
 
     public void ToggleCodeInput()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
-            return;
-        }
-        UIToggleCodeInput = !UIToggleCodeInput;
+        UIToggleCodeInput = GetToggleValue(codeInputToggleGraphic, UIToggleCodeInput);
+        if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
     }
 
     public void ToggleTapJump()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-            return;
-        }
-        UITapJump = !UITapJump;
+        UITapJump = GetToggleValue(tapJumpToggleGraphic, UITapJump);
+        if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
     }
 
     public void ToggleVibeCoding()
     {
-        if (IsOnlineMatchActive())
-        {
-            if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
-            return;
-        }
-        UIVibeCode = !UIVibeCode;
+        UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
+        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
     }
 
     public void ToggleDownJumpSlide()
     {
-        UIDownJumpSlide = !UIDownJumpSlide;
+        UIDownJumpSlide = GetToggleValue(downJumpSlideToggleGraphic, UIDownJumpSlide);
+        if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 }

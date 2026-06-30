@@ -2165,6 +2165,25 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
             Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
 
+            // All-players breakdown. The two lines above only cover p0/p1, so in 3/4P matches a
+            // divergence in slot 2/3 (e.g. matchmaking drop-ins) is invisible -- the composite hash
+            // differs while every shown component matches. This loops all slots and flags the one
+            // that diverged so the next 4P desync names the exact player + core-vs-spell.
+            uint[] localCoreHashes = states[index].playerCoreHashes ?? System.Array.Empty<uint>();
+            uint[] localSpellHashes = states[index].playerSpellHashes ?? System.Array.Empty<uint>();
+            int hashPlayerCount = Mathf.Max(localCoreHashes.Length, remotePlayerCoreHashes?.Length ?? 0);
+            var allPlayersHash = new System.Text.StringBuilder("[DESYNC HASH] AllPlayers");
+            for (int hp = 0; hp < hashPlayerCount; hp++)
+            {
+                uint lc = hp < localCoreHashes.Length ? localCoreHashes[hp] : 0;
+                uint rc = (remotePlayerCoreHashes != null && hp < remotePlayerCoreHashes.Length) ? remotePlayerCoreHashes[hp] : 0;
+                uint ls = hp < localSpellHashes.Length ? localSpellHashes[hp] : 0;
+                uint rs = (remotePlayerSpellHashes != null && hp < remotePlayerSpellHashes.Length) ? remotePlayerSpellHashes[hp] : 0;
+                string diffFlag = (lc != rc || ls != rs) ? " <<DIVERGED" : "";
+                allPlayersHash.Append($" | p{hp}core {lc}/{rc} p{hp}spell {ls}/{rs}{diffFlag}");
+            }
+            Debug.LogError(allPlayersHash.ToString());
+
             // Always dump state on first mismatch for diagnosis
             if (firstHashMismatchFrame < 0)
             {
@@ -2664,14 +2683,17 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
-        public void NeutralizePendingLocalInputs()
+        public void NeutralizePendingLocalInputs(ulong neutralInput = 5UL)
         {
             int startFrame = localFrame;
             int endFrame = localFrame + InputDelay;
 
             for (int frame = startFrame; frame <= endFrame; frame++)
             {
-                SetClientInput(frame, 5UL);
+                ulong inputForFrame = clientInputs.ContainsKey(frame)
+                    ? PlayerController.ReplaceGameplayInputPreservingOnlineControlOptions(clientInputs.GetInput(frame), neutralInput)
+                    : neutralInput;
+                SetClientInput(frame, inputForFrame);
             }
         }
 

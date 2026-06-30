@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
         { "yellow", HexToColor("#fbc800") },
         { "white", HexToColor("#ffffff") },
         { "purple", HexToColor("#b44cef") },
+        { "pink", HexToColor("#ec8cff") },
         { "gold", HexToColor("#dd8c00") },
         { "grey", HexToColor("#998d86") },
         { "black", HexToColor("#000000") }
@@ -87,6 +88,7 @@ public class GameManager : MonoBehaviour
     public StageDataSO lobbySO;
     public StageDataSO TutorialSO;
     public StageDataSO trainingGroundsSO;
+    public StageDataSO soloLobbySO;
     // public StageDataSO currentStage;
     public int currentStageIndex = 0;
     public SceneUiManager sceneManager;
@@ -95,6 +97,7 @@ public class GameManager : MonoBehaviour
     public GameObject lobbyMapGO;
     public GameObject tutorialMapGO;
     public GameObject trainingGroundsGO;
+    public GameObject soloLobbyGO;
     public string currentStage;
 
     [HideInInspector]
@@ -462,7 +465,7 @@ public class GameManager : MonoBehaviour
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {
-            loadTrainingGrounds();
+            loadSoloLobby();
         }
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.LeftBracket))
@@ -487,6 +490,14 @@ public class GameManager : MonoBehaviour
     {
         sceneManager.LoadScene("TrainingGrounds");
         SetStage(-3);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
+    public void loadSoloLobby()
+    {
+        sceneManager.LoadScene("SoloLobby");
+        SetStage(-4);
         ResetPlayers();
         players[0].ClearSpellList();
     }
@@ -562,23 +573,29 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
+        PlayerController localPlayer = localPlayerIndex >= 0 && localPlayerIndex < players.Length
+            ? players[localPlayerIndex]
+            : null;
+
         if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
         {
-            return StressTestController.Instance.GetDeterministicInput(frameNumber);
+            ulong stressInput = StressTestController.Instance.GetDeterministicInput(frameNumber);
+            return PlayerController.PackOnlineControlOptions(stressInput, localPlayer);
         }
 
-        PlayerController localPlayer = players[localPlayerIndex];
         if (localPlayer != null && localPlayer.inputs.IsActive)
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
-                RollbackManager.Instance?.NeutralizePendingLocalInputs();
-                return 5;
+                ulong neutralInput = PlayerController.PackOnlineControlOptions(5UL, localPlayer);
+                RollbackManager.Instance?.NeutralizePendingLocalInputs(neutralInput);
+                return neutralInput;
             }
 
-            return (ulong)localPlayer.inputs.UpdateInputs();
+            ulong input = (ulong)localPlayer.inputs.UpdateInputs();
+            return PlayerController.PackOnlineControlOptions(input, localPlayer);
         }
-        return 5; // neutral
+        return PlayerController.PackOnlineControlOptions(5UL, localPlayer); // neutral
         //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
     }
 
@@ -638,6 +655,7 @@ public class GameManager : MonoBehaviour
         PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
         localPlayer.inputs.AssignInputDevice(null);
         ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(localPlayer);
         localPlayer.CheckForInputs(true, false);
     }
 
@@ -905,6 +923,7 @@ public class GameManager : MonoBehaviour
             {
                 players[i].inputs.AssignInputDevice(null);
                 ConfigureOnlineLocalPlayerInput(pInput, players[i].inputs);
+                SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[i]);
                 players[i].CheckForInputs(true, false);
             }
             else
@@ -3197,6 +3216,7 @@ public class GameManager : MonoBehaviour
 
         players[playerCount] = existingPlayer;
         players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[playerCount]);
         AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
 
         // INCREMENT FIRST
@@ -3583,6 +3603,10 @@ public class GameManager : MonoBehaviour
         {
             return trainingGroundsSO.playerSpawnTransform;
         }
+        if (currentStageIndex == -4)
+        {
+            return soloLobbySO.playerSpawnTransform;
+        }
         else
         {
             return stages[currentStageIndex].playerSpawnTransform;
@@ -3602,6 +3626,10 @@ public class GameManager : MonoBehaviour
         if (currentStageIndex == -3)
         {
             return trainingGroundsSO.npcSpawnTransform;
+        }
+        if (currentStageIndex == -4)
+        {
+            return soloLobbySO.npcSpawnTransform;
         }
         else
         {
@@ -3974,6 +4002,12 @@ public class GameManager : MonoBehaviour
         {
             trainingGroundsGO.SetActive(true);
             currentStage = trainingGroundsGO.name;
+            return;
+        }
+        if (currentStageIndex == -4)
+        {
+            soloLobbyGO.SetActive(true);
+            currentStage = soloLobbyGO.name;
             return;
         }
         for (int i = 0; i < tempMapGOs.Count; i++)
@@ -5471,6 +5505,7 @@ public class GameManager : MonoBehaviour
         {
             players[slot].inputs.AssignInputDevice(null);
             ConfigureOnlineLocalPlayerInput(pInput, players[slot].inputs);
+            SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[slot]);
             players[slot].CheckForInputs(true, false);
         }
         else

@@ -130,6 +130,10 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] private bool tapJumpPrimed = true;
     [NonSerialized] public bool downJumpSlide = false; 
 
+    private const int OnlineControlOptionsShift = 16;
+    private const ulong OnlineControlOptionsValidMask = 1UL << 63;
+    private const ulong OnlineControlOptionsBitsMask = 0x1FUL << OnlineControlOptionsShift;
+
     //leave public to get 
     public Fixed hSpd = Fixed.FromInt(0); //horizontal speed (effectively Velocity)
     public Fixed vSpd = Fixed.FromInt(0); //vertical speed
@@ -214,6 +218,7 @@ public class PlayerController : MonoBehaviour
 
     public ushort iframes = 0;
     public bool armor = false;
+    public const int parryThreshold = 10;
 
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
@@ -916,13 +921,13 @@ public class PlayerController : MonoBehaviour
             {
                 if (IsLocalOnlinePauseMenuOpen())
                 {
-                    return 5;
+                    return PackOnlineControlOptions(5UL, this);
                 }
 
                 //input = GetRawKeyboardInput(); // Old Input API method
                 long longInput = inputs.UpdateInputs();
                 input = (ulong)longInput; // Input System method
-                return input;
+                return PackOnlineControlOptions(input, this);
             }
             else
             {
@@ -938,6 +943,74 @@ public class PlayerController : MonoBehaviour
         }
 
         return input;
+    }
+
+    public static ulong PackOnlineControlOptions(ulong rawInput, PlayerController player)
+    {
+        bool relativeInputs = player != null && player.relativeInputs;
+        bool toggleCodeInput = player != null && player.toggleCodeInput;
+        bool tapJump = player != null && player.tapJump;
+        bool vibeCoding = player != null && player.vibeCoding;
+        bool downJumpSlide = player != null && player.downJumpSlide;
+
+        if (player != null
+            && SettingsManager.Instance != null
+            && SettingsManager.Instance.TryGetControlOptionsForPlayer(player, out PlayerControlOptionsData options))
+        {
+            relativeInputs = options.relativeInputs;
+            toggleCodeInput = options.toggleCodeInput;
+            tapJump = options.tapJump;
+            vibeCoding = options.vibeCoding;
+            downJumpSlide = options.downJumpSlide;
+        }
+
+        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, downJumpSlide);
+    }
+
+    public static ulong ReplaceGameplayInputPreservingOnlineControlOptions(ulong existingInput, ulong gameplayInput)
+    {
+        if ((existingInput & OnlineControlOptionsValidMask) == 0)
+        {
+            return gameplayInput;
+        }
+
+        ulong controlOptions = existingInput & (OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        ulong gameplayOnly = gameplayInput & ~(OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        return gameplayOnly | controlOptions;
+    }
+
+    private static ulong PackOnlineControlOptions(
+        ulong rawInput,
+        bool relativeInputs,
+        bool toggleCodeInput,
+        bool tapJump,
+        bool vibeCoding,
+        bool downJumpSlide)
+    {
+        ulong flags = 0UL;
+        if (relativeInputs) flags |= 1UL << 0;
+        if (toggleCodeInput) flags |= 1UL << 1;
+        if (tapJump) flags |= 1UL << 2;
+        if (vibeCoding) flags |= 1UL << 3;
+        if (downJumpSlide) flags |= 1UL << 4;
+
+        ulong clearedInput = rawInput & ~(OnlineControlOptionsValidMask | OnlineControlOptionsBitsMask);
+        return clearedInput | OnlineControlOptionsValidMask | (flags << OnlineControlOptionsShift);
+    }
+
+    private void ApplyOnlineControlOptionsFromInput(ulong rawInput)
+    {
+        if ((rawInput & OnlineControlOptionsValidMask) == 0)
+        {
+            return;
+        }
+
+        ulong flags = (rawInput & OnlineControlOptionsBitsMask) >> OnlineControlOptionsShift;
+        relativeInputs = (flags & (1UL << 0)) != 0;
+        toggleCodeInput = (flags & (1UL << 1)) != 0;
+        tapJump = (flags & (1UL << 2)) != 0;
+        vibeCoding = (flags & (1UL << 3)) != 0;
+        downJumpSlide = (flags & (1UL << 4)) != 0;
     }
 
     public bool IsLocalOnlinePauseMenuOpen()
@@ -995,6 +1068,10 @@ public class PlayerController : MonoBehaviour
         if(pID != 0)
         {
             input = InputConverter.ConvertFromLong(rawInput);
+            if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+            {
+                ApplyOnlineControlOptionsFromInput(rawInput);
+            }
         }
         else
         {
@@ -1012,15 +1089,18 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
             {
-                pause.playerPauseIndex = _playerPauseIndex;
+                if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
+                {
+                    pause.playerPauseIndex = _playerPauseIndex;
 
-                if (pause.paused)
-                {
-                    pause.Resume();
-                }
-                else
-                {
-                    pause.Pausing();
+                    if (pause.paused)
+                    {
+                        pause.Resume();
+                    }
+                    else
+                    {
+                        pause.Pausing();
+                    }
                 }
             }
         }
@@ -1298,6 +1378,16 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case PlayerState.CodeWeave:
+                if(logicFrame < parryThreshold)
+                {
+                    superArmor = true;
+                    armor = false;
+                }
+                else
+                {
+                    armor = true;
+                    superArmor = false;
+                }
                 //only reset the display at the start of CodeWeave state
                 if (removeInputDisplay)
                 {
@@ -2096,7 +2186,7 @@ public class PlayerController : MonoBehaviour
         touchingLeftWall = false;
         touchingRightWall = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: GameManager.Instance.trainingGroundsSO)) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: (GameManager.Instance.currentStageIndex == -3?GameManager.Instance.trainingGroundsSO: GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
@@ -2478,7 +2568,7 @@ public class PlayerController : MonoBehaviour
         HandleExitState(prevState);
         state = targetState;
         HandleEnterState(targetState, inputSpellArg);
-        superArmor = false;
+        //superArmor = false;
     }
 
     private void DoJump()
@@ -2560,7 +2650,8 @@ public class PlayerController : MonoBehaviour
                 comboResetTimer = 45;
                 break;
             case PlayerState.CodeWeave:
-                armor = true;
+                //armor = true;
+                
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
 
@@ -2602,8 +2693,7 @@ public class PlayerController : MonoBehaviour
                 //playerHeight = charData.playerHeight;
                 break;
             case PlayerState.CodeWeave:
-                //update the player's spell display to show the spell names
-                int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                superArmor = false;
                 gravity = Fixed.FromFloat(.75f);
                 break;
             case PlayerState.CodeRelease:
@@ -2613,6 +2703,7 @@ public class PlayerController : MonoBehaviour
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 armor = false;
                 superArmor = false;
+                CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnCastEnd);
                 ClearInputDisplay();
                 break;
             case PlayerState.Slide:
@@ -2706,13 +2797,25 @@ public class PlayerController : MonoBehaviour
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (superArmor)
             {
-                SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
+                
 
                 //play the blocked sound
                 SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
 
                 //Play the blocked visual effect
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
+                
+                if(state == PlayerState.CodeWeave && logicFrame < parryThreshold)   
+                {
+                    SpawnToast("PARRY!", GameManager.colors["pink"]);
+                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnParry);
+                }
+                else
+                {
+                    SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
+                }
+
                 isHit = false;
                 hitboxData = null;
                 return;
@@ -2730,6 +2833,10 @@ public class PlayerController : MonoBehaviour
 
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
+
+                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnBlock);
+                    
+
                     isHit = false;
                     hitboxData = null;
                     return;
@@ -3213,6 +3320,7 @@ public class PlayerController : MonoBehaviour
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
+               $"vibe={vibeCoding} djs={downJumpSlide} " +
                $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
     }
 
@@ -3291,6 +3399,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(tapJumpPrimed); // rollback-critical
         bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
                                    // or it drifts under rollback (sibling relativeInputs is already serialized)
+        bw.Write(vibeCoding);
+        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3394,6 +3504,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
         bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(vibeCoding);
+        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3536,6 +3648,8 @@ public class PlayerController : MonoBehaviour
         maxJumpCount = br.ReadByte();
         tapJumpPrimed = br.ReadBoolean();
         toggleCodeInput = br.ReadBoolean();
+        vibeCoding = br.ReadBoolean();
+        downJumpSlide = br.ReadBoolean();
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();

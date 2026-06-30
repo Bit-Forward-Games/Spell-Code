@@ -13,10 +13,20 @@ public class SteamLobbyManager : MonoBehaviour
     private const string MatchStartTokenKey = "matchStartToken";
     private const string LobbySlotKeyPrefix = "slot_";
 
+    // Matchmaking (Quick Match)
+    // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
+    // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
+    // byte-incompatible match and desync on start (same reason both PCs must run the same build).
+    private const string NetcodeVersion = "scz-1";
+    private const string MatchmakingKey = "mm";
+    private const string VersionKey = "ver";
+    private const string SizeKey = "size";
+
     public static SteamLobbyManager Instance { get; private set; }
 
     private Lobby? currentLobby;
     private bool isHostingFlow;
+    private bool isMatchmaking;
     private bool isShuttingDown;
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
@@ -240,6 +250,132 @@ public class SteamLobbyManager : MonoBehaviour
         {
             Debug.LogError($"Exception while creating lobby: {e.Message}");
             isHostingFlow = false;
+        }
+    }
+
+    // Matchmaking (Quick Match)
+
+    // UI entry point. Quick Match into a host-chosen bucket size (2..TargetOnlineLobbySize): finds an
+    // open PUBLIC match of that size + this build's NetcodeVersion and joins it, otherwise hosts one
+    // and waits. The match then starts through the existing matchReady / TryStartOnlineMatchFromLobby
+    // flow (at MinimumOnlineLobbyStartSize, then drop-in fills up to the bucket) -- same as invites.
+    public void FindMatch(int desiredSize)
+    {
+        FindMatchAsync(Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize));
+    }
+
+    // Cancel an in-progress search / leave the matchmaking lobby. Wire this to a "Cancel" button.
+    public void CancelMatchmaking()
+    {
+        isMatchmaking = false;
+        LeaveLobbyInternal();
+    }
+
+    private async void FindMatchAsync(int desiredSize)
+    {
+        if (isShuttingDown || !SteamClient.IsValid)
+        {
+            Debug.LogError("Steam is not running or shutting down. Cannot matchmake.");
+            return;
+        }
+        if (isHostingFlow || isMatchmaking)
+        {
+            return; // already hosting or searching
+        }
+
+        isMatchmaking = true;
+        try
+        {
+            // Query for an open public match of the same size + version with a free slot.
+            Lobby[] results = await SteamMatchmaking.LobbyList
+                .WithKeyValue(MatchmakingKey, "1")
+                .WithKeyValue(VersionKey, NetcodeVersion)
+                .WithKeyValue(SizeKey, desiredSize.ToString())
+                .WithSlotsAvailable(1)
+                .RequestAsync();
+
+            if (isShuttingDown || !isMatchmaking)
+            {
+                return;
+            }
+
+            if (results != null)
+            {
+                foreach (Lobby found in results)
+                {
+                    if (currentLobby.HasValue && found.Id == currentLobby.Value.Id) continue;
+                    if (found.MemberCount <= 0 || found.MemberCount >= found.MaxMembers) continue;
+
+                    if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: joining open lobby {found.Id.Value} (size {desiredSize}, members {found.MemberCount}/{found.MaxMembers}).");
+                    JoinRequestedLobbyAsync(found.Id, default);
+                    return;
+                }
+            }
+
+            // Nothing open -> host a public match of this size and wait for an opponent.
+            if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: no open size-{desiredSize} match found, hosting one.");
+            CreateMatchmakingLobbyAsync(desiredSize);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[SteamLobbyManager] Matchmaking failed: {e.Message}");
+            isMatchmaking = false;
+        }
+    }
+
+    // Creates a public, tagged, host-sized lobby other matchmakers can find. Mirrors HostAndInvite but
+    // SetPublic + matchmaking tags, and no invite overlay (matchmade players find it by query).
+    private async void CreateMatchmakingLobbyAsync(int size)
+    {
+        isHostingFlow = true;
+        isShuttingDown = false;
+        hostFlowVersion++;
+        uint currentHostFlowVersion = hostFlowVersion;
+        LeaveLobbyInternal();
+
+        try
+        {
+            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(size);
+            if (isShuttingDown || currentHostFlowVersion != hostFlowVersion || !SteamClient.IsValid)
+            {
+                if (lobby.HasValue) lobby.Value.Leave();
+                isHostingFlow = false;
+                isMatchmaking = false;
+                return;
+            }
+            if (!lobby.HasValue && lastLobbyCreateResult == Result.OK && lastLobbyCreated.HasValue)
+            {
+                lobby = lastLobbyCreated;
+            }
+            if (!lobby.HasValue)
+            {
+                Debug.LogError($"Failed to create matchmaking lobby. Result={lastLobbyCreateResult}");
+                isHostingFlow = false;
+                isMatchmaking = false;
+                return;
+            }
+
+            currentLobby = lobby.Value;
+            currentLobby.Value.SetPublic();        // searchable by other matchmakers (vs SetFriendsOnly)
+            currentLobby.Value.SetJoinable(true);
+            currentLobby.Value.SetData(MatchmakingKey, "1");
+            currentLobby.Value.SetData(VersionKey, NetcodeVersion);
+            currentLobby.Value.SetData(SizeKey, size.ToString());
+            currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            currentLobby.Value.SetData("targetSize", size.ToString());
+            currentLobby.Value.SetData(MatchReadyKey, "0");
+            currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            startedCurrentLobbyMatch = false;
+            currentMatchStartToken = string.Empty;
+
+            if (debugLogs) Debug.Log($"[SteamLobbyManager] Hosting public matchmaking lobby {currentLobby.Value.Id.Value} (size {size}, ver {NetcodeVersion}). Waiting for opponents.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Exception while creating matchmaking lobby: {e.Message}");
+            isHostingFlow = false;
+            isMatchmaking = false;
         }
     }
 

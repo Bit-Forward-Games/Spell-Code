@@ -11,7 +11,7 @@ public class HellishRiposte : SpellData
     public HellishRiposte()
     {
         spellName = "Hellish Riposte";
-        cooldown = 120;
+        cooldown = 60;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnParry, ProcCondition.OnHit, ProcCondition.OnCastEnd };
         brands = new Brand[1] { Brand.DemonX };

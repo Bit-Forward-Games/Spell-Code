@@ -305,9 +305,8 @@ public class SteamLobbyManager : MonoBehaviour
                 {
                     if (currentLobby.HasValue && found.Id == currentLobby.Value.Id) continue;
                     if (found.MemberCount <= 0 || found.MemberCount >= found.MaxMembers) continue;
-                    if (found.GetData(MatchReadyKey) == "1") continue; // its match already started
 
-                    if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: joining open lobby {found.Id.Value} (size {desiredSize}).");
+                    if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: joining open lobby {found.Id.Value} (size {desiredSize}, members {found.MemberCount}/{found.MaxMembers}).");
                     JoinRequestedLobbyAsync(found.Id, default);
                     return;
                 }

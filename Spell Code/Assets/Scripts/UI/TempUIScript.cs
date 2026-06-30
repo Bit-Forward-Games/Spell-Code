@@ -69,9 +69,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
 
+    public GameObject gamemodesMenu;
+
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
+
+    public GameObject _multiplayerGamemodesMenuFirst;
+    public GameObject multiplayerGamemodesMenu;
+    public bool multiplayerGamemodesMenuOpened;
 
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
@@ -152,6 +158,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
+            gamemodesMenu.SetActive(true);
             soloGamemodesMenu.SetActive(true);
             soloGamemodesMenuOpened = true;
             EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
@@ -161,10 +168,30 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             soloGamemodesMenuOpened = false;
             soloGamemodesMenu.SetActive(false);
+            gamemodesMenu.SetActive(false);
             // pause._pauseMenuFirst.Select();
             Time.timeScale = 1f;
         }
-        
+    }
+
+    public void SetMultiplayerMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            gamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            multiplayerGamemodesMenuOpened = false;
+            multiplayerGamemodesMenu.SetActive(false);
+            gamemodesMenu.SetActive(false);
+            // pause._pauseMenuFirst.Select();
+            Time.timeScale = 1f;
+        }
     }
 
     // Update is called once per frame
@@ -186,6 +213,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
         }
+
+        if (multiplayerGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        {
+            SetMultiplayerMenuActive(false);
+            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Space))
         {

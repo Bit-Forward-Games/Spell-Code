@@ -31,10 +31,8 @@ public class Exit_Door : MonoBehaviour
             }
             if (doorID == 2)
             {
-                
                 isPrimed = false;
-
-                
+                GameManager.Instance.tempUI.SetMultiplayerMenuActive(true);
             }
         }
     }

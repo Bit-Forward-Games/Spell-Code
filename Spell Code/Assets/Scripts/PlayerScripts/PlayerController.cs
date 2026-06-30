@@ -1026,6 +1026,22 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        {
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
+            {
+                pause.playerPauseIndex = _playerPauseIndex;
+
+                if (pause.paused)
+                {
+                    pause.Resume();
+                }
+                else
+                {
+                    pause.Pausing();
+                }
+            }
+        }
+
         if (!isAlive)
         {
             if (spriteRenderer.enabled == true)

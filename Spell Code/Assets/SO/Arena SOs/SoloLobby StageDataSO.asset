@@ -29,10 +29,10 @@ MonoBehaviour:
   - {x: 32.004105, y: 7.999832}
   - {x: 384.0012, y: 15.999664}
   playerSpawnTransform:
-  - {x: -242.6, y: -187}
-  - {x: -242.6, y: -187}
-  - {x: -242.6, y: -187}
-  - {x: -242.6, y: -187}
+  - {x: -2.600006, y: -187}
+  - {x: -2.600006, y: -187}
+  - {x: -2.600006, y: -187}
+  - {x: -2.600006, y: -187}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []

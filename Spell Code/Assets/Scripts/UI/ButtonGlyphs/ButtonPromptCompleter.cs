@@ -4,22 +4,25 @@ using TMPro;
 
 public static class ButtonPromptCompleter
 {
-    public static String ReadAndReplaceBinding(string textToDisplay, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset)
+    public static string ReadAndReplaceBinding(string textToDisplay, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset)
     {
-        string stringButtonName = RenameInput(actionNeeded.ToString());
-        textToDisplay = textToDisplay.Replace("BUTTONPROMPT",$"<sprite-\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
+        string stringButtonName = GetInputString(actionNeeded);
+        textToDisplay = textToDisplay.Replace("BUTTONPROMPT",$"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
         return textToDisplay;
     }
 
-    private static string RenameInput(string stringButtonName)
+    private static string GetInputString(InputBinding actionNeeded)
     {
-        stringButtonName = stringButtonName.Replace("Interact:", String.Empty);
-        stringButtonName = stringButtonName.Replace("<Keyboard>/", "Keyboard_");
-        stringButtonName = stringButtonName.Replace("D-Pad/", "dpad_");
-        //stringButtonName = stringButtonName.Replace("Left Stick/", "ls_");
-        //stringButtonName = stringButtonName.Replace("Right Stick/", "rs_");
-        stringButtonName = stringButtonName.Replace("<Gamepad>/", "Gamepad_");
+        string starterString = actionNeeded.ToString();
+        starterString = starterString.Replace($"[{actionNeeded.groups}]", String.Empty);
+        starterString = starterString.Replace($"{actionNeeded.action}:", String.Empty);
+        starterString = starterString.Replace("Interact:", String.Empty);
+        starterString = starterString.Replace("<Keyboard>/", "Keyboard_");
+        starterString = starterString.Replace("D-Pad/", "dpad_");
+        starterString = starterString.Replace("Left Stick/", "ls_");
+        starterString = starterString.Replace("Right Stick/", "rs_");
+        starterString = starterString.Replace("<Gamepad>/", "Gamepad_");
 
-        return stringButtonName;
+        return starterString;
     }
 }

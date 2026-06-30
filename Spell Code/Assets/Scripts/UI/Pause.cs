@@ -1121,9 +1121,9 @@ public class Pause : MonoBehaviour
             }
         }
 
-        if (player.playerInputs != null && player.playerInputs.devices.HasValue)
+        if (player.inputs != null && player.inputs.PlayerActionMap.devices.HasValue)
         {
-            devices = CopyValidDevices(player.playerInputs.devices.Value);
+            devices = CopyValidDevices(player.inputs.PlayerActionMap.devices.Value);
             if (devices.Length > 0)
             {
                 return true;
@@ -1236,7 +1236,7 @@ public class Pause : MonoBehaviour
             }
         }
 
-        return player.playerInputs != null ? player.playerInputs.FindAction($"Gameplay/{actionName}", false) : null;
+        return player.inputs.PlayerActionMap != null ? player.inputs.PlayerActionMap.FindAction($"Gameplay/{actionName}", false) : null;
     }
 
     private PlayerController GetPausePlayer()

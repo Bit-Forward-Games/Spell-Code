@@ -29,23 +29,25 @@ public class TextSetter : MonoBehaviour
     {
         //debug test 
         selectorPID = 1;
-        if(GameManager.Instance.players[selectorPID]== null)
+        if(GameManager.Instance.players[selectorPID-1]== null)
         {
             Debug.LogError("Player ID not set.");
             return;
         }
-        SetText(GameManager.Instance.players[selectorPID].inputs.JumpAction.bindings[0]);
+        PlayerController targetPlayer = GameManager.Instance.players[selectorPID-1];
+        InputAction targetAction = targetPlayer.inputs.PauseAction;
+        SetText(message, targetAction);
     }
 
-    private void SetText(InputBinding targetBinding)
+    private void SetText(string inputMessage, InputAction targetAction)
     {   
-        if(selectorPID == 0|| GameManager.Instance.players[selectorPID]== null)
+        if(selectorPID == 0|| GameManager.Instance.players[selectorPID-1]== null)
         {
             Debug.LogError("Player ID either not set or not found.");
             return;
         }
 
-        deviceType = GetDeviceType(GameManager.Instance.players[selectorPID].inputs.InputDevice);
+        deviceType = GetDeviceType(GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
 
 
         
@@ -54,8 +56,8 @@ public class TextSetter : MonoBehaviour
             Debug.Log($"missing Sprite Asset for {deviceType}");
             return;
         }
-
-        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(message, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
+        InputBinding targetBinding = GetBindingForAction(targetAction,GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
+        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
     }
 
     private DeviceType GetDeviceType(InputDevice inputDevice)
@@ -72,5 +74,21 @@ public class TextSetter : MonoBehaviour
 
         Debug.LogWarning($"Unsupported input device type: {inputDevice?.displayName ?? "None"}");
         return DeviceType.Keyboard;
+    }
+
+    private InputBinding GetBindingForAction(InputAction inputAction, InputDevice inputDevice)
+    {
+        if (inputDevice is Keyboard)
+        {
+            return inputAction.bindings[0];
+        }
+
+        if (inputDevice is Gamepad)
+        {
+            return inputAction.bindings[1];
+        }
+
+        Debug.LogWarning($"Unsupported input device type: {inputDevice?.displayName ?? "None"}");
+        return inputAction.bindings[0];
     }
 }

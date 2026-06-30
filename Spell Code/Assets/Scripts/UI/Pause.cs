@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.EventSystems;
 using UnityEngine.Audio;
 using System.Collections;
@@ -151,6 +153,10 @@ public class Pause : MonoBehaviour
  
     private InputSystem_Actions input;
     private SCMaster scInput;
+    private InputSystemUIInputModule uiInputModule;
+    private InputActionAsset scopedUiActionsAsset;
+    private ReadOnlyArray<InputDevice>? previousUiInputDevices;
+    private bool uiInputDevicesScoped;
  
     void OnEnable()  
     { 
@@ -160,6 +166,7 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
+        RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -227,23 +234,25 @@ public class Pause : MonoBehaviour
  
     void Update()
     {
+        ScopeUiInputToPausePlayer();
+
         if (spells)
         {
             UpdateSpellDisplay();
         }
         SpellGlossaryNavigation();
  
-        if (paused && Time.frameCount != openedFrame && input.UI.Cancel.WasPressedThisFrame())
+        if (paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
         {
             Resume();
         }
 
-        if (input.UI.Back.WasPressedThisFrame() && paused)
+        if (WasPausePlayerBackPressedThisFrame() && paused)
         {
             Back();
         }
 
-        if ((input.UI.Submit.WasPressedThisFrame() || scInput.Gameplay.Jump.WasPressedThisFrame()) && !spells && paused)
+        if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
         {
             TriggerSelectedButton();
         }
@@ -252,12 +261,13 @@ public class Pause : MonoBehaviour
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
+            RestoreUiInputDevices();
         }
     }
  
     private void SpellGlossaryNavigation()
     {
-        Vector2 nav = input.UI.Navigate.ReadValue<Vector2>();
+        Vector2 nav = GetPausePlayerNavigation();
  
         // Tick down cooldown using unscaled time so it works while paused (timeScale = 0)
         navCooldown -= Time.unscaledDeltaTime;
@@ -346,7 +356,7 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
-        if (input.UI.Submit.WasPressedThisFrame() && spells)
+        if (WasPausePlayerSubmitPressedThisFrame() && spells)
         {
             if (!showDescription)
                 ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
@@ -443,6 +453,7 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
+        RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
         SaveSettings(); 
@@ -562,6 +573,7 @@ public class Pause : MonoBehaviour
         darkPanel.SetActive(true);
 
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
+        ScopeUiInputToPausePlayer();
  
         relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
         codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
@@ -1027,6 +1039,204 @@ public class Pause : MonoBehaviour
     {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         return manager != null && manager.isOnlineMatchActive;
+    }
+
+    private void ScopeUiInputToPausePlayer()
+    {
+        if (!paused)
+        {
+            RestoreUiInputDevices();
+            return;
+        }
+
+        InputSystemUIInputModule module = GetUiInputModule();
+        InputActionAsset actionsAsset = module != null ? module.actionsAsset : null;
+        if (actionsAsset == null || !TryGetPausePlayerDevices(out InputDevice[] devices))
+        {
+            return;
+        }
+
+        if (!uiInputDevicesScoped || scopedUiActionsAsset != actionsAsset)
+        {
+            RestoreUiInputDevices();
+            previousUiInputDevices = actionsAsset.devices;
+            scopedUiActionsAsset = actionsAsset;
+            uiInputDevicesScoped = true;
+        }
+
+        actionsAsset.devices = new ReadOnlyArray<InputDevice>(devices);
+    }
+
+    private void RestoreUiInputDevices()
+    {
+        if (!uiInputDevicesScoped)
+        {
+            return;
+        }
+
+        if (scopedUiActionsAsset != null)
+        {
+            scopedUiActionsAsset.devices = previousUiInputDevices;
+        }
+
+        scopedUiActionsAsset = null;
+        previousUiInputDevices = null;
+        uiInputDevicesScoped = false;
+    }
+
+    private InputSystemUIInputModule GetUiInputModule()
+    {
+        if (uiInputModule != null)
+        {
+            return uiInputModule;
+        }
+
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return null;
+        }
+
+        uiInputModule = eventSystem.GetComponent<InputSystemUIInputModule>();
+        return uiInputModule;
+    }
+
+    private bool TryGetPausePlayerDevices(out InputDevice[] devices)
+    {
+        devices = null;
+
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return false;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.devices.Count > 0)
+        {
+            devices = CopyValidDevices(playerInput.devices);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        if (player.playerInputs != null && player.playerInputs.devices.HasValue)
+        {
+            devices = CopyValidDevices(player.playerInputs.devices.Value);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private InputDevice[] CopyValidDevices(ReadOnlyArray<InputDevice> sourceDevices)
+    {
+        List<InputDevice> devices = new List<InputDevice>();
+
+        for (int i = 0; i < sourceDevices.Count; i++)
+        {
+            InputDevice device = sourceDevices[i];
+            if (device != null && InputDeviceManager.IsValidInput(device) && !devices.Contains(device))
+            {
+                devices.Add(device);
+            }
+        }
+
+        return devices.ToArray();
+    }
+
+    private Vector2 GetPausePlayerNavigation()
+    {
+        if (!paused)
+        {
+            return Vector2.zero;
+        }
+
+        Vector2 nav = Vector2.zero;
+
+        if (ReadPausePlayerActionValue("Left") > 0.33f)
+        {
+            nav.x -= 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Right") > 0.33f)
+        {
+            nav.x += 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Down") > 0.33f)
+        {
+            nav.y -= 1f;
+        }
+
+        if (ReadPausePlayerActionValue("Up") > 0.33f)
+        {
+            nav.y += 1f;
+        }
+
+        return nav;
+    }
+
+    private float ReadPausePlayerActionValue(string actionName)
+    {
+        InputAction action = FindPausePlayerAction(actionName);
+        return action != null ? action.ReadValue<float>() : 0f;
+    }
+
+    private bool WasPausePlayerSubmitPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Jump");
+    }
+
+    private bool WasPausePlayerBackPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Code");
+    }
+
+    private bool WasPausePlayerCancelPressedThisFrame()
+    {
+        return WasPausePlayerActionPressedThisFrame("Pause");
+    }
+
+    private bool WasPausePlayerActionPressedThisFrame(string actionName)
+    {
+        InputAction action = FindPausePlayerAction(actionName);
+        return action != null && action.WasPressedThisFrame();
+    }
+
+    private InputAction FindPausePlayerAction(string actionName)
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return null;
+        }
+
+        InputPlayerBindings bindings = player.inputs;
+        if (bindings != null && bindings.PlayerActionMap != null)
+        {
+            InputAction action = bindings.PlayerActionMap.FindAction(actionName, false);
+            if (action != null)
+            {
+                return action;
+            }
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.actions != null)
+        {
+            InputAction action = playerInput.actions.FindAction($"Gameplay/{actionName}", false);
+            if (action != null)
+            {
+                return action;
+            }
+        }
+
+        return player.playerInputs != null ? player.playerInputs.FindAction($"Gameplay/{actionName}", false) : null;
     }
 
     private PlayerController GetPausePlayer()

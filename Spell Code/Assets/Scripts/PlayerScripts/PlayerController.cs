@@ -1089,15 +1089,18 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
             {
-                pause.playerPauseIndex = _playerPauseIndex;
+                if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
+                {
+                    pause.playerPauseIndex = _playerPauseIndex;
 
-                if (pause.paused)
-                {
-                    pause.Resume();
-                }
-                else
-                {
-                    pause.Pausing();
+                    if (pause.paused)
+                    {
+                        pause.Resume();
+                    }
+                    else
+                    {
+                        pause.Pausing();
+                    }
                 }
             }
         }

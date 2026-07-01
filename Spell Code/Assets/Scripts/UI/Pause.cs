@@ -255,6 +255,7 @@ public class Pause : MonoBehaviour
         if (WasPausePlayerBackPressedThisFrame() && paused)
         {
             Back();
+            RevertTextColorToWhite();
         }
 
         if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
@@ -602,6 +603,7 @@ public class Pause : MonoBehaviour
     public void Options()
     {
         RefreshDynamicCameraOptionForScene();
+        RevertTextColorToWhite();
 
         options = true;
         controls = false;
@@ -671,6 +673,21 @@ public class Pause : MonoBehaviour
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();
+    }
+
+    public void RevertTextColorToWhite()
+    {
+        GameObject[] signTexts = GameObject.FindGameObjectsWithTag("SignText");
+
+        // Loop through the array to interact with each object
+        foreach (GameObject signText in signTexts)
+        {
+            if (signText.name == "SignText")
+            {
+                signText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f);
+                Debug.Log("Hello???");
+            }
+        }
     }
     
     public void Spells()
@@ -854,6 +871,7 @@ public class Pause : MonoBehaviour
         {
             selectedButton.onClick.Invoke();
             StartCoroutine(SuppressSelectionForOneFrame());
+            RevertTextColorToWhite();
         }
 
         if(selectedObject.name == "Back")
@@ -868,13 +886,19 @@ public class Pause : MonoBehaviour
         }
     }
 
+    public bool suppressingSelectionColor = false;
+
     private System.Collections.IEnumerator SuppressSelectionForOneFrame()
     {
         var current = EventSystem.current.currentSelectedGameObject;
         EventSystem.current.SetSelectedGameObject(null);
         yield return null;
         if (EventSystem.current.currentSelectedGameObject == null)
+        {
+            suppressingSelectionColor = true;
             EventSystem.current.SetSelectedGameObject(current);
+            suppressingSelectionColor = false;
+        }
     }
  
     public void ReturnToLobby()
@@ -1192,7 +1216,7 @@ public class Pause : MonoBehaviour
         return action != null ? action.ReadValue<float>() : 0f;
     }
 
-    private bool WasPausePlayerSubmitPressedThisFrame()
+    public bool WasPausePlayerSubmitPressedThisFrame()
     {
         return WasPausePlayerActionPressedThisFrame("Jump");
     }

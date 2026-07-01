@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
@@ -23,8 +24,8 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
          
         if (name.Split('_')[0] == "Options")
         {
-            Transform optionsChildTransform = transform.Find("Text");
-            if (optionsChildTransform!= null) 
+            Transform optionsChildTransform = transform.Find("SignText");
+            if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
             {
                 TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
                 optionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
@@ -52,18 +53,43 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             digitalText.font = pause.digitalNormalFont;
         }
 
-        Transform optionsChildTransform = transform.Find("Text");
+        Transform optionsChildTransform = transform.Find("SignText");
         if (optionsChildTransform != null) 
         {
             TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
             optionsText.color = new Color(255f, 255f, 255f);
         }
 
-        arrowText.text = "";
+        if (name.Split('_')[1] == "Arrow")
+        {
+            arrowChildTransform = transform.Find("arrow");
+            if (arrowChildTransform!= null) 
+            {
+                arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                arrowText.text = "";
+            }
+        } 
     }
 
     void Start()
     {
         pause = Object.FindAnyObjectByType<Pause>();
+    }
+
+    void Update()
+    {
+        if (EventSystem.current.currentSelectedGameObject == gameObject)
+        {
+            // 2. Check if the user is actively holding down the Submit key/button
+            if (pause.WasPausePlayerSubmitPressedThisFrame()) 
+            {
+                Transform optionsChildTransform = transform.Find("SignText");
+                if (optionsChildTransform != null) 
+                {
+                    TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    optionsText.color = new Color(1f, 1f, 1f);
+                }
+            }
+        }
     }
 }

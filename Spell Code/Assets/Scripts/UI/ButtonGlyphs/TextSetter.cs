@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.iOS;
 
 
 public class TextSetter : MonoBehaviour
@@ -10,7 +9,7 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] private InputActionReference defaultAction;
-    private int selectorPID = 0;
+    public int selectorPID = 0;
 
     private TMP_Text _textBox;
     private enum DeviceType
@@ -31,9 +30,30 @@ public class TextSetter : MonoBehaviour
         SetText(message, defaultAction);
     }
 
-    public void UpdateGlyphType()
+    public void UpdateGlyph()
     {
         SetText(message, defaultAction);
+    }
+
+    public void SetSelectorPID(int playerId)
+    {
+        selectorPID = playerId;
+        UpdateGlyph();
+    }
+
+    public void ClearGlyph()
+    {
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+
+        _textBox.text = message.Replace("BUTTONPROMPT", string.Empty);
+    }
+
+    public InputAction TargetAction
+    {
+        get { return defaultAction != null ? defaultAction.action : null; }
     }
 
     public void SetText(string inputMessage, InputAction targetAction)

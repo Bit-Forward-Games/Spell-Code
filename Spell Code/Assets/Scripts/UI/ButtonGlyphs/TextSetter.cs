@@ -9,9 +9,9 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private string message = "Press BUTTONPROMPT to start";
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
+    [SerializeField] private InputActionReference defaultAction;
     private int selectorPID = 0;
 
-    //private PlayerInput _playerInput;
     private TMP_Text _textBox;
     private enum DeviceType
     {
@@ -28,35 +28,33 @@ public class TextSetter : MonoBehaviour
     private void Start()
     {
         //debug test 
-        selectorPID = 1;
-        if(GameManager.Instance.players[selectorPID-1]== null)
-        {
-            Debug.LogError("Player ID not set.");
-            return;
-        }
-        PlayerController targetPlayer = GameManager.Instance.players[selectorPID-1];
-        InputAction targetAction = targetPlayer.inputs.PauseAction;
-        SetText(message, targetAction);
+        SetText(message, defaultAction);
     }
-
-    private void SetText(string inputMessage, InputAction targetAction)
+    
+   
+    public void SetText(string inputMessage, InputAction targetAction)
     {   
+        InputBinding targetBinding;
         if(selectorPID == 0|| GameManager.Instance.players[selectorPID-1]== null)
         {
-            Debug.LogError("Player ID either not set or not found.");
-            return;
+            //Debug.LogError("Player ID either not set or not found.");
+            deviceType = GetDefaultDeviceType();
+            targetBinding = GetBindingForAction(targetAction,deviceType);
         }
-
-        deviceType = GetDeviceType(GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
-
+        else
+        {
+            deviceType = GetDeviceType(GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
+            targetBinding = GetBindingForAction(targetAction,deviceType);
+        }
 
         
         if((int)deviceType > spriteAssets.spriteAssets.Count - 1)
         {
-            Debug.Log($"missing Sprite Asset for {deviceType}");
+            Debug.LogError($"missing Sprite Asset for {deviceType}");
             return;
         }
-        InputBinding targetBinding = GetBindingForAction(targetAction,GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
+
+        
         _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
     }
 
@@ -76,19 +74,47 @@ public class TextSetter : MonoBehaviour
         return DeviceType.Keyboard;
     }
 
-    private InputBinding GetBindingForAction(InputAction inputAction, InputDevice inputDevice)
+    private DeviceType GetDefaultDeviceType()
     {
-        if (inputDevice is Keyboard)
+        foreach (InputDevice device in InputSystem.devices)
         {
-            return inputAction.bindings[0];
+            if (device is Gamepad)
+            {
+                return DeviceType.Gamepad;
+            }
         }
 
-        if (inputDevice is Gamepad)
+        return DeviceType.Keyboard;
+    }
+
+    private InputBinding GetBindingForAction(InputAction inputAction, DeviceType inputDevice)
+    {
+        if (inputDevice == DeviceType.Keyboard)
         {
-            return inputAction.bindings[1];
+            return GetFirstBindingForDevicePath(inputAction, "<Keyboard>");
         }
 
-        Debug.LogWarning($"Unsupported input device type: {inputDevice?.displayName ?? "None"}");
+        if (inputDevice == DeviceType.Gamepad)
+        {
+            return GetFirstBindingForDevicePath(inputAction, "<Gamepad>");
+        }
+
+        Debug.LogWarning($"Binding not found, returning first possible binding");
+        return inputAction.bindings[0];
+    }
+
+    private InputBinding GetFirstBindingForDevicePath(InputAction inputAction, string devicePath)
+    {
+        foreach (InputBinding binding in inputAction.bindings)
+        {
+            string bindingPath = binding.effectivePath;
+            if (!string.IsNullOrEmpty(bindingPath) && bindingPath.StartsWith(devicePath))
+            {
+                return binding;
+            }
+        }
+
+        Debug.LogWarning($"No {devicePath} binding found for action {inputAction.name}.");
         return inputAction.bindings[0];
     }
 }

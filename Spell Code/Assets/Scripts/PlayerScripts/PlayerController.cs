@@ -154,6 +154,16 @@ public class PlayerController : MonoBehaviour
     public ushort demonAuraLifeSpanTimer = 0;
     public ushort reps = 0;
 
+    private void ResetSpellResources()
+    {
+        flowState = 0;
+        stockStability = 0;
+        stockStabilityModified = 0;
+        demonAura = 0;
+        demonAuraLifeSpanTimer = 0;
+        reps = 0;
+    }
+
 
 
     //MATCH STATS
@@ -515,6 +525,8 @@ public class PlayerController : MonoBehaviour
         jumpForce = Fixed.FromInt(charData.jumpForce);
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
+        maxJumpCount = (byte)charData.jumpCount;
+        jumpCount = maxJumpCount;
         iframes = 180; //you get 3 sec of invul on spawn
         storedCode = 0;
         storedCodeDuration = 0;
@@ -529,14 +541,9 @@ public class PlayerController : MonoBehaviour
         //stop super armor VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
 
-        if(pID == 0)return;
+        ResetSpellResources();
 
-        //initialize resources
-        flowState = 0;
-        //stockStability = GetPersistentStockStabilityFromSpellList();
-        stockStability = 0;
-        demonAura = 0;
-        reps = 0;
+        if(pID == 0)return;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
         suppressSpellLoadSideEffects = true;
@@ -708,12 +715,7 @@ public class PlayerController : MonoBehaviour
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        flowState = 0; //the timer for how long you are in flow state
-        stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
-        stockStabilityModified = 0; //crit chance after modifiers
-        demonAura = 0;
-        demonAuraLifeSpanTimer = 0;
-        reps = 0;
+        ResetSpellResources();
 
     int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
@@ -850,10 +852,7 @@ public class PlayerController : MonoBehaviour
         times = new List<Fixed>();
 
         //passive resources
-        flowState = 0;
-        stockStability = 0;
-        demonAura = 0;
-        reps = 0;
+        ResetSpellResources();
         //momentum = 0;
         //slimed = false;
         storedCode = 0;

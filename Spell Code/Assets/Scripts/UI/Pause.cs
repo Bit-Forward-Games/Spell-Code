@@ -285,6 +285,7 @@ public class Pause : MonoBehaviour
         if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
         {
             TriggerSelectedButton();
+            RevertTextColorToWhite();
         }
 
         if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 

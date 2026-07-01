@@ -3429,6 +3429,17 @@ public class PlayerController : MonoBehaviour
             SerializeSpellStateInline(bw, spellList[i]);
         }
 
+        // Universal passive spells (FlowState/DemonAura/StockStability/Reps + any others) carry
+        // per-instance runtime state that drives CORE resource fields, but were previously neither
+        // saved nor hashed so their state was NOT restored on rollback and could desync core.
+        // Serialize them like the spell list. universalSpells is a deterministic fixed set (same
+        // order on every client via EnsureUniversalSpells), so it restores by index on Deserialize.
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -3441,9 +3452,28 @@ public class PlayerController : MonoBehaviour
         {
             SerializeSpellStateInline(bw, spellList[i]);
         }
+        // Include universal passives so their state is part of the hash (see Serialize).
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
+        }
     }
 
     public void SerializeGameplayCoreHash(BinaryWriter bw)
+    {
+        // Core state is split into four labeled sub-groups so a desync report can name WHICH part of
+        // core diverged (physics / combat / resource / code) from a single machine's log, instead of
+        // just "pXcore". These four together cover exactly the core-hashed fields; the grouped order
+        // means the composite core-hash value differs from older builds, so all clients must match build.
+        SerializeCorePhysicsHash(bw);
+        SerializeCoreCombatHash(bw);
+        SerializeCoreResourceHash(bw);
+        SerializeCoreCodeHash(bw);
+    }
+
+    // Movement / position / state-machine fields.
+    public void SerializeCorePhysicsHash(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);
         bw.Write(position.Y.RawValue);
@@ -3452,19 +3482,24 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
-        bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write(logicFrame);
-        bw.Write(stateSpecificArg);
+        bw.Write(jumpCount);
+        bw.Write(maxJumpCount);
+        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
+        bw.Write(downJumpSlide);
+        bw.Write(platDropping);
+    }
+
+    // Health / hits / armor / combo.
+    public void SerializeCoreCombatHash(BinaryWriter bw)
+    {
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(GetSpellSerializationId(basicSpawnOverride));
-        bw.Write(storedCode);
-        bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -3492,24 +3527,33 @@ public class PlayerController : MonoBehaviour
                 : -1;
             bw.Write(projPrefabIndex);
         }
+    }
 
+    // Resource meters (managed by the universal passives).
+    public void SerializeCoreResourceHash(BinaryWriter bw)
+    {
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+    }
+
+    // Input-mode / spell-code / double-tap state.
+    public void SerializeCoreCodeHash(BinaryWriter bw)
+    {
+        bw.Write(relativeInputs);
+        bw.Write(stateSpecificArg);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
         bw.Write(tapJump);
-        bw.Write(jumpCount);
-        bw.Write(maxJumpCount);
-        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
-        bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(toggleCodeInput); // hashed for divergence detection
         bw.Write(vibeCoding);
-        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
-        bw.Write(platDropping);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3518,6 +3562,13 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < spellList.Count; i++)
         {
             SerializeSpellStateInline(bw, spellList[i]);
+        }
+        // Universal passives are hashed with the spell state so a divergence in their runtime state
+        // is caught in pXspell (previously invisible: they were neither serialized nor hashed).
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
         }
     }
 
@@ -3758,6 +3809,23 @@ public class PlayerController : MonoBehaviour
             br.BaseStream.Position = savedSpells[i].dataStart + spellDataLength;
         }
         br.BaseStream.Position = spellPayloadEnd;
+
+        // Restore universal passive spell state (see Serialize). Each entry is length-prefixed, so
+        // it can be skipped cleanly if the local list isn't populated yet; restored by index since the
+        // universal set is fixed and deterministic. Always reads exactly universalCount entries so
+        // the stream stays aligned regardless of whether local state has been built.
+        int universalCount = br.ReadInt32();
+        for (int i = 0; i < universalCount; i++)
+        {
+            br.ReadInt32(); // spell id (written by SerializeSpellStateInline for symmetry; unused here)
+            int uDataLength = br.ReadInt32();
+            long uDataStart = br.BaseStream.Position;
+            if (i < universalSpells.Count && universalSpells[i] != null)
+            {
+                universalSpells[i].Deserialize(br);
+            }
+            br.BaseStream.Position = uDataStart + uDataLength;
+        }
     }
 
     private void TriggerHitRumble(float low, float high, float duration)

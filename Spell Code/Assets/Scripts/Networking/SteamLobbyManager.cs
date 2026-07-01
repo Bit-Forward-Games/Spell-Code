@@ -17,7 +17,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-1";
+    private const string NetcodeVersion = "scz-2";
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
     private const string SizeKey = "size";

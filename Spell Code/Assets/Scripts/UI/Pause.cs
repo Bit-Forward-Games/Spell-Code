@@ -1111,6 +1111,15 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        if (IsOnlineMatchActive())
+        {
+            devices = CopyValidDevices(InputSystem.devices);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
         if (playerInput != null && playerInput.devices.Count > 0)
         {

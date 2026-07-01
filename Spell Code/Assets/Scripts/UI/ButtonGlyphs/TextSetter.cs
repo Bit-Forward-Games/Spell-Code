@@ -31,9 +31,14 @@ public class TextSetter : MonoBehaviour
         SetText(message, defaultAction);
     }
 
-    public void UpdateGlyphType()
+    public void UpdateGlyph()
     {
         SetText(message, defaultAction);
+    }
+
+    public InputAction TargetAction
+    {
+        get { return defaultAction != null ? defaultAction.action : null; }
     }
 
     public void SetText(string inputMessage, InputAction targetAction)

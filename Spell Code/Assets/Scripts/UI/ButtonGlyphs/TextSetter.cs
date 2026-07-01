@@ -9,7 +9,7 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] private InputActionReference defaultAction;
-    private int selectorPID = 0;
+    public int selectorPID = 0;
 
     private TMP_Text _textBox;
     private enum DeviceType
@@ -33,6 +33,12 @@ public class TextSetter : MonoBehaviour
     public void UpdateGlyph()
     {
         SetText(message, defaultAction);
+    }
+
+    public void SetSelectorPID(int playerId)
+    {
+        selectorPID = playerId;
+        UpdateGlyph();
     }
 
     public void ClearGlyph()

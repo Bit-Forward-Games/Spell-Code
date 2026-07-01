@@ -687,6 +687,7 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
+        SetControlGlyphSelectorPID();
  
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
@@ -1595,6 +1596,22 @@ public class Pause : MonoBehaviour
         for (int i = 0; i < textSetters.Length; i++)
         {
             textSetters[i]?.UpdateGlyph();
+        }
+    }
+
+    private void SetControlGlyphSelectorPID()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        PlayerController player = GetPausePlayer();
+        int selectorPID = player != null ? player.pID : 0;
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.SetSelectorPID(selectorPID);
         }
     }
 

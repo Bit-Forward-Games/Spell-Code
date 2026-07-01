@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using YamlDotNet.Serialization;
 using GifImporter; 
 
 public class Pause : MonoBehaviour
@@ -64,10 +63,18 @@ public class Pause : MonoBehaviour
         "<Keyboard>/escape",
         "<Keyboard>/enter",
         "<Keyboard>/numpadEnter",
+        "<Keyboard>/w",
+        "<Keyboard>/a",
+        "<Keyboard>/s",
+        "<Keyboard>/d",
         "<Gamepad>/start",
         "<Gamepad>/select",
         "<Gamepad>/leftStickPress",
         "<Gamepad>/rightStickPress",
+        "<Gamepad>/D-Pad/up",
+        "<Gamepad>/D-Pad/down",
+        "<Gamepad>/D-Pad/left",
+        "<Gamepad>/D-Pad/right",
         "<Mouse>/*",
         "<Pointer>/*",
         "<Touchscreen>/*"
@@ -1345,6 +1352,7 @@ public class Pause : MonoBehaviour
         ResetPausePlayerBindingOverrides();
         SetPauseControlOptions(false, false, false, false, false);
         RefreshControlToggleGraphics();
+        RefreshControlGlyphs();
     }
 
     public void RebindSelectedControlButton()
@@ -1400,6 +1408,7 @@ public class Pause : MonoBehaviour
         TextSetter textSetter)
     {
         CancelActiveRebind();
+        textSetter?.ClearGlyph();
 
         activeRebindAction = action;
         activeRebindActionWasEnabled = action.enabled;
@@ -1573,6 +1582,20 @@ public class Pause : MonoBehaviour
     {
         InputActionMap actionMap = FindPausePlayerActionMap();
         actionMap?.RemoveAllBindingOverrides();
+    }
+
+    private void RefreshControlGlyphs()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.UpdateGlyph();
+        }
     }
 
     private InputActionMap FindPausePlayerActionMap()

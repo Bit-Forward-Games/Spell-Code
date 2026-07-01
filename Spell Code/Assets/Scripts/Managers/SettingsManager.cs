@@ -66,7 +66,7 @@ public class SettingsManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        DeleteControlOptionsSave();
+        //DeleteControlOptionsSave();
     }
 
     public bool IsFirstLaunch()

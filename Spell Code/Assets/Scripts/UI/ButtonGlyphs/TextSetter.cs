@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.iOS;
 
 
 public class TextSetter : MonoBehaviour
@@ -34,6 +33,16 @@ public class TextSetter : MonoBehaviour
     public void UpdateGlyph()
     {
         SetText(message, defaultAction);
+    }
+
+    public void ClearGlyph()
+    {
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+
+        _textBox.text = message.Replace("BUTTONPROMPT", string.Empty);
     }
 
     public InputAction TargetAction

@@ -30,8 +30,12 @@ public class TextSetter : MonoBehaviour
         //debug test 
         SetText(message, defaultAction);
     }
-    
-   
+
+    public void UpdateGlyphType()
+    {
+        SetText(message, defaultAction);
+    }
+
     public void SetText(string inputMessage, InputAction targetAction)
     {   
         InputBinding targetBinding;
@@ -76,10 +80,11 @@ public class TextSetter : MonoBehaviour
 
     private DeviceType GetDefaultDeviceType()
     {
-        foreach (InputDevice device in InputSystem.devices)
+        foreach (Gamepad gamepad in Gamepad.all)
         {
-            if (device is Gamepad)
+            if (gamepad.added)
             {
+                Debug.Log($"Detected gamepad: {gamepad.displayName} | {gamepad.layout}");
                 return DeviceType.Gamepad;
             }
         }

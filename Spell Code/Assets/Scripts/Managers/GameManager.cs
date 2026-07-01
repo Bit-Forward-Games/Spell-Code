@@ -3889,6 +3889,7 @@ public class GameManager : MonoBehaviour
         {
             isRunning = false;
         }
+        StopAllPlayerAuras();
         sceneManager.LoadScene("End");
 
         //play a new end song
@@ -3932,7 +3933,33 @@ public class GameManager : MonoBehaviour
         roundOver = false;
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
+        StopAllPlayerAuras();
         sceneManager.LoadScene("End");
+    }
+
+    private void StopAllPlayerAuras()
+    {
+        if (VFX_Manager.Instance == null || players == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] == null)
+            {
+                continue;
+            }
+
+            int pid = players[i].pID;
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pid, true);
+        }
     }
 
     public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)

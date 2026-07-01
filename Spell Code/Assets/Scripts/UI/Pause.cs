@@ -97,6 +97,9 @@ public class Pause : MonoBehaviour
     private const float NAV_COOLDOWN_TIME = 0.2f;
     // Track last frame's nav value to detect fresh presses
     private Vector2 lastNavValue = Vector2.zero;
+
+    public TMP_FontAsset digitalBorderedFont;
+    public TMP_FontAsset digitalNormalFont;
  
     public class Column
     {
@@ -235,6 +238,8 @@ public class Pause : MonoBehaviour
     void Update()
     {
         ScopeUiInputToPausePlayer();
+
+        GameObject selectedGO = EventSystem.current.currentSelectedGameObject;
 
         if (spells)
         {

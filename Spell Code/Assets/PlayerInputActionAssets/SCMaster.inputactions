@@ -280,34 +280,12 @@
                 },
                 {
                     "name": "",
-                    "id": "a93b3b1e-7719-409e-82ee-49ce31388c1a",
-                    "path": "<Gamepad>/rightShoulder",
+                    "id": "cf357d0c-67c6-445d-a4d2-e7e19a512b2b",
+                    "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
-                    "action": "Code",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "6fb7ed9d-a702-4419-882a-3db7bbbd8502",
-                    "path": "<Gamepad>/leftShoulder",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Code",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "3516b2d2-1d3e-4fe3-9de4-467bbf9445d4",
-                    "path": "<Gamepad>/leftTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Code",
+                    "groups": ";Keyboard",
+                    "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -324,11 +302,11 @@
                 },
                 {
                     "name": "",
-                    "id": "cf357d0c-67c6-445d-a4d2-e7e19a512b2b",
-                    "path": "<Keyboard>/escape",
+                    "id": "e78e787e-a031-4255-bca3-c373fe3cf4e8",
+                    "path": "<Keyboard>/enter",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";Keyboard",
+                    "groups": "",
                     "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false

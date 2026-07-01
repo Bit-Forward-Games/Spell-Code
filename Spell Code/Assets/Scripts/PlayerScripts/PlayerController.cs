@@ -81,19 +81,7 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer playerSpriteRenderer;
     //INPUTS
     public InputPlayerBindings inputs;
-    public InputActionAsset playerInputs;
-    private InputAction upAction;
-    private InputAction downAction;
-    private InputAction leftAction;
-    private InputAction rightAction;
-    private InputAction codeAction;
-    private InputAction jumpAction;
-    private InputAction pauseAction;
-    private readonly bool[] direction = new bool[4];
-    private readonly bool[] codeButton = new bool[2];
-    private readonly bool[] jumpButton = new bool[2];
-    private readonly bool[] pauseButton = new bool[2];
-    private readonly ButtonState[] buttons = new ButtonState[3];
+    //public InputActionAsset playerInputs;
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     private ushort prevDoubleTapDirection;
@@ -323,20 +311,7 @@ public class PlayerController : MonoBehaviour
     }
     void Start()
     {
-        if(GetComponent<PlayerInput>() != null && GetComponent<PlayerInput>().user.valid)
-        {
-            upAction = playerInputs.actionMaps[0].FindAction("Up");
-            downAction = playerInputs.actionMaps[0].FindAction("Down");
-            leftAction = playerInputs.actionMaps[0].FindAction("Left");
-            rightAction = playerInputs.actionMaps[0].FindAction("Right");
-            codeAction = playerInputs.actionMaps[0].FindAction("Code");
-            jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
-            pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
-        }
-        else
-        {
-            Debug.Log("dummy");
-        }
+        
         logicFrame = 0;
 
         //bufferInput = InputConverter.ConvertFromLong(5);
@@ -1977,10 +1952,6 @@ public class PlayerController : MonoBehaviour
 
     private bool WasPausePressedThisFrame()
     {
-        if (pauseAction != null && pauseAction.WasPressedThisFrame())
-        {
-            return true;
-        }
 
         return inputs != null
             && inputs.PauseAction != null
@@ -3264,25 +3235,6 @@ public class PlayerController : MonoBehaviour
             lerpDelay++;
         }
     }
-    private void UpdateInputs()
-    {
-        direction[0] = upAction.inProgress;
-        direction[1] = downAction.inProgress;
-        direction[2] = leftAction.inProgress;
-        direction[3] = rightAction.inProgress;
-
-        codeButton[0] = codeButton[1];
-        jumpButton[0] = jumpButton[1];
-        pauseButton[0] = pauseButton[1];
-
-        codeButton[1] = codeAction.inProgress;
-        jumpButton[1] = jumpAction.inProgress;
-        pauseButton[1] = pauseAction.inProgress;
-
-        buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
-        buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
-        buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
-    }
 
     public InputSnapshot BufferInputs(InputSnapshot targetInput)
     {
@@ -3889,9 +3841,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (playerInputs != null && playerInputs.devices.HasValue)
+        if (inputs != null && inputs.PlayerActionMap.devices.HasValue)
         {
-            var devices = playerInputs.devices.Value;
+            var devices = inputs.PlayerActionMap.devices.Value;
             for (int i = 0; i < devices.Count; i++)
             {
                 if (devices[i] is Gamepad gp)

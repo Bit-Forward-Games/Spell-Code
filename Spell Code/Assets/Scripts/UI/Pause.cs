@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using YamlDotNet.Serialization;
 using GifImporter; 
 
 public class Pause : MonoBehaviour
@@ -59,6 +58,40 @@ public class Pause : MonoBehaviour
     public Toggle tapJumpToggleGraphic;
     public Toggle vibeCodingToggleGraphic;
     public Toggle downJumpSlideToggleGraphic;
+    public static readonly string[] BannedRebindInputs =
+    {
+        "<Keyboard>/escape",
+        "<Keyboard>/enter",
+        "<Keyboard>/numpadEnter",
+        "<Keyboard>/anyKey",
+        "<Keyboard>/w",
+        "<Keyboard>/a",
+        "<Keyboard>/s",
+        "<Keyboard>/d",
+        "<Keyboard>/home",
+        "<Keyboard>/end",
+        "<Keyboard>/pageUp",
+        "<Keyboard>/pageDown",
+        "<Gamepad>/start",
+        "<Gamepad>/select",
+        "<Gamepad>/leftStickPress",
+        "<Gamepad>/rightStickPress",
+        "<Gamepad>/dpad/up",
+        "<Gamepad>/dpad/down",
+        "<Gamepad>/dpad/left",
+        "<Gamepad>/dpad/right",
+        "<Gamepad>/leftStick/up",
+        "<Gamepad>/leftStick/down",
+        "<Gamepad>/leftStick/left",
+        "<Gamepad>/leftStick/right",
+        "<Gamepad>/rightStick/up",
+        "<Gamepad>/rightStick/down",
+        "<Gamepad>/rightStick/left",
+        "<Gamepad>/rightStick/right",
+        "<Mouse>/*",
+        "<Pointer>/*",
+        "<Touchscreen>/*"
+    };
 
     [Header("Spell Glossary Variables")]
  
@@ -95,6 +128,7 @@ public class Pause : MonoBehaviour
     // Cooldown to prevent held-stick from firing every frame
     private float navCooldown = 0f;
     private const float NAV_COOLDOWN_TIME = 0.2f;
+    private const float RebindTimeoutSeconds = 5f;
     // Track last frame's nav value to detect fresh presses
     private Vector2 lastNavValue = Vector2.zero;
 
@@ -160,6 +194,16 @@ public class Pause : MonoBehaviour
     private InputActionAsset scopedUiActionsAsset;
     private ReadOnlyArray<InputDevice>? previousUiInputDevices;
     private bool uiInputDevicesScoped;
+    private InputActionRebindingExtensions.RebindingOperation activeRebindOperation;
+    private InputAction activeRebindAction;
+    private bool activeRebindActionWasEnabled;
+    private Coroutine activeRebindTimeoutCoroutine;
+    private InputAction rebindDisabledUiMoveAction;
+    private InputAction rebindDisabledUiSubmitAction;
+    private InputAction rebindDisabledUiCancelAction;
+    private bool rebindDisabledUiMoveActionWasEnabled;
+    private bool rebindDisabledUiSubmitActionWasEnabled;
+    private bool rebindDisabledUiCancelActionWasEnabled;
  
     void OnEnable()  
     { 
@@ -169,6 +213,7 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
+        CancelActiveRebind();
         RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
@@ -239,7 +284,10 @@ public class Pause : MonoBehaviour
     {
         ScopeUiInputToPausePlayer();
 
-        GameObject selectedGO = EventSystem.current.currentSelectedGameObject;
+        if (IsWaitingForRebindInput())
+        {
+            return;
+        }
 
         if (spells)
         {
@@ -255,14 +303,16 @@ public class Pause : MonoBehaviour
         if (WasPausePlayerBackPressedThisFrame() && paused)
         {
             Back();
+            RevertTextColorToWhite();
         }
 
         if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
         {
             TriggerSelectedButton();
+            RevertTextColorToWhite();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -439,6 +489,7 @@ public class Pause : MonoBehaviour
  
     public void Resume()
     {
+        Debug.Log("RESUMING GAME");
         if (paused)
         {
             //play the resume sfx
@@ -465,6 +516,8 @@ public class Pause : MonoBehaviour
         Time.timeScale = 1f;
 
         if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
+
+        if (uiScript.multiplayerGamemodesMenuOpened) StartCoroutine(BackToMultiplayerSelector());
 
         //unmute all sfx
         SFX_Manager.Instance.UnMuteGamePlaySFX();
@@ -494,6 +547,13 @@ public class Pause : MonoBehaviour
         yield return new WaitForSeconds(0.02f);
         Time.timeScale = 0f;
         EventSystem.current.SetSelectedGameObject(uiScript._soloGamemodesMenuFirst);
+    }
+
+    public IEnumerator BackToMultiplayerSelector()
+    {
+        yield return new WaitForSeconds(0.02f);
+        Time.timeScale = 0f;
+        EventSystem.current.SetSelectedGameObject(uiScript._multiplayerGamemodesMenuFirst);
     }
 
     public void SaveSettings()
@@ -580,12 +640,7 @@ public class Pause : MonoBehaviour
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
         ScopeUiInputToPausePlayer();
  
-        relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
-        codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
-        tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-        vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
-        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
-        
+        RefreshControlToggleGraphics();
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
@@ -602,6 +657,13 @@ public class Pause : MonoBehaviour
     public void Options()
     {
         RefreshDynamicCameraOptionForScene();
+        RevertTextColorToWhite();
+
+        RectTransform optionsMenuTransform = optionsMenu.GetComponent<RectTransform>();
+
+        optionsMenuTransform.anchoredPosition  = new Vector2(optionsMenuTransform.anchoredPosition.x, 2500f);
+
+        optionsMenuTransform.DOAnchorPos(new Vector2(optionsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
 
         options = true;
         controls = false;
@@ -630,6 +692,12 @@ public class Pause : MonoBehaviour
  
     public void Volume()
     {
+        RectTransform volumeMenuTransform = volumeMenu.GetComponent<RectTransform>();
+
+        volumeMenuTransform.anchoredPosition  = new Vector2(volumeMenuTransform.anchoredPosition.x, 2500f);
+
+        volumeMenuTransform.DOAnchorPos(new Vector2(volumeMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         volumeOptions = true;
         displayOptions = false;
         controls = false;
@@ -667,10 +735,25 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
+        SetControlGlyphSelectorPID();
  
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();
+    }
+
+    public void RevertTextColorToWhite()
+    {
+        GameObject[] signTexts = GameObject.FindGameObjectsWithTag("SignText");
+
+        // Loop through the array to interact with each object
+        foreach (GameObject signText in signTexts)
+        {
+            if (signText.name == "SignText")
+            {
+                signText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f);
+            }
+        }
     }
     
     public void Spells()
@@ -854,6 +937,7 @@ public class Pause : MonoBehaviour
         {
             selectedButton.onClick.Invoke();
             StartCoroutine(SuppressSelectionForOneFrame());
+            RevertTextColorToWhite();
         }
 
         if(selectedObject.name == "Back")
@@ -868,13 +952,19 @@ public class Pause : MonoBehaviour
         }
     }
 
+    public bool suppressingSelectionColor = false;
+
     private System.Collections.IEnumerator SuppressSelectionForOneFrame()
     {
         var current = EventSystem.current.currentSelectedGameObject;
         EventSystem.current.SetSelectedGameObject(null);
         yield return null;
         if (EventSystem.current.currentSelectedGameObject == null)
+        {
+            suppressingSelectionColor = true;
             EventSystem.current.SetSelectedGameObject(current);
+            suppressingSelectionColor = false;
+        }
     }
  
     public void ReturnToLobby()
@@ -1201,7 +1291,7 @@ public class Pause : MonoBehaviour
         return action != null ? action.ReadValue<float>() : 0f;
     }
 
-    private bool WasPausePlayerSubmitPressedThisFrame()
+    public bool WasPausePlayerSubmitPressedThisFrame()
     {
         return WasPausePlayerActionPressedThisFrame("Jump");
     }
@@ -1333,6 +1423,511 @@ public class Pause : MonoBehaviour
         player.vibeCoding = vibeCoding;
         player.downJumpSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+    }
+
+    public void ResetPlayerControlsToDefaults()
+    {
+        CancelActiveRebind();
+        ResetPausePlayerBindingOverrides();
+        SetPauseControlOptions(false, false, false, false, false);
+        RefreshControlToggleGraphics();
+        RefreshControlGlyphs();
+    }
+
+    public void RebindSelectedControlButton()
+    {
+        TextSetter textSetter = GetCurrentSelectedTextSetter();
+        InputAction targetAction = textSetter != null ? textSetter.TargetAction : null;
+        if (targetAction == null)
+        {
+            Debug.LogWarning("Cannot rebind because the selected button does not have a child TextSetter with a target action.");
+            return;
+        }
+
+        RebindControlButton(targetAction.name, textSetter);
+    }
+
+    public void RebindControlButton(string actionName)
+    {
+        RebindControlButton(actionName, GetCurrentSelectedTextSetter());
+    }
+
+    public void RebindJumpButton()
+    {
+        RebindControlButton("Jump");
+    }
+
+    private void RebindControlButton(string actionName, TextSetter textSetter)
+    {
+        PlayerController player = GetPausePlayer();
+        InputDevice inputDevice = FindPausePlayerInputDevice(player);
+        InputAction action = string.IsNullOrEmpty(actionName) ? null : FindPausePlayerAction(actionName);
+
+        if (player == null || inputDevice == null || action == null)
+        {
+            Debug.LogWarning($"Cannot rebind {actionName} because the pause player, input device, or action was not found.");
+            return;
+        }
+
+        int bindingIndex = FindBindingIndexForDevice(action, inputDevice);
+        if (bindingIndex < 0)
+        {
+            Debug.LogWarning($"Cannot rebind {action.name} because no binding exists for {inputDevice.displayName}.");
+            return;
+        }
+
+        StartControlRebind(player, inputDevice, action, bindingIndex, textSetter);
+    }
+
+    private void StartControlRebind(
+        PlayerController player,
+        InputDevice inputDevice,
+        InputAction action,
+        int bindingIndex,
+        TextSetter textSetter)
+    {
+        CancelActiveRebind();
+        textSetter?.ClearGlyph();
+
+        activeRebindAction = action;
+        activeRebindActionWasEnabled = action.enabled;
+        if (activeRebindActionWasEnabled)
+        {
+            action.Disable();
+        }
+        DisableMenuNavigationForRebind();
+
+        string previousBindingPath = action.bindings[bindingIndex].effectivePath;
+        activeRebindOperation = action.PerformInteractiveRebinding(bindingIndex)
+            .OnPotentialMatch(operation => CompleteValidRebindMatch(operation, inputDevice))
+            .OnComplete(operation =>
+            {
+                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
+                FinishControlRebind(player, textSetter);
+            })
+            .OnCancel(operation => FinishControlRebind(player, textSetter));
+
+        for (int i = 0; i < BannedRebindInputs.Length; i++)
+        {
+            activeRebindOperation.WithControlsExcluding(BannedRebindInputs[i]);
+        }
+
+        activeRebindOperation.Start();
+        StartActiveRebindTimeout();
+    }
+
+    private void CompleteValidRebindMatch(InputActionRebindingExtensions.RebindingOperation operation, InputDevice inputDevice)
+    {
+        InputControl selectedControl = operation.selectedControl;
+        if (selectedControl == null)
+        {
+            return;
+        }
+
+        if (selectedControl.device != inputDevice || IsBannedRebindInput(selectedControl))
+        {
+            operation.RemoveCandidate(selectedControl);
+            return;
+        }
+
+        operation.Complete();
+    }
+
+    private void FinishControlRebind(PlayerController player, TextSetter textSetter)
+    {
+        StopActiveRebindTimeout();
+        RestoreMenuNavigationAfterRebind();
+        RestoreActiveRebindAction();
+        DisposeActiveRebindOperation();
+
+        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+        RefreshControlGlyphs();
+        textSetter?.UpdateGlyph();
+    }
+
+    private void SwapConflictingBinding(
+        PlayerController player,
+        InputDevice inputDevice,
+        InputAction reboundAction,
+        int reboundBindingIndex,
+        string previousBindingPath)
+    {
+        if (player == null || inputDevice == null || reboundAction == null || string.IsNullOrEmpty(previousBindingPath))
+        {
+            return;
+        }
+
+        if (reboundBindingIndex < 0 || reboundBindingIndex >= reboundAction.bindings.Count)
+        {
+            return;
+        }
+
+        string newBindingPath = reboundAction.bindings[reboundBindingIndex].effectivePath;
+        if (string.IsNullOrEmpty(newBindingPath)
+            || BindingPathsMatch(newBindingPath, previousBindingPath))
+        {
+            return;
+        }
+
+        InputActionMap actionMap = reboundAction.actionMap != null ? reboundAction.actionMap : FindPausePlayerActionMap();
+        if (actionMap == null)
+        {
+            return;
+        }
+
+        foreach (InputAction action in actionMap.actions)
+        {
+            if (action == null || action == reboundAction)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < action.bindings.Count; i++)
+            {
+                InputBinding binding = action.bindings[i];
+                if (binding.isComposite || binding.isPartOfComposite || string.IsNullOrEmpty(binding.effectivePath))
+                {
+                    continue;
+                }
+
+                if (!BindingPathBelongsToDevice(binding.effectivePath, inputDevice))
+                {
+                    continue;
+                }
+
+                if (!BindingPathsMatch(binding.effectivePath, newBindingPath))
+                {
+                    continue;
+                }
+
+                action.ApplyBindingOverride(i, previousBindingPath);
+                return;
+            }
+        }
+    }
+
+    private void CancelActiveRebind()
+    {
+        if (activeRebindOperation != null && activeRebindOperation.started && !activeRebindOperation.completed && !activeRebindOperation.canceled)
+        {
+            activeRebindOperation.Cancel();
+            return;
+        }
+
+        RestoreActiveRebindAction();
+        RestoreMenuNavigationAfterRebind();
+        StopActiveRebindTimeout();
+        DisposeActiveRebindOperation();
+    }
+
+    private void RestoreActiveRebindAction()
+    {
+        if (activeRebindAction != null && activeRebindActionWasEnabled)
+        {
+            activeRebindAction.Enable();
+        }
+
+        activeRebindAction = null;
+        activeRebindActionWasEnabled = false;
+    }
+
+    private void DisposeActiveRebindOperation()
+    {
+        activeRebindOperation?.Dispose();
+        activeRebindOperation = null;
+    }
+
+    private void StartActiveRebindTimeout()
+    {
+        StopActiveRebindTimeout();
+        activeRebindTimeoutCoroutine = StartCoroutine(TimeoutActiveRebind());
+    }
+
+    private IEnumerator TimeoutActiveRebind()
+    {
+        yield return new WaitForSecondsRealtime(RebindTimeoutSeconds);
+
+        activeRebindTimeoutCoroutine = null;
+        if (IsWaitingForRebindInput())
+        {
+            CancelActiveRebind();
+        }
+    }
+
+    private void StopActiveRebindTimeout()
+    {
+        if (activeRebindTimeoutCoroutine != null)
+        {
+            StopCoroutine(activeRebindTimeoutCoroutine);
+            activeRebindTimeoutCoroutine = null;
+        }
+    }
+
+    private bool IsWaitingForRebindInput()
+    {
+        return activeRebindOperation != null
+            && activeRebindOperation.started
+            && !activeRebindOperation.completed
+            && !activeRebindOperation.canceled;
+    }
+
+    private void DisableMenuNavigationForRebind()
+    {
+        InputSystemUIInputModule module = GetUiInputModule();
+        if (module == null)
+        {
+            return;
+        }
+
+        DisableUiActionForRebind(module.move?.action, ref rebindDisabledUiMoveAction, ref rebindDisabledUiMoveActionWasEnabled);
+        DisableUiActionForRebind(module.submit?.action, ref rebindDisabledUiSubmitAction, ref rebindDisabledUiSubmitActionWasEnabled);
+        DisableUiActionForRebind(module.cancel?.action, ref rebindDisabledUiCancelAction, ref rebindDisabledUiCancelActionWasEnabled);
+    }
+
+    private void DisableUiActionForRebind(InputAction action, ref InputAction disabledAction, ref bool wasEnabled)
+    {
+        if (action == null || disabledAction == action)
+        {
+            return;
+        }
+
+        if (disabledAction != null)
+        {
+            RestoreUiActionAfterRebind(ref disabledAction, ref wasEnabled);
+        }
+
+        disabledAction = action;
+        wasEnabled = action.enabled;
+        if (wasEnabled)
+        {
+            action.Disable();
+        }
+    }
+
+    private void RestoreMenuNavigationAfterRebind()
+    {
+        RestoreUiActionAfterRebind(ref rebindDisabledUiMoveAction, ref rebindDisabledUiMoveActionWasEnabled);
+        RestoreUiActionAfterRebind(ref rebindDisabledUiSubmitAction, ref rebindDisabledUiSubmitActionWasEnabled);
+        RestoreUiActionAfterRebind(ref rebindDisabledUiCancelAction, ref rebindDisabledUiCancelActionWasEnabled);
+    }
+
+    private void RestoreUiActionAfterRebind(ref InputAction action, ref bool wasEnabled)
+    {
+        if (action != null && wasEnabled)
+        {
+            action.Enable();
+        }
+
+        action = null;
+        wasEnabled = false;
+    }
+
+    private bool IsBannedRebindInput(InputControl inputControl)
+    {
+        if (inputControl == null)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < BannedRebindInputs.Length; i++)
+        {
+            if (InputControlPath.Matches(BannedRebindInputs[i], inputControl))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private InputDevice FindPausePlayerInputDevice(PlayerController player)
+    {
+        if (player == null)
+        {
+            return null;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.devices.Count > 0)
+        {
+            return playerInput.devices[0];
+        }
+
+        try
+        {
+            return player.inputs != null ? player.inputs.InputDevice : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private int FindBindingIndexForDevice(InputAction action, InputDevice inputDevice)
+    {
+        if (action == null || inputDevice == null)
+        {
+            return -1;
+        }
+
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (binding.isComposite || binding.isPartOfComposite || string.IsNullOrEmpty(binding.effectivePath))
+            {
+                continue;
+            }
+
+            if (BindingPathBelongsToDevice(binding.effectivePath, inputDevice))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private string GetBindingDevicePath(InputDevice inputDevice)
+    {
+        if (inputDevice is Keyboard)
+        {
+            return "<Keyboard>";
+        }
+
+        if (inputDevice is Gamepad)
+        {
+            return "<Gamepad>";
+        }
+
+        if (inputDevice is Joystick)
+        {
+            return "<Joystick>";
+        }
+
+        return $"<{inputDevice.layout}>";
+    }
+
+    private bool BindingPathBelongsToDevice(string bindingPath, InputDevice inputDevice)
+    {
+        if (string.IsNullOrEmpty(bindingPath) || inputDevice == null)
+        {
+            return false;
+        }
+
+        string genericDevicePath = GetBindingDevicePath(inputDevice);
+        if (bindingPath.StartsWith(genericDevicePath, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(inputDevice.path)
+            && bindingPath.StartsWith(inputDevice.path, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string layoutDevicePath = $"/{inputDevice.layout}";
+        if (bindingPath.StartsWith(layoutDevicePath, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return InputControlPath.Matches(bindingPath, inputDevice);
+    }
+
+    private bool BindingPathsMatch(string firstPath, string secondPath)
+    {
+        return string.Equals(firstPath, secondPath, System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                CanonicalizeBindingPath(firstPath),
+                CanonicalizeBindingPath(secondPath),
+                System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string CanonicalizeBindingPath(string bindingPath)
+    {
+        if (string.IsNullOrEmpty(bindingPath) || bindingPath[0] != '/')
+        {
+            return bindingPath;
+        }
+
+        int deviceEndIndex = bindingPath.IndexOf('/', 1);
+        if (deviceEndIndex < 0)
+        {
+            return $"<{bindingPath.Substring(1)}>";
+        }
+
+        string deviceName = bindingPath.Substring(1, deviceEndIndex - 1);
+        return $"<{deviceName}>{bindingPath.Substring(deviceEndIndex)}";
+    }
+
+    private TextSetter GetCurrentSelectedTextSetter()
+    {
+        GameObject selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        return selected != null ? selected.GetComponentInChildren<TextSetter>() : null;
+    }
+
+    private void ResetPausePlayerBindingOverrides()
+    {
+        InputActionMap actionMap = FindPausePlayerActionMap();
+        actionMap?.RemoveAllBindingOverrides();
+    }
+
+    private void RefreshControlGlyphs()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.UpdateGlyph();
+        }
+    }
+
+    private void SetControlGlyphSelectorPID()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        PlayerController player = GetPausePlayer();
+        int selectorPID = player != null ? player.pID : 0;
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.SetSelectorPID(selectorPID);
+        }
+    }
+
+    private InputActionMap FindPausePlayerActionMap()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return null;
+        }
+
+        InputPlayerBindings bindings = player.inputs;
+        if (bindings != null && bindings.PlayerActionMap != null)
+        {
+            return bindings.PlayerActionMap;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        return playerInput != null ? playerInput.currentActionMap : null;
+    }
+
+    private void RefreshControlToggleGraphics()
+    {
+        if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
+        if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
+        if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
+        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 
     private bool GetToggleValue(Toggle toggle, bool currentValue)

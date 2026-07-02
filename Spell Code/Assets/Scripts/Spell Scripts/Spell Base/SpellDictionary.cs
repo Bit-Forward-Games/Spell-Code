@@ -42,10 +42,10 @@ public class SpellDictionary : NonPersistantSingleton<SpellDictionary>
         }
 
         Debug.Log("SpellDictionary: Loaded " + spellDict.Count + " spells into the dictionary.");
-        for(int i = 0; i < spellDict.Count; i++)
-        {
-            Debug.Log("SpellDictionary: Spell " + i + ": " + spellDict[spellList[i].spellName].spellName);
-        }
+        // for(int i = 0; i < spellDict.Count; i++)
+        // {
+        //     Debug.Log("SpellDictionary: Spell " + i + ": " + spellDict[spellList[i].spellName].spellName);
+        // }
     }
 
     // Stable serialization id for a spell name. Returns -1 for null/empty/unknown -- the "no spell"

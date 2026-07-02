@@ -455,7 +455,7 @@ public class SteamLobbyManager : MonoBehaviour
             pendingJoinLobbyId = lobby.Id;
             pendingJoinInviterId = friendId;
             Debug.Log($"[SteamLobbyManager] Invite accepted outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene before joining lobby {lobby.Id.Value}.");
-            GameManager.Instance?.ExecuteOrder66();
+            GameManager.Instance?.ExecuteOrder66("MainMenu");
             return;
         }
 

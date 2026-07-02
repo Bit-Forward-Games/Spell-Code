@@ -147,6 +147,8 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> gambas;
 
+    public GameObject buttons;
+
     [Header("Online UI")]
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
@@ -354,7 +356,7 @@ public class GameManager : MonoBehaviour
         return new Vector2Int(Screen.width, Screen.height);
     }
 
-    public void ExecuteOrder66()
+    public void ExecuteOrder66(string scene)
     {
 
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
@@ -373,7 +375,7 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene(scene);
         //Camera.main.GetComponentInChildren<Image>().enabled = false;
     }
 
@@ -414,7 +416,7 @@ public class GameManager : MonoBehaviour
         InitializeWithSeed(offlineSeed);
 
 
-        SetStage(-1);
+        SetStage(-4);
 
         SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
@@ -435,6 +437,7 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "SoloLobby");
             SetNetworkInfoVisible(false);
         }
         else
@@ -477,6 +480,14 @@ public class GameManager : MonoBehaviour
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 #endif
     }
+    public void loadMainMenu()
+    {
+        sceneManager.LoadScene("MainMenu");
+        SetStage(-1);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
     public void LoadTutorial()
     {
         
@@ -2294,7 +2305,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to MainMenu.");
         StopMatch(reason);
-        ExecuteOrder66();
+        ExecuteOrder66("SoloLobby");
     }
 
     private void ClearPlayerObjects()
@@ -2935,10 +2946,16 @@ public class GameManager : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            if (activeScene.name == "MainMenu")
+            if (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
+
+                if (playerCount >= 1 && activeScene.name == "SoloLobby")
+                {
+                    playerInputManager.DisableJoining();
+                    playerInputManager.enabled = false;
+                }
             }
             else
             {
@@ -2994,9 +3011,11 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
+            //buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
+                onboardManager.enabled = false;
             }
             onboardManager.OnboardUpdate(inputs);
         }
@@ -3014,6 +3033,11 @@ public class GameManager : MonoBehaviour
 
         UpdateGameState(inputs);
 
+        if (activeScene.name == "SoloLobby")
+        {
+            buttons.SetActive(false);
+        }
+
         if (activeScene.name == "MainMenu")
         {
 
@@ -3021,15 +3045,14 @@ public class GameManager : MonoBehaviour
 
             if (goDoorPrefab.CheckAllPlayersReady() && goDoorPrefab.isPrimed)
             {
-                if (goDoorPrefab.soloModes)
-                {
-                    goDoorPrefab.isPrimed = false;
-                    tempUI.SetSoloMenuActive(true);
-                }
-                else
-                {
+                //if (goDoorPrefab.soloModes)
+                //{
+                //    goDoorPrefab.isPrimed = false;
+                //    tempUI.SetSoloMenuActive(true);
+                //}
+                //{
                     LoadRandomGameplayStage();
-                }
+                //}
                 
             }
 
@@ -4598,6 +4621,7 @@ public class GameManager : MonoBehaviour
         lobbyMapGO.SetActive(false);
         tutorialMapGO.SetActive(false);
         trainingGroundsGO.SetActive(false);
+        soloLobbyGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()

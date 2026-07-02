@@ -66,7 +66,7 @@ public class SettingsManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        DeleteControlOptionsSave();
+        //DeleteControlOptionsSave();
     }
 
     public bool IsFirstLaunch()
@@ -200,6 +200,7 @@ public class SettingsManager : MonoBehaviour
         options.tapJump = tapJump;
         options.vibeCoding = vibeCoding;
         options.downJumpSlide = downJumpSlide;
+        SaveInputBindingOverrides(player, options);
 
         SaveControlOptions();
     }
@@ -245,6 +246,7 @@ public class SettingsManager : MonoBehaviour
         player.tapJump = options.tapJump;
         player.vibeCoding = options.vibeCoding;
         player.downJumpSlide = options.downJumpSlide;
+        ApplyInputBindingOverrides(player, options);
         return true;
     }
 
@@ -374,6 +376,74 @@ public class SettingsManager : MonoBehaviour
         return null;
     }
 
+    private void SaveInputBindingOverrides(PlayerController player, PlayerControlOptionsData options)
+    {
+        if (options == null)
+        {
+            return;
+        }
+
+        InputActionMap actionMap = GetPlayerActionMap(player);
+        if (actionMap == null)
+        {
+            return;
+        }
+
+        options.inputBindingsSaved = true;
+        options.inputBindingOverridesJson = actionMap.SaveBindingOverridesAsJson();
+    }
+
+    private void ApplyInputBindingOverrides(PlayerController player, PlayerControlOptionsData options)
+    {
+        if (options == null || !options.inputBindingsSaved)
+        {
+            return;
+        }
+
+        InputActionMap actionMap = GetPlayerActionMap(player);
+        if (actionMap == null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (string.IsNullOrEmpty(options.inputBindingOverridesJson))
+            {
+                actionMap.RemoveAllBindingOverrides();
+            }
+            else
+            {
+                actionMap.LoadBindingOverridesFromJson(options.inputBindingOverridesJson);
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to apply saved input bindings. Error: {exception.Message}");
+        }
+    }
+
+    private InputActionMap GetPlayerActionMap(PlayerController player)
+    {
+        if (player == null)
+        {
+            return null;
+        }
+
+        if (player.inputs != null && player.inputs.PlayerActionMap != null)
+        {
+            return player.inputs.PlayerActionMap;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null)
+        {
+            return playerInput.currentActionMap;
+        }
+
+        return null;
+    }
+
     private bool TryGetControllerId(PlayerController player, out int controllerId)
     {
         controllerId = -1;
@@ -443,4 +513,6 @@ public class PlayerControlOptionsData
     public bool tapJump = false;
     public bool vibeCoding = false;
     public bool downJumpSlide = false;
+    public bool inputBindingsSaved = false;
+    public string inputBindingOverridesJson = string.Empty;
 }

@@ -631,7 +631,6 @@ public class Pause : MonoBehaviour
         ScopeUiInputToPausePlayer();
  
         RefreshControlToggleGraphics();
-        
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
  
@@ -1479,9 +1478,14 @@ public class Pause : MonoBehaviour
         }
         DisableMenuNavigationForRebind();
 
+        string previousBindingPath = action.bindings[bindingIndex].effectivePath;
         activeRebindOperation = action.PerformInteractiveRebinding(bindingIndex)
             .OnPotentialMatch(operation => CompleteValidRebindMatch(operation, inputDevice))
-            .OnComplete(operation => FinishControlRebind(player, textSetter))
+            .OnComplete(operation =>
+            {
+                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
+                FinishControlRebind(player, textSetter);
+            })
             .OnCancel(operation => FinishControlRebind(player, textSetter));
 
         for (int i = 0; i < BannedRebindInputs.Length; i++)
@@ -1518,7 +1522,69 @@ public class Pause : MonoBehaviour
         DisposeActiveRebindOperation();
 
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+        RefreshControlGlyphs();
         textSetter?.UpdateGlyph();
+    }
+
+    private void SwapConflictingBinding(
+        PlayerController player,
+        InputDevice inputDevice,
+        InputAction reboundAction,
+        int reboundBindingIndex,
+        string previousBindingPath)
+    {
+        if (player == null || inputDevice == null || reboundAction == null || string.IsNullOrEmpty(previousBindingPath))
+        {
+            return;
+        }
+
+        if (reboundBindingIndex < 0 || reboundBindingIndex >= reboundAction.bindings.Count)
+        {
+            return;
+        }
+
+        string newBindingPath = reboundAction.bindings[reboundBindingIndex].effectivePath;
+        if (string.IsNullOrEmpty(newBindingPath)
+            || BindingPathsMatch(newBindingPath, previousBindingPath))
+        {
+            return;
+        }
+
+        InputActionMap actionMap = reboundAction.actionMap != null ? reboundAction.actionMap : FindPausePlayerActionMap();
+        if (actionMap == null)
+        {
+            return;
+        }
+
+        foreach (InputAction action in actionMap.actions)
+        {
+            if (action == null || action == reboundAction)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < action.bindings.Count; i++)
+            {
+                InputBinding binding = action.bindings[i];
+                if (binding.isComposite || binding.isPartOfComposite || string.IsNullOrEmpty(binding.effectivePath))
+                {
+                    continue;
+                }
+
+                if (!BindingPathBelongsToDevice(binding.effectivePath, inputDevice))
+                {
+                    continue;
+                }
+
+                if (!BindingPathsMatch(binding.effectivePath, newBindingPath))
+                {
+                    continue;
+                }
+
+                action.ApplyBindingOverride(i, previousBindingPath);
+                return;
+            }
+        }
     }
 
     private void CancelActiveRebind()
@@ -1685,7 +1751,6 @@ public class Pause : MonoBehaviour
             return -1;
         }
 
-        string devicePath = GetBindingDevicePath(inputDevice);
         for (int i = 0; i < action.bindings.Count; i++)
         {
             InputBinding binding = action.bindings[i];
@@ -1694,8 +1759,7 @@ public class Pause : MonoBehaviour
                 continue;
             }
 
-            if (binding.effectivePath.StartsWith(devicePath, System.StringComparison.OrdinalIgnoreCase)
-                || InputControlPath.Matches(binding.effectivePath, inputDevice))
+            if (BindingPathBelongsToDevice(binding.effectivePath, inputDevice))
             {
                 return i;
             }
@@ -1722,6 +1786,60 @@ public class Pause : MonoBehaviour
         }
 
         return $"<{inputDevice.layout}>";
+    }
+
+    private bool BindingPathBelongsToDevice(string bindingPath, InputDevice inputDevice)
+    {
+        if (string.IsNullOrEmpty(bindingPath) || inputDevice == null)
+        {
+            return false;
+        }
+
+        string genericDevicePath = GetBindingDevicePath(inputDevice);
+        if (bindingPath.StartsWith(genericDevicePath, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(inputDevice.path)
+            && bindingPath.StartsWith(inputDevice.path, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string layoutDevicePath = $"/{inputDevice.layout}";
+        if (bindingPath.StartsWith(layoutDevicePath, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return InputControlPath.Matches(bindingPath, inputDevice);
+    }
+
+    private bool BindingPathsMatch(string firstPath, string secondPath)
+    {
+        return string.Equals(firstPath, secondPath, System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                CanonicalizeBindingPath(firstPath),
+                CanonicalizeBindingPath(secondPath),
+                System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string CanonicalizeBindingPath(string bindingPath)
+    {
+        if (string.IsNullOrEmpty(bindingPath) || bindingPath[0] != '/')
+        {
+            return bindingPath;
+        }
+
+        int deviceEndIndex = bindingPath.IndexOf('/', 1);
+        if (deviceEndIndex < 0)
+        {
+            return $"<{bindingPath.Substring(1)}>";
+        }
+
+        string deviceName = bindingPath.Substring(1, deviceEndIndex - 1);
+        return $"<{deviceName}>{bindingPath.Substring(deviceEndIndex)}";
     }
 
     private TextSetter GetCurrentSelectedTextSetter()

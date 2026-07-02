@@ -10,7 +10,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using YamlDotNet.Serialization;
 using GifImporter; 
 
 public class Pause : MonoBehaviour
@@ -59,6 +58,27 @@ public class Pause : MonoBehaviour
     public Toggle tapJumpToggleGraphic;
     public Toggle vibeCodingToggleGraphic;
     public Toggle downJumpSlideToggleGraphic;
+    public static readonly string[] BannedRebindInputs =
+    {
+        "<Keyboard>/escape",
+        "<Keyboard>/enter",
+        "<Keyboard>/numpadEnter",
+        "<Keyboard>/w",
+        "<Keyboard>/a",
+        "<Keyboard>/s",
+        "<Keyboard>/d",
+        "<Gamepad>/start",
+        "<Gamepad>/select",
+        "<Gamepad>/leftStickPress",
+        "<Gamepad>/rightStickPress",
+        "<Gamepad>/D-Pad/up",
+        "<Gamepad>/D-Pad/down",
+        "<Gamepad>/D-Pad/left",
+        "<Gamepad>/D-Pad/right",
+        "<Mouse>/*",
+        "<Pointer>/*",
+        "<Touchscreen>/*"
+    };
 
     [Header("Spell Glossary Variables")]
  
@@ -160,6 +180,9 @@ public class Pause : MonoBehaviour
     private InputActionAsset scopedUiActionsAsset;
     private ReadOnlyArray<InputDevice>? previousUiInputDevices;
     private bool uiInputDevicesScoped;
+    private InputActionRebindingExtensions.RebindingOperation activeRebindOperation;
+    private InputAction activeRebindAction;
+    private bool activeRebindActionWasEnabled;
  
     void OnEnable()  
     { 
@@ -169,6 +192,7 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
+        CancelActiveRebind();
         RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
@@ -255,11 +279,13 @@ public class Pause : MonoBehaviour
         if (WasPausePlayerBackPressedThisFrame() && paused)
         {
             Back();
+            RevertTextColorToWhite();
         }
 
         if (WasPausePlayerSubmitPressedThisFrame() && !spells && paused)
         {
             TriggerSelectedButton();
+            RevertTextColorToWhite();
         }
 
         if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened) 
@@ -589,11 +615,7 @@ public class Pause : MonoBehaviour
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
         ScopeUiInputToPausePlayer();
  
-        relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
-        codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
-        tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-        vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
-        downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
+        RefreshControlToggleGraphics();
         
  
         StartCoroutine(SelectFirst(_pauseMenuFirst));
@@ -611,6 +633,13 @@ public class Pause : MonoBehaviour
     public void Options()
     {
         RefreshDynamicCameraOptionForScene();
+        RevertTextColorToWhite();
+
+        RectTransform optionsMenuTransform = optionsMenu.GetComponent<RectTransform>();
+
+        optionsMenuTransform.anchoredPosition  = new Vector2(optionsMenuTransform.anchoredPosition.x, 2500f);
+
+        optionsMenuTransform.DOAnchorPos(new Vector2(optionsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
 
         options = true;
         controls = false;
@@ -639,6 +668,12 @@ public class Pause : MonoBehaviour
  
     public void Volume()
     {
+        RectTransform volumeMenuTransform = volumeMenu.GetComponent<RectTransform>();
+
+        volumeMenuTransform.anchoredPosition  = new Vector2(volumeMenuTransform.anchoredPosition.x, 2500f);
+
+        volumeMenuTransform.DOAnchorPos(new Vector2(volumeMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         volumeOptions = true;
         displayOptions = false;
         controls = false;
@@ -676,10 +711,25 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
+        SetControlGlyphSelectorPID();
  
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();
+    }
+
+    public void RevertTextColorToWhite()
+    {
+        GameObject[] signTexts = GameObject.FindGameObjectsWithTag("SignText");
+
+        // Loop through the array to interact with each object
+        foreach (GameObject signText in signTexts)
+        {
+            if (signText.name == "SignText")
+            {
+                signText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f);
+            }
+        }
     }
     
     public void Spells()
@@ -863,6 +913,7 @@ public class Pause : MonoBehaviour
         {
             selectedButton.onClick.Invoke();
             StartCoroutine(SuppressSelectionForOneFrame());
+            RevertTextColorToWhite();
         }
 
         if(selectedObject.name == "Back")
@@ -877,13 +928,19 @@ public class Pause : MonoBehaviour
         }
     }
 
+    public bool suppressingSelectionColor = false;
+
     private System.Collections.IEnumerator SuppressSelectionForOneFrame()
     {
         var current = EventSystem.current.currentSelectedGameObject;
         EventSystem.current.SetSelectedGameObject(null);
         yield return null;
         if (EventSystem.current.currentSelectedGameObject == null)
+        {
+            suppressingSelectionColor = true;
             EventSystem.current.SetSelectedGameObject(current);
+            suppressingSelectionColor = false;
+        }
     }
  
     public void ReturnToLobby()
@@ -1201,7 +1258,7 @@ public class Pause : MonoBehaviour
         return action != null ? action.ReadValue<float>() : 0f;
     }
 
-    private bool WasPausePlayerSubmitPressedThisFrame()
+    public bool WasPausePlayerSubmitPressedThisFrame()
     {
         return WasPausePlayerActionPressedThisFrame("Jump");
     }
@@ -1333,6 +1390,301 @@ public class Pause : MonoBehaviour
         player.vibeCoding = vibeCoding;
         player.downJumpSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+    }
+
+    public void ResetPlayerControlsToDefaults()
+    {
+        CancelActiveRebind();
+        ResetPausePlayerBindingOverrides();
+        SetPauseControlOptions(false, false, false, false, false);
+        RefreshControlToggleGraphics();
+        RefreshControlGlyphs();
+    }
+
+    public void RebindSelectedControlButton()
+    {
+        TextSetter textSetter = GetCurrentSelectedTextSetter();
+        InputAction targetAction = textSetter != null ? textSetter.TargetAction : null;
+        if (targetAction == null)
+        {
+            Debug.LogWarning("Cannot rebind because the selected button does not have a child TextSetter with a target action.");
+            return;
+        }
+
+        RebindControlButton(targetAction.name, textSetter);
+    }
+
+    public void RebindControlButton(string actionName)
+    {
+        RebindControlButton(actionName, GetCurrentSelectedTextSetter());
+    }
+
+    public void RebindJumpButton()
+    {
+        RebindControlButton("Jump");
+    }
+
+    private void RebindControlButton(string actionName, TextSetter textSetter)
+    {
+        PlayerController player = GetPausePlayer();
+        InputDevice inputDevice = FindPausePlayerInputDevice(player);
+        InputAction action = string.IsNullOrEmpty(actionName) ? null : FindPausePlayerAction(actionName);
+
+        if (player == null || inputDevice == null || action == null)
+        {
+            Debug.LogWarning($"Cannot rebind {actionName} because the pause player, input device, or action was not found.");
+            return;
+        }
+
+        int bindingIndex = FindBindingIndexForDevice(action, inputDevice);
+        if (bindingIndex < 0)
+        {
+            Debug.LogWarning($"Cannot rebind {action.name} because no binding exists for {inputDevice.displayName}.");
+            return;
+        }
+
+        StartControlRebind(player, inputDevice, action, bindingIndex, textSetter);
+    }
+
+    private void StartControlRebind(
+        PlayerController player,
+        InputDevice inputDevice,
+        InputAction action,
+        int bindingIndex,
+        TextSetter textSetter)
+    {
+        CancelActiveRebind();
+        textSetter?.ClearGlyph();
+
+        activeRebindAction = action;
+        activeRebindActionWasEnabled = action.enabled;
+        if (activeRebindActionWasEnabled)
+        {
+            action.Disable();
+        }
+
+        activeRebindOperation = action.PerformInteractiveRebinding(bindingIndex)
+            .OnPotentialMatch(operation => CompleteValidRebindMatch(operation, inputDevice))
+            .OnComplete(operation => FinishControlRebind(player, textSetter))
+            .OnCancel(operation => FinishControlRebind(player, textSetter));
+
+        for (int i = 0; i < BannedRebindInputs.Length; i++)
+        {
+            activeRebindOperation.WithControlsExcluding(BannedRebindInputs[i]);
+        }
+
+        activeRebindOperation.Start();
+    }
+
+    private void CompleteValidRebindMatch(InputActionRebindingExtensions.RebindingOperation operation, InputDevice inputDevice)
+    {
+        InputControl selectedControl = operation.selectedControl;
+        if (selectedControl == null)
+        {
+            return;
+        }
+
+        if (selectedControl.device != inputDevice || IsBannedRebindInput(selectedControl))
+        {
+            operation.RemoveCandidate(selectedControl);
+            return;
+        }
+
+        operation.Complete();
+    }
+
+    private void FinishControlRebind(PlayerController player, TextSetter textSetter)
+    {
+        RestoreActiveRebindAction();
+        DisposeActiveRebindOperation();
+
+        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+        textSetter?.UpdateGlyph();
+    }
+
+    private void CancelActiveRebind()
+    {
+        if (activeRebindOperation != null && activeRebindOperation.started && !activeRebindOperation.completed && !activeRebindOperation.canceled)
+        {
+            activeRebindOperation.Cancel();
+            return;
+        }
+
+        RestoreActiveRebindAction();
+        DisposeActiveRebindOperation();
+    }
+
+    private void RestoreActiveRebindAction()
+    {
+        if (activeRebindAction != null && activeRebindActionWasEnabled)
+        {
+            activeRebindAction.Enable();
+        }
+
+        activeRebindAction = null;
+        activeRebindActionWasEnabled = false;
+    }
+
+    private void DisposeActiveRebindOperation()
+    {
+        activeRebindOperation?.Dispose();
+        activeRebindOperation = null;
+    }
+
+    private bool IsBannedRebindInput(InputControl inputControl)
+    {
+        if (inputControl == null)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < BannedRebindInputs.Length; i++)
+        {
+            if (InputControlPath.Matches(BannedRebindInputs[i], inputControl))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private InputDevice FindPausePlayerInputDevice(PlayerController player)
+    {
+        if (player == null)
+        {
+            return null;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        if (playerInput != null && playerInput.devices.Count > 0)
+        {
+            return playerInput.devices[0];
+        }
+
+        try
+        {
+            return player.inputs != null ? player.inputs.InputDevice : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private int FindBindingIndexForDevice(InputAction action, InputDevice inputDevice)
+    {
+        if (action == null || inputDevice == null)
+        {
+            return -1;
+        }
+
+        string devicePath = GetBindingDevicePath(inputDevice);
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (binding.isComposite || binding.isPartOfComposite || string.IsNullOrEmpty(binding.effectivePath))
+            {
+                continue;
+            }
+
+            if (binding.effectivePath.StartsWith(devicePath, System.StringComparison.OrdinalIgnoreCase)
+                || InputControlPath.Matches(binding.effectivePath, inputDevice))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private string GetBindingDevicePath(InputDevice inputDevice)
+    {
+        if (inputDevice is Keyboard)
+        {
+            return "<Keyboard>";
+        }
+
+        if (inputDevice is Gamepad)
+        {
+            return "<Gamepad>";
+        }
+
+        if (inputDevice is Joystick)
+        {
+            return "<Joystick>";
+        }
+
+        return $"<{inputDevice.layout}>";
+    }
+
+    private TextSetter GetCurrentSelectedTextSetter()
+    {
+        GameObject selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        return selected != null ? selected.GetComponentInChildren<TextSetter>() : null;
+    }
+
+    private void ResetPausePlayerBindingOverrides()
+    {
+        InputActionMap actionMap = FindPausePlayerActionMap();
+        actionMap?.RemoveAllBindingOverrides();
+    }
+
+    private void RefreshControlGlyphs()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.UpdateGlyph();
+        }
+    }
+
+    private void SetControlGlyphSelectorPID()
+    {
+        if (controlsMenu == null)
+        {
+            return;
+        }
+
+        PlayerController player = GetPausePlayer();
+        int selectorPID = player != null ? player.pID : 0;
+        TextSetter[] textSetters = controlsMenu.GetComponentsInChildren<TextSetter>(true);
+        for (int i = 0; i < textSetters.Length; i++)
+        {
+            textSetters[i]?.SetSelectorPID(selectorPID);
+        }
+    }
+
+    private InputActionMap FindPausePlayerActionMap()
+    {
+        PlayerController player = GetPausePlayer();
+        if (player == null)
+        {
+            return null;
+        }
+
+        InputPlayerBindings bindings = player.inputs;
+        if (bindings != null && bindings.PlayerActionMap != null)
+        {
+            return bindings.PlayerActionMap;
+        }
+
+        PlayerInput playerInput = player.GetComponent<PlayerInput>();
+        return playerInput != null ? playerInput.currentActionMap : null;
+    }
+
+    private void RefreshControlToggleGraphics()
+    {
+        if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
+        if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
+        if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
+        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 
     private bool GetToggleValue(Toggle toggle, bool currentValue)

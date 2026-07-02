@@ -16,6 +16,7 @@ TagManager:
   - Player 4 Spawn
   - LoadCurtain
   - NPC Spawn
+  - SignText
   layers:
   - Default
   - TransparentFX

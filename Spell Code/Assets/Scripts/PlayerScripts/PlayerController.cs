@@ -175,6 +175,8 @@ public class PlayerController : MonoBehaviour
     public const ushort baseRamKillBonus = 50;
     [NonSerialized]
     public const ushort baseRamLifeWorth = 250;
+    [NonSerialized]
+    public bool hasHighestBounty = false;
 
     // Push Box Variables
     [HideInInspector]
@@ -2742,6 +2744,17 @@ public class PlayerController : MonoBehaviour
         {
             //stop playing the reps visual effect
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pID);
+        }
+
+        if(hasHighestBounty)
+        {
+            //play the bounty aura effect
+            VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, position + FixedVec2.FromFloat(0f, 102f), pID, this.gameObject.transform);
+        }
+        else
+        {
+            //remove the bounty VFX from this player
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, pID, true);
         }
     }
 

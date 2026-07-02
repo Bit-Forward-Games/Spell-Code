@@ -626,6 +626,12 @@ public class Pause : MonoBehaviour
         RefreshDynamicCameraOptionForScene();
         RevertTextColorToWhite();
 
+        RectTransform optionsMenuTransform = optionsMenu.GetComponent<RectTransform>();
+
+        optionsMenuTransform.anchoredPosition  = new Vector2(optionsMenuTransform.anchoredPosition.x, 2500f);
+
+        optionsMenuTransform.DOAnchorPos(new Vector2(optionsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         options = true;
         controls = false;
         displayOptions = false;
@@ -653,6 +659,12 @@ public class Pause : MonoBehaviour
  
     public void Volume()
     {
+        RectTransform volumeMenuTransform = volumeMenu.GetComponent<RectTransform>();
+
+        volumeMenuTransform.anchoredPosition  = new Vector2(volumeMenuTransform.anchoredPosition.x, 2500f);
+
+        volumeMenuTransform.DOAnchorPos(new Vector2(volumeMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         volumeOptions = true;
         displayOptions = false;
         controls = false;
@@ -707,7 +719,6 @@ public class Pause : MonoBehaviour
             if (signText.name == "SignText")
             {
                 signText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f);
-                Debug.Log("Hello???");
             }
         }
     }

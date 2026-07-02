@@ -1064,7 +1064,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
             {
                 if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
                 {
@@ -1488,12 +1488,18 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // Increment the last 4 bits of stateSpecificArg by 1
+                    
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
-                        stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
-                        storedCodeDuration = 0;
+                        if(!vibeCoding ||(stateSpecificArg & 0xFu) < 1u)
+                        {
+                            stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                            storedCodeDuration = 0;
+                        }
                     }
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                    
+                    
                 }
 
                 inputDisplay.text = ConvertCodeToString(stateSpecificArg, null, relativeInputs?facingRight:true);
@@ -1508,10 +1514,10 @@ public class PlayerController : MonoBehaviour
                 //uint codeToMatch;
                 for (int i = 0; i < spellList.Count; i++)
                 {
-                    bool trueInput;
-                    bool matched = CheckSpellCodeInput(i,out trueInput);
+                    //bool trueInput;
+                    bool matched = CheckSpellCodeInput(i/*,out trueInput*/);
                     
-                    if (matched && trueInput)
+                    if (matched && !vibeCoding/*&& trueInput*/)
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
@@ -1648,14 +1654,14 @@ public class PlayerController : MonoBehaviour
                     //uint codeToMatchRelease;
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        bool trueInput;
-                        bool matched = CheckSpellCodeInput(i, out trueInput);
+                        //bool trueInput;
+                        bool matched = CheckSpellCodeInput(i/*, out trueInput*/);
                         //standard spellcode matching code
                         if (matched)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
-                            spellList[i].vibeCasted = !trueInput;
+                            //spellList[i].vibeCasted = !trueInput;
                             spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
@@ -2024,7 +2030,7 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public bool CheckSpellCodeInput( int spellListIndex, out bool _trueInput)
+    public bool CheckSpellCodeInput( int spellListIndex/*, out bool _trueInput*/)
     {
         uint codeToMatch;
         //vibeCoding shortcuts for the first 4 spells
@@ -2060,10 +2066,10 @@ public class PlayerController : MonoBehaviour
         spellList[spellListIndex].cooldownCounter <= 0)
         {
             //basically if your input matches the TRUE spell input, its not vibeCoded
-            _trueInput = spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4));
+            //_trueInput = spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4));
             return true;
         }
-        _trueInput = false;
+        //_trueInput = false;
         return false;
     }
 

@@ -10,8 +10,8 @@ public class AsuranBlades : SpellData
     {
         spellName = "Asuran Blades";
         brands = new Brand[]{ Brand.DemonX };
-        cooldown = 120;
-        spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence
+        cooldown = 180;
+        spellInput = 0b_0000_0000_0000_0000_0001_0010_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];
@@ -65,9 +65,9 @@ public class AsuranBlades : SpellData
                 
                 }
             }
-            cooldownCounter = vibeCasted?(int)(cooldown*1.25f):cooldown;
-            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
-            vibeCasted = false;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            //vibeCasted = false;
         }
 
 

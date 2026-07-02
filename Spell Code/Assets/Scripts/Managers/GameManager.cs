@@ -441,9 +441,8 @@ public class GameManager : MonoBehaviour
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
-            string offlineSceneName = SceneManager.GetActiveScene().name;
-            gameObject.GetComponent<PlayerInputManager>().enabled = offlineSceneName == "MainMenu" || 
-                                                                    (offlineSceneName == "SoloLobby" && playerCount == 0);
+            Scene activeScene = SceneManager.GetActiveScene();
+            gameObject.GetComponent<PlayerInputManager>().enabled = activeScene.name == "MainMenu" || activeScene.name == "SoloLobby";
             SetNetworkInfoVisible(false);
         }
         else
@@ -3245,10 +3244,13 @@ public class GameManager : MonoBehaviour
 
         //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
 
-        players[playerCount] = existingPlayer;
-        players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
-        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[playerCount]);
-        AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
+        int newPlayerIndex = playerCount;
+        players[newPlayerIndex] = existingPlayer;
+        players[newPlayerIndex]._playerPauseIndex = newPlayerIndex;
+        InputDevice joinedDevice = playerInput.devices.Count > 0 ? playerInput.devices[0] : null;
+        players[newPlayerIndex].inputs.AssignInputDevice(joinedDevice);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[newPlayerIndex]);
+        AnimationManager.Instance.InitializePlayerVisuals(players[newPlayerIndex], newPlayerIndex);
 
         // INCREMENT FIRST
         playerCount++;

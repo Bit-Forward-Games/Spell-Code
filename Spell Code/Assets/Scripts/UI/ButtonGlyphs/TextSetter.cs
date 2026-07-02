@@ -59,7 +59,8 @@ public class TextSetter : MonoBehaviour
     public void SetText(string inputMessage, InputAction targetAction)
     {   
         InputBinding targetBinding;
-        if(selectorPID == 0|| GameManager.Instance.players[selectorPID-1]== null)
+        PlayerController selectedPlayer = GetSelectedPlayer();
+        if(selectedPlayer == null)
         {
             //Debug.LogError("Player ID either not set or not found.");
             deviceType = GetDefaultDeviceType();
@@ -67,8 +68,8 @@ public class TextSetter : MonoBehaviour
         }
         else
         {
-            deviceType = GetDeviceType(GameManager.Instance.players[selectorPID-1].inputs.InputDevice);
-            targetBinding = GetBindingForAction(targetAction,deviceType);
+            deviceType = GetDeviceType(selectedPlayer.inputs.InputDevice);
+            targetBinding = GetBindingForAction(GetPlayerAction(selectedPlayer, targetAction),deviceType);
         }
 
         
@@ -80,6 +81,17 @@ public class TextSetter : MonoBehaviour
 
         
         _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
+    }
+
+    private PlayerController GetSelectedPlayer()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || manager.players == null || selectorPID <= 0 || selectorPID > manager.players.Length)
+        {
+            return null;
+        }
+
+        return manager.players[selectorPID - 1];
     }
 
     private DeviceType GetDeviceType(InputDevice inputDevice)
@@ -114,6 +126,12 @@ public class TextSetter : MonoBehaviour
 
     private InputBinding GetBindingForAction(InputAction inputAction, DeviceType inputDevice)
     {
+        if (inputAction == null)
+        {
+            Debug.LogWarning("Binding not found because the target action is missing.");
+            return default;
+        }
+
         if (inputDevice == DeviceType.Keyboard)
         {
             return GetFirstBindingForDevicePath(inputAction, "<Keyboard>");
@@ -126,6 +144,23 @@ public class TextSetter : MonoBehaviour
 
         Debug.LogWarning($"Binding not found, returning first possible binding");
         return inputAction.bindings[0];
+    }
+
+    private InputAction GetPlayerAction(PlayerController player, InputAction defaultInputAction)
+    {
+        if (player == null || defaultInputAction == null)
+        {
+            return defaultInputAction;
+        }
+
+        InputActionMap playerActionMap = player.inputs != null ? player.inputs.PlayerActionMap : null;
+        if (playerActionMap == null)
+        {
+            return defaultInputAction;
+        }
+
+        InputAction playerAction = playerActionMap.FindAction(defaultInputAction.name, false);
+        return playerAction != null ? playerAction : defaultInputAction;
     }
 
     private InputBinding GetFirstBindingForDevicePath(InputAction inputAction, string devicePath)

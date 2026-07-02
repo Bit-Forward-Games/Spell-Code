@@ -922,13 +922,15 @@ public class Pause : MonoBehaviour
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
         if (selectedObject == null) return;
 
-        Button selectedButton = selectedObject.GetComponent<Button>();
-        if (selectedButton != null && selectedButton.interactable)
+        Selectable selectedControl = selectedObject.GetComponent<Selectable>();
+        if (selectedControl == null || !selectedControl.IsInteractable())
         {
-            selectedButton.onClick.Invoke();
-            StartCoroutine(SuppressSelectionForOneFrame());
-            RevertTextColorToWhite();
+            return;
         }
+
+        ExecuteEvents.Execute(selectedObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
+        StartCoroutine(SuppressSelectionForOneFrame());
+        RevertTextColorToWhite();
 
         if(selectedObject.name == "Back")
         {

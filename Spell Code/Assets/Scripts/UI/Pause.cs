@@ -63,6 +63,7 @@ public class Pause : MonoBehaviour
         "<Keyboard>/escape",
         "<Keyboard>/enter",
         "<Keyboard>/numpadEnter",
+        "<Keyboard>/anyKey",
         "<Keyboard>/w",
         "<Keyboard>/a",
         "<Keyboard>/s",

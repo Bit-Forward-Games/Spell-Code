@@ -17,7 +17,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-4"; // scz-4: local inputs write-once (no re-sample overwrite on TimeSync hold / pause neutralize)
+    private const string NetcodeVersion = "scz-5"; // scz-5: Dev-New merge changed sim rules (vibe-coding cast/cooldown) + core sub-hash field sets
+
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -45,6 +46,12 @@ public class SteamLobbyManager : MonoBehaviour
     private static SteamId? pendingJoinInviterId;
     private static bool launchConnectChecked;
 
+    // A host+invite requested outside MainMenu (e.g. the solo lobby's online door) is deferred
+    // the same way: transition to MainMenu first, then host and open the overlay there, so the
+    // friend always connects into the scene the online lobby actually simulates in. Static for
+    // the same ExecuteOrder66-survival reason as the pending-join fields above.
+    private static bool pendingHostInviteRequested;
+
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
 
@@ -57,6 +64,18 @@ public class SteamLobbyManager : MonoBehaviour
         {
             Debug.LogError("Steam is not running or is shutting down. Cannot open invite overlay.");
             return false;
+        }
+
+        // The online lobby only simulates in MainMenu (the join side enforces the same rule via
+        // pendingJoinLobbyId). Hosting from any other scene defers: transition to MainMenu first,
+        // then TryResumePendingHostInvite re-runs this once the rebuilt scene and Steam are ready,
+        // so the lobby is created and the invite overlay opened where the friend will connect.
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            pendingHostInviteRequested = true;
+            Debug.Log($"[SteamLobbyManager] Host+invite requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
+            GameManager.Instance?.ExecuteOrder66("MainMenu");
+            return true;
         }
 
         if (currentLobby.HasValue)
@@ -154,6 +173,7 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         TryResumePendingOnlineJoin();
+        TryResumePendingHostInvite();
 
         if (!currentLobby.HasValue)
         {
@@ -471,6 +491,10 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        // Accepting an invite supersedes any queued host+invite intent; without this, the
+        // deferred host flow could fire after the join and fight over the lobby state.
+        pendingHostInviteRequested = false;
+
         try
         {
             if (currentLobby.HasValue && currentLobby.Value.Id != lobbyId)
@@ -514,8 +538,19 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance == null || SceneManager.GetActiveScene().name != "MainMenu")
+        if (GameManager.Instance == null)
         {
+            return;
+        }
+
+        // A pending join can be seeded outside MainMenu without anyone kicking the transition:
+        // +connect_lobby at launch now lands in SoloLobby (the new boot scene) instead of
+        // MainMenu. Kick the same clean transition the in-game invite path uses; re-entrancy is
+        // naturally guarded because ExecuteOrder66 nulls GameManager.Instance immediately.
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            Debug.Log($"[SteamLobbyManager] Pending lobby join outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
+            GameManager.Instance.ExecuteOrder66("MainMenu");
             return;
         }
 
@@ -526,6 +561,26 @@ public class SteamLobbyManager : MonoBehaviour
 
         Debug.Log($"[SteamLobbyManager] Resuming deferred lobby join in MainMenu. LobbyId={lobbyId.Value}.");
         JoinRequestedLobbyAsync(lobbyId, inviterId);
+    }
+
+    // Resumes a host+invite that was deferred while the player was outside MainMenu (e.g. the
+    // solo lobby's online door). Mirrors TryResumePendingOnlineJoin: fires once the rebuilt
+    // scene's managers are alive and Steam is ready.
+    private void TryResumePendingHostInvite()
+    {
+        if (!pendingHostInviteRequested || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        pendingHostInviteRequested = false;
+        Debug.Log("[SteamLobbyManager] Resuming deferred host+invite in MainMenu.");
+        OpenInviteOverlayOrHost();
     }
 
     private void HandleLobbyEntered(Lobby lobby)

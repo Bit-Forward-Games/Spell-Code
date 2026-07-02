@@ -3469,7 +3469,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(platDropping);
     }
 
-    // Health / hits / armor / combo.
+    // Health / hits / armor / combo
     public void SerializeCoreCombatHash(BinaryWriter bw)
     {
         bw.Write(hitstop);
@@ -3478,9 +3478,6 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(GetSpellSerializationId(basicSpawnOverride));
-        bw.Write(storedCode);
-        bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -3521,7 +3518,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(reps);
     }
 
-    // Input-mode / spell-code / double-tap state.
+    // Input-mode / spell-code / double-tap state. Jump/platform fields (jumpCount, tapJumpPrimed,
+    // downJumpSlide, platDropping, ...) belong to the PHYSICS group
     public void SerializeCoreCodeHash(BinaryWriter bw)
     {
         bw.Write(relativeInputs);
@@ -3530,19 +3528,14 @@ public class PlayerController : MonoBehaviour
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         bw.Write(tapJump);
-        bw.Write(jumpCount);
-        bw.Write(maxJumpCount);
-        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
-        bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(toggleCodeInput); // hashed for divergence detection
         bw.Write(vibeCoding);
-        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
         // hashed so a stale-`input` divergence (input is consumed cross-frame, see Serialize) is
         // caught here at the exact hash boundary instead of only via downstream double-tap/physics
         bw.Write(input.ButtonStates != null ? InputConverter.ConvertFromInputSnapshot(input) : (short)5);
-        bw.Write(platDropping);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)

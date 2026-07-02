@@ -297,7 +297,7 @@ public class GameManager : MonoBehaviour
             Application.runInBackground = true;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
-            
+
         }
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -416,7 +416,12 @@ public class GameManager : MonoBehaviour
         InitializeWithSeed(offlineSeed);
 
 
-        SetStage(-4);
+        // A fresh GameManager wakes either at app launch (SoloLobby) or after an ExecuteOrder66
+        // into MainMenu/SoloLobby. MainMenu must get the lobby stage immediately: the stage index
+        // rides every input packet (GetNetworkSceneSignature), and a deferred online host/join
+        // waits in MainMenu before StartOnlineMatch would otherwise correct it — with -4 the
+        // player would be standing in solo-lobby geometry inside MainMenu until then.
+        SetStage(SceneManager.GetActiveScene().name == "MainMenu" ? -1 : -4);
 
         SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
@@ -436,8 +441,9 @@ public class GameManager : MonoBehaviour
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
-            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
-            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "SoloLobby");
+            string offlineSceneName = SceneManager.GetActiveScene().name;
+            gameObject.GetComponent<PlayerInputManager>().enabled = offlineSceneName == "MainMenu" || 
+                                                                    (offlineSceneName == "SoloLobby" && playerCount == 0);
             SetNetworkInfoVisible(false);
         }
         else

@@ -3368,6 +3368,14 @@ public class PlayerController : MonoBehaviour
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
+        // `input` is sim state: PlayerUpdate consumes LAST frame's snapshot (prevDoubleTapDirection
+        // capture at its top, plus cross-player reads by later-indexed players' spells) before
+        // overwriting it with this frame's raw input. If it isn't restored on LoadState, the first
+        // resimulated frame after a rollback consumes the pre-rollback (future) input instead of the
+        // restored frame's — per-machine, timing-dependent divergence surfacing as pXcore[code]
+        // (double-tap fields) or pXcore[physics] (platDropping flips a platform drop) desyncs.
+        // ButtonStates is null until SpawnPlayer runs; encode that as neutral (direction 5).
+        bw.Write(input.ButtonStates != null ? InputConverter.ConvertFromInputSnapshot(input) : (short)5);
         bw.Write(platDropping);
         //bw.Write(momentum);
         //bw.Write(slimed);
@@ -3518,6 +3526,9 @@ public class PlayerController : MonoBehaviour
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
+        // hashed so a stale-`input` divergence (input is consumed cross-frame, see Serialize) is
+        // caught here at the exact hash boundary instead of only via downstream double-tap/physics
+        bw.Write(input.ButtonStates != null ? InputConverter.ConvertFromInputSnapshot(input) : (short)5);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3668,6 +3679,7 @@ public class PlayerController : MonoBehaviour
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();
+        input = InputConverter.ConvertFromShort(br.ReadInt16()); // see Serialize: restore last frame's input for resim determinism
         platDropping = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();

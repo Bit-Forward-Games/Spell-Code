@@ -356,7 +356,7 @@ public class GameManager : MonoBehaviour
         return new Vector2Int(Screen.width, Screen.height);
     }
 
-    public void ExecuteOrder66()
+    public void ExecuteOrder66(string scene)
     {
 
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
@@ -375,7 +375,7 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene(scene);
         //Camera.main.GetComponentInChildren<Image>().enabled = false;
     }
 
@@ -2303,7 +2303,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to MainMenu.");
         StopMatch(reason);
-        ExecuteOrder66();
+        ExecuteOrder66("SoloLobby");
     }
 
     private void ClearPlayerObjects()
@@ -3009,10 +3009,11 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
-            buttons.SetActive(true);
+            //buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
+                onboardManager.enabled = false;
             }
             onboardManager.OnboardUpdate(inputs);
         }
@@ -3042,15 +3043,14 @@ public class GameManager : MonoBehaviour
 
             if (goDoorPrefab.CheckAllPlayersReady() && goDoorPrefab.isPrimed)
             {
-                if (goDoorPrefab.soloModes)
-                {
-                    goDoorPrefab.isPrimed = false;
-                    tempUI.SetSoloMenuActive(true);
-                }
-                else
-                {
+                //if (goDoorPrefab.soloModes)
+                //{
+                //    goDoorPrefab.isPrimed = false;
+                //    tempUI.SetSoloMenuActive(true);
+                //}
+                //{
                     LoadRandomGameplayStage();
-                }
+                //}
                 
             }
 

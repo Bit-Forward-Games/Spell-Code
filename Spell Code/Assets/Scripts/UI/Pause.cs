@@ -63,18 +63,31 @@ public class Pause : MonoBehaviour
         "<Keyboard>/escape",
         "<Keyboard>/enter",
         "<Keyboard>/numpadEnter",
+        "<Keyboard>/anyKey",
         "<Keyboard>/w",
         "<Keyboard>/a",
         "<Keyboard>/s",
         "<Keyboard>/d",
+        "<Keyboard>/home",
+        "<Keyboard>/end",
+        "<Keyboard>/pageUp",
+        "<Keyboard>/pageDown",
         "<Gamepad>/start",
         "<Gamepad>/select",
         "<Gamepad>/leftStickPress",
         "<Gamepad>/rightStickPress",
-        "<Gamepad>/D-Pad/up",
-        "<Gamepad>/D-Pad/down",
-        "<Gamepad>/D-Pad/left",
-        "<Gamepad>/D-Pad/right",
+        "<Gamepad>/dpad/up",
+        "<Gamepad>/dpad/down",
+        "<Gamepad>/dpad/left",
+        "<Gamepad>/dpad/right",
+        "<Gamepad>/leftStick/up",
+        "<Gamepad>/leftStick/down",
+        "<Gamepad>/leftStick/left",
+        "<Gamepad>/leftStick/right",
+        "<Gamepad>/rightStick/up",
+        "<Gamepad>/rightStick/down",
+        "<Gamepad>/rightStick/left",
+        "<Gamepad>/rightStick/right",
         "<Mouse>/*",
         "<Pointer>/*",
         "<Touchscreen>/*"
@@ -115,6 +128,7 @@ public class Pause : MonoBehaviour
     // Cooldown to prevent held-stick from firing every frame
     private float navCooldown = 0f;
     private const float NAV_COOLDOWN_TIME = 0.2f;
+    private const float RebindTimeoutSeconds = 5f;
     // Track last frame's nav value to detect fresh presses
     private Vector2 lastNavValue = Vector2.zero;
 
@@ -183,6 +197,13 @@ public class Pause : MonoBehaviour
     private InputActionRebindingExtensions.RebindingOperation activeRebindOperation;
     private InputAction activeRebindAction;
     private bool activeRebindActionWasEnabled;
+    private Coroutine activeRebindTimeoutCoroutine;
+    private InputAction rebindDisabledUiMoveAction;
+    private InputAction rebindDisabledUiSubmitAction;
+    private InputAction rebindDisabledUiCancelAction;
+    private bool rebindDisabledUiMoveActionWasEnabled;
+    private bool rebindDisabledUiSubmitActionWasEnabled;
+    private bool rebindDisabledUiCancelActionWasEnabled;
  
     void OnEnable()  
     { 
@@ -263,7 +284,10 @@ public class Pause : MonoBehaviour
     {
         ScopeUiInputToPausePlayer();
 
-        GameObject selectedGO = EventSystem.current.currentSelectedGameObject;
+        if (IsWaitingForRebindInput())
+        {
+            return;
+        }
 
         if (spells)
         {
@@ -1453,6 +1477,7 @@ public class Pause : MonoBehaviour
         {
             action.Disable();
         }
+        DisableMenuNavigationForRebind();
 
         activeRebindOperation = action.PerformInteractiveRebinding(bindingIndex)
             .OnPotentialMatch(operation => CompleteValidRebindMatch(operation, inputDevice))
@@ -1465,6 +1490,7 @@ public class Pause : MonoBehaviour
         }
 
         activeRebindOperation.Start();
+        StartActiveRebindTimeout();
     }
 
     private void CompleteValidRebindMatch(InputActionRebindingExtensions.RebindingOperation operation, InputDevice inputDevice)
@@ -1486,6 +1512,8 @@ public class Pause : MonoBehaviour
 
     private void FinishControlRebind(PlayerController player, TextSetter textSetter)
     {
+        StopActiveRebindTimeout();
+        RestoreMenuNavigationAfterRebind();
         RestoreActiveRebindAction();
         DisposeActiveRebindOperation();
 
@@ -1502,6 +1530,8 @@ public class Pause : MonoBehaviour
         }
 
         RestoreActiveRebindAction();
+        RestoreMenuNavigationAfterRebind();
+        StopActiveRebindTimeout();
         DisposeActiveRebindOperation();
     }
 
@@ -1520,6 +1550,91 @@ public class Pause : MonoBehaviour
     {
         activeRebindOperation?.Dispose();
         activeRebindOperation = null;
+    }
+
+    private void StartActiveRebindTimeout()
+    {
+        StopActiveRebindTimeout();
+        activeRebindTimeoutCoroutine = StartCoroutine(TimeoutActiveRebind());
+    }
+
+    private IEnumerator TimeoutActiveRebind()
+    {
+        yield return new WaitForSecondsRealtime(RebindTimeoutSeconds);
+
+        activeRebindTimeoutCoroutine = null;
+        if (IsWaitingForRebindInput())
+        {
+            CancelActiveRebind();
+        }
+    }
+
+    private void StopActiveRebindTimeout()
+    {
+        if (activeRebindTimeoutCoroutine != null)
+        {
+            StopCoroutine(activeRebindTimeoutCoroutine);
+            activeRebindTimeoutCoroutine = null;
+        }
+    }
+
+    private bool IsWaitingForRebindInput()
+    {
+        return activeRebindOperation != null
+            && activeRebindOperation.started
+            && !activeRebindOperation.completed
+            && !activeRebindOperation.canceled;
+    }
+
+    private void DisableMenuNavigationForRebind()
+    {
+        InputSystemUIInputModule module = GetUiInputModule();
+        if (module == null)
+        {
+            return;
+        }
+
+        DisableUiActionForRebind(module.move?.action, ref rebindDisabledUiMoveAction, ref rebindDisabledUiMoveActionWasEnabled);
+        DisableUiActionForRebind(module.submit?.action, ref rebindDisabledUiSubmitAction, ref rebindDisabledUiSubmitActionWasEnabled);
+        DisableUiActionForRebind(module.cancel?.action, ref rebindDisabledUiCancelAction, ref rebindDisabledUiCancelActionWasEnabled);
+    }
+
+    private void DisableUiActionForRebind(InputAction action, ref InputAction disabledAction, ref bool wasEnabled)
+    {
+        if (action == null || disabledAction == action)
+        {
+            return;
+        }
+
+        if (disabledAction != null)
+        {
+            RestoreUiActionAfterRebind(ref disabledAction, ref wasEnabled);
+        }
+
+        disabledAction = action;
+        wasEnabled = action.enabled;
+        if (wasEnabled)
+        {
+            action.Disable();
+        }
+    }
+
+    private void RestoreMenuNavigationAfterRebind()
+    {
+        RestoreUiActionAfterRebind(ref rebindDisabledUiMoveAction, ref rebindDisabledUiMoveActionWasEnabled);
+        RestoreUiActionAfterRebind(ref rebindDisabledUiSubmitAction, ref rebindDisabledUiSubmitActionWasEnabled);
+        RestoreUiActionAfterRebind(ref rebindDisabledUiCancelAction, ref rebindDisabledUiCancelActionWasEnabled);
+    }
+
+    private void RestoreUiActionAfterRebind(ref InputAction action, ref bool wasEnabled)
+    {
+        if (action != null && wasEnabled)
+        {
+            action.Enable();
+        }
+
+        action = null;
+        wasEnabled = false;
     }
 
     private bool IsBannedRebindInput(InputControl inputControl)

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -9,7 +11,10 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     public Pause pause;
 
     private Transform arrowChildTransform;
+    private Transform forwardArrowChildTransform;
     private TextMeshProUGUI arrowText;
+    private TextMeshProUGUI forwardArrowText;
+    
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
     {
@@ -48,6 +53,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
                 arrowText.text = "<<";
             }
+            forwardArrowChildTransform = transform.Find("forwardArrow");
+            if (forwardArrowChildTransform!= null) 
+            {
+                forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                forwardArrowText.text = ">>";
+            }
         }
 
         if (name.Contains("Slider"))
@@ -63,7 +74,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
             }
-        } 
+        }
     }
 
     // Triggers automatically when the button loses focus / gets unselected
@@ -98,6 +109,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
                 arrowText.text = "";
             }
+            forwardArrowChildTransform = transform.Find("forwardArrow");
+            if (forwardArrowChildTransform!= null) 
+            {
+                forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                forwardArrowText.text = "";
+            }
         } 
 
         if (name.Contains("Slider"))
@@ -120,6 +137,10 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         pause = Object.FindAnyObjectByType<Pause>();
     }
 
+    float navCooldown;
+    const float NAV_COOLDOWN_TIME = 0.2f;
+    Vector2 lastNavValue = Vector2.zero;
+
     void Update()
     {
         if (EventSystem.current.currentSelectedGameObject == gameObject)
@@ -134,6 +155,43 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     optionsText.color = new Color(1f, 1f, 1f);
                 }
             }
+
+            if (name.Contains("Display Mode"))
+            {
+                pause.displayIndex = DisplayOptionsCycle(pause.displayModes, pause.displayIndex);
+                pause.displayOptionString.text = pause.displayModes[pause.displayIndex];
+            }
         }
+    }
+
+    int DisplayOptionsCycle(List<string> optionsList, int currentIndex)
+    {
+        Vector2 nav = pause.GetPausePlayerNavigation();
+
+        navCooldown -= Time.unscaledDeltaTime;
+ 
+        // Only act on a fresh directional press OR if cooldown has expired while stick is held
+        bool freshPress = (nav != Vector2.zero && lastNavValue == Vector2.zero);
+        bool heldAndReady = (nav != Vector2.zero && navCooldown <= 0f);
+ 
+        if (freshPress || heldAndReady)
+        {
+            navCooldown = NAV_COOLDOWN_TIME;
+ 
+            if (nav.x < 0)
+            {
+                currentIndex = (currentIndex <= 0) ? optionsList.Count - 1 : currentIndex - 1;
+            }
+            else if (nav.x > 0)
+            {
+                currentIndex = (currentIndex >= optionsList.Count - 1) ? 0 : currentIndex + 1;
+            }
+        }
+
+        if (nav == Vector2.zero) navCooldown = 0f;
+ 
+        lastNavValue = nav;
+
+        return currentIndex;
     }
 }

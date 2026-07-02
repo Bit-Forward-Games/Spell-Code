@@ -134,6 +134,14 @@ public class Pause : MonoBehaviour
 
     public TMP_FontAsset digitalBorderedFont;
     public TMP_FontAsset digitalNormalFont;
+
+    public List<string> displayModes = new List<string> {"Fullscreen", "Windowed", "Borderless"};
+    public List<string> resolutions = new List<string>();
+    public List<(string, Vector2Int)> resolutionList = new List<(string, Vector2Int)>();
+    public int resolutionIndex;
+    public int displayIndex;
+    public TextMeshProUGUI resolutionOptionString;
+    public TextMeshProUGUI displayOptionString;
  
     public class Column
     {
@@ -278,6 +286,7 @@ public class Pause : MonoBehaviour
         spellListParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(spellSelectedBorderTransform.anchoredPosition.x, 280f);
         ChangeSpellPanelView(-544f, new Vector2(606f, -20f), new Vector2(1384f, 652f), new Vector2(507.66f, -38f), new Vector2(0.57f, 0.57f), new Vector2(409f, 228f));
         RefreshDynamicCameraOptionForScene();
+        ResolutionParser();
     }
  
     void Update()
@@ -317,6 +326,28 @@ public class Pause : MonoBehaviour
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
             RestoreUiInputDevices();
+        }
+    }
+
+    public void ResolutionParser()
+    {
+        foreach (string res in resolutions)
+        {
+            // Split on 'x' (case-insensitive, trims whitespace)
+            string[] parts = res.Split('x', 'X');
+
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0].Trim(), out int width) &&
+                int.TryParse(parts[1].Trim(), out int height))
+            {
+                Vector2Int size = new Vector2Int(width, height);
+
+                resolutionList.Add((res, size));
+            }
+            else
+            {
+                Debug.LogWarning($"Couldn't parse resolution string: {res}");
+            }
         }
     }
  
@@ -713,6 +744,8 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
         displayMenu.SetActive(true);
+
+        displayOptionString.text = displayModes[displayIndex];
  
         StartCoroutine(SelectFirst(_displayMenuFirst));
  
@@ -1235,7 +1268,7 @@ public class Pause : MonoBehaviour
         return devices.ToArray();
     }
 
-    private Vector2 GetPausePlayerNavigation()
+    public Vector2 GetPausePlayerNavigation()
     {
         if (!paused)
         {

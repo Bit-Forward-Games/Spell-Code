@@ -960,7 +960,7 @@ public class Pause : MonoBehaviour
         colorLayer3.gameObject.GetComponent<RectTransform>().DOAnchorPos(new Vector2(colorLayer3Pos.x, colorLayer3Pos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
-    private void TriggerSelectedButton()
+    public void TriggerSelectedButton()
     {
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
         if (selectedObject == null) return;
@@ -1175,10 +1175,32 @@ public class Pause : MonoBehaviour
     {
         if (!paused)
         {
+            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened))
+            {
+                ScopeUiInputToCurrentPausePlayerDevices();
+                return;
+            }
+
             RestoreUiInputDevices();
             return;
         }
 
+        ScopeUiInputToCurrentPausePlayerDevices();
+    }
+
+    public void ScopeUiInputToPlayerDevices(int playerIndex)
+    {
+        playerPauseIndex = playerIndex;
+        ScopeUiInputToCurrentPausePlayerDevices();
+    }
+
+    public void RestoreScopedUiInputDevices()
+    {
+        RestoreUiInputDevices();
+    }
+
+    private void ScopeUiInputToCurrentPausePlayerDevices()
+    {
         InputSystemUIInputModule module = GetUiInputModule();
         InputActionAsset actionsAsset = module != null ? module.actionsAsset : null;
         if (actionsAsset == null || !TryGetPausePlayerDevices(out InputDevice[] devices))
@@ -1322,12 +1344,12 @@ public class Pause : MonoBehaviour
         return WasPausePlayerActionPressedThisFrame("Jump");
     }
 
-    private bool WasPausePlayerBackPressedThisFrame()
+    public bool WasPausePlayerBackPressedThisFrame()
     {
         return WasPausePlayerActionPressedThisFrame("Code");
     }
 
-    private bool WasPausePlayerCancelPressedThisFrame()
+    public bool WasPausePlayerCancelPressedThisFrame()
     {
         return WasPausePlayerActionPressedThisFrame("Pause");
     }

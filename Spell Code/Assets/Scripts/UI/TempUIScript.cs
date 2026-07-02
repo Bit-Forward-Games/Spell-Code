@@ -91,7 +91,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public Pause pause;
 
-    private InputSystem_Actions input;
+    private int gamemodesMenuPlayerIndex = -1;
 
     public RectTransform highlightOverlay; // lives outside the Layout Group, e.g. sibling of the panel
 
@@ -105,7 +105,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     void Awake()
     {
-        input = new InputSystem_Actions();
     }
 
     void Start()
@@ -127,13 +126,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
-        input.Enable();
     }
 
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-        input.Disable();
+        pause?.RestoreScopedUiInputDevices();
         StopDamageBarCoroutines();
     }
 
@@ -158,6 +156,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
             gamemodesMenu.SetActive(true);
             soloGamemodesMenu.SetActive(true);
             soloGamemodesMenuOpened = true;
@@ -169,6 +173,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             soloGamemodesMenuOpened = false;
             soloGamemodesMenu.SetActive(false);
             gamemodesMenu.SetActive(false);
+            gamemodesMenuPlayerIndex = -1;
+            pause?.RestoreScopedUiInputDevices();
             // pause._pauseMenuFirst.Select();
             Time.timeScale = 1f;
         }
@@ -178,6 +184,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
             gamemodesMenu.SetActive(true);
             multiplayerGamemodesMenu.SetActive(true);
             multiplayerGamemodesMenuOpened = true;
@@ -189,6 +201,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             multiplayerGamemodesMenuOpened = false;
             multiplayerGamemodesMenu.SetActive(false);
             gamemodesMenu.SetActive(false);
+            gamemodesMenuPlayerIndex = -1;
+            pause?.RestoreScopedUiInputDevices();
             // pause._pauseMenuFirst.Select();
             Time.timeScale = 1f;
         }
@@ -207,18 +221,34 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
         }
 
-        if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
-            SetSoloMenuActive(false);
-            Time.timeScale = 1f;
-            EventSystem.current.SetSelectedGameObject(null);
-        }
+            if (gamemodesMenuPlayerIndex < 0)
+            {
+                gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            }
 
-        if (multiplayerGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
-        {
-            SetMultiplayerMenuActive(false);
-            Time.timeScale = 1f;
-            EventSystem.current.SetSelectedGameObject(null);
+            pause?.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+
+            if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
+            {
+                pause.TriggerSelectedButton();
+            }
+
+            if (pause != null && pause.WasPausePlayerCancelPressedThisFrame())
+            {
+                if (soloGamemodesMenuOpened)
+                {
+                    SetSoloMenuActive(false);
+                }
+                else
+                {
+                    SetMultiplayerMenuActive(false);
+                }
+
+                Time.timeScale = 1f;
+                EventSystem.current.SetSelectedGameObject(null);
+            }
         }
 
 #if UNITY_EDITOR
@@ -309,18 +339,60 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
 
         soloGamemodesMenuOpened = false;
+        multiplayerGamemodesMenuOpened = false;
 
         if (soloGamemodesMenu != null)
         {
             soloGamemodesMenu.SetActive(false);
         }
 
+        if (multiplayerGamemodesMenu != null)
+        {
+            multiplayerGamemodesMenu.SetActive(false);
+        }
+
+        if (gamemodesMenu != null)
+        {
+            gamemodesMenu.SetActive(false);
+        }
+
+        gamemodesMenuPlayerIndex = -1;
+        pause?.RestoreScopedUiInputDevices();
         Time.timeScale = 1f;
 
         if (EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(null);
         }
+    }
+
+    private int ResolveGamemodesMenuPlayerIndex()
+    {
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        if (manager == null || manager.players == null)
+        {
+            return 0;
+        }
+
+        if (manager.isOnlineMatchActive
+            && manager.localPlayerIndex >= 0
+            && manager.localPlayerIndex < manager.players.Length
+            && manager.players[manager.localPlayerIndex] != null
+            && manager.players[manager.localPlayerIndex].isConnected)
+        {
+            return manager.localPlayerIndex;
+        }
+
+        for (int i = 0; i < manager.playerCount && i < manager.players.Length; i++)
+        {
+            PlayerController player = manager.players[i];
+            if (player != null && player.isConnected)
+            {
+                return i;
+            }
+        }
+
+        return 0;
     }
 
     public void UpdateUIBarVals()

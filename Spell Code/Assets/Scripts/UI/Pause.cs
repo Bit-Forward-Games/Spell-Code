@@ -630,7 +630,7 @@ public class Pause : MonoBehaviour
 
         optionsMenuTransform.anchoredPosition  = new Vector2(optionsMenuTransform.anchoredPosition.x, 2500f);
 
-        optionsMenuTransform.DOAnchorPos(new Vector2(optionsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+        optionsMenuTransform.DOAnchorPos(new Vector2(optionsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
 
         options = true;
         controls = false;

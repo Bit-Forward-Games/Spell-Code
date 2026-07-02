@@ -587,9 +587,11 @@ public class GameManager : MonoBehaviour
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
-                ulong neutralInput = PlayerController.PackOnlineControlOptions(5UL, localPlayer);
-                RollbackManager.Instance?.NeutralizePendingLocalInputs(neutralInput);
-                return neutralInput;
+                // Only NEW frames (current + InputDelay onward) go neutral while paused. The
+                // already-buffered frames were sent to peers and must play out unchanged —
+                // rewriting them (the old NeutralizePendingLocalInputs) desyncs at high ping
+                // because peers have already verified those frames and drop the correction.
+                return PlayerController.PackOnlineControlOptions(5UL, localPlayer);
             }
 
             ulong input = (ulong)localPlayer.inputs.UpdateInputs();

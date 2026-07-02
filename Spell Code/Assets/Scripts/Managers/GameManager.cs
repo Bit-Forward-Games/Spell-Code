@@ -573,23 +573,29 @@ public class GameManager : MonoBehaviour
 
     private ulong GatherInputForOnline()
     {
+        PlayerController localPlayer = localPlayerIndex >= 0 && localPlayerIndex < players.Length
+            ? players[localPlayerIndex]
+            : null;
+
         if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
         {
-            return StressTestController.Instance.GetDeterministicInput(frameNumber);
+            ulong stressInput = StressTestController.Instance.GetDeterministicInput(frameNumber);
+            return PlayerController.PackOnlineControlOptions(stressInput, localPlayer);
         }
 
-        PlayerController localPlayer = players[localPlayerIndex];
         if (localPlayer != null && localPlayer.inputs.IsActive)
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
-                RollbackManager.Instance?.NeutralizePendingLocalInputs();
-                return 5;
+                ulong neutralInput = PlayerController.PackOnlineControlOptions(5UL, localPlayer);
+                RollbackManager.Instance?.NeutralizePendingLocalInputs(neutralInput);
+                return neutralInput;
             }
 
-            return (ulong)localPlayer.inputs.UpdateInputs();
+            ulong input = (ulong)localPlayer.inputs.UpdateInputs();
+            return PlayerController.PackOnlineControlOptions(input, localPlayer);
         }
-        return 5; // neutral
+        return PlayerController.PackOnlineControlOptions(5UL, localPlayer); // neutral
         //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
     }
 

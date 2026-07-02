@@ -250,6 +250,57 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    // Quick Match: size selector + handlers
+    // Assign matchSizeText to the "2/3/4" label between your arrow buttons in the Inspector, and set
+    // its starting text to "2" (the default). Wire the buttons' OnClick to the methods below.
+    public TextMeshProUGUI matchSizeText;
+    private int matchmakingSize = MinMatchSize;
+    private const int MinMatchSize = 2;
+    private const int MaxMatchSize = 4;
+
+    // Right arrow button OnClick. (Clamps at 4; change Min/Max to wrap if you'd rather it cycle.)
+    public void IncreaseMatchSize()
+    {
+        matchmakingSize = Mathf.Min(MaxMatchSize, matchmakingSize + 1);
+        RefreshMatchSizeText();
+    }
+
+    // Left arrow button OnClick.
+    public void DecreaseMatchSize()
+    {
+        matchmakingSize = Mathf.Max(MinMatchSize, matchmakingSize - 1);
+        RefreshMatchSizeText();
+    }
+
+    public void RefreshMatchSizeText()
+    {
+        if (matchSizeText != null)
+        {
+            matchSizeText.text = matchmakingSize.ToString();
+        }
+    }
+
+    // "Find Match" button OnClick. Starts Quick Match for the currently selected size.
+    public void FindMatch()
+    {
+        CloseGamemodesMenuForOnlineInvite();
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        if (lobbyManager == null)
+        {
+            Debug.LogError("[TempUIScript] Find Match selected, but SteamLobbyManager was not found.");
+            return;
+        }
+
+        lobbyManager.FindMatch(matchmakingSize);
+    }
+
+    // "Cancel" button OnClick (optional, shown while searching).
+    public void CancelMatchmaking()
+    {
+        SteamLobbyManager.Instance?.CancelMatchmaking();
+    }
+
     private void CloseGamemodesMenuForOnlineInvite()
     {
         if (pause != null)

@@ -1,0 +1,3317 @@
+fileFormatVersion: 2
+guid: 0adf7f3628089fe48982cf16f4aa4e8b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2956323893028142998
+    second: KeyboardGlyphs-Sheet_0
+  - first:
+      213: -4613032049715104807
+    second: KeyboardGlyphs-Sheet_1
+  - first:
+      213: -5800611761606874650
+    second: KeyboardGlyphs-Sheet_2
+  - first:
+      213: -4368313169016115896
+    second: KeyboardGlyphs-Sheet_3
+  - first:
+      213: 98995882513951620
+    second: KeyboardGlyphs-Sheet_4
+  - first:
+      213: 3686494260856234794
+    second: KeyboardGlyphs-Sheet_5
+  - first:
+      213: 2906052523519245042
+    second: KeyboardGlyphs-Sheet_6
+  - first:
+      213: 1280207699393744119
+    second: KeyboardGlyphs-Sheet_7
+  - first:
+      213: 984635328492592941
+    second: KeyboardGlyphs-Sheet_8
+  - first:
+      213: 375914305273461204
+    second: KeyboardGlyphs-Sheet_9
+  - first:
+      213: 908465186969064599
+    second: KeyboardGlyphs-Sheet_10
+  - first:
+      213: -4168419440047798569
+    second: KeyboardGlyphs-Sheet_11
+  - first:
+      213: -8299022430777078406
+    second: KeyboardGlyphs-Sheet_12
+  - first:
+      213: 4385618105933894391
+    second: KeyboardGlyphs-Sheet_13
+  - first:
+      213: 1647602681391513560
+    second: KeyboardGlyphs-Sheet_14
+  - first:
+      213: 232488597144212006
+    second: KeyboardGlyphs-Sheet_15
+  - first:
+      213: -3125715796925263783
+    second: KeyboardGlyphs-Sheet_16
+  - first:
+      213: -4451816405276800600
+    second: KeyboardGlyphs-Sheet_17
+  - first:
+      213: -625624074578705386
+    second: KeyboardGlyphs-Sheet_18
+  - first:
+      213: -2740470388211440248
+    second: KeyboardGlyphs-Sheet_19
+  - first:
+      213: -9147423797484657442
+    second: KeyboardGlyphs-Sheet_20
+  - first:
+      213: 5404246264309397910
+    second: KeyboardGlyphs-Sheet_21
+  - first:
+      213: 2169154458580730791
+    second: KeyboardGlyphs-Sheet_22
+  - first:
+      213: -8317392133724523651
+    second: KeyboardGlyphs-Sheet_23
+  - first:
+      213: 8798613802053404201
+    second: KeyboardGlyphs-Sheet_24
+  - first:
+      213: 2049382612607752080
+    second: KeyboardGlyphs-Sheet_25
+  - first:
+      213: -3956177267827173477
+    second: KeyboardGlyphs-Sheet_26
+  - first:
+      213: -8050018024446090890
+    second: KeyboardGlyphs-Sheet_27
+  - first:
+      213: -4525168855773321568
+    second: KeyboardGlyphs-Sheet_28
+  - first:
+      213: -826844973509549641
+    second: KeyboardGlyphs-Sheet_29
+  - first:
+      213: -6619685755695771156
+    second: KeyboardGlyphs-Sheet_30
+  - first:
+      213: -6053484068059537879
+    second: KeyboardGlyphs-Sheet_31
+  - first:
+      213: -5023091778444782124
+    second: KeyboardGlyphs-Sheet_32
+  - first:
+      213: 2729794027984178087
+    second: KeyboardGlyphs-Sheet_33
+  - first:
+      213: 7109566067603301010
+    second: KeyboardGlyphs-Sheet_34
+  - first:
+      213: -8171572156592879524
+    second: KeyboardGlyphs-Sheet_35
+  - first:
+      213: -9026720225916091416
+    second: KeyboardGlyphs-Sheet_36
+  - first:
+      213: -6829668754188284401
+    second: KeyboardGlyphs-Sheet_37
+  - first:
+      213: -6733554787915333324
+    second: KeyboardGlyphs-Sheet_38
+  - first:
+      213: 961479127396989160
+    second: KeyboardGlyphs-Sheet_39
+  - first:
+      213: -858752027268787542
+    second: KeyboardGlyphs-Sheet_40
+  - first:
+      213: -3095338974892932648
+    second: KeyboardGlyphs-Sheet_41
+  - first:
+      213: 6920759835785495990
+    second: KeyboardGlyphs-Sheet_42
+  - first:
+      213: -8733008755394806452
+    second: KeyboardGlyphs-Sheet_43
+  - first:
+      213: 2710084723826627821
+    second: KeyboardGlyphs-Sheet_44
+  - first:
+      213: 4606016876788280367
+    second: KeyboardGlyphs-Sheet_45
+  - first:
+      213: 1153316192693748017
+    second: KeyboardGlyphs-Sheet_46
+  - first:
+      213: 4026095919513283099
+    second: KeyboardGlyphs-Sheet_47
+  - first:
+      213: -1091412025381470000
+    second: KeyboardGlyphs-Sheet_48
+  - first:
+      213: -662522843603115562
+    second: KeyboardGlyphs-Sheet_49
+  - first:
+      213: 6303151749004037339
+    second: KeyboardGlyphs-Sheet_50
+  - first:
+      213: -4422017179775871819
+    second: KeyboardGlyphs-Sheet_51
+  - first:
+      213: 135135892317237300
+    second: KeyboardGlyphs-Sheet_52
+  - first:
+      213: 4858942327475257297
+    second: KeyboardGlyphs-Sheet_53
+  - first:
+      213: -4584281451830352620
+    second: KeyboardGlyphs-Sheet_54
+  - first:
+      213: -6199398392767308636
+    second: KeyboardGlyphs-Sheet_55
+  - first:
+      213: -7754579420487296447
+    second: KeyboardGlyphs-Sheet_56
+  - first:
+      213: 7657760190058099124
+    second: KeyboardGlyphs-Sheet_57
+  - first:
+      213: -4068346063280616482
+    second: KeyboardGlyphs-Sheet_58
+  - first:
+      213: 7435807037215422601
+    second: KeyboardGlyphs-Sheet_59
+  - first:
+      213: -5051742444399332716
+    second: KeyboardGlyphs-Sheet_60
+  - first:
+      213: -5424656455590427489
+    second: KeyboardGlyphs-Sheet_61
+  - first:
+      213: -7196176325533096432
+    second: KeyboardGlyphs-Sheet_62
+  - first:
+      213: 7929752339170882967
+    second: KeyboardGlyphs-Sheet_63
+  - first:
+      213: 4973791103768996301
+    second: KeyboardGlyphs-Sheet_64
+  - first:
+      213: -5092763457812013231
+    second: KeyboardGlyphs-Sheet_65
+  - first:
+      213: 5310783157056906741
+    second: KeyboardGlyphs-Sheet_66
+  - first:
+      213: 5823669703731007987
+    second: KeyboardGlyphs-Sheet_67
+  - first:
+      213: -4131956211098832541
+    second: KeyboardGlyphs-Sheet_68
+  - first:
+      213: -5706179062923088792
+    second: KeyboardGlyphs-Sheet_69
+  - first:
+      213: -7108707802864305276
+    second: KeyboardGlyphs-Sheet_70
+  - first:
+      213: 1890691657546110973
+    second: KeyboardGlyphs-Sheet_71
+  - first:
+      213: -3392859492104338526
+    second: KeyboardGlyphs-Sheet_72
+  - first:
+      213: -5900532447263015278
+    second: KeyboardGlyphs-Sheet_73
+  - first:
+      213: 2078062041556159396
+    second: KeyboardGlyphs-Sheet_74
+  - first:
+      213: 4020433998346271647
+    second: KeyboardGlyphs-Sheet_75
+  - first:
+      213: 4011717660046490592
+    second: KeyboardGlyphs-Sheet_76
+  - first:
+      213: -6761609631906058614
+    second: KeyboardGlyphs-Sheet_77
+  - first:
+      213: -6382853607093262905
+    second: KeyboardGlyphs-Sheet_78
+  - first:
+      213: 6794041542484142863
+    second: KeyboardGlyphs-Sheet_79
+  - first:
+      213: 3463419935516702907
+    second: KeyboardGlyphs-Sheet_80
+  - first:
+      213: -2220678972219458751
+    second: KeyboardGlyphs-Sheet_81
+  - first:
+      213: -3617346788992980479
+    second: KeyboardGlyphs-Sheet_82
+  - first:
+      213: -6239276903416562196
+    second: KeyboardGlyphs-Sheet_83
+  - first:
+      213: -3040272038887517835
+    second: KeyboardGlyphs-Sheet_84
+  - first:
+      213: -3674309971660805132
+    second: KeyboardGlyphs-Sheet_85
+  - first:
+      213: 2011483551789785512
+    second: KeyboardGlyphs-Sheet_86
+  - first:
+      213: 5088903203234907635
+    second: KeyboardGlyphs-Sheet_87
+  - first:
+      213: 2968573558909317977
+    second: KeyboardGlyphs-Sheet_88
+  - first:
+      213: -852991199374454761
+    second: KeyboardGlyphs-Sheet_89
+  - first:
+      213: -8982336332612249949
+    second: KeyboardGlyphs-Sheet_90
+  - first:
+      213: -4204052022782935925
+    second: KeyboardGlyphs-Sheet_91
+  - first:
+      213: 7760963723111265644
+    second: KeyboardGlyphs-Sheet_92
+  - first:
+      213: -5335784155592903845
+    second: KeyboardGlyphs-Sheet_93
+  - first:
+      213: 200367073116000062
+    second: KeyboardGlyphs-Sheet_94
+  - first:
+      213: -2717742429908049749
+    second: KeyboardGlyphs-Sheet_95
+  - first:
+      213: 5418920960938238218
+    second: KeyboardGlyphs-Sheet_96
+  - first:
+      213: 3310216068082851162
+    second: KeyboardGlyphs-Sheet_97
+  - first:
+      213: -2829610412929255671
+    second: KeyboardGlyphs-Sheet_98
+  - first:
+      213: 7009282603394415911
+    second: KeyboardGlyphs-Sheet_99
+  - first:
+      213: 8842032540867032310
+    second: KeyboardGlyphs-Sheet_100
+  - first:
+      213: 8852451145331770756
+    second: KeyboardGlyphs-Sheet_101
+  - first:
+      213: 4917061311046799812
+    second: KeyboardGlyphs-Sheet_102
+  - first:
+      213: 613697094314748697
+    second: KeyboardGlyphs-Sheet_103
+  - first:
+      213: -4856013295276265194
+    second: KeyboardGlyphs-Sheet_104
+  - first:
+      213: 6727495318645765266
+    second: KeyboardGlyphs-Sheet_105
+  - first:
+      213: -726006713939248351
+    second: KeyboardGlyphs-Sheet_106
+  - first:
+      213: 6989010130936698290
+    second: KeyboardGlyphs-Sheet_107
+  - first:
+      213: 1565409608032079837
+    second: KeyboardGlyphs-Sheet_108
+  - first:
+      213: -1754892432298943029
+    second: KeyboardGlyphs-Sheet_109
+  - first:
+      213: 910797162252379734
+    second: KeyboardGlyphs-Sheet_110
+  - first:
+      213: -8101417649785754986
+    second: KeyboardGlyphs-Sheet_111
+  - first:
+      213: 3615560213977911489
+    second: KeyboardGlyphs-Sheet_112
+  - first:
+      213: -6172436096671759615
+    second: KeyboardGlyphs-Sheet_113
+  - first:
+      213: 6090813416876992936
+    second: KeyboardGlyphs-Sheet_114
+  - first:
+      213: -8240829092432828632
+    second: KeyboardGlyphs-Sheet_115
+  - first:
+      213: -547919248083537935
+    second: KeyboardGlyphs-Sheet_116
+  - first:
+      213: 6990667018601140842
+    second: KeyboardGlyphs-Sheet_117
+  - first:
+      213: -8066746410147385982
+    second: KeyboardGlyphs-Sheet_118
+  - first:
+      213: 5671772099239697662
+    second: KeyboardGlyphs-Sheet_119
+  - first:
+      213: 2186985322245524824
+    second: KeyboardGlyphs-Sheet_120
+  - first:
+      213: -8306108746543701413
+    second: KeyboardGlyphs-Sheet_121
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 8
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a60ce03251709f6d0800000000000000
+      internalID: -2956323893028142998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 1287
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d33d3baac73bffb0800000000000000
+      internalID: -4613032049715104807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e92875f556108fa0800000000000000
+      internalID: -5800611761606874650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 1287
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84d222d2152a063c0800000000000000
+      internalID: -4368313169016115896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48b687b0b34bf5100800000000000000
+      internalID: 98995882513951620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 1287
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a232ad49ffe092330800000000000000
+      internalID: 3686494260856234794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fafdfa8f5f545820800000000000000
+      internalID: 2906052523519245042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 1287
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fc8519ae1634c110800000000000000
+      internalID: 1280207699393744119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2fd91c4d902aad00800000000000000
+      internalID: 984635328492592941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 1287
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d9ffc7a114873500800000000000000
+      internalID: 375914305273461204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 1287
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 794991836448b9c00800000000000000
+      internalID: 908465186969064599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d64e11ca9cc626c0800000000000000
+      internalID: -4168419440047798569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 1159
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7d888eb113f3dc80800000000000000
+      internalID: -8299022430777078406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f216bc6e68dcdc30800000000000000
+      internalID: 4385618105933894391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 1159
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8df725bc8e57dd610800000000000000
+      internalID: 1647602681391513560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6221c17b527f93300800000000000000
+      internalID: 232488597144212006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 1159
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 950517f1b0a3f94d0800000000000000
+      internalID: -3125715796925263783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a9483ee098f732c0800000000000000
+      internalID: -4451816405276800600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 1159
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 614cdc708365157f0800000000000000
+      internalID: -625624074578705386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8852e2993b4e7f9d0800000000000000
+      internalID: -2740470388211440248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 1159
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed4e8f47582dd0180800000000000000
+      internalID: -9147423797484657442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 1159
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 699b4ee285dbffa40800000000000000
+      internalID: 5404246264309397910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a3c8a6cc726a1e10800000000000000
+      internalID: 2169154458580730791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 1031
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d73b8bbfbefa29c80800000000000000
+      internalID: -8317392133724523651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9260e3bc2a4fa1a70800000000000000
+      internalID: 8798613802053404201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_25
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 1031
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 097d859c0aed07c10800000000000000
+      internalID: 2049382612607752080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_26
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b979fa25cb5d819c0800000000000000
+      internalID: -3956177267827173477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_27
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 1031
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6712661f147984090800000000000000
+      internalID: -8050018024446090890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_28
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a668faa6ee5331c0800000000000000
+      internalID: -4525168855773321568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_29
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 1031
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b165ad90e47684f0800000000000000
+      internalID: -826844973509549641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce15a07b0e62224a0800000000000000
+      internalID: -6619685755695771156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 1031
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92e13d51054bdfba0800000000000000
+      internalID: -6053484068059537879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 1031
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d51d9714a46a4ab0800000000000000
+      internalID: -5023091778444782124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7abcaf3943d22e520800000000000000
+      internalID: 2729794027984178087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 903
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2926aae9ba04aa260800000000000000
+      internalID: 7109566067603301010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c580fcd1b6eb89e80800000000000000
+      internalID: -8171572156592879524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_36
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 903
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e30077b7c5aab280800000000000000
+      internalID: -9026720225916091416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_37
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0ec50504742831a0800000000000000
+      internalID: -6829668754188284401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_38
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 903
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4310da6a89b9d82a0800000000000000
+      internalID: -6733554787915333324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_39
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e833771c2cd75d00800000000000000
+      internalID: 961479127396989160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_40
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 903
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa25f70c4991514f0800000000000000
+      internalID: -858752027268787542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_41
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d1c5162a952b05d0800000000000000
+      internalID: -3095338974892932648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_42
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 903
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b509c3276a7b0060800000000000000
+      internalID: 6920759835785495990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_43
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 903
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4df0527ece1ec680800000000000000
+      internalID: -8733008755394806452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_44
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de416ea92b72c9520800000000000000
+      internalID: 2710084723826627821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_45
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 775
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2c6b6a12fbdbef30800000000000000
+      internalID: 4606016876788280367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_46
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 131873b77f6610010800000000000000
+      internalID: 1153316192693748017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_47
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 775
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1a2d3a58e09fd730800000000000000
+      internalID: 4026095919513283099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_48
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d04c83ab868ad0f0800000000000000
+      internalID: -1091412025381470000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_49
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 775
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d16473ebfe3ec6f0800000000000000
+      internalID: -662522843603115562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_50
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdc84c4ce1b497750800000000000000
+      internalID: 6303151749004037339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_51
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 775
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b4d8c8cdc6d1a2c0800000000000000
+      internalID: -4422017179775871819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_52
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43079f9c06910e100800000000000000
+      internalID: 135135892317237300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_53
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 775
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dfb5459d4e6e6340800000000000000
+      internalID: 4858942327475257297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_54
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 775
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4156d31ee4c5160c0800000000000000
+      internalID: -4584281451830352620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_55
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ac1af1f10057f9a0800000000000000
+      internalID: -6199398392767308636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_56
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 647
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14adc434a13326490800000000000000
+      internalID: -7754579420487296447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_57
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b17a8ff154d54a60800000000000000
+      internalID: 7657760190058099124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_58
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 647
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: edbccca7fc45a87c0800000000000000
+      internalID: -4068346063280616482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_59
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 988339f8a1b413760800000000000000
+      internalID: 7435807037215422601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_60
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 647
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49270d8130b94e9b0800000000000000
+      internalID: -5051742444399332716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_61
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f94c008d1bfb7b4b0800000000000000
+      internalID: -5424656455590427489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_62
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 647
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 016268742cb022c90800000000000000
+      internalID: -7196176325533096432
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_63
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7957a152db32c0e60800000000000000
+      internalID: 7929752339170882967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_64
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 647
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc9262718a4760540800000000000000
+      internalID: 4973791103768996301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_65
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 647
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15f56042e9ed259b0800000000000000
+      internalID: -5092763457812013231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_66
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f52183c421b3b940800000000000000
+      internalID: 5310783157056906741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_67
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 519
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f1571c8db4d1d050800000000000000
+      internalID: 5823669703731007987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_68
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3613cf1d7b758a6c0800000000000000
+      internalID: -4131956211098832541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_69
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 519
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86ca2b9ff549fc0b0800000000000000
+      internalID: -5706179062923088792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_70
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48bb936baebc85d90800000000000000
+      internalID: -7108707802864305276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_71
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 519
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df794d39b061d3a10800000000000000
+      internalID: 1890691657546110973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_72
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a30f40a4442ae0d0800000000000000
+      internalID: -3392859492104338526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_73
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 519
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29eb83760091d1ea0800000000000000
+      internalID: -5900532447263015278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_74
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ab8d20ba62c6dc10800000000000000
+      internalID: 2078062041556159396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_75
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 519
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9b355a9b637bc730800000000000000
+      internalID: 4020433998346271647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_76
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 519
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0eb7b32f4fb7ca730800000000000000
+      internalID: 4011717660046490592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_77
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8e21644ddfe922a0800000000000000
+      internalID: -6761609631906058614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_78
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c5a2ef467c8b67a0800000000000000
+      internalID: -6382853607093262905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_79
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0ba30959c8494e50800000000000000
+      internalID: 6794041542484142863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_80
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb8ba74d41a801030800000000000000
+      internalID: 3463419935516702907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_81
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14bfdac8d309e21e0800000000000000
+      internalID: -2220678972219458751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_82
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10a6cacc24a9ccdc0800000000000000
+      internalID: -3617346788992980479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_83
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ced7e84a6b2a969a0800000000000000
+      internalID: -6239276903416562196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_84
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5719e8d40b8cec5d0800000000000000
+      internalID: -3040272038887517835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_85
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4fb6b705c8a320dc0800000000000000
+      internalID: -3674309971660805132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_86
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a1a8ff02a93aeb10800000000000000
+      internalID: 2011483551789785512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_87
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f50a2d408a6f9640800000000000000
+      internalID: 5088903203234907635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_88
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95338647ced723920800000000000000
+      internalID: 2968573558909317977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_89
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71050c406019924f0800000000000000
+      internalID: -852991199374454761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_90
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a6df8922b4585380800000000000000
+      internalID: -8982336332612249949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_91
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8cb2c495f438a5c0800000000000000
+      internalID: -4204052022782935925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_92
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c657db6036b74bb60800000000000000
+      internalID: 7760963723111265644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_93
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b533ab7a49c73f5b0800000000000000
+      internalID: -5335784155592903845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_94
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3f83c99ac8d7c200800000000000000
+      internalID: 200367073116000062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_95
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba0e252c8a3a84ad0800000000000000
+      internalID: -2717742429908049749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_96
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0164ae37efd33b40800000000000000
+      internalID: 5418920960938238218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_97
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5d5ed3c9ff30fd20800000000000000
+      internalID: 3310216068082851162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_98
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 907fa9442543bb8d0800000000000000
+      internalID: -2829610412929255671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_99
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 72d36a91469f54160800000000000000
+      internalID: 7009282603394415911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_100
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 135
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f4f2d2bfb535ba70800000000000000
+      internalID: 8842032540867032310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_101
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48500051a693ada70800000000000000
+      internalID: 8852451145331770756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_102
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 135
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c1d2cfe539ec3440800000000000000
+      internalID: 4917061311046799812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_103
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91be15a714a448800800000000000000
+      internalID: 613697094314748697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_104
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 135
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 611fb7ed2a9fb9cb0800000000000000
+      internalID: -4856013295276265194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_105
+      rect:
+        serializedVersion: 2
+        x: 783
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 294fbf7395ddc5d50800000000000000
+      internalID: 6727495318645765266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_106
+      rect:
+        serializedVersion: 2
+        x: 907
+        y: 135
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12b3a1f7db4bce5f0800000000000000
+      internalID: -726006713939248351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_107
+      rect:
+        serializedVersion: 2
+        x: 1039
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b5961a4fa3fdf060800000000000000
+      internalID: 6989010130936698290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_108
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 135
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddf4cbe9eb379b510800000000000000
+      internalID: 1565409608032079837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_109
+      rect:
+        serializedVersion: 2
+        x: 1295
+        y: 135
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcddcc171ae55a7e0800000000000000
+      internalID: -1754892432298943029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_110
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 656ac76813dc3ac00800000000000000
+      internalID: 910797162252379734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_111
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69aa077129bf19f80800000000000000
+      internalID: -8101417649785754986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_112
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c0503acbdc0d2230800000000000000
+      internalID: 3615560213977911489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_113
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 103c413b21a175aa0800000000000000
+      internalID: -6172436096671759615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_114
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a9e22a388ae68450800000000000000
+      internalID: 6090813416876992936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_115
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82726da2a91b2ad80800000000000000
+      internalID: -8240829092432828632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_116
+      rect:
+        serializedVersion: 2
+        x: 779
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ffa16cc8566568f0800000000000000
+      internalID: -547919248083537935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_117
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6292c28d96d30160800000000000000
+      internalID: 6990667018601140842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_118
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28de10221e82d0090800000000000000
+      internalID: -8066746410147385982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_119
+      rect:
+        serializedVersion: 2
+        x: 1167
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efc57268cae26be40800000000000000
+      internalID: 5671772099239697662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_120
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 7
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85d007d309bb95e10800000000000000
+      internalID: 2186985322245524824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KeyboardGlyphs-Sheet_121
+      rect:
+        serializedVersion: 2
+        x: 1423
+        y: 7
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b526f784a16cabc80800000000000000
+      internalID: -8306108746543701413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: c47005c6750e2c34c9369485cc9e6f70
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":6,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      KeyboardGlyphs-Sheet_0: -2956323893028142998
+      KeyboardGlyphs-Sheet_1: -4613032049715104807
+      KeyboardGlyphs-Sheet_10: 908465186969064599
+      KeyboardGlyphs-Sheet_100: 8842032540867032310
+      KeyboardGlyphs-Sheet_101: 8852451145331770756
+      KeyboardGlyphs-Sheet_102: 4917061311046799812
+      KeyboardGlyphs-Sheet_103: 613697094314748697
+      KeyboardGlyphs-Sheet_104: -4856013295276265194
+      KeyboardGlyphs-Sheet_105: 6727495318645765266
+      KeyboardGlyphs-Sheet_106: -726006713939248351
+      KeyboardGlyphs-Sheet_107: 6989010130936698290
+      KeyboardGlyphs-Sheet_108: 1565409608032079837
+      KeyboardGlyphs-Sheet_109: -1754892432298943029
+      KeyboardGlyphs-Sheet_11: -4168419440047798569
+      KeyboardGlyphs-Sheet_110: 910797162252379734
+      KeyboardGlyphs-Sheet_111: -8101417649785754986
+      KeyboardGlyphs-Sheet_112: 3615560213977911489
+      KeyboardGlyphs-Sheet_113: -6172436096671759615
+      KeyboardGlyphs-Sheet_114: 6090813416876992936
+      KeyboardGlyphs-Sheet_115: -8240829092432828632
+      KeyboardGlyphs-Sheet_116: -547919248083537935
+      KeyboardGlyphs-Sheet_117: 6990667018601140842
+      KeyboardGlyphs-Sheet_118: -8066746410147385982
+      KeyboardGlyphs-Sheet_119: 5671772099239697662
+      KeyboardGlyphs-Sheet_12: -8299022430777078406
+      KeyboardGlyphs-Sheet_120: 2186985322245524824
+      KeyboardGlyphs-Sheet_121: -8306108746543701413
+      KeyboardGlyphs-Sheet_13: 4385618105933894391
+      KeyboardGlyphs-Sheet_14: 1647602681391513560
+      KeyboardGlyphs-Sheet_15: 232488597144212006
+      KeyboardGlyphs-Sheet_16: -3125715796925263783
+      KeyboardGlyphs-Sheet_17: -4451816405276800600
+      KeyboardGlyphs-Sheet_18: -625624074578705386
+      KeyboardGlyphs-Sheet_19: -2740470388211440248
+      KeyboardGlyphs-Sheet_2: -5800611761606874650
+      KeyboardGlyphs-Sheet_20: -9147423797484657442
+      KeyboardGlyphs-Sheet_21: 5404246264309397910
+      KeyboardGlyphs-Sheet_22: 2169154458580730791
+      KeyboardGlyphs-Sheet_23: -8317392133724523651
+      KeyboardGlyphs-Sheet_24: 8798613802053404201
+      KeyboardGlyphs-Sheet_25: 2049382612607752080
+      KeyboardGlyphs-Sheet_26: -3956177267827173477
+      KeyboardGlyphs-Sheet_27: -8050018024446090890
+      KeyboardGlyphs-Sheet_28: -4525168855773321568
+      KeyboardGlyphs-Sheet_29: -826844973509549641
+      KeyboardGlyphs-Sheet_3: -4368313169016115896
+      KeyboardGlyphs-Sheet_30: -6619685755695771156
+      KeyboardGlyphs-Sheet_31: -6053484068059537879
+      KeyboardGlyphs-Sheet_32: -5023091778444782124
+      KeyboardGlyphs-Sheet_33: 2729794027984178087
+      KeyboardGlyphs-Sheet_34: 7109566067603301010
+      KeyboardGlyphs-Sheet_35: -8171572156592879524
+      KeyboardGlyphs-Sheet_36: -9026720225916091416
+      KeyboardGlyphs-Sheet_37: -6829668754188284401
+      KeyboardGlyphs-Sheet_38: -6733554787915333324
+      KeyboardGlyphs-Sheet_39: 961479127396989160
+      KeyboardGlyphs-Sheet_4: 98995882513951620
+      KeyboardGlyphs-Sheet_40: -858752027268787542
+      KeyboardGlyphs-Sheet_41: -3095338974892932648
+      KeyboardGlyphs-Sheet_42: 6920759835785495990
+      KeyboardGlyphs-Sheet_43: -8733008755394806452
+      KeyboardGlyphs-Sheet_44: 2710084723826627821
+      KeyboardGlyphs-Sheet_45: 4606016876788280367
+      KeyboardGlyphs-Sheet_46: 1153316192693748017
+      KeyboardGlyphs-Sheet_47: 4026095919513283099
+      KeyboardGlyphs-Sheet_48: -1091412025381470000
+      KeyboardGlyphs-Sheet_49: -662522843603115562
+      KeyboardGlyphs-Sheet_5: 3686494260856234794
+      KeyboardGlyphs-Sheet_50: 6303151749004037339
+      KeyboardGlyphs-Sheet_51: -4422017179775871819
+      KeyboardGlyphs-Sheet_52: 135135892317237300
+      KeyboardGlyphs-Sheet_53: 4858942327475257297
+      KeyboardGlyphs-Sheet_54: -4584281451830352620
+      KeyboardGlyphs-Sheet_55: -6199398392767308636
+      KeyboardGlyphs-Sheet_56: -7754579420487296447
+      KeyboardGlyphs-Sheet_57: 7657760190058099124
+      KeyboardGlyphs-Sheet_58: -4068346063280616482
+      KeyboardGlyphs-Sheet_59: 7435807037215422601
+      KeyboardGlyphs-Sheet_6: 2906052523519245042
+      KeyboardGlyphs-Sheet_60: -5051742444399332716
+      KeyboardGlyphs-Sheet_61: -5424656455590427489
+      KeyboardGlyphs-Sheet_62: -7196176325533096432
+      KeyboardGlyphs-Sheet_63: 7929752339170882967
+      KeyboardGlyphs-Sheet_64: 4973791103768996301
+      KeyboardGlyphs-Sheet_65: -5092763457812013231
+      KeyboardGlyphs-Sheet_66: 5310783157056906741
+      KeyboardGlyphs-Sheet_67: 5823669703731007987
+      KeyboardGlyphs-Sheet_68: -4131956211098832541
+      KeyboardGlyphs-Sheet_69: -5706179062923088792
+      KeyboardGlyphs-Sheet_7: 1280207699393744119
+      KeyboardGlyphs-Sheet_70: -7108707802864305276
+      KeyboardGlyphs-Sheet_71: 1890691657546110973
+      KeyboardGlyphs-Sheet_72: -3392859492104338526
+      KeyboardGlyphs-Sheet_73: -5900532447263015278
+      KeyboardGlyphs-Sheet_74: 2078062041556159396
+      KeyboardGlyphs-Sheet_75: 4020433998346271647
+      KeyboardGlyphs-Sheet_76: 4011717660046490592
+      KeyboardGlyphs-Sheet_77: -6761609631906058614
+      KeyboardGlyphs-Sheet_78: -6382853607093262905
+      KeyboardGlyphs-Sheet_79: 6794041542484142863
+      KeyboardGlyphs-Sheet_8: 984635328492592941
+      KeyboardGlyphs-Sheet_80: 3463419935516702907
+      KeyboardGlyphs-Sheet_81: -2220678972219458751
+      KeyboardGlyphs-Sheet_82: -3617346788992980479
+      KeyboardGlyphs-Sheet_83: -6239276903416562196
+      KeyboardGlyphs-Sheet_84: -3040272038887517835
+      KeyboardGlyphs-Sheet_85: -3674309971660805132
+      KeyboardGlyphs-Sheet_86: 2011483551789785512
+      KeyboardGlyphs-Sheet_87: 5088903203234907635
+      KeyboardGlyphs-Sheet_88: 2968573558909317977
+      KeyboardGlyphs-Sheet_89: -852991199374454761
+      KeyboardGlyphs-Sheet_9: 375914305273461204
+      KeyboardGlyphs-Sheet_90: -8982336332612249949
+      KeyboardGlyphs-Sheet_91: -4204052022782935925
+      KeyboardGlyphs-Sheet_92: 7760963723111265644
+      KeyboardGlyphs-Sheet_93: -5335784155592903845
+      KeyboardGlyphs-Sheet_94: 200367073116000062
+      KeyboardGlyphs-Sheet_95: -2717742429908049749
+      KeyboardGlyphs-Sheet_96: 5418920960938238218
+      KeyboardGlyphs-Sheet_97: 3310216068082851162
+      KeyboardGlyphs-Sheet_98: -2829610412929255671
+      KeyboardGlyphs-Sheet_99: 7009282603394415911
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

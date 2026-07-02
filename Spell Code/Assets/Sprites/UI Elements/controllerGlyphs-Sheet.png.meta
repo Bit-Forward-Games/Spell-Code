@@ -1,0 +1,769 @@
+fileFormatVersion: 2
+guid: bdd78670832f26540b6e9045d51db0bc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7927294263317407702
+    second: controllerGlyphs-Sheet_0
+  - first:
+      213: 3520284633414411570
+    second: controllerGlyphs-Sheet_1
+  - first:
+      213: -5557327527197545082
+    second: controllerGlyphs-Sheet_2
+  - first:
+      213: 1617118513864425179
+    second: controllerGlyphs-Sheet_3
+  - first:
+      213: -6953647677452329359
+    second: controllerGlyphs-Sheet_4
+  - first:
+      213: 4226463150391880514
+    second: controllerGlyphs-Sheet_5
+  - first:
+      213: -6446649701051234157
+    second: controllerGlyphs-Sheet_6
+  - first:
+      213: -5373448210046345756
+    second: controllerGlyphs-Sheet_7
+  - first:
+      213: -96520331054976668
+    second: controllerGlyphs-Sheet_8
+  - first:
+      213: -9161534423967583930
+    second: controllerGlyphs-Sheet_9
+  - first:
+      213: 7647416507626993840
+    second: controllerGlyphs-Sheet_10
+  - first:
+      213: 6050547735787809930
+    second: controllerGlyphs-Sheet_11
+  - first:
+      213: -5589139702276274138
+    second: controllerGlyphs-Sheet_12
+  - first:
+      213: -5007903731445753342
+    second: controllerGlyphs-Sheet_13
+  - first:
+      213: -8975916139393854803
+    second: controllerGlyphs-Sheet_14
+  - first:
+      213: -6548266345592771952
+    second: controllerGlyphs-Sheet_15
+  - first:
+      213: 1728648205034124854
+    second: controllerGlyphs-Sheet_16
+  - first:
+      213: 2936899526262069577
+    second: controllerGlyphs-Sheet_17
+  - first:
+      213: 770349149303787011
+    second: controllerGlyphs-Sheet_18
+  - first:
+      213: -7072975824786761220
+    second: controllerGlyphs-Sheet_19
+  - first:
+      213: 7466483262864993540
+    second: controllerGlyphs-Sheet_20
+  - first:
+      213: 5498379665649137850
+    second: controllerGlyphs-Sheet_21
+  - first:
+      213: -6350466874947390775
+    second: controllerGlyphs-Sheet_22
+  - first:
+      213: 1384778263579185915
+    second: controllerGlyphs-Sheet_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 8
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d7a603c128630e60800000000000000
+      internalID: 7927294263317407702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 391
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 235aeea09309ad030800000000000000
+      internalID: 3520284633414411570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 391
+        width: 110
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68de3e8de0860e2b0800000000000000
+      internalID: -5557327527197545082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdeb89278b8217610800000000000000
+      internalID: 1617118513864425179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 391
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17edb34874eaf7f90800000000000000
+      internalID: -6953647677452329359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 391
+        width: 106
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24be26fa7d967aa30800000000000000
+      internalID: 4226463150391880514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3988671b046e886a0800000000000000
+      internalID: -6446649701051234157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 263
+        width: 106
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ed9a3d925dad65b0800000000000000
+      internalID: -5373448210046345756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 263
+        width: 110
+        height: 106
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4617dd1354719aef0800000000000000
+      internalID: -96520331054976668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64136e53bf0bbd080800000000000000
+      internalID: -9161534423967583930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 263
+        width: 110
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b8b092cbc4112a60800000000000000
+      internalID: 7647416507626993840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 263
+        width: 106
+        height: 110
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8c2d28cb1dd7f350800000000000000
+      internalID: 6050547735787809930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 149
+        width: 82
+        height: 82
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6284ac5ad036f62b0800000000000000
+      internalID: -5589139702276274138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 149
+        width: 78
+        height: 78
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20a92d9d61a508ab0800000000000000
+      internalID: -5007903731445753342
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 149
+        width: 82
+        height: 82
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da2dbb1e3d32f6380800000000000000
+      internalID: -8975916139393854803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 149
+        width: 78
+        height: 78
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09a2c40f372ef15a0800000000000000
+      internalID: -6548266345592771952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 157
+        width: 82
+        height: 62
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 636fcaa32646df710800000000000000
+      internalID: 1728648205034124854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 669
+        y: 157
+        width: 78
+        height: 58
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9491ddb0f86f1c820800000000000000
+      internalID: 2936899526262069577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 793
+        y: 157
+        width: 82
+        height: 62
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30ec6454874d0ba00800000000000000
+      internalID: 770349149303787011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 925
+        y: 157
+        width: 78
+        height: 58
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf9d8aa26fdb7dd90800000000000000
+      internalID: -7072975824786761220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 29
+        y: 41
+        width: 74
+        height: 42
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40da77ce7f64e9760800000000000000
+      internalID: 7466483262864993540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 41
+        width: 70
+        height: 38
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab87f3b9c2b2e4c40800000000000000
+      internalID: 5498379665649137850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 285
+        y: 41
+        width: 74
+        height: 42
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c230e0060c9ed7a0800000000000000
+      internalID: -6350466874947390775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: controllerGlyphs-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 41
+        width: 70
+        height: 38
+      alignment: 6
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf2d15d6e78b73310800000000000000
+      internalID: 1384778263579185915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: ac98beca78d730d4fb1058a6644ae308
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":6,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      controllerGlyphs-Sheet_0: 7927294263317407702
+      controllerGlyphs-Sheet_1: 3520284633414411570
+      controllerGlyphs-Sheet_10: 7647416507626993840
+      controllerGlyphs-Sheet_11: 6050547735787809930
+      controllerGlyphs-Sheet_12: -5589139702276274138
+      controllerGlyphs-Sheet_13: -5007903731445753342
+      controllerGlyphs-Sheet_14: -8975916139393854803
+      controllerGlyphs-Sheet_15: -6548266345592771952
+      controllerGlyphs-Sheet_16: 1728648205034124854
+      controllerGlyphs-Sheet_17: 2936899526262069577
+      controllerGlyphs-Sheet_18: 770349149303787011
+      controllerGlyphs-Sheet_19: -7072975824786761220
+      controllerGlyphs-Sheet_2: -5557327527197545082
+      controllerGlyphs-Sheet_20: 7466483262864993540
+      controllerGlyphs-Sheet_21: 5498379665649137850
+      controllerGlyphs-Sheet_22: -6350466874947390775
+      controllerGlyphs-Sheet_23: 1384778263579185915
+      controllerGlyphs-Sheet_3: 1617118513864425179
+      controllerGlyphs-Sheet_4: -6953647677452329359
+      controllerGlyphs-Sheet_5: 4226463150391880514
+      controllerGlyphs-Sheet_6: -6446649701051234157
+      controllerGlyphs-Sheet_7: -5373448210046345756
+      controllerGlyphs-Sheet_8: -96520331054976668
+      controllerGlyphs-Sheet_9: -9161534423967583930
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1064,7 +1064,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
             {
                 if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
                 {
@@ -1078,22 +1078,6 @@ public class PlayerController : MonoBehaviour
                     {
                         pause.Pausing();
                     }
-                }
-            }
-        }
-
-        {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
-            {
-                pause.playerPauseIndex = _playerPauseIndex;
-
-                if (pause.paused)
-                {
-                    pause.Resume();
-                }
-                else
-                {
-                    pause.Pausing();
                 }
             }
         }

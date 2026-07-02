@@ -147,6 +147,8 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> gambas;
 
+    public GameObject buttons;
+
     [Header("Online UI")]
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
@@ -414,7 +416,7 @@ public class GameManager : MonoBehaviour
         InitializeWithSeed(offlineSeed);
 
 
-        SetStage(-1);
+        SetStage(-4);
 
         SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
@@ -435,6 +437,7 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "SoloLobby");
             SetNetworkInfoVisible(false);
         }
         else
@@ -477,6 +480,14 @@ public class GameManager : MonoBehaviour
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 #endif
     }
+    public void loadMainMenu()
+    {
+        sceneManager.LoadScene("MainMenu");
+        SetStage(-1);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
     public void LoadTutorial()
     {
         
@@ -2933,10 +2944,16 @@ public class GameManager : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            if (activeScene.name == "MainMenu")
+            if (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
+
+                if (playerCount >= 1 && activeScene.name == "SoloLobby")
+                {
+                    playerInputManager.DisableJoining();
+                    playerInputManager.enabled = false;
+                }
             }
             else
             {
@@ -2992,6 +3009,7 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
+            buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
@@ -3014,7 +3032,7 @@ public class GameManager : MonoBehaviour
 
         if (activeScene.name == "SoloLobby")
         {
-            
+            buttons.SetActive(false);
         }
 
         if (activeScene.name == "MainMenu")
@@ -4574,6 +4592,7 @@ public class GameManager : MonoBehaviour
         lobbyMapGO.SetActive(false);
         tutorialMapGO.SetActive(false);
         trainingGroundsGO.SetActive(false);
+        soloLobbyGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()

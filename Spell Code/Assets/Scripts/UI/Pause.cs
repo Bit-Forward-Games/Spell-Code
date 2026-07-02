@@ -465,6 +465,7 @@ public class Pause : MonoBehaviour
  
     public void Resume()
     {
+        Debug.Log("RESUMING GAME");
         if (paused)
         {
             //play the resume sfx

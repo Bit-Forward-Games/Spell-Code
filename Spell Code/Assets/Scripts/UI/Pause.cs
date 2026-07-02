@@ -97,6 +97,9 @@ public class Pause : MonoBehaviour
     private const float NAV_COOLDOWN_TIME = 0.2f;
     // Track last frame's nav value to detect fresh presses
     private Vector2 lastNavValue = Vector2.zero;
+
+    public TMP_FontAsset digitalBorderedFont;
+    public TMP_FontAsset digitalNormalFont;
  
     public class Column
     {
@@ -235,6 +238,8 @@ public class Pause : MonoBehaviour
     void Update()
     {
         ScopeUiInputToPausePlayer();
+
+        GameObject selectedGO = EventSystem.current.currentSelectedGameObject;
 
         if (spells)
         {
@@ -1111,6 +1116,15 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        if (IsOnlineMatchActive())
+        {
+            devices = CopyValidDevices(InputSystem.devices);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
+        }
+
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
         if (playerInput != null && playerInput.devices.Count > 0)
         {
@@ -1121,9 +1135,9 @@ public class Pause : MonoBehaviour
             }
         }
 
-        if (player.playerInputs != null && player.playerInputs.devices.HasValue)
+        if (player.inputs != null && player.inputs.PlayerActionMap.devices.HasValue)
         {
-            devices = CopyValidDevices(player.playerInputs.devices.Value);
+            devices = CopyValidDevices(player.inputs.PlayerActionMap.devices.Value);
             if (devices.Length > 0)
             {
                 return true;
@@ -1236,7 +1250,7 @@ public class Pause : MonoBehaviour
             }
         }
 
-        return player.playerInputs != null ? player.playerInputs.FindAction($"Gameplay/{actionName}", false) : null;
+        return player.inputs.PlayerActionMap != null ? player.inputs.PlayerActionMap.FindAction($"Gameplay/{actionName}", false) : null;
     }
 
     private PlayerController GetPausePlayer()

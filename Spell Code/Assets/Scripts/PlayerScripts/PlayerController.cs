@@ -81,19 +81,7 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer playerSpriteRenderer;
     //INPUTS
     public InputPlayerBindings inputs;
-    public InputActionAsset playerInputs;
-    private InputAction upAction;
-    private InputAction downAction;
-    private InputAction leftAction;
-    private InputAction rightAction;
-    private InputAction codeAction;
-    private InputAction jumpAction;
-    private InputAction pauseAction;
-    private readonly bool[] direction = new bool[4];
-    private readonly bool[] codeButton = new bool[2];
-    private readonly bool[] jumpButton = new bool[2];
-    private readonly bool[] pauseButton = new bool[2];
-    private readonly ButtonState[] buttons = new ButtonState[3];
+    //public InputActionAsset playerInputs;
     private int _pendingHitboxOwnerIndex = -1;
     public InputSnapshot input;
     private ushort prevDoubleTapDirection;
@@ -166,6 +154,16 @@ public class PlayerController : MonoBehaviour
     public ushort demonAuraLifeSpanTimer = 0;
     public ushort reps = 0;
 
+    private void ResetSpellResources()
+    {
+        flowState = 0;
+        stockStability = 0;
+        stockStabilityModified = 0;
+        demonAura = 0;
+        demonAuraLifeSpanTimer = 0;
+        reps = 0;
+    }
+
 
 
     //MATCH STATS
@@ -187,6 +185,8 @@ public class PlayerController : MonoBehaviour
     public const ushort baseRamKillBonus = 50;
     [NonSerialized]
     public const ushort baseRamLifeWorth = 250;
+    [NonSerialized]
+    public bool hasHighestBounty = false;
 
     // Push Box Variables
     [HideInInspector]
@@ -323,20 +323,7 @@ public class PlayerController : MonoBehaviour
     }
     void Start()
     {
-        if(GetComponent<PlayerInput>() != null && GetComponent<PlayerInput>().user.valid)
-        {
-            upAction = playerInputs.actionMaps[0].FindAction("Up");
-            downAction = playerInputs.actionMaps[0].FindAction("Down");
-            leftAction = playerInputs.actionMaps[0].FindAction("Left");
-            rightAction = playerInputs.actionMaps[0].FindAction("Right");
-            codeAction = playerInputs.actionMaps[0].FindAction("Code");
-            jumpAction = playerInputs.actionMaps[0].FindAction("Jump");
-            pauseAction = playerInputs.actionMaps[0].FindAction("Pause");
-        }
-        else
-        {
-            Debug.Log("dummy");
-        }
+        
         logicFrame = 0;
 
         //bufferInput = InputConverter.ConvertFromLong(5);
@@ -540,6 +527,8 @@ public class PlayerController : MonoBehaviour
         jumpForce = Fixed.FromInt(charData.jumpForce);
         playerWidth = Fixed.FromInt(charData.playerWidth);
         playerHeight = Fixed.FromInt(charData.playerHeight);
+        maxJumpCount = (byte)charData.jumpCount;
+        jumpCount = maxJumpCount;
         iframes = 180; //you get 3 sec of invul on spawn
         storedCode = 0;
         storedCodeDuration = 0;
@@ -554,14 +543,9 @@ public class PlayerController : MonoBehaviour
         //stop super armor VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pID, true);
 
-        if(pID == 0)return;
+        ResetSpellResources();
 
-        //initialize resources
-        flowState = 0;
-        //stockStability = GetPersistentStockStabilityFromSpellList();
-        stockStability = 0;
-        demonAura = 0;
-        reps = 0;
+        if(pID == 0)return;
 
         //call the load spell function for the starting spell to initialize the spell's variables and projectile data
         suppressSpellLoadSideEffects = true;
@@ -733,12 +717,7 @@ public class PlayerController : MonoBehaviour
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
-        flowState = 0; //the timer for how long you are in flow state
-        stockStability = 0; //percentage chance to crit before modifiers, e.g. 25 = 25% chance
-        stockStabilityModified = 0; //crit chance after modifiers
-        demonAura = 0;
-        demonAuraLifeSpanTimer = 0;
-        reps = 0;
+        ResetSpellResources();
 
     int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
@@ -875,10 +854,7 @@ public class PlayerController : MonoBehaviour
         times = new List<Fixed>();
 
         //passive resources
-        flowState = 0;
-        stockStability = 0;
-        demonAura = 0;
-        reps = 0;
+        ResetSpellResources();
         //momentum = 0;
         //slimed = false;
         storedCode = 0;
@@ -1977,10 +1953,6 @@ public class PlayerController : MonoBehaviour
 
     private bool WasPausePressedThisFrame()
     {
-        if (pauseAction != null && pauseAction.WasPressedThisFrame())
-        {
-            return true;
-        }
 
         return inputs != null
             && inputs.PauseAction != null
@@ -2756,6 +2728,17 @@ public class PlayerController : MonoBehaviour
             //stop playing the reps visual effect
             VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pID);
         }
+
+        if(hasHighestBounty)
+        {
+            //play the bounty aura effect
+            VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, position + FixedVec2.FromFloat(0f, 102f), pID, this.gameObject.transform);
+        }
+        else
+        {
+            //remove the bounty VFX from this player
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, pID, true);
+        }
     }
 
     /// <summary>
@@ -3264,25 +3247,6 @@ public class PlayerController : MonoBehaviour
             lerpDelay++;
         }
     }
-    private void UpdateInputs()
-    {
-        direction[0] = upAction.inProgress;
-        direction[1] = downAction.inProgress;
-        direction[2] = leftAction.inProgress;
-        direction[3] = rightAction.inProgress;
-
-        codeButton[0] = codeButton[1];
-        jumpButton[0] = jumpButton[1];
-        pauseButton[0] = pauseButton[1];
-
-        codeButton[1] = codeAction.inProgress;
-        jumpButton[1] = jumpAction.inProgress;
-        pauseButton[1] = pauseAction.inProgress;
-
-        buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
-        buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
-        buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
-    }
 
     public InputSnapshot BufferInputs(InputSnapshot targetInput)
     {
@@ -3404,6 +3368,14 @@ public class PlayerController : MonoBehaviour
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
+        // `input` is sim state: PlayerUpdate consumes LAST frame's snapshot (prevDoubleTapDirection
+        // capture at its top, plus cross-player reads by later-indexed players' spells) before
+        // overwriting it with this frame's raw input. If it isn't restored on LoadState, the first
+        // resimulated frame after a rollback consumes the pre-rollback (future) input instead of the
+        // restored frame's — per-machine, timing-dependent divergence surfacing as pXcore[code]
+        // (double-tap fields) or pXcore[physics] (platDropping flips a platform drop) desyncs.
+        // ButtonStates is null until SpawnPlayer runs; encode that as neutral (direction 5).
+        bw.Write(input.ButtonStates != null ? InputConverter.ConvertFromInputSnapshot(input) : (short)5);
         bw.Write(platDropping);
         //bw.Write(momentum);
         //bw.Write(slimed);
@@ -3429,6 +3401,17 @@ public class PlayerController : MonoBehaviour
             SerializeSpellStateInline(bw, spellList[i]);
         }
 
+        // Universal passive spells (FlowState/DemonAura/StockStability/Reps + any others) carry
+        // per-instance runtime state that drives CORE resource fields, but were previously neither
+        // saved nor hashed so their state was NOT restored on rollback and could desync core.
+        // Serialize them like the spell list. universalSpells is a deterministic fixed set (same
+        // order on every client via EnsureUniversalSpells), so it restores by index on Deserialize.
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -3441,9 +3424,28 @@ public class PlayerController : MonoBehaviour
         {
             SerializeSpellStateInline(bw, spellList[i]);
         }
+        // Include universal passives so their state is part of the hash (see Serialize).
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
+        }
     }
 
     public void SerializeGameplayCoreHash(BinaryWriter bw)
+    {
+        // Core state is split into four labeled sub-groups so a desync report can name WHICH part of
+        // core diverged (physics / combat / resource / code) from a single machine's log, instead of
+        // just "pXcore". These four together cover exactly the core-hashed fields; the grouped order
+        // means the composite core-hash value differs from older builds, so all clients must match build.
+        SerializeCorePhysicsHash(bw);
+        SerializeCoreCombatHash(bw);
+        SerializeCoreResourceHash(bw);
+        SerializeCoreCodeHash(bw);
+    }
+
+    // Movement / position / state-machine fields.
+    public void SerializeCorePhysicsHash(BinaryWriter bw)
     {
         bw.Write(position.X.RawValue);
         bw.Write(position.Y.RawValue);
@@ -3452,19 +3454,24 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
-        bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write(logicFrame);
-        bw.Write(stateSpecificArg);
+        bw.Write(jumpCount);
+        bw.Write(maxJumpCount);
+        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
+        bw.Write(downJumpSlide);
+        bw.Write(platDropping);
+    }
+
+    // Health / hits / armor / combo.
+    public void SerializeCoreCombatHash(BinaryWriter bw)
+    {
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(superArmor);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
-        bw.Write(GetSpellSerializationId(basicSpawnOverride));
-        bw.Write(storedCode);
-        bw.Write(storedCodeDuration);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -3492,24 +3499,36 @@ public class PlayerController : MonoBehaviour
                 : -1;
             bw.Write(projPrefabIndex);
         }
+    }
 
+    // Resource meters (managed by the universal passives).
+    public void SerializeCoreResourceHash(BinaryWriter bw)
+    {
         bw.Write(flowState);
         bw.Write(stockStability);
         bw.Write(stockStabilityModified);
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+    }
+
+    // Input-mode / spell-code / double-tap state.
+    public void SerializeCoreCodeHash(BinaryWriter bw)
+    {
+        bw.Write(relativeInputs);
+        bw.Write(stateSpecificArg);
+        bw.Write(GetSpellSerializationId(basicSpawnOverride));
+        bw.Write(storedCode);
+        bw.Write(storedCodeDuration);
         bw.Write(tapJump);
-        bw.Write(jumpCount);
-        bw.Write(maxJumpCount);
-        bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
-        bw.Write(toggleCodeInput); // hashed for the same detection reason
+        bw.Write(toggleCodeInput); // hashed for divergence detection
         bw.Write(vibeCoding);
-        bw.Write(downJumpSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
-        bw.Write(platDropping);
+        // hashed so a stale-`input` divergence (input is consumed cross-frame, see Serialize) is
+        // caught here at the exact hash boundary instead of only via downstream double-tap/physics
+        bw.Write(input.ButtonStates != null ? InputConverter.ConvertFromInputSnapshot(input) : (short)5);
     }
 
     public void SerializeGameplaySpellHash(BinaryWriter bw)
@@ -3518,6 +3537,13 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < spellList.Count; i++)
         {
             SerializeSpellStateInline(bw, spellList[i]);
+        }
+        // Universal passives are hashed with the spell state so a divergence in their runtime state
+        // is caught in pXspell (previously invisible: they were neither serialized nor hashed).
+        bw.Write(universalSpells.Count);
+        for (int i = 0; i < universalSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, universalSpells[i]);
         }
     }
 
@@ -3653,6 +3679,7 @@ public class PlayerController : MonoBehaviour
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();
+        input = InputConverter.ConvertFromShort(br.ReadInt16()); // see Serialize: restore last frame's input for resim determinism
         platDropping = br.ReadBoolean();
         //momentum = br.ReadUInt16();
         //slimed = br.ReadBoolean();
@@ -3758,6 +3785,23 @@ public class PlayerController : MonoBehaviour
             br.BaseStream.Position = savedSpells[i].dataStart + spellDataLength;
         }
         br.BaseStream.Position = spellPayloadEnd;
+
+        // Restore universal passive spell state (see Serialize). Each entry is length-prefixed, so
+        // it can be skipped cleanly if the local list isn't populated yet; restored by index since the
+        // universal set is fixed and deterministic. Always reads exactly universalCount entries so
+        // the stream stays aligned regardless of whether local state has been built.
+        int universalCount = br.ReadInt32();
+        for (int i = 0; i < universalCount; i++)
+        {
+            br.ReadInt32(); // spell id (written by SerializeSpellStateInline for symmetry; unused here)
+            int uDataLength = br.ReadInt32();
+            long uDataStart = br.BaseStream.Position;
+            if (i < universalSpells.Count && universalSpells[i] != null)
+            {
+                universalSpells[i].Deserialize(br);
+            }
+            br.BaseStream.Position = uDataStart + uDataLength;
+        }
     }
 
     private void TriggerHitRumble(float low, float high, float duration)
@@ -3821,9 +3865,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (playerInputs != null && playerInputs.devices.HasValue)
+        if (inputs != null && inputs.PlayerActionMap.devices.HasValue)
         {
-            var devices = playerInputs.devices.Value;
+            var devices = inputs.PlayerActionMap.devices.Value;
             for (int i = 0; i < devices.Count; i++)
             {
                 if (devices[i] is Gamepad gp)

@@ -25,7 +25,10 @@ public class DemonAura : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnHit:
-                owner.demonAuraLifeSpanTimer = DemonAuraResetTime; //refresh demon aura lifespan timer on spell hit to 3 seconds (360 frames)
+                if (owner.demonAura > 0)
+                {
+                    owner.demonAuraLifeSpanTimer = DemonAuraResetTime; //refresh demon aura lifespan timer on hit
+                }
                 break;
             case ProcCondition.OnHitSpell:
                 if(owner.demonAura > 0 && 
@@ -49,6 +52,7 @@ public class DemonAura : SpellData
 
                     //grant the resource
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
+                    owner.demonAuraLifeSpanTimer = DemonAuraResetTime;
                     owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                 }
                 
@@ -62,6 +66,10 @@ public class DemonAura : SpellData
             else
             {
                 owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura - 1, 0, PlayerController.maxDemonAura);
+                if (owner.demonAura == 0)
+                {
+                    owner.demonAuraLifeSpanTimer = 0;
+                }
             }
                 break;
             default:

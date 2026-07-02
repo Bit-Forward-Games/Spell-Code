@@ -970,7 +970,7 @@ public class Pause : MonoBehaviour
     public void ReturnToLobby()
     {
         Resume();
-        sceneUiManager.MainMenu();
+        sceneUiManager.SoloLobby();
         LoadSettings();
     }
  

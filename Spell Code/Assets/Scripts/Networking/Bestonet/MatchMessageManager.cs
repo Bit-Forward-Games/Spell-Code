@@ -1049,7 +1049,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint[] playerHashes, uint[] playerCoreHashes, uint[] playerSpellHashes)
+    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint[] playerHashes, uint[] playerCoreHashes, uint[] playerSpellHashes, uint[] playerCoreSubHashes)
     {
         if (!HasRemotePeers())
         {
@@ -1069,6 +1069,7 @@ public class MatchMessageManager : MonoBehaviour
                 WriteUIntArray(writer, playerHashes);
                 WriteUIntArray(writer, playerCoreHashes);
                 WriteUIntArray(writer, playerSpellHashes);
+                WriteUIntArray(writer, playerCoreSubHashes);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1411,7 +1412,8 @@ public class MatchMessageManager : MonoBehaviour
                     uint[] playerHashes = ReadUIntArray(reader);
                     uint[] playerCoreHashes = ReadUIntArray(reader);
                     uint[] playerSpellHashes = ReadUIntArray(reader);
-                    RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes);
+                    uint[] playerCoreSubHashes = ReadUIntArray(reader);
+                    RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes, playerCoreSubHashes);
                     return;
                 }
 

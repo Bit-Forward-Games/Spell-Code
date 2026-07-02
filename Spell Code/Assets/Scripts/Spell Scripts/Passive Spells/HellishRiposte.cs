@@ -20,6 +20,13 @@ public class HellishRiposte : SpellData
         spawnOffsetY = 36;
         description = "Upon landing a successful parry, your next cast grants +20% Demon Aura<sprite name=\"DemonAura\"> on hit and deals extra Damage.";
     }
+
+    public override void LoadSpell()
+    {
+        base.LoadSpell();
+        parryStored = false;
+    }
+
     public override void SpellUpdate()
     {
         //basic cooldown handling
@@ -63,6 +70,7 @@ public class HellishRiposte : SpellData
 
                         //grant the resource
                         owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
+                        owner.demonAuraLifeSpanTimer = DemonAura.DemonAuraResetTime;
                         owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                     }
                 }

@@ -587,9 +587,11 @@ public class GameManager : MonoBehaviour
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
-                ulong neutralInput = PlayerController.PackOnlineControlOptions(5UL, localPlayer);
-                RollbackManager.Instance?.NeutralizePendingLocalInputs(neutralInput);
-                return neutralInput;
+                // Only NEW frames (current + InputDelay onward) go neutral while paused. The
+                // already-buffered frames were sent to peers and must play out unchanged —
+                // rewriting them (the old NeutralizePendingLocalInputs) desyncs at high ping
+                // because peers have already verified those frames and drop the correction.
+                return PlayerController.PackOnlineControlOptions(5UL, localPlayer);
             }
 
             ulong input = (ulong)localPlayer.inputs.UpdateInputs();
@@ -3325,7 +3327,8 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             //remove the bounty VFX from this player
-            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1, true);
+            players[i].hasHighestBounty = false;
+            //VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1, true);
 
             if (players[i].ramBounty > largestBounty)
             {
@@ -3338,7 +3341,8 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Bounty VFX | Highest bounty player = " + players[playerWithHighestBountyIndex].pID);
 
         //give the bounty VFX to the player with the highest bounty
-        if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, players[playerWithHighestBountyIndex].gameObject.transform);
+        if (playerWithHighestBountyIndex >= 0) players[playerWithHighestBountyIndex].hasHighestBounty = true;
+            //VFX_Manager.Instance.PlayAuraVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, players[playerWithHighestBountyIndex].gameObject.transform);
         //if (playerWithHighestBountyIndex >= 0) VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BOUNTY_AURA, players[playerWithHighestBountyIndex].position + FixedVec2.FromFloat(0f, 102f), playerWithHighestBountyIndex + 1, true, players[playerWithHighestBountyIndex].gameObject.transform);
     }
 
@@ -3889,6 +3893,7 @@ public class GameManager : MonoBehaviour
         {
             isRunning = false;
         }
+        StopAllPlayerAuras();
         sceneManager.LoadScene("End");
 
         //play a new end song
@@ -3932,7 +3937,33 @@ public class GameManager : MonoBehaviour
         roundOver = false;
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
+        StopAllPlayerAuras();
         sceneManager.LoadScene("End");
+    }
+
+    private void StopAllPlayerAuras()
+    {
+        if (VFX_Manager.Instance == null || players == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] == null)
+            {
+                continue;
+            }
+
+            int pid = players[i].pID;
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.FLOW_STATE_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.DEMON_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.REPS_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.STOCK_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.SUPER_ARMOR, pid, true);
+            VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pid, true);
+        }
     }
 
     public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)

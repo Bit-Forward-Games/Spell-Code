@@ -50,6 +50,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             public uint[] playerHashes;
             public uint[] playerCoreHashes;
             public uint[] playerSpellHashes;
+            // Per-player core sub-group hashes, flattened [playerCount * 4]:
+            // index p*4 + {0=physics, 1=combat, 2=resource, 3=code}. Diagnostic-only: lets a desync
+            // report name WHICH part of a player's core diverged from a single machine's log.
+            public uint[] playerCoreSubHashes;
         }
         // FrameMetadata struct remains internal or defined globally
         public struct FrameMetadata
@@ -223,12 +227,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             public uint remoteHash;
             public uint remoteSharedHash;
             public uint remoteProjectileHash;
-            public uint remotePlayer0Hash;
-            public uint remotePlayer1Hash;
-            public uint remotePlayer0CoreHash;
-            public uint remotePlayer1CoreHash;
-            public uint remotePlayer0SpellHash;
-            public uint remotePlayer1SpellHash;
+            // Full per-player arrays. Previously only slots 0/1 were kept here, so on the buffered
+            // path (frame > syncFrame) p2/p3 were dropped and 3/4P desync reports showed remote=0
+            // for those players. Keeping the arrays preserves all slots.
+            public uint[] remotePlayerHashes;
+            public uint[] remotePlayerCoreHashes;
+            public uint[] remotePlayerSpellHashes;
+            public uint[] remotePlayerCoreSubHashes;
         }
 
         // --- Properties ---
@@ -1177,7 +1182,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                             verifiedState.projectileHash,
                             verifiedState.playerHashes ?? new uint[0],
                             verifiedState.playerCoreHashes ?? new uint[0],
-                            verifiedState.playerSpellHashes ?? new uint[0]);
+                            verifiedState.playerSpellHashes ?? new uint[0],
+                            verifiedState.playerCoreSubHashes ?? new uint[0]);
                     }
                 }
             }
@@ -1976,6 +1982,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         uint[] playerHashes = new uint[playerCount];
         uint[] playerCoreHashes = new uint[playerCount];
         uint[] playerSpellHashes = new uint[playerCount];
+        uint[] playerCoreSubHashes = new uint[playerCount * 4];
         for (int i = 0; i < playerCount; i++)
         {
             if (GameManager.Instance.players[i] != null)
@@ -1983,6 +1990,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 playerCoreHashes[i] = ComputePlayerCoreHash(GameManager.Instance.players[i]);
                 playerSpellHashes[i] = ComputePlayerSpellHash(GameManager.Instance.players[i]);
                 playerHashes[i] = ComputePlayerHash(GameManager.Instance.players[i]);
+                ComputePlayerCoreSubHashes(GameManager.Instance.players[i], playerCoreSubHashes, i * 4);
             }
         }
         uint player0Hash = playerCount > 0 ? playerHashes[0] : 0;
@@ -2010,7 +2018,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             player1SpellHash = player1SpellHash,
             playerHashes = playerHashes,
             playerCoreHashes = playerCoreHashes,
-            playerSpellHashes = playerSpellHashes
+            playerSpellHashes = playerSpellHashes,
+            playerCoreSubHashes = playerCoreSubHashes
         };
 
         // Always send state hashes during online matches for desync detection
@@ -2086,10 +2095,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         OnRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash,
             new uint[] { remotePlayer0Hash, remotePlayer1Hash },
             new uint[] { remotePlayer0CoreHash, remotePlayer1CoreHash },
-            new uint[] { remotePlayer0SpellHash, remotePlayer1SpellHash });
+            new uint[] { remotePlayer0SpellHash, remotePlayer1SpellHash },
+            null);
     }
 
-    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
+    public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
     {
         if (frame > syncFrame)
         {
@@ -2099,17 +2109,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 remoteHash = remoteHash,
                 remoteSharedHash = remoteSharedHash,
                 remoteProjectileHash = remoteProjectileHash,
-                remotePlayer0Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 0 ? remotePlayerHashes[0] : 0,
-                remotePlayer1Hash = remotePlayerHashes != null && remotePlayerHashes.Length > 1 ? remotePlayerHashes[1] : 0,
-                remotePlayer0CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 0 ? remotePlayerCoreHashes[0] : 0,
-                remotePlayer1CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 1 ? remotePlayerCoreHashes[1] : 0,
-                remotePlayer0SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 0 ? remotePlayerSpellHashes[0] : 0,
-                remotePlayer1SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 1 ? remotePlayerSpellHashes[1] : 0
+                remotePlayerHashes = remotePlayerHashes,
+                remotePlayerCoreHashes = remotePlayerCoreHashes,
+                remotePlayerSpellHashes = remotePlayerSpellHashes,
+                remotePlayerCoreSubHashes = remotePlayerCoreSubHashes
             };
             return;
         }
 
-        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes);
+        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
     }
 
     private void ProcessPendingRemoteHashes()
@@ -2133,13 +2141,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 pending.remoteHash,
                 pending.remoteSharedHash,
                 pending.remoteProjectileHash,
-                new uint[] { pending.remotePlayer0Hash, pending.remotePlayer1Hash },
-                new uint[] { pending.remotePlayer0CoreHash, pending.remotePlayer1CoreHash },
-                new uint[] { pending.remotePlayer0SpellHash, pending.remotePlayer1SpellHash });
+                pending.remotePlayerHashes,
+                pending.remotePlayerCoreHashes,
+                pending.remotePlayerSpellHashes,
+                pending.remotePlayerCoreSubHashes);
         }
     }
 
-    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes)
+    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
     {
         if (!IsStableGameplayHashFrame())
         {
@@ -2171,6 +2180,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // that diverged so the next 4P desync names the exact player + core-vs-spell.
             uint[] localCoreHashes = states[index].playerCoreHashes ?? System.Array.Empty<uint>();
             uint[] localSpellHashes = states[index].playerSpellHashes ?? System.Array.Empty<uint>();
+            uint[] localCoreSubHashes = states[index].playerCoreSubHashes ?? System.Array.Empty<uint>();
             int hashPlayerCount = Mathf.Max(localCoreHashes.Length, remotePlayerCoreHashes?.Length ?? 0);
             var allPlayersHash = new System.Text.StringBuilder("[DESYNC HASH] AllPlayers");
             for (int hp = 0; hp < hashPlayerCount; hp++)
@@ -2180,7 +2190,26 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 uint ls = hp < localSpellHashes.Length ? localSpellHashes[hp] : 0;
                 uint rs = (remotePlayerSpellHashes != null && hp < remotePlayerSpellHashes.Length) ? remotePlayerSpellHashes[hp] : 0;
                 string diffFlag = (lc != rc || ls != rs) ? " <<DIVERGED" : "";
-                allPlayersHash.Append($" | p{hp}core {lc}/{rc} p{hp}spell {ls}/{rs}{diffFlag}");
+                // When core diverged, name which sub-group(s) differ (physics/combat/resource/code)
+                // so a single machine's log pinpoints the field group without a second log to diff.
+                string coreGroups = "";
+                if (lc != rc && remotePlayerCoreSubHashes != null && remotePlayerCoreSubHashes.Length > 0)
+                {
+                    var groups = new System.Text.StringBuilder();
+                    for (int g = 0; g < CoreSubHashGroupNames.Length; g++)
+                    {
+                        int si = hp * CoreSubHashGroupNames.Length + g;
+                        uint lg = si < localCoreSubHashes.Length ? localCoreSubHashes[si] : 0;
+                        uint rg = si < remotePlayerCoreSubHashes.Length ? remotePlayerCoreSubHashes[si] : 0;
+                        if (lg != rg)
+                        {
+                            if (groups.Length > 0) groups.Append(",");
+                            groups.Append(CoreSubHashGroupNames[g]);
+                        }
+                    }
+                    if (groups.Length > 0) coreGroups = $" core[{groups}]";
+                }
+                allPlayersHash.Append($" | p{hp}core {lc}/{rc} p{hp}spell {ls}/{rs}{diffFlag}{coreGroups}");
             }
             Debug.LogError(allPlayersHash.ToString());
 
@@ -2462,6 +2491,31 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
     }
 
+    // Names for the four core sub-groups, index-aligned with ComputePlayerCoreSubHashes and the
+    // flattened playerCoreSubHashes array. Used to label which part of core diverged in reports.
+    private static readonly string[] CoreSubHashGroupNames = { "physics", "combat", "resource", "code" };
+
+    // Computes the four core sub-group hashes for a player into dest[destOffset .. destOffset+3],
+    // in the same order as CoreSubHashGroupNames. Purely diagnostic; the composite core hash is
+    // still ComputePlayerCoreHash (which covers the same fields).
+    private void ComputePlayerCoreSubHashes(PlayerController player, uint[] dest, int destOffset)
+    {
+        dest[destOffset + 0] = ComputeCoreSubHash(player.SerializeCorePhysicsHash);
+        dest[destOffset + 1] = ComputeCoreSubHash(player.SerializeCoreCombatHash);
+        dest[destOffset + 2] = ComputeCoreSubHash(player.SerializeCoreResourceHash);
+        dest[destOffset + 3] = ComputeCoreSubHash(player.SerializeCoreCodeHash);
+    }
+
+    private uint ComputeCoreSubHash(System.Action<BinaryWriter> writeFields)
+    {
+        using (MemoryStream memoryStream = new MemoryStream())
+        using (BinaryWriter bw = new BinaryWriter(memoryStream))
+        {
+            writeFields(bw);
+            return ComputeFnv1a(memoryStream.ToArray());
+        }
+    }
+
     private uint ComputePlayerSpellHash(PlayerController player)
     {
         using (MemoryStream memoryStream = new MemoryStream())
@@ -2678,23 +2732,25 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         // --- Input Buffer Handling ---
         /// <summary> Stores locally gathered input for the correct future frame. </summary>
+        /// <remarks>
+        /// Write-once: local input for a frame is IMMUTABLE once recorded, because it has already
+        /// been sent (SendInputs resends the same buffer window every tick) and peers may have
+        /// consumed and VERIFIED it — their receive path drops corrections for frames at or below
+        /// their syncFrame. Overwriting the slot afterwards splits local sim from remote sim with
+        /// no mismatch either side can detect (each side's rx==used stays self-consistent).
+        /// Concretely: a TimeSync hold re-ticks the same localFrame, so the same targetFrame was
+        /// sampled twice. An adaptive InputDelay decrease regressing targetFrame
+        ///  onto already-sent slots is the same hazard.
+        /// frame 0 is exempt only because a cleared ring buffer's default entries alias frame 0
+        /// (FrameMetadata.frame defaults to 0), which would otherwise block the first real write.
+        /// </remarks>
         public void SetClientInput(int frame, ulong input)
         {
-            clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
-        }
-
-        public void NeutralizePendingLocalInputs(ulong neutralInput = 5UL)
-        {
-            int startFrame = localFrame;
-            int endFrame = localFrame + InputDelay;
-
-            for (int frame = startFrame; frame <= endFrame; frame++)
+            if (frame > 0 && clientInputs.ContainsKey(frame))
             {
-                ulong inputForFrame = clientInputs.ContainsKey(frame)
-                    ? PlayerController.ReplaceGameplayInputPreservingOnlineControlOptions(clientInputs.GetInput(frame), neutralInput)
-                    : neutralInput;
-                SetClientInput(frame, inputForFrame);
+                return;
             }
+            clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
         /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>

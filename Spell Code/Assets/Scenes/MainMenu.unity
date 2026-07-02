@@ -1814,6 +1814,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6357974740085551339, guid: 66beeb372780938448bb96a806eb7a23, type: 3}
   m_PrefabInstance: {fileID: 922573539}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &964521340 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8361631783603749997, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1655133742}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &975130342 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3974272328759213753, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
@@ -3471,6 +3476,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: pfb_GameManager
       objectReference: {fileID: 0}
+    - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3757,6 +3766,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1983255316 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7025248857709433223, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1655133742}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2061436077
 GameObject:
   m_ObjectHideFlags: 0

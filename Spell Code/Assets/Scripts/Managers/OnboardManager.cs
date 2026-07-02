@@ -127,6 +127,8 @@ public class OnboardManager : MonoBehaviour
 
     public void ResetOnboarding()
     {
+        Debug.Log("OnboardingReset");
+
         p1_moveComplete = false;
         p1_jumpComplete = false;
         p1_atkComplete = false;
@@ -155,6 +157,7 @@ public class OnboardManager : MonoBehaviour
 
     private void ApplyInitialUiState()
     {
+        Debug.Log("Applying Initial Onboarding UI State");
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;

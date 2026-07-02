@@ -312,7 +312,7 @@ public class Pause : MonoBehaviour
             RevertTextColorToWhite();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -489,6 +489,7 @@ public class Pause : MonoBehaviour
  
     public void Resume()
     {
+        Debug.Log("RESUMING GAME");
         if (paused)
         {
             //play the resume sfx
@@ -515,6 +516,8 @@ public class Pause : MonoBehaviour
         Time.timeScale = 1f;
 
         if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
+
+        if (uiScript.multiplayerGamemodesMenuOpened) StartCoroutine(BackToMultiplayerSelector());
 
         //unmute all sfx
         SFX_Manager.Instance.UnMuteGamePlaySFX();
@@ -544,6 +547,13 @@ public class Pause : MonoBehaviour
         yield return new WaitForSeconds(0.02f);
         Time.timeScale = 0f;
         EventSystem.current.SetSelectedGameObject(uiScript._soloGamemodesMenuFirst);
+    }
+
+    public IEnumerator BackToMultiplayerSelector()
+    {
+        yield return new WaitForSeconds(0.02f);
+        Time.timeScale = 0f;
+        EventSystem.current.SetSelectedGameObject(uiScript._multiplayerGamemodesMenuFirst);
     }
 
     public void SaveSettings()
@@ -962,7 +972,7 @@ public class Pause : MonoBehaviour
     public void ReturnToLobby()
     {
         Resume();
-        sceneUiManager.MainMenu();
+        sceneUiManager.SoloLobby();
         LoadSettings();
     }
  

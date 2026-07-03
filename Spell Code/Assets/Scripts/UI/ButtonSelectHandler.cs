@@ -61,7 +61,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         }
 
-        if (name.Contains("Slider"))
+        if (name.Contains("Slider") || name.Contains("Digital"))
         {
             Transform sliderChildTransform = transform.Find("SignSelecter");
             if (sliderChildTransform!= null) 
@@ -117,7 +117,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         } 
 
-        if (name.Contains("Slider"))
+        if (name.Contains("Slider") || name.Contains("Digital"))
         {
             Transform sliderChildTransform = transform.Find("SignSelecter");
             if (sliderChildTransform!= null) 

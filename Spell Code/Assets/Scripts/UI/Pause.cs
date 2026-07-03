@@ -1011,7 +1011,13 @@ public class Pause : MonoBehaviour
  
     public void QuitGame()
     {
-        DataManager.Instance.SaveToFile();
+        // DataManager can be legitimately absent (fresh SoloLobby boot has none; ExecuteOrder66
+        // destroys the persistent one). An unguarded SaveToFile threw here and aborted the quit
+        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit always.
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.SaveToFile();
+        }
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
     }

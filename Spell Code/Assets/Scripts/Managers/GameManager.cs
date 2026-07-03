@@ -403,6 +403,18 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log($"[GameManager] Cold load of '{scene.name}': activating the scene's dormant GameManager.");
                 root.SetActive(true);
+
+                // The GameManager only subscribed OnSceneLoaded (via OnEnable) just now — AFTER
+                // this scene's sceneLoaded event dispatched — so its per-scene-arrival work never
+                // ran for THIS load: scene references, stage/curtain setup, and critically
+                // RemoveScreenCover (without it the transition cover sits over the screen while
+                // the scene runs underneath). Invoke it manually; this matches the pre-merge
+                // ordering where an active scene copy subscribed during the load and received the
+                // event before Start.
+                if (Instance != null)
+                {
+                    Instance.OnSceneLoaded(scene, mode);
+                }
                 return;
             }
         }

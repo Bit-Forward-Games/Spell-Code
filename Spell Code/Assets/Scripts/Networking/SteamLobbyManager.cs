@@ -68,13 +68,34 @@ public class SteamLobbyManager : MonoBehaviour
 
         // The online lobby only simulates in MainMenu (the join side enforces the same rule via
         // pendingJoinLobbyId). Hosting from any other scene defers: transition to MainMenu first,
-        // then TryResumePendingHostInvite re-runs this once the rebuilt scene and Steam are ready,
-        // so the lobby is created and the invite overlay opened where the friend will connect.
+        // then TryResumePendingHostInvite re-runs this once the scene and Steam are ready, so the
+        // lobby is created and the invite overlay opened where the friend will connect.
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
             pendingHostInviteRequested = true;
-            Debug.Log($"[SteamLobbyManager] Host+invite requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
-            GameManager.Instance?.ExecuteOrder66("MainMenu");
+
+            GameManager manager = GameManager.Instance;
+            bool hasLocalPlayer = manager != null
+                && manager.players != null
+                && manager.players.Length > 0
+                && manager.players[0] != null;
+
+            if (hasLocalPlayer)
+            {
+                // Warm path (solo lobby's online door): the exact transition Local Play uses —
+                // persistent managers and the already-spawned player survive, so the host keeps
+                // their character and can run around the MainMenu lobby while waiting for the
+                // invite to be accepted. A cold ExecuteOrder66 would arrive playerless until the
+                // match starts.
+                Debug.Log($"[SteamLobbyManager] Host+invite requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Taking the warm Local Play transition to the lobby scene.");
+                manager.loadMainMenu();
+            }
+            else
+            {
+                // Cold fallback for contexts without a spawned local player.
+                Debug.Log($"[SteamLobbyManager] Host+invite requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
+                manager?.ExecuteOrder66("MainMenu");
+            }
             return true;
         }
 

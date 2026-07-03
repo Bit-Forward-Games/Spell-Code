@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [Serializable]
 public class GameSettingsData
@@ -38,6 +39,25 @@ public class SettingsManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
+        // ExecuteOrder66 (the return-to-menu reset) destroys every DontDestroyOnLoad object,
+        // this manager included, and RuntimeInitializeOnLoadMethod only runs once per process.
+        // Without re-creating it, ALL settings functionality silently no-ops for the rest of the
+        // session after the first cold load — every caller null-checks Instance, so control
+        // options (including their propagation into the online input stream), volumes and camera
+        // prefs just stop saving/applying. Same re-create pattern as PlayerLogFileWriter; state
+        // survives in settings.json / control_options_session.json, which Awake reloads.
+        SceneManager.sceneLoaded -= OnSceneLoadedEnsureInstance;
+        SceneManager.sceneLoaded += OnSceneLoadedEnsureInstance;
+        EnsureInstance();
+    }
+
+    private static void OnSceneLoadedEnsureInstance(Scene scene, LoadSceneMode mode)
+    {
+        EnsureInstance();
+    }
+
+    private static void EnsureInstance()
+    {
         if (Instance != null)
         {
             return;
@@ -62,6 +82,17 @@ public class SettingsManager : MonoBehaviour
         Load();
         LoadControlOptions();
         ApplySettings();
+    }
+
+    private void OnDestroy()
+    {
+        // Clear the stale reference on teardown so `Instance != null` (and any `Instance?.`,
+        // which bypasses Unity's destroyed-object null) can't act on a dead object before the
+        // sceneLoaded re-create runs.
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     private void OnApplicationQuit()

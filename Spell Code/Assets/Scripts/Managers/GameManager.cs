@@ -375,8 +375,39 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
+        // The hub scenes keep their pfb_GameManager instance INACTIVE (only the boot scene's is
+        // active) and normally rely on the persistent GameManager arriving with the player — which
+        // this method just destroyed. On this cold load the scene's dormant copy must be woken or
+        // GameManager.Instance stays null forever (black screen, camera NRE spam, and the deferred
+        // online host/join resumes never fire). Static handler: survives this object's destruction.
+        SceneManager.sceneLoaded -= ActivateDormantGameManagerAfterOrder66;
+        SceneManager.sceneLoaded += ActivateDormantGameManagerAfterOrder66;
         SceneManager.LoadScene(scene);
         //Camera.main.GetComponentInChildren<Image>().enabled = false;
+    }
+
+    private static void ActivateDormantGameManagerAfterOrder66(Scene scene, LoadSceneMode mode)
+    {
+        SceneManager.sceneLoaded -= ActivateDormantGameManagerAfterOrder66;
+
+        // If the scene's own copy was active (e.g. SoloLobby, the boot scene), its Awake already
+        // claimed the singleton and there is nothing to wake.
+        if (Instance != null)
+        {
+            return;
+        }
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            if (!root.activeSelf && root.GetComponentInChildren<GameManager>(true) != null)
+            {
+                Debug.Log($"[GameManager] Cold load of '{scene.name}': activating the scene's dormant GameManager.");
+                root.SetActive(true);
+                return;
+            }
+        }
+
+        Debug.LogError($"[GameManager] Cold load of '{scene.name}': no GameManager found in the scene (active or dormant). The scene cannot run.");
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

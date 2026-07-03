@@ -101,6 +101,13 @@ public class Exit_Door : MonoBehaviour
 
     public bool CheckOpenDoor()
     {
+        // GameManager.Instance is null for the frame(s) between ExecuteOrder66's teardown and the
+        // next scene load (e.g. the solo lobby's online door just triggered the MainMenu transition).
+        if (GameManager.Instance == null)
+        {
+            isOpen = false;
+            return false;
+        }
 
         if (GameManager.Instance.playerCount > 0)
         {

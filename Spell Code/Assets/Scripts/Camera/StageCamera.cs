@@ -45,8 +45,22 @@ public class StageCamera : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // During an ExecuteOrder66 cold load the GameManager (and its TempUI child) don't exist
+        // for a frame or two; skip instead of NRE-spamming until they come up.
+        if (GameManager.Instance == null)
+        {
+            return;
+        }
+
         if (pause == null)
-            pause = GameObject.Find("TempUI").gameObject.GetComponent<Pause>();
+        {
+            GameObject tempUiObject = GameObject.Find("TempUI");
+            if (tempUiObject == null)
+            {
+                return;
+            }
+            pause = tempUiObject.GetComponent<Pause>();
+        }
 
         StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1 ? GameManager.Instance.lobbySO : (GameManager.Instance.currentStageIndex == -2 ? GameManager.Instance.TutorialSO : (GameManager.Instance.currentStageIndex == -3 ? GameManager.Instance.trainingGroundsSO : GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
         //check if camborders are set and if not, just use the default border

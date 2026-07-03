@@ -470,13 +470,36 @@ public class SettingsManager : MonoBehaviour
             inputDevice = null;
         }
 
-        if (inputDevice == null)
+        if (inputDevice != null)
         {
-            return false;
+            controllerId = inputDevice.deviceId;
+            return true;
         }
 
-        controllerId = inputDevice.deviceId;
-        return true;
+        // Online, the LOCAL player reads all devices as shared input: its assigned device is
+        // deliberately null (AssignInputDevice(null)) and the PlayerInput device pairing is
+        // skipped whenever playerInput.user is invalid (online players spawn outside
+        // PlayerInputManager). Without an id every option read/save above silently no-ops, which
+        // made the pause-menu control toggles unchangeable mid-match. Key that player's options
+        // by the first valid system device instead — stable within the session, and the same id
+        // TryApply/TryGet/Save all resolve to
+        GameManager manager = GameManager.Instance;
+        if (manager != null && manager.isOnlineMatchActive
+            && manager.localPlayerIndex >= 0
+            && manager.localPlayerIndex < manager.players.Length
+            && manager.players[manager.localPlayerIndex] == player)
+        {
+            foreach (InputDevice device in InputSystem.devices)
+            {
+                if (device != null && InputDeviceManager.IsValidInput(device))
+                {
+                    controllerId = device.deviceId;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void DeleteControlOptionsSave()

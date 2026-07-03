@@ -560,6 +560,13 @@ public class SteamLobbyManager : MonoBehaviour
         pendingJoinInviterId = null;
 
         Debug.Log($"[SteamLobbyManager] Resuming deferred lobby join in MainMenu. LobbyId={lobbyId.Value}.");
+        // This MainMenu visit exists only to connect: skip the title panel (it otherwise shows
+        // until players[0] spawns), matching how Local Play arrives without it. Set the panel
+        // directly — SetMenuActive would also run the first-launch tutorial check.
+        if (GameManager.Instance.MainMenuScreen != null)
+        {
+            GameManager.Instance.MainMenuScreen.SetActive(false);
+        }
         JoinRequestedLobbyAsync(lobbyId, inviterId);
     }
 
@@ -580,6 +587,13 @@ public class SteamLobbyManager : MonoBehaviour
 
         pendingHostInviteRequested = false;
         Debug.Log("[SteamLobbyManager] Resuming deferred host+invite in MainMenu.");
+        // Same as the deferred join: this arrival is for hosting, not menu browsing — hide the
+        // title panel so it matches the Local Play arrival. Set the panel directly —
+        // SetMenuActive would also run the first-launch tutorial check.
+        if (GameManager.Instance.MainMenuScreen != null)
+        {
+            GameManager.Instance.MainMenuScreen.SetActive(false);
+        }
         OpenInviteOverlayOrHost();
     }
 

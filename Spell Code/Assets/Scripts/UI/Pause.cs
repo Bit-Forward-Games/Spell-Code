@@ -755,6 +755,7 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(true);
 
         displayOptionString.text = displayModes[displayIndex];
+        resolutionOptionString.text = displayModes[resolutionIndex];
  
         StartCoroutine(SelectFirst(_displayMenuFirst));
  

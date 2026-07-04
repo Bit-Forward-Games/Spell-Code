@@ -28,7 +28,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         }
          
-        if (name.Split('_')[0] == "Options" || name.Contains("Slider"))
+        if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign"))
         {
             Transform optionsChildTransform = transform.Find("SignText");
             if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
@@ -146,13 +146,30 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         if (EventSystem.current.currentSelectedGameObject == gameObject)
         {
             // 2. Check if the user is actively holding down the Submit key/button
+            if (name.Contains("Slider") || name.Split('_')[0] == "Digital")
+            {
+                Transform childTransform = transform.Find("SignText");
+                if (childTransform != null)
+                {
+                    TextMeshProUGUI digitalOptionsText = childTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    digitalOptionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
+                }
+
+                Transform blueOptionsChildTransform = transform.Find("Blue_SignText");
+                if (blueOptionsChildTransform != null && !pause.suppressingSelectionColor) 
+                {
+                    TextMeshProUGUI optionsText = blueOptionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    optionsText.color = new Color(72f / 255f, 114f / 255f, 118f / 255f);
+                }
+            }
+
             if (pause.WasPausePlayerSubmitPressedThisFrame()) 
             {
                 Transform optionsChildTransform = transform.Find("SignText");
                 if (optionsChildTransform != null) 
                 {
                     TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                    optionsText.color = new Color(1f, 1f, 1f);
+                    optionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
                 }
             }
 
@@ -160,6 +177,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             {
                 pause.displayIndex = DisplayOptionsCycle(pause.displayModes, pause.displayIndex);
                 pause.displayOptionString.text = pause.displayModes[pause.displayIndex];
+            }
+
+            if (name.Contains("Resolution"))
+            {
+                pause.resolutionIndex = DisplayOptionsCycle(pause.resolutions, pause.resolutionIndex);
+                pause.resolutionOptionString.text = pause.resolutions[pause.resolutionIndex];
             }
         }
     }

@@ -745,6 +745,12 @@ public class Pause : MonoBehaviour
 
     public void Display()
     {
+        RectTransform displayMenuTransform = displayMenu.GetComponent<RectTransform>();
+
+        displayMenuTransform.anchoredPosition  = new Vector2(displayMenuTransform.anchoredPosition.x, 2500f);
+
+        displayMenuTransform.DOAnchorPos(new Vector2(displayMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         displayOptions = true;
         volumeOptions = false;
         controls = false;

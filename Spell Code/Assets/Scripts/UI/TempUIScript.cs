@@ -143,12 +143,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(2.0f, "FIGHT!!!"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "Kill players to earn RAM!"));
         }
         else if (scene.name == "Shop")
         {
             shopScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(3.5f, "Equip new spells before entering the next round"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "Pick a new Spellcode"));
         }
     }
 
@@ -218,7 +218,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
+            StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
         if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)

@@ -17,7 +17,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-5"; // scz-5: Dev-New merge changed sim rules (vibe-coding cast/cooldown) + core sub-hash field sets
+    private const string NetcodeVersion = "scz-6"; // scz-6: Dev-New merge changed facing sim rules (victim no longer flips toward projectile hits; CodeWeave turn + vibe-coding-gated CodeRelease turn)
 
 
     private const string MatchmakingKey = "mm";

@@ -761,7 +761,13 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(true);
 
         displayOptionString.text = displayModes[displayIndex];
-        resolutionOptionString.text = displayModes[resolutionIndex];
+        // resolutionIndex indexes the resolutions list, not the 3-entry displayModes list —
+        // indexing displayModes with it threw ArgumentOutOfRange when opening this menu
+        // (reachable mid-match) on any resolutionIndex >= 3.
+        if (resolutionIndex >= 0 && resolutionIndex < resolutions.Count)
+        {
+            resolutionOptionString.text = resolutions[resolutionIndex];
+        }
  
         StartCoroutine(SelectFirst(_displayMenuFirst));
  

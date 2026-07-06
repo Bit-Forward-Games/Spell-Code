@@ -223,12 +223,44 @@ public class TempSpellDisplay : MonoBehaviour
 
                 if (playerSpells[i].spellType == SpellType.Active)
                 {
-                    spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput, 
-                    null, 
-                    player.relativeInputs ? 
-                    player.facingRight : 
-                    true);
-                    spellSlots[i].fontSize =14;
+                    if (player.vibeCoding)
+                    {
+                        uint codeToMatch;
+                        switch (i)
+                        {
+                            case 0://up
+                                codeToMatch = 0b_0000_0000_0000_0000_0000_0011_0000_0001;
+                                break;
+                            case 1://right
+                                codeToMatch = 0b_0000_0000_0000_0000_0000_0001_0000_0001;
+                                break;
+                            case 2://down
+                                codeToMatch = 0b_0000_0000_0000_0000_0000_0000_0000_0001;
+                                break;
+                            case 3://left
+                                codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
+                                break;
+                            default:
+                                codeToMatch = 255;
+                                break;
+                        }
+                        spellSlots[i].text = PlayerController.ConvertCodeToString(codeToMatch, 
+                        null, 
+                        player.relativeInputs ? 
+                        player.facingRight : 
+                        true);
+                        spellSlots[i].fontSize =14;
+                    }
+                    else
+                    {
+                        spellSlots[i].text = PlayerController.ConvertCodeToString(playerSpells[i].spellInput, 
+                        null, 
+                        player.relativeInputs ? 
+                        player.facingRight : 
+                        true);
+                        spellSlots[i].fontSize =14;
+                    }
+                    
                 }
                 else
                 {

@@ -147,6 +147,8 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> gambas;
 
+    public GameObject buttons;
+
     [Header("Online UI")]
     public GameObject networkInfo;
     public TextMeshProUGUI pingText;
@@ -295,7 +297,7 @@ public class GameManager : MonoBehaviour
             Application.runInBackground = true;
             // optional: prevent the gameobject from being destroyed when loading new scenes
             DontDestroyOnLoad(gameObject);
-            
+
         }
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -354,7 +356,7 @@ public class GameManager : MonoBehaviour
         return new Vector2Int(Screen.width, Screen.height);
     }
 
-    public void ExecuteOrder66()
+    public void ExecuteOrder66(string scene)
     {
 
         GameObject dontDestroyProbe = new GameObject("Order66_DontDestroyProbe");
@@ -373,8 +375,51 @@ public class GameManager : MonoBehaviour
 
         Destroy(dontDestroyProbe);
         Instance = null;
-        SceneManager.LoadScene("MainMenu");
+        // The hub scenes keep their pfb_GameManager instance INACTIVE (only the boot scene's is
+        // active) and normally rely on the persistent GameManager arriving with the player — which
+        // this method just destroyed. On this cold load the scene's dormant copy must be woken or
+        // GameManager.Instance stays null forever (black screen, camera NRE spam, and the deferred
+        // online host/join resumes never fire). Static handler: survives this object's destruction.
+        SceneManager.sceneLoaded -= ActivateDormantGameManagerAfterOrder66;
+        SceneManager.sceneLoaded += ActivateDormantGameManagerAfterOrder66;
+        SceneManager.LoadScene(scene);
         //Camera.main.GetComponentInChildren<Image>().enabled = false;
+    }
+
+    private static void ActivateDormantGameManagerAfterOrder66(Scene scene, LoadSceneMode mode)
+    {
+        SceneManager.sceneLoaded -= ActivateDormantGameManagerAfterOrder66;
+
+        // If the scene's own copy was active (e.g. SoloLobby, the boot scene), its Awake already
+        // claimed the singleton and there is nothing to wake.
+        if (Instance != null)
+        {
+            return;
+        }
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            if (!root.activeSelf && root.GetComponentInChildren<GameManager>(true) != null)
+            {
+                Debug.Log($"[GameManager] Cold load of '{scene.name}': activating the scene's dormant GameManager.");
+                root.SetActive(true);
+
+                // The GameManager only subscribed OnSceneLoaded (via OnEnable) just now — AFTER
+                // this scene's sceneLoaded event dispatched — so its per-scene-arrival work never
+                // ran for THIS load: scene references, stage/curtain setup, and critically
+                // RemoveScreenCover (without it the transition cover sits over the screen while
+                // the scene runs underneath). Invoke it manually; this matches the pre-merge
+                // ordering where an active scene copy subscribed during the load and received the
+                // event before Start.
+                if (Instance != null)
+                {
+                    Instance.OnSceneLoaded(scene, mode);
+                }
+                return;
+            }
+        }
+
+        Debug.LogError($"[GameManager] Cold load of '{scene.name}': no GameManager found in the scene (active or dormant). The scene cannot run.");
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -414,7 +459,12 @@ public class GameManager : MonoBehaviour
         InitializeWithSeed(offlineSeed);
 
 
-        SetStage(-1);
+        // A fresh GameManager wakes either at app launch (SoloLobby) or after an ExecuteOrder66
+        // into MainMenu/SoloLobby. MainMenu must get the lobby stage immediately: the stage index
+        // rides every input packet (GetNetworkSceneSignature), and a deferred online host/join
+        // waits in MainMenu before StartOnlineMatch would otherwise correct it — with -4 the
+        // player would be standing in solo-lobby geometry inside MainMenu until then.
+        SetStage(SceneManager.GetActiveScene().name == "MainMenu" ? -1 : -4);
 
         SetNetworkInfoVisible(isOnlineMatchActive);
         //StartCoroutine(End());
@@ -431,10 +481,15 @@ public class GameManager : MonoBehaviour
         //    cachedLocalInput = GatherInputForOnline();
         //}
 
+        // Must run from Update, FixedUpdate is skipped entirely while isTransitioning, which is
+        // exactly the state this watchdog un-sticks.
+        UpdateOnlineTransitionWatchdog();
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
-            gameObject.GetComponent<PlayerInputManager>().enabled = (SceneManager.GetActiveScene().name == "MainMenu");
+            Scene activeScene = SceneManager.GetActiveScene();
+            gameObject.GetComponent<PlayerInputManager>().enabled = activeScene.name == "MainMenu" || activeScene.name == "SoloLobby";
             SetNetworkInfoVisible(false);
         }
         else
@@ -477,6 +532,14 @@ public class GameManager : MonoBehaviour
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
 #endif
     }
+    public void loadMainMenu()
+    {
+        sceneManager.LoadScene("MainMenu");
+        SetStage(-1);
+        ResetPlayers();
+        players[0].ClearSpellList();
+    }
+
     public void LoadTutorial()
     {
         
@@ -1728,13 +1791,28 @@ public class GameManager : MonoBehaviour
 
     public void OnPeerSceneTransitionReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
     {
+        // Scene-ready signals are sent ONCE per peer (Reliable, but one-shot at the application
+        // level). Discarding one here used to be unrecoverable — the waiter's FixedUpdate
+        // early-returns on isTransitioning, so a missed ready froze it in the loading limbo
+        // forever while the other side played on. Every rejection below therefore either stashes
+        // the ready for the transition watchdog to re-apply, or logs why it was dropped.
         if (!IsPlayerSlotConnected(playerSlot))
         {
+            // The arrival block's ResetPlayers/roster churn can leave the slot momentarily
+            // unconnected while a ready lands. Stash it; the watchdog re-applies once the slot
+            // settles.
+            Debug.LogWarning($"[OnlineTransition] Scene-ready from slot {playerSlot} while slot not connected (id={transitionId}, type={sceneType}, sig={sceneSignature}). Stashing as pending.");
+            StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
             return;
         }
 
         if (!isTransitioning)
         {
+            // A peer can finish loading before we begin (or after we completed) our own
+            // transition. A stale id can never match a future activeOnlineTransitionId (ids
+            // strictly increase), so stashing is safe and a discarded-early ready is not.
+            Debug.LogWarning($"[OnlineTransition] Scene-ready from slot {playerSlot} while not transitioning (id={transitionId}, type={sceneType}, sig={sceneSignature}). Stashing as pending.");
+            StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
             return;
         }
 
@@ -1742,14 +1820,11 @@ public class GameManager : MonoBehaviour
         {
             if (transitionId > activeOnlineTransitionId)
             {
-                if (IsRosterBasedOnlineMatch())
-                {
-                    pendingSceneReadyBySlot[playerSlot] = (transitionId, sceneType, sceneSignature);
-                }
-                hasPendingRemoteSceneReady = true;
-                pendingRemoteSceneReadyTransitionId = transitionId;
-                pendingRemoteSceneReadyType = sceneType;
-                pendingRemoteSceneReadySignature = sceneSignature;
+                StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
+            }
+            else
+            {
+                Debug.LogWarning($"[OnlineTransition] Dropping stale scene-ready from slot {playerSlot} (id={transitionId} < active={activeOnlineTransitionId}).");
             }
             return;
         }
@@ -1767,6 +1842,18 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        hasPendingRemoteSceneReady = true;
+        pendingRemoteSceneReadyTransitionId = transitionId;
+        pendingRemoteSceneReadyType = sceneType;
+        pendingRemoteSceneReadySignature = sceneSignature;
+    }
+
+    private void StashPendingSceneReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
+    {
+        if (IsRosterBasedOnlineMatch() && playerSlot >= 0)
+        {
+            pendingSceneReadyBySlot[playerSlot] = (transitionId, sceneType, sceneSignature);
+        }
         hasPendingRemoteSceneReady = true;
         pendingRemoteSceneReadyTransitionId = transitionId;
         pendingRemoteSceneReadyType = sceneType;
@@ -1828,6 +1915,42 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = false;
             CompleteTrackedOnlineTransition();
+        }
+    }
+
+    // Self-healing for the scene-transition handshake. Each peer announces "scene ready" once;
+    // the receive path has timing windows where that single announcement can be stashed or
+    // missed (slot momentarily unconnected during arrival resets, ready landing outside the
+    // receiver's transitioning window, pended under an id the receiver hadn't reached yet).
+    // FixedUpdate early-returns while isTransitioning, so a waiter cannot recover on its own
+    // Runs from Update on unscaled time: re-send the ready, re-evaluate stashed
+    // peer readies, and log the wait state so any residual stall names its blocking gate.
+    private float nextOnlineTransitionWatchdogTime;
+
+    private void UpdateOnlineTransitionWatchdog()
+    {
+        if (!isOnlineMatchActive || !isTransitioning)
+        {
+            return;
+        }
+
+        if (Time.unscaledTime < nextOnlineTransitionWatchdogTime)
+        {
+            return;
+        }
+        nextOnlineTransitionWatchdogTime = Time.unscaledTime + 1f;
+
+        if (localSceneTransitionReady && MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
+        }
+
+        ApplyPendingSceneTransitionReadyIfAvailable();
+        CheckSceneTransitionReady();
+
+        if (isTransitioning)
+        {
+            Debug.LogWarning($"[OnlineTransition] Waiting on scene-ready handshake. id={activeOnlineTransitionId} localReady={localSceneTransitionReady} readySlots=[{string.Join(",", sceneReadyPeerSlots)}] connected={CountConnectedPlayers()} pendingBySlot={pendingSceneReadyBySlot.Count} scene={SceneManager.GetActiveScene().name} sig={GetNetworkSceneSignature()}");
         }
     }
 
@@ -2294,7 +2417,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to MainMenu.");
         StopMatch(reason);
-        ExecuteOrder66();
+        ExecuteOrder66("SoloLobby");
     }
 
     private void ClearPlayerObjects()
@@ -2935,10 +3058,16 @@ public class GameManager : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            if (activeScene.name == "MainMenu")
+            if (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
+
+                if (playerCount >= 1 && activeScene.name == "SoloLobby")
+                {
+                    playerInputManager.DisableJoining();
+                    playerInputManager.enabled = false;
+                }
             }
             else
             {
@@ -2994,9 +3123,11 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
+            //buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
+                onboardManager.enabled = false;
             }
             onboardManager.OnboardUpdate(inputs);
         }
@@ -3014,6 +3145,11 @@ public class GameManager : MonoBehaviour
 
         UpdateGameState(inputs);
 
+        if (activeScene.name == "SoloLobby")
+        {
+            buttons.SetActive(false);
+        }
+
         if (activeScene.name == "MainMenu")
         {
 
@@ -3021,15 +3157,14 @@ public class GameManager : MonoBehaviour
 
             if (goDoorPrefab.CheckAllPlayersReady() && goDoorPrefab.isPrimed)
             {
-                if (goDoorPrefab.soloModes)
-                {
-                    goDoorPrefab.isPrimed = false;
-                    tempUI.SetSoloMenuActive(true);
-                }
-                else
-                {
+                //if (goDoorPrefab.soloModes)
+                //{
+                //    goDoorPrefab.isPrimed = false;
+                //    tempUI.SetSoloMenuActive(true);
+                //}
+                //{
                     LoadRandomGameplayStage();
-                }
+                //}
                 
             }
 
@@ -3216,10 +3351,13 @@ public class GameManager : MonoBehaviour
 
         //Debug.Log($"[GetPlayerControllers] Adding new player. Current playerCount={playerCount}");
 
-        players[playerCount] = existingPlayer;
-        players[playerCount].inputs.AssignInputDevice(playerInput.devices[0]);
-        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[playerCount]);
-        AnimationManager.Instance.InitializePlayerVisuals(players[playerCount], playerCount);
+        int newPlayerIndex = playerCount;
+        players[newPlayerIndex] = existingPlayer;
+        players[newPlayerIndex]._playerPauseIndex = newPlayerIndex;
+        InputDevice joinedDevice = playerInput.devices.Count > 0 ? playerInput.devices[0] : null;
+        players[newPlayerIndex].inputs.AssignInputDevice(joinedDevice);
+        SettingsManager.Instance?.TryApplyControlOptionsForPlayer(players[newPlayerIndex]);
+        AnimationManager.Instance.InitializePlayerVisuals(players[newPlayerIndex], newPlayerIndex);
 
         // INCREMENT FIRST
         playerCount++;
@@ -4598,6 +4736,7 @@ public class GameManager : MonoBehaviour
         lobbyMapGO.SetActive(false);
         tutorialMapGO.SetActive(false);
         trainingGroundsGO.SetActive(false);
+        soloLobbyGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()

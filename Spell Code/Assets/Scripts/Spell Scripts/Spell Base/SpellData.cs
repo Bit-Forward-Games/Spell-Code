@@ -92,7 +92,7 @@ public abstract class SpellData : MonoBehaviour
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
     [NonSerialized]
     public bool activateFlag = false;
-    public bool vibeCasted = false;
+    //public bool //vibeCasted = false;
     [NonSerialized]
     public PlayerController owner;
     [NonSerialized]
@@ -147,9 +147,9 @@ public abstract class SpellData : MonoBehaviour
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = vibeCasted?(int)(cooldown*1.25f):cooldown;
-            if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
-            vibeCasted = false;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
+            //vibeCasted = false;
         }
     }
 

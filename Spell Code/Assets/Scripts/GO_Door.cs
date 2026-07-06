@@ -139,15 +139,13 @@ public class GO_Door : MonoBehaviour
     public bool CheckOpenDoor()
     {
 
-        if (GameManager.Instance.playerCount > 0)
+        if (GameManager.Instance.playerCount > 1)
         {
             isOpen = true;
-            soloModes = GameManager.Instance.playerCount == 1;
         }
         else
         {
             isOpen = false;
-            soloModes = true;
         }
 
         if(animator == null)

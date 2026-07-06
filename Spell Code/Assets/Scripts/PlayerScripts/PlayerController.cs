@@ -1591,14 +1591,18 @@ public class PlayerController : MonoBehaviour
                 //allow the display to be reset upon entering CodeWeave state
                 removeInputDisplay = true;
 
-                if (input.Direction == 6)
+                if (!vibeCoding)
                 {
-                    facingRight = true;
+                    if (input.Direction == 6)
+                    {
+                        facingRight = true;
+                    }
+                    else if (input.Direction == 4)
+                    {
+                        facingRight = false;
+                    }
                 }
-                else if (input.Direction == 4)
-                {
-                    facingRight = false;
-                }
+                
 
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())

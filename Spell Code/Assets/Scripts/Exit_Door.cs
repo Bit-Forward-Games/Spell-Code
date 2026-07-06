@@ -68,7 +68,7 @@ public class Exit_Door : MonoBehaviour
 
         if (doorID == 0)
         {
-            GameManager.Instance.sceneManager.MainMenu();
+            GameManager.Instance.sceneManager.SoloLobby();
             return true;
         }
 

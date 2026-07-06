@@ -2891,7 +2891,7 @@ public class GameManager : MonoBehaviour
             // Match over -> the End scene shows the winner. Keep this banner SHORT (4s) so it does
             // NOT linger onto the End screen: unlike Shop/Gameplay, the End scene has no transition
             // banner of its own to supersede it, so a long-lived banner here bleeds onto it.
-            message = "Game Over : Player " + lastRoundWinnerPID + " wins the match! Congratulations!!!";
+            message = "Game Over!!!";
             if (roundEndedText != null)
             {
                 roundEndedText.text = message;
@@ -2904,7 +2904,7 @@ public class GameManager : MonoBehaviour
         else
         {
             string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
-            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! " + nextPhase;
+            message = "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase;
 
             // Online scene transitions wait for BOTH clients to reach the destination scene
             // (scene-sync); at high ping that can take several seconds with the round over and the

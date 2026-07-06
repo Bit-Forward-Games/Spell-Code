@@ -2634,6 +2634,14 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //armor = true;
+                if (input.Direction == 6)
+                {
+                    facingRight = true;
+                }
+                else if (input.Direction == 4)
+                {
+                    facingRight = false;
+                }
                 
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);

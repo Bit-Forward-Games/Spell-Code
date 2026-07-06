@@ -481,6 +481,10 @@ public class GameManager : MonoBehaviour
         //    cachedLocalInput = GatherInputForOnline();
         //}
 
+        // Must run from Update, FixedUpdate is skipped entirely while isTransitioning, which is
+        // exactly the state this watchdog un-sticks.
+        UpdateOnlineTransitionWatchdog();
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -1787,13 +1791,28 @@ public class GameManager : MonoBehaviour
 
     public void OnPeerSceneTransitionReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
     {
+        // Scene-ready signals are sent ONCE per peer (Reliable, but one-shot at the application
+        // level). Discarding one here used to be unrecoverable — the waiter's FixedUpdate
+        // early-returns on isTransitioning, so a missed ready froze it in the loading limbo
+        // forever while the other side played on. Every rejection below therefore either stashes
+        // the ready for the transition watchdog to re-apply, or logs why it was dropped.
         if (!IsPlayerSlotConnected(playerSlot))
         {
+            // The arrival block's ResetPlayers/roster churn can leave the slot momentarily
+            // unconnected while a ready lands. Stash it; the watchdog re-applies once the slot
+            // settles.
+            Debug.LogWarning($"[OnlineTransition] Scene-ready from slot {playerSlot} while slot not connected (id={transitionId}, type={sceneType}, sig={sceneSignature}). Stashing as pending.");
+            StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
             return;
         }
 
         if (!isTransitioning)
         {
+            // A peer can finish loading before we begin (or after we completed) our own
+            // transition. A stale id can never match a future activeOnlineTransitionId (ids
+            // strictly increase), so stashing is safe and a discarded-early ready is not.
+            Debug.LogWarning($"[OnlineTransition] Scene-ready from slot {playerSlot} while not transitioning (id={transitionId}, type={sceneType}, sig={sceneSignature}). Stashing as pending.");
+            StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
             return;
         }
 
@@ -1801,14 +1820,11 @@ public class GameManager : MonoBehaviour
         {
             if (transitionId > activeOnlineTransitionId)
             {
-                if (IsRosterBasedOnlineMatch())
-                {
-                    pendingSceneReadyBySlot[playerSlot] = (transitionId, sceneType, sceneSignature);
-                }
-                hasPendingRemoteSceneReady = true;
-                pendingRemoteSceneReadyTransitionId = transitionId;
-                pendingRemoteSceneReadyType = sceneType;
-                pendingRemoteSceneReadySignature = sceneSignature;
+                StashPendingSceneReady(playerSlot, transitionId, sceneType, sceneSignature);
+            }
+            else
+            {
+                Debug.LogWarning($"[OnlineTransition] Dropping stale scene-ready from slot {playerSlot} (id={transitionId} < active={activeOnlineTransitionId}).");
             }
             return;
         }
@@ -1826,6 +1842,18 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        hasPendingRemoteSceneReady = true;
+        pendingRemoteSceneReadyTransitionId = transitionId;
+        pendingRemoteSceneReadyType = sceneType;
+        pendingRemoteSceneReadySignature = sceneSignature;
+    }
+
+    private void StashPendingSceneReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
+    {
+        if (IsRosterBasedOnlineMatch() && playerSlot >= 0)
+        {
+            pendingSceneReadyBySlot[playerSlot] = (transitionId, sceneType, sceneSignature);
+        }
         hasPendingRemoteSceneReady = true;
         pendingRemoteSceneReadyTransitionId = transitionId;
         pendingRemoteSceneReadyType = sceneType;
@@ -1887,6 +1915,42 @@ public class GameManager : MonoBehaviour
         {
             isTransitioning = false;
             CompleteTrackedOnlineTransition();
+        }
+    }
+
+    // Self-healing for the scene-transition handshake. Each peer announces "scene ready" once;
+    // the receive path has timing windows where that single announcement can be stashed or
+    // missed (slot momentarily unconnected during arrival resets, ready landing outside the
+    // receiver's transitioning window, pended under an id the receiver hadn't reached yet).
+    // FixedUpdate early-returns while isTransitioning, so a waiter cannot recover on its own
+    // Runs from Update on unscaled time: re-send the ready, re-evaluate stashed
+    // peer readies, and log the wait state so any residual stall names its blocking gate.
+    private float nextOnlineTransitionWatchdogTime;
+
+    private void UpdateOnlineTransitionWatchdog()
+    {
+        if (!isOnlineMatchActive || !isTransitioning)
+        {
+            return;
+        }
+
+        if (Time.unscaledTime < nextOnlineTransitionWatchdogTime)
+        {
+            return;
+        }
+        nextOnlineTransitionWatchdogTime = Time.unscaledTime + 1f;
+
+        if (localSceneTransitionReady && MatchMessageManager.Instance != null)
+        {
+            MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
+        }
+
+        ApplyPendingSceneTransitionReadyIfAvailable();
+        CheckSceneTransitionReady();
+
+        if (isTransitioning)
+        {
+            Debug.LogWarning($"[OnlineTransition] Waiting on scene-ready handshake. id={activeOnlineTransitionId} localReady={localSceneTransitionReady} readySlots=[{string.Join(",", sceneReadyPeerSlots)}] connected={CountConnectedPlayers()} pendingBySlot={pendingSceneReadyBySlot.Count} scene={SceneManager.GetActiveScene().name} sig={GetNetworkSceneSignature()}");
         }
     }
 

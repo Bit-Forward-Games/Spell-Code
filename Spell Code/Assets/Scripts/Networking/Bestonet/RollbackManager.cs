@@ -2732,23 +2732,25 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         // --- Input Buffer Handling ---
         /// <summary> Stores locally gathered input for the correct future frame. </summary>
+        /// <remarks>
+        /// Write-once: local input for a frame is IMMUTABLE once recorded, because it has already
+        /// been sent (SendInputs resends the same buffer window every tick) and peers may have
+        /// consumed and VERIFIED it — their receive path drops corrections for frames at or below
+        /// their syncFrame. Overwriting the slot afterwards splits local sim from remote sim with
+        /// no mismatch either side can detect (each side's rx==used stays self-consistent).
+        /// Concretely: a TimeSync hold re-ticks the same localFrame, so the same targetFrame was
+        /// sampled twice. An adaptive InputDelay decrease regressing targetFrame
+        ///  onto already-sent slots is the same hazard.
+        /// frame 0 is exempt only because a cleared ring buffer's default entries alias frame 0
+        /// (FrameMetadata.frame defaults to 0), which would otherwise block the first real write.
+        /// </remarks>
         public void SetClientInput(int frame, ulong input)
         {
-            clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
-        }
-
-        public void NeutralizePendingLocalInputs(ulong neutralInput = 5UL)
-        {
-            int startFrame = localFrame;
-            int endFrame = localFrame + InputDelay;
-
-            for (int frame = startFrame; frame <= endFrame; frame++)
+            if (frame > 0 && clientInputs.ContainsKey(frame))
             {
-                ulong inputForFrame = clientInputs.ContainsKey(frame)
-                    ? PlayerController.ReplaceGameplayInputPreservingOnlineControlOptions(clientInputs.GetInput(frame), neutralInput)
-                    : neutralInput;
-                SetClientInput(frame, inputForFrame);
+                return;
             }
+            clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
         }
 
         /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>

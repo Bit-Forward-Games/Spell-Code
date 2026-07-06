@@ -158,7 +158,7 @@ public class HitboxManager : MonoBehaviour
                             }
                             else
                             {
-                                defendingPlayer.facingRight = !projectile.facingRight;
+                                //defendingPlayer.facingRight = !projectile.facingRight;
                                 defendingPlayer.hitboxData = hitbox;
                             }
 

@@ -79,6 +79,7 @@ public class GambaMachine : MonoBehaviour
 
         ApplyVisualState();
         activeScene = SceneManager.GetActiveScene();
+        if (dataManager == null) { dataManager = DataManager.Instance; }
         if (ownerPlayer == null) { ownerPlayer = gameManager.players[ownerPID - 1]; }
 
         if (activeScene.name == "MainMenu")

@@ -102,8 +102,8 @@ public class GameManager : MonoBehaviour
 
     [HideInInspector]
     public ShopManager shopManager;
-    public OnboardManager onboardManager;
 
+    public OnboardManager onboardManager;
 
     public GameObject floppyDisplayPrefab;
 
@@ -408,6 +408,7 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         playerInputManager = GetComponent<PlayerInputManager>();
         dataManager = DataManager.Instance;
+        onboardManager = GetComponent<OnboardManager>();
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
 
@@ -3009,17 +3010,20 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
-            //buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
-                onboardManager.enabled = false;
             }
+            onboardManager.enabled = true;
             onboardManager.OnboardUpdate(inputs);
         }
         else
         {
-            onboardManager = null;
+            if (onboardManager != null)
+            {
+                onboardManager = null;
+            }
+
         }
 
 

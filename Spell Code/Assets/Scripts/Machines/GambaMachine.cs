@@ -912,7 +912,7 @@ public class GambaMachine : MonoBehaviour
                         if (r != null) r.enabled = true;
                     }
                 }
-            });
+            }).SetUpdate(false);
             return;
         }
 
@@ -928,7 +928,7 @@ public class GambaMachine : MonoBehaviour
                 //toggle it back on
                 _disk.SetActive(true);
             }
-        });
+        }).SetUpdate(false);
 
         //return
         return;

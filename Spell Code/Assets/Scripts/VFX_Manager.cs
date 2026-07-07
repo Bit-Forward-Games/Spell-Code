@@ -652,15 +652,6 @@ public class VFX_Manager : MonoBehaviour
 
         //calculate the y value of the apex position of the curve by adding the heigher y value and _relativeApexHeight 
         _apexPos.y = Mathf.Max(_startPos.y, _endPos.y) + _relativeApexHeight;
-        //_apexPos.y = (_endPos.y + _startPos.y) / 2f;
-
-        ////define and calculate a post end position to calculate so that the arc doesn't look weird
-        ////Vector3 _postEndPos = _endPos + (Vector2.down * 30f);
-        //_trailRenderer.transform.localPosition = Vector3.zero;
-        //_trailRenderer.transform.localRotation = Quaternion.identity;
-        //_trailRenderer.transform.localScale = Vector3.one;
-
-        //_trailRenderer.emitting = false;
 
         //set start position of particle system to _startPos
         _trailRenderer.transform.position = _startPos;
@@ -674,9 +665,17 @@ public class VFX_Manager : MonoBehaviour
         //kill the old Tween
         _trailRenderer.transform.DOKill();
 
+        //Debug.DrawLine(_startPos, new Vector3(_startPos.x, (_startPos.y + _apexPos.y) * 0.75f), Color.red, 10f, false);
+        //Debug.DrawLine(new Vector3((_startPos.x + _apexPos.x) * 0.5f, _apexPos.y), _apexPos, Color.yellow, 10f, false);
+        //Debug.DrawLine(_apexPos, new Vector3((_endPos.x + _apexPos.x) * 0.5f, _apexPos.y), Color.green, 10f, false);
+        //Debug.DrawLine(new Vector3(_endPos.x, (_apexPos.y + _endPos.y) * 0.5f), _endPos, Color.blue, 10f, false);
+        //Debug.DrawLine(_startPos, _startPos + Vector2.left * 10f, Color.purple, 10f, false);
+        //Debug.DrawLine(_apexPos, _apexPos + Vector2.left * 10f, Color.purple, 10f, false);
+        //Debug.DrawLine(new Vector3(_startPos.x, (_apexPos.y + _startPos.y) * 0.75f), new Vector2(_startPos.x, (_apexPos.y + _startPos.y) * 0.75f) + Vector2.left * 10f, Color.purple, 10f, false);
+        //Debug.Log("VFX | start = " + _startPos + ". And apex = " + _apexPos + ". and midpoint = " + new Vector3(_startPos.x, (_apexPos.y + _startPos.y) * 0.75f));
+
         //play the lerping arc
         //Debug.Log("VFX | start = " + _startPos + ". apex = " + _apexPos + ". end = " + _endPos);
-        //return _trailRenderer.transform.DOPath(new Vector3[]{_apexPos, _startPos + (Vector2.up * 20f), _apexPos + (Vector3.left * 20f), _endPos, _apexPos + (Vector3.right * 20f), _endPos + (Vector2.up * 20f)}, _duration, PathType.CubicBezier, PathMode.Sidescroller2D).SetEase(Ease.Linear).OnComplete(() => DelayedTrailClear(_trailRenderer, _trailRenderer.time)?.Invoke());
         return _trailRenderer.transform.DOPath
         (
             new Vector3[] { _apexPos, new Vector3(_startPos.x, _startPos.y + Mathf.Abs(_apexPos.y - _startPos.y) * 0.75f), new Vector3((_startPos.x + _apexPos.x) * 0.5f, _apexPos.y), _endPos, new Vector3((_endPos.x + _apexPos.x) * 0.5f, _apexPos.y), new Vector3(_endPos.x, (_apexPos.y + _endPos.y) * 0.5f) },

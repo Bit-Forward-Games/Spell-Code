@@ -1066,17 +1066,32 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
             {
-                if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
+                int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                if (currentPlayerIndex < 0)
                 {
-                    pause.playerPauseIndex = _playerPauseIndex;
+                    currentPlayerIndex = _playerPauseIndex;
+                }
 
-                    if (pause.paused)
+                if (currentPlayerIndex < 0 || currentPlayerIndex >= GameManager.Instance.players.Length)
+                {
+                    Debug.LogWarning($"{name} tried to pause before it was registered with GameManager.");
+                }
+                else
+                {
+                    _playerPauseIndex = currentPlayerIndex;
+
+                    if (!pause.paused || pause.playerPauseIndex == currentPlayerIndex)
                     {
-                        pause.Resume();
-                    }
-                    else
-                    {
-                        pause.Pausing();
+                        pause.playerPauseIndex = currentPlayerIndex;
+
+                        if (pause.paused)
+                        {
+                            pause.Resume();
+                        }
+                        else
+                        {
+                            pause.Pausing();
+                        }
                     }
                 }
             }

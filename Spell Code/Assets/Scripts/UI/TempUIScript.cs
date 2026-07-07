@@ -19,6 +19,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshPro[] SpellInputs;
     public GameObject[] onPlayerUI;
     public GameObject[] emptyQuadrants;
+    
+    public GameObject[] vibeCodeQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
     public Sprite[] roundWinIcon;
@@ -497,6 +499,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             stockStabilityDim[i].enabled = false;
             demonAuraDim[i].enabled = false;
             repsDim[i].enabled = false;
+
+            if (vibeCodeQuadrants != null && i < vibeCodeQuadrants.Length && vibeCodeQuadrants[i] != null)
+                    vibeCodeQuadrants[i].SetActive(GameManager.Instance.players[i].vibeCoding);
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
             {

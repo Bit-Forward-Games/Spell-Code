@@ -725,7 +725,7 @@ public class VFX_Manager : MonoBehaviour
                     _trailRenderer.Clear();
                 }
             }
-            );
+            ).SetUpdate(true);
         };
     }
 

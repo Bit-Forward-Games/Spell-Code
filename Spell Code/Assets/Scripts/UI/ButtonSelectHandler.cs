@@ -75,6 +75,30 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetUpdate(true);
             }
         }
+
+        if (name.Contains("Pause"))
+        {
+            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+            pauseSelectorTransform.localScale = new Vector3(0f, pauseSelectorTransform.localScale.y, pauseSelectorTransform.localScale.z);
+            pauseSelectorTransform.localEulerAngles = new Vector3(0, 0, 0);
+            pauseSelectorTransform
+                .DOScaleX(1f, 0.15f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+            transform.parent.gameObject.GetComponent<Image>().enabled = false;
+            // Transform sliderChildTransform = transform.Find("SignSelecter");
+            // if (sliderChildTransform!= null) 
+            // {
+            //     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
+            //     signSelector.localScale = new Vector3(1f, signSelector.localScale.y, signSelector.localScale.z);
+            //     signSelector
+            //         .DOScaleX(0f, 0.15f)
+            //         .SetEase(Ease.OutQuad)
+            //         .SetUpdate(true);
+            // }
+        } 
     }
 
     // Triggers automatically when the button loses focus / gets unselected
@@ -129,7 +153,19 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
             }
-        } 
+        }
+
+        if (name.Contains("Pause"))
+        {
+            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+            pauseSelectorTransform
+                .DOScaleX(0f, 0.15f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
+            transform.parent.gameObject.GetComponent<Image>().enabled = false;
+        }
     }
 
     void Start()

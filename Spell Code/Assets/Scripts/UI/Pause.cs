@@ -276,6 +276,9 @@ public class Pause : MonoBehaviour
                 case Brand.Killeez:
                     panelColor.color = GameManager.colors["yellow"];
                     break;
+                default:
+                    panelColor.color = GameManager.colors["grey"];
+                    break;
             }
  
             spellNameText.text = spell.spellName;
@@ -459,53 +462,66 @@ public class Pause : MonoBehaviour
             cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
             inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
             
-            if (grid[tab].spells[selectedSpell].brands[0] == lastFellaBrand) return;
-            else
+            if (grid[tab].spells[selectedSpell].brands[0] != lastFellaBrand)
             {
                 lastFellaBrand = grid[tab].spells[selectedSpell].brands[0];
-                fella.GetComponent<Image>().sprite = fellas[(int)grid[tab].spells[selectedSpell].brands[0] - 1];
-
-                RectTransform fellaTransform = fella.GetComponent<RectTransform>();
-
-                fellaTransform.localScale = new Vector3(fellaTransform.localScale.x, 0f, fellaTransform.localScale.z);
-                fellaTransform
-                    .DOScaleY(1f, 0.15f)
-                    .SetEase(Ease.OutQuad)
-                    .SetUpdate(true);
+ 
+                if (lastFellaBrand != Brand.None)
+                {
+                    fella.GetComponent<Image>().sprite = fellas[(int)lastFellaBrand - 1];
+ 
+                    RectTransform fellaTransform = fella.GetComponent<RectTransform>();
+                    fellaTransform.localScale = new Vector3(fellaTransform.localScale.x, 0f, fellaTransform.localScale.z);
+                    fellaTransform
+                        .DOScaleY(1f, 0.15f)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+                }
             }
  
-            if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
+            if (grid[tab].spells[selectedSpell].brands == null || grid[tab].spells[selectedSpell].brands.Length == 0)
             {
-                switch (grid[tab].spells[selectedSpell].brands[0])
+                spellSelectedBorder.color = GameManager.colors["grey"];
+                colorLayer.color = GameManager.colors["grey"];
+                colorLayer2.color = GameManager.colors["grey"];
+                colorLayer3.color = GameManager.colors["grey"];
+                colorLayer4.color = GameManager.colors["grey"];
+            }
+            else
+            {
+                if (grid[tab].spells[selectedSpell].brands != null && grid[tab].spells[selectedSpell].brands.Length > 0)
                 {
-                    case Brand.VWave:
-                        spellSelectedBorder.color = GameManager.colors["green"];
-                        colorLayer.color = GameManager.colors["green"];
-                        colorLayer2.color = GameManager.colors["green"];
-                        colorLayer3.color = GameManager.colors["green"];
-                        colorLayer4.color = GameManager.colors["green"];
-                        break;
-                    case Brand.BigStox:
-                        spellSelectedBorder.color = GameManager.colors["blue"];
-                        colorLayer.color = GameManager.colors["blue"];
-                        colorLayer2.color = GameManager.colors["blue"];
-                        colorLayer3.color = GameManager.colors["blue"];
-                        colorLayer4.color = GameManager.colors["blue"];
-                        break;
-                    case Brand.DemonX:
-                        spellSelectedBorder.color = GameManager.colors["red"];
-                        colorLayer.color = GameManager.colors["red"];
-                        colorLayer2.color = GameManager.colors["red"];
-                        colorLayer3.color = GameManager.colors["red"];
-                        colorLayer4.color = GameManager.colors["red"];
-                        break;
-                    case Brand.Killeez:
-                        spellSelectedBorder.color = GameManager.colors["yellow"];
-                        colorLayer.color = GameManager.colors["yellow"];
-                        colorLayer2.color = GameManager.colors["yellow"];
-                        colorLayer3.color = GameManager.colors["yellow"];
-                        colorLayer4.color = GameManager.colors["yellow"];
-                        break;
+                    switch (grid[tab].spells[selectedSpell].brands[0])
+                    {
+                        case Brand.VWave:
+                            spellSelectedBorder.color = GameManager.colors["green"];
+                            colorLayer.color = GameManager.colors["green"];
+                            colorLayer2.color = GameManager.colors["green"];
+                            colorLayer3.color = GameManager.colors["green"];
+                            colorLayer4.color = GameManager.colors["green"];
+                            break;
+                        case Brand.BigStox:
+                            spellSelectedBorder.color = GameManager.colors["blue"];
+                            colorLayer.color = GameManager.colors["blue"];
+                            colorLayer2.color = GameManager.colors["blue"];
+                            colorLayer3.color = GameManager.colors["blue"];
+                            colorLayer4.color = GameManager.colors["blue"];
+                            break;
+                        case Brand.DemonX:
+                            spellSelectedBorder.color = GameManager.colors["red"];
+                            colorLayer.color = GameManager.colors["red"];
+                            colorLayer2.color = GameManager.colors["red"];
+                            colorLayer3.color = GameManager.colors["red"];
+                            colorLayer4.color = GameManager.colors["red"];
+                            break;
+                        case Brand.Killeez:
+                            spellSelectedBorder.color = GameManager.colors["yellow"];
+                            colorLayer.color = GameManager.colors["yellow"];
+                            colorLayer2.color = GameManager.colors["yellow"];
+                            colorLayer3.color = GameManager.colors["yellow"];
+                            colorLayer4.color = GameManager.colors["yellow"];
+                            break;
+                    }
                 }
             }
         }
@@ -514,7 +530,11 @@ public class Pause : MonoBehaviour
             displaySpellName.text = "none";
             displaySpellDescription.text = "none";
             spellSelectedText.text = "none";
-            spellSelectedBorder.color = new Color32(255, 255, 255, 255);
+            spellSelectedBorder.color = GameManager.colors["grey"];
+            colorLayer.color = GameManager.colors["grey"];
+            colorLayer2.color = GameManager.colors["grey"];
+            colorLayer3.color = GameManager.colors["grey"];
+            colorLayer4.color = GameManager.colors["grey"];
         }
     }
  

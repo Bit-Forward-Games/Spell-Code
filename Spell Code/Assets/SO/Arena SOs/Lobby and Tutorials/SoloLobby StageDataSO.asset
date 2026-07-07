@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
+  m_Name: SoloLobby StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
+  platformCenter: []
+  platformExtent: []
+  solidCenter:
+  - {x: 1.2118225, y: -157.07866}
+  - {x: -280, y: -150}
+  - {x: -280, y: 138}
+  - {x: -288, y: 130}
+  - {x: 288, y: 130}
+  - {x: 280, y: 138}
+  - {x: -288, y: -142}
+  - {x: 288, y: -142}
+  - {x: 280, y: -150}
+  - {x: -86.78818, y: -133.07866}
+  - {x: 73.21182, y: -133.07866}
+  - {x: 1.2118225, y: 146.92133}
+  - {x: -294.78818, y: -5.0786743}
+  - {x: 297.21182, y: -5.0786743}
+  solidExtent:
+  - {x: 311.99734, y: 15.999664}
+  - {x: 31.996796, y: 23.999874}
+  - {x: 31.996796, y: 24.007076}
+  - {x: 23.99759, y: 32.006226}
+  - {x: 23.992615, y: 32.006226}
+  - {x: 31.991737, y: 24.00467}
+  - {x: 23.99759, y: 31.999027}
+  - {x: 23.9888, y: 31.999027}
+  - {x: 31.989082, y: 23.999268}
+  - {x: 32.004105, y: 7.999832}
+  - {x: 32.004105, y: 7.999832}
+  - {x: 311.99734, y: 15.998413}
+  - {x: 16.0141, y: 167.99704}
+  - {x: 16.012573, y: 168.01329}
+  playerSpawnTransform:
+  - {x: 0, y: -137}
+  - {x: 0, y: -137}
+  - {x: 0, y: -137}
+  - {x: 0, y: -137}
+  npcSpawnTransform: []
+  activatableSolidCenter: []
+  activatableSolidExtent: []
+  borderMin: {x: -300, y: -164, z: 0}
+  borderMax: {x: 300, y: 164, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
+  borderType: 0
+  stageType: 0
+  dynamicCamera: 1
+  maxZoomOverride: 0

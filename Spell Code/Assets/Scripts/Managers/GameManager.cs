@@ -53,7 +53,6 @@ public class GameManager : MonoBehaviour
     public ushort ramNeededToWinRound = 1;
     public static ushort baseRamNeeddedtowin = 400;
 
-    public SpriteRenderer shopImage;
 
     [NonSerialized]
     public PlayerController bigWinner = null;
@@ -2372,7 +2371,6 @@ public class GameManager : MonoBehaviour
 
             if (isOnline)
             {
-                shopImage.enabled = false;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
@@ -2410,7 +2408,6 @@ public class GameManager : MonoBehaviour
             }
             if (isOnline)
             {
-                shopImage.enabled = true;
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
         }
@@ -2427,10 +2424,6 @@ public class GameManager : MonoBehaviour
                 return;
             }
 
-            if (isOnline)
-            {
-                shopImage.enabled = false;
-            }
         }
     }
 
@@ -2993,17 +2986,12 @@ public class GameManager : MonoBehaviour
                 players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
                 players[i].storedKillBonus = 0;
             }
-            shopImage.enabled = true;
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
             {
                 LoadRandomGameplayStage();
             }
-        }
-        else
-        {
-            shopImage.enabled = false;
         }
 
 
@@ -4607,11 +4595,6 @@ public class GameManager : MonoBehaviour
         if (tempUI != null)
         {
             tempUI.gameObject.SetActive(false);
-        }
-
-        if (shopImage != null)
-        {
-            shopImage.enabled = false;
         }
 
         if (playerWinText != null)

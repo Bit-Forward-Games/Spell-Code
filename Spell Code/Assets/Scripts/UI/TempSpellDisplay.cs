@@ -241,7 +241,7 @@ public class TempSpellDisplay : MonoBehaviour
                                 codeToMatch = 0b_0000_0000_0000_0000_0000_0010_0000_0001;
                                 break;
                             default:
-                                codeToMatch = 255;
+                                codeToMatch = 0;
                                 break;
                         }
                         spellSlots[i].text = PlayerController.ConvertCodeToString(codeToMatch, 
@@ -265,7 +265,7 @@ public class TempSpellDisplay : MonoBehaviour
                 else
                 {
                     spellSlots[i].text = playerSpells[i].spellName;
-                    spellSlots[i].fontSize = 8;
+                    spellSlots[i].fontSize = 7;
                 }
             }
             else

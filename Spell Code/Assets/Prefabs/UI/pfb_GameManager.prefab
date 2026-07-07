@@ -12263,7 +12263,7 @@ RectTransform:
   m_Father: {fileID: 995654133305089215}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -4.0587006, y: -11.8871}
   m_SizeDelta: {x: 61.7222, y: 13.6794}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -13870,8 +13870,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3204363030243700230}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.499975, y: 0}
-  m_AnchorMax: {x: 0.499975, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -15468,8 +15468,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2248436781026370316}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.499975, y: 0}
-  m_AnchorMax: {x: 0.499975, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -22703,8 +22703,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1391138336673833680}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -23777,7 +23777,7 @@ RectTransform:
   m_Father: {fileID: 6299399647854807323}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -4.4216003, y: -12.427101}
   m_SizeDelta: {x: 62.086, y: 12.3802}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -24491,7 +24491,7 @@ RectTransform:
   m_Father: {fileID: 2664979653630120522}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -4.3779984, y: -11.871899}
   m_SizeDelta: {x: 61.0835, y: 13.7099}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -26497,7 +26497,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: be12e0ef8d723fd459631ea968716a5a, type: 2}
   - {fileID: 11400000, guid: de1d9f3dde21ffa4a905bb0361af179e, type: 2}
   - {fileID: 11400000, guid: 3ab8bc43a83aeb44f98cecc9d5db03c7, type: 2}
-  - {fileID: 11400000, guid: 855d094742c491e478348c82c476a3e6, type: 2}
+  - {fileID: 11400000, guid: ae843770f2dd0f8459843c8676547f88, type: 2}
   - {fileID: 11400000, guid: db5ebc8605871f445b7b60a7c87bb7c8, type: 2}
   - {fileID: 11400000, guid: f6e1a385d62e0cf4983a2cfa389a73a5, type: 2}
   - {fileID: 11400000, guid: fabf54dcb66a70d47843e070ca17a175, type: 2}

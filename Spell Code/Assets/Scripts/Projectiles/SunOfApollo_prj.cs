@@ -47,7 +47,7 @@ public class SunOfApollo_prj : BaseProjectile
                     height = 128,
                     xKnockback = 5,
                     yKnockback = 15,
-                    damage = 15,
+                    damage = 20,
                     hitstun = 30,
                     attackLvl = 3,
                     //cancelOptions = new List<int> { } // No cancel options

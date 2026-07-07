@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 354eeb1b31ad84ad384d4e83815fce21
+guid: ed2086c2ec31b40ffb7fc8110ba1430e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8660189369736047070
-    second: Untitled_Artwork-2 11_0
+      213: -7042067320844761821
+    second: Untitled_Artwork 367_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -96,43 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Untitled_Artwork-2 11_0
+      name: Untitled_Artwork 367_0
       rect:
         serializedVersion: 2
-        x: 31
-        y: 112
-        width: 1987
-        height: 814
+        x: 91
+        y: 71
+        width: 1892
+        height: 844
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ed92bbe195c2f2870800000000000000
-      internalID: 8660189369736047070
+      spriteID: 32549a8051d854e90800000000000000
+      internalID: -7042067320844761821
       vertices: []
       indices: 
       edges: []
@@ -161,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Untitled_Artwork-2 11_0: 8660189369736047070
+      Untitled_Artwork 367_0: -7042067320844761821
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

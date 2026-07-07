@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f8b13b8a3eda7473e8ec301b0e882df4
+guid: ecb7b898a0dac4ea88bb71d93abdb648
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4602054194333392644
-    second: Untitled_Artwork-2 10_0
+      213: 1273441686467282073
+    second: Spell_Button 4_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -96,43 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Untitled_Artwork-2 10_0
+      name: Spell_Button 4_0
       rect:
         serializedVersion: 2
-        x: 56
-        y: 29
-        width: 1967
-        height: 1012
+        x: 0
+        y: 0
+        width: 1884
+        height: 895
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cf069adc7183220c0800000000000000
-      internalID: -4602054194333392644
+      spriteID: 9948e04877c2ca110800000000000000
+      internalID: 1273441686467282073
       vertices: []
       indices: 
       edges: []
@@ -161,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Untitled_Artwork-2 10_0: -4602054194333392644
+      Spell_Button 4_0: 1273441686467282073
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

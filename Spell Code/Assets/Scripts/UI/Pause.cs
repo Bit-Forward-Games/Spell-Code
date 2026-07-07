@@ -697,6 +697,8 @@ public class Pause : MonoBehaviour
  
         SetMenuTimeScale();
 
+        RevertTextColorToWhite();
+
         //mute all gameplay sfx but not menu sfx
         SFX_Manager.Instance.MuteGamePlaySFX();
         Debug.Log("HERE");
@@ -805,6 +807,7 @@ public class Pause : MonoBehaviour
     public void RevertTextColorToWhite()
     {
         GameObject[] signTexts = GameObject.FindGameObjectsWithTag("SignText");
+        GameObject[] pauseButtons = GameObject.FindGameObjectsWithTag("Pause");
 
         // Loop through the array to interact with each object
         foreach (GameObject signText in signTexts)
@@ -813,6 +816,11 @@ public class Pause : MonoBehaviour
             {
                 signText.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f);
             }
+        }
+
+        foreach (GameObject pauseButton in pauseButtons)
+        {
+            pauseButton.GetComponent<Image>().enabled = true;
         }
     }
     

@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: GambaClearActive
+  m_Name: GambaAiActiveLeft
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,9 +21,9 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: -5045402366361353325, guid: e11d23222a3ffb04497b57f966dd9134, type: 3}
+      value: {fileID: 2693843299849067673, guid: d676b8fa4e364e5478853cacc129b253, type: 3}
     - time: 0.5
-      value: {fileID: -9166346571676839793, guid: e11d23222a3ffb04497b57f966dd9134, type: 3}
+      value: {fileID: 886445651876016300, guid: d676b8fa4e364e5478853cacc129b253, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -46,8 +46,8 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: -5045402366361353325, guid: e11d23222a3ffb04497b57f966dd9134, type: 3}
-    - {fileID: -9166346571676839793, guid: e11d23222a3ffb04497b57f966dd9134, type: 3}
+    - {fileID: 2693843299849067673, guid: d676b8fa4e364e5478853cacc129b253, type: 3}
+    - {fileID: 886445651876016300, guid: d676b8fa4e364e5478853cacc129b253, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}

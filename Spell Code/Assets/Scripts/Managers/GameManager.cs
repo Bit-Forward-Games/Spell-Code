@@ -3322,9 +3322,14 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             int ramRoundBounty = roundOver? 0: (players[i].roundRam - averageRoundRam)/3;
-            Debug.Log($"Player {i+1} Old Bounty: {players[i].ramBounty}");
+            int oldBounty = players[i].ramBounty;
+            
             players[i].ramBounty = (short)( ramRoundBounty + (100*(players[i].roundsWon - averageRoundWins)));
-            Debug.Log($"Player {i+1} New Bounty: {players[i].ramBounty}");
+            if(oldBounty != players[i].ramBounty)
+            {
+                Debug.Log($"Player {i+1} Old Bounty: {oldBounty}");
+                Debug.Log($"Player {i+1} New Bounty: {players[i].ramBounty}");
+            }
         }
         
         if (!applyVisuals)

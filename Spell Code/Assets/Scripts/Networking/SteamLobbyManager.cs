@@ -52,6 +52,13 @@ public class SteamLobbyManager : MonoBehaviour
     // the same ExecuteOrder66-survival reason as the pending-join fields above.
     private static bool pendingHostInviteRequested;
 
+    // Quick Match requested outside MainMenu (the solo lobby's multiplayer door) defers the same way
+    // as host/join, transition to MainMenu first, then run the search there so the match starts in
+    // the scene the online lobby actually simulates in. Static for the same ExecuteOrder66-survival
+    // reason as the pending-join/host fields above.
+    private static bool pendingMatchmakingRequested;
+    private static int pendingMatchmakingSize;
+
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
 
@@ -195,6 +202,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         TryResumePendingOnlineJoin();
         TryResumePendingHostInvite();
+        TryResumePendingMatchmaking();
 
         if (!currentLobby.HasValue)
         {
@@ -303,13 +311,45 @@ public class SteamLobbyManager : MonoBehaviour
     // flow (at MinimumOnlineLobbyStartSize, then drop-in fills up to the bucket) -- same as invites.
     public void FindMatch(int desiredSize)
     {
-        FindMatchAsync(Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize));
+        int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
+
+        // The online lobby only simulates in MainMenu, so Quick Match — like host/join — defers there
+        // first when triggered from another scene (SoloLobby's multiplayer door). Otherwise both
+        // players search/host from SoloLobby, where the match can never start, and never converge.
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            pendingMatchmakingRequested = true;
+            pendingMatchmakingSize = clamped;
+
+            GameManager manager = GameManager.Instance;
+            bool hasLocalPlayer = manager != null
+                && manager.players != null
+                && manager.players.Length > 0
+                && manager.players[0] != null;
+
+            if (hasLocalPlayer)
+            {
+                // Warm path (solo lobby's online door) same transition Local Play/host+invite use —
+                // persistent managers and the spawned player survive into the MainMenu lobby.
+                Debug.Log($"[SteamLobbyManager] Quick Match requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Taking the warm transition to the lobby scene.");
+                manager.loadMainMenu();
+            }
+            else
+            {
+                Debug.Log($"[SteamLobbyManager] Quick Match requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
+                manager?.ExecuteOrder66("MainMenu");
+            }
+            return;
+        }
+
+        FindMatchAsync(clamped);
     }
 
     // Cancel an in-progress search / leave the matchmaking lobby. Wire this to a "Cancel" button.
     public void CancelMatchmaking()
     {
         isMatchmaking = false;
+        pendingMatchmakingRequested = false;
         LeaveLobbyInternal();
     }
 
@@ -512,9 +552,10 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        // Accepting an invite supersedes any queued host+invite intent; without this, the
-        // deferred host flow could fire after the join and fight over the lobby state.
+        // Accepting an invite supersedes any queued host+invite or matchmaking intent; without this,
+        // a deferred flow could fire after the join and fight over the lobby state.
         pendingHostInviteRequested = false;
+        pendingMatchmakingRequested = false;
 
         try
         {
@@ -616,6 +657,30 @@ public class SteamLobbyManager : MonoBehaviour
             GameManager.Instance.MainMenuScreen.SetActive(false);
         }
         OpenInviteOverlayOrHost();
+    }
+
+    // Resumes a Quick Match requested outside MainMenu (deferred by FindMatch)
+    // Fires once the rebuilt scene's managers are alive and Steam is ready.
+    private void TryResumePendingMatchmaking()
+    {
+        if (!pendingMatchmakingRequested || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        pendingMatchmakingRequested = false;
+        Debug.Log($"[SteamLobbyManager] Resuming deferred Quick Match (size {pendingMatchmakingSize}) in MainMenu.");
+        // Arrival is for matchmaking, not menu browsing — hide the title panel like the deferred host/join.
+        if (GameManager.Instance.MainMenuScreen != null)
+        {
+            GameManager.Instance.MainMenuScreen.SetActive(false);
+        }
+        FindMatchAsync(pendingMatchmakingSize);
     }
 
     private void HandleLobbyEntered(Lobby lobby)

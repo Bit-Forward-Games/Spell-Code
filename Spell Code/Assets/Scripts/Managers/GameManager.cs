@@ -4108,6 +4108,37 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Hide every player's character visuals on the End screen. Players are DontDestroyOnLoad, so they
+    // and their child renderers ride into the End scene; the winner is shown via GameEndScreen's
+    // separate winnerImage sprite, so the real characters (winner AND losers) should be invisible --
+    // a carried-over loser was still partly on-camera. Disable the RENDERERS (not the GameObjects) so
+    // each player's PlayerInput stays alive for GameEndScreen's restart-on-jump. Fresh players are
+    // rebuilt on the way to MainMenu (ExecuteOrder66), so this leaves no lingering hidden state.
+    private void HideAllPlayerCharacters()
+    {
+        if (players == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] == null)
+            {
+                continue;
+            }
+
+            Renderer[] renderers = players[i].GetComponentsInChildren<Renderer>(true);
+            for (int r = 0; r < renderers.Length; r++)
+            {
+                if (renderers[r] != null)
+                {
+                    renderers[r].enabled = false;
+                }
+            }
+        }
+    }
+
     public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)
     {
         if (!isOnlineMatchActive)
@@ -4483,6 +4514,7 @@ public class GameManager : MonoBehaviour
             // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
             ClearStages();
             HidePersistentUiForEndScene();
+            HideAllPlayerCharacters();
 
             if (isOnlineMatchActive)
             {

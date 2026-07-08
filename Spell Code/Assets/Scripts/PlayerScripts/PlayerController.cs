@@ -106,9 +106,12 @@ public class PlayerController : MonoBehaviour
 
     public bool facingRight = true;
     public bool isGrounded = false;
-    public bool touchingLeftWall = false;
-    public bool touchingRightWall = false;
-    public bool onPlatform = false;
+    [NonSerialized]public bool touchingLeftWall = false;
+   [NonSerialized] public bool touchingRightWall = false;
+    [NonSerialized]public bool onPlatform = false;
+    [NonSerialized]public byte portalCooldown = 0;
+    private const byte PortalCooldownFrames = 60;
+    private const float PortalCollisionRadius = 36f;
 
 // controls options
     [NonSerialized] public bool vibeCoding = false;
@@ -504,6 +507,7 @@ public class PlayerController : MonoBehaviour
         hitstop = 0;
         hitstopActive = false;
         superArmor = false;
+        portalCooldown = 0;
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
@@ -2309,7 +2313,6 @@ public class PlayerController : MonoBehaviour
                 prevDoubleTapDirection = 5;
             }
             int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
-            if (platformCount == 0) return false;
 
             Fixed halfW = playerWidth / Fixed.FromInt(2);
             Fixed halfH = playerHeight / Fixed.FromInt(2);
@@ -2500,7 +2503,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         #endregion
-        #region--- Borders ---
+#region--- Borders ---
         if (stageDataSO.borderMin != null && stageDataSO.borderMax != null)
         {
             //switch between the stageDataSO borderTypes to determine how to handle border collisions (borders that stop, borders that wrap around, borders that kill you, etc.)
@@ -2563,7 +2566,60 @@ public class PlayerController : MonoBehaviour
             }
         }
         #endregion
+#region ------PORTALS----------
+        if (portalCooldown == 0 && stageDataSO.portals != null)
+        {
+            FixedVec2 nextPosition = position + new FixedVec2(hSpd, vSpd);
+            Fixed radius = Fixed.FromFloat(PortalCollisionRadius / 100f);
+            Fixed radiusSq = radius * radius;
+
+            for (int i = 0; i < stageDataSO.portals.Length; i++)
+            {
+                (Vector2 portalA, Vector2 portalB) = stageDataSO.portals[i];
+
+                if (CheckPortalCollision(nextPosition, portalA, radiusSq))
+                {
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
+                    TeleportToPortalDestination(portalB);
+                    returnVal = true;
+                    break;
+                }
+
+                if (CheckPortalCollision(nextPosition, portalB, radiusSq))
+                {
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
+                    TeleportToPortalDestination(portalA);
+                    returnVal = true;
+                    break;
+                }
+            }
+        }
+#endregion
         return returnVal;
+    }
+
+    private bool CheckPortalCollision(FixedVec2 targetPosition, Vector2 portalPosition, Fixed radiusSq)
+    {
+        FixedVec2 fixedPortalPosition = FixedVec2.FromFloat(portalPosition.x, portalPosition.y);
+        Fixed dx = (targetPosition.X - fixedPortalPosition.X) / Fixed.FromInt(100);
+        Fixed dy = (targetPosition.Y - fixedPortalPosition.Y) / Fixed.FromInt(100);
+        Fixed distSq = (dx * dx) + (dy * dy);
+        return distSq <= radiusSq;
+    }
+
+    private void TeleportToPortalDestination(Vector2 destination)
+    {
+        FixedVec2 fixedDestination = FixedVec2.FromFloat(destination.x, destination.y);
+        position = fixedDestination - new FixedVec2(hSpd, vSpd);
+        portalCooldown = PortalCooldownFrames;
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
@@ -2733,6 +2789,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void UpdateResources()
     {
+        if (portalCooldown > 0)
+        {
+            portalCooldown--;
+        }
+
         //update flow state
         if (flowState > 0)
         {
@@ -3346,6 +3407,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
+        bw.Write(portalCooldown);
         bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
@@ -3458,6 +3520,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
+        bw.Write(portalCooldown);
         bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write(logicFrame);
@@ -3594,6 +3657,7 @@ public class PlayerController : MonoBehaviour
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         onPlatform = br.ReadBoolean();
+        portalCooldown = br.ReadByte();
         relativeInputs = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();

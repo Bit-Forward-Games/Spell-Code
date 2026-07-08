@@ -1,9 +1,13 @@
+using System;
 using UnityEngine;
 
 public abstract class NpcAI : MonoBehaviour
 {
-    public InputSnapshot npcInputSnapshot = new InputSnapshot(5,new ButtonState[]{ButtonState.None, ButtonState.None, ButtonState.None});
-    public PlayerController owner;
+    [NonSerialized] public InputSnapshot npcInputSnapshot = new InputSnapshot(5,new ButtonState[]{ButtonState.None, ButtonState.None, ButtonState.None});
+    [NonSerialized] public PlayerController owner;
+    
+
+    public abstract string BehaviorName { get; }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -11,11 +15,6 @@ public abstract class NpcAI : MonoBehaviour
         {
             owner = gameObject.GetComponent<PlayerController>();
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
     }
 
     public abstract void NPCUpdate();

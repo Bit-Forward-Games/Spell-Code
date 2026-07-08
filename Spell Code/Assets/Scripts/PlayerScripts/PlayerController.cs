@@ -1065,17 +1065,32 @@ public class PlayerController : MonoBehaviour
         {
             if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
             {
-                if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
+                int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
+                if (currentPlayerIndex < 0)
                 {
-                    pause.playerPauseIndex = _playerPauseIndex;
+                    currentPlayerIndex = _playerPauseIndex;
+                }
 
-                    if (pause.paused)
+                if (currentPlayerIndex < 0 || currentPlayerIndex >= GameManager.Instance.players.Length)
+                {
+                    Debug.LogWarning($"{name} tried to pause before it was registered with GameManager.");
+                }
+                else
+                {
+                    _playerPauseIndex = currentPlayerIndex;
+
+                    if (!pause.paused || pause.playerPauseIndex == currentPlayerIndex)
                     {
-                        pause.Resume();
-                    }
-                    else
-                    {
-                        pause.Pausing();
+                        pause.playerPauseIndex = currentPlayerIndex;
+
+                        if (pause.paused)
+                        {
+                            pause.Resume();
+                        }
+                        else
+                        {
+                            pause.Pausing();
+                        }
                     }
                 }
             }
@@ -1432,13 +1447,21 @@ public class PlayerController : MonoBehaviour
                 if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     byte tempInput;
+                    bool validCodeDirection = input.Direction is 2 or 4 or 6 or 8;
+                    byte codeWriteIndex = (byte)(vibeCoding ? 0 : codeCount);
+                    int codeWriteShift = 8 + (codeWriteIndex * 2);
+                    if (validCodeDirection)
+                    {
+                        stateSpecificArg &= ~(0b11u << codeWriteShift);
+                    }
+
                     switch (input.Direction)
                     {
                         case 2:
                             // Set the 2 highest significant bits minus 2 bits per codeCount to 00
                             // stateSpecificArg: [high bits ...][codeCount (lowest 4 bits)]
                             // Example: For codeCount = 1, clear bits 31-30; for codeCount = 2, clear bits 29-28, etc.
-                            stateSpecificArg |= (uint)(0b00 << (8 + (codeCount * 2)));
+                            stateSpecificArg |= (uint)(0b00 << codeWriteShift);
                             stateSpecificArg &= ~(1u << 4);
                             //Debug.Log("down input Pressed!");
                             //play the input down code sound
@@ -1453,7 +1476,7 @@ public class PlayerController : MonoBehaviour
                             {
                                 tempInput = 0b10;
                             }
-                                stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
+                            stateSpecificArg |= (uint)(tempInput << codeWriteShift);
                             stateSpecificArg &= ~(1u << 4);
                             //Debug.Log("left input Pressed!");
                             //play the input left code sound
@@ -1468,14 +1491,14 @@ public class PlayerController : MonoBehaviour
                             {
                                 tempInput = 0b01;
                             }
-                            stateSpecificArg |= (uint)(tempInput << (8 + (codeCount * 2)));
+                            stateSpecificArg |= (uint)(tempInput << codeWriteShift);
                             stateSpecificArg &= ~(1u << 4);
                             //Debug.Log("right input Pressed!");
                             //play the input right code sound
                             SFX_Manager.Instance.PlaySound(Sounds.INPUT_CODE_RIGHT, 1f, 1f);
                             break;
                         case 8:
-                            stateSpecificArg |= (uint)(0b11 << (8 + (codeCount * 2)));
+                            stateSpecificArg |= (uint)(0b11 << codeWriteShift);
                             stateSpecificArg &= ~(1u << 4);
                             //Debug.Log("up input Pressed!");
                             //play the input up code sound
@@ -1493,8 +1516,8 @@ public class PlayerController : MonoBehaviour
                         if(!vibeCoding ||(stateSpecificArg & 0xFu) < 1u)
                         {
                             stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
-                            storedCodeDuration = 0;
                         }
+                        storedCodeDuration = 0;
                     }
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
                     

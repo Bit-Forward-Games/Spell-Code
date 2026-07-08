@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class HoldCodeButtonAI : NpcAI
 {
-
+    public override string BehaviorName => "Armor";
     public override void NPCUpdate()
     {
         if(owner==null)return;

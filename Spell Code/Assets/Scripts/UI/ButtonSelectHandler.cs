@@ -28,7 +28,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         }
          
-        if (name.Split('_')[0] == "Options" || name.Contains("Slider"))
+        if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign"))
         {
             Transform optionsChildTransform = transform.Find("SignText");
             if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
@@ -61,7 +61,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         }
 
-        if (name.Contains("Slider"))
+        if (name.Contains("Slider") || name.Contains("Digital"))
         {
             Transform sliderChildTransform = transform.Find("SignSelecter");
             if (sliderChildTransform!= null) 
@@ -75,6 +75,30 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetUpdate(true);
             }
         }
+
+        if (name.Contains("Pause"))
+        {
+            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+            pauseSelectorTransform.localScale = new Vector3(0f, pauseSelectorTransform.localScale.y, pauseSelectorTransform.localScale.z);
+            pauseSelectorTransform.localEulerAngles = new Vector3(0, 0, 0);
+            pauseSelectorTransform
+                .DOScaleX(1f, 0.15f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+            transform.parent.gameObject.GetComponent<Image>().enabled = false;
+            // Transform sliderChildTransform = transform.Find("SignSelecter");
+            // if (sliderChildTransform!= null) 
+            // {
+            //     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
+            //     signSelector.localScale = new Vector3(1f, signSelector.localScale.y, signSelector.localScale.z);
+            //     signSelector
+            //         .DOScaleX(0f, 0.15f)
+            //         .SetEase(Ease.OutQuad)
+            //         .SetUpdate(true);
+            // }
+        } 
     }
 
     // Triggers automatically when the button loses focus / gets unselected
@@ -117,7 +141,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             }
         } 
 
-        if (name.Contains("Slider"))
+        if (name.Contains("Slider") || name.Contains("Digital"))
         {
             Transform sliderChildTransform = transform.Find("SignSelecter");
             if (sliderChildTransform!= null) 
@@ -129,7 +153,19 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
             }
-        } 
+        }
+
+        if (name.Contains("Pause"))
+        {
+            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+            pauseSelectorTransform
+                .DOScaleX(0f, 0.15f)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
+            transform.parent.gameObject.GetComponent<Image>().enabled = false;
+        }
     }
 
     void Start()
@@ -146,13 +182,30 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         if (EventSystem.current.currentSelectedGameObject == gameObject)
         {
             // 2. Check if the user is actively holding down the Submit key/button
+            if (name.Contains("Slider") || name.Split('_')[0] == "Digital")
+            {
+                Transform childTransform = transform.Find("SignText");
+                if (childTransform != null)
+                {
+                    TextMeshProUGUI digitalOptionsText = childTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    digitalOptionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
+                }
+
+                Transform blueOptionsChildTransform = transform.Find("Blue_SignText");
+                if (blueOptionsChildTransform != null && !pause.suppressingSelectionColor) 
+                {
+                    TextMeshProUGUI optionsText = blueOptionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    optionsText.color = new Color(72f / 255f, 114f / 255f, 118f / 255f);
+                }
+            }
+
             if (pause.WasPausePlayerSubmitPressedThisFrame()) 
             {
                 Transform optionsChildTransform = transform.Find("SignText");
                 if (optionsChildTransform != null) 
                 {
                     TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                    optionsText.color = new Color(1f, 1f, 1f);
+                    optionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
                 }
             }
 
@@ -160,6 +213,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             {
                 pause.displayIndex = DisplayOptionsCycle(pause.displayModes, pause.displayIndex);
                 pause.displayOptionString.text = pause.displayModes[pause.displayIndex];
+            }
+
+            if (name.Contains("Resolution"))
+            {
+                pause.resolutionIndex = DisplayOptionsCycle(pause.resolutions, pause.resolutionIndex);
+                pause.resolutionOptionString.text = pause.resolutions[pause.resolutionIndex];
             }
         }
     }

@@ -1590,14 +1590,18 @@ public class PlayerController : MonoBehaviour
                 //allow the display to be reset upon entering CodeWeave state
                 removeInputDisplay = true;
 
-                if (input.Direction == 6)
+                if (!vibeCoding)
                 {
-                    facingRight = true;
+                    if (input.Direction == 6)
+                    {
+                        facingRight = true;
+                    }
+                    else if (input.Direction == 4)
+                    {
+                        facingRight = false;
+                    }
                 }
-                else if (input.Direction == 4)
-                {
-                    facingRight = false;
-                }
+                
 
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
@@ -2629,6 +2633,14 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //armor = true;
+                if (input.Direction == 6)
+                {
+                    facingRight = true;
+                }
+                else if (input.Direction == 4)
+                {
+                    facingRight = false;
+                }
                 
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -2861,7 +2873,7 @@ public class PlayerController : MonoBehaviour
             if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
-                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID);
+                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID, false);
 
                 if(!multiHitDamageInstance) comboCounter++;
                 if (comboCounter >= 4)

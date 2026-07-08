@@ -102,8 +102,8 @@ public class GameManager : MonoBehaviour
 
     [HideInInspector]
     public ShopManager shopManager;
-    public OnboardManager onboardManager;
 
+    public OnboardManager onboardManager;
 
     public GameObject floppyDisplayPrefab;
 
@@ -451,6 +451,7 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         playerInputManager = GetComponent<PlayerInputManager>();
         dataManager = DataManager.Instance;
+        onboardManager = GetComponent<OnboardManager>();
 
         //goDoorPrefab = GetComponentInChildren<GO_Door>();
 
@@ -3005,7 +3006,7 @@ public class GameManager : MonoBehaviour
             // Match over -> the End scene shows the winner. Keep this banner SHORT (4s) so it does
             // NOT linger onto the End screen: unlike Shop/Gameplay, the End scene has no transition
             // banner of its own to supersede it, so a long-lived banner here bleeds onto it.
-            message = "Game Over : Player " + lastRoundWinnerPID + " wins the match! Congratulations!!!";
+            message = "Game Over!!!";
             if (roundEndedText != null)
             {
                 roundEndedText.text = message;
@@ -3018,7 +3019,7 @@ public class GameManager : MonoBehaviour
         else
         {
             string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
-            message = "Round Ended : Player " + lastRoundWinnerPID + " wins the match! " + nextPhase;
+            message = "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase;
 
             // Online scene transitions wait for BOTH clients to reach the destination scene
             // (scene-sync); at high ping that can take several seconds with the round over and the
@@ -3123,17 +3124,20 @@ public class GameManager : MonoBehaviour
         ///onboard manager specific update
         if (activeScene.name == "MainMenu")
         {
-            //buttons.SetActive(true);
             if (onboardManager == null)
             {
                 onboardManager = FindAnyObjectByType<OnboardManager>();
-                onboardManager.enabled = false;
             }
+            onboardManager.enabled = true;
             onboardManager.OnboardUpdate(inputs);
         }
         else
         {
-            onboardManager = null;
+            if (onboardManager != null)
+            {
+                onboardManager = null;
+            }
+
         }
 
 
@@ -4104,6 +4108,37 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // Hide every player's character visuals on the End screen. Players are DontDestroyOnLoad, so they
+    // and their child renderers ride into the End scene; the winner is shown via GameEndScreen's
+    // separate winnerImage sprite, so the real characters (winner AND losers) should be invisible --
+    // a carried-over loser was still partly on-camera. Disable the RENDERERS (not the GameObjects) so
+    // each player's PlayerInput stays alive for GameEndScreen's restart-on-jump. Fresh players are
+    // rebuilt on the way to MainMenu (ExecuteOrder66), so this leaves no lingering hidden state.
+    private void HideAllPlayerCharacters()
+    {
+        if (players == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] == null)
+            {
+                continue;
+            }
+
+            Renderer[] renderers = players[i].GetComponentsInChildren<Renderer>(true);
+            for (int r = 0; r < renderers.Length; r++)
+            {
+                if (renderers[r] != null)
+                {
+                    renderers[r].enabled = false;
+                }
+            }
+        }
+    }
+
     public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)
     {
         if (!isOnlineMatchActive)
@@ -4479,6 +4514,7 @@ public class GameManager : MonoBehaviour
             // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
             ClearStages();
             HidePersistentUiForEndScene();
+            HideAllPlayerCharacters();
 
             if (isOnlineMatchActive)
             {

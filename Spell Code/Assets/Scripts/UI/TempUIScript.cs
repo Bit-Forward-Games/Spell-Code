@@ -77,10 +77,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
 
+    [Header("Multiplayer Gamemodes Menu")] // Tutorial Prompt
     public GameObject _multiplayerGamemodesMenuFirst;
     public GameObject multiplayerGamemodesMenu;
     public bool multiplayerGamemodesMenuOpened;
 
+    [Header("Tutorial Prompt Menu")] // Tutorial Prompt
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
     public RectTransform tutorialPromptImage;
@@ -90,6 +92,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI tutorialPromptButtonText;
     public TextMeshProUGUI tutorialPromptButtonText2;
     public bool tutorialPromptMenuOpened;
+
+    [Header("Code Mode Options Menu")] // Code Mode Prompt
+    public GameObject _codeModeMenuFirst;
+    public GameObject codeModePromptMenu;
+    public bool codeModePromptMenuOpened;
 
     public Pause pause;
 
@@ -395,6 +402,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
 
         return 0;
+    }
+
+    public void OpenCodeModeMenuPrompt()
+    {
+        Time.timeScale = 0f;
+        codeModePromptMenuOpened = true;
+        codeModePromptMenu.SetActive(true);
+        StartCoroutine(pause.SelectFirst(pause._pauseMenuFirst));
     }
 
     public void UpdateUIBarVals()

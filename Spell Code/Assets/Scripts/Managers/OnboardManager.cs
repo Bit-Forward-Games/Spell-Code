@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using System.Collections.Generic;
 using BestoNet.Types;
 using TMPro;
 using UnityEngine;
@@ -158,6 +158,27 @@ public class OnboardManager : MonoBehaviour
     private void ApplyInitialUiState()
     {
         Debug.Log("Applying Initial Onboarding UI State");
+
+        GambaMachine[] gambas = GameObject.FindObjectsByType<GambaMachine>(sortMode:FindObjectsSortMode.InstanceID);
+        foreach(GambaMachine gamba in gambas)
+        {
+            switch (gamba.ownerPID)
+            {
+                case 1:
+                    p1_gamba = gamba;
+                    break;
+                case 2:
+                    p2_gamba = gamba;
+                    break;
+                case 3:
+                    p3_gamba = gamba;
+                    break;
+                case 4:
+                    p4_gamba = gamba;
+                    break;
+            }
+        }
+
         //properly set starting states for UI components
         p1_atkGraphic.enabled = false;
         p1_atkTxt.enabled = false;

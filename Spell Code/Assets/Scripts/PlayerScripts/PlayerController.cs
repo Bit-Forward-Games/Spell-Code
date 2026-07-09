@@ -3406,6 +3406,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
+        bw.Write(touchingLeftWall);
+        bw.Write(touchingRightWall);
         bw.Write(portalCooldown);
         bw.Write(relativeInputs);
         bw.Write((byte)state);
@@ -3557,8 +3559,9 @@ public class PlayerController : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(isGrounded);
         bw.Write(onPlatform);
+        bw.Write(touchingLeftWall);
+        bw.Write(touchingRightWall);
         bw.Write(portalCooldown);
-        bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write(logicFrame);
         bw.Write(jumpCount);
@@ -3720,6 +3723,8 @@ public class PlayerController : MonoBehaviour
         facingRight = br.ReadBoolean();
         isGrounded = br.ReadBoolean();
         onPlatform = br.ReadBoolean();
+        touchingLeftWall = br.ReadBoolean();
+        touchingRightWall = br.ReadBoolean();
         portalCooldown = br.ReadByte();
         relativeInputs = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();

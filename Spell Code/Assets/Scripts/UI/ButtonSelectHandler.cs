@@ -164,7 +164,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 .SetUpdate(true);
 
             pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
-            transform.parent.gameObject.GetComponent<Image>().enabled = false;
+            transform.parent.gameObject.GetComponent<Image>().enabled = true;
         }
     }
 

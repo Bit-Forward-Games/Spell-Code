@@ -66,6 +66,7 @@ public class StageCamera : MonoBehaviour
         //check if camborders are set and if not, just use the default border
         Vector3 camBorderMax = stageDataSO.camBorderMax == Vector3.zero? stageDataSO.borderMax: stageDataSO.camBorderMax;
         Vector3 camBorderMin = stageDataSO.camBorderMin == Vector3.zero? stageDataSO.borderMin: stageDataSO.camBorderMin;
+        
 
         lockCamera = !stageDataSO.dynamicCamera;
         // If camera is locked, frame the full camera border and return

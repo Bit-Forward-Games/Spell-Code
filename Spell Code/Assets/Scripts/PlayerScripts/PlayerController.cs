@@ -1063,7 +1063,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
             {
                 if (!pause.paused || pause.playerPauseIndex == _playerPauseIndex)
                 {
@@ -1487,12 +1487,18 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // Increment the last 4 bits of stateSpecificArg by 1
+                    
                     if ((stateSpecificArg & (1u << 4)) == 0)
                     {
-                        stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
-                        storedCodeDuration = 0;
+                        if(!vibeCoding ||(stateSpecificArg & 0xFu) < 1u)
+                        {
+                            stateSpecificArg = (stateSpecificArg & ~0xFu) | (((stateSpecificArg & 0xFu) + 1) & 0xFu);
+                            storedCodeDuration = 0;
+                        }
                     }
                     //Debug.Log($"currentCode: {Convert.ToString(stateSpecificArg, toBase: 2)}");
+                    
+                    
                 }
 
                 inputDisplay.text = ConvertCodeToString(stateSpecificArg, null, relativeInputs?facingRight:true);
@@ -1507,10 +1513,10 @@ public class PlayerController : MonoBehaviour
                 //uint codeToMatch;
                 for (int i = 0; i < spellList.Count; i++)
                 {
-                    bool trueInput;
-                    bool matched = CheckSpellCodeInput(i,out trueInput);
+                    //bool trueInput;
+                    bool matched = CheckSpellCodeInput(i/*,out trueInput*/);
                     
-                    if (matched && trueInput)
+                    if (matched && !vibeCoding/*&& trueInput*/)
                     {
                         spellMatched = true;
                         //increment the store code timer (charging up to store)
@@ -1584,14 +1590,18 @@ public class PlayerController : MonoBehaviour
                 //allow the display to be reset upon entering CodeWeave state
                 removeInputDisplay = true;
 
-                if (input.Direction == 6)
+                if (!vibeCoding)
                 {
-                    facingRight = true;
+                    if (input.Direction == 6)
+                    {
+                        facingRight = true;
+                    }
+                    else if (input.Direction == 4)
+                    {
+                        facingRight = false;
+                    }
                 }
-                else if (input.Direction == 4)
-                {
-                    facingRight = false;
-                }
+                
 
 
                 if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
@@ -1647,14 +1657,14 @@ public class PlayerController : MonoBehaviour
                     //uint codeToMatchRelease;
                     for (int i = 0; i < spellList.Count; i++)
                     {
-                        bool trueInput;
-                        bool matched = CheckSpellCodeInput(i, out trueInput);
+                        //bool trueInput;
+                        bool matched = CheckSpellCodeInput(i/*, out trueInput*/);
                         //standard spellcode matching code
                         if (matched)
                         {
                             Debug.Log($"You Cast {spellList[i].spellName}!");
                             spellList[i].activateFlag = true;
-                            spellList[i].vibeCasted = !trueInput;
+                            //spellList[i].vibeCasted = !trueInput;
                             spellList[i].CheckCondition(null, ProcCondition.ActiveOnCast);
 
                             //keep track of how long player is in state for
@@ -2023,7 +2033,7 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    public bool CheckSpellCodeInput( int spellListIndex, out bool _trueInput)
+    public bool CheckSpellCodeInput( int spellListIndex/*, out bool _trueInput*/)
     {
         uint codeToMatch;
         //vibeCoding shortcuts for the first 4 spells
@@ -2059,10 +2069,10 @@ public class PlayerController : MonoBehaviour
         spellList[spellListIndex].cooldownCounter <= 0)
         {
             //basically if your input matches the TRUE spell input, its not vibeCoded
-            _trueInput = spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4));
+            //_trueInput = spellList[spellListIndex].spellInput == (stateSpecificArg& ~(1u << 4));
             return true;
         }
-        _trueInput = false;
+        //_trueInput = false;
         return false;
     }
 
@@ -2623,6 +2633,14 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.CodeWeave:
                 //armor = true;
+                if (input.Direction == 6)
+                {
+                    facingRight = true;
+                }
+                else if (input.Direction == 4)
+                {
+                    facingRight = false;
+                }
                 
                 //play codeweave sound
                 SFX_Manager.Instance.PlaySound(Sounds.ENTER_CODE_WEAVE);
@@ -2855,7 +2873,7 @@ public class PlayerController : MonoBehaviour
             if(hitboxData.hitstun > 0)//this allows for things like D.O.T. A.O.E.s like morgana w
             {
                 
-                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID);
+                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID, false);
 
                 if(!multiHitDamageInstance) comboCounter++;
                 if (comboCounter >= 4)
@@ -3463,7 +3481,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(platDropping);
     }
 
-    // Health / hits / armor / combo.
+    // Health / hits / armor / combo
     public void SerializeCoreCombatHash(BinaryWriter bw)
     {
         bw.Write(hitstop);
@@ -3512,7 +3530,8 @@ public class PlayerController : MonoBehaviour
         bw.Write(reps);
     }
 
-    // Input-mode / spell-code / double-tap state.
+    // Input-mode / spell-code / double-tap state. Jump/platform fields (jumpCount, tapJumpPrimed,
+    // downJumpSlide, platDropping, ...) belong to the PHYSICS group
     public void SerializeCoreCodeHash(BinaryWriter bw)
     {
         bw.Write(relativeInputs);

@@ -186,7 +186,7 @@ public class ProjectileManager : MonoBehaviour
 
     }
 
-    public void DeleteTargetPlayerProjectiles(int pID)
+    public void DeleteTargetPlayerProjectiles(int pID, bool deleteHurtOverride = true)
     {
         PlayerController targetPlayer;
         if(pID == 0)
@@ -199,7 +199,8 @@ public class ProjectileManager : MonoBehaviour
         List<BaseProjectile> projList = new List<BaseProjectile>();
         foreach(BaseProjectile proj in activeProjectiles)
         {
-            if(proj.owner == targetPlayer && proj.deleteOnHurt)
+            bool actuallyDelete = proj.deleteOnHurt||deleteHurtOverride;
+            if(proj.owner == targetPlayer && actuallyDelete)
             {
                 projList.Add(proj);
             }

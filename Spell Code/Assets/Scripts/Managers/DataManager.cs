@@ -30,8 +30,19 @@ public class DataManager : MonoBehaviour
         {
             // Otherwise, set this as the instance
             Instance = this;
-            
+
             DontDestroyOnLoad(gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Clear the stale reference when the persistent copy is torn down (ExecuteOrder66), so
+        // callers' `Instance != null` checks — and especially `Instance?.` which bypasses Unity's
+        // destroyed-object null — don't invoke methods on a dead object.
+        if (Instance == this)
+        {
+            Instance = null;
         }
     }
 

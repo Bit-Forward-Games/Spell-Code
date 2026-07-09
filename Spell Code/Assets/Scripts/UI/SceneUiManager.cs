@@ -149,7 +149,10 @@ public class SceneUiManager : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadRandomGameplayStage();
-            DataManager.Instance.ResetData();
+            if (DataManager.Instance != null)
+            {
+                DataManager.Instance.ResetData();
+            }
             GameManager.Instance.RestartGame();
 
             GameManager.Instance.isRunning = true;
@@ -159,6 +162,21 @@ public class SceneUiManager : MonoBehaviour
         }
 
         this.LoadScene("Gameplay");
+    }
+
+    public void SoloLobby()
+    {
+#if !UNITY_EDITOR
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.SaveToFile();
+        }
+#endif
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.sceneManager.ApplyScreenCover(() => GameManager.Instance.ExecuteOrder66("SoloLobby"));
+        }
     }
 
     public void MainMenu()
@@ -172,7 +190,7 @@ public class SceneUiManager : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.sceneManager.ApplyScreenCover(()=>GameManager.Instance.ExecuteOrder66());
+            GameManager.Instance.sceneManager.ApplyScreenCover(()=>GameManager.Instance.ExecuteOrder66("MainMenu"));
         }
     }
 

@@ -17,6 +17,9 @@ TagManager:
   - LoadCurtain
   - NPC Spawn
   - SignText
+  - Pause
+  - PortalA
+  - PortalB
   layers:
   - Default
   - TransparentFX

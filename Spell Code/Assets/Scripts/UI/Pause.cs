@@ -656,7 +656,7 @@ public class Pause : MonoBehaviour
         MasterVolume();
         MusicVolume();
         SFXVolume();
-        Debug.Log("HERE | LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
+        //Debug.Log("LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
         //ApplyMusicMixerVolume(settings.musicVolume);
         //ApplySfxMixerVolume(settings.sfxVolume);
     }
@@ -1082,6 +1082,19 @@ public class Pause : MonoBehaviour
         {
             SettingsManager.Instance.SetSfxVolume(sfx_volume);
         }
+    }
+
+    public void ResetVolumes()
+    {
+        //set all volumes to 1
+        if (masterVolumeSlider != null) masterVolumeSlider.value = 1f;
+        if (sfxVolumeSlider != null) sfxVolumeSlider.value = 1f;
+        if (musicVolumeSlider != null) musicVolumeSlider.value = 1f;
+
+        //tell all volume sliders to update
+        MasterVolume();
+        SFXVolume();
+        MusicVolume();
     }
  
     public void ToggleCameraShake()

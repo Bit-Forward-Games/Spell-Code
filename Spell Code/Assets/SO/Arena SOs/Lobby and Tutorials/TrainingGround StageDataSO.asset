@@ -43,10 +43,14 @@ MonoBehaviour:
   - {x: 330, y: -108}
   activatableSolidCenter: []
   activatableSolidExtent: []
+  portalAs:
+  - {x: 648, y: 450}
+  portalBs:
+  - {x: -500, y: 450}
   borderMin: {x: -2000, y: -2000, z: 0}
   borderMax: {x: 2000, y: 2000, z: 0}
-  camBorderMin: {x: -2000, y: -2000, z: 0}
-  camBorderMax: {x: 2000, y: 2000, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0
   stageType: 3
   dynamicCamera: 1

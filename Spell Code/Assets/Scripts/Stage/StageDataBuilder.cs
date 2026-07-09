@@ -63,7 +63,9 @@ public class StageDataBuilder : MonoBehaviour
             Debug.LogError("StageDataBuilder: Uneven Portal Counts");
             return;
         }
-        stageDataSO.portals = new (Vector2,Vector2)[portalPointAs.Length];
+        stageDataSO.portalAs = new Vector2[portalPointAs.Length];
+        stageDataSO.portalBs = new Vector2[portalPointBs.Length];
+
 
     }
 
@@ -111,10 +113,8 @@ public class StageDataBuilder : MonoBehaviour
         {
            Transform pointATransform = portalPointAs[m].GetComponent<Transform>();
            Transform pointBTransform = portalPointBs[m].GetComponent<Transform>();
-           stageDataSO.portals[m] = new (
-            new Vector2(pointATransform.position.x, pointATransform.position.y), 
-            new Vector2(pointBTransform.position.x, pointBTransform.position.y)
-            );
+           stageDataSO.portalAs[m] = new Vector2(pointATransform.position.x, pointATransform.position.y);
+           stageDataSO.portalBs[m] = new Vector2(pointBTransform.position.x, pointBTransform.position.y);
         }
 
         //if there are not exactly 4 player spawn points,...

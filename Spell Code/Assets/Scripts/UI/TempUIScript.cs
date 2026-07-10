@@ -19,6 +19,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshPro[] SpellInputs;
     public GameObject[] onPlayerUI;
     public GameObject[] emptyQuadrants;
+
+    public GameObject[] vibeCodeQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
     public Sprite[] roundWinIcon;
@@ -68,11 +70,23 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public float baseScale = 0f;
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
-
+ 
+    public GameObject gamemodesMenu;
+    
+    public GameObject _codeModeMenuFirst;
+    public GameObject codeModeMenu;
+    public bool codeModeMenuOpened;
+    
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
 
+    [Header("Multiplayer Gamemodes Menu")] // Tutorial Prompt
+    public GameObject _multiplayerGamemodesMenuFirst;
+    public GameObject multiplayerGamemodesMenu;
+    public bool multiplayerGamemodesMenuOpened;
+
+    [Header("Tutorial Prompt Menu")] // Tutorial Prompt
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
     public RectTransform tutorialPromptImage;
@@ -83,8 +97,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI tutorialPromptButtonText2;
     public bool tutorialPromptMenuOpened;
 
+    [Header("Code Mode Options Menu")] // Code Mode Prompt
+    public GameObject _codeModeMenuFirst;
+    public GameObject codeModePromptMenu;
+    public bool codeModePromptMenuOpened;
+
     public Pause pause;
 
+    private int gamemodesMenuPlayerIndex = -1;
     private InputSystem_Actions input;
 
     public RectTransform highlightOverlay; // lives outside the Layout Group, e.g. sibling of the panel
@@ -116,6 +136,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         previousRamVals = new int[4];
         for (int i = 0; i < gameManager.playerCount; i++)
             previousRamVals[i] = gameManager.players[i]?.roundRam ?? 0;
+
+        InitFindingMatchText();
     }
 
     void OnEnable()
@@ -127,8 +149,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-        input.Disable();
+        pause?.RestoreScopedUiInputDevices();
         StopDamageBarCoroutines();
+
+        // Backstop for SetLink: never leave the looping pulse running against a torn-down label.
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -139,12 +165,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(2.0f, "FIGHT!!!"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "Kill players to earn RAM!"));
         }
         else if (scene.name == "Shop")
         {
             shopScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(3.5f, "Equip new spells before entering the next round"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "Pick a new Spellcode"));
         }
     }
 
@@ -152,6 +178,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
+gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
+            gamemodesMenu.SetActive(true);
             soloGamemodesMenu.SetActive(true);
             soloGamemodesMenuOpened = true;
             EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
@@ -161,31 +194,86 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             soloGamemodesMenuOpened = false;
             soloGamemodesMenu.SetActive(false);
+            gamemodesMenu.SetActive(false);
+            gamemodesMenuPlayerIndex = -1;
+            pause?.RestoreScopedUiInputDevices();
             // pause._pauseMenuFirst.Select();
             Time.timeScale = 1f;
         }
-        
+        }
+
+    public void SetMultiplayerMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
+            gamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenuOpened = true;
+            EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesMenuFirst);
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            multiplayerGamemodesMenuOpened = false;
+            multiplayerGamemodesMenu.SetActive(false);
+            gamemodesMenu.SetActive(false);
+            gamemodesMenuPlayerIndex = -1;
+            pause?.RestoreScopedUiInputDevices();
+            // pause._pauseMenuFirst.Select();
+            Time.timeScale = 1f;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateUIBarVals();
+        RefreshFindingMatchText();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
         if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your starter spell before beginning the match"));
+            StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if (soloGamemodesMenuOpened && input.UI.Back.WasPressedThisFrame() && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
-            SetSoloMenuActive(false);
+            if (gamemodesMenuPlayerIndex < 0)
+            {
+                gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            }
+
+            pause?.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+
+            if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
+            {
+                pause.TriggerSelectedButton();
+            }
+
+            if (pause != null && pause.WasPausePlayerCancelPressedThisFrame())
+            {
+                if (soloGamemodesMenuOpened)
+                {
+                    SetSoloMenuActive(false);
+                }
+                else
+                {
+                    SetMultiplayerMenuActive(false);
+                }
+
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
         }
+    }
+
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -215,6 +303,191 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    // Quick Match: size selector + handlers
+    // Assign matchSizeText to the "2/3/4" label between your arrow buttons in the Inspector, and set
+    // its starting text to "2" (the default). Wire the buttons' OnClick to the methods below.
+    public TextMeshProUGUI matchSizeText;
+
+    public TextMeshProUGUI findingMatchText;
+
+    // Looping pulse while waiting for a match. The label itself appears/disappears instantly;
+    // only its alpha breathes between 1 and findingMatchPulseMinAlpha. Seconds per half-cycle.
+    public float findingMatchPulseDuration = 0.6f;
+    [Range(0f, 1f)] public float findingMatchPulseMinAlpha = 0.3f;
+
+    // Last size written into findingMatchText, so the label string is only rebuilt when it changes
+    // (RefreshFindingMatchText runs every frame). -1 == "not currently searching".
+    private int lastFindingMatchSize = -1;
+
+    // findingMatchShown tracks the INTENDED visibility so we only act on a transition -- Update runs
+    // every frame and would otherwise restart the pulse tween continuously.
+    private bool findingMatchShown;
+    private CanvasGroup findingMatchGroup;
+    private Tween findingMatchPulseTween;
+
+    private int matchmakingSize = MinMatchSize;
+    private const int MinMatchSize = 2;
+    private const int MaxMatchSize = 4;
+
+    // Right arrow button OnClick. (Clamps at 4; change Min/Max to wrap if you'd rather it cycle.)
+    public void IncreaseMatchSize()
+    {
+        matchmakingSize = Mathf.Min(MaxMatchSize, matchmakingSize + 1);
+        RefreshMatchSizeText();
+    }
+
+    // Left arrow button OnClick.
+    public void DecreaseMatchSize()
+    {
+        matchmakingSize = Mathf.Max(MinMatchSize, matchmakingSize - 1);
+        RefreshMatchSizeText();
+    }
+
+    public void RefreshMatchSizeText()
+    {
+        if (matchSizeText != null)
+        {
+            matchSizeText.text = matchmakingSize.ToString();
+        }
+    }
+
+    // "Find Match" button OnClick. Starts Quick Match for the currently selected size.
+    public void FindMatch()
+    {
+        CloseGamemodesMenuForOnlineInvite();
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        if (lobbyManager == null)
+        {
+            Debug.LogError("[TempUIScript] Find Match selected, but SteamLobbyManager was not found.");
+            return;
+        }
+
+        lobbyManager.FindMatch(matchmakingSize);
+    }
+
+    // "Cancel" button OnClick (optional, shown while searching).
+    public void CancelMatchmaking()
+    {
+        SteamLobbyManager.Instance?.CancelMatchmaking();
+    }
+
+    // Shows/hides the "FINDING MATCH..." label from the lobby manager's search state. Called every
+    // frame from Update rather than toggled by the buttons, so it stays correct across the deferred
+    // MainMenu transition and can't get stuck on if the search ends some way other than Cancel.
+    private void RefreshFindingMatchText()
+    {
+        if (findingMatchText == null)
+        {
+            return;
+        }
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        bool searching = lobbyManager != null && lobbyManager.IsSearchingForMatch;
+
+        if (searching)
+        {
+            // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field
+            // and the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player
+            // default. Rebuild the string only when the size changes; this runs every frame.
+            int size = lobbyManager.SearchingMatchSize;
+            if (size != lastFindingMatchSize)
+            {
+                lastFindingMatchSize = size;
+                findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
+            }
+        }
+        else
+        {
+            lastFindingMatchSize = -1;
+        }
+
+        // Only act on a CHANGE, otherwise the pulse tween would be recreated every frame.
+        if (searching == findingMatchShown)
+        {
+            return;
+        }
+
+        findingMatchShown = searching;
+        SetFindingMatchVisible(searching);
+    }
+
+    // Shows/hides the label instantly, and runs a looping alpha pulse while it's waiting. Pure
+    // presentation -- DOTween is real-time and NOT deterministic, so it must never drive sim state
+    // (see the floppy-spawn desync); a UI alpha tween is safe.
+    private void SetFindingMatchVisible(bool visible)
+    {
+        CanvasGroup group = GetFindingMatchGroup();
+        if (group == null)
+        {
+            return;
+        }
+
+        // Kill first: a live yoyo tween would keep writing alpha over whatever we set below.
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
+
+        if (!visible)
+        {
+            group.alpha = 1f; // leave it clean for the next search
+            findingMatchText.gameObject.SetActive(false);
+            return;
+        }
+
+        group.alpha = 1f;
+        findingMatchText.gameObject.SetActive(true);
+
+        // Full -> dim -> full, forever, until the search ends.
+        // DOTween.To rather than CanvasGroup.DOFade so this doesn't depend on DOTween's UI module
+        // being generated. SetUpdate(true) = unscaled: the gamemodes menu sets Time.timeScale = 0,
+        // which would otherwise freeze the pulse. SetLink kills the tween if the label is destroyed
+        // (ExecuteOrder66 tears down tempUI mid-search).
+        findingMatchPulseTween = DOTween
+            .To(() => group.alpha, a => group.alpha = a, findingMatchPulseMinAlpha, findingMatchPulseDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine)
+            .SetUpdate(true)
+            .SetLink(findingMatchText.gameObject);
+    }
+
+    private CanvasGroup GetFindingMatchGroup()
+    {
+        if (findingMatchGroup == null && findingMatchText != null)
+        {
+            findingMatchGroup = findingMatchText.GetComponent<CanvasGroup>();
+            if (findingMatchGroup == null)
+            {
+                findingMatchGroup = findingMatchText.gameObject.AddComponent<CanvasGroup>();
+            }
+        }
+
+        return findingMatchGroup;
+    }
+
+    // Force the label to a known hidden state on load, so a label left enabled in the Inspector (or a
+    // rebuilt tempUI) doesn't start visible before the first search.
+    private void InitFindingMatchText()
+    {
+        if (findingMatchText == null)
+        {
+            return;
+        }
+
+        findingMatchShown = false;
+        lastFindingMatchSize = -1;
+
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
+
+        CanvasGroup group = GetFindingMatchGroup();
+        if (group != null)
+        {
+            group.alpha = 1f;
+        }
+
+        findingMatchText.gameObject.SetActive(false);
+    }
+
     private void CloseGamemodesMenuForOnlineInvite()
     {
         if (pause != null)
@@ -222,19 +495,72 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             pause.SaveSettings();
         }
 
+        // Clear BOTH gamemode menus. The online invite is reachable from the multiplayer menu
+        // (solo lobby door 2); leaving multiplayerGamemodesMenuOpened set would make a later
+        // online-match Resume() run BackToMultiplayerSelector and freeze the sim (timeScale 0).
         soloGamemodesMenuOpened = false;
+        multiplayerGamemodesMenuOpened = false;
 
         if (soloGamemodesMenu != null)
         {
             soloGamemodesMenu.SetActive(false);
         }
 
+        if (multiplayerGamemodesMenu != null)
+        {
+            multiplayerGamemodesMenu.SetActive(false);
+        }
+
+        if (gamemodesMenu != null)
+        {
+            gamemodesMenu.SetActive(false);
+        }
+
+        gamemodesMenuPlayerIndex = -1;
+        pause?.RestoreScopedUiInputDevices();
         Time.timeScale = 1f;
 
         if (EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(null);
         }
+    }
+
+    private int ResolveGamemodesMenuPlayerIndex()
+    {
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        if (manager == null || manager.players == null)
+        {
+            return 0;
+        }
+
+        if (manager.isOnlineMatchActive
+            && manager.localPlayerIndex >= 0
+            && manager.localPlayerIndex < manager.players.Length
+            && manager.players[manager.localPlayerIndex] != null
+            && manager.players[manager.localPlayerIndex].isConnected)
+        {
+            return manager.localPlayerIndex;
+        }
+
+        for (int i = 0; i < manager.playerCount && i < manager.players.Length; i++)
+        {
+            PlayerController player = manager.players[i];
+            if (player != null && player.isConnected)
+            {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    public void OpenCodeModeMenuPrompt()
+    {
+        Time.timeScale = 0f;
+        codeModePromptMenuOpened = true;
+        codeModePromptMenu.SetActive(true);
+        StartCoroutine(pause.SelectFirst(pause._pauseMenuFirst));
     }
 
     public void UpdateUIBarVals()
@@ -339,6 +665,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             stockStabilityDim[i].enabled = false;
             demonAuraDim[i].enabled = false;
             repsDim[i].enabled = false;
+
+            if (vibeCodeQuadrants != null && i < vibeCodeQuadrants.Length && vibeCodeQuadrants[i] != null)
+                    vibeCodeQuadrants[i].SetActive(GameManager.Instance.players[i].vibeCoding);
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
             {
@@ -608,6 +937,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public void ExitTutorialPromptAnimation()
     {
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
+    }
+
+    public void OpenCodeModeMenu()
+    {
+        tutorialPromptMenu.SetActive(true);
+        Time.timeScale = 0f;
+        tutorialPromptMenuOpened = true;
+        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
     }
 
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse, float textSpeed)

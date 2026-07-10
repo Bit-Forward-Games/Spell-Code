@@ -67,6 +67,15 @@ public class SteamLobbyManager : MonoBehaviour
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
 
+    // True while a Quick Match search is in flight: either DEFERRED (Find Match was pressed outside
+    // MainMenu and we're transitioning there) or actively querying / hosting / waiting for opponents.
+    // Goes false on CancelMatchmaking and on failure. Also gated on the match not being live, because
+    // isMatchmaking is never cleared when the match actually starts -- without that gate a "finding
+    // match" label would ride the persistent HUD into Gameplay.
+    public bool IsSearchingForMatch =>
+        (pendingMatchmakingRequested || isMatchmaking)
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
+
     public bool OpenInviteOverlayOrHost()
     {
         if (isShuttingDown || !SteamClient.IsValid)

@@ -221,6 +221,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void Update()
     {
         UpdateUIBarVals();
+        RefreshFindingMatchText();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
@@ -293,6 +294,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Assign matchSizeText to the "2/3/4" label between your arrow buttons in the Inspector, and set
     // its starting text to "2" (the default). Wire the buttons' OnClick to the methods below.
     public TextMeshProUGUI matchSizeText;
+
+    // Assign the "FINDING MATCH..." label (its GameObject). IMPORTANT: parent it directly under the
+    // tempUI canvas, NOT inside the gamemodes panel -- Find Match closes that panel and Quick Match
+    // defers into MainMenu, so anything under it would vanish. Visibility is driven every frame from
+    // SteamLobbyManager.IsSearchingForMatch, so it clears itself on cancel, on failure, and once the
+    // match starts. Leave it disabled in the Inspector; nothing else needs to touch it.
+    public GameObject findingMatchText;
+
     private int matchmakingSize = MinMatchSize;
     private const int MinMatchSize = 2;
     private const int MaxMatchSize = 4;
@@ -338,6 +347,25 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public void CancelMatchmaking()
     {
         SteamLobbyManager.Instance?.CancelMatchmaking();
+    }
+
+    // Shows/hides the "FINDING MATCH..." label from the lobby manager's search state. Called every
+    // frame from Update rather than toggled by the buttons, so it stays correct across the deferred
+    // MainMenu transition and can't get stuck on if the search ends some way other than Cancel.
+    private void RefreshFindingMatchText()
+    {
+        if (findingMatchText == null)
+        {
+            return;
+        }
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        bool searching = lobbyManager != null && lobbyManager.IsSearchingForMatch;
+
+        if (findingMatchText.activeSelf != searching)
+        {
+            findingMatchText.SetActive(searching);
+        }
     }
 
     private void CloseGamemodesMenuForOnlineInvite()

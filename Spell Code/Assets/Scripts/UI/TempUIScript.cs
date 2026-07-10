@@ -73,10 +73,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
  
     public GameObject gamemodesMenu;
     
-    public GameObject _codeModeMenuFirst;
-    public GameObject codeModeMenu;
-    public bool codeModeMenuOpened;
-    
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;

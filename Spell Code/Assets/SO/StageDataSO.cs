@@ -36,7 +36,8 @@ public class StageDataSO : ScriptableObject
     public Vector2[] npcSpawnTransform;
     public Vector3[] activatableSolidCenter;
     public Vector3[] activatableSolidExtent;
-    public (Vector2,Vector2)[] portals;
+    public Vector2[] portalAs;
+    public Vector2[] portalBs;
     public Vector3 borderMin;
     public Vector3 borderMax;
     public Vector3 camBorderMin;

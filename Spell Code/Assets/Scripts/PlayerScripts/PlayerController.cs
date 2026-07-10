@@ -110,7 +110,8 @@ public class PlayerController : MonoBehaviour
    [NonSerialized] public bool touchingRightWall = false;
     [NonSerialized]public bool onPlatform = false;
     [NonSerialized]public byte portalCooldown = 0;
-    private const byte PortalCooldownFrames = 60;
+    [NonSerialized]public bool portalPrimed = true;
+    private const byte PortalCooldownFrames = 120;
     private const float PortalCollisionRadius = 36f;
 
 // controls options
@@ -2567,40 +2568,47 @@ public class PlayerController : MonoBehaviour
         }
         #endregion
 #region ------PORTALS----------
-        if (portalCooldown == 0 && stageDataSO.portals != null)
+        if (portalCooldown == 0 && stageDataSO.portalAs != null && stageDataSO.portalBs != null )
         {
             FixedVec2 nextPosition = position + new FixedVec2(hSpd, vSpd);
             Fixed radius = Fixed.FromFloat(PortalCollisionRadius / 100f);
             Fixed radiusSq = radius * radius;
-
-            for (int i = 0; i < stageDataSO.portals.Length; i++)
+            bool teleported = false;
+            for (int i = 0; i < stageDataSO.portalAs.Length; i++)
             {
-                (Vector2 portalA, Vector2 portalB) = stageDataSO.portals[i];
+                (Vector2 portalA, Vector2 portalB) = (stageDataSO.portalAs[i],stageDataSO.portalBs[i]);
 
                 if (CheckPortalCollision(nextPosition, portalA, radiusSq))
                 {
-                    if (checkOnly)
+                    if (checkOnly || !portalPrimed)
                     {
                         return true;
                     }
-
+                    
+                    portalPrimed = false;
+                    
                     TeleportToPortalDestination(portalB);
                     returnVal = true;
+                    teleported = true;
                     break;
                 }
 
                 if (CheckPortalCollision(nextPosition, portalB, radiusSq))
                 {
-                    if (checkOnly)
+                    if (checkOnly || !portalPrimed)
                     {
                         return true;
                     }
 
+                    portalPrimed = false;
+
                     TeleportToPortalDestination(portalA);
                     returnVal = true;
+                    teleported = true;
                     break;
                 }
             }
+            if(!teleported)portalPrimed = true;
         }
 #endregion
         return returnVal;

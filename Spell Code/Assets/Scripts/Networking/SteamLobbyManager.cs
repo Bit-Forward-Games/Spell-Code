@@ -61,6 +61,12 @@ public class SteamLobbyManager : MonoBehaviour
     private static bool pendingMatchmakingRequested;
     private static int pendingMatchmakingSize;
 
+    // Size (2-4) of the Quick Match currently being searched for, set the moment Find Match is pressed.
+    // Static for the same ExecuteOrder66-survival reason: the deferred MainMenu transition can rebuild
+    // the UI, so the "finding match" label must read the size from here rather than from TempUIScript's
+    // own matchmakingSize (an instance field that would reset to the 2-player default).
+    private static int matchmakingSearchSize;
+
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
 
@@ -75,6 +81,9 @@ public class SteamLobbyManager : MonoBehaviour
     public bool IsSearchingForMatch =>
         (pendingMatchmakingRequested || isMatchmaking)
         && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
+
+    // Size (2-4) of the in-flight Quick Match search. Only meaningful while IsSearchingForMatch.
+    public int SearchingMatchSize => matchmakingSearchSize;
 
     public bool OpenInviteOverlayOrHost()
     {
@@ -323,6 +332,7 @@ public class SteamLobbyManager : MonoBehaviour
     public void FindMatch(int desiredSize)
     {
         int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
+        matchmakingSearchSize = clamped;
 
         // The online lobby only simulates in MainMenu, so Quick Match — like host/join — defers there
         // first when triggered from another scene (SoloLobby's multiplayer door). Otherwise both

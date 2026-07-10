@@ -295,12 +295,16 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // its starting text to "2" (the default). Wire the buttons' OnClick to the methods below.
     public TextMeshProUGUI matchSizeText;
 
-    // Assign the "FINDING MATCH..." label (its GameObject). IMPORTANT: parent it directly under the
-    // tempUI canvas, NOT inside the gamemodes panel -- Find Match closes that panel and Quick Match
-    // defers into MainMenu, so anything under it would vanish. Visibility is driven every frame from
-    // SteamLobbyManager.IsSearchingForMatch, so it clears itself on cancel, on failure, and once the
-    // match starts. Leave it disabled in the Inspector; nothing else needs to touch it.
-    public GameObject findingMatchText;
+    // Assign the "FINDING MATCH..." label. IMPORTANT: parent it directly under the tempUI canvas, NOT
+    // inside the gamemodes panel -- Find Match closes that panel and Quick Match defers into MainMenu,
+    // so anything under it would vanish. Visibility AND its text are driven every frame from
+    // SteamLobbyManager, so it clears itself on cancel, on failure, and once the match starts. Leave it
+    // disabled in the Inspector; nothing else needs to touch it. Any placeholder text is overwritten.
+    public TextMeshProUGUI findingMatchText;
+
+    // Last size written into findingMatchText, so the label string is only rebuilt when it changes
+    // (RefreshFindingMatchText runs every frame). -1 == "not currently searching".
+    private int lastFindingMatchSize = -1;
 
     private int matchmakingSize = MinMatchSize;
     private const int MinMatchSize = 2;
@@ -362,9 +366,24 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         bool searching = lobbyManager != null && lobbyManager.IsSearchingForMatch;
 
-        if (findingMatchText.activeSelf != searching)
+        if (findingMatchText.gameObject.activeSelf != searching)
         {
-            findingMatchText.SetActive(searching);
+            findingMatchText.gameObject.SetActive(searching);
+        }
+
+        if (!searching)
+        {
+            lastFindingMatchSize = -1;
+            return;
+        }
+
+        // Read the size from the lobby manager, NOT from matchmakingSize: that's an instance field and
+        // the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player default.
+        int size = lobbyManager.SearchingMatchSize;
+        if (size != lastFindingMatchSize)
+        {
+            lastFindingMatchSize = size;
+            findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
         }
     }
 

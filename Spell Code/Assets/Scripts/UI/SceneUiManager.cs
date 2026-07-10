@@ -149,7 +149,10 @@ public class SceneUiManager : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadRandomGameplayStage();
-            DataManager.Instance.ResetData();
+            if (DataManager.Instance != null)
+            {
+                DataManager.Instance.ResetData();
+            }
             GameManager.Instance.RestartGame();
 
             GameManager.Instance.isRunning = true;

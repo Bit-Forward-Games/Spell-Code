@@ -347,6 +347,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             pause.SaveSettings();
         }
 
+        // Clear BOTH gamemode menus. The online invite is reachable from the multiplayer menu
+        // (solo lobby door 2); leaving multiplayerGamemodesMenuOpened set would make a later
+        // online-match Resume() run BackToMultiplayerSelector and freeze the sim (timeScale 0).
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
 

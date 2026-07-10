@@ -19,6 +19,13 @@ public class AegisOfAthena : SpellData
         spawnOffsetY = 36;
         description = "Upon landing a successful parry, your next cast gains Super Armor and grants +1 Rep<sprite name=\"Reps\"> on hit while the perfect armor is active.";
     }
+
+    public override void LoadSpell()
+    {
+        base.LoadSpell();
+        parryStored = false;
+    }
+
     public override void SpellUpdate()
     {
         //basic cooldown handling

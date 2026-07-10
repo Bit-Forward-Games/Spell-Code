@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.EventSystems;
@@ -205,6 +206,8 @@ public class Pause : MonoBehaviour
     private InputActionRebindingExtensions.RebindingOperation activeRebindOperation;
     private InputAction activeRebindAction;
     private bool activeRebindActionWasEnabled;
+    private Coroutine activeRebindCaptureCoroutine;
+    private bool waitingForManualRebindInput;
     private Coroutine activeRebindTimeoutCoroutine;
     private InputAction rebindDisabledUiMoveAction;
     private InputAction rebindDisabledUiSubmitAction;
@@ -783,7 +786,13 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(true);
 
         displayOptionString.text = displayModes[displayIndex];
-        resolutionOptionString.text = displayModes[resolutionIndex];
+        // resolutionIndex indexes the resolutions list, not the 3-entry displayModes list —
+        // indexing displayModes with it threw ArgumentOutOfRange when opening this menu
+        // (reachable mid-match) on any resolutionIndex >= 3.
+        if (resolutionIndex >= 0 && resolutionIndex < resolutions.Count)
+        {
+            resolutionOptionString.text = resolutions[resolutionIndex];
+        }
  
         StartCoroutine(SelectFirst(_displayMenuFirst));
  
@@ -1046,7 +1055,13 @@ public class Pause : MonoBehaviour
  
     public void QuitGame()
     {
-        DataManager.Instance.SaveToFile();
+        // DataManager can be legitimately absent (fresh SoloLobby boot has none; ExecuteOrder66
+        // destroys the persistent one). An unguarded SaveToFile threw here and aborted the quit
+        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit always.
+        if (DataManager.Instance != null)
+        {
+            DataManager.Instance.SaveToFile();
+        }
         Debug.Log("Quitting Spell Code SlingerZ");
         Application.Quit();
     }
@@ -1309,6 +1324,15 @@ public class Pause : MonoBehaviour
         if (player == null)
         {
             return false;
+        }
+
+        if (IsOnlineMatchActive())
+        {
+            devices = CopyValidDevices(InputSystem.devices);
+            if (devices.Length > 0)
+            {
+                return true;
+            }
         }
 
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
@@ -1594,22 +1618,114 @@ public class Pause : MonoBehaviour
         DisableMenuNavigationForRebind();
 
         string previousBindingPath = action.bindings[bindingIndex].effectivePath;
-        activeRebindOperation = action.PerformInteractiveRebinding(bindingIndex)
-            .OnPotentialMatch(operation => CompleteValidRebindMatch(operation, inputDevice))
-            .OnComplete(operation =>
-            {
-                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
-                FinishControlRebind(player, textSetter);
-            })
-            .OnCancel(operation => FinishControlRebind(player, textSetter));
+        waitingForManualRebindInput = true;
+        activeRebindCaptureCoroutine = StartCoroutine(CaptureControlRebind(
+            player,
+            inputDevice,
+            action,
+            bindingIndex,
+            previousBindingPath,
+            textSetter));
+        StartActiveRebindTimeout();
+    }
 
-        for (int i = 0; i < BannedRebindInputs.Length; i++)
+    private IEnumerator CaptureControlRebind(
+        PlayerController player,
+        InputDevice inputDevice,
+        InputAction action,
+        int bindingIndex,
+        string previousBindingPath,
+        TextSetter textSetter)
+    {
+        bool readyForNextPress = false;
+
+        while (waitingForManualRebindInput)
         {
-            activeRebindOperation.WithControlsExcluding(BannedRebindInputs[i]);
+            InputControl selectedControl = FindPressedRebindControl(inputDevice);
+            if (selectedControl == null)
+            {
+                readyForNextPress = true;
+                yield return null;
+                continue;
+            }
+
+            if (!readyForNextPress)
+            {
+                yield return null;
+                continue;
+            }
+
+            string selectedPath = GetBindingPathForControl(selectedControl, inputDevice);
+            if (!string.IsNullOrEmpty(selectedPath))
+            {
+                action.ApplyBindingOverride(bindingIndex, selectedPath);
+                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
+            }
+
+            waitingForManualRebindInput = false;
+            activeRebindCaptureCoroutine = null;
+            FinishControlRebind(player, textSetter);
+            yield break;
         }
 
-        activeRebindOperation.Start();
-        StartActiveRebindTimeout();
+        activeRebindCaptureCoroutine = null;
+    }
+
+    private InputControl FindPressedRebindControl(InputDevice inputDevice)
+    {
+        if (inputDevice == null)
+        {
+            return null;
+        }
+
+        InputControl bestControl = null;
+        float bestMagnitude = 0f;
+        foreach (InputControl control in inputDevice.allControls)
+        {
+            if (control is not ButtonControl || IsBannedRebindInput(control))
+            {
+                continue;
+            }
+
+            float magnitude = control.EvaluateMagnitude();
+            if (magnitude <= 0.5f || magnitude <= bestMagnitude)
+            {
+                continue;
+            }
+
+            bestControl = control;
+            bestMagnitude = magnitude;
+        }
+
+        return bestControl;
+    }
+
+    private string GetBindingPathForControl(InputControl inputControl, InputDevice inputDevice)
+    {
+        if (inputControl == null || inputDevice == null)
+        {
+            return null;
+        }
+
+        string controlPath = inputControl.path;
+        string devicePath = inputDevice.path;
+        if (!string.IsNullOrEmpty(devicePath)
+            && !string.IsNullOrEmpty(controlPath)
+            && controlPath.StartsWith(devicePath, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{GetBindingDevicePath(inputDevice)}{controlPath.Substring(devicePath.Length)}";
+        }
+
+        if (!string.IsNullOrEmpty(controlPath) && controlPath[0] == '/')
+        {
+            int deviceEndIndex = controlPath.IndexOf('/', 1);
+            if (deviceEndIndex >= 0)
+            {
+                return $"{GetBindingDevicePath(inputDevice)}{controlPath.Substring(deviceEndIndex)}";
+            }
+        }
+
+        return controlPath;
     }
 
     private void CompleteValidRebindMatch(InputActionRebindingExtensions.RebindingOperation operation, InputDevice inputDevice)
@@ -1631,6 +1747,7 @@ public class Pause : MonoBehaviour
 
     private void FinishControlRebind(PlayerController player, TextSetter textSetter)
     {
+        StopActiveRebindCapture();
         StopActiveRebindTimeout();
         RestoreMenuNavigationAfterRebind();
         RestoreActiveRebindAction();
@@ -1710,10 +1827,22 @@ public class Pause : MonoBehaviour
             return;
         }
 
+        StopActiveRebindCapture();
         RestoreActiveRebindAction();
         RestoreMenuNavigationAfterRebind();
         StopActiveRebindTimeout();
         DisposeActiveRebindOperation();
+        RefreshControlGlyphs();
+    }
+
+    private void StopActiveRebindCapture()
+    {
+        waitingForManualRebindInput = false;
+        if (activeRebindCaptureCoroutine != null)
+        {
+            StopCoroutine(activeRebindCaptureCoroutine);
+            activeRebindCaptureCoroutine = null;
+        }
     }
 
     private void RestoreActiveRebindAction()
@@ -1761,10 +1890,11 @@ public class Pause : MonoBehaviour
 
     private bool IsWaitingForRebindInput()
     {
-        return activeRebindOperation != null
+        return waitingForManualRebindInput
+            || (activeRebindOperation != null
             && activeRebindOperation.started
             && !activeRebindOperation.completed
-            && !activeRebindOperation.canceled;
+            && !activeRebindOperation.canceled);
     }
 
     private void DisableMenuNavigationForRebind()

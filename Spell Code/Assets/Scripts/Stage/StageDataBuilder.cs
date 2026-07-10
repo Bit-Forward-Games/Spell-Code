@@ -22,11 +22,18 @@ public class StageDataBuilder : MonoBehaviour
     private GameObject[] playerSpawns;
     private GameObject[] npcSpawns;
     private GameObject[] activatableSolids;
+    private GameObject[] portalPointAs;
+    
+    private GameObject[] portalPointBs;
     
     void Start()
     {
         platforms = GameObject.FindGameObjectsWithTag("Platform");
         solids = GameObject.FindGameObjectsWithTag("Solid");
+        
+        portalPointAs = GameObject.FindGameObjectsWithTag("PortalA");
+        
+        portalPointBs = GameObject.FindGameObjectsWithTag("PortalB");
 
         playerSpawns = new GameObject[4];
         playerSpawns[0] = GameObject.FindGameObjectWithTag("Player Spawn");
@@ -50,6 +57,13 @@ public class StageDataBuilder : MonoBehaviour
 
         stageDataSO.activatableSolidCenter = new Vector3[activatableSolids.Length];
         stageDataSO.activatableSolidExtent = new Vector3[activatableSolids.Length];
+
+        if(portalPointAs.Length != portalPointBs.Length)
+        {
+            Debug.LogError("StageDataBuilder: Uneven Portal Counts");
+            return;
+        }
+        stageDataSO.portals = new (Vector2,Vector2)[portalPointAs.Length];
 
     }
 
@@ -91,6 +105,16 @@ public class StageDataBuilder : MonoBehaviour
            Transform spawnTransforms = spawn.GetComponent<Transform>();
            stageDataSO.npcSpawnTransform[k] = new Vector2(spawnTransforms.position.x, spawnTransforms.position.y);
            k++;
+        }
+        if(portalPointAs.Length == portalPointBs.Length)
+        for (int m = 0; m < portalPointAs.Length; m++)
+        {
+           Transform pointATransform = portalPointAs[m].GetComponent<Transform>();
+           Transform pointBTransform = portalPointBs[m].GetComponent<Transform>();
+           stageDataSO.portals[m] = new (
+            new Vector2(pointATransform.position.x, pointATransform.position.y), 
+            new Vector2(pointBTransform.position.x, pointBTransform.position.y)
+            );
         }
 
         //if there are not exactly 4 player spawn points,...

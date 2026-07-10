@@ -82,9 +82,9 @@ MonoBehaviour:
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
-  borderMin: {x: -2000, y: -2000, z: 0}
+  borderMin: {x: -500, y: -2000, z: 0}
   borderMax: {x: 6000, y: 6000, z: 0}
-  camBorderMin: {x: -2000, y: -2000, z: 0}
+  camBorderMin: {x: -500, y: -2000, z: 0}
   camBorderMax: {x: 6000, y: 6000, z: 0}
   borderType: 0
   stageType: 3

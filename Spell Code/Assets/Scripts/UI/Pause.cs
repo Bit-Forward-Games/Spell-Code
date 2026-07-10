@@ -704,7 +704,6 @@ public class Pause : MonoBehaviour
 
         //mute all gameplay sfx but not menu sfx
         SFX_Manager.Instance.MuteGamePlaySFX();
-        Debug.Log("HERE");
         LoadSettings();
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);

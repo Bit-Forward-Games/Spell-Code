@@ -2890,23 +2890,24 @@ public class PlayerController : MonoBehaviour
             //basically ignore hitstun so some other point in the player's logic can handle it uniquely (e.g. Stag Chi Special 2 parry)
             if (superArmor)
             {
-                
-
-                //play the blocked sound
-                SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
-
                 //Play the blocked visual effect
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
-                
-                if(state == PlayerState.CodeWeave && logicFrame < parryThreshold)   
+
+                if (state == PlayerState.CodeWeave && logicFrame < parryThreshold)
                 {
                     SpawnToast("PARRY!", GameManager.colors["pink"]);
-                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnParry);
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnParry);
+
+                    //play the parry sound
+                    SFX_Manager.Instance.PlaySound(Sounds.PARRY, 1.0f, 1.0f);
                 }
                 else
                 {
                     SpawnToast($"SUPER ARMORED!", GameManager.colors["white"]);
+
+                    //play the blocked sound
+                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
                 }
 
                 isHit = false;

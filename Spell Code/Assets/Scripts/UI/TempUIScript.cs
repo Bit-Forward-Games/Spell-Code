@@ -69,10 +69,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
 
-    public GameObject _codeModeMenuFirst;
-    public GameObject codeModeMenu;
-    public bool codeModeMenuOpened;
-    
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;

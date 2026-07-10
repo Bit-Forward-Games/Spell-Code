@@ -130,6 +130,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         previousRamVals = new int[4];
         for (int i = 0; i < gameManager.playerCount; i++)
             previousRamVals[i] = gameManager.players[i]?.roundRam ?? 0;
+
+        InitFindingMatchText();
     }
 
     void OnEnable()
@@ -142,6 +144,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SceneManager.sceneLoaded -= OnSceneLoaded;
         pause?.RestoreScopedUiInputDevices();
         StopDamageBarCoroutines();
+
+        // Backstop for SetLink: never leave the looping pulse running against a torn-down label.
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -297,9 +303,20 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public TextMeshProUGUI findingMatchText;
 
+    // Looping pulse while waiting for a match. The label itself appears/disappears instantly;
+    // only its alpha breathes between 1 and findingMatchPulseMinAlpha. Seconds per half-cycle.
+    public float findingMatchPulseDuration = 0.6f;
+    [Range(0f, 1f)] public float findingMatchPulseMinAlpha = 0.3f;
+
     // Last size written into findingMatchText, so the label string is only rebuilt when it changes
     // (RefreshFindingMatchText runs every frame). -1 == "not currently searching".
     private int lastFindingMatchSize = -1;
+
+    // findingMatchShown tracks the INTENDED visibility so we only act on a transition -- Update runs
+    // every frame and would otherwise restart the pulse tween continuously.
+    private bool findingMatchShown;
+    private CanvasGroup findingMatchGroup;
+    private Tween findingMatchPulseTween;
 
     private int matchmakingSize = MinMatchSize;
     private const int MinMatchSize = 2;
@@ -361,25 +378,107 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         bool searching = lobbyManager != null && lobbyManager.IsSearchingForMatch;
 
-        if (findingMatchText.gameObject.activeSelf != searching)
+        if (searching)
         {
-            findingMatchText.gameObject.SetActive(searching);
+            // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field
+            // and the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player
+            // default. Rebuild the string only when the size changes; this runs every frame.
+            int size = lobbyManager.SearchingMatchSize;
+            if (size != lastFindingMatchSize)
+            {
+                lastFindingMatchSize = size;
+                findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
+            }
         }
-
-        if (!searching)
+        else
         {
             lastFindingMatchSize = -1;
+        }
+
+        // Only act on a CHANGE, otherwise the pulse tween would be recreated every frame.
+        if (searching == findingMatchShown)
+        {
             return;
         }
 
-        // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field and
-        // the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player default.
-        int size = lobbyManager.SearchingMatchSize;
-        if (size != lastFindingMatchSize)
+        findingMatchShown = searching;
+        SetFindingMatchVisible(searching);
+    }
+
+    // Shows/hides the label instantly, and runs a looping alpha pulse while it's waiting. Pure
+    // presentation -- DOTween is real-time and NOT deterministic, so it must never drive sim state
+    // (see the floppy-spawn desync); a UI alpha tween is safe.
+    private void SetFindingMatchVisible(bool visible)
+    {
+        CanvasGroup group = GetFindingMatchGroup();
+        if (group == null)
         {
-            lastFindingMatchSize = size;
-            findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
+            return;
         }
+
+        // Kill first: a live yoyo tween would keep writing alpha over whatever we set below.
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
+
+        if (!visible)
+        {
+            group.alpha = 1f; // leave it clean for the next search
+            findingMatchText.gameObject.SetActive(false);
+            return;
+        }
+
+        group.alpha = 1f;
+        findingMatchText.gameObject.SetActive(true);
+
+        // Full -> dim -> full, forever, until the search ends.
+        // DOTween.To rather than CanvasGroup.DOFade so this doesn't depend on DOTween's UI module
+        // being generated. SetUpdate(true) = unscaled: the gamemodes menu sets Time.timeScale = 0,
+        // which would otherwise freeze the pulse. SetLink kills the tween if the label is destroyed
+        // (ExecuteOrder66 tears down tempUI mid-search).
+        findingMatchPulseTween = DOTween
+            .To(() => group.alpha, a => group.alpha = a, findingMatchPulseMinAlpha, findingMatchPulseDuration)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetEase(Ease.InOutSine)
+            .SetUpdate(true)
+            .SetLink(findingMatchText.gameObject);
+    }
+
+    private CanvasGroup GetFindingMatchGroup()
+    {
+        if (findingMatchGroup == null && findingMatchText != null)
+        {
+            findingMatchGroup = findingMatchText.GetComponent<CanvasGroup>();
+            if (findingMatchGroup == null)
+            {
+                findingMatchGroup = findingMatchText.gameObject.AddComponent<CanvasGroup>();
+            }
+        }
+
+        return findingMatchGroup;
+    }
+
+    // Force the label to a known hidden state on load, so a label left enabled in the Inspector (or a
+    // rebuilt tempUI) doesn't start visible before the first search.
+    private void InitFindingMatchText()
+    {
+        if (findingMatchText == null)
+        {
+            return;
+        }
+
+        findingMatchShown = false;
+        lastFindingMatchSize = -1;
+
+        findingMatchPulseTween?.Kill();
+        findingMatchPulseTween = null;
+
+        CanvasGroup group = GetFindingMatchGroup();
+        if (group != null)
+        {
+            group.alpha = 1f;
+        }
+
+        findingMatchText.gameObject.SetActive(false);
     }
 
     private void CloseGamemodesMenuForOnlineInvite()

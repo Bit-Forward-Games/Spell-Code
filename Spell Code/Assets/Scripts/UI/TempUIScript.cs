@@ -295,11 +295,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // its starting text to "2" (the default). Wire the buttons' OnClick to the methods below.
     public TextMeshProUGUI matchSizeText;
 
-    // Assign the "FINDING MATCH..." label. IMPORTANT: parent it directly under the tempUI canvas, NOT
-    // inside the gamemodes panel -- Find Match closes that panel and Quick Match defers into MainMenu,
-    // so anything under it would vanish. Visibility AND its text are driven every frame from
-    // SteamLobbyManager, so it clears itself on cancel, on failure, and once the match starts. Leave it
-    // disabled in the Inspector; nothing else needs to touch it. Any placeholder text is overwritten.
     public TextMeshProUGUI findingMatchText;
 
     // Last size written into findingMatchText, so the label string is only rebuilt when it changes
@@ -377,7 +372,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             return;
         }
 
-        // Read the size from the lobby manager, NOT from matchmakingSize: that's an instance field and
+        // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field and
         // the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player default.
         int size = lobbyManager.SearchingMatchSize;
         if (size != lastFindingMatchSize)

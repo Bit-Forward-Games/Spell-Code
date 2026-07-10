@@ -62,7 +62,7 @@ public class SteamLobbyManager : MonoBehaviour
     private static int pendingMatchmakingSize;
 
     // Size (2-4) of the Quick Match currently being searched for, set the moment Find Match is pressed.
-    // Static for the same ExecuteOrder66-survival reason: the deferred MainMenu transition can rebuild
+    // Static for the same ExecuteOrder66-survival reason, the deferred MainMenu transition can rebuild
     // the UI, so the "finding match" label must read the size from here rather than from TempUIScript's
     // own matchmakingSize (an instance field that would reset to the 2-player default).
     private static int matchmakingSearchSize;

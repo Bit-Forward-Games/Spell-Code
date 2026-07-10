@@ -476,7 +476,17 @@ MonoBehaviour:
   - soundName: 23
     possibleSounds:
     - {fileID: 8300000, guid: 938bbf74590313441a12687b5dcef65e, type: 3}
-    secretVersionOfSound: {fileID: 8300000, guid: 938bbf74590313441a12687b5dcef65e, type: 3}
+    secretVersionOfSound: {fileID: 0}
+    canRepeat: 0
+    audioSources:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  - soundName: 24
+    possibleSounds:
+    - {fileID: 8300000, guid: 9a17e3c67c120244faccdae93e6d7880, type: 3}
+    secretVersionOfSound: {fileID: 0}
     canRepeat: 0
     audioSources:
     - {fileID: 0}

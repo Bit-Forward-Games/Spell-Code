@@ -928,7 +928,12 @@ public class GambaMachine : MonoBehaviour
                         if (r != null) r.enabled = true;
                     }
                 }
+
+                //play the floppy spawn sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
             }).SetUpdate(false);
+
+            //return
             return;
         }
 
@@ -944,6 +949,9 @@ public class GambaMachine : MonoBehaviour
                 //toggle it back on
                 _disk.SetActive(true);
             }
+
+            //play the floppy spawn sfx
+            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
         }).SetUpdate(false);
 
         //return

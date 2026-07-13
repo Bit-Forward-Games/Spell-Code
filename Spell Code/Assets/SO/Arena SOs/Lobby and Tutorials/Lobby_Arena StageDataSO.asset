@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: Lobby_ArenaStageDataSO
-  m_EditorClassIdentifier: 
+  m_Name: Lobby_Arena StageDataSO
+  m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
   - {x: 208, y: -116}
   - {x: 144, y: -116}
@@ -39,9 +39,11 @@ MonoBehaviour:
   - {x: 16, y: 4}
   - {x: 16, y: 4}
   solidCenter:
-  - {x: 272, y: 0}
-  - {x: -160, y: 0}
-  - {x: 160, y: 0.40659904}
+  - {x: 320, y: -152}
+  - {x: -320, y: -152}
+  - {x: 320, y: 56.000004}
+  - {x: -224, y: 0}
+  - {x: 224, y: 0.40659904}
   - {x: 0, y: 208}
   - {x: 0, y: -208}
   - {x: 48, y: 184}
@@ -50,12 +52,14 @@ MonoBehaviour:
   - {x: -48, y: -176}
   - {x: -48, y: 8}
   - {x: -48, y: 184}
-  - {x: -272, y: 0}
+  - {x: -320, y: 56.000004}
   solidExtent:
-  - {x: 16, y: 224}
-  - {x: 95.9949, y: 16}
-  - {x: 96.50406, y: 16.906633}
-  - {x: 286, y: 16}
+  - {x: 64, y: 72.00058}
+  - {x: 64, y: 72.00229}
+  - {x: 63.996277, y: 72.000305}
+  - {x: 159.99469, y: 16}
+  - {x: 160.50555, y: 16.906633}
+  - {x: 381.98526, y: 16}
   - {x: 286, y: 16}
   - {x: 15.998398, y: 7.998932}
   - {x: 15.998398, y: 40.499325}
@@ -63,7 +67,7 @@ MonoBehaviour:
   - {x: 15.998398, y: 15.497498}
   - {x: 15.998398, y: 39.49633}
   - {x: 15.998398, y: 7.998398}
-  - {x: 16, y: 224}
+  - {x: 64, y: 72.002014}
   playerSpawnTransform:
   - {x: -145, y: 32}
   - {x: 145, y: 32}
@@ -80,10 +84,12 @@ MonoBehaviour:
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
+  portalAs: []
+  portalBs: []
   borderMin: {x: -350, y: -205, z: 0}
   borderMax: {x: 350, y: 205, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
-  borderType: 0
-  stageType: 0
+  borderType: 3
+  stageType: 3
   dynamicCamera: 0

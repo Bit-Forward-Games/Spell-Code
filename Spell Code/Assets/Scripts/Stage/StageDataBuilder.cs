@@ -72,7 +72,7 @@ public class StageDataBuilder : MonoBehaviour
 #if UNITY_EDITOR
     void Update()
     {
-        if (Input.GetKey("s") && Input.GetKeyDown("o"))
+        if (Input.GetKey("shift") && Input.GetKey("s") && Input.GetKeyDown("o"))
         {
             GetStageData();
             SaveStageData();

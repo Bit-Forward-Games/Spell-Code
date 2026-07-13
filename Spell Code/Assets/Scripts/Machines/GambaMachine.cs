@@ -128,6 +128,9 @@ public class GambaMachine : MonoBehaviour
                 //play the gamba hit sfx
                 SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
 
+                //play the floppy arc sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
                 isActive = false;
 
                 if (ownerPID == 1) {
@@ -207,6 +210,9 @@ public class GambaMachine : MonoBehaviour
                     //play the gamba hit sfx
                     SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
 
+                    //play the floppy arc sfx
+                    SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
                     isActive = false;
                     activatedCount++;
 
@@ -256,6 +262,9 @@ public class GambaMachine : MonoBehaviour
                 //play the gamba hit sfx
                 SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
 
+                //play the floppy arc sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
                 isActive = false;
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
@@ -272,6 +281,9 @@ public class GambaMachine : MonoBehaviour
 
                 //play the gamba hit sfx
                 SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                //play the floppy arc sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
 
                 isActive = false;
 
@@ -432,6 +444,9 @@ public class GambaMachine : MonoBehaviour
                 if (SFX_Manager.Instance != null)
                 {
                     SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                    //play the floppy arc sfx
+                    SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
                 }
                 GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"shop gamba P{ownerPID} activation {activatedCount}");
             }
@@ -913,7 +928,12 @@ public class GambaMachine : MonoBehaviour
                         if (r != null) r.enabled = true;
                     }
                 }
+
+                //play the floppy spawn sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
             }).SetUpdate(false);
+
+            //return
             return;
         }
 
@@ -929,6 +949,9 @@ public class GambaMachine : MonoBehaviour
                 //toggle it back on
                 _disk.SetActive(true);
             }
+
+            //play the floppy spawn sfx
+            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
         }).SetUpdate(false);
 
         //return

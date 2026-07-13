@@ -19,7 +19,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshPro[] SpellInputs;
     public GameObject[] onPlayerUI;
     public GameObject[] emptyQuadrants;
-    
+
     public GameObject[] vibeCodeQuadrants;
     public Sprite[] spellOnCooldownIcon;
     public Sprite[] spellReadyIcon;
@@ -70,9 +70,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public float baseScale = 0f;
     public float scalePerChar = 0.05f;
     public float maxScale = 2f;
-
+ 
     public GameObject gamemodesMenu;
-
+    
     public GameObject _soloGamemodesMenuFirst;
     public GameObject soloGamemodesMenu;
     public bool soloGamemodesMenuOpened;
@@ -101,6 +101,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public Pause pause;
 
     private int gamemodesMenuPlayerIndex = -1;
+    private InputSystem_Actions input;
 
     public RectTransform highlightOverlay; // lives outside the Layout Group, e.g. sibling of the panel
 
@@ -114,6 +115,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     void Awake()
     {
+        input = new InputSystem_Actions();
     }
 
     void Start()
@@ -137,6 +139,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        input.Enable();
     }
 
     void OnDisable()
@@ -171,7 +174,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
-            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
             if (pause != null)
             {
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
@@ -187,7 +190,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             CloseGamemodeMenus();
         }
-    }
+        }
 
     public void SetMultiplayerMenuActive(bool setOpen)
     {
@@ -281,10 +284,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                     SetMultiplayerMenuActive(false);
                 }
 
-                Time.timeScale = 1f;
-                EventSystem.current.SetSelectedGameObject(null);
-            }
+            Time.timeScale = 1f;
+            EventSystem.current.SetSelectedGameObject(null);
         }
+    }
 
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Space))
@@ -929,6 +932,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public void ExitTutorialPromptAnimation()
     {
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
+    }
+
+    public void OpenCodeModeMenu()
+    {
+        tutorialPromptMenu.SetActive(true);
+        Time.timeScale = 0f;
+        tutorialPromptMenuOpened = true;
+        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
     }
 
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse, float textSpeed)

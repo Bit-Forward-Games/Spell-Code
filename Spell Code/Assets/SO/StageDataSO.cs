@@ -6,7 +6,8 @@ public enum BorderType
 {
     Collision,
     Loop,
-    DeathZone
+    DeathZone,
+    CharacterReset
 }
 
 public enum StageType

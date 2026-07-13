@@ -155,6 +155,119 @@ public class OnboardManager : MonoBehaviour
         ApplyInitialUiState();
     }
 
+    public void ResetPlayerOnboarding(int playerIndex)
+    {
+        switch (playerIndex)
+        {
+            case 0:
+                p1_moveComplete = false;
+                p1_jumpComplete = false;
+                p1_atkComplete = false;
+                p1_glassBroken = false;
+                ResetPromptColors(p1_moveTxt, p1_jumpTxt, p1_atkTxt, p1_castTxt);
+                p1_moveGraphic.enabled = true;
+                p1_moveTxt.enabled = true;
+                p1_jumpGraphic.enabled = true;
+                p1_jumpTxt.enabled = true;
+                p1_atkGraphic.enabled = false;
+                p1_atkTxt.enabled = false;
+                p1_castGraphic.enabled = false;
+                p1_castTxt.enabled = false;
+                p1_breakWSpellcode.enabled = false;
+                p1_gambaActive = false;
+                if (p1_gamba != null)
+                {
+                    p1_gamba.isActive = false;
+                    p1_gamba.ApplyVisualState();
+                }
+                break;
+            case 1:
+                p2_joined = true;
+                p2_moveComplete = false;
+                p2_jumpComplete = false;
+                p2_atkComplete = false;
+                p2_glassBroken = false;
+                ResetPromptColors(p2_moveTxt, p2_jumpTxt, p2_atkTxt, p2_castTxt);
+                p2_atkTxt.text = "Attack";
+                p2_moveGraphic.enabled = true;
+                p2_moveTxt.enabled = true;
+                p2_jumpGraphic.enabled = true;
+                p2_jumpTxt.enabled = true;
+                p2_atkGraphic.enabled = false;
+                p2_atkTxt.enabled = false;
+                p2_castGraphic.enabled = false;
+                p2_castTxt.enabled = false;
+                p2_breakWSpellcode.enabled = false;
+                p2_gambaActive = false;
+                if (p2_gamba != null)
+                {
+                    p2_gamba.isActive = false;
+                    p2_gamba.ApplyVisualState();
+                }
+                break;
+            case 2:
+                p3_joined = true;
+                p3_moveComplete = false;
+                p3_jumpComplete = false;
+                p3_atkComplete = false;
+                p3_glassBroken = false;
+                ResetPromptColors(p3_moveTxt, p3_jumpTxt, p3_atkTxt, p3_castTxt);
+                p3_atkTxt.text = "Attack";
+                p3_moveGraphic.enabled = true;
+                p3_moveTxt.enabled = true;
+                p3_jumpGraphic.enabled = true;
+                p3_jumpTxt.enabled = true;
+                p3_atkGraphic.enabled = false;
+                p3_atkTxt.enabled = false;
+                p3_castGraphic.enabled = false;
+                p3_castTxt.enabled = false;
+                p3_breakWSpellcode.enabled = false;
+                p3_gambaActive = false;
+                if (p3_gamba != null)
+                {
+                    p3_gamba.isActive = false;
+                    p3_gamba.ApplyVisualState();
+                }
+                break;
+            case 3:
+                p4_joined = true;
+                p4_moveComplete = false;
+                p4_jumpComplete = false;
+                p4_atkComplete = false;
+                p4_glassBroken = false;
+                ResetPromptColors(p4_moveTxt, p4_jumpTxt, p4_atkTxt, p4_castTxt);
+                p4_atkTxt.text = "Attack";
+                p4_moveGraphic.enabled = true;
+                p4_moveTxt.enabled = true;
+                p4_jumpGraphic.enabled = true;
+                p4_jumpTxt.enabled = true;
+                p4_atkGraphic.enabled = false;
+                p4_atkTxt.enabled = false;
+                p4_castGraphic.enabled = false;
+                p4_castTxt.enabled = false;
+                p4_breakWSpellcode.enabled = false;
+                p4_gambaActive = false;
+                if (p4_gamba != null)
+                {
+                    p4_gamba.isActive = false;
+                    p4_gamba.ApplyVisualState();
+                }
+                break;
+        }
+    }
+
+    private void ResetPromptColors(params TextMeshProUGUI[] prompts)
+    {
+        Color defaultColor = GameManager.colors["white"];
+        for (int i = 0; i < prompts.Length; i++)
+        {
+            if (prompts[i] != null)
+            {
+                prompts[i].color = defaultColor;
+            }
+        }
+    }
+
     private void ApplyInitialUiState()
     {
         Debug.Log("Applying Initial Onboarding UI State");

@@ -2563,6 +2563,31 @@ public class PlayerController : MonoBehaviour
                         returnVal = true;
                     }
                     break;
+                case BorderType.CharacterReset:
+                    Fixed resetMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+                    Fixed resetMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+                    Fixed resetMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+                    Fixed resetMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
+                    if (position.X > resetMaxX || position.X < resetMinX ||
+                        position.Y > resetMaxY || position.Y < resetMinY)
+                    {
+                        if (SceneManager.GetActiveScene().name != "MainMenu")
+                        {
+                            break;
+                        }
+
+                        if (checkOnly)
+                        {
+                            return true;
+                        }
+
+                        if (GameManager.Instance != null)
+                        {
+                            GameManager.Instance.ResetPlayerFromMainMenuBounds(this);
+                        }
+                        returnVal = true;
+                    }
+                    break;
             }
         }
         #endregion

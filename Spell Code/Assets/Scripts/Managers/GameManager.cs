@@ -302,7 +302,7 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    private void SetResolution()
+    public void SetResolution()
     {
         Vector2Int displaySize = GetActiveDisplaySize();
         if (displaySize.x <= 0 || displaySize.y <= 0)
@@ -3710,6 +3710,64 @@ public class GameManager : MonoBehaviour
         }
 
         isSaved = false;
+    }
+
+    public void ResetPlayerFromMainMenuBounds(PlayerController player)
+    {
+        if (player == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        int playerIndex = Array.IndexOf(players, player);
+        Vector2[] spawnPositions = GetSpawnPositions();
+        if (playerIndex < 0 || playerIndex >= spawnPositions.Length)
+        {
+            return;
+        }
+
+        player.ClearSpellList();
+        player.chosenSpell = false;
+        player.chosenStartingSpell = false;
+        player.startingSpellAdded = false;
+        player.basicsFired = 0;
+        player.spellsFired = 0;
+        player.spellsHit = 0;
+        player.roundsWon = 0;
+        player.storedKillBonus = 0;
+        player.roundRam = 0;
+        player.ramBounty = 0;
+        player.times = new List<Fixed>();
+        player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
+
+        if (player.inputDisplay != null) player.inputDisplay.enabled = true;
+        if (player.playerNum != null) player.playerNum.enabled = true;
+
+        if (playerIndex < gates.Length && gates[playerIndex] != null)
+        {
+            gates[playerIndex].SetOpen(false);
+        }
+
+        for (int i = 0; i < gambas.Count; i++)
+        {
+            GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
+            if (gamba != null && gamba.ownerPID == playerIndex + 1)
+            {
+                gamba.ResetLobbyState();
+                gamba.isActive = false;
+                gamba.ApplyVisualState();
+                break;
+            }
+        }
+
+        if (onboardManager == null)
+        {
+            onboardManager = FindFirstObjectByType<OnboardManager>();
+        }
+        if (onboardManager != null)
+        {
+            onboardManager.ResetPlayerOnboarding(playerIndex);
+        }
     }
 
     /// <summary>

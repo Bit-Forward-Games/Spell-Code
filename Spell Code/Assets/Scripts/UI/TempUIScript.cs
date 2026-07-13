@@ -188,13 +188,7 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
         }
         else
         {
-            soloGamemodesMenuOpened = false;
-            soloGamemodesMenu.SetActive(false);
-            gamemodesMenu.SetActive(false);
-            gamemodesMenuPlayerIndex = -1;
-            pause?.RestoreScopedUiInputDevices();
-            // pause._pauseMenuFirst.Select();
-            Time.timeScale = 1f;
+            CloseGamemodeMenus();
         }
         }
 
@@ -216,14 +210,39 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
         }
         else
         {
-            multiplayerGamemodesMenuOpened = false;
-            multiplayerGamemodesMenu.SetActive(false);
-            gamemodesMenu.SetActive(false);
-            gamemodesMenuPlayerIndex = -1;
-            pause?.RestoreScopedUiInputDevices();
-            // pause._pauseMenuFirst.Select();
-            Time.timeScale = 1f;
+            CloseGamemodeMenus();
         }
+    }
+
+    // Closing either gamemode menu closes BOTH and clears BOTH flags. The two menus share the
+    // gamemodesMenu container so they are never open together, and a close wired to the wrong
+    // variant must not strand the other flag: the multiplayer menu's Local Play button called
+    // SetSoloMenuActive(false), leaving multiplayerGamemodesMenuOpened true for the whole offline
+    // match — PlayerController's pause gate checks that flag, so only P1 (whose pause press closes
+    // the hidden menu via the gamemode-menu handler in Update) could ever pause.
+    private void CloseGamemodeMenus()
+    {
+        soloGamemodesMenuOpened = false;
+        multiplayerGamemodesMenuOpened = false;
+
+        if (soloGamemodesMenu != null)
+        {
+            soloGamemodesMenu.SetActive(false);
+        }
+
+        if (multiplayerGamemodesMenu != null)
+        {
+            multiplayerGamemodesMenu.SetActive(false);
+        }
+
+        if (gamemodesMenu != null)
+        {
+            gamemodesMenu.SetActive(false);
+        }
+
+        gamemodesMenuPlayerIndex = -1;
+        pause?.RestoreScopedUiInputDevices();
+        Time.timeScale = 1f;
     }
 
     // Update is called once per frame
@@ -494,27 +513,7 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
         // Clear BOTH gamemode menus. The online invite is reachable from the multiplayer menu
         // (solo lobby door 2); leaving multiplayerGamemodesMenuOpened set would make a later
         // online-match Resume() run BackToMultiplayerSelector and freeze the sim (timeScale 0).
-        soloGamemodesMenuOpened = false;
-        multiplayerGamemodesMenuOpened = false;
-
-        if (soloGamemodesMenu != null)
-        {
-            soloGamemodesMenu.SetActive(false);
-        }
-
-        if (multiplayerGamemodesMenu != null)
-        {
-            multiplayerGamemodesMenu.SetActive(false);
-        }
-
-        if (gamemodesMenu != null)
-        {
-            gamemodesMenu.SetActive(false);
-        }
-
-        gamemodesMenuPlayerIndex = -1;
-        pause?.RestoreScopedUiInputDevices();
-        Time.timeScale = 1f;
+        CloseGamemodeMenus();
 
         if (EventSystem.current != null)
         {

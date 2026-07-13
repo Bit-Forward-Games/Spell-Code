@@ -66,7 +66,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             Transform sliderChildTransform = transform.Find("SignSelecter");
             if (sliderChildTransform!= null) 
             {
-                Debug.Log("Hello???");
+                //Debug.Log("Hello???");
                 RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
                 signSelector.localScale = new Vector3(0f, signSelector.localScale.y, signSelector.localScale.z);
                 signSelector

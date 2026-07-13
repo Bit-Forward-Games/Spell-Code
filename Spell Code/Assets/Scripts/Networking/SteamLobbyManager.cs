@@ -61,11 +61,29 @@ public class SteamLobbyManager : MonoBehaviour
     private static bool pendingMatchmakingRequested;
     private static int pendingMatchmakingSize;
 
+    // Size (2-4) of the Quick Match currently being searched for, set the moment Find Match is pressed.
+    // Static for the same ExecuteOrder66-survival reason, the deferred MainMenu transition can rebuild
+    // the UI, so the "finding match" label must read the size from here rather than from TempUIScript's
+    // own matchmakingSize (an instance field that would reset to the 2-player default).
+    private static int matchmakingSearchSize;
+
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
 
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
+
+    // True while a Quick Match search is in flight: either DEFERRED (Find Match was pressed outside
+    // MainMenu and we're transitioning there) or actively querying / hosting / waiting for opponents.
+    // Goes false on CancelMatchmaking and on failure. Also gated on the match not being live, because
+    // isMatchmaking is never cleared when the match actually starts -- without that gate a "finding
+    // match" label would ride the persistent HUD into Gameplay.
+    public bool IsSearchingForMatch =>
+        (pendingMatchmakingRequested || isMatchmaking)
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
+
+    // Size (2-4) of the in-flight Quick Match search. Only meaningful while IsSearchingForMatch.
+    public int SearchingMatchSize => matchmakingSearchSize;
 
     public bool OpenInviteOverlayOrHost()
     {
@@ -314,6 +332,7 @@ public class SteamLobbyManager : MonoBehaviour
     public void FindMatch(int desiredSize)
     {
         int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
+        matchmakingSearchSize = clamped;
 
         // The online lobby only simulates in MainMenu, so Quick Match — like host/join — defers there
         // first when triggered from another scene (SoloLobby's multiplayer door). Otherwise both

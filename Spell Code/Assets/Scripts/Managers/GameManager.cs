@@ -489,7 +489,11 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             Scene activeScene = SceneManager.GetActiveScene();
-            gameObject.GetComponent<PlayerInputManager>().enabled = activeScene.name == "MainMenu" || activeScene.name == "SoloLobby";
+            // Modal menus freeze the sim (timeScale = 0 stops FixedUpdate), but PlayerInputManager
+            // listens for join presses on unscaled input from Update — without this gate a new
+            // player could join the lobby while someone has the game paused.
+            gameObject.GetComponent<PlayerInputManager>().enabled =
+                (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby") && !IsModalMenuOpen();
             SetNetworkInfoVisible(false);
         }
         else
@@ -517,6 +521,34 @@ public class GameManager : MonoBehaviour
         {
             players[0].roundRam = 600;
         }
+#endif
+    }
+
+    /// <summary>
+    /// True while a modal menu has the offline game frozen (pause menu, gamemode selectors,
+    /// tutorial/code-mode prompts). Player joining must be blocked while one is up.
+    /// </summary>
+    private bool IsModalMenuOpen()
+    {
+        if (tempUI == null)
+        {
+            return false;
+        }
+
+        if (tempUI.pause != null && tempUI.pause.paused)
+        {
+            return true;
+        }
+
+        return tempUI.soloGamemodesMenuOpened
+            || tempUI.multiplayerGamemodesMenuOpened
+            || tempUI.tutorialPromptMenuOpened
+            || tempUI.codeModePromptMenuOpened;
+    }
+
+    private void EditorOnlyDebugHotkeys()
+    {
+#if UNITY_EDITOR
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {

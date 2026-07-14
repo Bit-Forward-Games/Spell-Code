@@ -539,8 +539,13 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
-        //play the spawning VFX
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+        //play the spawning VFX on real (non-rollback) frames only. PlayVisualEffect is a one-shot
+        //SpawnPlayer runs inside the sim (respawn, lobby reset), so under rollback re-sim it would
+        //re-fire and flicker
+        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+        {
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+        }
 
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);

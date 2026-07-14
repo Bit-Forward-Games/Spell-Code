@@ -203,7 +203,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
 
             multiplayerGamemodesMenu.SetActive(true);
-            Time.timeScale = 0f;
+            // Never freeze the sim during an online match
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                Time.timeScale = 0f;
+            }
             codeModePromptMenuOpened = true;
             codeModePromptMenu.SetActive(true);
             EventSystem.current.SetSelectedGameObject(_codeModeMenuFirst);

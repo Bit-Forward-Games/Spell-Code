@@ -440,6 +440,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 1e7bef424544b394faf070ddd46bb9b3, type: 2}
     - target: {fileID: 6336463642458857690, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: matchSizeText
+      value: 
+      objectReference: {fileID: 1269099313}
+    - target: {fileID: 6336463642458857690, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: findingMatchText
       value: 
       objectReference: {fileID: 2133341888}
@@ -453,9 +457,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5017047002020421380, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2133341887}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+--- !u!4 &1269099312 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5017047002020421380, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1269099311}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1269099313 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7264130326282611510, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1269099311}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1504450623
 GameObject:
   m_ObjectHideFlags: 0
@@ -794,16 +817,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2133341886}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 2.6088245}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1269099312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -32, y: 3}
+  m_AnchoredPosition: {x: 128.11108, y: 102.17441}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &2133341888
@@ -993,4 +1016,3 @@ SceneRoots:
   - {fileID: 484044441}
   - {fileID: 1269099311}
   - {fileID: 1635455863}
-  - {fileID: 2133341887}

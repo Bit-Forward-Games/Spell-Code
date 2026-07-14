@@ -1148,6 +1148,12 @@ public class PlayerController : MonoBehaviour
             //hitboxActive = false;
             hitstopActive = true;
 
+            //clear input display
+            if(hitboxData != null && (input.ButtonStates[0] is ButtonState.None or ButtonState.Released))//this check is because of the test of allowing store to persist
+            {
+                ClearInputDisplay();
+            }
+
 
             //if (bufferInput.IsNull())
             //{

@@ -23100,6 +23100,7 @@ GameObject:
   - component: {fileID: 699450530840418385}
   - component: {fileID: 282400343946288658}
   - component: {fileID: 3482084119599465952}
+  - component: {fileID: 8132833496875949892}
   m_Layer: 0
   m_Name: pfb_GameManager
   m_TagString: Untagged
@@ -23202,7 +23203,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6a9336975929e3c4bab6dbe472c5650a, type: 2}
   - {fileID: 11400000, guid: ff0aa21eccce0c3438bea2b821053b8f, type: 2}
   gameStages: []
-  lobbySO: {fileID: 11400000, guid: 4aa8766d9f04981488f00f473e5bd1ad, type: 2}
+  lobbySO: {fileID: 11400000, guid: 16d654623cd7be44699faf6580c6a205, type: 2}
   TutorialSO: {fileID: 11400000, guid: 940ec63e8ad3fce47b5180cbf389c0bd, type: 2}
   trainingGroundsSO: {fileID: 11400000, guid: fb6b4bba7c634a940afdf5335f8e5c54, type: 2}
   soloLobbySO: {fileID: 11400000, guid: 53c9f336c4e06c2438b3e9f0685c649f, type: 2}
@@ -23559,6 +23560,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneName: 
   ScreenCover: {fileID: 0}
+--- !u!114 &8132833496875949892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8947561330561377217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e316e72fcc4a4fa4ba27ba5d40c29d5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DisplayChangeDetector
 --- !u!1 &9043640749449124326
 GameObject:
   m_ObjectHideFlags: 0
@@ -27110,17 +27123,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4840801882088583560, guid: af77727cc5deba04fb72c022a42d91f2, type: 3}
   m_PrefabInstance: {fileID: 366143708977654290}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7264130326282611510 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7051420716527042852, guid: af77727cc5deba04fb72c022a42d91f2, type: 3}
-  m_PrefabInstance: {fileID: 366143708977654290}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &432815589238582180
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -129299,6 +129301,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Lobby_Arena
       objectReference: {fileID: 0}
+    - target: {fileID: 2666777027383166982, guid: 58355b3eafd1daa4e942e3c202a6dd0d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -168173,7 +168179,7 @@ PrefabInstance:
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: matchSizeText
       value: 
-      objectReference: {fileID: 7264130326282611510}
+      objectReference: {fileID: 0}
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: MainMenuScreen
       value: 

@@ -203,10 +203,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
 
             multiplayerGamemodesMenu.SetActive(true);
-            Time.timeScale = 0f;
             codeModePromptMenuOpened = true;
             codeModePromptMenu.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(_codeModeMenuFirst);
+            StartCoroutine(pause.SelectFirst(_codeModeMenuFirst));
         }
         else
         {

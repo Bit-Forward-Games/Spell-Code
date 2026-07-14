@@ -18,153 +18,149 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
     {
-        if (name.Split('_')[0] == "Digital")
+        if (name.Contains("_"))
+        {
+            if (name.Split('_')[0] == "Digital")
+            {
+                Transform childTransform = transform.Find("digitalText");
+                if (childTransform != null) 
+                {
+                    TextMeshProUGUI digitalText = childTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    digitalText.font = pause.digitalBorderedFont;
+                }
+            }
+            
+            if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign"))
+            {
+                Transform optionsChildTransform = transform.Find("SignText");
+                if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
+                {
+                    TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    optionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
+                }
+
+                Transform blueOptionsChildTransform = transform.Find("Blue_SignText");
+                if (blueOptionsChildTransform != null && !pause.suppressingSelectionColor) 
+                {
+                    TextMeshProUGUI optionsText = blueOptionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    optionsText.color = new Color(72f / 255f, 114f / 255f, 118f / 255f);
+                }
+            }
+            
+            if (name.Split('_')[1] == "Arrow")
+            {
+                arrowChildTransform = transform.Find("arrow");
+                if (arrowChildTransform!= null) 
+                {
+                    arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    arrowText.text = "<<";
+                }
+                forwardArrowChildTransform = transform.Find("forwardArrow");
+                if (forwardArrowChildTransform!= null) 
+                {
+                    forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    forwardArrowText.text = ">>";
+                }
+            }
+
+            if (name.Contains("Slider") || name.Contains("Digital"))
+            {
+                Transform sliderChildTransform = transform.Find("SignSelecter");
+                if (sliderChildTransform!= null) 
+                {
+                    //Debug.Log("Hello???");
+                    RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
+                    signSelector.localScale = new Vector3(0f, signSelector.localScale.y, signSelector.localScale.z);
+                    signSelector
+                        .DOScaleX(1f, 0.15f)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+                }
+            }
+
+            if (name.Contains("Pause"))
+            {
+                RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+                pauseSelectorTransform.localScale = new Vector3(0f, pauseSelectorTransform.localScale.y, pauseSelectorTransform.localScale.z);
+                pauseSelectorTransform.localEulerAngles = new Vector3(0, 0, 0);
+                pauseSelectorTransform
+                    .DOScaleX(1f, 0.15f)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+
+                pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+                transform.parent.gameObject.GetComponent<Image>().enabled = false;
+            } 
+        }
+    }
+
+    // Triggers automatically when the button loses focus / gets unselected
+    public void OnDeselect(BaseEventData eventData)
+    {
+        if (name.Contains("_"))
         {
             Transform childTransform = transform.Find("digitalText");
             if (childTransform != null) 
             {
                 TextMeshProUGUI digitalText = childTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                digitalText.font = pause.digitalBorderedFont;
+                digitalText.font = pause.digitalNormalFont;
             }
-        }
-         
-        if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign"))
-        {
+
             Transform optionsChildTransform = transform.Find("SignText");
-            if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
+            if (optionsChildTransform != null) 
             {
                 TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                optionsText.color = new Color(82f / 255f, 113f / 255f, 51f / 255f);
+                optionsText.color = new Color(255f, 255f, 255f);
             }
 
             Transform blueOptionsChildTransform = transform.Find("Blue_SignText");
             if (blueOptionsChildTransform != null && !pause.suppressingSelectionColor) 
             {
                 TextMeshProUGUI optionsText = blueOptionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                optionsText.color = new Color(72f / 255f, 114f / 255f, 118f / 255f);
+                optionsText.color = new Color(255f, 255f, 255f);
             }
-        }
-         
-        if (name.Split('_')[1] == "Arrow")
-        {
-            arrowChildTransform = transform.Find("arrow");
-            if (arrowChildTransform!= null) 
+
+            if (name.Split('_')[1] == "Arrow")
             {
-                arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                arrowText.text = "<<";
+                arrowChildTransform = transform.Find("arrow");
+                if (arrowChildTransform!= null) 
+                {
+                    arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    arrowText.text = "";
+                }
+                forwardArrowChildTransform = transform.Find("forwardArrow");
+                if (forwardArrowChildTransform!= null) 
+                {
+                    forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
+                    forwardArrowText.text = "";
+                }
+            } 
+
+            if (name.Contains("Slider") || name.Contains("Digital"))
+            {
+                Transform sliderChildTransform = transform.Find("SignSelecter");
+                if (sliderChildTransform!= null) 
+                {
+                    RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
+                    signSelector.localScale = new Vector3(1f, signSelector.localScale.y, signSelector.localScale.z);
+                    signSelector
+                        .DOScaleX(0f, 0.15f)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+                }
             }
-            forwardArrowChildTransform = transform.Find("forwardArrow");
-            if (forwardArrowChildTransform!= null) 
+
+            if (name.Contains("Pause"))
             {
-                forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                forwardArrowText.text = ">>";
-            }
-        }
-
-        if (name.Contains("Slider") || name.Contains("Digital"))
-        {
-            Transform sliderChildTransform = transform.Find("SignSelecter");
-            if (sliderChildTransform!= null) 
-            {
-                //Debug.Log("Hello???");
-                RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
-                signSelector.localScale = new Vector3(0f, signSelector.localScale.y, signSelector.localScale.z);
-                signSelector
-                    .DOScaleX(1f, 0.15f)
-                    .SetEase(Ease.OutQuad)
-                    .SetUpdate(true);
-            }
-        }
-
-        if (name.Contains("Pause"))
-        {
-            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
-            pauseSelectorTransform.localScale = new Vector3(0f, pauseSelectorTransform.localScale.y, pauseSelectorTransform.localScale.z);
-            pauseSelectorTransform.localEulerAngles = new Vector3(0, 0, 0);
-            pauseSelectorTransform
-                .DOScaleX(1f, 0.15f)
-                .SetEase(Ease.OutQuad)
-                .SetUpdate(true);
-
-            pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
-            transform.parent.gameObject.GetComponent<Image>().enabled = false;
-            // Transform sliderChildTransform = transform.Find("SignSelecter");
-            // if (sliderChildTransform!= null) 
-            // {
-            //     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
-            //     signSelector.localScale = new Vector3(1f, signSelector.localScale.y, signSelector.localScale.z);
-            //     signSelector
-            //         .DOScaleX(0f, 0.15f)
-            //         .SetEase(Ease.OutQuad)
-            //         .SetUpdate(true);
-            // }
-        } 
-    }
-
-    // Triggers automatically when the button loses focus / gets unselected
-    public void OnDeselect(BaseEventData eventData)
-    {
-        Transform childTransform = transform.Find("digitalText");
-        if (childTransform != null) 
-        {
-            TextMeshProUGUI digitalText = childTransform.gameObject.GetComponent<TextMeshProUGUI>();
-            digitalText.font = pause.digitalNormalFont;
-        }
-
-        Transform optionsChildTransform = transform.Find("SignText");
-        if (optionsChildTransform != null) 
-        {
-            TextMeshProUGUI optionsText = optionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-            optionsText.color = new Color(255f, 255f, 255f);
-        }
-
-        Transform blueOptionsChildTransform = transform.Find("Blue_SignText");
-        if (blueOptionsChildTransform != null && !pause.suppressingSelectionColor) 
-        {
-            TextMeshProUGUI optionsText = blueOptionsChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-            optionsText.color = new Color(255f, 255f, 255f);
-        }
-
-        if (name.Split('_')[1] == "Arrow")
-        {
-            arrowChildTransform = transform.Find("arrow");
-            if (arrowChildTransform!= null) 
-            {
-                arrowText = arrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                arrowText.text = "";
-            }
-            forwardArrowChildTransform = transform.Find("forwardArrow");
-            if (forwardArrowChildTransform!= null) 
-            {
-                forwardArrowText = forwardArrowChildTransform.gameObject.GetComponent<TextMeshProUGUI>();
-                forwardArrowText.text = "";
-            }
-        } 
-
-        if (name.Contains("Slider") || name.Contains("Digital"))
-        {
-            Transform sliderChildTransform = transform.Find("SignSelecter");
-            if (sliderChildTransform!= null) 
-            {
-                RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
-                signSelector.localScale = new Vector3(1f, signSelector.localScale.y, signSelector.localScale.z);
-                signSelector
+                RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
+                pauseSelectorTransform
                     .DOScaleX(0f, 0.15f)
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
+
+                pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
+                transform.parent.gameObject.GetComponent<Image>().enabled = true;
             }
-        }
-
-        if (name.Contains("Pause"))
-        {
-            RectTransform pauseSelectorTransform = GetComponent<Button>().targetGraphic.gameObject.GetComponent<RectTransform>();
-            pauseSelectorTransform
-                .DOScaleX(0f, 0.15f)
-                .SetEase(Ease.OutQuad)
-                .SetUpdate(true);
-
-            pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
-            transform.parent.gameObject.GetComponent<Image>().enabled = true;
         }
     }
 

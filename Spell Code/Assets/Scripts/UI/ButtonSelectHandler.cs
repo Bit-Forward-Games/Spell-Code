@@ -91,6 +91,26 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
                 transform.parent.gameObject.GetComponent<Image>().enabled = false;
             } 
+
+            if (name.Contains("Code Mode"))
+            {
+                Image codeModeImage = GetComponent<Image>();
+                codeModeImage.fillAmount = 0f;
+                DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 1f, 0.35f)
+                .SetEase(Ease.OutQuad);
+
+                Transform textImageTransform = transform.Find("Text Image");
+                if (textImageTransform!= null)
+                {
+                    textImageTransform.gameObject.SetActive(true);
+                    RectTransform textImageRectTransform = textImageTransform.gameObject.GetComponent<RectTransform>();
+                    textImageRectTransform.localScale = new Vector3(0f, textImageRectTransform.localScale.y, textImageRectTransform.localScale.z);
+                    textImageRectTransform
+                    .DOScaleX(1f, 0.35f)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+                }
+            } 
         }
     }
 
@@ -161,6 +181,15 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pauseSelectorTransform.DORotate(new Vector3(0, 0, 0f), 0.15f).SetEase(Ease.OutQuad).SetUpdate(true);
                 transform.parent.gameObject.GetComponent<Image>().enabled = true;
             }
+
+            if (name.Contains("Code Mode"))
+            {
+                Transform textImageTransform = transform.Find("Text Image");
+                if (textImageTransform!= null) 
+                {
+                    textImageTransform.gameObject.SetActive(false);
+                }
+            } 
         }
     }
 

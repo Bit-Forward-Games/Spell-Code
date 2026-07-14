@@ -302,7 +302,7 @@ public class GameManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    private void SetResolution()
+    public void SetResolution()
     {
         Vector2Int displaySize = GetActiveDisplaySize();
         if (displaySize.x <= 0 || displaySize.y <= 0)
@@ -489,7 +489,11 @@ public class GameManager : MonoBehaviour
         if (!isOnlineMatchActive)
         {
             Scene activeScene = SceneManager.GetActiveScene();
-            gameObject.GetComponent<PlayerInputManager>().enabled = activeScene.name == "MainMenu" || activeScene.name == "SoloLobby";
+            // Modal menus freeze the sim (timeScale = 0 stops FixedUpdate), but PlayerInputManager
+            // listens for join presses on unscaled input from Update — without this gate a new
+            // player could join the lobby while someone has the game paused.
+            gameObject.GetComponent<PlayerInputManager>().enabled =
+                (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby") && !IsModalMenuOpen();
             SetNetworkInfoVisible(false);
         }
         else
@@ -517,6 +521,34 @@ public class GameManager : MonoBehaviour
         {
             players[0].roundRam = 600;
         }
+#endif
+    }
+
+    /// <summary>
+    /// True while a modal menu has the offline game frozen (pause menu, gamemode selectors,
+    /// tutorial/code-mode prompts). Player joining must be blocked while one is up.
+    /// </summary>
+    private bool IsModalMenuOpen()
+    {
+        if (tempUI == null)
+        {
+            return false;
+        }
+
+        if (tempUI.pause != null && tempUI.pause.paused)
+        {
+            return true;
+        }
+
+        return tempUI.soloGamemodesMenuOpened
+            || tempUI.multiplayerGamemodesMenuOpened
+            || tempUI.tutorialPromptMenuOpened
+            || tempUI.codeModePromptMenuOpened;
+    }
+
+    private void EditorOnlyDebugHotkeys()
+    {
+#if UNITY_EDITOR
 
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {
@@ -3678,6 +3710,64 @@ public class GameManager : MonoBehaviour
         }
 
         isSaved = false;
+    }
+
+    public void ResetPlayerFromMainMenuBounds(PlayerController player)
+    {
+        if (player == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        int playerIndex = Array.IndexOf(players, player);
+        Vector2[] spawnPositions = GetSpawnPositions();
+        if (playerIndex < 0 || playerIndex >= spawnPositions.Length)
+        {
+            return;
+        }
+
+        player.ClearSpellList();
+        player.chosenSpell = false;
+        player.chosenStartingSpell = false;
+        player.startingSpellAdded = false;
+        player.basicsFired = 0;
+        player.spellsFired = 0;
+        player.spellsHit = 0;
+        player.roundsWon = 0;
+        player.storedKillBonus = 0;
+        player.roundRam = 0;
+        player.ramBounty = 0;
+        player.times = new List<Fixed>();
+        player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
+
+        if (player.inputDisplay != null) player.inputDisplay.enabled = true;
+        if (player.playerNum != null) player.playerNum.enabled = true;
+
+        if (playerIndex < gates.Length && gates[playerIndex] != null)
+        {
+            gates[playerIndex].SetOpen(false);
+        }
+
+        for (int i = 0; i < gambas.Count; i++)
+        {
+            GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
+            if (gamba != null && gamba.ownerPID == playerIndex + 1)
+            {
+                gamba.ResetLobbyState();
+                gamba.isActive = false;
+                gamba.ApplyVisualState();
+                break;
+            }
+        }
+
+        if (onboardManager == null)
+        {
+            onboardManager = FindFirstObjectByType<OnboardManager>();
+        }
+        if (onboardManager != null)
+        {
+            onboardManager.ResetPlayerOnboarding(playerIndex);
+        }
     }
 
     /// <summary>

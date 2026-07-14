@@ -1068,7 +1068,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened)
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1147,6 +1147,12 @@ public class PlayerController : MonoBehaviour
             hitstop--;
             //hitboxActive = false;
             hitstopActive = true;
+
+            //clear input display
+            if(hitboxData != null && (input.ButtonStates[0] is ButtonState.None or ButtonState.Released))//this check is because of the test of allowing store to persist
+            {
+                ClearInputDisplay();
+            }
 
 
             //if (bufferInput.IsNull())

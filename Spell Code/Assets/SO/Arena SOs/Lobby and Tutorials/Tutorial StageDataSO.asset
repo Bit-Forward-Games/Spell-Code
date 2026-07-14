@@ -71,7 +71,8 @@ MonoBehaviour:
   - {x: -336, y: -192}
   - {x: -336, y: -192}
   - {x: -336, y: -192}
-  npcSpawnTransform: []
+  npcSpawnTransform:
+  - {x: 3216, y: -678}
   activatableSolidCenter:
   - {x: 4080, y: -608, z: 0}
   - {x: 2672, y: -176, z: 0}
@@ -82,6 +83,8 @@ MonoBehaviour:
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
   - {x: 8, y: 64, z: 0.5}
+  portalAs: []
+  portalBs: []
   borderMin: {x: -500, y: -2000, z: 0}
   borderMax: {x: 6000, y: 6000, z: 0}
   camBorderMin: {x: -500, y: -2000, z: 0}

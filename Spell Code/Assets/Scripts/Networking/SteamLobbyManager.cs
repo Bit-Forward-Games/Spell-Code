@@ -40,6 +40,7 @@ public class SteamLobbyManager : MonoBehaviour
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
     private readonly Dictionary<SteamId, float> pendingLobbySnapshotPeers = new Dictionary<SteamId, float>();
     private const float LobbySnapshotResendSeconds = 1f;
+    private bool onlineEntryTransitionInProgress;
 
     // A lobby join requested while the player is outside MainMenu is deferred across the clean
     // return-to-lobby teardown (ExecuteOrder66 destroys this manager), so these are static to
@@ -641,6 +642,7 @@ public class SteamLobbyManager : MonoBehaviour
         SteamId inviterId = pendingJoinInviterId ?? default;
         pendingJoinLobbyId = null;
         pendingJoinInviterId = null;
+        onlineEntryTransitionInProgress = false;
 
         Debug.Log($"[SteamLobbyManager] Resuming deferred lobby join in MainMenu. LobbyId={lobbyId.Value}.");
         // This MainMenu visit exists only to connect: skip the title panel (it otherwise shows
@@ -653,19 +655,29 @@ public class SteamLobbyManager : MonoBehaviour
         JoinRequestedLobbyAsync(lobbyId, inviterId);
     }
 
-    // Transition to MainMenu for a deferred online entry. WARM (loadMainMenu) when a local player
-    // exists, keeps the persistent GameManager + spawned character, exactly like the host and
-    // matchmaking paths that already work. A cold ExecuteOrder66 relies on the target scene carrying a
-    // DORMANT GameManager to wake, but MainMenu has none, so the cold path cold-loads ("no GameManager
-    // found... scene cannot run") and strands the joiner on the black screen cover. Cold stays only as
-    // the fallback for contexts with no spawned player (e.g. +connect_lobby launched into SoloLobby).
+    // Transition to MainMenu for a deferred online entry while preserving the live GameManager.
+    // MainMenu has no scene-owned GameManager, so ExecuteOrder66 can never be used here: an invite
+    // can arrive before SoloLobby has spawned players[0], and destroying the persistent manager in
+    // that window strands the joiner behind the screen cover. With no local player, load only the
+    // scene/stage; StartOnlineMatch creates the complete online roster after the lobby is joined.
     private void TransitionToMainMenuForOnlineEntry()
     {
+        if (onlineEntryTransitionInProgress)
+        {
+            return;
+        }
+
         GameManager manager = GameManager.Instance;
-        bool hasLocalPlayer = manager != null
-            && manager.players != null
+        if (manager == null || manager.sceneManager == null)
+        {
+            return;
+        }
+
+        bool hasLocalPlayer = manager.players != null
             && manager.players.Length > 0
             && manager.players[0] != null;
+
+        onlineEntryTransitionInProgress = true;
 
         if (hasLocalPlayer)
         {
@@ -673,7 +685,9 @@ public class SteamLobbyManager : MonoBehaviour
         }
         else
         {
-            manager?.ExecuteOrder66("MainMenu");
+            Debug.Log($"[SteamLobbyManager] Online invite arrived before a local player spawned in '{SceneManager.GetActiveScene().name}'. Taking a manager-preserving transition to MainMenu.");
+            manager.sceneManager.LoadScene("MainMenu");
+            manager.SetStage(-1);
         }
     }
 

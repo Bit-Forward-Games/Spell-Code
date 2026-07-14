@@ -57,10 +57,24 @@ public class TextSetter : MonoBehaviour
     }
 
     public void SetText(string inputMessage, InputAction targetAction)
-    {   
+    {
+        // This is invoked from Pause.OnDisable -> RefreshControlGlyphs during scene teardown
+        // (ExecuteOrder66, HidePersistentUiForEndScene), when the selected player / its input, or even
+        // this label's own refs, can already be gone. A throw here unwinds the entire scene transition,
+        // so the screen-cover never lifts and the player is stranded on a BLACK SCREEN (host invite/join
+        // never completes; return-to-lobby from the end screen dies). Fail safe instead of throwing.
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+        if (_textBox == null || spriteAssets == null || spriteAssets.spriteAssets == null)
+        {
+            return;
+        }
+
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();
-        if(selectedPlayer == null)
+        if(selectedPlayer == null || selectedPlayer.inputs == null)
         {
             //Debug.LogError("Player ID either not set or not found.");
             deviceType = GetDefaultDeviceType();
@@ -72,14 +86,14 @@ public class TextSetter : MonoBehaviour
             targetBinding = GetBindingForAction(GetPlayerAction(selectedPlayer, targetAction),deviceType);
         }
 
-        
+
         if((int)deviceType > spriteAssets.spriteAssets.Count - 1)
         {
             Debug.LogError($"missing Sprite Asset for {deviceType}");
             return;
         }
 
-        
+
         _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
     }
 

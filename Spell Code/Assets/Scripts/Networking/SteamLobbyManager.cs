@@ -557,7 +557,7 @@ public class SteamLobbyManager : MonoBehaviour
             pendingJoinLobbyId = lobby.Id;
             pendingJoinInviterId = friendId;
             Debug.Log($"[SteamLobbyManager] Invite accepted outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene before joining lobby {lobby.Id.Value}.");
-            GameManager.Instance?.ExecuteOrder66("MainMenu");
+            TransitionToMainMenuForOnlineEntry();
             return;
         }
 
@@ -633,7 +633,7 @@ public class SteamLobbyManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
             Debug.Log($"[SteamLobbyManager] Pending lobby join outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene first.");
-            GameManager.Instance.ExecuteOrder66("MainMenu");
+            TransitionToMainMenuForOnlineEntry();
             return;
         }
 
@@ -651,6 +651,30 @@ public class SteamLobbyManager : MonoBehaviour
             GameManager.Instance.MainMenuScreen.SetActive(false);
         }
         JoinRequestedLobbyAsync(lobbyId, inviterId);
+    }
+
+    // Transition to MainMenu for a deferred online entry. WARM (loadMainMenu) when a local player
+    // exists, keeps the persistent GameManager + spawned character, exactly like the host and
+    // matchmaking paths that already work. A cold ExecuteOrder66 relies on the target scene carrying a
+    // DORMANT GameManager to wake, but MainMenu has none, so the cold path cold-loads ("no GameManager
+    // found... scene cannot run") and strands the joiner on the black screen cover. Cold stays only as
+    // the fallback for contexts with no spawned player (e.g. +connect_lobby launched into SoloLobby).
+    private void TransitionToMainMenuForOnlineEntry()
+    {
+        GameManager manager = GameManager.Instance;
+        bool hasLocalPlayer = manager != null
+            && manager.players != null
+            && manager.players.Length > 0
+            && manager.players[0] != null;
+
+        if (hasLocalPlayer)
+        {
+            manager.loadMainMenu();
+        }
+        else
+        {
+            manager?.ExecuteOrder66("MainMenu");
+        }
     }
 
     // Resumes a host+invite that was deferred while the player was outside MainMenu (e.g. the

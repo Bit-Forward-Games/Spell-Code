@@ -66,13 +66,17 @@ public class GameEndScreen : MonoBehaviour
         // Tear the online session down on a NORMAL match end
         GameManager.Instance.StopMatch("Match completed");
 
+        // Return to the SoloLobby hub (the boot scene) rather than MainMenu. SoloLobby carries an
+        // ACTIVE GameManager, so the cold ExecuteOrder66 transition lands cleanly. MainMenu has no
+        // dormant GameManager to wake, so ExecuteOrder66("MainMenu") cold-loads ("scene cannot run")
+        // and leaves the player stranded on the black screen cover.
         if (GameManager.Instance.sceneManager != null)
         {
-            GameManager.Instance.sceneManager.MainMenu();
+            GameManager.Instance.sceneManager.SoloLobby();
             return;
         }
 
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("SoloLobby");
     }
 
     private void ApplyWinnerPresentation(bool useOnlineEndFlow)

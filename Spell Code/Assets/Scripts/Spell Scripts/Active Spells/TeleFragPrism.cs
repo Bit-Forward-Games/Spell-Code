@@ -12,7 +12,7 @@ public class TeleFragPrism : SpellData
     public TeleFragPrism()
     {
         spellName = "Tele-Frag Prism";
-        cooldown = 180;
+        cooldown = 300;
         spellType = SpellType.Active;
         spellInput = 0b_0000_0000_0000_0000_0101_1010_0000_0100;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast};

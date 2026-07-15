@@ -2747,6 +2747,7 @@ public class PlayerController : MonoBehaviour
 
         FixedVec2 fixedDestination = destination;
         position = fixedDestination - new FixedVec2(hSpd, vSpd);
+        CheckStageDataSOCollision();
 
         //play the teleport dust vfx at the player's new position
         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);

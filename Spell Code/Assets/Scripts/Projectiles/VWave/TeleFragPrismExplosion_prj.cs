@@ -15,8 +15,7 @@ public class TeleFragPrismExplosion_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0; // lasts for 300 logic frames
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3}, false);
-        ignoreBrand = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -35,31 +34,32 @@ public class TeleFragPrismExplosion_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -20*2,
-                    yOffset = 20*2,
-                    width = 40*2,
-                    height = 40*2,
-                    xKnockback = 4,
-                    yKnockback = 2,
+                    xOffset = -8*2,
+                    yOffset = 31*2,
+                    width = 16*2,
+                    height = 16*2,
+                    xKnockback = 2,
+                    yKnockback = 7,
                     damage = 15,
-                    hitstun = 15,
+                    hitstun = 20,
                     attackLvl = 2,
+                    sweetSpot = true
                 }
+                
             },
             hitbox2 = new List<HitboxData>
             {
                 new HitboxData
                 {
-                    xOffset = -16,
-                    yOffset = 16,
-                    width = 32,
-                    height = 32,
-                    xKnockback = 4,
+                    xOffset = -20*2,
+                    yOffset = 44*2,
+                    width = 40*2,
+                    height = 40*2,
+                    xKnockback = 5,
                     yKnockback = 4,
                     damage = 15,
-                    hitstun = 20,
+                    hitstun = 15,
                     attackLvl = 2,
-                    sweetSpot = true
                 }
             },
             hitbox3 = new List<HitboxData>(),

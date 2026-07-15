@@ -3748,6 +3748,12 @@ public class GameManager : MonoBehaviour
             gates[playerIndex].SetOpen(false);
         }
 
+        // This reset runs inside the deterministic sim (CheckStageDataSOCollision), so under rollback
+        // it re-runs. Keep the deterministic sim mutations above (spellList/stats/respawn, gamba
+        // state, gate) but fire the purely-visual/local side effects only on the real frame, or they
+        // flicker/re-pop on every rollback
+        bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
+
         for (int i = 0; i < gambas.Count; i++)
         {
             GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
@@ -3755,7 +3761,7 @@ public class GameManager : MonoBehaviour
             {
                 gamba.ResetLobbyState();
                 gamba.isActive = false;
-                gamba.ApplyVisualState();
+                if (isRealFrame) gamba.ApplyVisualState();
                 break;
             }
         }
@@ -3764,7 +3770,7 @@ public class GameManager : MonoBehaviour
         {
             onboardManager = FindFirstObjectByType<OnboardManager>();
         }
-        if (onboardManager != null)
+        if (isRealFrame && onboardManager != null)
         {
             onboardManager.ResetPlayerOnboarding(playerIndex);
         }

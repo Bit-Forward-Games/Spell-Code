@@ -539,8 +539,13 @@ public class PlayerController : MonoBehaviour
         storedCodeDuration = 0;
         SetState(PlayerState.Idle);
 
-        //play the spawning VFX
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+        //play the spawning VFX on real (non-rollback) frames only. PlayVisualEffect is a one-shot
+        //SpawnPlayer runs inside the sim (respawn, lobby reset), so under rollback re-sim it would
+        //re-fire and flicker
+        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+        {
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.SPAWN, position + FixedVec2.FromFloat(0f, 42f), pID);
+        }
 
         //stop playing blocking VFX
         VFX_Manager.Instance.StopVisualEffect(VisualEffects.BLOCKING, pID, true);
@@ -1068,7 +1073,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened)
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1147,6 +1152,12 @@ public class PlayerController : MonoBehaviour
             hitstop--;
             //hitboxActive = false;
             hitstopActive = true;
+
+            //clear input display
+            if(hitboxData != null && (input.ButtonStates[0] is ButtonState.None or ButtonState.Released))//this check is because of the test of allowing store to persist
+            {
+                ClearInputDisplay();
+            }
 
 
             //if (bufferInput.IsNull())

@@ -387,23 +387,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 777921850}
   m_CullTransparentMesh: 1
---- !u!1 &998763843 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-  m_PrefabInstance: {fileID: 1269099311}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &998763855
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 998763843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e316e72fcc4a4fa4ba27ba5d40c29d5b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DisplayChangeDetector
 --- !u!1001 &1269099311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -456,31 +439,50 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5608558492889886841, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: lobbySO
+      value: 
+      objectReference: {fileID: 11400000, guid: 1e7bef424544b394faf070ddd46bb9b3, type: 2}
     - target: {fileID: 6336463642458857690, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: matchSizeText
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1269099313}
     - target: {fileID: 6336463642458857690, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: findingMatchText
       value: 
       objectReference: {fileID: 2133341888}
+    - target: {fileID: 7045732263493811714, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 8823757492301115664, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 998763855}
+      addedObject: {fileID: 2133341887}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
 --- !u!224 &1269099312 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8823757492301115664, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
   m_PrefabInstance: {fileID: 1269099311}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1269099313 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7264130326282611510, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1269099311}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1504450623
 GameObject:
   m_ObjectHideFlags: 0
@@ -819,16 +821,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2133341886}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.46783626, y: 0.46783626, z: 0.46783626}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1269099312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -32, y: 3}
+  m_AnchoredPosition: {x: 0, y: 10.8}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &2133341888
@@ -878,8 +880,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 32
+  m_fontSizeBase: 32
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -917,7 +919,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -66.11511, w: 0}
+  m_margin: {x: -92.55945, y: 0, z: -66.11511, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

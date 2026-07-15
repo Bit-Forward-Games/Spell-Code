@@ -494,8 +494,8 @@ public class PlayerController : MonoBehaviour
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
-
-
+        Pause pause = GetPauseMenu();
+        if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()] && !pause.paused) pause.uiScript.OpenCodeModeMenuPrompt(true);
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)

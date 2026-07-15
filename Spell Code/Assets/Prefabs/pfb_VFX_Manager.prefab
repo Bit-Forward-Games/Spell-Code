@@ -135,6 +135,15 @@ MonoBehaviour:
   - visualEffectName: 36
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 493f510a4c39abc4fbaa627bc3ddcd03, type: 3}
     numParticleSystemsPerPlayer: 1
+  - visualEffectName: 33
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 540e5a5d33a6fa64cb11f440a44c7028, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 34
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: 0e33969d940ec4b4582c60ea8ef148f9, type: 3}
+    numParticleSystemsPerPlayer: 1
+  - visualEffectName: 35
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: c99d91f1a5f9132438765bedb4a3ee1c, type: 3}
+    numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []
   trailObjects:
   - trailName: 29

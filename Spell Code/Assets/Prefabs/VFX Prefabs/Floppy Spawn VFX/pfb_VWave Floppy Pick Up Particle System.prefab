@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1537425862657586282}
   - component: {fileID: 1002400748505547318}
   m_Layer: 0
-  m_Name: pfb_BigStox Floppy Pick Up Particle System
+  m_Name: pfb_VWave Floppy Pick Up Particle System
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,7 +223,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.7490196, g: 1, b: 1, a: 1}
+      maxColor: {r: 0.6862745, g: 0.8901961, b: 0.3372549, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -1308,8 +1308,8 @@ ParticleSystem:
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
-        key0: {r: 0.7490196, g: 1, b: 1, a: 1}
-        key1: {r: 0.7490196, g: 1, b: 1, a: 0.5019608}
+        key0: {r: 0.6862745, g: 0.8901961, b: 0.3372549, a: 1}
+        key1: {r: 0.6862745, g: 0.8901961, b: 0.3372549, a: 0.5019608}
         key2: {r: 0, g: 1, b: 0.098039225, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
         key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1487,7 +1487,10 @@ ParticleSystem:
     uvChannelMask: -1
     rowMode: 1
     sprites:
-    - sprite: {fileID: 21300000, guid: 2749fe934b768734193727a2b9fcea13, type: 3}
+    - sprite: {fileID: -1325233761926099203, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: 1355018282, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: 1099131574, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
+    - sprite: {fileID: -455561779, guid: e62762554fa72d844813e7a6169d72a2, type: 3}
     flipU: 0
     flipV: 0
   VelocityModule:

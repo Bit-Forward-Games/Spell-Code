@@ -46,7 +46,7 @@ public class Tutorial : MonoBehaviour
         demonX = "Demon-X has Demon Aura<sprite name=\"DemonAura\">";
         vWave = "VWave has Flow State<sprite name=\"FlowState\">";
 
-       // armorText = "While holding <sprite name=\""
+        //armorText = "While holding <sprite name=\""
 
         //passiveDisplay.text = demonX + "\n" + bigStox + "\n" + killeez + "\n" + vWave;
     }
@@ -76,6 +76,5 @@ public class Tutorial : MonoBehaviour
             floppyPickupText.enabled = true;
         }
 
-        if (door.CheckAllPlayersReady()) { gM.sceneManager.LoadScene("MainMenu"); }
     }
 }

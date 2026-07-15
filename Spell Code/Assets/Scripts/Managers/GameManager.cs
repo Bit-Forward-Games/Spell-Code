@@ -568,7 +568,7 @@ public class GameManager : MonoBehaviour
     {
         sceneManager.LoadScene("MainMenu");
         SetStage(-1);
-        ResetPlayers();
+        //ResetPlayers();
         players[0].ClearSpellList();
     }
 
@@ -577,7 +577,7 @@ public class GameManager : MonoBehaviour
         
         sceneManager.LoadScene("Tutorial");
         SetStage(-2);
-        ResetPlayers();
+        //ResetPlayers();
         players[0].ClearSpellList();
     }
 
@@ -585,7 +585,7 @@ public class GameManager : MonoBehaviour
     {
         sceneManager.LoadScene("TrainingGrounds");
         SetStage(-3);
-        ResetPlayers();
+        //ResetPlayers();
         players[0].ClearSpellList();
     }
 
@@ -593,7 +593,7 @@ public class GameManager : MonoBehaviour
     {
         sceneManager.LoadScene("SoloLobby");
         SetStage(-4);
-        ResetPlayers();
+        //ResetPlayers();
         players[0].ClearSpellList();
     }
 
@@ -4588,6 +4588,7 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        ResetPlayers();
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's

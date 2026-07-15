@@ -23,8 +23,6 @@ public class SceneUiManager : MonoBehaviour
 
     private DataManager dm;
 
-
-
     private void FindScreenCoverIfNeeded()
     {
         if (ScreenCover != null)
@@ -70,6 +68,7 @@ public class SceneUiManager : MonoBehaviour
             SceneManager.LoadScene(sceneName);
         });
     }
+
 
     public void ApplyScreenCover( Action onComplete)
     {

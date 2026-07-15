@@ -1,0 +1,820 @@
+fileFormatVersion: 2
+guid: 5b3d0339dc2e15540b92af092cb87875
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7717571973744490073
+    second: TeleFragPrism-Sheet_0
+  - first:
+      213: -7323643218582545156
+    second: TeleFragPrism-Sheet_1
+  - first:
+      213: -4604180368193558739
+    second: TeleFragPrism-Sheet_2
+  - first:
+      213: -2056150712954316758
+    second: TeleFragPrism-Sheet_3
+  - first:
+      213: -7789694768543074254
+    second: TeleFragPrism-Sheet_4
+  - first:
+      213: 8326777681409676256
+    second: TeleFragPrism-Sheet_5
+  - first:
+      213: 3385411195643357906
+    second: TeleFragPrism-Sheet_6
+  - first:
+      213: -6082581113670966021
+    second: TeleFragPrism-Sheet_7
+  - first:
+      213: 6991788522998969283
+    second: TeleFragPrism-Sheet_8
+  - first:
+      213: 6937867198929871456
+    second: TeleFragPrism-Sheet_9
+  - first:
+      213: 8866917979741869821
+    second: TeleFragPrism-Sheet_10
+  - first:
+      213: 1967879937010334918
+    second: TeleFragPrism-Sheet_11
+  - first:
+      213: -5506803460281337619
+    second: TeleFragPrism-Sheet_12
+  - first:
+      213: -1603944258385499849
+    second: TeleFragPrism-Sheet_13
+  - first:
+      213: 3010613688233810768
+    second: TeleFragPrism-Sheet_14
+  - first:
+      213: -1011716811062902548
+    second: TeleFragPrism-Sheet_15
+  - first:
+      213: -2108593352591493454
+    second: TeleFragPrism-Sheet_16
+  - first:
+      213: 4603070680742251956
+    second: TeleFragPrism-Sheet_17
+  - first:
+      213: -2194105306551007155
+    second: TeleFragPrism-Sheet_18
+  - first:
+      213: 3318437947398805822
+    second: TeleFragPrism-Sheet_19
+  - first:
+      213: 416401109300132760
+    second: TeleFragPrism-Sheet_20
+  - first:
+      213: 8771444400898969092
+    second: TeleFragPrism-Sheet_21
+  - first:
+      213: 6772461199948230429
+    second: TeleFragPrism-Sheet_22
+  - first:
+      213: 2436387586506527115
+    second: TeleFragPrism-Sheet_23
+  - first:
+      213: 897017393889963766
+    second: TeleFragPrism-Sheet_24
+  - first:
+      213: 7219345818113852570
+    second: TeleFragPrism-Sheet_25
+  - first:
+      213: 3746161524287884965
+    second: TeleFragPrism-Sheet_26
+  - first:
+      213: 203371031606981368
+    second: TeleFragPrism-Sheet_27
+  - first:
+      213: 7311976937482225132
+    second: TeleFragPrism-Sheet_28
+  - first:
+      213: -5939803289313774448
+    second: TeleFragPrism-Sheet_29
+  - first:
+      213: -7864963437431946946
+    second: TeleFragPrism-Sheet_30
+  - first:
+      213: -4137796839836967379
+    second: TeleFragPrism-Sheet_31
+  - first:
+      213: -7353356119508377533
+    second: TeleFragPrism-Sheet_32
+  - first:
+      213: -4749414518054005070
+    second: TeleFragPrism-Sheet_33
+  - first:
+      213: -5554545236135955566
+    second: TeleFragPrism-Sheet_34
+  - first:
+      213: 1394716661326135998
+    second: TeleFragPrism-Sheet_35
+  - first:
+      213: -8021678565439632063
+    second: TeleFragPrism-Sheet_36
+  - first:
+      213: -7204150621834256375
+    second: TeleFragPrism-Sheet_37
+  - first:
+      213: 5774151357045322756
+    second: TeleFragPrism-Sheet_38
+  - first:
+      213: 1318714419506050104
+    second: TeleFragPrism-Sheet_39
+  - first:
+      213: -1784834790017173063
+    second: TeleFragPrism-Sheet_40
+  - first:
+      213: 4164773619749404407
+    second: TeleFragPrism-Sheet_41
+  - first:
+      213: 2510974287122121696
+    second: TeleFragPrism-Sheet_42
+  - first:
+      213: 8920457874960861027
+    second: TeleFragPrism-Sheet_43
+  - first:
+      213: -1384021623147938522
+    second: TeleFragPrism-Sheet_44
+  - first:
+      213: 3274509133401322196
+    second: TeleFragPrism-Sheet_45
+  - first:
+      213: -6844188282814165169
+    second: TeleFragPrism-Sheet_46
+  - first:
+      213: 6199786525784028264
+    second: TeleFragPrism-Sheet_47
+  - first:
+      213: -2629074609893000892
+    second: TeleFragPrism-Sheet_48
+  - first:
+      213: -596593713896576496
+    second: TeleFragPrism-Sheet_49
+  - first:
+      213: -6929839093319640504
+    second: TeleFragPrism-Sheet_50
+  - first:
+      213: -5419213599188451131
+    second: TeleFragPrism-Sheet_51
+  - first:
+      213: 5236375716960825873
+    second: TeleFragPrism-Sheet_52
+  - first:
+      213: -1714434899439219183
+    second: TeleFragPrism-Sheet_53
+  - first:
+      213: -5197621822134320003
+    second: TeleFragPrism-Sheet_54
+  - first:
+      213: -5643163290293320243
+    second: TeleFragPrism-Sheet_55
+  - first:
+      213: -8334885986904422518
+    second: TeleFragPrism-Sheet_56
+  - first:
+      213: -3453569875119296960
+    second: TeleFragPrism-Sheet_57
+  - first:
+      213: 5067319580565786665
+    second: TeleFragPrism-Sheet_58
+  - first:
+      213: 386746699736109804
+    second: TeleFragPrism-Sheet_59
+  - first:
+      213: 4225230072247075731
+    second: TeleFragPrism-Sheet_60
+  - first:
+      213: -4374914953778312053
+    second: TeleFragPrism-Sheet_61
+  - first:
+      213: -4785257037577812947
+    second: TeleFragPrism-Sheet_62
+  - first:
+      213: 4185321731883767557
+    second: TeleFragPrism-Sheet_63
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 956fc8712d25a1b60800000000000000
+      internalID: 7717571973744490073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfc50b68b413d5a90800000000000000
+      internalID: -7323643218582545156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d27eeff595aaa10c0800000000000000
+      internalID: -4604180368193558739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2811bd02d51773e0800000000000000
+      internalID: -2056150712954316758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 238754c21e175e390800000000000000
+      internalID: -7789694768543074254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e313102f28ae8370800000000000000
+      internalID: 8326777681409676256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dae3f6bb856bfe20800000000000000
+      internalID: 3385411195643357906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf4642a34b4569ba0800000000000000
+      internalID: -6082581113670966021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c3b10a1e92d70160800000000000000
+      internalID: 6991788522998969283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 062ac038571484060800000000000000
+      internalID: 6937867198929871456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df6d9037cee9d0b70800000000000000
+      internalID: 8866917979741869821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cc7e1e50605f4b10800000000000000
+      internalID: 1967879937010334918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de8f90edd67e393b0800000000000000
+      internalID: -5506803460281337619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 739a76fe135adb9e0800000000000000
+      internalID: -1603944258385499849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05bda13d239d7c920800000000000000
+      internalID: 3010613688233810768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 448
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce00e4fabe8a5f1f0800000000000000
+      internalID: -1011716811062902548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b6b8038485ccb2e0800000000000000
+      internalID: -2108593352591493454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bd48a1656461ef30800000000000000
+      internalID: 4603070680742251956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d484a3b39d8fc81e0800000000000000
+      internalID: -2194105306551007155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e39d1e73bb57d0e20800000000000000
+      internalID: 3318437947398805822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TeleFragPrism-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89bb9eb4a9a57c500800000000000000
+      internalID: 416401109300132760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 8974b04bfc4b1cb4080c6ea0d6d87d69
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":8.0,"y":3.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.125},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":1,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      TeleFragPrism-Sheet_0: 7717571973744490073
+      TeleFragPrism-Sheet_1: -7323643218582545156
+      TeleFragPrism-Sheet_10: 8866917979741869821
+      TeleFragPrism-Sheet_11: 1967879937010334918
+      TeleFragPrism-Sheet_12: -5506803460281337619
+      TeleFragPrism-Sheet_13: -1603944258385499849
+      TeleFragPrism-Sheet_14: 3010613688233810768
+      TeleFragPrism-Sheet_15: -1011716811062902548
+      TeleFragPrism-Sheet_16: -2108593352591493454
+      TeleFragPrism-Sheet_17: 4603070680742251956
+      TeleFragPrism-Sheet_18: -2194105306551007155
+      TeleFragPrism-Sheet_19: 3318437947398805822
+      TeleFragPrism-Sheet_2: -4604180368193558739
+      TeleFragPrism-Sheet_20: 416401109300132760
+      TeleFragPrism-Sheet_3: -2056150712954316758
+      TeleFragPrism-Sheet_4: -7789694768543074254
+      TeleFragPrism-Sheet_5: 8326777681409676256
+      TeleFragPrism-Sheet_6: 3385411195643357906
+      TeleFragPrism-Sheet_7: -6082581113670966021
+      TeleFragPrism-Sheet_8: 6991788522998969283
+      TeleFragPrism-Sheet_9: 6937867198929871456
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

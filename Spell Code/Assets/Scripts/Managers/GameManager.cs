@@ -3842,6 +3842,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public PlayerController GetPlayerByPID(int pID)
+    {
+        if (pID == 0)
+        {
+            return playerNPCs[0];
+        }
+        return players[pID-1];
+    }
+
     public Vector2[] GetNPCSpawnPositions()
     {
         if (currentStageIndex == -1)

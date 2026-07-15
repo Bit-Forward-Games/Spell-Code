@@ -169,7 +169,7 @@ public abstract class BaseProjectile : MonoBehaviour
         else
         {
             int totalAnimationLength = animFrames.frameLengths.Sum();
-            FadeSpriteDuringFinalFrames(totalAnimationLength);
+            //FadeSpriteDuringFinalFrames(totalAnimationLength);
             if (logicFrame >= totalAnimationLength)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);

@@ -15,7 +15,7 @@ public class TeleFragPrismExplosion_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0; // lasts for 300 logic frames
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 3, 3, 3, 3, 3}, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3}, false);
         ignoreBrand = true;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

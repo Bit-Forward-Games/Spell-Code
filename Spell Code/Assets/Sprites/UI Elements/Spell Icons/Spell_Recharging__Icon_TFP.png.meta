@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 5b5f0cf88483e22449c487a319599ca7
+guid: b09e7099aef584444ac4f8477c91a0db
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 240700152696367155
-    second: Spell_Recharging__Icon_JFS_0
+      213: -8346476730317098261
+    second: Spell_Recharging__Icon_TFP_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_Recharging__Icon_JFS_0
+      name: Spell_Recharging__Icon_TFP_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 33869da7383275300800000000000000
-      internalID: 240700152696367155
+      spriteID: be2b263a2ab5b2c80800000000000000
+      internalID: -8346476730317098261
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_Recharging__Icon_JFS_0: 240700152696367155
+      Spell_Recharging__Icon_TFP_0: -8346476730317098261
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -327,7 +327,7 @@ public class Pause : MonoBehaviour
             RevertTextColorToWhite();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened && !uiScript.codeModePromptMenuOpened) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);

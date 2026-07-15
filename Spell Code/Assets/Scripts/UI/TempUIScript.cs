@@ -210,7 +210,33 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
             codeModePromptMenuOpened = true;
             codeModePromptMenu.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(_codeModeMenuFirst);
+
+            Sequence mySequence = DOTween.Sequence();
+            Transform screenTransform = codeModePromptMenu.transform.Find("Code Mode Screen");
+            RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
+            Transform streaksTransform = codeModePromptMenu.transform.Find("Code Mode Screen Streaks");
+            Image streaks = streaksTransform != null ? streaksTransform.GetComponent<Image>() : null;
+
+            screenRect?.DOKill();
+            streaks?.DOKill();
+
+            if (streaks != null) 
+            {
+                streaks.fillAmount = 0f;
+            }
+            screenRect.localScale = new Vector3(0f, screenRect.localScale.y, screenRect.localScale.z);
+            mySequence.Append(screenRect
+            .DOScaleX(1f, 0.35f)
+            .SetEase(Ease.OutQuad))
+            .SetUpdate(true);
+            mySequence.AppendInterval(0.2f).SetUpdate(true);
+            if (streaks != null) 
+            {
+                mySequence.Append(DOTween.To(() => (float)streaks.fillAmount, x => streaks.fillAmount = (float)x, 1f, 0.4f)
+                .SetEase(Ease.OutQuad))
+                .SetUpdate(true);
+                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst));
+            }
         }
         else
         {

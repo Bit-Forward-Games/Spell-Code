@@ -11,7 +11,7 @@ public class AsuranBlades : SpellData
         spellName = "Asuran Blades";
         brands = new Brand[]{ Brand.DemonX };
         cooldown = 180;
-        spellInput = 0b_0000_0000_0000_0000_0001_0010_0000_0011; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0001_0010_0000_0011;
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
         projectilePrefabs = new GameObject[4];

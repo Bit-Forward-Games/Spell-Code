@@ -17,8 +17,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-7"; // scz-7: serialize+hash touchingLeftWall/touchingRightWall (rollback fix for RipAndTear reading them during hitstop) +
-                                                   // de-dup relativeInputs out of the physics sub-hash
+    private const string NetcodeVersion = "scz-8"; // scz-8: JigokuFlashStep spell (new SpellDictionary entry + markedOpponentPID in the spell hash)
+                                                   // and projectiles now delete at animation-length
 
 
 

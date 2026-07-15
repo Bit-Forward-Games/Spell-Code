@@ -35,7 +35,19 @@ public class JigokuFlashStep : SpellData
         //handle the marked vfx
         if (projectileInstances[1].activeSelf)
         {
-            projectileInstances[1].GetComponent<BaseProjectile>().position = GameManager.Instance.GetPlayerByPID(markedOpponentPID).position;
+            // The marked player can vanish mid-mark (disconnect in a 3/4P match). GetPlayerByPID would
+            // then return null (or an out-of-range pID would throw) and the deref crashes the sim on
+            // every client. Drop the mark instead of dereferencing a missing player
+            PlayerController marked = markedOpponentPID >= 0 ? GameManager.Instance.GetPlayerByPID(markedOpponentPID) : null;
+            if (marked != null)
+            {
+                projectileInstances[1].GetComponent<BaseProjectile>().position = marked.position;
+            }
+            else
+            {
+                ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
+                markedOpponentPID = -1;
+            }
         }
         else
         {
@@ -80,9 +92,14 @@ public class JigokuFlashStep : SpellData
             case ProcCondition.OnCast:
                 if(markedOpponentPID >= 0)
                 {
+                    // Skip the teleport if the marked player disconnected (null), but still clear the
+                    // mark + projectile so state stays consistent on every client.
                     PlayerController markedOpponent = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
-                    owner.position = markedOpponent.position + new FixedVec2(Fixed.FromInt(markedOpponent.facingRight?-teleportOffset:teleportOffset), Fixed.FromInt(0));
-                    owner.facingRight = markedOpponent.facingRight;
+                    if (markedOpponent != null)
+                    {
+                        owner.position = markedOpponent.position + new FixedVec2(Fixed.FromInt(markedOpponent.facingRight?-teleportOffset:teleportOffset), Fixed.FromInt(0));
+                        owner.facingRight = markedOpponent.facingRight;
+                    }
                     markedOpponentPID = -1;
                     ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
 

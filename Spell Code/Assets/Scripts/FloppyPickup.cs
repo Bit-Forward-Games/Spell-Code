@@ -104,6 +104,26 @@ public class FloppyPickup : MonoBehaviour
                             //play the floppy pick up sfx
                             SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
 
+                            //play the appropriate floppy pick up vfx
+                            switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                            {
+                                case Brand.VWave:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.DemonX:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.Killeez:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.BigStox:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
+                                    break;
+                                default:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                            }
+
                             //if (SceneManager.GetActiveScene().name != "Tutorial")
                             //{
                                 diskDisplay.StopFloppyDisplay();
@@ -196,6 +216,26 @@ public class FloppyPickup : MonoBehaviour
                             if (SFX_Manager.Instance != null)
                             {
                                 SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
+
+                                //play the appropriate floppy pick up vfx
+                                switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                                {
+                                    case Brand.VWave:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.DemonX:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.Killeez:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.BigStox:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    default:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                }
                             }
                         }
                         gameObject.SetActive(false);

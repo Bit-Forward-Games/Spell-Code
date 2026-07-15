@@ -2616,7 +2616,7 @@ public class PlayerController : MonoBehaviour
                     }
                     
                     portalPrimed = false;
-                    
+
                     TeleportToPortalDestination(portalB);
                     returnVal = true;
                     teleported = true;
@@ -2655,9 +2655,15 @@ public class PlayerController : MonoBehaviour
 
     private void TeleportToPortalDestination(Vector2 destination)
     {
+        //play the teleport dust vfx at the player's initial position
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+
         FixedVec2 fixedDestination = FixedVec2.FromFloat(destination.x, destination.y);
         position = fixedDestination - new FixedVec2(hSpd, vSpd);
         portalCooldown = PortalCooldownFrames;
+
+        //play the teleport dust vfx at the player's new position
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)

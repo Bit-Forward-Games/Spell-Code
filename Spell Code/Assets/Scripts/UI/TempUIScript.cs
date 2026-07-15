@@ -94,9 +94,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public bool tutorialPromptMenuOpened;
 
     [Header("Code Mode Options Menu")] // Code Mode Prompt
-    public GameObject _codeModeMenuFirst;
-    public GameObject codeModePromptMenu;
-    public bool codeModePromptMenuOpened;
+    public GameObject[] _codeModeMenuFirst;
+    public GameObject[] codeModePromptMenu;
+    public bool[] codeModePromptMenuOpened;
 
     public Pause pause;
 
@@ -202,13 +202,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
             }
 
-            codeModePromptMenuOpened = true;
-            codeModePromptMenu.SetActive(true);
+            codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = true;
+            codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(true);
 
             Sequence mySequence = DOTween.Sequence();
-            Transform screenTransform = codeModePromptMenu.transform.Find("Code Mode Screen");
+            Transform screenTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen");
             RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
-            Transform streaksTransform = codeModePromptMenu.transform.Find("Code Mode Screen Streaks");
+
+            Transform borderTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Menu Border");
+            RectTransform borderRect = borderTransform != null ? borderTransform.GetComponent<RectTransform>() : null;
+
+            Transform streaksTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen Streaks");
             Image streaks = streaksTransform != null ? streaksTransform.GetComponent<Image>() : null;
 
             screenRect?.DOKill();
@@ -218,18 +222,27 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             {
                 streaks.fillAmount = 0f;
             }
+            borderRect.localScale = new Vector3(0f, borderRect.localScale.y, borderRect.localScale.z);
             screenRect.localScale = new Vector3(0f, screenRect.localScale.y, screenRect.localScale.z);
-            mySequence.Append(screenRect
+
+            mySequence.Append(borderRect
             .DOScaleX(1f, 0.35f)
             .SetEase(Ease.OutQuad))
             .SetUpdate(true);
+
+            mySequence.Join(screenRect
+            .DOScaleX(1f, 0.35f)
+            .SetEase(Ease.OutQuad))
+            .SetUpdate(true);
+
             mySequence.AppendInterval(0.2f).SetUpdate(true);
+
             if (streaks != null) 
             {
                 mySequence.Append(DOTween.To(() => (float)streaks.fillAmount, x => streaks.fillAmount = (float)x, 1f, 0.4f)
                 .SetEase(Ease.OutQuad))
                 .SetUpdate(true);
-                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst));
+                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst[gamemodesMenuPlayerIndex]));
             }
         }
         else
@@ -270,7 +283,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
-        codeModePromptMenuOpened = false;
+        codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = false;
 
         if (soloGamemodesMenu != null)
         {
@@ -279,7 +292,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         if (codeModePromptMenu != null)
         {
-            codeModePromptMenu.SetActive(false);
+            codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(false);
         }
 
         if (multiplayerGamemodesMenu != null)
@@ -311,7 +324,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || codeModePromptMenuOpened) && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {
@@ -350,7 +363,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         // }
-        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused)
+        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] && !pause.paused)
         {
             OpenCodeModeMenuPrompt(true);
         }
@@ -577,7 +590,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
-    private int ResolveGamemodesMenuPlayerIndex()
+    public int ResolveGamemodesMenuPlayerIndex()
     {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         if (manager == null || manager.players == null)

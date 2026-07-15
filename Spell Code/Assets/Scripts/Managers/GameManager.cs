@@ -543,7 +543,7 @@ public class GameManager : MonoBehaviour
         return tempUI.soloGamemodesMenuOpened
             || tempUI.multiplayerGamemodesMenuOpened
             || tempUI.tutorialPromptMenuOpened
-            || tempUI.codeModePromptMenuOpened;
+            || tempUI.codeModePromptMenuOpened[tempUI.ResolveGamemodesMenuPlayerIndex()];
     }
 
     private void EditorOnlyDebugHotkeys()

@@ -10,6 +10,8 @@ using System;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
+    private const int FadeOutFrameCount = 10;
+
     [NonSerialized]  public string projName;
     [NonSerialized]  public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
@@ -46,6 +48,7 @@ public abstract class BaseProjectile : MonoBehaviour
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
     private int _tempOwnerSpellIndex = -1;
+    private SpriteRenderer spriteRenderer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Awake()
@@ -67,6 +70,7 @@ public abstract class BaseProjectile : MonoBehaviour
         position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+        ResetSpriteAlpha();
         Array.Fill(multiHitCount, maxMultiHitCount);
 
         //if nameOverride is empty,...
@@ -97,6 +101,7 @@ public abstract class BaseProjectile : MonoBehaviour
         facingRight = true;
         _tempOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
+        ResetSpriteAlpha();
     }
     public virtual void LoadProjectile()
     {
@@ -113,6 +118,7 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+        ResetSpriteAlpha();
     }
 
     protected virtual void InitializeDefaults() { }
@@ -153,15 +159,22 @@ public abstract class BaseProjectile : MonoBehaviour
         // Check lifespan
         if( lifeSpan != 0)  //if lifeSpan == 0, then use the anim frames instead of lifespan to delete the projectile
         {
+            FadeSpriteDuringFinalFrames(lifeSpan);
             if (logicFrame >= lifeSpan)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
                 return;
             }
         }
-        else if (logicFrame >= animFrames.frameLengths.Sum())
+        else
         {
-            ProjectileManager.Instance.DeleteProjectile(this);
+            int totalAnimationLength = animFrames.frameLengths.Sum();
+            FadeSpriteDuringFinalFrames(totalAnimationLength);
+            if (logicFrame >= totalAnimationLength)
+            {
+                ProjectileManager.Instance.DeleteProjectile(this);
+                return;
+            }
         }
         
         if(frameData != null)
@@ -245,6 +258,43 @@ public abstract class BaseProjectile : MonoBehaviour
             }
         }
         return 0; // Default to first frame (shouldn't happen)
+    }
+
+    private void FadeSpriteDuringFinalFrames(int totalLifetimeFrames)
+    {
+        if (totalLifetimeFrames <= 0)
+        {
+            ResetSpriteAlpha();
+            return;
+        }
+
+        int framesRemaining = totalLifetimeFrames - logicFrame;
+        float alpha = framesRemaining <= FadeOutFrameCount
+            ? Mathf.Clamp01(framesRemaining / (float)FadeOutFrameCount)
+            : 1f;
+
+        SetSpriteAlpha(alpha);
+    }
+
+    private void ResetSpriteAlpha()
+    {
+        SetSpriteAlpha(1f);
+    }
+
+    private void SetSpriteAlpha(float alpha)
+    {
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+        }
+
+        Color color = spriteRenderer.color;
+        color.a = alpha;
+        spriteRenderer.color = color;
     }
 
     // Serialization Methods

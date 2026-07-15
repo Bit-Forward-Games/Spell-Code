@@ -191,12 +191,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             CloseGamemodeMenus();
         }
     }
-
-    public void OpenCodeModeMenuPrompt(bool setOpen)
+    
+    public void OpenCodeModeMenuPrompt(bool setOpen, int playerIndex)
     {
         if (setOpen)
         {
-            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            gamemodesMenuPlayerIndex = playerIndex;
             if (pause != null)
             {
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
@@ -279,7 +279,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // SetSoloMenuActive(false), leaving multiplayerGamemodesMenuOpened true for the whole offline
     // match — PlayerController's pause gate checks that flag, so only P1 (whose pause press closes
     // the hidden menu via the gamemode-menu handler in Update) could ever pause.
-    private void CloseGamemodeMenus()
+    public void CloseGamemodeMenus()
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
@@ -324,7 +324,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]) && !pause.paused)
+        // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {

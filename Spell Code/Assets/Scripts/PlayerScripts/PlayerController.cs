@@ -494,7 +494,6 @@ public class PlayerController : MonoBehaviour
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
-
         
     }
 
@@ -565,16 +564,13 @@ public class PlayerController : MonoBehaviour
         suppressSpellLoadSideEffects = false;
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         GameManager.Instance.spellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
-        
-        //code mode select
+
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         Pause pause = GetPauseMenu();
-        if (SceneManager.GetActiveScene().name == "MainMenu" &&
-        !pause.uiScript.soloGamemodesMenuOpened && 
-        !pause.uiScript.multiplayerGamemodesMenuOpened && 
-        !pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()] && 
-        !pause.paused)
+        if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
         {
-            pause.uiScript.OpenCodeModeMenuPrompt(true);
+            Debug.Log("Hello???" + playerIndex);
+            pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }
     }
 

@@ -68,10 +68,10 @@ MonoBehaviour:
   - {x: 88, y: -240}
   - {x: 184, y: 64}
   - {x: 184, y: -128}
-  borderMin: {x: -654, y: -520, z: 0}
-  borderMax: {x: 654, y: 520, z: 0}
+  borderMin: {x: -288, y: -264, z: 0}
+  borderMax: {x: 288, y: 264, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0
   stageType: 2
-  dynamicCamera: 1
+  dynamicCamera: 0

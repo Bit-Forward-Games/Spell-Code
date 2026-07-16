@@ -45,9 +45,9 @@ MonoBehaviour:
   activatableSolidCenter: []
   activatableSolidExtent: []
   portalAs:
-  - {x: -152, y: 72}
+  - {x: -152, y: 40}
   portalBs:
-  - {x: 152, y: -72}
+  - {x: 152, y: -104}
   borderMin: {x: -300, y: -200, z: 0}
   borderMax: {x: 300, y: 300, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}

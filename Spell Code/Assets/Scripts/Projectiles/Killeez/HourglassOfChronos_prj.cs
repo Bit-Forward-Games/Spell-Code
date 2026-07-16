@@ -6,21 +6,22 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class TeleFragPrism_prj : BaseProjectile
+public class HourglassOfChronos_prj : BaseProjectile
 {
     
     protected override void InitializeDefaults()
     {
-        projName = "Tele-Frag Prism";
+        projName = "Hourglass Of Chronos";
         deleteOnHit = false;
-        lifeSpan = 600;
+        //lifeSpan = 600;
+        fadeIn = true;
         fadeOut = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4}, true);
+        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12}, true);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset, "Tele-Frag Prism");
+        base.SpawnProjectile(facingRight, spawnOffset, "Hourglass Of Chronos");
         activeHitboxGroupIndex = 0;
     }
     public override void LoadProjectile()

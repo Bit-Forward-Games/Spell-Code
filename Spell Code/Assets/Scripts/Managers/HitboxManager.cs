@@ -175,8 +175,7 @@ public class HitboxManager : MonoBehaviour
                                 }
                             }
                         }
-                    }
-                    
+                    } 
                 }
             }
         }

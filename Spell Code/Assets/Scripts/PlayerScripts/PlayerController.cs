@@ -302,7 +302,7 @@ public class PlayerController : MonoBehaviour
     public bool startingSpellAdded = false;
     public bool suppressSpellLoadSideEffects = false;
     [NonSerialized]
-    public int pID = -1;
+    public short pID = -1;
 
     public bool npcOverride = false;
 

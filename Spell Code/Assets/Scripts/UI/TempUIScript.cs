@@ -202,15 +202,35 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
             }
 
-            multiplayerGamemodesMenu.SetActive(true);
-            // Never freeze the sim during an online match
-            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
-            {
-                Time.timeScale = 0f;
-            }
             codeModePromptMenuOpened = true;
             codeModePromptMenu.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(_codeModeMenuFirst);
+
+            Sequence mySequence = DOTween.Sequence();
+            Transform screenTransform = codeModePromptMenu.transform.Find("Code Mode Screen");
+            RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
+            Transform streaksTransform = codeModePromptMenu.transform.Find("Code Mode Screen Streaks");
+            Image streaks = streaksTransform != null ? streaksTransform.GetComponent<Image>() : null;
+
+            screenRect?.DOKill();
+            streaks?.DOKill();
+
+            if (streaks != null) 
+            {
+                streaks.fillAmount = 0f;
+            }
+            screenRect.localScale = new Vector3(0f, screenRect.localScale.y, screenRect.localScale.z);
+            mySequence.Append(screenRect
+            .DOScaleX(1f, 0.35f)
+            .SetEase(Ease.OutQuad))
+            .SetUpdate(true);
+            mySequence.AppendInterval(0.2f).SetUpdate(true);
+            if (streaks != null) 
+            {
+                mySequence.Append(DOTween.To(() => (float)streaks.fillAmount, x => streaks.fillAmount = (float)x, 1f, 0.4f)
+                .SetEase(Ease.OutQuad))
+                .SetUpdate(true);
+                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst));
+            }
         }
         else
         {
@@ -330,7 +350,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         // }
-        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused)
+        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused && !gameManager.MainMenuScreen.activeSelf)
         {
             OpenCodeModeMenuPrompt(true);
         }

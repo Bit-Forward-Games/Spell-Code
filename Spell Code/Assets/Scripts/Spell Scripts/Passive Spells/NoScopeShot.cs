@@ -35,7 +35,7 @@ public class NoScopeShot : SpellData
         {
             case ProcCondition.OnCastBasic:
 
-                if (owner.flowState > 0 && cooldownCounter <= 0)
+                if (owner.flowState > 0 && cooldownCounter <= 0 && owner.basicSpawnOverride == "")
                 {
                     owner.basicSpawnOverride = spellName;
                     owner.flowState = (ushort)Mathf.Max(owner.flowState - flowStateCost,0);

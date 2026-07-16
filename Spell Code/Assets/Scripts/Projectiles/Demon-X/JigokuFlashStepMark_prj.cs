@@ -14,6 +14,7 @@ public class JigokuFlashStepMark_prj : BaseProjectile
         projName = "Jigoku Flash Step Mark";
         deleteOnHit = false;
         lifeSpan = 600;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3}, true);
     }
     

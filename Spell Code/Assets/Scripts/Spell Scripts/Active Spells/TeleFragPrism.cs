@@ -8,7 +8,6 @@ using Steamworks.ServerList;
 
 public class TeleFragPrism : SpellData
 {
-    const int teleportOffset = 20;
     public TeleFragPrism()
     {
         spellName = "Tele-Frag Prism";

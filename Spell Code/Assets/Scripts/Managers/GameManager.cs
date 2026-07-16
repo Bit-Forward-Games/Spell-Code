@@ -515,13 +515,16 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-#if UNITY_EDITOR
-        //if = is pressed, player 1 win
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+        if (SteamManager.DebugToolsEnabled)
         {
-            players[0].roundRam = 600;
+            //if = is pressed, player 1 win
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+            {
+                players[0].roundRam = 600;
+            }
+
+            PrivateBetaDebugHotkeys();
         }
-#endif
     }
 
     /// <summary>
@@ -546,10 +549,8 @@ public class GameManager : MonoBehaviour
             || tempUI.codeModePromptMenuOpened;
     }
 
-    private void EditorOnlyDebugHotkeys()
+    private void PrivateBetaDebugHotkeys()
     {
-#if UNITY_EDITOR
-
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {
             loadSoloLobby();
@@ -562,7 +563,6 @@ public class GameManager : MonoBehaviour
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
-#endif
     }
     public void loadMainMenu()
     {

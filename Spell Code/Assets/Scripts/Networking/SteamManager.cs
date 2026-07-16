@@ -7,6 +7,7 @@ using System; // Needed for Exception
 public class SteamManager : MonoBehaviour
 {
     public const string DebugToolsBetaBranch = "4playersupporttesting";
+    public const string AdditionalDebugToolsBetaBranch = "testing";
 
 #if STEAM_PLAYTEST
     // Playtest App ID
@@ -97,7 +98,11 @@ public class SteamManager : MonoBehaviour
                 debugToolsEnabled = string.Equals(
                     currentBetaName,
                     DebugToolsBetaBranch,
-                    StringComparison.Ordinal);
+                    StringComparison.Ordinal)
+                    || string.Equals(
+                        currentBetaName,
+                        AdditionalDebugToolsBetaBranch,
+                        StringComparison.Ordinal);
 
                 Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}.");
                 //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");

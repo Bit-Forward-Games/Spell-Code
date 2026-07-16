@@ -16,13 +16,14 @@ public class Bailout : SpellData
     const int critTrailStartProjectileIndex = 3;
     const int critTrailEndProjectileIndex = 5;
 
+    bool trailFacingRight = true;
     int critTrailSegmentCount = 0;
     int nextCritTrailSegment = 0;
     int lastCritTrailProjectileIndex = 3;
     public Bailout()
     {
         spellName = "Bailout";
-        cooldown = 300;
+        cooldown = 360;
         spellType = SpellType.Active;
         spellInput = 0b_0000_0000_0000_0000_0100_1011_0000_0100;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnUpdate };
@@ -30,7 +31,7 @@ public class Bailout : SpellData
         projectilePrefabs = new GameObject[6];
         spawnOffsetX = 0;
         spawnOffsetY = 36;
-        description = "Longe-range bag toss.\n When the bag hits and opponent or the stage, swap places with bag, leaving a burst of money where you were.\n On \"Crit\"<sprite name=\"StockStability\">, money bursts from your starting point to you.";
+        description = "Longe-range bag toss.\nWhen the bag hits and opponent or the stage, swap places with bag, leaving a burst of money where you were.\nOn \"Crit\"<sprite name=\"StockStability\">, money bursts from your starting point to you.";
     }
 
     public override void LoadSpell()
@@ -89,18 +90,20 @@ public class Bailout : SpellData
                 {
                     oldPos = owner.position;
                     newPos = defender.position;
+                    trailFacingRight = !defender.facingRight;
+                    owner.facingRight = !defender.facingRight;
                     owner.TeleportToDestination(newPos);
                     defender.TeleportToDestination(oldPos);
 
                     if (doesCrit)
                     {
                         defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
-                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, GetSpawnOffsetForWorldPosition(GetCritTrailWorldPosition(oldPos)));
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), trailFacingRight, GetSpawnOffsetForWorldPosition(GetCritTrailWorldPosition(oldPos)));
                         StartCritTrail();
                     }
                     else
                     {
-                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, GetSpawnOffsetForWorldPosition(GetCritTrailWorldPosition(oldPos)));
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), trailFacingRight, GetSpawnOffsetForWorldPosition(GetCritTrailWorldPosition(oldPos)));
 
                         ResetCritTrail();
                     }
@@ -178,7 +181,7 @@ public class Bailout : SpellData
         }
 
         FixedVec2 spawnPosition = GetCritTrailWorldPosition(GetCritTrailSegmentPosition(nextCritTrailSegment));
-        ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), owner.facingRight, GetSpawnOffsetForWorldPosition(spawnPosition));
+        ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), trailFacingRight, GetSpawnOffsetForWorldPosition(spawnPosition));
 
         lastCritTrailProjectileIndex = projectileIndex;
         nextCritTrailSegment++;
@@ -225,7 +228,7 @@ public class Bailout : SpellData
     FixedVec2 GetSpawnOffsetForWorldPosition(FixedVec2 worldPosition)
     {
         Fixed xOffset = worldPosition.X - owner.position.X;
-        if (!owner.facingRight)
+        if (!trailFacingRight)
         {
             xOffset *= Fixed.FromInt(-1);
         }

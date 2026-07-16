@@ -37,7 +37,7 @@ public class BailoutExplosionCrit_prj : BaseProjectile
                     yOffset = 44*2,
                     width = 40*2,
                     height = 40*2,
-                    xKnockback = -4,
+                    xKnockback = -6,
                     yKnockback = 5,
                     damage = 15,
                     hitstun = 15,

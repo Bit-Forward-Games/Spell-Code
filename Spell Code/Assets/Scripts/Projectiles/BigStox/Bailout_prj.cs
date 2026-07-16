@@ -65,7 +65,7 @@ public class Bailout_prj : BaseProjectile
                     height = 32,
                     xKnockback = 3,
                     yKnockback = 5,
-                    damage = 15,
+                    damage = 0,
                     hitstun = 15,
                     attackLvl = 2
                 }
@@ -80,7 +80,7 @@ public class Bailout_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        CheckStageDataSOCollision();
+        //CheckStageDataSOCollision();
         if (collidedWithStage)
         {
             hSpeed = Fixed.FromInt(0);

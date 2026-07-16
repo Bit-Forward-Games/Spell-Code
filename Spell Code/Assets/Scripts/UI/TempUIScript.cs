@@ -174,7 +174,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
-gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
             if (pause != null)
             {
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
@@ -190,7 +190,33 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
         {
             CloseGamemodeMenus();
         }
+    }
+
+    public void OpenCodeModeMenuPrompt(bool setOpen)
+    {
+        if (setOpen)
+        {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
+            multiplayerGamemodesMenu.SetActive(true);
+            // Never freeze the sim during an online match
+            if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive)
+            {
+                Time.timeScale = 0f;
+            }
+            codeModePromptMenuOpened = true;
+            codeModePromptMenu.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(_codeModeMenuFirst);
         }
+        else
+        {
+            CloseGamemodeMenus();
+        }
+    }
 
     public void SetMultiplayerMenuActive(bool setOpen)
     {
@@ -224,10 +250,16 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
+        codeModePromptMenuOpened = false;
 
         if (soloGamemodesMenu != null)
         {
             soloGamemodesMenu.SetActive(false);
+        }
+
+        if (codeModePromptMenu != null)
+        {
+            codeModePromptMenu.SetActive(false);
         }
 
         if (multiplayerGamemodesMenu != null)
@@ -259,7 +291,7 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || codeModePromptMenuOpened) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {
@@ -290,13 +322,17 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
     }
 
 #if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.Space))
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     tutorialPromptMenu.SetActive(true);
+        //     Time.timeScale = 0f;
+        //     tutorialPromptMenuOpened = true;
+        //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
+        //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
+        // }
+        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused)
         {
-            tutorialPromptMenu.SetActive(true);
-            Time.timeScale = 0f;
-            tutorialPromptMenuOpened = true;
-            StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
-            TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
+            OpenCodeModeMenuPrompt(true);
         }
 #endif
     }
@@ -548,14 +584,6 @@ gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
         }
 
         return 0;
-    }
-
-    public void OpenCodeModeMenuPrompt()
-    {
-        Time.timeScale = 0f;
-        codeModePromptMenuOpened = true;
-        codeModePromptMenu.SetActive(true);
-        StartCoroutine(pause.SelectFirst(pause._pauseMenuFirst));
     }
 
     public void UpdateUIBarVals()

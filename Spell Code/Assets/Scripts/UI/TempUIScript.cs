@@ -108,6 +108,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public RectTransform highlightOverlay; // lives outside the Layout Group, e.g. sibling of the panel
 
+    public ArenaNameDisplayHandler arenaNameDisplayHandler;
+
     public void OnSelect(BaseEventData eventData)
     {
         RectTransform myRect = (RectTransform)transform;
@@ -164,7 +166,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
-            StartCoroutine(DisplayTransitionScreen(2.0f, "Kill players to earn RAM!"));
+            StartCoroutine(DisplayTransitionScreen(2.0f, "Round #" + (GameManager.Instance.CurrentTotalRoundsPlayed + 1) + "\nKill players to earn RAM!"));
+
+            if(arenaNameDisplayHandler != null)
+            {
+                arenaNameDisplayHandler.DisplayArenaName(2.5f);
+            }
         }
         else if (scene.name == "Shop")
         {

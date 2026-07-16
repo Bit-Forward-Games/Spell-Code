@@ -316,7 +316,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
                         break;
                     //Killeez

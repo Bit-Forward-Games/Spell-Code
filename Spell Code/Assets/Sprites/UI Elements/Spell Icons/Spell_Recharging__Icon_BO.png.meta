@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7c378c806b220274bb9fd27f8d952648
+guid: 5942b3ac0f46c0b42a67277056a7e1e4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4942742667365681789
-    second: Spell_Recharging__Icon_HoC_0
+      213: -3903562553973231230
+    second: Spell_Recharging__Icon_BO_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_Recharging__Icon_HoC_0
+      name: Spell_Recharging__Icon_BO_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d7a8f78a446289440800000000000000
-      internalID: 4942742667365681789
+      spriteID: 281b8e30a82c3d9c0800000000000000
+      internalID: -3903562553973231230
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_Recharging__Icon_HoC_0: 4942742667365681789
+      Spell_Recharging__Icon_BO_0: -3903562553973231230
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

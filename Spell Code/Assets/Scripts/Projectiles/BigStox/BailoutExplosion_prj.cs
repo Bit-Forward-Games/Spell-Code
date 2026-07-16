@@ -7,18 +7,20 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class HourglassOfChronosExplosion_prj : BaseProjectile
+public class BailoutExplosion_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "Hourglass Of Chronos Explosion";
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2, 2, 2, 2}, false);
+        projName = "Bailout Explosion";
+        fadeIn = true;
+        fadeOut = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset, "Hourglass Of Chronos Explosion");
+        base.SpawnProjectile(facingRight, spawnOffset, "Bailout Explosion");
         activeHitboxGroupIndex = 0;
     }
 
@@ -35,13 +37,12 @@ public class HourglassOfChronosExplosion_prj : BaseProjectile
                     yOffset = 44*2,
                     width = 40*2,
                     height = 40*2,
-                    xKnockback = 2,
-                    yKnockback = 6,
+                    xKnockback = -4,
+                    yKnockback = 5,
                     damage = 15,
                     hitstun = 15,
                     attackLvl = 2,
                 }
-                
             },
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
@@ -58,7 +59,7 @@ public class HourglassOfChronosExplosion_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                animFrames.frameLengths.Take(2).Sum()+1
+                animFrames.frameLengths.Take(3).Sum()+1
             },
             endFrames = new List<int>
             {

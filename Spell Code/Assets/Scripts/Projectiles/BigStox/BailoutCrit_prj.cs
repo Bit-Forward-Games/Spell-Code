@@ -8,11 +8,11 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using Steamworks.ServerList;
 using DG.Tweening.Core.Easing;
 
-public class Bailout_prj : BaseProjectile
+public class BailoutCrit_prj : BaseProjectile
 {
     public const int speed = 6;
 
-    public const int arcHeight = 3;
+    public const int arcHeight = 4;
     public bool collidedWithStage = false;
     
     public HurtboxData hurtbox = new HurtboxData
@@ -24,10 +24,10 @@ public class Bailout_prj : BaseProjectile
     };
     protected override void InitializeDefaults()
     {
-        projName = "Bailout";
+        projName = "Bailout Crit";
         hSpeed = Fixed.FromInt(1);
         vSpeed = Fixed.FromInt(0);
-        lifeSpan = 45; 
+        lifeSpan = 60; 
         fadeOut = true;
         deleteOnHit = true;
         collidedWithStage = false;
@@ -36,7 +36,7 @@ public class Bailout_prj : BaseProjectile
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Bailout");
         activeHitboxGroupIndex = 0;
         collidedWithStage = false;
         
@@ -49,7 +49,6 @@ public class Bailout_prj : BaseProjectile
 
         //bounceCount = 0;
         deleteOnHit = true;
-        
         collidedWithStage = false;
         projectileHitboxes = new HitboxGroup[1];
 
@@ -64,10 +63,11 @@ public class Bailout_prj : BaseProjectile
                     width = 32,
                     height = 32,
                     xKnockback = 3,
-                    yKnockback = 5,
+                    yKnockback = 7,
                     damage = 15,
-                    hitstun = 15,
-                    attackLvl = 2
+                    hitstun = 20,
+                    attackLvl = 2,
+                    sweetSpot = true
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -131,15 +131,6 @@ public class Bailout_prj : BaseProjectile
                     }
 
 
-                    // Compute penetration amounts
-                    Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
-                    Fixed overlapY = Fixed.Min(pMaxY, sMax.Y) - Fixed.Max(pMinY, sMin.Y);
-
-                    if (overlapX < Fixed.FromInt(0) || overlapY < Fixed.FromInt(0))
-                    {
-                        // Numerical edge-case: treat as no collision
-                        continue;
-                    }
                     //Play the Bailout collision SFX
                     //SFX_Manager.Instance.PlaySpellcodeSound("BailoutCollisionSound");
 
@@ -185,14 +176,14 @@ public class Bailout_prj : BaseProjectile
         //        Fixed platformTop = sMax.Y;
         //        Fixed platformBottom = sMin.Y;
 
-        //         // If projectile is completely below platform top, ignore.
-        //         //    if (pMaxY <= sMin.Y)
-        //         //        continue;
+        //        // If projectile is completely below platform top, ignore.
+        //     //    if (pMaxY <= sMin.Y)
+        //     //        continue;
 
-        //         // Overlap in X direction
-        //         Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
-        //         if (overlapX <= Fixed.FromInt(0))
-        //             continue;
+        //        // Overlap in X direction
+        //        Fixed overlapX = Fixed.Min(pMaxX, sMax.X) - Fixed.Max(pMinX, sMin.X);
+        //        if (overlapX <= Fixed.FromInt(0))
+        //            continue;
 
 
         //        // Only land on the platform when the projectile's bottom is at or above the platform top (or intersecting it)

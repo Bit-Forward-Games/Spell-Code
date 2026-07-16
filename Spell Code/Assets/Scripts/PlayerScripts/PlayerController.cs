@@ -112,7 +112,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]public byte portalCooldown = 0;
     [NonSerialized]public bool portalPrimed = true;
     private const byte PortalCooldownFrames = 120;
-    private const float PortalCollisionRadius = 36f;
+    private const float PortalCollisionRadius = 40f;
 
 // controls options
     [NonSerialized] public bool vibeCoding = false;

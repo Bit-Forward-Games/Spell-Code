@@ -15,7 +15,7 @@ public class RipAndTear_prj : BaseProjectile
     protected override void InitializeDefaults()
     {
         projName = "Rip And Tear";
-        lifeSpan = 0;
+        //lifeSpan = 0;
         maxMultiHitCount = 10;
         multiHitCooldown = 10;
         meleeProjectile = true;

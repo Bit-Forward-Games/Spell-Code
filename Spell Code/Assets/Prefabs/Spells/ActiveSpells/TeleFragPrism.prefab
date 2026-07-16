@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5196561346552398132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 707809646392089453}
+  - component: {fileID: -7546833322337360268}
+  m_Layer: 0
+  m_Name: TeleFragPrism
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &707809646392089453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5196561346552398132}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-7546833322337360268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5196561346552398132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99df08685d4228c4daf733415469c46e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeleFragPrism
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 45e632cbae410484da9e07bbb70f7695, type: 3}
+  - {fileID: 3459829395073810853, guid: 3abece224ff0f16449300390ec21dae3, type: 3}
+  - {fileID: 3459829395073810853, guid: 764e9508fd18f524abde9b9fb09b7f67, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: fe169fb00fd613642901744af3ba1674, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: b09e7099aef584444ac4f8477c91a0db, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 12dd8b6570c65ce48b354dee502903ac, type: 2}

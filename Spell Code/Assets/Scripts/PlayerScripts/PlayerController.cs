@@ -569,7 +569,6 @@ public class PlayerController : MonoBehaviour
         Pause pause = GetPauseMenu();
         if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
         {
-            Debug.Log("Hello???" + playerIndex);
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }
     }

@@ -283,16 +283,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
-        codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = false;
+        codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
 
         if (soloGamemodesMenu != null)
         {
             soloGamemodesMenu.SetActive(false);
-        }
-
-        if (codeModePromptMenu != null)
-        {
-            codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(false);
         }
 
         if (multiplayerGamemodesMenu != null)
@@ -305,6 +300,19 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             gamemodesMenu.SetActive(false);
         }
 
+        gamemodesMenuPlayerIndex = -1;
+        pause?.RestoreScopedUiInputDevices();
+        Time.timeScale = 1f;
+    }
+
+    public void CloseCodeModeMenuPrompt()
+    {
+        codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
+        if (codeModePromptMenu != null)
+        {
+            codeModePromptMenu[ResolveGamemodesMenuPlayerIndex()].SetActive(false);
+            Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + ResolveGamemodesMenuPlayerIndex());
+        }
         gamemodesMenuPlayerIndex = -1;
         pause?.RestoreScopedUiInputDevices();
         Time.timeScale = 1f;
@@ -994,14 +1002,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public void ExitTutorialPromptAnimation()
     {
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
-    }
-
-    public void OpenCodeModeMenu()
-    {
-        tutorialPromptMenu.SetActive(true);
-        Time.timeScale = 0f;
-        tutorialPromptMenuOpened = true;
-        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
     }
 
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse, float textSpeed)

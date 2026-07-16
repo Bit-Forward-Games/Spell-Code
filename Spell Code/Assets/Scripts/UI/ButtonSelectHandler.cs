@@ -68,7 +68,6 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 Transform sliderChildTransform = transform.Find("SignSelecter");
                 if (sliderChildTransform!= null) 
                 {
-                    //Debug.Log("Hello???");
                     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
                     signSelector.localScale = new Vector3(0f, signSelector.localScale.y, signSelector.localScale.z);
                     signSelector
@@ -245,6 +244,18 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pause.resolutionIndex = DisplayOptionsCycle(pause.resolutions, pause.resolutionIndex);
                 pause.resolutionOptionString.text = pause.resolutions[pause.resolutionIndex];
             }
+
+            if (name.Contains("Code Mode") && pause.WasPausePlayerSubmitPressedThisFrame())
+            {
+                pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()] = false;
+                if (pause.uiScript.codeModePromptMenu != null)
+                {
+                    pause.uiScript.codeModePromptMenu[pause.uiScript.ResolveGamemodesMenuPlayerIndex()].SetActive(false);
+                    Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + pause.uiScript.ResolveGamemodesMenuPlayerIndex());
+                }
+                pause?.RestoreScopedUiInputDevices();
+                Time.timeScale = 1f;
+            } 
         }
     }
 

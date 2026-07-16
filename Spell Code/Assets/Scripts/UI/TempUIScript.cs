@@ -61,6 +61,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public float textSpeed;
     private const float TransitionTextEraseDuration = 0.2f;
+    private const float TransitionBannerExitDuration = 0.6f;
+    private const float TransitionBannerExitPlaybackSpeed = 0.6f;
     private int i = 0;
 
     private int[] previousRamVals = new int[4];
@@ -855,6 +857,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         StopTransitionTextCoroutines();
         textBoxUI.SetActive(true);
+        textBoxAnim.speed = 1f;
         textBoxAnim.SetInteger("Reverse", 0);
         textBoxAnim.Rebind();
         textBoxAnim.Update(0f);
@@ -898,6 +901,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         StopTransitionTextCoroutines();
 
+        textBoxAnim.speed = TransitionBannerExitPlaybackSpeed;
         textBoxAnim.SetInteger("Reverse", 1);
 
         foreach (var item in announcer)
@@ -915,15 +919,18 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true, reverseTextSpeed));
             yield return activeReverseTypeCoroutine;
             activeReverseTypeCoroutine = null;
+
+            yield return new WaitForSeconds(TransitionBannerExitDuration - TransitionTextEraseDuration);
         }
         else
         {
-            yield return new WaitForSeconds(TransitionTextEraseDuration);
+            yield return new WaitForSeconds(TransitionBannerExitDuration);
         }
 
         if (requestId != activeTransitionRequestId)
             yield break;
 
+        textBoxAnim.speed = 1f;
         textBoxAnim.SetInteger("Reverse", 0);
         textBoxUI.SetActive(false);
     }

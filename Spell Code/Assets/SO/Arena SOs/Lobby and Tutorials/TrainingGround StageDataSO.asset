@@ -13,15 +13,17 @@ MonoBehaviour:
   m_Name: TrainingGround StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
+  - {x: -28.349304, y: 44.55522}
   - {x: 331.6507, y: 76.55522}
   - {x: 459.6507, y: -19.444777}
   - {x: 203.6507, y: -19.444777}
-  - {x: -60.349304, y: -19.444778}
+  - {x: -28.349304, y: -19.444778}
   platformExtent:
+  - {x: 136.00009, y: 3.9995995}
   - {x: 48.000793, y: 4}
   - {x: 48.000793, y: 4}
   - {x: 48.00081, y: 4}
-  - {x: 184.00554, y: 4}
+  - {x: 136.00009, y: 4}
   solidCenter:
   - {x: 651.6507, y: 152.55524}
   - {x: -660.3493, y: 200.55524}

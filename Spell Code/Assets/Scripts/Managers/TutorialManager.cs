@@ -23,7 +23,9 @@ public class Tutorial : MonoBehaviour
 
     public TextMeshProUGUI gambaHitText;
     public TextMeshProUGUI floppyPickupText;
-    public TextMeshProUGUI passiveDisplay;
+    public TextMeshProUGUI blockingDisplay;
+
+    private string armorText;
 
     string bigStox;
     string demonX;
@@ -44,7 +46,9 @@ public class Tutorial : MonoBehaviour
         demonX = "Demon-X has Demon Aura<sprite name=\"DemonAura\">";
         vWave = "VWave has Flow State<sprite name=\"FlowState\">";
 
-        passiveDisplay.text = demonX + "\n" + bigStox + "\n" + killeez + "\n" + vWave;
+        //armorText = "While holding <sprite name=\""
+
+        //passiveDisplay.text = demonX + "\n" + bigStox + "\n" + killeez + "\n" + vWave;
     }
 
     // Update is called once per frame
@@ -72,6 +76,5 @@ public class Tutorial : MonoBehaviour
             floppyPickupText.enabled = true;
         }
 
-        if (door.CheckAllPlayersReady()) { gM.sceneManager.LoadScene("MainMenu"); }
     }
 }

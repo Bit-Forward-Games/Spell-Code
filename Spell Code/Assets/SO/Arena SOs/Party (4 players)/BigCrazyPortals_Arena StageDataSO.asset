@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: BigCrazyPortals_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: 88, y: -82}
-  - {x: -88, y: -82}
-  - {x: 0, y: 14}
-  - {x: 88, y: 110}
-  - {x: -88, y: 110}
+  - {x: 88, y: -146}
+  - {x: -88, y: -146}
+  - {x: 0, y: -50}
+  - {x: 88, y: 46}
+  - {x: -88, y: 46}
   platformExtent:
   - {x: 40, y: 2}
   - {x: 40, y: 2}
@@ -25,18 +25,18 @@ MonoBehaviour:
   - {x: 40, y: 2}
   - {x: 40, y: 2}
   solidCenter:
-  - {x: 0, y: 336}
-  - {x: 0, y: -208}
-  - {x: 304, y: 64}
-  - {x: -304, y: 64}
-  - {x: 304, y: -256}
-  - {x: 304, y: 384}
-  - {x: -304, y: 384}
-  - {x: -304, y: -256}
-  - {x: 256, y: 64}
-  - {x: 0, y: 336}
-  - {x: 0, y: -208}
-  - {x: -256, y: 64}
+  - {x: 0, y: 272}
+  - {x: 0, y: -272}
+  - {x: 304, y: 0}
+  - {x: -304, y: 0}
+  - {x: 304, y: -320}
+  - {x: 304, y: 320}
+  - {x: -304, y: 320}
+  - {x: -304, y: -320}
+  - {x: 256, y: 0}
+  - {x: 0, y: 272}
+  - {x: 0, y: -272}
+  - {x: -256, y: 0}
   solidExtent:
   - {x: 48, y: 128}
   - {x: 48, y: 128}
@@ -51,27 +51,27 @@ MonoBehaviour:
   - {x: 374, y: 16}
   - {x: 16, y: 288}
   playerSpawnTransform:
-  - {x: -88, y: 113}
-  - {x: 88, y: 113}
-  - {x: -87, y: -79}
-  - {x: 88, y: -79}
+  - {x: -88, y: 49}
+  - {x: 88, y: 49}
+  - {x: -87, y: -143}
+  - {x: 88, y: -143}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
   portalAs:
-  - {x: -88, y: -144}
-  - {x: -184, y: 160}
-  - {x: -88, y: 272}
-  - {x: -184, y: -32}
+  - {x: -88, y: -240}
+  - {x: -184, y: 64}
+  - {x: -88, y: 176}
+  - {x: -184, y: -128}
   portalBs:
-  - {x: 88, y: 272}
-  - {x: 88, y: -144}
-  - {x: 184, y: 160}
-  - {x: 184, y: -32}
+  - {x: 88, y: 176}
+  - {x: 88, y: -240}
+  - {x: 184, y: 64}
+  - {x: 184, y: -128}
   borderMin: {x: -654, y: -520, z: 0}
   borderMax: {x: 654, y: 520, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
-  borderType: 1
+  borderType: 0
   stageType: 2
-  dynamicCamera: 0
+  dynamicCamera: 1

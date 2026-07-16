@@ -2747,15 +2747,27 @@ public class PlayerController : MonoBehaviour
     }
     public void TeleportToDestination(FixedVec2 destination)
     {
+        // The dust is a one-shot VFX and this runs inside the sim (JigokuFlashStep / TeleFragPrism
+        // casts, portals), so on a rollback re-sim it would re-fire and flicker.
+        // The position + collision below stay UNGUARDED on purpose, they are
+        // deterministic sim state and must run on every resim frame or the teleport itself desyncs.
+        bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
+
         //play the teleport dust vfx at the player's initial position
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+        if (isRealFrame)
+        {
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+        }
 
         FixedVec2 fixedDestination = destination;
         position = fixedDestination - new FixedVec2(hSpd, vSpd);
         CheckStageDataSOCollision();
 
         //play the teleport dust vfx at the player's new position
-        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+        if (isRealFrame)
+        {
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+        }
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)

@@ -60,6 +60,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public bool shopScreenDisplayed;
 
     public float textSpeed;
+    private const float TransitionTextEraseDuration = 0.2f;
     private int i = 0;
 
     private int[] previousRamVals = new int[4];
@@ -908,13 +909,16 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (screenText != null)
         {
             screenText.text = text;
-            activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true, textSpeed));
+            float reverseTextSpeed = screenText.text.Length > 0
+                ? TransitionTextEraseDuration / screenText.text.Length
+                : TransitionTextEraseDuration;
+            activeReverseTypeCoroutine = StartCoroutine(TypeLine(screenText, text, true, reverseTextSpeed));
             yield return activeReverseTypeCoroutine;
             activeReverseTypeCoroutine = null;
         }
         else
         {
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(TransitionTextEraseDuration);
         }
 
         if (requestId != activeTransitionRequestId)

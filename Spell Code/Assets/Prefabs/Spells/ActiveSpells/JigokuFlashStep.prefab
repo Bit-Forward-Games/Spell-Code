@@ -49,6 +49,6 @@ MonoBehaviour:
   - {fileID: 3459829395073810853, guid: acb041a1e2f430947b18e9285ce2bb62, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 2455031265846816509, guid: e279f23e3d7120a4aa2cad87de8f2db9, type: 3}
-  notReadyIcon: {fileID: 240700152696367155, guid: 5b5f0cf88483e22449c487a319599ca7, type: 3}
-  SpellGIF: {fileID: 11400000, guid: 4a551407973a79444a4cf1d45f4edb1b, type: 2}
+  readyIcon: {fileID: 21300000, guid: e279f23e3d7120a4aa2cad87de8f2db9, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 5b5f0cf88483e22449c487a319599ca7, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 7840b38583f59fa4f8b5a64b1e739470, type: 2}

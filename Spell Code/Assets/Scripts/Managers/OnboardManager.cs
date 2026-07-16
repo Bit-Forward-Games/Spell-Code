@@ -180,6 +180,10 @@ public class OnboardManager : MonoBehaviour
                     p1_gamba.isActive = false;
                     p1_gamba.ApplyVisualState();
                 }
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 1);
+
                 break;
             case 1:
                 p2_joined = true;
@@ -204,6 +208,10 @@ public class OnboardManager : MonoBehaviour
                     p2_gamba.isActive = false;
                     p2_gamba.ApplyVisualState();
                 }
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 2);
+
                 break;
             case 2:
                 p3_joined = true;
@@ -228,6 +236,10 @@ public class OnboardManager : MonoBehaviour
                     p3_gamba.isActive = false;
                     p3_gamba.ApplyVisualState();
                 }
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 3);
+
                 break;
             case 3:
                 p4_joined = true;
@@ -252,6 +264,10 @@ public class OnboardManager : MonoBehaviour
                     p4_gamba.isActive = false;
                     p4_gamba.ApplyVisualState();
                 }
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 4);
+
                 break;
         }
     }
@@ -409,6 +425,9 @@ public class OnboardManager : MonoBehaviour
                 {
                     //play the graffiti spawn vfx
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.y)), 1);
+
+                    //play the graffiti drip vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_DRIP, new FixedVec2(Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.y)), 1);
                 }
 
                 p1_castTxt.enabled = true;
@@ -438,6 +457,9 @@ public class OnboardManager : MonoBehaviour
                 p1_castGraphic.enabled = false;
 
                 p1_breakWSpellcode.enabled = false;
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 1);
             }
         }
 
@@ -517,6 +539,9 @@ public class OnboardManager : MonoBehaviour
                 {
                     //play the graffiti spawn vfx
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.y)), 2);
+
+                    //play the graffiti drip vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_DRIP, new FixedVec2(Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.y)), 2);
                 }
 
                 p2_castTxt.enabled = true;
@@ -548,6 +573,9 @@ public class OnboardManager : MonoBehaviour
                 p2_castGraphic.enabled = false;
 
                 p2_breakWSpellcode.enabled = false;
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 2);
             }
         }
 
@@ -627,6 +655,9 @@ public class OnboardManager : MonoBehaviour
                 {
                     //play the graffiti spawn vfx
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.y)), 3);
+
+                    //play the graffiti drip vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_DRIP, new FixedVec2(Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.y)), 3);
                 }
 
                 p3_castTxt.enabled = true;
@@ -656,6 +687,9 @@ public class OnboardManager : MonoBehaviour
                 p3_castGraphic.enabled = false;
 
                 p3_breakWSpellcode.enabled = false;
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 3);
             }
         }
 
@@ -735,6 +769,9 @@ public class OnboardManager : MonoBehaviour
                 {
                     //play the graffiti spawn vfx
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.y)), 4);
+
+                    //play the graffiti drip vfx
+                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_DRIP, new FixedVec2(Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.y)), 4);
                 }
 
                 p4_castTxt.enabled = true;
@@ -764,6 +801,9 @@ public class OnboardManager : MonoBehaviour
                 p4_castGraphic.enabled = false;
 
                 p4_breakWSpellcode.enabled = false;
+
+                //stop the graffiti drip vfx
+                VFX_Manager.Instance.StopVisualEffect(VisualEffects.GRAFFITI_DRIP, 4);
             }
         }
     }

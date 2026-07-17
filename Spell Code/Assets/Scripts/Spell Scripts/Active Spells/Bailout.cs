@@ -155,8 +155,15 @@ public class Bailout : SpellData
 
     int GetSqrDistanceCeilToInt(FixedVec2 start, FixedVec2 end)
     {
-        int deltaX = Mathf.CeilToInt(Fixed.Abs(end.X - start.X).ToFloat());
-        int deltaY = Mathf.CeilToInt(Fixed.Abs(end.Y - start.Y).ToFloat());
+        // Exact integer ceil of the fixed-point deltas, no float. The float version
+        // (Mathf.CeilToInt(...ToFloat())) loses precision once the raw delta exceeds float's 24-bit
+        // mantissa, and this feeds critTrailSegmentCount, which is serialized+hashed and drives
+        // hashed trail-projectile spawns; keep it bit-exact on every platform. ceil(raw/65536) for
+        // non-negative raw == (raw + 65535) >> 16, in long to dodge int overflow at the +65535.
+        long rawX = Fixed.Abs(end.X - start.X).RawValue;
+        long rawY = Fixed.Abs(end.Y - start.Y).RawValue;
+        int deltaX = (int)((rawX + 65535) >> 16);
+        int deltaY = (int)((rawY + 65535) >> 16);
         return (deltaX * deltaX) + (deltaY * deltaY);
     }
 
@@ -256,8 +263,11 @@ public class Bailout : SpellData
         bw.Write(critTrailSegmentCount);
         bw.Write(nextCritTrailSegment);
         bw.Write(lastCritTrailProjectileIndex);
-
-        
+        // Rollback-critical like the trail counters above, set on the hit frame but read on LATER
+        // frames by UpdateCritTrail (spawn facing + x-mirror in GetSpawnOffsetForWorldPosition). If a
+        // rollback crosses the hit, a stale value mirrors the remaining trail spawns -> projectile
+        // positions are hashed -> desync.
+        bw.Write(trailFacingRight);
     }
 
     public override void Deserialize(System.IO.BinaryReader br)
@@ -269,6 +279,7 @@ public class Bailout : SpellData
         critTrailSegmentCount = br.ReadInt32();
         nextCritTrailSegment = br.ReadInt32();
         lastCritTrailProjectileIndex = br.ReadInt32();
+        trailFacingRight = br.ReadBoolean();
     }
     
 }

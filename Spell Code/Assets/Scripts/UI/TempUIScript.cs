@@ -170,7 +170,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             if(arenaNameDisplayHandler != null)
             {
-                arenaNameDisplayHandler.DisplayArenaName(2.5f);
+                arenaNameDisplayHandler.WaitAndDisplay(2.0f, 2.5f);
             }
         }
         else if (scene.name == "Shop")

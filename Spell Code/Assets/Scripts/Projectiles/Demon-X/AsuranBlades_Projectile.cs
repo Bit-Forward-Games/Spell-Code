@@ -15,6 +15,7 @@ public class AsuranBlades_Projectile : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 30;
         deleteOnHit = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

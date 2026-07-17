@@ -10,6 +10,7 @@ using System;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
+    private const int FadeInFrameCount = 10;
     private const int FadeOutFrameCount = 10;
 
     [NonSerialized]  public string projName;
@@ -24,6 +25,9 @@ public abstract class BaseProjectile : MonoBehaviour
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
+    [NonSerialized] public bool fadeOut = false;
+    
+    [NonSerialized] public bool fadeIn = false;
     [NonSerialized] public PlayerController owner;
     [NonSerialized] public SpellData ownerSpell;
     [NonSerialized] public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
@@ -70,7 +74,7 @@ public abstract class BaseProjectile : MonoBehaviour
         position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
-        ResetSpriteAlpha();
+        SetInitialSpriteAlpha();
         Array.Fill(multiHitCount, maxMultiHitCount);
 
         //if nameOverride is empty,...
@@ -159,7 +163,7 @@ public abstract class BaseProjectile : MonoBehaviour
         // Check lifespan
         if( lifeSpan != 0)  //if lifeSpan == 0, then use the anim frames instead of lifespan to delete the projectile
         {
-            FadeSpriteDuringFinalFrames(lifeSpan);
+            if(fadeIn || fadeOut) UpdateSpriteFade(lifeSpan);
             if (logicFrame >= lifeSpan)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
@@ -169,7 +173,7 @@ public abstract class BaseProjectile : MonoBehaviour
         else
         {
             int totalAnimationLength = animFrames.frameLengths.Sum();
-            //FadeSpriteDuringFinalFrames(totalAnimationLength);
+            if(fadeIn || fadeOut) UpdateSpriteFade(totalAnimationLength);
             if (logicFrame >= totalAnimationLength)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
@@ -260,7 +264,7 @@ public abstract class BaseProjectile : MonoBehaviour
         return 0; // Default to first frame (shouldn't happen)
     }
 
-    private void FadeSpriteDuringFinalFrames(int totalLifetimeFrames)
+    private void UpdateSpriteFade(int totalLifetimeFrames)
     {
         if (totalLifetimeFrames <= 0)
         {
@@ -268,12 +272,28 @@ public abstract class BaseProjectile : MonoBehaviour
             return;
         }
 
-        int framesRemaining = totalLifetimeFrames - logicFrame;
-        float alpha = framesRemaining <= FadeOutFrameCount
-            ? Mathf.Clamp01(framesRemaining / (float)FadeOutFrameCount)
-            : 1f;
+        float alpha = 1f;
+
+        if (fadeIn)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01(logicFrame / (float)FadeInFrameCount));
+        }
+
+        if (fadeOut)
+        {
+            int framesRemaining = totalLifetimeFrames - logicFrame;
+            if (framesRemaining <= FadeOutFrameCount)
+            {
+                alpha = Mathf.Min(alpha, Mathf.Clamp01(framesRemaining / (float)FadeOutFrameCount));
+            }
+        }
 
         SetSpriteAlpha(alpha);
+    }
+
+    private void SetInitialSpriteAlpha()
+    {
+        SetSpriteAlpha(fadeIn ? 0f : 1f);
     }
 
     private void ResetSpriteAlpha()

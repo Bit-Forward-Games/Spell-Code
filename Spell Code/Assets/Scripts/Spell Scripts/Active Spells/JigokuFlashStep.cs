@@ -18,7 +18,7 @@ public class JigokuFlashStep : SpellData
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCast, ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.DemonX };
         projectilePrefabs = new GameObject[2];
-        description = "Longe-range kunai.\n On-hit, mark the opponent. Your next cast teleports you behind the marked opponent.";
+        description = "Longe-range kunai.\nOn-hit, mark the opponent. Your next cast teleports you behind the marked opponent.";
     }
 
     public override void LoadSpell()

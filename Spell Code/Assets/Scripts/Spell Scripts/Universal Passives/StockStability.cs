@@ -14,7 +14,7 @@ public class StockStability : SpellData
         priorityOverride = 5;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[2] { ProcCondition.OnStart, ProcCondition.OnHitSpell};
-        description = $"On Spawn: Gain 10% Stock Stability<sprite name=\"StockStability\"> for every BigStox Spellcode you have.\n hitting a Spellcode has a random chance based on Stock Stability<sprite name=\"StockStability\"> to \"Crit\", dealing increased damage.";
+        description = $"On Spawn: Gain 10% Stock Stability<sprite name=\"StockStability\"> for every BigStox Spellcode you have.\nhitting a Spellcode has a random chance based on Stock Stability<sprite name=\"StockStability\"> to \"Crit\", dealing increased damage.";
 
     }
 

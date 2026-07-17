@@ -15,6 +15,7 @@ public class RCade_BasicProjectile : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 20; // lasts for 300 logic frames
         deleteOnHit = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

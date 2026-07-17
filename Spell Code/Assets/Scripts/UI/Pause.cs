@@ -574,7 +574,7 @@ public class Pause : MonoBehaviour
         if (uiScript.multiplayerGamemodesMenuOpened) StartCoroutine(BackToMultiplayerSelector());
 
         //unmute all sfx
-        SFX_Manager.Instance.UnMuteGamePlaySFX();
+        if(SFX_Manager.Instance != null) SFX_Manager.Instance.UnMuteGamePlaySFX();
 
         //apply volume
         //SFXVolume();

@@ -316,7 +316,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
                         break;
                     //Killeez
@@ -329,7 +329,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
                         break;
                     //VWave

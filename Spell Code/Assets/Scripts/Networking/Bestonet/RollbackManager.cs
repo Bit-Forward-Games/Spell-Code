@@ -2362,7 +2362,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         var sb = new System.Text.StringBuilder();
         int localIdx = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : -1;
         int remoteIdx = GameManager.Instance != null ? GameManager.Instance.remotePlayerIndex : -1;
-        sb.Append($"\n  [INPUT BUFFERS] localIdx={localIdx} remoteIdx={remoteIdx} (this machine's local player = clientInputs)");
+        sb.Append($"\n [INPUT BUFFERS] localIdx={localIdx} remoteIdx={remoteIdx} (this machine's local player = clientInputs)");
         // Wide enough to reach the divergence onset: state-entry desyncs (e.g. a missed CodeWeave
         // Press edge) surface at the next hash interval, up to ~30 frames after they happen, so a
         // 10-frame window misses them. rx = received over the wire, used = what the slot actually
@@ -2370,7 +2370,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         int start = Mathf.Max(0, frame - 50);
         for (int f = start; f <= frame + 1; f++)
         {
-            sb.Append($"\n    f={f} local={DescribeBufferedInput(clientInputs, f)}");
+            sb.Append($"\n   f={f} local={DescribeBufferedInput(clientInputs, f)}");
             if (usePeerRoster)
             {
                 foreach (var kv in receivedInputsBySlot)
@@ -2414,35 +2414,35 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
             $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} rngState={gm.CurrentRngState} stageRngState={gm.CurrentStageRngState} " +
             $"sharedHash={ComputeSharedGameplayHash(gm)} projectileHash={ComputeProjectileHash()}";
-        diag += $"\n  DamageMatrix=[{FormatDamageMatrix(gm.damageMatrix)}]";
+        diag += $"\n DamageMatrix=[{FormatDamageMatrix(gm.damageMatrix)}]";
 
         for (int i = 0; i < gm.playerCount; i++)
         {
             PlayerController p = gm.players[i];
             if (p == null) continue;
-            diag += $"\n  P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
+            diag += $"\n P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
                     $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
-            diag += $"\n      {p.GetDesyncDiagString()}";
+            diag += $"\n     {p.GetDesyncDiagString()}";
 
             for (int s = 0; s < p.spellList.Count; s++)
             {
                 SpellData spell = p.spellList[s];
                 if (spell == null) continue;
-                diag += $"\n    Spell{s}:{spell.spellName} hash={ComputeSpellHash(spell)}";
+                diag += $"\n   Spell{s}:{spell.spellName} hash={ComputeSpellHash(spell)}";
             }
         }
 
         var activeProjectiles = ProjectileManager.Instance.activeProjectiles
             .OrderBy(proj => ProjectileManager.Instance.projectilePrefabs.IndexOf(proj))
             .ToList();
-        diag += $"\n  ActiveProjectiles={activeProjectiles.Count}";
+        diag += $"\n ActiveProjectiles={activeProjectiles.Count}";
         foreach (BaseProjectile projectile in activeProjectiles)
         {
             int ownerPid = projectile.owner != null ? projectile.owner.pID : -1;
             string ignoreText = projectile.playerIgnoreArr != null ? string.Join(",", projectile.playerIgnoreArr) : "null";
-            diag += $"\n    {projectile.projName}: pos=({projectile.position.X.RawValue},{projectile.position.Y.RawValue}) frame={projectile.logicFrame} owner={ownerPid} ignore=[{ignoreText}]";
+            diag += $"\n   {projectile.projName}: pos=({projectile.position.X.RawValue},{projectile.position.Y.RawValue}) frame={projectile.logicFrame} owner={ownerPid} ignore=[{ignoreText}]";
         }
 
         return diag;

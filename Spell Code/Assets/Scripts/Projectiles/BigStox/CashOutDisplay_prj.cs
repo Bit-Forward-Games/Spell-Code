@@ -14,6 +14,7 @@ public class CashOutDisplay_prj : BaseProjectile
         projName = "CashOutDisplay_prj";
         lifeSpan = 15; // lasts for 120 logic frames
         deleteOnHit = false;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3}, true);
     }
     

@@ -169,6 +169,7 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySound(Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        //Debug.Log("SFX_Manager | PlaySound called");
         if (SuppressAudioSideEffectDuringRollback())
         {
             return;
@@ -243,6 +244,7 @@ public class SFX_Manager : MonoBehaviour
     /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void WaitThenPlaySound(float _waitTime, Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        //Debug.Log("SFX_Manager | WaitThenPlaySound called");
         //wait for _waitTime seconds,...
         DOVirtual.DelayedCall(_waitTime, () =>
         {

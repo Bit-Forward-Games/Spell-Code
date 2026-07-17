@@ -2759,6 +2759,9 @@ public class PlayerController : MonoBehaviour
             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
         }
 
+        //play the teleport sfx
+        SFX_Manager.Instance.PlaySound(Sounds.TELEPORT, 1f, 1f);
+
         FixedVec2 fixedDestination = destination;
         position = fixedDestination - new FixedVec2(hSpd, vSpd);
         CheckStageDataSOCollision();

@@ -918,6 +918,9 @@ public class GambaMachine : MonoBehaviour
     /// <returns></returns>
     private void ToggleFloppyAfterDelay(GameObject _disk, float _delay)
     {
+        //play the floppy spawn sfx after _delay
+        SFX_Manager.Instance.WaitThenPlaySound(_delay, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
         // ONLINE: the deterministic sim only simulates ACTIVE, tagged floppies
         // (FindAllFloppyDisks uses FindGameObjectsWithTag, which excludes inactive objects), so a
         // floppy's *pickable* state is tied to GameObject.activeSelf
@@ -936,9 +939,6 @@ public class GambaMachine : MonoBehaviour
                         if (r != null) r.enabled = true;
                     }
                 }
-
-                //play the floppy spawn sfx
-                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
             }).SetUpdate(false);
 
             //return
@@ -957,9 +957,6 @@ public class GambaMachine : MonoBehaviour
                 //toggle it back on
                 _disk.SetActive(true);
             }
-
-            //play the floppy spawn sfx
-            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
         }).SetUpdate(false);
 
         //return

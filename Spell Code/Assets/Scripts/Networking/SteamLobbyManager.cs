@@ -17,8 +17,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-10"; // scz-10: Bailout + HourglassOfChronos spells (new SpellDictionary entries; Bailout spell
-                                                    // payload adds trailFacingRight) + portal radius 36->40 sim tweak.
+    private const string NetcodeVersion = "scz-11"; // scz-11: AoA projectile-reflect rework -- BaseProjectile savestate now carries the ownerBackup
+                                                    // index (3rd reference int) + JFS OnKill mark-clear; sim rules changed.
                                                    
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

@@ -59,9 +59,15 @@ public class JigokuFlashStep : SpellData
                 //handle the marked vfx
                 if (projectileInstances[1].activeSelf)
                 {
-                    projectileInstances[1].GetComponent<BaseProjectile>().position = GameManager.Instance.GetPlayerByPID(markedOpponentPID).position;
-                    //we shall see if this works
-                    if (!GameManager.Instance.GetPlayerByPID(markedOpponentPID).isAlive)
+                    // Guard EVERY deref, the marked player can be gone entirely (disconnect in a 3/4P
+                    // match -> GetPlayerByPID returns null; stale -1 pID would even index players[-2])
+                    // an unguarded deref crashes the sim on every client.
+                    PlayerController marked = markedOpponentPID >= 0 ? GameManager.Instance.GetPlayerByPID(markedOpponentPID) : null;
+                    if (marked != null && marked.isAlive)
+                    {
+                        projectileInstances[1].GetComponent<BaseProjectile>().position = marked.position;
+                    }
+                    else
                     {
                         ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
                         markedOpponentPID = -1;

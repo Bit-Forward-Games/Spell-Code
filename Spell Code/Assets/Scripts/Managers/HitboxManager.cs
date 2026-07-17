@@ -138,7 +138,13 @@ public class HitboxManager : MonoBehaviour
                                         projectile.owner.hitstop = hitstopVal;
                                     }
                                     defendingPlayer.hitstop = hitstopVal;
-                                    cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                    // Re-firing on every rollback resim makes the shake
+                                    // stutter. Same guard as the stat counter below. The hitstop/facing
+                                    // above stay UNGUARDED, they're hashed sim state and must resim.
+                                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                    {
+                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                    }
                                 }
                             
                                 defendingPlayer.hitboxData = hitbox;
@@ -211,7 +217,12 @@ public class HitboxManager : MonoBehaviour
                             projectile.owner.hitstop = hitstopVal;
                         }
                         //defendingPlayer.hitstop = hitstopVal;
-                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                        // Don't re-shake on rollback resims (the owner.hitstop above is
+                        // hashed sim state, so it stays unguarded).
+                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                        {
+                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                        }
                     }
                 return true;
             }

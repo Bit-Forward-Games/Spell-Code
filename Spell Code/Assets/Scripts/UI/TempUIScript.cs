@@ -328,7 +328,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 pause.TriggerSelectedButton();
             }
 
-            if (pause != null && pause.WasPausePlayerCancelPressedThisFrame())
+            if (pause != null
+                && (pause.WasPausePlayerCancelPressedThisFrame()
+                    || pause.WasPausePlayerBackPressedThisFrame()))
             {
                 if (soloGamemodesMenuOpened)
                 {

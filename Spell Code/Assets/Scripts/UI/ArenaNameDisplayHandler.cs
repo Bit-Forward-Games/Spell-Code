@@ -6,11 +6,16 @@ using System;
 
 public class ArenaNameDisplayHandler : MonoBehaviour
 {
-    [SerializeField] private GameObject _displayBackground;
+    [SerializeField] private RectTransform _displayBackgroundRectTransform;
+    [SerializeField] private CanvasGroup _displayCanvasGroup;
     [SerializeField] private TextMeshProUGUI _arenaNameTextMesh;
+    private Vector3 _initBackgroundPos = Vector3.zero;
 
     private void Awake()
     {
+        //if _displayBackground has been defined, then record the initial position of the background
+        if (_displayBackgroundRectTransform != null) _initBackgroundPos = new Vector3(_displayBackgroundRectTransform.anchoredPosition.x, _displayBackgroundRectTransform.anchoredPosition.y, 0f);
+
         //Hide name display
         HideArenaName();
     }
@@ -27,27 +32,48 @@ public class ArenaNameDisplayHandler : MonoBehaviour
         if (GameManager.Instance.stages[GameManager.Instance.currentStageIndex].stageName == null || GameManager.Instance.stages[GameManager.Instance.currentStageIndex].stageName == "") return null;
 
         //enable background
-        _displayBackground.gameObject.SetActive(true);
+        //_displayBackgroundRectTransform.gameObject.SetActive(true);
 
         //change arenaNameTextMesh text show stage name
         _arenaNameTextMesh.text = GameManager.Instance.stages[GameManager.Instance.currentStageIndex].stageName;
-        Debug.Log("ArenaNameDisplay | Current arena name is: " + GameManager.Instance.stages[GameManager.Instance.currentStageIndex].stageName);
+        //Debug.Log("ArenaNameDisplay | Current arena name is: " + GameManager.Instance.stages[GameManager.Instance.currentStageIndex].stageName);
 
-        ////wait for _delay seconds,...
-        //DOVirtual.DelayedCall(_duration, () =>
-        //{
-        //    //stop showing arena name
-        //    HideArenaName();
-        //}).SetUpdate(false);
+        //Debug.Log("Start = " + new Vector3(-53f, _initBackgroundPos.y) + ". Middle = " + new Vector3(0f, _initBackgroundPos.y) + ". End = " + new Vector3(53f, _initBackgroundPos.y));
 
-        //return
-        return _displayBackground.gameObject.transform.DOPath
-        (
-            new Vector3[] { new Vector3(-53f, _displayBackground.gameObject.transform.position.y), new Vector3(53f, _displayBackground.gameObject.transform.position.y) },
-            _duration,
-            PathType.Linear,
-            PathMode.Sidescroller2D).SetEase(Ease.InOutElastic).OnComplete(() => HideArenaName()?.Invoke()
+        //move _displayBackground to its initial position
+        _displayBackgroundRectTransform.anchoredPosition = _initBackgroundPos;
+
+        //define a sequence to return
+        Sequence sequence = DOTween.Sequence();
+
+        //join the background movement tween to the sequence
+        sequence.Join(
+            _displayBackgroundRectTransform.DOAnchorPosX
+            (
+                53f,
+                _duration,
+                false
+                ).SetEase(Ease.Linear).OnComplete(() => HideArenaName()?.Invoke()
+            )
         );
+
+        //insert the start of the background opacity tween to the sequence
+        sequence.Insert(
+            0f,
+            _displayCanvasGroup.DOFade(1f, _duration * 0.25f)
+        );
+
+        //insert the end of the background opacity tween to the sequence
+        sequence.Insert(
+            _duration * 0.75f,
+            _displayCanvasGroup.DOFade(0f, _duration * 0.25f)
+        );
+
+        //attach the HideArenaName() function to the completion of the sequence
+        sequence.OnComplete(() => HideArenaName()?.Invoke());
+
+        //begin the sequence
+        return sequence;
     }
 
     //private TweenCallback DelayedHideArenaName(float _delay)
@@ -70,10 +96,16 @@ public class ArenaNameDisplayHandler : MonoBehaviour
     public TweenCallback HideArenaName()
     {
         //if arenaNameTextMesh does not exist, then return
-        if (_arenaNameTextMesh == null) return null;
+        //if (_arenaNameTextMesh == null) return null;
+
+        //reset _displayBackground to its initial position
+        if (_displayBackgroundRectTransform != null) _displayBackgroundRectTransform.anchoredPosition = _initBackgroundPos;
+
+        //make canvas group fully transparent
+        if (_displayCanvasGroup != null) _displayCanvasGroup.alpha = 0f;
 
         //disable background
-        _displayBackground.gameObject.SetActive(false);
+        //_displayBackgroundRectTransform.gameObject.SetActive(false);
 
         return null;
     }

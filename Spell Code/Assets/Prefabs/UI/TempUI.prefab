@@ -8913,7 +8913,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca999c76f1ce01646a76a73a57dcefae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaNameDisplayHandler
-  _displayBackground: {fileID: 7612171904648038113}
+  _displayBackgroundRectTransform: {fileID: 5208914571949251711}
+  _displayCanvasGroup: {fileID: 8941957556780378764}
   _arenaNameTextMesh: {fileID: 2755281677008404521}
 --- !u!1 &2092428539673232782
 GameObject:
@@ -32415,6 +32416,7 @@ GameObject:
   - component: {fileID: 5208914571949251711}
   - component: {fileID: 8196728658096101342}
   - component: {fileID: 6096604786088084680}
+  - component: {fileID: 8941957556780378764}
   m_Layer: 0
   m_Name: ArenaNameBackground
   m_TagString: Untagged
@@ -32439,7 +32441,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -198.4}
+  m_AnchoredPosition: {x: -53, y: -198.4}
   m_SizeDelta: {x: 344.9092, y: 47.7032}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8196728658096101342
@@ -32480,6 +32482,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &8941957556780378764
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7612171904648038113}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &7646400475059374017
 GameObject:
   m_ObjectHideFlags: 0

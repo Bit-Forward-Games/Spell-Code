@@ -159,7 +159,9 @@ public class HitboxManager : MonoBehaviour
                                 {
                                     HitboxData bakedHitbox = hitbox.Clone();
                                     int attackerFacing = projectile.facingRight ? 1 : -1;
-                                    bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
+                                    // Knockback is signed relative to the projectile's facing.
+                                    // Preserve intentional reverse launches such as Bailout's explosion.
+                                    bakedHitbox.xKnockback = hitbox.xKnockback * attackerFacing;
                                     bakedHitbox.parentProjectile = projectile;
                                     defendingPlayer.hitboxData = bakedHitbox;
                                 }

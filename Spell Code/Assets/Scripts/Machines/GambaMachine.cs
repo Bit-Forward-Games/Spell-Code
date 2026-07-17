@@ -342,7 +342,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         break;
                 }

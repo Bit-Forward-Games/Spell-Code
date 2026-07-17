@@ -6,6 +6,9 @@ using System; // Needed for Exception
 [DefaultExecutionOrder(-100)]
 public class SteamManager : MonoBehaviour
 {
+    public const string DebugToolsBetaBranch = "4playersupporttesting";
+    public const string AdditionalDebugToolsBetaBranch = "testing";
+
 #if STEAM_PLAYTEST
     // Playtest App ID
     private const uint SteamAppId = 4569980;
@@ -16,6 +19,25 @@ public class SteamManager : MonoBehaviour
 
     private static SteamManager instance;
     private bool hasShutDownSteam;
+#if !UNITY_EDITOR
+    private static bool debugToolsEnabled;
+#endif
+
+    /// <summary>
+    /// Debug keyboard shortcuts are available in the Unity editor and on the dedicated
+    /// private Steam beta branch, but never on the public/default Steam branch.
+    /// </summary>
+    public static bool DebugToolsEnabled
+    {
+        get
+        {
+#if UNITY_EDITOR
+            return true;
+#else
+            return debugToolsEnabled;
+#endif
+        }
+    }
 
     void Awake()
     {
@@ -72,12 +94,24 @@ public class SteamManager : MonoBehaviour
             }
             else
             {
+                string currentBetaName = SteamApps.CurrentBetaName;
+                debugToolsEnabled = string.Equals(
+                    currentBetaName,
+                    DebugToolsBetaBranch,
+                    StringComparison.Ordinal)
+                    || string.Equals(
+                        currentBetaName,
+                        AdditionalDebugToolsBetaBranch,
+                        StringComparison.Ordinal);
+
+                Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}.");
                 //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
             }
 
         }
         catch (Exception e)
         {
+            debugToolsEnabled = false;
             Debug.LogError($"Steamworks initialization exception: {e.Message}");
             // Handle exceptions (e.g., Steam not running, DLL issues)
         }
@@ -116,6 +150,9 @@ public class SteamManager : MonoBehaviour
         }
 
         hasShutDownSteam = true;
+#if !UNITY_EDITOR
+        debugToolsEnabled = false;
+#endif
 
         if (SteamLobbyManager.Instance != null)
         {

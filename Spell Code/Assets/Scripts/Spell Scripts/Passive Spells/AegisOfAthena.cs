@@ -6,7 +6,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class AegisOfAthena : SpellData
 {
-    bool parryStored = false;
+    //bool parryStored = false;
     public AegisOfAthena()
     {
         spellName = "Aegis Of Athena";
@@ -17,13 +17,13 @@ public class AegisOfAthena : SpellData
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 0;
         spawnOffsetY = 36;
-        description = "Upon landing a successful parry, your next cast gains Super Armor and grants +1 Rep<sprite name=\"Reps\"> on hit while the perfect armor is active.";
+        description = "Your parry reflects projectiles.";
     }
 
     public override void LoadSpell()
     {
         base.LoadSpell();
-        parryStored = false;
+        //parryStored = false;
     }
 
     public override void SpellUpdate()
@@ -34,14 +34,14 @@ public class AegisOfAthena : SpellData
             cooldownCounter--;
             return;
         }
-        if (!projectileInstances[0].activeSelf && parryStored)
-        {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX ), Fixed.FromInt(spawnOffsetY)));
-        }
-        if (!parryStored)
-        {
-            ProjectileManager.Instance.DeleteProjectile(projectileInstances[0].GetComponent<BaseProjectile>());
-        }
+        // if (!projectileInstances[0].activeSelf && parryStored)
+        // {
+        //     ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX ), Fixed.FromInt(spawnOffsetY)));
+        // }
+        // if (!parryStored)
+        // {
+        //     ProjectileManager.Instance.DeleteProjectile(projectileInstances[0].GetComponent<BaseProjectile>());
+        // }
 
     }
 
@@ -50,50 +50,34 @@ public class AegisOfAthena : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnParry:
-                parryStored = true;
-                break;
-            case ProcCondition.OnCast:
-                if(parryStored)
-                {
-                    if(cooldownCounter <= 0)
-                    {
-                        cooldownCounter = cooldown;
-                        owner.superArmor = true;
-                    }
-                }
-                break;
-            case ProcCondition.OnHit:
-                if(parryStored)
-                {
-                    //only grant resource on the first hit of a multihit per player
-                    if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
-                    {
-                        break;
-                    }
+                //parryStored = true;
 
-                    //grant the resource
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
-                }
+                //reflect the projectile
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX ), Fixed.FromInt(spawnOffsetY)));
+                BaseProjectile reflectedProjectile = owner.hitboxData.parentProjectile;
+                reflectedProjectile.ownerBackup = reflectedProjectile.owner;
+                reflectedProjectile.owner = owner;
+                reflectedProjectile.ResetValues();;
+                reflectedProjectile.hSpeed = -reflectedProjectile.hSpeed;
+                reflectedProjectile.vSpeed = -reflectedProjectile.vSpeed;
+                reflectedProjectile.playerIgnoreArr = new bool[4] { false, false, false, false };
 
-                break;
-            case ProcCondition.OnCastEnd:
-                parryStored = false;
+                cooldownCounter = owner.vibeCoding? (int)(cooldown*1.25f) : cooldown;
                 break;
             default:
                 break;
         }
     }
-    public override void Serialize(System.IO.BinaryWriter bw)
-    {
-        base.Serialize(bw);
-        bw.Write(parryStored);
-    }
+    // public override void Serialize(System.IO.BinaryWriter bw)
+    // {
+    //     base.Serialize(bw);
+    //     bw.Write(parryStored);
+    // }
 
-    public override void Deserialize(System.IO.BinaryReader br)
-    {
-        base.Deserialize(br);
-        parryStored = br.ReadBoolean();
-    }
+    // public override void Deserialize(System.IO.BinaryReader br)
+    // {
+    //     base.Deserialize(br);
+    //     parryStored = br.ReadBoolean();
+    // }
     
 }

@@ -874,7 +874,7 @@ public class PlayerController : MonoBehaviour
         DemonX = false;
         bigStox = false;
 
-    currentPlayerHealth = 100;
+        currentPlayerHealth = 100;
         isAlive = true;
     }
 
@@ -3156,6 +3156,8 @@ public class PlayerController : MonoBehaviour
             if (attacker != null)
             {
                 CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+
+                if(currentPlayerHealth <= 0)CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnKill);
             }
             
 
@@ -3179,19 +3181,9 @@ public class PlayerController : MonoBehaviour
                 }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                //This logic is now handled in the Demon-X
-                // if (attacker != null && attacker.demonAura > 0)
-                // {
-                //     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
-                // }
             }
 
 
-            // if (GameManager.Instance.isOnlineMatchActive)
-            // {
-            //     isHit = false;
-            //     hitboxData = null;
-            // }
             isHit = false;
             hitboxData = null;
 

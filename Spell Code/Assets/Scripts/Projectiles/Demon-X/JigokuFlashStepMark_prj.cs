@@ -15,6 +15,7 @@ public class JigokuFlashStepMark_prj : BaseProjectile
         deleteOnHit = false;
         lifeSpan = 600;
         fadeOut = true;
+        deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3}, true);
     }
     
@@ -27,6 +28,7 @@ public class JigokuFlashStepMark_prj : BaseProjectile
     {
 
         deleteOnHit = false;
+        deleteOnHurt = true;
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup
         {

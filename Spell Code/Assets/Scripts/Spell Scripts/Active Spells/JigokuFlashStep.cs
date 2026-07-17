@@ -4,6 +4,7 @@ using System.Linq;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+using YamlDotNet.Core;
 
 public class JigokuFlashStep : SpellData
 {
@@ -15,7 +16,7 @@ public class JigokuFlashStep : SpellData
         cooldown = 360;
         spellType = SpellType.Active;
         spellInput = 0b_0000_0000_0000_0000_0110_0001_0000_0100;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCast, ProcCondition.OnUpdate };
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCast, ProcCondition.OnUpdate, ProcCondition.OnKill };
         brands = new Brand[1] { Brand.DemonX };
         projectilePrefabs = new GameObject[2];
         description = "Longe-range kunai.\nOn-hit, mark the opponent. Your next cast teleports you behind the marked opponent.";
@@ -54,6 +55,27 @@ public class JigokuFlashStep : SpellData
                 if (projectileInstances[1].activeSelf)
                 {
                     projectileInstances[1].GetComponent<BaseProjectile>().position = GameManager.Instance.GetPlayerByPID(markedOpponentPID).position;
+                    //we shall see if this works
+                    if (!GameManager.Instance.GetPlayerByPID(markedOpponentPID).isAlive)
+                    {
+                        ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
+                        markedOpponentPID = -1;
+                    }
+                }
+                else
+                {
+                    markedOpponentPID = -1;
+                }
+                break;
+            case ProcCondition.OnKill:
+                //handle the marked vfx
+                if (projectileInstances[1].activeSelf)
+                {
+                    if (defender.pID == markedOpponentPID)
+                    {
+                        ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
+                        markedOpponentPID = -1;
+                    }
                 }
                 else
                 {

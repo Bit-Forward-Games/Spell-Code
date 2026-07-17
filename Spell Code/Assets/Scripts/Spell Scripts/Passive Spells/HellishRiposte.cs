@@ -60,7 +60,7 @@ public class HellishRiposte : SpellData
                     if(cooldownCounter <= 0)
                     {
                         cooldownCounter = cooldown;
-                        defender.TakeEffectDamage(10,owner,GameManager.colors["red"]);
+                        defender.TakeEffectDamage(20,owner,GameManager.colors["red"]);
                         
                         //only grant resource on the first hit of a multihit per player
                         if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
@@ -69,7 +69,7 @@ public class HellishRiposte : SpellData
                         }
 
                         //grant the resource
-                        owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
+                        owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 40, 0, PlayerController.maxDemonAura);
                         owner.demonAuraLifeSpanTimer = DemonAura.DemonAuraResetTime;
                         owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
                     }

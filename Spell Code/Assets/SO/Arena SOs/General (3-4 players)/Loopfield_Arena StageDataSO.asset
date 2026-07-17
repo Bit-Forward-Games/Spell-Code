@@ -50,6 +50,8 @@ MonoBehaviour:
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
+  portalAs: []
+  portalBs: []
   borderMin: {x: -300, y: -220, z: 0}
   borderMax: {x: 300, y: 220, z: 0}
   camBorderMin: {x: -300, y: -205, z: 0}
@@ -57,3 +59,4 @@ MonoBehaviour:
   borderType: 1
   stageType: 0
   dynamicCamera: 0
+  stageName: Loopfield

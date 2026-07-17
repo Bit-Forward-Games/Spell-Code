@@ -55,3 +55,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 1
   dynamicCamera: 1
+  stageName: Mini Diagonal

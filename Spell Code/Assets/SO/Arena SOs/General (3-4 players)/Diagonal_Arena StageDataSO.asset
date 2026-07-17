@@ -63,3 +63,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 0
   dynamicCamera: 1
+  stageName: Diagonal

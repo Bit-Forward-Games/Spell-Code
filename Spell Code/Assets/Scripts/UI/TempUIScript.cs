@@ -361,6 +361,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+#if UNITY_EDITOR
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
         //     tutorialPromptMenu.SetActive(true);
@@ -369,10 +370,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         // }
-        if (SteamManager.DebugToolsEnabled && Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused && !gameManager.MainMenuScreen.activeSelf)
+        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused)
         {
             OpenCodeModeMenuPrompt(true);
         }
+#endif
     }
 
     public void InvitePlayer()

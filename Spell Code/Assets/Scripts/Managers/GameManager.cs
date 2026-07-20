@@ -1049,6 +1049,7 @@ public class GameManager : MonoBehaviour
         MatchMessageManager.Instance?.SendReadySignal();
 
         isOnlineMatchActive = true;
+        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
         isWaitingForOpponent = true;
         SetNetworkInfoVisible(true);
         ProjectileManager.Instance.InitializeAllProjectiles();

@@ -142,6 +142,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             previousRamVals[i] = gameManager.players[i]?.roundRam ?? 0;
 
         InitFindingMatchText();
+        InitJoiningMatchText();
     }
 
     void OnEnable()
@@ -156,9 +157,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         pause?.RestoreScopedUiInputDevices();
         StopDamageBarCoroutines();
 
-        // Backstop for SetLink: never leave the looping pulse running against a torn-down label.
-        findingMatchPulseTween?.Kill();
-        findingMatchPulseTween = null;
+        // Kill and hide both statuses. Resetting the transition flags lets Update recreate either
+        // pulse if this UI is later re-enabled while its operation is still in progress.
+        SetFindingMatchVisible(false);
+        findingMatchShown = false;
+        SetJoiningMatchVisible(false);
+        joiningMatchShown = false;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -315,6 +319,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         UpdateUIBarVals();
         RefreshFindingMatchText();
+        RefreshJoiningMatchText();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
@@ -356,7 +361,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
-#if UNITY_EDITOR
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
         //     tutorialPromptMenu.SetActive(true);
@@ -365,16 +369,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         // }
-        if (Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused)
+        if (SteamManager.DebugToolsEnabled && Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused && !gameManager.MainMenuScreen.activeSelf)
         {
             OpenCodeModeMenuPrompt(true);
         }
-#endif
     }
 
     public void InvitePlayer()
     {
-        CloseGamemodesMenuForOnlineInvite();
+        CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         if (lobbyManager == null)
@@ -395,6 +398,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI matchSizeText;
 
     public TextMeshProUGUI findingMatchText;
+    public TextMeshProUGUI joiningMatchText;
 
     // Looping pulse while waiting for a match. The label itself appears/disappears instantly;
     // only its alpha breathes between 1 and findingMatchPulseMinAlpha. Seconds per half-cycle.
@@ -410,6 +414,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     private bool findingMatchShown;
     private CanvasGroup findingMatchGroup;
     private Tween findingMatchPulseTween;
+    private bool joiningMatchShown;
+    private CanvasGroup joiningMatchGroup;
+    private Tween joiningMatchPulseTween;
+    private const string JoiningMatchStatusText = "JOINING MATCH...";
+    private const string StartingMatchStatusText = "STARTING MATCH...";
 
     private int matchmakingSize = MinMatchSize;
     private const int MinMatchSize = 2;
@@ -440,7 +449,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // "Find Match" button OnClick. Starts Quick Match for the currently selected size.
     public void FindMatch()
     {
-        CloseGamemodesMenuForOnlineInvite();
+        CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         if (lobbyManager == null)
@@ -503,51 +512,114 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // (see the floppy-spawn desync); a UI alpha tween is safe.
     private void SetFindingMatchVisible(bool visible)
     {
-        CanvasGroup group = GetFindingMatchGroup();
+        SetPulsingStatusVisible(
+            findingMatchText,
+            ref findingMatchGroup,
+            ref findingMatchPulseTween,
+            visible);
+    }
+
+    // Shows the shared online-entry label for the entire handshake. Invite joiners see "JOINING
+    // MATCH..." while a lobby owner whose guest has arrived sees "STARTING MATCH...".
+    private void RefreshJoiningMatchText()
+    {
+        if (joiningMatchText == null)
+        {
+            return;
+        }
+
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        bool starting = lobbyManager != null && lobbyManager.IsStartingMatch;
+        bool joining = lobbyManager != null && lobbyManager.IsJoiningMatch;
+        bool visible = starting || joining;
+
+        if (visible)
+        {
+            string statusText = starting ? StartingMatchStatusText : JoiningMatchStatusText;
+            if (joiningMatchText.text != statusText)
+            {
+                joiningMatchText.text = statusText;
+            }
+        }
+
+        if (visible == joiningMatchShown)
+        {
+            return;
+        }
+
+        joiningMatchShown = visible;
+        SetJoiningMatchVisible(visible);
+    }
+
+    private void SetJoiningMatchVisible(bool visible)
+    {
+        SetPulsingStatusVisible(
+            joiningMatchText,
+            ref joiningMatchGroup,
+            ref joiningMatchPulseTween,
+            visible);
+    }
+
+    // Both matchmaking status labels use the same unscaled alpha pulse.
+    private void SetPulsingStatusVisible(
+        TextMeshProUGUI statusText,
+        ref CanvasGroup cachedGroup,
+        ref Tween pulseTween,
+        bool visible)
+    {
+        if (statusText == null)
+        {
+            pulseTween?.Kill();
+            pulseTween = null;
+            cachedGroup = null;
+            return;
+        }
+
+        CanvasGroup group = GetStatusTextGroup(statusText, ref cachedGroup);
         if (group == null)
         {
             return;
         }
 
         // Kill first: a live yoyo tween would keep writing alpha over whatever we set below.
-        findingMatchPulseTween?.Kill();
-        findingMatchPulseTween = null;
+        pulseTween?.Kill();
+        pulseTween = null;
 
         if (!visible)
         {
             group.alpha = 1f; // leave it clean for the next search
-            findingMatchText.gameObject.SetActive(false);
+            statusText.gameObject.SetActive(false);
             return;
         }
 
         group.alpha = 1f;
-        findingMatchText.gameObject.SetActive(true);
+        statusText.gameObject.SetActive(true);
 
         // Full -> dim -> full, forever, until the search ends.
         // DOTween.To rather than CanvasGroup.DOFade so this doesn't depend on DOTween's UI module
         // being generated. SetUpdate(true) = unscaled: the gamemodes menu sets Time.timeScale = 0,
         // which would otherwise freeze the pulse. SetLink kills the tween if the label is destroyed
         // (ExecuteOrder66 tears down tempUI mid-search).
-        findingMatchPulseTween = DOTween
+        pulseTween = DOTween
             .To(() => group.alpha, a => group.alpha = a, findingMatchPulseMinAlpha, findingMatchPulseDuration)
             .SetLoops(-1, LoopType.Yoyo)
             .SetEase(Ease.InOutSine)
             .SetUpdate(true)
-            .SetLink(findingMatchText.gameObject);
+            .SetLink(statusText.gameObject);
     }
 
-    private CanvasGroup GetFindingMatchGroup()
+    private CanvasGroup GetStatusTextGroup(TextMeshProUGUI statusText, ref CanvasGroup cachedGroup)
     {
-        if (findingMatchGroup == null && findingMatchText != null)
+        if (cachedGroup == null && statusText != null)
         {
-            findingMatchGroup = findingMatchText.GetComponent<CanvasGroup>();
-            if (findingMatchGroup == null)
+            cachedGroup = statusText.GetComponent<CanvasGroup>();
+            if (cachedGroup == null)
             {
-                findingMatchGroup = findingMatchText.gameObject.AddComponent<CanvasGroup>();
+                cachedGroup = statusText.gameObject.AddComponent<CanvasGroup>();
             }
         }
 
-        return findingMatchGroup;
+        return cachedGroup;
     }
 
     // Force the label to a known hidden state on load, so a label left enabled in the Inspector (or a
@@ -565,7 +637,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         findingMatchPulseTween?.Kill();
         findingMatchPulseTween = null;
 
-        CanvasGroup group = GetFindingMatchGroup();
+        CanvasGroup group = GetStatusTextGroup(findingMatchText, ref findingMatchGroup);
         if (group != null)
         {
             group.alpha = 1f;
@@ -574,8 +646,37 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         findingMatchText.gameObject.SetActive(false);
     }
 
-    private void CloseGamemodesMenuForOnlineInvite()
+    // Keep a newly assigned label hidden until a join or hosted-start handshake is in flight.
+    private void InitJoiningMatchText()
     {
+        if (joiningMatchText == null)
+        {
+            return;
+        }
+
+        joiningMatchShown = false;
+
+        joiningMatchPulseTween?.Kill();
+        joiningMatchPulseTween = null;
+
+        CanvasGroup group = GetStatusTextGroup(joiningMatchText, ref joiningMatchGroup);
+        if (group != null)
+        {
+            group.alpha = 1f;
+        }
+
+        joiningMatchText.gameObject.SetActive(false);
+    }
+
+    public void CloseGamemodesMenuForOnlineEntry()
+    {
+        // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
+        // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened)
+        {
+            return;
+        }
+
         if (pause != null)
         {
             pause.SaveSettings();

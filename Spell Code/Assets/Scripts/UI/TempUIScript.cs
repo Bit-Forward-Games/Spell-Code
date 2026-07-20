@@ -372,7 +372,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public void InvitePlayer()
     {
-        CloseGamemodesMenuForOnlineInvite();
+        CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         if (lobbyManager == null)
@@ -438,7 +438,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // "Find Match" button OnClick. Starts Quick Match for the currently selected size.
     public void FindMatch()
     {
-        CloseGamemodesMenuForOnlineInvite();
+        CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         if (lobbyManager == null)
@@ -572,8 +572,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         findingMatchText.gameObject.SetActive(false);
     }
 
-    private void CloseGamemodesMenuForOnlineInvite()
+    public void CloseGamemodesMenuForOnlineEntry()
     {
+        // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
+        // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened)
+        {
+            return;
+        }
+
         if (pause != null)
         {
             pause.SaveSettings();

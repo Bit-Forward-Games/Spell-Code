@@ -549,6 +549,12 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        // The mode selectors freeze the game and scope UI input to the player who opened them.
+        // Dismiss either selector synchronously before joining or beginning a deferred scene
+        // transition. The helper ignores a normal pause menu, whose existing online-start cleanup
+        // remains responsible for resuming it once the match is ready.
+        GameManager.Instance?.tempUI?.CloseGamemodesMenuForOnlineEntry();
+
         // The online lobby only simulates in MainMenu. If the invite is accepted from anywhere
         // else (training room, tutorial, a leftover match scene), joining in place fails
         if (SceneManager.GetActiveScene().name != "MainMenu")

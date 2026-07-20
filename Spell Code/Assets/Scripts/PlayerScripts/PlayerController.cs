@@ -1053,6 +1053,7 @@ public class PlayerController : MonoBehaviour
             {
                 ApplyOnlineControlOptionsFromInput(rawInput);
             }
+            Debug.Log(input.Direction);
         }
         else
         {

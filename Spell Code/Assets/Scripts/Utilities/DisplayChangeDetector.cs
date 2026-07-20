@@ -12,7 +12,23 @@ public class DisplayChangeDetector : MonoBehaviour
     {
         lastWidth = Screen.width;
         lastHeight = Screen.height;
-        OnDisplayChanged += () => GameManager.Instance.SetResolution();
+        OnDisplayChanged += ApplyConfiguredResolution;
+    }
+
+    private void OnDestroy()
+    {
+        OnDisplayChanged -= ApplyConfiguredResolution;
+    }
+
+    private void ApplyConfiguredResolution()
+    {
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.ApplyDisplaySettings();
+            return;
+        }
+
+        GameManager.Instance?.SetResolution();
     }
 
     void Update()

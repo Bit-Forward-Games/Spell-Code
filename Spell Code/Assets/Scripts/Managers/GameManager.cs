@@ -1049,13 +1049,13 @@ public class GameManager : MonoBehaviour
         MatchMessageManager.Instance?.SendReadySignal();
 
         isOnlineMatchActive = true;
-        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
         isWaitingForOpponent = true;
         SetNetworkInfoVisible(true);
         ProjectileManager.Instance.InitializeAllProjectiles();
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
+        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
     }
 
     public bool TryRefreshOnlineLobbyRoster(OnlineMatchRoster roster)

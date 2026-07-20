@@ -27,6 +27,10 @@ public class Tutorial : MonoBehaviour
 
     private string armorText;
 
+    public PlayerController npc;
+    private bool npcHit;
+    public TextSetter textSetter;
+
     string bigStox;
     string demonX;
     string vWave;
@@ -74,6 +78,15 @@ public class Tutorial : MonoBehaviour
             gambaHitText.enabled = false;
             floppyPickupGif.enabled = true;
             floppyPickupText.enabled = true;
+        }
+
+        if (!npcHit)
+        {
+            if (npc.isHit) { npcHit = true; }
+        }
+        if (npcHit)
+        {
+            blockingDisplay.color = Color.green;
         }
 
     }

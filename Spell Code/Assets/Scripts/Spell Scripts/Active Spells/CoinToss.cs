@@ -59,11 +59,6 @@ public class CoinToss : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        // if (owner != null && !owner.suppressSpellLoadSideEffects)
-        // {
-        //     owner.stockStability += 10;
-        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        // }
         doesCrit = false;
     }
 

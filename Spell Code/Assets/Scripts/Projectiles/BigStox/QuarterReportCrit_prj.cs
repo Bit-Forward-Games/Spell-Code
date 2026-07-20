@@ -15,6 +15,7 @@ public class QuarterReportCrit_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 180; 
         deleteOnHit = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

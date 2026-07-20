@@ -38,6 +38,8 @@ MonoBehaviour:
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
+  portalAs: []
+  portalBs: []
   borderMin: {x: -300, y: -200, z: 0}
   borderMax: {x: 300, y: 300, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
@@ -45,3 +47,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 1
   dynamicCamera: 1
+  stageName: The Room

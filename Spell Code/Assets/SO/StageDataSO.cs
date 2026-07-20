@@ -46,5 +46,6 @@ public class StageDataSO : ScriptableObject
     public BorderType borderType;
     public StageType stageType;
     public bool dynamicCamera;
+    public string stageName = "";
 }
 

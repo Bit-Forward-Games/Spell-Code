@@ -14,6 +14,7 @@ public class TeleFragPrismReticle_prj : BaseProjectile
         projName = "Tele-Frag Prism Reticle";
         deleteOnHit = false;
         lifeSpan = 600;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4}, true);
     }
     

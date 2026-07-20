@@ -14,7 +14,7 @@ public class AmonSlash : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range lunging slash.\n This Spellcode has Armor.";
+        description = "Short-range lunging slash.\nThis Spellcode has Armor.";
 
     }
 

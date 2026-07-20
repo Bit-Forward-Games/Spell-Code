@@ -34,7 +34,10 @@ public class FlowState : SpellData
                 
 
                 //enter flowstate if you hit a sweetspot on a vwave spell
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.VWave && defender.hitboxData.sweetSpot && !defender.hitboxData.parentProjectile.ignoreBrand)
+                // ownerSpell null-guard: an Aegis-reflected projectile restored from a rollback has
+                // ownerSpell == null (the reflector's spellList doesn't contain the original spell,
+                // so it serializes as -1) a bare deref here crashed the sim on that hit.
+                if(defender.hitboxData.parentProjectile.ownerSpell != null && defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.VWave && defender.hitboxData.sweetSpot && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
                     if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))

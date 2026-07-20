@@ -10,6 +10,7 @@ using System;
 
 public abstract class BaseProjectile : MonoBehaviour
 {
+    private const int FadeInFrameCount = 10;
     private const int FadeOutFrameCount = 10;
 
     [NonSerialized]  public string projName;
@@ -24,6 +25,11 @@ public abstract class BaseProjectile : MonoBehaviour
     public int logicFrame;
     public ushort animationFrame; //which frame of animation the projectile is on
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
+    [NonSerialized] public bool fadeOut = false;
+    
+    [NonSerialized] public bool fadeIn = false;
+
+    [NonSerialized] public PlayerController ownerBackup; //this gets set if for whatever reason the owner of a projectile changes, like if its reflected.
     [NonSerialized] public PlayerController owner;
     [NonSerialized] public SpellData ownerSpell;
     [NonSerialized] public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
@@ -48,6 +54,7 @@ public abstract class BaseProjectile : MonoBehaviour
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
     private int _tempOwnerSpellIndex = -1;
+    private int _tempOwnerBackupIndex = -1;
     private SpriteRenderer spriteRenderer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -70,7 +77,7 @@ public abstract class BaseProjectile : MonoBehaviour
         position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
-        ResetSpriteAlpha();
+        SetInitialSpriteAlpha();
         Array.Fill(multiHitCount, maxMultiHitCount);
 
         //if nameOverride is empty,...
@@ -92,14 +99,16 @@ public abstract class BaseProjectile : MonoBehaviour
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
         animationFrame = 0;
-        hSpeed = Fixed.FromInt(0); 
-        vSpeed = Fixed.FromInt(0);
-        position = FixedVec2.Zero;
+        //hSpeed = Fixed.FromInt(0); 
+        //vSpeed = Fixed.FromInt(0);
+        //position = FixedVec2.Zero;
         playerIgnoreArr = new bool[4] { false, false, false, false };
         multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
         Array.Fill(multiHitCount, maxMultiHitCount);
         facingRight = true;
+
         _tempOwnerIndex = -1;
+        _tempOwnerBackupIndex = -1;
         _tempOwnerSpellIndex = -1;
         ResetSpriteAlpha();
     }
@@ -159,7 +168,7 @@ public abstract class BaseProjectile : MonoBehaviour
         // Check lifespan
         if( lifeSpan != 0)  //if lifeSpan == 0, then use the anim frames instead of lifespan to delete the projectile
         {
-            FadeSpriteDuringFinalFrames(lifeSpan);
+            if(fadeIn || fadeOut) UpdateSpriteFade(lifeSpan);
             if (logicFrame >= lifeSpan)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
@@ -169,7 +178,7 @@ public abstract class BaseProjectile : MonoBehaviour
         else
         {
             int totalAnimationLength = animFrames.frameLengths.Sum();
-            //FadeSpriteDuringFinalFrames(totalAnimationLength);
+            if(fadeIn || fadeOut) UpdateSpriteFade(totalAnimationLength);
             if (logicFrame >= totalAnimationLength)
             {
                 ProjectileManager.Instance.DeleteProjectile(this);
@@ -260,7 +269,7 @@ public abstract class BaseProjectile : MonoBehaviour
         return 0; // Default to first frame (shouldn't happen)
     }
 
-    private void FadeSpriteDuringFinalFrames(int totalLifetimeFrames)
+    private void UpdateSpriteFade(int totalLifetimeFrames)
     {
         if (totalLifetimeFrames <= 0)
         {
@@ -268,12 +277,28 @@ public abstract class BaseProjectile : MonoBehaviour
             return;
         }
 
-        int framesRemaining = totalLifetimeFrames - logicFrame;
-        float alpha = framesRemaining <= FadeOutFrameCount
-            ? Mathf.Clamp01(framesRemaining / (float)FadeOutFrameCount)
-            : 1f;
+        float alpha = 1f;
+
+        if (fadeIn)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01(logicFrame / (float)FadeInFrameCount));
+        }
+
+        if (fadeOut)
+        {
+            int framesRemaining = totalLifetimeFrames - logicFrame;
+            if (framesRemaining <= FadeOutFrameCount)
+            {
+                alpha = Mathf.Min(alpha, Mathf.Clamp01(framesRemaining / (float)FadeOutFrameCount));
+            }
+        }
 
         SetSpriteAlpha(alpha);
+    }
+
+    private void SetInitialSpriteAlpha()
+    {
+        SetSpriteAlpha(fadeIn ? 0f : 1f);
     }
 
     private void ResetSpriteAlpha()
@@ -345,6 +370,17 @@ public abstract class BaseProjectile : MonoBehaviour
             spellIndex = owner.spellList.IndexOf(ownerSpell);
         }
         bw.Write(spellIndex); // Write -1 if no owner spell or owner
+
+        // Owner BACKUP index (set while a projectile is reflected, e.g. Aegis of Athena). MUST be
+        // written. Deserialize reads three reference ints, and the AoA rework added the read without
+        // this write, every projectile load consumed 4 extra bytes and shifted the whole savestate
+        // stream, corrupting all projectile state on any rollback.
+        int ownerBackupIndex = -1;
+        if (ownerBackup != null)
+        {
+            ownerBackupIndex = System.Array.IndexOf(GameManager.Instance.players, ownerBackup);
+        }
+        bw.Write(ownerBackupIndex);
     }
 
     public virtual void Deserialize(BinaryReader br)
@@ -383,10 +419,14 @@ public abstract class BaseProjectile : MonoBehaviour
         // Read IDs and store them temporarily. Actual references will be restored later.
         _tempOwnerIndex = br.ReadInt32();
         _tempOwnerSpellIndex = br.ReadInt32();
+        _tempOwnerBackupIndex = br.ReadInt32();
 
         // Clear actual references, they will be restored in ResolveReferences
         owner = null;
         ownerSpell = null;
+        // Also clear the reflect backup, rolling back to a pre-reflect state (saved index -1) must not
+        // leave a stale live backup behind, or DeleteProjectile later "restores" the wrong owner.
+        ownerBackup = null;
     }
 
     /// <summary>
@@ -407,9 +447,19 @@ public abstract class BaseProjectile : MonoBehaviour
             }
         }
 
+        // Restore Owner Backup reference. Assign ownerBackup, NOT owner, owner was already restored
+        // from _tempOwnerIndex above (the reflector, for a reflected projectile). Earlier it
+        // overwrote owner with the backup here, silently un-reflecting the projectile on every
+        // rollback load wrong hit attribution vs. peers that didn't roll back (desync).
+        if (_tempOwnerBackupIndex >= 0 && _tempOwnerBackupIndex < GameManager.Instance.playerCount)
+        {
+            ownerBackup = GameManager.Instance.players[_tempOwnerBackupIndex];
+        }
+
         // Clear temporary IDs after use
         _tempOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
+        _tempOwnerBackupIndex = -1;
     }
 
 }

@@ -8,7 +8,6 @@ using Steamworks.ServerList;
 
 public class TeleFragPrism : SpellData
 {
-    const int teleportOffset = 20;
     public TeleFragPrism()
     {
         spellName = "Tele-Frag Prism";
@@ -20,7 +19,7 @@ public class TeleFragPrism : SpellData
         projectilePrefabs = new GameObject[3];
         spawnOffsetX = 0;
         spawnOffsetY = 0;
-        description = "Place down a refracting prism.\n Your next Basic Attack teleports you across the prism, dealing damage at your new location";
+        description = "Place down a refracting prism.\nYour next Basic Attack teleports you across the prism, dealing damage at your new location";
     }
 
 

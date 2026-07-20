@@ -15,6 +15,7 @@ public class CashOutCrit_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 15; // lasts for 20 logic frames
         deleteOnHit = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2 }, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

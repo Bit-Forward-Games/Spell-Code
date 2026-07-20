@@ -139,6 +139,7 @@ public class Pause : MonoBehaviour
     public List<string> displayModes = new List<string> {"Fullscreen", "Windowed", "Borderless"};
     public List<string> resolutions = new List<string>();
     public List<(string, Vector2Int)> resolutionList = new List<(string, Vector2Int)>();
+    private List<string> configuredResolutions;
     public int resolutionIndex;
     public int displayIndex;
     public TextMeshProUGUI resolutionOptionString;
@@ -337,20 +338,26 @@ public class Pause : MonoBehaviour
 
     public void ResolutionParser()
     {
+        if (configuredResolutions == null)
+        {
+            configuredResolutions = new List<string>(resolutions);
+        }
+
+        Vector2Int maximumResolution = SettingsManager.Instance != null
+            ? SettingsManager.Instance.GetMaximum16By9Resolution()
+            : new Vector2Int(Mathf.Max(1, Screen.width), Mathf.Max(1, Screen.height));
+
+        resolutions.Clear();
         resolutionList.Clear();
 
-        foreach (string res in resolutions)
+        foreach (string res in configuredResolutions)
         {
-            // Split on 'x' (case-insensitive, trims whitespace)
-            string[] parts = res.Split('x', 'X');
-
-            if (parts.Length == 2 &&
-                int.TryParse(parts[0].Trim(), out int width) &&
-                int.TryParse(parts[1].Trim(), out int height))
+            if (TryParseResolution(res, out Vector2Int size))
             {
-                Vector2Int size = new Vector2Int(width, height);
-
-                resolutionList.Add((res, size));
+                if (size.x <= maximumResolution.x && size.y <= maximumResolution.y)
+                {
+                    AddResolutionOption(res, size);
+                }
             }
             else
             {
@@ -358,7 +365,48 @@ public class Pause : MonoBehaviour
             }
         }
 
+        string maximumLabel = $"{maximumResolution.x} x {maximumResolution.y}";
+        AddResolutionOption(maximumLabel, maximumResolution);
+
+        resolutionList.Sort((left, right) =>
+        {
+            int pixelComparison = (left.Item2.x * left.Item2.y).CompareTo(right.Item2.x * right.Item2.y);
+            return pixelComparison != 0 ? pixelComparison : left.Item2.x.CompareTo(right.Item2.x);
+        });
+
+        foreach ((string label, Vector2Int _) in resolutionList)
+        {
+            resolutions.Add(label);
+        }
+
         RefreshResolutionSelection();
+    }
+
+    private static bool TryParseResolution(string label, out Vector2Int size)
+    {
+        size = Vector2Int.zero;
+        string[] parts = label.Split('x', 'X');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0].Trim(), out int width)
+            || !int.TryParse(parts[1].Trim(), out int height)
+            || width <= 0
+            || height <= 0)
+        {
+            return false;
+        }
+
+        size = new Vector2Int(width, height);
+        return true;
+    }
+
+    private void AddResolutionOption(string label, Vector2Int size)
+    {
+        if (resolutionList.Exists(option => option.Item2 == size))
+        {
+            return;
+        }
+
+        resolutionList.Add((label, size));
     }
 
     private void RefreshResolutionSelection()
@@ -380,12 +428,14 @@ public class Pause : MonoBehaviour
         }
         else
         {
-            // Keep the menu truthful when a saved/native resolution is not one of the
-            // hand-authored choices (for example, on a 4K display).
-            string savedLabel = $"{savedWidth} x {savedHeight}";
-            resolutions.Add(savedLabel);
-            resolutionList.Add((savedLabel, new Vector2Int(savedWidth, savedHeight)));
-            resolutionIndex = resolutionList.Count - 1;
+            // A settings file from another display may not match this monitor's choices.
+            // Select the largest available option that does not exceed the saved size.
+            resolutionIndex = resolutionList.FindLastIndex(option =>
+                option.Item2.x <= savedWidth && option.Item2.y <= savedHeight);
+            if (resolutionIndex < 0)
+            {
+                resolutionIndex = 0;
+            }
         }
 
         if (resolutionOptionString != null)
@@ -894,7 +944,7 @@ public class Pause : MonoBehaviour
 
     public void Display()
     {
-        RefreshResolutionSelection();
+        ResolutionParser();
         RefreshDisplayModeSelection();
 
         RectTransform displayMenuTransform = displayMenu.GetComponent<RectTransform>();

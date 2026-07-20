@@ -179,11 +179,74 @@ public class SettingsManager : MonoBehaviour
 
     public void ApplyDisplaySettings()
     {
+        int width = Mathf.Max(1, Settings.resolutionWidth);
+        int height = Mathf.Max(1, Settings.resolutionHeight);
+        Vector2Int maximumResolution = GetMaximum16By9Resolution();
+
+        if (width > maximumResolution.x || height > maximumResolution.y)
+        {
+            width = maximumResolution.x;
+            height = maximumResolution.y;
+            Settings.resolutionWidth = width;
+            Settings.resolutionHeight = height;
+        }
+
         Screen.SetResolution(
-            Mathf.Max(1, Settings.resolutionWidth),
-            Mathf.Max(1, Settings.resolutionHeight),
+            width,
+            height,
             NormalizeDisplayMode(Settings.displayMode)
         );
+    }
+
+    public Vector2Int GetMaximum16By9Resolution()
+    {
+        Vector2Int displaySize = GetActiveDisplaySize();
+        if (displaySize.x <= 0 || displaySize.y <= 0)
+        {
+            return new Vector2Int(
+                Mathf.Max(1, Settings?.resolutionWidth ?? Screen.width),
+                Mathf.Max(1, Settings?.resolutionHeight ?? Screen.height));
+        }
+
+        const float targetAspect = 16f / 9f;
+        float displayAspect = (float)displaySize.x / displaySize.y;
+
+        int width;
+        int height;
+        if (displayAspect >= targetAspect)
+        {
+            height = displaySize.y;
+            width = Mathf.RoundToInt(height * targetAspect);
+        }
+        else
+        {
+            width = displaySize.x;
+            height = Mathf.RoundToInt(width / targetAspect);
+        }
+
+        return new Vector2Int(Mathf.Max(1, width), Mathf.Max(1, height));
+    }
+
+    private static Vector2Int GetActiveDisplaySize()
+    {
+        DisplayInfo displayInfo = Screen.mainWindowDisplayInfo;
+        if (displayInfo.width > 0 && displayInfo.height > 0)
+        {
+            return new Vector2Int(displayInfo.width, displayInfo.height);
+        }
+
+        Resolution currentResolution = Screen.currentResolution;
+        if (currentResolution.width > 0 && currentResolution.height > 0)
+        {
+            return new Vector2Int(currentResolution.width, currentResolution.height);
+        }
+
+        if (Display.main != null && Display.main.systemWidth > 0 && Display.main.systemHeight > 0)
+        {
+            return new Vector2Int(Display.main.systemWidth, Display.main.systemHeight);
+        }
+
+        return new Vector2Int(Screen.width, Screen.height);
     }
 
 

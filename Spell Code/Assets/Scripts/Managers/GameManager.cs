@@ -539,11 +539,11 @@ public class GameManager : MonoBehaviour
         {
             return true;
         }
-
+        //|| tempUI.codeModePromptMenuOpened[localPlayerIndex]
         return tempUI.soloGamemodesMenuOpened
             || tempUI.multiplayerGamemodesMenuOpened
             || tempUI.tutorialPromptMenuOpened
-            || tempUI.codeModePromptMenuOpened[tempUI.ResolveGamemodesMenuPlayerIndex()];
+            ;
     }
 
     private void EditorOnlyDebugHotkeys()

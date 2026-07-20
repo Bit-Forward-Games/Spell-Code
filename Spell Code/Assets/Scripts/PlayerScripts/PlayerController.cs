@@ -1073,7 +1073,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()])
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1144,7 +1144,7 @@ public class PlayerController : MonoBehaviour
             tapJumpPrimed = true;
         }
 
-        if (pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()])
+        if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
         {
             return;
         }

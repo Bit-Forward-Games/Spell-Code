@@ -98,6 +98,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public GameObject[] codeModePromptMenu;
     public bool[] codeModePromptMenuOpened;
 
+    [System.Serializable]
+    public class PlayerCodeMode
+    {
+        public ButtonSelectHandler[] codeModes;
+    }
+ 
+    public PlayerCodeMode[] playerCodeMode = new PlayerCodeMode[4];
+
     public Pause pause;
 
     private int gamemodesMenuPlayerIndex = -1;
@@ -205,6 +213,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = true;
             codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(true);
 
+            playerCodeMode[playerIndex].codeModes[0].codeModeSelected = true;
+            playerCodeMode[playerIndex].codeModes[1].codeModeSelected = false;
+
             Sequence mySequence = DOTween.Sequence();
             Transform screenTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen");
             RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
@@ -251,6 +262,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    // public void NavigateCodeNodeMenu()
+    // {
+    //     if (gamemodesMenuPlayerIndex < 0)
+    //     {
+    //         gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+    //     }
+    // }
+
     public void SetMultiplayerMenuActive(bool setOpen)
     {
         if (setOpen)
@@ -283,7 +302,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
-        codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
+        // codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
 
         if (soloGamemodesMenu != null)
         {
@@ -305,13 +324,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         Time.timeScale = 1f;
     }
 
-    public void CloseCodeModeMenuPrompt()
+    public void CloseCodeModeMenuPrompt(int playerIndex)
     {
-        codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
+        codeModePromptMenuOpened[playerIndex] = false;
         if (codeModePromptMenu != null)
         {
-            codeModePromptMenu[ResolveGamemodesMenuPlayerIndex()].SetActive(false);
-            Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + ResolveGamemodesMenuPlayerIndex());
+            codeModePromptMenu[playerIndex].SetActive(false);
+            Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + playerIndex);
         }
         gamemodesMenuPlayerIndex = -1;
         pause?.RestoreScopedUiInputDevices();
@@ -323,6 +342,18 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         UpdateUIBarVals();
         RefreshFindingMatchText();
+
+        // if ()
+        // if (GameManager.Instance.players[gameManager.Instance.players].input.Direction == 4)
+        //     {
+        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = true;
+        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = false;
+        //     }
+        //     else if (GameManager.Instance.players[codeModeIndex].input.Direction == 6)
+        //     {
+        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = false;
+        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = true;
+        //     }
 
         Scene currentScene = SceneManager.GetActiveScene();
 

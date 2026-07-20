@@ -14,6 +14,9 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     private Transform forwardArrowChildTransform;
     private TextMeshProUGUI arrowText;
     private TextMeshProUGUI forwardArrowText;
+
+    public bool codeModeSelected;
+    public int codeModeIndex;
     
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
@@ -89,27 +92,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
                 pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
                 transform.parent.gameObject.GetComponent<Image>().enabled = false;
-            } 
-
-            if (name.Contains("Code Mode"))
-            {
-                Image codeModeImage = GetComponent<Image>();
-                codeModeImage.fillAmount = 0f;
-                DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 1f, 0.35f)
-                .SetEase(Ease.OutQuad);
-
-                Transform textImageTransform = transform.Find("Text Image");
-                if (textImageTransform!= null)
-                {
-                    textImageTransform.gameObject.SetActive(true);
-                    RectTransform textImageRectTransform = textImageTransform.gameObject.GetComponent<RectTransform>();
-                    textImageRectTransform.localScale = new Vector3(0f, textImageRectTransform.localScale.y, textImageRectTransform.localScale.z);
-                    textImageRectTransform
-                    .DOScaleX(1f, 0.35f)
-                    .SetEase(Ease.OutQuad)
-                    .SetUpdate(true);
-                }
-            } 
+            }
         }
     }
 
@@ -192,9 +175,47 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         }
     }
 
+    void SelectCodeMode()
+    {
+        if (name.Contains("Code Mode"))
+        {
+            if (codeModeSelected)
+            {
+                gameObject.SetActive(true);
+                Image codeModeImage = GetComponent<Image>();
+                codeModeImage.fillAmount = 0f;
+                DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 1f, 0.35f)
+                .SetEase(Ease.OutQuad);
+
+                Transform textImageTransform = transform.Find("Text Image");
+                if (textImageTransform!= null)
+                {
+                    textImageTransform.gameObject.SetActive(true);
+                    RectTransform textImageRectTransform = textImageTransform.gameObject.GetComponent<RectTransform>();
+                    textImageRectTransform.localScale = new Vector3(0f, textImageRectTransform.localScale.y, textImageRectTransform.localScale.z);
+                    textImageRectTransform
+                    .DOScaleX(1f, 0.35f)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+                }
+            }
+            else if (!codeModeSelected)
+            {
+                gameObject.SetActive(false);
+                Transform textImageTransform = transform.Find("Text Image");
+                if (textImageTransform!= null) 
+                {
+                    textImageTransform.gameObject.SetActive(false);
+                }
+            }
+        } 
+    }
+
     void Start()
     {
         pause = Object.FindAnyObjectByType<Pause>();
+
+        SelectCodeMode();
     }
 
     float navCooldown;
@@ -244,19 +265,26 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pause.resolutionIndex = DisplayOptionsCycle(pause.resolutions, pause.resolutionIndex);
                 pause.resolutionOptionString.text = pause.resolutions[pause.resolutionIndex];
             }
-
-            if (name.Contains("Code Mode") && pause.WasPausePlayerSubmitPressedThisFrame())
+        }
+//&& pause.WasPausePlayerSubmitPressedThisFrame()
+        if (name.Contains("Code Mode"))
+        {
+            if (GameManager.Instance.players[codeModeIndex].input.ButtonStates[1] == ButtonState.Pressed)
             {
-                pause.uiScript.codeModePromptMenuOpened[pause.uiScript.ResolveGamemodesMenuPlayerIndex()] = false;
+                pause.uiScript.codeModePromptMenuOpened[codeModeIndex] = false;
                 if (pause.uiScript.codeModePromptMenu != null)
                 {
-                    pause.uiScript.codeModePromptMenu[pause.uiScript.ResolveGamemodesMenuPlayerIndex()].SetActive(false);
-                    Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + pause.uiScript.ResolveGamemodesMenuPlayerIndex());
+                    pause.uiScript.codeModePromptMenu[codeModeIndex].SetActive(false);
+                    Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + codeModeIndex);
                 }
                 pause?.RestoreScopedUiInputDevices();
                 Time.timeScale = 1f;
-            } 
+            }
+
+            
         }
+
+         if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex] && name.Contains("Code Mode")) SelectCodeMode();
     }
 
     int DisplayOptionsCycle(List<string> optionsList, int currentIndex)

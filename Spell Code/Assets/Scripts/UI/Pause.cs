@@ -143,7 +143,8 @@ public class Pause : MonoBehaviour
     public int displayIndex;
     public TextMeshProUGUI resolutionOptionString;
     public TextMeshProUGUI displayOptionString;
- 
+    
+    [System.Serializable]
     public class Column
     {
         public SpellData[] spells;
@@ -327,7 +328,11 @@ public class Pause : MonoBehaviour
             RevertTextColorToWhite();
         }
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened && !uiScript.multiplayerGamemodesMenuOpened && !uiScript.codeModePromptMenuOpened[uiScript.ResolveGamemodesMenuPlayerIndex()]) 
+        bool anyCodeModeMenuOpen = System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
+
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened 
+            && !uiScript.multiplayerGamemodesMenuOpened 
+            && !anyCodeModeMenuOpen) 
         {
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
@@ -1237,7 +1242,11 @@ public class Pause : MonoBehaviour
     {
         if (!paused)
         {
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened))
+            bool anyCodeModeMenuOpen = uiScript != null
+                && uiScript.codeModePromptMenuOpened != null
+                && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
+
+            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || anyCodeModeMenuOpen))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;
@@ -1374,10 +1383,10 @@ public class Pause : MonoBehaviour
 
     public Vector2 GetPausePlayerNavigation()
     {
-        if (!paused)
-        {
-            return Vector2.zero;
-        }
+        // if (!paused && !uiScript.codeModePromptMenuOpened[uiScript.ResolveGamemodesMenuPlayerIndex()])
+        // {
+        //     return Vector2.zero;
+        // }
 
         Vector2 nav = Vector2.zero;
 

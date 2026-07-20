@@ -436,7 +436,7 @@ public class OnboardManager : MonoBehaviour
                 if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
                 {
                     p1_castGraphic.sprite = inputGraphic;
-                    p1_castTxt.text = "Input";
+                    p1_castTxt.text = "Input Code";
                 }
                 else
                 {
@@ -550,7 +550,7 @@ public class OnboardManager : MonoBehaviour
                 if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
                 {
                     p2_castGraphic.sprite = inputGraphic;
-                    p2_castTxt.text = "Input";
+                    p2_castTxt.text = "Input Code";
                 }
                 else
                 {
@@ -666,7 +666,7 @@ public class OnboardManager : MonoBehaviour
                 if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
                 {
                     p3_castGraphic.sprite = inputGraphic;
-                    p3_castTxt.text = "Input";
+                    p3_castTxt.text = "Input Code";
                 }
                 else
                 {
@@ -780,7 +780,7 @@ public class OnboardManager : MonoBehaviour
                 if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
                 {
                     p4_castGraphic.sprite = inputGraphic;
-                    p4_castTxt.text = "Input";
+                    p4_castTxt.text = "Input Code";
                 }
                 else
                 {

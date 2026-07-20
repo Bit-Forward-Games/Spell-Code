@@ -236,14 +236,26 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
             if (name.Contains("Display Mode"))
             {
+                int previousDisplayIndex = pause.displayIndex;
                 pause.displayIndex = DisplayOptionsCycle(pause.displayModes, pause.displayIndex);
                 pause.displayOptionString.text = pause.displayModes[pause.displayIndex];
+
+                if (pause.displayIndex != previousDisplayIndex)
+                {
+                    pause.ApplySelectedDisplayMode();
+                }
             }
 
             if (name.Contains("Resolution"))
             {
+                int previousResolutionIndex = pause.resolutionIndex;
                 pause.resolutionIndex = DisplayOptionsCycle(pause.resolutions, pause.resolutionIndex);
                 pause.resolutionOptionString.text = pause.resolutions[pause.resolutionIndex];
+
+                if (pause.resolutionIndex != previousResolutionIndex)
+                {
+                    pause.ApplySelectedResolution();
+                }
             }
         }
     }

@@ -337,6 +337,8 @@ public class Pause : MonoBehaviour
 
     public void ResolutionParser()
     {
+        resolutionList.Clear();
+
         foreach (string res in resolutions)
         {
             // Split on 'x' (case-insensitive, trims whitespace)
@@ -355,6 +357,131 @@ public class Pause : MonoBehaviour
                 Debug.LogWarning($"Couldn't parse resolution string: {res}");
             }
         }
+
+        RefreshResolutionSelection();
+    }
+
+    private void RefreshResolutionSelection()
+    {
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (settingsManager == null || settingsManager.Settings == null || resolutionList.Count == 0)
+        {
+            return;
+        }
+
+        int savedWidth = settingsManager.Settings.resolutionWidth;
+        int savedHeight = settingsManager.Settings.resolutionHeight;
+        int savedIndex = resolutionList.FindIndex(option =>
+            option.Item2.x == savedWidth && option.Item2.y == savedHeight);
+
+        if (savedIndex >= 0)
+        {
+            resolutionIndex = savedIndex;
+        }
+        else
+        {
+            // Keep the menu truthful when a saved/native resolution is not one of the
+            // hand-authored choices (for example, on a 4K display).
+            string savedLabel = $"{savedWidth} x {savedHeight}";
+            resolutions.Add(savedLabel);
+            resolutionList.Add((savedLabel, new Vector2Int(savedWidth, savedHeight)));
+            resolutionIndex = resolutionList.Count - 1;
+        }
+
+        if (resolutionOptionString != null)
+        {
+            resolutionOptionString.text = resolutionList[resolutionIndex].Item1;
+        }
+    }
+
+    public void ApplySelectedResolution()
+    {
+        if (resolutionList.Count == 0)
+        {
+            ResolutionParser();
+        }
+
+        if (resolutionIndex < 0 || resolutionIndex >= resolutionList.Count)
+        {
+            return;
+        }
+
+        (string label, Vector2Int size) = resolutionList[resolutionIndex];
+        if (resolutionOptionString != null)
+        {
+            resolutionOptionString.text = label;
+        }
+
+        SettingsManager.Instance?.SetResolution(size.x, size.y);
+    }
+
+    private void RefreshDisplayModeSelection()
+    {
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (settingsManager == null || settingsManager.Settings == null || displayModes.Count == 0)
+        {
+            return;
+        }
+
+        string savedLabel;
+        switch (settingsManager.Settings.displayMode)
+        {
+            case FullScreenMode.ExclusiveFullScreen:
+                savedLabel = "Fullscreen";
+                break;
+            case FullScreenMode.FullScreenWindow:
+                savedLabel = "Borderless";
+                break;
+            default:
+                savedLabel = "Windowed";
+                break;
+        }
+
+        int savedIndex = displayModes.FindIndex(label =>
+            string.Equals(label, savedLabel, System.StringComparison.OrdinalIgnoreCase));
+        if (savedIndex >= 0)
+        {
+            displayIndex = savedIndex;
+        }
+
+        if (displayOptionString != null)
+        {
+            displayOptionString.text = displayModes[displayIndex];
+        }
+    }
+
+    public void ApplySelectedDisplayMode()
+    {
+        if (displayIndex < 0 || displayIndex >= displayModes.Count)
+        {
+            return;
+        }
+
+        string selectedLabel = displayModes[displayIndex];
+        FullScreenMode selectedMode;
+        switch (selectedLabel.Trim().ToLowerInvariant())
+        {
+            case "fullscreen":
+                selectedMode = FullScreenMode.ExclusiveFullScreen;
+                break;
+            case "borderless":
+            case "borderless windowed":
+                selectedMode = FullScreenMode.FullScreenWindow;
+                break;
+            case "windowed":
+                selectedMode = FullScreenMode.Windowed;
+                break;
+            default:
+                Debug.LogWarning($"Unknown display mode option: {selectedLabel}");
+                return;
+        }
+
+        if (displayOptionString != null)
+        {
+            displayOptionString.text = selectedLabel;
+        }
+
+        SettingsManager.Instance?.SetDisplayMode(selectedMode);
     }
  
     private void SpellGlossaryNavigation()
@@ -620,7 +747,6 @@ public class Pause : MonoBehaviour
 
         settingsManager.SetDynamicCamera(dynamicCameraOverride);
         settingsManager.SetScreenshake(screenShake);
-        settingsManager.SetFullscreen(true);
         if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
@@ -631,7 +757,6 @@ public class Pause : MonoBehaviour
             settingsManager.SetDynamicCamera(dynamicCameraOverride);
         }
         settingsManager.SetScreenshake(screenShake);
-        settingsManager.SetFullscreen(true);
         if (masterVolumeSlider != null) settingsManager.SetMasterVolume(masterVolumeSlider.value);
         if (musicVolumeSlider != null) settingsManager.SetMusicVolume(musicVolumeSlider.value);
         if (sfxVolumeSlider != null) settingsManager.SetSfxVolume(sfxVolumeSlider.value);
@@ -769,6 +894,9 @@ public class Pause : MonoBehaviour
 
     public void Display()
     {
+        RefreshResolutionSelection();
+        RefreshDisplayModeSelection();
+
         RectTransform displayMenuTransform = displayMenu.GetComponent<RectTransform>();
 
         displayMenuTransform.anchoredPosition  = new Vector2(displayMenuTransform.anchoredPosition.x, 2500f);
@@ -784,13 +912,16 @@ public class Pause : MonoBehaviour
         controlsMenu.SetActive(false);
         displayMenu.SetActive(true);
 
-        displayOptionString.text = displayModes[displayIndex];
+        if (displayOptionString != null)
+        {
+            displayOptionString.text = displayModes[displayIndex];
+        }
         // resolutionIndex indexes the resolutions list, not the 3-entry displayModes list —
         // indexing displayModes with it threw ArgumentOutOfRange when opening this menu
         // (reachable mid-match) on any resolutionIndex >= 3.
-        if (resolutionIndex >= 0 && resolutionIndex < resolutions.Count)
+        if (resolutionIndex >= 0 && resolutionIndex < resolutionList.Count)
         {
-            resolutionOptionString.text = resolutions[resolutionIndex];
+            resolutionOptionString.text = resolutionList[resolutionIndex].Item1;
         }
  
         StartCoroutine(SelectFirst(_displayMenuFirst));

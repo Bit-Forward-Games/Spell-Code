@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 [Serializable]
 public class GameSettingsData
 {
-    public int version = 1;
+    public int version = 2;
 
     public bool firstLaunchComplete = false;
 
@@ -17,6 +17,7 @@ public class GameSettingsData
     public float sfxVolume = 1f;
 
     public bool fullscreen = true;
+    public FullScreenMode displayMode = FullScreenMode.ExclusiveFullScreen;
     public int resolutionWidth = 1920;
     public int resolutionHeight = 1080;
     public bool dynamicCamera = true;
@@ -131,18 +132,25 @@ public class SettingsManager : MonoBehaviour
 
     public void SetFullscreen(bool fullscreen)
     {
-        Settings.fullscreen = fullscreen;
+        SetDisplayMode(fullscreen ? FullScreenMode.ExclusiveFullScreen : FullScreenMode.Windowed);
+    }
+
+    public void SetDisplayMode(FullScreenMode displayMode)
+    {
+        Settings.displayMode = NormalizeDisplayMode(displayMode);
+        // Retain this legacy field so version-1 settings and any older callers remain compatible.
+        Settings.fullscreen = Settings.displayMode != FullScreenMode.Windowed;
         ApplyDisplaySettings();
         Save();
     }
 
-    // public void SetResolution(int width, int height)
-    // {
-    //     Settings.resolutionWidth = Mathf.Max(1, width);
-    //     Settings.resolutionHeight = Mathf.Max(1, height);
-    //     ApplyDisplaySettings();
-    //     Save();
-    // }
+    public void SetResolution(int width, int height)
+    {
+        Settings.resolutionWidth = Mathf.Max(1, width);
+        Settings.resolutionHeight = Mathf.Max(1, height);
+        ApplyDisplaySettings();
+        Save();
+    }
 
 
 
@@ -174,7 +182,7 @@ public class SettingsManager : MonoBehaviour
         Screen.SetResolution(
             Mathf.Max(1, Settings.resolutionWidth),
             Mathf.Max(1, Settings.resolutionHeight),
-            Settings.fullscreen
+            NormalizeDisplayMode(Settings.displayMode)
         );
     }
 
@@ -316,6 +324,16 @@ public class SettingsManager : MonoBehaviour
         {
             Settings = CreateDefaultSettings();
             Save();
+            return;
+        }
+
+        if (Settings.version < 2)
+        {
+            Settings.displayMode = Settings.fullscreen
+                ? FullScreenMode.ExclusiveFullScreen
+                : FullScreenMode.Windowed;
+            Settings.version = 2;
+            Save();
         }
     }
 
@@ -358,13 +376,28 @@ public class SettingsManager : MonoBehaviour
     private GameSettingsData CreateDefaultSettings()
     {
         Resolution resolution = Screen.currentResolution;
+        FullScreenMode displayMode = NormalizeDisplayMode(Screen.fullScreenMode);
 
         return new GameSettingsData
         {
             resolutionWidth = Mathf.Max(1, resolution.width),
             resolutionHeight = Mathf.Max(1, resolution.height),
-            fullscreen = Screen.fullScreen,
+            fullscreen = displayMode != FullScreenMode.Windowed,
+            displayMode = displayMode,
         };
+    }
+
+    private static FullScreenMode NormalizeDisplayMode(FullScreenMode displayMode)
+    {
+        switch (displayMode)
+        {
+            case FullScreenMode.ExclusiveFullScreen:
+            case FullScreenMode.FullScreenWindow:
+            case FullScreenMode.Windowed:
+                return displayMode;
+            default:
+                return FullScreenMode.FullScreenWindow;
+        }
     }
 
     private ControlOptionsSessionData CreateDefaultControlOptions()

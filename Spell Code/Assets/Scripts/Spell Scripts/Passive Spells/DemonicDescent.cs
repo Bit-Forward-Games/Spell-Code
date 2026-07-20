@@ -15,7 +15,7 @@ public class DemonicDescent : SpellData
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate};
         brands = new Brand[1] { Brand.DemonX };
         projectilePrefabs = new GameObject[1];
-        description = "While at 100% Demon Aura <sprite name=\"DemonAura\">, you gain mobility, and you gain a damaging aura.\n";
+        description = "While Demon Aura <sprite name=\"DemonAura\"> is X rank, you gain mobility, and you gain a damaging aura.\n";
         spawnOffsetX = 0;
         spawnOffsetY = 36;
     }

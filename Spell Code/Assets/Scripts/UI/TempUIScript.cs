@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using DG.Tweening;
+using System;
 
 public class TempUIScript : MonoBehaviour, ISelectHandler
 {
@@ -29,7 +30,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI[] stockStabilityVals;
     public Image[] stockStabilityIcons;
     public Image[] stockStabilityDim;
-    public Image[] demonAuraVals;
+    public TextMeshProUGUI[] demonAuraVals;
+    [NonSerialized] public string[] demonAuraGradeVals ={"F", "D", "C", "B", "A", "X"};
+    public Image[] demonAuraIcons;
     public Image[] demonAuraDim;
     public TextMeshProUGUI[] repsVals;
     public Image[] repsIcons;
@@ -170,7 +173,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             if(arenaNameDisplayHandler != null)
             {
-                arenaNameDisplayHandler.DisplayArenaName(2.5f);
+                arenaNameDisplayHandler.WaitAndDisplay(2.0f, 2.5f);
             }
         }
         else if (scene.name == "Shop")
@@ -648,6 +651,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (i < stockStabilityIcons.Length && stockStabilityIcons[i] != null) stockStabilityIcons[i].enabled = false;
                 if (i < stockStabilityDim.Length && stockStabilityDim[i] != null) stockStabilityDim[i].enabled = false;
                 if (i < demonAuraVals.Length && demonAuraVals[i] != null) demonAuraVals[i].enabled = false;
+                if (i < demonAuraIcons.Length && demonAuraIcons[i] != null) demonAuraIcons[i].enabled = false;
                 if (i < demonAuraDim.Length && demonAuraDim[i] != null) demonAuraDim[i].enabled = false;
                 if (i < repsVals.Length && repsVals[i] != null) repsVals[i].enabled = false;
                 if (i < repsIcons.Length && repsIcons[i] != null) repsIcons[i].enabled = false;
@@ -711,6 +715,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             stockStabilityVals[i].enabled = false;
             stockStabilityIcons[i].enabled = false;
             demonAuraVals[i].enabled = false;
+            demonAuraIcons[i].enabled = false;
             repsVals[i].enabled = false;
             repsIcons[i].enabled = false;
 
@@ -738,6 +743,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (spell.brands.Contains(Brand.DemonX))
                 {
                     demonAuraVals[i].enabled = true;
+                    demonAuraIcons[i].enabled = true;
                     demonAuraDim[i].enabled = true;
                 }
                 if (spell.brands.Contains(Brand.Killeez))
@@ -757,7 +763,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             stockStabilityVals[i].text = GameManager.Instance.players[i].stockStabilityModified.ToString() + "%";
 
             // demonAuraVals[i].enabled = true;
-            demonAuraVals[i].fillAmount = (float)GameManager.Instance.players[i].demonAura / PlayerController.maxDemonAura;
+            demonAuraIcons[i].fillAmount = (float)GameManager.Instance.players[i].demonAuraLifeSpanTimer / DemonAura.DemonAuraResetTime;
+            demonAuraVals[i].text = demonAuraGradeVals[Mathf.CeilToInt(GameManager.Instance.players[i].demonAura/20)];
 
             // repsVals[i].enabled = true;
             // repsIcons[i].enabled = true;

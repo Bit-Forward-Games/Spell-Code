@@ -543,6 +543,10 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 087eda904068c374c95c8be40ba2e634, type: 3}
   - {fileID: 8300000, guid: 98cf0bd552eabee49bf022b374b2fa6a, type: 3}
   - {fileID: 8300000, guid: fd93dcf376873af4baf712fde47cfadb, type: 3}
+  - {fileID: 8300000, guid: fd053f0d6f310984d8df37a959f74be9, type: 3}
+  - {fileID: 8300000, guid: 0a6a5ad147bf5aa4fb9b5d44c54aa27b, type: 3}
+  - {fileID: 8300000, guid: 6526e8c007bd399459a1ead908ee3fbc, type: 3}
+  - {fileID: 8300000, guid: dd66d8cea360a4a4cb87c0fb8f43427a, type: 3}
   menuAudioClips:
   - {fileID: 8300000, guid: b800095153aedac4f80b5be7e465a5e0, type: 3}
   - {fileID: 8300000, guid: 1176057e31493644ba8aa253359aa2de, type: 3}

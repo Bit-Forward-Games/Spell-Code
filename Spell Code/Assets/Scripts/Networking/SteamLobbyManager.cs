@@ -33,6 +33,8 @@ public class SteamLobbyManager : MonoBehaviour
     private Result lastLobbyCreateResult = Result.None;
     private Lobby? lastLobbyCreated;
     private uint hostFlowVersion;
+    private SteamId? activeHostedLobbyId;
+    private bool startingHostedMatch;
     private bool startedCurrentLobbyMatch;
     private string currentMatchStartToken = string.Empty;
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
@@ -45,6 +47,9 @@ public class SteamLobbyManager : MonoBehaviour
     // survive it; the rebuilt SteamLobbyManager consumes them in TryResumePendingOnlineJoin.
     private static SteamId? pendingJoinLobbyId;
     private static SteamId? pendingJoinInviterId;
+    // True from the moment the player accepts a Steam lobby invite until GameManager has actually
+    // started that online match. Static so the status survives a deferred MainMenu rebuild.
+    private static bool joiningMatchRequested;
     private static bool launchConnectChecked;
 
     // A host+invite requested outside MainMenu (e.g. the solo lobby's online door) is deferred
@@ -71,6 +76,19 @@ public class SteamLobbyManager : MonoBehaviour
 
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
+    public bool IsJoiningMatch => joiningMatchRequested;
+    // Latched by the validated member-joined callback for a lobby this client actually created.
+    // The live member-count gate lets Quick Match return to "finding" if that guest leaves pre-start.
+    public bool IsStartingMatch =>
+        startingHostedMatch
+        && !isShuttingDown
+        && SteamClient.IsValid
+        && activeHostedLobbyId.HasValue
+        && currentLobby.HasValue
+        && currentLobby.Value.Id == activeHostedLobbyId.Value
+        && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId)
+        && currentLobby.Value.MemberCount >= MinimumOnlineLobbyStartSize
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
 
     // True while a Quick Match search is in flight: either DEFERRED (Find Match was pressed outside
     // MainMenu and we're transitioning there) or actively querying / hosting / waiting for opponents.
@@ -79,6 +97,7 @@ public class SteamLobbyManager : MonoBehaviour
     // match" label would ride the persistent HUD into Gameplay.
     public bool IsSearchingForMatch =>
         (pendingMatchmakingRequested || isMatchmaking)
+        && !IsStartingMatch
         && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
 
     // Size (2-4) of the in-flight Quick Match search. Only meaningful while IsSearchingForMatch.
@@ -300,6 +319,8 @@ public class SteamLobbyManager : MonoBehaviour
             }
 
             currentLobby = lobby.Value;
+            activeHostedLobbyId = currentLobby.Value.Id;
+            startingHostedMatch = false;
             currentLobby.Value.SetFriendsOnly();
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
@@ -330,6 +351,15 @@ public class SteamLobbyManager : MonoBehaviour
     // flow (at MinimumOnlineLobbyStartSize, then drop-in fills up to the bucket) -- same as invites.
     public void FindMatch(int desiredSize)
     {
+        if (joiningMatchRequested)
+        {
+            if (debugLogs)
+            {
+                Debug.Log("[SteamLobbyManager] Quick Match ignored; an invite join is already in progress.");
+            }
+            return;
+        }
+
         int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
         matchmakingSearchSize = clamped;
 
@@ -458,6 +488,8 @@ public class SteamLobbyManager : MonoBehaviour
             }
 
             currentLobby = lobby.Value;
+            activeHostedLobbyId = currentLobby.Value.Id;
+            startingHostedMatch = false;
             currentLobby.Value.SetPublic();        // searchable by other matchmakers (vs SetFriendsOnly)
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData(MatchmakingKey, "1");
@@ -483,6 +515,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     public void LeaveLobby()
     {
+        joiningMatchRequested = false;
         LeaveLobbyInternal();
     }
 
@@ -502,6 +535,8 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         isHostingFlow = false;
+        activeHostedLobbyId = null;
+        startingHostedMatch = false;
         startedCurrentLobbyMatch = false;
         currentMatchStartToken = string.Empty;
         activeMatchPeerIds.Clear();
@@ -531,6 +566,7 @@ public class SteamLobbyManager : MonoBehaviour
                 {
                     pendingJoinLobbyId = new SteamId { Value = lobbyRaw };
                     pendingJoinInviterId = null;
+                    joiningMatchRequested = true;
                     Debug.Log($"[SteamLobbyManager] Launched from a Steam invite (+connect_lobby {lobbyRaw}). Queued join for when MainMenu and Steam are ready.");
                     return;
                 }
@@ -549,6 +585,17 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        joiningMatchRequested = true;
+        // Cancel any lobby creation/query that was already in flight before this invite arrived.
+        // Its completion checks hostFlowVersion/isMatchmaking and must not overwrite the joined lobby.
+        hostFlowVersion++;
+        isHostingFlow = false;
+        activeHostedLobbyId = null;
+        startingHostedMatch = false;
+        isMatchmaking = false;
+        pendingMatchmakingRequested = false;
+        pendingHostInviteRequested = false;
+
         // The mode selectors freeze the game and scope UI input to the player who opened them.
         // Dismiss either selector synchronously before joining or beginning a deferred scene
         // transition. The helper ignores a normal pause menu, whose existing online-start cleanup
@@ -566,16 +613,26 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        JoinRequestedLobbyAsync(lobby.Id, friendId);
+        JoinRequestedLobbyAsync(lobby.Id, friendId, true);
     }
 
     // Joins a requested lobby and kicks off the online match handshake. Split out from the invite
     // callback so a join deferred across a MainMenu transition can resume through the same path.
-    private async void JoinRequestedLobbyAsync(SteamId lobbyId, SteamId inviterId)
+    private async void JoinRequestedLobbyAsync(SteamId lobbyId, SteamId inviterId, bool showJoiningStatus = false)
     {
         if (isShuttingDown || !SteamClient.IsValid)
         {
+            if (showJoiningStatus)
+            {
+                joiningMatchRequested = false;
+            }
             return;
+        }
+
+        if (showJoiningStatus)
+        {
+            joiningMatchRequested = true;
+            isMatchmaking = false;
         }
 
         // Accepting an invite supersedes any queued host+invite or matchmaking intent; without this,
@@ -610,10 +667,18 @@ public class SteamLobbyManager : MonoBehaviour
 
                 TryStartOnlineMatchFromLobby(joined.Value);
             }
+            else if (showJoiningStatus)
+            {
+                joiningMatchRequested = false;
+            }
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to join lobby: {e.Message}");
+            if (showJoiningStatus)
+            {
+                joiningMatchRequested = false;
+            }
         }
     }
 
@@ -656,7 +721,16 @@ public class SteamLobbyManager : MonoBehaviour
         {
             GameManager.Instance.MainMenuScreen.SetActive(false);
         }
-        JoinRequestedLobbyAsync(lobbyId, inviterId);
+        JoinRequestedLobbyAsync(lobbyId, inviterId, true);
+    }
+
+    // Called only after GameManager has completed StartOnlineMatch and set isOnlineMatchActive.
+    // This also covers late/drop-in joins that start from a lobby snapshot rather than the normal
+    // TryStartOnlineMatchFromLobby path.
+    public void NotifyOnlineMatchStarted()
+    {
+        joiningMatchRequested = false;
+        startingHostedMatch = false;
     }
 
     // Transition to MainMenu for a deferred online entry while preserving the live GameManager.
@@ -785,6 +859,13 @@ public class SteamLobbyManager : MonoBehaviour
         if (debugLogs)
         {
             Debug.Log($"[SteamLobbyManager] Lobby member joined. Member={friend.Id.Value} LobbyId={lobby.Id.Value}");
+        }
+
+        if (activeHostedLobbyId.HasValue
+            && lobby.Id == activeHostedLobbyId.Value
+            && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
+        {
+            startingHostedMatch = true;
         }
 
         EnsureSlotAssignedForMember(lobby, friend.Id);

@@ -4879,6 +4879,17 @@ public class GameManager : MonoBehaviour
     {
         if (tempUI != null)
         {
+            // Close BEFORE deactivating. An online match keeps simulating at timeScale 1 with the
+            // local pause menu open, so it can reach the End screen while paused — and the menu
+            // panels live under pfb_GameManager/Pause, NOT under TempUI, so deactivating TempUI
+            // only kills Pause.Update() (the sole way to close the menu) and strands the panels
+            // on screen. See Pause.CanOpenPauseMenu, which blocks opening one here in the first place.
+            Pause pauseMenu = tempUI.gameObject.GetComponent<Pause>();
+            if (pauseMenu != null && pauseMenu.paused)
+            {
+                pauseMenu.Resume();
+            }
+
             tempUI.gameObject.SetActive(false);
         }
 

@@ -1419,6 +1419,16 @@ public class Pause : MonoBehaviour
         return manager != null && manager.isOnlineMatchActive;
     }
 
+    // The End screen has no pause menu. GameManager.HidePersistentUiForEndScene deactivates the
+    // TempUI object THIS component lives on, so Update() stops running there — but pausemenu /
+    // darkPanel / the submenus live outside TempUI (pfb_GameManager/Pause/...), so they would
+    // still draw with no handler left to close them. Callers gate opening on this; Resume() is
+    // never gated, so a menu already open when the scene changes can still be closed.
+    public bool CanOpenPauseMenu()
+    {
+        return SceneManager.GetActiveScene().name != "End";
+    }
+
     private void ScopeUiInputToPausePlayer()
     {
         if (!paused)

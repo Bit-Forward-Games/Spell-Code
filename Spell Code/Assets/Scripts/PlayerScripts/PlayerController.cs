@@ -1103,7 +1103,7 @@ public class PlayerController : MonoBehaviour
                         {
                             pause.Resume();
                         }
-                        else
+                        else if (pause.CanOpenPauseMenu())
                         {
                             pause.Pausing();
                         }
@@ -2003,7 +2003,7 @@ public class PlayerController : MonoBehaviour
         {
             pause.Resume();
         }
-        else
+        else if (pause.CanOpenPauseMenu())
         {
             pause.Pausing();
         }

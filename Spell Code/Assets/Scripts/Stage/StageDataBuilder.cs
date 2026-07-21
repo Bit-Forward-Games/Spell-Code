@@ -165,7 +165,7 @@ public class StageDataBuilder : MonoBehaviour
                 {
                     //set borders to defualt small size
                     stageDataSO.borderMin = new Vector3(-300f, -200f, 0f);
-                    stageDataSO.borderMax = new Vector3(300, 300, 0f);
+                    stageDataSO.borderMax = new Vector3(300, 200, 0f);
                 }
 
                 //break

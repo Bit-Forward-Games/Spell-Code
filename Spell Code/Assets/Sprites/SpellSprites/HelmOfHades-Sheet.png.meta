@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 4ffe28c8c72ad964e83f7be10320a775
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 9045719565908372648
+    second: HelmOfHades-Sheet_0
+  - first:
+      213: -7609517430328753768
+    second: HelmOfHades-Sheet_1
+  - first:
+      213: 6433253673291900601
+    second: HelmOfHades-Sheet_2
+  - first:
+      213: -3126745660193257160
+    second: HelmOfHades-Sheet_3
+  - first:
+      213: -8737413017508793496
+    second: HelmOfHades-Sheet_4
+  - first:
+      213: 4029146051624526824
+    second: HelmOfHades-Sheet_5
+  - first:
+      213: -7980510812664829312
+    second: HelmOfHades-Sheet_6
+  - first:
+      213: -3614620848279718458
+    second: HelmOfHades-Sheet_7
+  - first:
+      213: 1634603095466708438
+    second: HelmOfHades-Sheet_8
+  - first:
+      213: 4126912560191830102
+    second: HelmOfHades-Sheet_9
+  - first:
+      213: 3415513900191989851
+    second: HelmOfHades-Sheet_10
+  - first:
+      213: -4497291619790606785
+    second: HelmOfHades-Sheet_11
+  - first:
+      213: 520527965530553064
+    second: HelmOfHades-Sheet_12
+  - first:
+      213: 5274386573870554895
+    second: HelmOfHades-Sheet_13
+  - first:
+      213: -644721678020950627
+    second: HelmOfHades-Sheet_14
+  - first:
+      213: -7397676694153922843
+    second: HelmOfHades-Sheet_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 129
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ace4c7d40ad88d70800000000000000
+      internalID: 9045719565908372648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 129
+        width: 124
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8918c1dc630956690800000000000000
+      internalID: -7609517430328753768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 129
+        width: 123
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b66a8a8122874950800000000000000
+      internalID: 6433253673291900601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 129
+        width: 125
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 839cf2563619b94d0800000000000000
+      internalID: -3126745660193257160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 128
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 863b38347297eb680800000000000000
+      internalID: -8737413017508793496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 128
+        width: 121
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e36f339cf66ae730800000000000000
+      internalID: 4029146051624526824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 131
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08ae2fcc2b78f3190800000000000000
+      internalID: -7980510812664829312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 896
+        y: 128
+        width: 121
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c5f0945d7946ddc0800000000000000
+      internalID: -3614620848279718458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 1
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dd0c06dad64fa610800000000000000
+      internalID: 1634603095466708438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 1
+        width: 124
+        height: 123
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 658f451bb1db54930800000000000000
+      internalID: 4126912560191830102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 1
+        width: 123
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b504a5acbc7566f20800000000000000
+      internalID: 3415513900191989851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 1
+        width: 125
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3e2a0779196691c0800000000000000
+      internalID: -4497291619790606785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 0
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eafa114d69493700800000000000000
+      internalID: 520527965530553064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 0
+        width: 121
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0fd4afd4a2623940800000000000000
+      internalID: 5274386573870554895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 3
+        width: 121
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d95419abc0d7d07f0800000000000000
+      internalID: -644721678020950627
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HelmOfHades-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 896
+        y: 0
+        width: 121
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e6f4c1cd3c265990800000000000000
+      internalID: -7397676694153922843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      HelmOfHades-Sheet_0: 9045719565908372648
+      HelmOfHades-Sheet_1: -7609517430328753768
+      HelmOfHades-Sheet_10: 3415513900191989851
+      HelmOfHades-Sheet_11: -4497291619790606785
+      HelmOfHades-Sheet_12: 520527965530553064
+      HelmOfHades-Sheet_13: 5274386573870554895
+      HelmOfHades-Sheet_14: -644721678020950627
+      HelmOfHades-Sheet_15: -7397676694153922843
+      HelmOfHades-Sheet_2: 6433253673291900601
+      HelmOfHades-Sheet_3: -3126745660193257160
+      HelmOfHades-Sheet_4: -8737413017508793496
+      HelmOfHades-Sheet_5: 4029146051624526824
+      HelmOfHades-Sheet_6: -7980510812664829312
+      HelmOfHades-Sheet_7: -3614620848279718458
+      HelmOfHades-Sheet_8: 1634603095466708438
+      HelmOfHades-Sheet_9: 4126912560191830102
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

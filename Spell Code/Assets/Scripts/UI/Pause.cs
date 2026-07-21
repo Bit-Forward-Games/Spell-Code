@@ -57,7 +57,7 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
-    public Toggle vibeCodingToggleGraphic;
+    //public Toggle vibeCodingToggleGraphic;
     public Toggle downJumpSlideToggleGraphic;
     public static readonly string[] BannedRebindInputs =
     {
@@ -1729,7 +1729,7 @@ public class Pause : MonoBehaviour
         player.relativeInputs = relativeInputs;
         player.toggleCodeInput = toggleCodeInput;
         player.tapJump = tapJump;
-        player.vibeCoding = vibeCoding;
+        //player.vibeCoding = vibeCoding;
         player.downJumpSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
     }
@@ -2341,7 +2341,7 @@ public class Pause : MonoBehaviour
         if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
         if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
         if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
         if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 
@@ -2370,8 +2370,8 @@ public class Pause : MonoBehaviour
 
     public void ToggleVibeCoding()
     {
-        UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
     }
 
     public void ToggleDownJumpSlide()

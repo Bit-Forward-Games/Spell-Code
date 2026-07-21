@@ -421,7 +421,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <sprite="KeyboardGlyphs" name="Keyboard_escape">
+  m_text: BUTTONPROMPT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -505,7 +505,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  message: BUTTONPROMPT
+  stringToReplace: BUTTONPROMPT
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: -5566551362042807740, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -2447,7 +2447,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <sprite="KeyboardGlyphs" name="Keyboard_escape">
+  m_text: BUTTONPROMPT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2531,7 +2531,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  message: BUTTONPROMPT
+  stringToReplace: BUTTONPROMPT
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -8669,7 +8669,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press <sprite="KeyboardGlyphs" name="Keyboard_escape"> to start
+  m_text: press [START] to start
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b23fb15851996e7429ed18bce5bd6673, type: 2}
   m_sharedMaterial: {fileID: 5423016689655584170, guid: b23fb15851996e7429ed18bce5bd6673, type: 2}
@@ -8753,7 +8753,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  message: Press BUTTONPROMPT to start
+  stringToReplace: '[START]'
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -9138,7 +9138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5733989445637832916
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10983,7 +10983,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: <sprite="KeyboardGlyphs" name="Keyboard_escape">
+  m_text: BUTTONPROMPT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11067,7 +11067,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  message: BUTTONPROMPT
+  stringToReplace: BUTTONPROMPT
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -169636,6 +169636,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1170583045431535994}
     - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: resolutions.Array.size
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: displaySpellDescription
       value: 
       objectReference: {fileID: 9206832887321365427}
@@ -169643,6 +169647,46 @@ PrefabInstance:
       propertyPath: vibeCodingToggleGraphic
       value: 
       objectReference: {fileID: 721258323669801384}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[0]'
+      value: 320 x 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[1]'
+      value: 640 x 360
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[2]'
+      value: 960 x 540
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[3]'
+      value: 1024 x 576
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[4]'
+      value: 1280 x 720
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[5]'
+      value: 1600 x 900
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[6]'
+      value: 1920 x 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[7]'
+      value: 2560 x 1440
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[8]'
+      value: 3840 x 2160
+      objectReference: {fileID: 0}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'resolutions.Array.data[9]'
+      value: 7680 x 4320
+      objectReference: {fileID: 0}
     - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: downJumpSlideToggleGraphic
       value: 
@@ -169735,6 +169779,10 @@ PrefabInstance:
       propertyPath: uiScript
       value: 
       objectReference: {fileID: 6336463642458857690}
+    - target: {fileID: 3639089778293767198, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3639089778293767198, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: 'roundWinsIcons.Array.data[0]'
       value: 
@@ -169952,6 +170000,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 6336463642458857690}
     - target: {fileID: 6304495304327120175, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6304495304327120175, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: 'roundWinsIcons.Array.data[0]'
       value: 
       objectReference: {fileID: 4530704695980163827}
@@ -169975,6 +170027,10 @@ PrefabInstance:
       propertyPath: uiScript
       value: 
       objectReference: {fileID: 6336463642458857690}
+    - target: {fileID: 7933323941138014990, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: spellDisplayIndex
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7933323941138014990, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: 'roundWinsIcons.Array.data[0]'
       value: 
@@ -170275,6 +170331,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &9083017381147262700 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1603109180382011192, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+  m_PrefabInstance: {fileID: 7508133216690987476}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7912680430339403869
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -58,7 +58,21 @@ public class TextSetter : MonoBehaviour
     }
 
     public void SetText(InputAction targetAction)
-    {   
+    {
+        // This is invoked from Pause.OnDisable -> RefreshControlGlyphs during scene teardown
+        // (ExecuteOrder66, HidePersistentUiForEndScene), when the selected player / its input, or even
+        // this label's own refs, can already be gone. A throw here unwinds the entire scene transition,
+        // so the screen-cover never lifts and the player is stranded on a BLACK SCREEN (host invite/join
+        // never completes; return-to-lobby from the end screen dies). Fail safe instead of throwing.
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+        if (_textBox == null || spriteAssets == null || spriteAssets.spriteAssets == null)
+        {
+            return;
+        }
+
         string inputMessage = _textBox.text;
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();

@@ -40,6 +40,8 @@ MonoBehaviour:
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
+  portalAs: []
+  portalBs: []
   borderMin: {x: -350, y: -220, z: 0}
   borderMax: {x: 350, y: 220, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
@@ -47,3 +49,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 2
   dynamicCamera: 1
+  stageName: Birdcage

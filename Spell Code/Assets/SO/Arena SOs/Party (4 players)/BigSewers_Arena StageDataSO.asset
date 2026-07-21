@@ -84,6 +84,8 @@ MonoBehaviour:
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
+  portalAs: []
+  portalBs: []
   borderMin: {x: -582, y: -328, z: 0}
   borderMax: {x: 582, y: 328, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
@@ -91,3 +93,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 2
   dynamicCamera: 1
+  stageName: Sewers

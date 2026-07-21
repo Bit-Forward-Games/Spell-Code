@@ -375,6 +375,11 @@ public class ProjectileManager : MonoBehaviour
 
     public void DeleteProjectile(BaseProjectile targetProjectile)
     {
+        if(targetProjectile.ownerBackup != null)
+        {
+            targetProjectile.owner = targetProjectile.ownerBackup;
+            targetProjectile.ownerBackup = null;
+        }
         targetProjectile.ResetValues();
         targetProjectile.gameObject.SetActive(false);
         //remove from activeProjectiles

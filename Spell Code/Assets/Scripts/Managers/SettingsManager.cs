@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 [Serializable]
 public class GameSettingsData
 {
-    public int version = 1;
+    public int version = 2;
 
     public bool firstLaunchComplete = false;
 
@@ -17,6 +17,7 @@ public class GameSettingsData
     public float sfxVolume = 1f;
 
     public bool fullscreen = true;
+    public FullScreenMode displayMode = FullScreenMode.ExclusiveFullScreen;
     public int resolutionWidth = 1920;
     public int resolutionHeight = 1080;
     public bool dynamicCamera = true;
@@ -131,18 +132,25 @@ public class SettingsManager : MonoBehaviour
 
     public void SetFullscreen(bool fullscreen)
     {
-        Settings.fullscreen = fullscreen;
+        SetDisplayMode(fullscreen ? FullScreenMode.ExclusiveFullScreen : FullScreenMode.Windowed);
+    }
+
+    public void SetDisplayMode(FullScreenMode displayMode)
+    {
+        Settings.displayMode = NormalizeDisplayMode(displayMode);
+        // Retain this legacy field so version-1 settings and any older callers remain compatible.
+        Settings.fullscreen = Settings.displayMode != FullScreenMode.Windowed;
         ApplyDisplaySettings();
         Save();
     }
 
-    // public void SetResolution(int width, int height)
-    // {
-    //     Settings.resolutionWidth = Mathf.Max(1, width);
-    //     Settings.resolutionHeight = Mathf.Max(1, height);
-    //     ApplyDisplaySettings();
-    //     Save();
-    // }
+    public void SetResolution(int width, int height)
+    {
+        Settings.resolutionWidth = Mathf.Max(1, width);
+        Settings.resolutionHeight = Mathf.Max(1, height);
+        ApplyDisplaySettings();
+        Save();
+    }
 
 
 
@@ -171,11 +179,74 @@ public class SettingsManager : MonoBehaviour
 
     public void ApplyDisplaySettings()
     {
+        int width = Mathf.Max(1, Settings.resolutionWidth);
+        int height = Mathf.Max(1, Settings.resolutionHeight);
+        Vector2Int maximumResolution = GetMaximum16By9Resolution();
+
+        if (width > maximumResolution.x || height > maximumResolution.y)
+        {
+            width = maximumResolution.x;
+            height = maximumResolution.y;
+            Settings.resolutionWidth = width;
+            Settings.resolutionHeight = height;
+        }
+
         Screen.SetResolution(
-            Mathf.Max(1, Settings.resolutionWidth),
-            Mathf.Max(1, Settings.resolutionHeight),
-            Settings.fullscreen
+            width,
+            height,
+            NormalizeDisplayMode(Settings.displayMode)
         );
+    }
+
+    public Vector2Int GetMaximum16By9Resolution()
+    {
+        Vector2Int displaySize = GetActiveDisplaySize();
+        if (displaySize.x <= 0 || displaySize.y <= 0)
+        {
+            return new Vector2Int(
+                Mathf.Max(1, Settings?.resolutionWidth ?? Screen.width),
+                Mathf.Max(1, Settings?.resolutionHeight ?? Screen.height));
+        }
+
+        const float targetAspect = 16f / 9f;
+        float displayAspect = (float)displaySize.x / displaySize.y;
+
+        int width;
+        int height;
+        if (displayAspect >= targetAspect)
+        {
+            height = displaySize.y;
+            width = Mathf.RoundToInt(height * targetAspect);
+        }
+        else
+        {
+            width = displaySize.x;
+            height = Mathf.RoundToInt(width / targetAspect);
+        }
+
+        return new Vector2Int(Mathf.Max(1, width), Mathf.Max(1, height));
+    }
+
+    private static Vector2Int GetActiveDisplaySize()
+    {
+        DisplayInfo displayInfo = Screen.mainWindowDisplayInfo;
+        if (displayInfo.width > 0 && displayInfo.height > 0)
+        {
+            return new Vector2Int(displayInfo.width, displayInfo.height);
+        }
+
+        Resolution currentResolution = Screen.currentResolution;
+        if (currentResolution.width > 0 && currentResolution.height > 0)
+        {
+            return new Vector2Int(currentResolution.width, currentResolution.height);
+        }
+
+        if (Display.main != null && Display.main.systemWidth > 0 && Display.main.systemHeight > 0)
+        {
+            return new Vector2Int(Display.main.systemWidth, Display.main.systemHeight);
+        }
+
+        return new Vector2Int(Screen.width, Screen.height);
     }
 
 
@@ -316,6 +387,16 @@ public class SettingsManager : MonoBehaviour
         {
             Settings = CreateDefaultSettings();
             Save();
+            return;
+        }
+
+        if (Settings.version < 2)
+        {
+            Settings.displayMode = Settings.fullscreen
+                ? FullScreenMode.ExclusiveFullScreen
+                : FullScreenMode.Windowed;
+            Settings.version = 2;
+            Save();
         }
     }
 
@@ -358,13 +439,28 @@ public class SettingsManager : MonoBehaviour
     private GameSettingsData CreateDefaultSettings()
     {
         Resolution resolution = Screen.currentResolution;
+        FullScreenMode displayMode = NormalizeDisplayMode(Screen.fullScreenMode);
 
         return new GameSettingsData
         {
             resolutionWidth = Mathf.Max(1, resolution.width),
             resolutionHeight = Mathf.Max(1, resolution.height),
-            fullscreen = Screen.fullScreen,
+            fullscreen = displayMode != FullScreenMode.Windowed,
+            displayMode = displayMode,
         };
+    }
+
+    private static FullScreenMode NormalizeDisplayMode(FullScreenMode displayMode)
+    {
+        switch (displayMode)
+        {
+            case FullScreenMode.ExclusiveFullScreen:
+            case FullScreenMode.FullScreenWindow:
+            case FullScreenMode.Windowed:
+                return displayMode;
+            default:
+                return FullScreenMode.FullScreenWindow;
+        }
     }
 
     private ControlOptionsSessionData CreateDefaultControlOptions()

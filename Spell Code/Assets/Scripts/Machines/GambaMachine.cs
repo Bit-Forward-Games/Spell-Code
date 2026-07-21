@@ -131,6 +131,9 @@ public class GambaMachine : MonoBehaviour
                 //play the floppy arc sfx
                 SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
 
+                //play the floppy spawn sfx after a 0.5 second delay
+                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
                 isActive = false;
 
                 if (ownerPID == 1) {
@@ -213,6 +216,9 @@ public class GambaMachine : MonoBehaviour
                     //play the floppy arc sfx
                     SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
 
+                    //play the floppy spawn sfx after a 0.5 second delay
+                    SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
                     isActive = false;
                     activatedCount++;
 
@@ -265,6 +271,9 @@ public class GambaMachine : MonoBehaviour
                 //play the floppy arc sfx
                 SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
 
+                //play the floppy spawn sfx after a 0.5 second delay
+                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
                 isActive = false;
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
@@ -284,6 +293,9 @@ public class GambaMachine : MonoBehaviour
 
                 //play the floppy arc sfx
                 SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                //play the floppy spawn sfx after a 0.5 second delay
+                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
 
                 isActive = false;
 
@@ -316,7 +328,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
                         break;
                     //Killeez
@@ -329,7 +341,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
                         break;
                     //VWave
@@ -342,7 +354,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         break;
                 }
@@ -936,9 +948,6 @@ public class GambaMachine : MonoBehaviour
                         if (r != null) r.enabled = true;
                     }
                 }
-
-                //play the floppy spawn sfx
-                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
             }).SetUpdate(false);
 
             //return
@@ -957,9 +966,6 @@ public class GambaMachine : MonoBehaviour
                 //toggle it back on
                 _disk.SetActive(true);
             }
-
-            //play the floppy spawn sfx
-            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
         }).SetUpdate(false);
 
         //return

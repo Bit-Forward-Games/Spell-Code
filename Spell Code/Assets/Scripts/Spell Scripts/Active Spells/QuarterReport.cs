@@ -11,11 +11,11 @@ public class QuarterReport : SpellData
     {
         spellName = "Quarter Report";
         brands = new Brand[] { Brand.BigStox };
-        cooldown = 180;
+        cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0000_1111_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit};
-        description = "Medium-range shot.\nEnhances range and stun on \"Crit\"<sprite name=\"StockStability\">.";
+        description = "Long-range shot.\nEnhances range and stun on \"Crit\"<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
     }
 

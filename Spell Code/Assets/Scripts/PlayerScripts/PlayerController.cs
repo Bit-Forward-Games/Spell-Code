@@ -112,7 +112,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]public byte portalCooldown = 0;
     [NonSerialized]public bool portalPrimed = true;
     private const byte PortalCooldownFrames = 120;
-    private const float PortalCollisionRadius = 36f;
+    private const float PortalCollisionRadius = 40f;
 
 // controls options
     [NonSerialized] public bool vibeCoding = false;
@@ -874,7 +874,7 @@ public class PlayerController : MonoBehaviour
         DemonX = false;
         bigStox = false;
 
-    currentPlayerHealth = 100;
+        currentPlayerHealth = 100;
         isAlive = true;
     }
 
@@ -1058,6 +1058,7 @@ public class PlayerController : MonoBehaviour
             {
                 ApplyOnlineControlOptionsFromInput(rawInput);
             }
+            Debug.Log(input.Direction);
         }
         else
         {
@@ -2218,6 +2219,11 @@ public class PlayerController : MonoBehaviour
             if (stageDataSO == null) return false;
         }
 
+        bool hasStageBounds = stageDataSO.borderMin != stageDataSO.borderMax;
+        Fixed stageMinX = Fixed.FromFloat(stageDataSO.borderMin.x);
+        Fixed stageMaxX = Fixed.FromFloat(stageDataSO.borderMax.x);
+        Fixed stageMinY = Fixed.FromFloat(stageDataSO.borderMin.y);
+        Fixed stageMaxY = Fixed.FromFloat(stageDataSO.borderMax.y);
         
         #region  --- SOLIDS (unchanged behavior) ---
         if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
@@ -2266,24 +2272,48 @@ public class PlayerController : MonoBehaviour
                         // Numerical edge-case: treat as no collision
                         continue;
                     }
+
+                    bool skipHorizontalResolution = hasStageBounds && sMin.X < stageMinX && sMax.X > stageMaxX;
+                    bool skipVerticalResolution = hasStageBounds && sMin.Y < stageMinY && sMax.Y > stageMaxY;
+                    if (skipHorizontalResolution && skipVerticalResolution)
+                    {
+                        continue;
+                    }
                     
                     // Resolve along the smallest penetration axis
-                    if (overlapX < overlapY)
+                    bool resolveHorizontally = skipHorizontalResolution ? false : (skipVerticalResolution || overlapX < overlapY);
+                    if (resolveHorizontally)
                     {
                         // Resolve horizontally
                         if (position.X < center.X)
                         {
                             // Player is left of solid -> push left
                             //position.x -= overlapX;
-                            position = new FixedVec2(sMin.X - halfW, position.Y);
-                            touchingRightWall = true;
+                            if (hasStageBounds && sMin.X < stageMinX)
+                            {
+                                position = new FixedVec2(sMax.X + halfW, position.Y);
+                                touchingLeftWall = true;
+                            }
+                            else
+                            {
+                                position = new FixedVec2(sMin.X - halfW, position.Y);
+                                touchingRightWall = true;
+                            }
                         }
                         else
                         {
                             // Player is right of solid -> push right
                             //position.x += overlapX;
-                            position = new FixedVec2(sMax.X + halfW, position.Y);
-                            touchingLeftWall = true;
+                            if (hasStageBounds && sMax.X > stageMaxX)
+                            {
+                                position = new FixedVec2(sMin.X - halfW, position.Y);
+                                touchingRightWall = true;
+                            }
+                            else
+                            {
+                                position = new FixedVec2(sMax.X + halfW, position.Y);
+                                touchingLeftWall = true;
+                            }
                         }
                         hSpd = Fixed.FromInt(0);
                     }
@@ -2294,17 +2324,31 @@ public class PlayerController : MonoBehaviour
                         {
                             // Player is below solid -> push down
                             //position.y -= overlapY;
-                            position = new FixedVec2(position.X, sMin.Y - playerHeight);
-                            // If hitting underside, zero vertical speed
+                            if (hasStageBounds && sMin.Y < stageMinY)
+                            {
+                                position = new FixedVec2(position.X, sMax.Y);
+                                isGrounded = true;
+                            }
+                            else
+                            {
+                                position = new FixedVec2(position.X, sMin.Y - playerHeight);
+                            }
                             vSpd = Fixed.FromInt(0);
                         }
                         else
                         {
                             // Player is above solid -> land on top
                             //position.y += overlapY;
-                            position = new FixedVec2(position.X, sMax.Y);
+                            if (hasStageBounds && sMax.Y > stageMaxY)
+                            {
+                                position = new FixedVec2(position.X, sMin.Y - playerHeight);
+                            }
+                            else
+                            {
+                                position = new FixedVec2(position.X, sMax.Y);
+                                isGrounded = true;
+                            }
                             vSpd = Fixed.FromInt(0);
-                            isGrounded = true;
                         }
                     }
 
@@ -2465,23 +2509,47 @@ public class PlayerController : MonoBehaviour
                             continue;
                         }
 
+                        bool skipHorizontalResolution = hasStageBounds && sMin.X < stageMinX && sMax.X > stageMaxX;
+                        bool skipVerticalResolution = hasStageBounds && sMin.Y < stageMinY && sMax.Y > stageMaxY;
+                        if (skipHorizontalResolution && skipVerticalResolution)
+                        {
+                            continue;
+                        }
+
                         // Resolve along the smallest penetration axis
-                        if (overlapX < overlapY)
+                        bool resolveHorizontally = skipHorizontalResolution ? false : (skipVerticalResolution || overlapX < overlapY);
+                        if (resolveHorizontally)
                         {
                             // Resolve horizontally
                             if (position.X < center.X)
                             {
                                 // Player is left of solid -> push left
                                 //position.x -= overlapX;
-                                position = new FixedVec2(sMin.X - halfW, position.Y);
-                                touchingRightWall = true;
+                                if (hasStageBounds && sMin.X < stageMinX)
+                                {
+                                    position = new FixedVec2(sMax.X + halfW, position.Y);
+                                    touchingLeftWall = true;
+                                }
+                                else
+                                {
+                                    position = new FixedVec2(sMin.X - halfW, position.Y);
+                                    touchingRightWall = true;
+                                }
                             }
                             else
                             {
                                 // Player is right of solid -> push right
                                 //position.x += overlapX;
-                                position = new FixedVec2(sMax.X + halfW, position.Y);
-                                touchingLeftWall = true;
+                                if (hasStageBounds && sMax.X > stageMaxX)
+                                {
+                                    position = new FixedVec2(sMin.X - halfW, position.Y);
+                                    touchingRightWall = true;
+                                }
+                                else
+                                {
+                                    position = new FixedVec2(sMax.X + halfW, position.Y);
+                                    touchingLeftWall = true;
+                                }
                             }
                             hSpd = Fixed.FromInt(0);
                         }
@@ -2492,17 +2560,31 @@ public class PlayerController : MonoBehaviour
                             {
                                 // Player is below solid -> push down
                                 //position.y -= overlapY;
-                                position = new FixedVec2(position.X, sMin.Y - playerHeight);
-                                // If hitting underside, zero vertical speed
+                                if (hasStageBounds && sMin.Y < stageMinY)
+                                {
+                                    position = new FixedVec2(position.X, sMax.Y);
+                                    isGrounded = true;
+                                }
+                                else
+                                {
+                                    position = new FixedVec2(position.X, sMin.Y - playerHeight);
+                                }
                                 vSpd = Fixed.FromInt(0);
                             }
                             else
                             {
                                 // Player is above solid -> land on top
                                 //position.y += overlapY;
-                                position = new FixedVec2(position.X, sMax.Y);
+                                if (hasStageBounds && sMax.Y > stageMaxY)
+                                {
+                                    position = new FixedVec2(position.X, sMin.Y - playerHeight);
+                                }
+                                else
+                                {
+                                    position = new FixedVec2(position.X, sMax.Y);
+                                    isGrounded = true;
+                                }
                                 vSpd = Fixed.FromInt(0);
-                                isGrounded = true;
                             }
                         }
 
@@ -2624,7 +2706,7 @@ public class PlayerController : MonoBehaviour
                     }
                     
                     portalPrimed = false;
-                    
+
                     TeleportToPortalDestination(portalB);
                     returnVal = true;
                     teleported = true;
@@ -2663,9 +2745,24 @@ public class PlayerController : MonoBehaviour
 
     private void TeleportToPortalDestination(Vector2 destination)
     {
-        FixedVec2 fixedDestination = FixedVec2.FromFloat(destination.x, destination.y);
-        position = fixedDestination - new FixedVec2(hSpd, vSpd);
+        FixedVec2 fixedPortalDestination = FixedVec2.FromFloat(destination.x, destination.y);
+        TeleportToDestination(fixedPortalDestination);
         portalCooldown = PortalCooldownFrames;
+    }
+    public void TeleportToDestination(FixedVec2 destination)
+    {
+        //play the teleport dust vfx at the player's initial position
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
+
+        //play the teleport sfx
+        SFX_Manager.Instance.PlaySound(Sounds.TELEPORT, 1f, 1f);
+
+        FixedVec2 fixedDestination = destination;
+        position = fixedDestination - new FixedVec2(hSpd, vSpd);
+        CheckStageDataSOCollision();
+
+        //play the teleport dust vfx at the player's new position
+        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.TELEPORT_DUST, position + new FixedVec2(Fixed.FromInt(0), playerHeight / Fixed.FromInt(2)), pID);
     }
 
     public void SetState(PlayerState targetState, uint inputSpellArg = 0)
@@ -3051,6 +3148,8 @@ public class PlayerController : MonoBehaviour
             if (attacker != null)
             {
                 CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+
+                if(currentPlayerHealth <= 0)CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnKill);
             }
             
 
@@ -3074,19 +3173,9 @@ public class PlayerController : MonoBehaviour
                 }
                 CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
 
-                //This logic is now handled in the Demon-X
-                // if (attacker != null && attacker.demonAura > 0)
-                // {
-                //     attacker.demonAuraLifeSpanTimer = 360; //refresh demon aura lifespan timer on spell hit to 6 seconds (360 frames)
-                // }
             }
 
 
-            // if (GameManager.Instance.isOnlineMatchActive)
-            // {
-            //     isHit = false;
-            //     hitboxData = null;
-            // }
             isHit = false;
             hitboxData = null;
 

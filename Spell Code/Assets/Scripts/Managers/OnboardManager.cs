@@ -1,127 +1,64 @@
+using System;
 using System.Collections.Generic;
 using BestoNet.Types;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class OnboardManager : MonoBehaviour
 {
-    //variables
-    public InputSnapshot[] inputSnapshots = new InputSnapshot[4];
+    [Serializable]
+    private sealed class PlayerOnboarding
+    {
+        [Header("Configuration")]
+        public bool startsJoined;
+
+        [Header("Progress")]
+        public bool joined;
+        public bool moveComplete;
+        public bool jumpComplete;
+        public bool attackComplete;
+        public bool glassBroken;
+
+        [Header("UI")]
+        public TextMeshProUGUI moveText;
+        public TextMeshProUGUI jumpText;
+        public TextMeshProUGUI attackText;
+        public TextMeshProUGUI castText;
+        public SpriteRenderer breakWithSpellcode;
+
+        [NonSerialized] public GambaMachine gamba;
+        [NonSerialized] public bool gambaActive;
+    }
 
     public static OnboardManager Instance { get; private set; }
-
-    private GameManager gM;
 
     public Sprite inputGraphic;
     public Sprite atkGraphic;
 
-    [Header("Player 1")]
-    public bool p1_moveComplete = false;
-    public bool p1_jumpComplete = false;
-    public bool p1_atkComplete = false;
-    public bool p1_glassBroken = false;
+    [SerializeField]
+    private List<PlayerOnboarding> players = new List<PlayerOnboarding>();
 
-    public Image p1_moveGraphic;
-    public TextMeshProUGUI p1_moveTxt;
-    public Image p1_jumpGraphic;
-    public TextMeshProUGUI p1_jumpTxt;
-    public Image p1_atkGraphic;
-    public TextMeshProUGUI p1_atkTxt;
-    public Image p1_spellSlctGraphic;
-    public TextMeshProUGUI p1_castTxt;
-    public Image p1_castGraphic;
-    public SpriteRenderer p1_breakWSpellcode;
-
-    public GambaMachine p1_gamba;
-    private bool p1_gambaActive;
-
-    [Header("Player 2")]
-    public bool p2_joined = false;
-    public bool p2_moveComplete = false;
-    public bool p2_jumpComplete = false;
-    public bool p2_atkComplete = false;
-    public bool p2_glassBroken = false;
-
-    public Image p2_moveGraphic;
-    public TextMeshProUGUI p2_moveTxt;
-    public Image p2_jumpGraphic;
-    public TextMeshProUGUI p2_jumpTxt;
-    public Image p2_atkGraphic;
-    public TextMeshProUGUI p2_atkTxt;
-    public Image p2_spellSlctGraphic;
-    public TextMeshProUGUI p2_castTxt;
-    public Image p2_castGraphic;
-    public SpriteRenderer p2_breakWSpellcode;
-
-    public GambaMachine p2_gamba;
-    private bool p2_gambaActive;
-
-    [Header("Player 3")]
-    public bool p3_joined = false;
-    public bool p3_moveComplete = false;
-    public bool p3_jumpComplete = false;
-    public bool p3_atkComplete = false;
-    public bool p3_glassBroken = false;
-
-    public Image p3_moveGraphic;
-    public TextMeshProUGUI p3_moveTxt;
-    public Image p3_jumpGraphic;
-    public TextMeshProUGUI p3_jumpTxt;
-    public Image p3_atkGraphic;
-    public TextMeshProUGUI p3_atkTxt;
-    public Image p3_spellSlctGraphic;
-    public TextMeshProUGUI p3_castTxt;
-    public Image p3_castGraphic;
-    public SpriteRenderer p3_breakWSpellcode;
-
-    public GambaMachine p3_gamba;
-    private bool p3_gambaActive;
-
-    [Header("Player 4")]
-    public bool p4_joined = false;
-    public bool p4_moveComplete = false;
-    public bool p4_jumpComplete = false;
-    public bool p4_atkComplete = false;
-    public bool p4_glassBroken = false;
-
-    public Image p4_moveGraphic;
-    public TextMeshProUGUI p4_moveTxt;
-    public Image p4_jumpGraphic;
-    public TextMeshProUGUI p4_jumpTxt;
-    public Image p4_atkGraphic;
-    public TextMeshProUGUI p4_atkTxt;
-    public Image p4_spellSlctGraphic;
-    public TextMeshProUGUI p4_castTxt;
-    public Image p4_castGraphic;
-    public SpriteRenderer p4_breakWSpellcode;
-
-    public GambaMachine p4_gamba;
-    private bool p4_gambaActive;
+    private readonly List<InputSnapshot> inputSnapshots = new List<InputSnapshot>();
+    private GameManager gameManager;
 
     private void Awake()
     {
-        // if an instance already exists and it's not this one, destroy this duplicate
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        else
-        {
-            // otherwise, set this as the instance
-            Instance = this;
-            // optional: prevent the gameobject from being destroyed when loading new scenes
-            DontDestroyOnLoad(gameObject);
-        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
-        gM = GameManager.Instance;
+        gameManager = GameManager.Instance;
         ResetOnboarding();
     }
 
@@ -129,642 +66,310 @@ public class OnboardManager : MonoBehaviour
     {
         Debug.Log("OnboardingReset");
 
-        p1_moveComplete = false;
-        p1_jumpComplete = false;
-        p1_atkComplete = false;
-        p1_glassBroken = false;
+        for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
+        {
+            PlayerOnboarding player = players[playerIndex];
+            if (player == null)
+            {
+                continue;
+            }
 
-        p2_joined = false;
-        p2_moveComplete = false;
-        p2_jumpComplete = false;
-        p2_atkComplete = false;
-        p2_glassBroken = false;
-
-        p3_joined = false;
-        p3_moveComplete = false;
-        p3_jumpComplete = false;
-        p3_atkComplete = false;
-        p3_glassBroken = false;
-
-        p4_joined = false;
-        p4_moveComplete = false;
-        p4_jumpComplete = false;
-        p4_atkComplete = false;
-        p4_glassBroken = false;
+            ResetProgress(player, player.startsJoined);
+        }
 
         ApplyInitialUiState();
     }
 
     public void ResetPlayerOnboarding(int playerIndex)
     {
-        switch (playerIndex)
+        if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
         {
-            case 0:
-                p1_moveComplete = false;
-                p1_jumpComplete = false;
-                p1_atkComplete = false;
-                p1_glassBroken = false;
-                ResetPromptColors(p1_moveTxt, p1_jumpTxt, p1_atkTxt, p1_castTxt);
-                p1_moveGraphic.enabled = true;
-                p1_moveTxt.enabled = true;
-                p1_jumpGraphic.enabled = true;
-                p1_jumpTxt.enabled = true;
-                p1_atkGraphic.enabled = false;
-                p1_atkTxt.enabled = false;
-                p1_castGraphic.enabled = false;
-                p1_castTxt.enabled = false;
-                p1_breakWSpellcode.enabled = false;
-                p1_gambaActive = false;
-                if (p1_gamba != null)
-                {
-                    p1_gamba.isActive = false;
-                    p1_gamba.ApplyVisualState();
-                }
-                break;
-            case 1:
-                p2_joined = true;
-                p2_moveComplete = false;
-                p2_jumpComplete = false;
-                p2_atkComplete = false;
-                p2_glassBroken = false;
-                ResetPromptColors(p2_moveTxt, p2_jumpTxt, p2_atkTxt, p2_castTxt);
-                p2_atkTxt.text = "Attack";
-                p2_moveGraphic.enabled = true;
-                p2_moveTxt.enabled = true;
-                p2_jumpGraphic.enabled = true;
-                p2_jumpTxt.enabled = true;
-                p2_atkGraphic.enabled = false;
-                p2_atkTxt.enabled = false;
-                p2_castGraphic.enabled = false;
-                p2_castTxt.enabled = false;
-                p2_breakWSpellcode.enabled = false;
-                p2_gambaActive = false;
-                if (p2_gamba != null)
-                {
-                    p2_gamba.isActive = false;
-                    p2_gamba.ApplyVisualState();
-                }
-                break;
-            case 2:
-                p3_joined = true;
-                p3_moveComplete = false;
-                p3_jumpComplete = false;
-                p3_atkComplete = false;
-                p3_glassBroken = false;
-                ResetPromptColors(p3_moveTxt, p3_jumpTxt, p3_atkTxt, p3_castTxt);
-                p3_atkTxt.text = "Attack";
-                p3_moveGraphic.enabled = true;
-                p3_moveTxt.enabled = true;
-                p3_jumpGraphic.enabled = true;
-                p3_jumpTxt.enabled = true;
-                p3_atkGraphic.enabled = false;
-                p3_atkTxt.enabled = false;
-                p3_castGraphic.enabled = false;
-                p3_castTxt.enabled = false;
-                p3_breakWSpellcode.enabled = false;
-                p3_gambaActive = false;
-                if (p3_gamba != null)
-                {
-                    p3_gamba.isActive = false;
-                    p3_gamba.ApplyVisualState();
-                }
-                break;
-            case 3:
-                p4_joined = true;
-                p4_moveComplete = false;
-                p4_jumpComplete = false;
-                p4_atkComplete = false;
-                p4_glassBroken = false;
-                ResetPromptColors(p4_moveTxt, p4_jumpTxt, p4_atkTxt, p4_castTxt);
-                p4_atkTxt.text = "Attack";
-                p4_moveGraphic.enabled = true;
-                p4_moveTxt.enabled = true;
-                p4_jumpGraphic.enabled = true;
-                p4_jumpTxt.enabled = true;
-                p4_atkGraphic.enabled = false;
-                p4_atkTxt.enabled = false;
-                p4_castGraphic.enabled = false;
-                p4_castTxt.enabled = false;
-                p4_breakWSpellcode.enabled = false;
-                p4_gambaActive = false;
-                if (p4_gamba != null)
-                {
-                    p4_gamba.isActive = false;
-                    p4_gamba.ApplyVisualState();
-                }
-                break;
+            Debug.LogWarning($"Cannot reset onboarding for player index {playerIndex}.");
+            return;
         }
+
+        ResetProgress(player, true);
+        ResetPromptColors(player);
+
+        if (!player.startsJoined)
+        {
+            player.attackText.text = "Attack:\n[CODE]";
+            player.attackText.GetComponent<TextSetter>().UpdateGlyph();
+        }
+
+        player.moveText.enabled = true;
+        player.jumpText.enabled = true;
+        player.attackText.enabled = false;
+        player.castText.enabled = false;
+        player.breakWithSpellcode.enabled = false;
+        SetGambaActive(player, false, true);
+
+        StopGraffitiDrip(playerIndex);
     }
 
-    private void ResetPromptColors(params TextMeshProUGUI[] prompts)
+    private static void ResetProgress(PlayerOnboarding player, bool joined)
+    {
+        player.joined = joined;
+        player.moveComplete = false;
+        player.jumpComplete = false;
+        player.attackComplete = false;
+        player.glassBroken = false;
+        player.gambaActive = false;
+    }
+
+    private static void ResetPromptColors(PlayerOnboarding player)
     {
         Color defaultColor = GameManager.colors["white"];
-        for (int i = 0; i < prompts.Length; i++)
-        {
-            if (prompts[i] != null)
-            {
-                prompts[i].color = defaultColor;
-            }
-        }
+        player.moveText.color = defaultColor;
+        player.jumpText.color = defaultColor;
+        player.attackText.color = defaultColor;
+        player.castText.color = defaultColor;
     }
 
     private void ApplyInitialUiState()
     {
         Debug.Log("Applying Initial Onboarding UI State");
 
-        GambaMachine[] gambas = GameObject.FindObjectsByType<GambaMachine>(sortMode:FindObjectsSortMode.InstanceID);
-        foreach(GambaMachine gamba in gambas)
+        for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
         {
-            switch (gamba.ownerPID)
+            if (players[playerIndex] != null)
             {
-                case 1:
-                    p1_gamba = gamba;
-                    break;
-                case 2:
-                    p2_gamba = gamba;
-                    break;
-                case 3:
-                    p3_gamba = gamba;
-                    break;
-                case 4:
-                    p4_gamba = gamba;
-                    break;
+                players[playerIndex].gamba = null;
             }
         }
 
-        //properly set starting states for UI components
-        p1_atkGraphic.enabled = false;
-        p1_atkTxt.enabled = false;
-        //p1_spellSlctGraphic.enabled = false;
-        p1_castGraphic.enabled = false;
-        p1_castTxt.enabled = false;
-        p1_gambaActive = false;
-        p1_breakWSpellcode.enabled = false;
-        if (p1_gamba != null) p1_gamba.isActive = false;
+        GambaMachine[] gambas =
+            FindObjectsByType<GambaMachine>(FindObjectsSortMode.InstanceID);
 
-        p2_atkTxt.text = "Join";
-        p2_moveGraphic.enabled = false;
-        p2_moveTxt.enabled = false;
-        p2_jumpGraphic.enabled = false;
-        p2_jumpTxt.enabled = false;
-        //p2_spellSlctGraphic.enabled = false;
-        p2_castGraphic.enabled = false;
-        p2_castTxt.enabled = false;
-        p2_gambaActive = false;
-        p2_breakWSpellcode.enabled = false;
-        if (p2_gamba != null) p2_gamba.isActive = false;
+        foreach (GambaMachine gamba in gambas)
+        {
+            int playerIndex = gamba.ownerPID - 1;
+            if (TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+            {
+                player.gamba = gamba;
+            }
+        }
 
-        p3_atkTxt.text = "Join";
-        p3_moveGraphic.enabled = false;
-        p3_moveTxt.enabled = false;
-        p3_jumpGraphic.enabled = false;
-        p3_jumpTxt.enabled = false;
-        //p3_spellSlctGraphic.enabled = false;
-        p3_castGraphic.enabled = false;
-        p3_castTxt.enabled = false;
-        p3_gambaActive = false;
-        p3_breakWSpellcode.enabled = false;
-        if (p3_gamba != null) p3_gamba.isActive = false;
+        for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
+        {
+            PlayerOnboarding player = players[playerIndex];
+            if (player == null)
+            {
+                continue;
+            }
 
-        p4_atkTxt.text = "Join";
-        p4_moveGraphic.enabled = false;
-        p4_moveTxt.enabled = false;
-        p4_jumpGraphic.enabled = false;
-        p4_jumpTxt.enabled = false;
-        //p4_spellSlctGraphic.enabled = false;
-        p4_castGraphic.enabled = false;
-        p4_castTxt.enabled = false;
-        p4_gambaActive = false;
-        p4_breakWSpellcode.enabled = false;
-        if (p4_gamba != null) p4_gamba.isActive = false;
+            player.joined = player.startsJoined;
+            player.moveText.enabled = player.startsJoined;
+            player.jumpText.enabled = player.startsJoined;
+            player.attackText.enabled = !player.startsJoined;
+            player.castText.enabled = false;
+            player.breakWithSpellcode.enabled = false;
+
+            if (!player.startsJoined)
+            {
+                player.attackText.text = "Join:\n[START]";
+                player.attackText.GetComponent<TextSetter>().UpdateGlyph();
+            }
+
+            SetGambaActive(player, false, false);
+        }
     }
 
     public void OnboardUpdate(ulong[] playerInputs)
     {
-        for (int i = 0; i < playerInputs.Length; i++)
+        if (gameManager == null || playerInputs == null)
         {
-            inputSnapshots[i] = InputConverter.ConvertFromLong(playerInputs[i]);
+            return;
         }
 
-        //p1
-        if (gM.players[0] != null)
+        EnsureInputSnapshotCount(players.Count);
+
+        int playerCount = Mathf.Min(
+            players.Count,
+            playerInputs.Length,
+            gameManager.players.Length,
+            gameManager.gates.Length);
+
+        for (int playerIndex = 0; playerIndex < playerCount; playerIndex++)
         {
-            //if player moves left or right
-            if (!p1_moveComplete)
+            inputSnapshots[playerIndex] =
+                InputConverter.ConvertFromLong(playerInputs[playerIndex]);
+
+            if (gameManager.players[playerIndex] == null ||
+                !TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
             {
-                if (inputSnapshots[0].Direction == 4 || inputSnapshots[0].Direction == 6) { p1_moveComplete = true; p1_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
+                continue;
             }
 
-            //if player jumps
-            if (!p1_jumpComplete)
+            UpdatePlayerOnboarding(playerIndex, player);
+        }
+    }
+
+    private void UpdatePlayerOnboarding(
+        int playerIndex,
+        PlayerOnboarding onboarding)
+    {
+        PlayerController player = gameManager.players[playerIndex];
+        InputSnapshot input = inputSnapshots[playerIndex];
+
+        if (!onboarding.joined)
+        {
+            onboarding.attackText.text = "Attack:\n[CODE]";
+            onboarding.attackText.GetComponent<TextSetter>().UpdateGlyph();
+            onboarding.attackText.enabled = false;
+            onboarding.moveText.enabled = true;
+            onboarding.jumpText.enabled = true;
+            onboarding.joined = true;
+        }
+
+        if (!onboarding.moveComplete &&
+            (input.Direction == 4 || input.Direction == 6))
+        {
+            onboarding.moveComplete = true;
+            onboarding.moveText.color = GameManager.colors["green"];
+            Debug.Log("Move Onboard Complete");
+        }
+
+        if (!onboarding.jumpComplete &&
+            input.ButtonStates[1] == ButtonState.Pressed)
+        {
+            onboarding.jumpComplete = true;
+            onboarding.jumpText.color = GameManager.colors["green"];
+            Debug.Log("Jump Onboard Complete");
+        }
+
+        if (onboarding.moveComplete &&
+            onboarding.jumpComplete &&
+            !onboarding.attackComplete)
+        {
+            onboarding.moveText.enabled = false;
+            onboarding.jumpText.enabled = false;
+            onboarding.attackText.enabled = true;
+
+            if (!onboarding.gambaActive)
             {
-                if (inputSnapshots[0].ButtonStates[1] == ButtonState.Pressed) { p1_jumpComplete = true; p1_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
+                SetGambaActive(onboarding, true, false);
             }
 
-            //if move is done and player has not yet attacked
-            if (p1_moveComplete && p1_jumpComplete && !p1_atkComplete)
+            if (player.basicsFired > 0)
             {
-                p1_moveGraphic.enabled = false;
-                p1_moveTxt.enabled = false;
-                p1_jumpGraphic.enabled = false;
-                p1_jumpTxt.enabled = false;
-
-                p1_atkGraphic.enabled = true;
-                p1_atkTxt.enabled = true;
-
-                if (!p1_gambaActive) 
-                { 
-                    p1_gamba.isActive = true; 
-                    p1_gambaActive = true; 
-                }
-
-                if (gM.players[0].basicsFired > 0) 
-                { 
-                    p1_atkComplete = true; 
-                    Debug.Log("Atk Onboard Complete"); 
-                }
-            }
-
-            //activate the floppy disk & let player get starting spell
-            if (p1_atkComplete && gM.players[0].spellList.Count == 0)
-            {
-                p1_atkGraphic.enabled = false;
-                p1_atkTxt.enabled = false;
-
-                p1_moveGraphic.enabled = false;
-                p1_moveTxt.enabled = false;
-                p1_jumpGraphic.enabled = false;
-                p1_jumpTxt.enabled = false;
-
-            }
-            //hold atk and input code to break free
-            if (gM.players[0].spellList.Count>0 && !p1_glassBroken)
-            {
-                p1_atkGraphic.enabled = false;
-                p1_atkTxt.enabled = false;
-
-                p1_breakWSpellcode.enabled = true;
-
-                if (p1_castTxt.enabled == false)
-                {
-                    //play the graffiti spawn vfx
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p1_breakWSpellcode.gameObject.transform.position.y)), 1);
-                }
-
-                p1_castTxt.enabled = true;
-                p1_castGraphic.enabled = true;
-
-                if (inputSnapshots[0].ButtonStates[0] == ButtonState.Held)
-                {
-                    p1_castGraphic.sprite = inputGraphic;
-                    p1_castTxt.text = "Input";
-                }
-                else
-                {
-                    p1_castTxt.text = "Hold";
-                    p1_castGraphic.sprite = atkGraphic;
-                }
-
-                if (gM.gates[0].isOpen == true)
-                {
-                    p1_glassBroken = true;
-                }
-            }
-
-            if (p1_glassBroken)
-            {
-                p1_castTxt.color = GameManager.colors["green"];
-                p1_castTxt.enabled = false;
-                p1_castGraphic.enabled = false;
-
-                p1_breakWSpellcode.enabled = false;
+                onboarding.attackComplete = true;
+                Debug.Log("Atk Onboard Complete");
             }
         }
 
-        //p2
-        if (gM.players[1] != null)
+        if (onboarding.attackComplete && player.spellList.Count == 0)
         {
-            if (!p2_joined)
+            onboarding.attackText.enabled = false;
+            onboarding.moveText.enabled = false;
+            onboarding.jumpText.enabled = false;
+        }
+
+        if (player.spellList.Count > 0 && !onboarding.glassBroken)
+        {
+            ShowCastPrompt(playerIndex, onboarding, input);
+
+            if (gameManager.gates[playerIndex].isOpen)
             {
-                p2_atkTxt.text = "Attack";
-                p2_atkTxt.enabled = false;
-                p2_atkGraphic.enabled = false;
-                p2_moveGraphic.enabled = true;
-                p2_moveTxt.enabled = true;
-                p2_jumpGraphic.enabled = true;
-                p2_jumpTxt.enabled = true;
-
-                p2_joined = true;
-            }
-
-            //if player moves left or right
-            if (!p2_moveComplete)
-            {
-                if (inputSnapshots[1].Direction == 4 || inputSnapshots[1].Direction == 6) { p2_moveComplete = true; p2_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
-            }
-
-            //if player jumps
-            if (!p2_jumpComplete)
-            {
-                if (inputSnapshots[1].ButtonStates[1] == ButtonState.Pressed) { p2_jumpComplete = true; p2_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
-            }
-            
-            //if move is done and player has not yet attacked
-            if (p2_moveComplete && p2_jumpComplete && !p2_atkComplete)
-            {
-                p2_moveGraphic.enabled = false;
-                p2_moveTxt.enabled = false;
-                p2_jumpGraphic.enabled = false;
-                p2_jumpTxt.enabled = false;
-
-                p2_atkGraphic.enabled = true;
-                p2_atkTxt.enabled = true;
-
-                if (!p2_gambaActive)
-                {
-                    p2_gamba.isActive = true;
-                    p2_gambaActive = true;
-                }
-
-                if (gM.players[1].basicsFired > 0)
-                {
-                    p2_atkComplete = true;
-                    Debug.Log("Atk Onboard Complete");
-                }
-            }
-
-            //activate the floppy disk & let player get starting spell
-            if (p2_atkComplete && gM.players[1].spellList.Count == 0)
-            {
-                p2_atkGraphic.enabled = false;
-                p2_atkTxt.enabled = false;
-
-                p2_moveGraphic.enabled = false;
-                p2_moveTxt.enabled = false;
-                p2_jumpGraphic.enabled = false;
-                p2_jumpTxt.enabled = false;
-            }
-
-            //hold atk and input code to break free
-            if (gM.players[1].spellList.Count > 0 && !p2_glassBroken)
-            {
-                p2_atkGraphic.enabled = false;
-                p2_atkTxt.enabled = false;
-
-                p2_breakWSpellcode.enabled = true;
-
-                if (p2_castTxt.enabled == false)
-                {
-                    //play the graffiti spawn vfx
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p2_breakWSpellcode.gameObject.transform.position.y)), 2);
-                }
-
-                p2_castTxt.enabled = true;
-                p2_castGraphic.enabled = true;
-
-                if (inputSnapshots[1].ButtonStates[0] == ButtonState.Held)
-                {
-                    p2_castGraphic.sprite = inputGraphic;
-                    p2_castTxt.text = "Input";
-                }
-                else
-                {
-                    p2_castTxt.text = "Hold";
-                    p2_castGraphic.sprite = atkGraphic;
-                }
-
-                if (gM.gates[1].isOpen == true)
-                {
-                    p2_glassBroken = true;
-                    p2_castTxt.enabled = false;
-                    p2_castGraphic.enabled = false;
-                }
-            }
-
-            if (p2_glassBroken)
-            {
-                p2_castTxt.color = GameManager.colors["green"];
-                p2_castTxt.enabled = false;
-                p2_castGraphic.enabled = false;
-
-                p2_breakWSpellcode.enabled = false;
+                onboarding.glassBroken = true;
             }
         }
 
-        //p3
-        if (gM.players[2] != null)
+        if (onboarding.glassBroken)
         {
-            if (!p3_joined)
-            {
-                p3_atkTxt.text = "Attack";
-                p3_atkTxt.enabled = false;
-                p3_atkGraphic.enabled = false;
-                p3_moveGraphic.enabled = true;
-                p3_moveTxt.enabled = true;
-                p3_jumpGraphic.enabled = true;
-                p3_jumpTxt.enabled = true;
+            CompleteOnboarding(playerIndex, onboarding);
+        }
+    }
 
-                p3_joined = true;
-            }
+    private static void SetGambaActive(
+        PlayerOnboarding player,
+        bool isActive,
+        bool applyVisualState)
+    {
+        player.gambaActive = isActive;
 
-            //if player moves left or right
-            if (!p3_moveComplete)
-            {
-                if (inputSnapshots[2].Direction == 4 || inputSnapshots[2].Direction == 6) { p3_moveComplete = true; p3_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
-            }
-
-            //if player jumps
-            if (!p3_jumpComplete)
-            {
-                if (inputSnapshots[2].ButtonStates[1] == ButtonState.Pressed) { p3_jumpComplete = true; p3_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
-            }
-
-            //if move is done and player has not yet attacked
-            if (p3_moveComplete && p3_jumpComplete && !p3_atkComplete)
-            {
-                p3_moveGraphic.enabled = false;
-                p3_moveTxt.enabled = false;
-                p3_jumpGraphic.enabled = false;
-                p3_jumpTxt.enabled = false;
-
-                p3_atkGraphic.enabled = true;
-                p3_atkTxt.enabled = true;
-
-                if (!p3_gambaActive)
-                {
-                    p3_gamba.isActive = true;
-                    p3_gambaActive = true;
-                }
-
-                if (gM.players[2].basicsFired > 0)
-                {
-                    p3_atkComplete = true;
-                    Debug.Log("Atk Onboard Complete");
-                }
-            }
-
-            //activate the floppy disk & let player get starting spell
-            if (p3_atkComplete && gM.players[2].spellList.Count == 0)
-            {
-                p3_atkGraphic.enabled = false;
-                p3_atkTxt.enabled = false;
-
-                p3_moveGraphic.enabled = false;
-                p3_moveTxt.enabled = false;
-                p3_jumpGraphic.enabled = false;
-                p3_jumpTxt.enabled = false;
-            }
-
-            //hold atk and input code to break free
-            if (gM.players[2].spellList.Count > 0 && !p3_glassBroken)
-            {
-                p3_atkGraphic.enabled = false;
-                p3_atkTxt.enabled = false;
-
-                p3_breakWSpellcode.enabled = true;
-
-                if (p3_castTxt.enabled == false)
-                {
-                    //play the graffiti spawn vfx
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p3_breakWSpellcode.gameObject.transform.position.y)), 3);
-                }
-
-                p3_castTxt.enabled = true;
-                p3_castGraphic.enabled = true;
-
-                if (inputSnapshots[2].ButtonStates[0] == ButtonState.Held)
-                {
-                    p3_castGraphic.sprite = inputGraphic;
-                    p3_castTxt.text = "Input";
-                }
-                else
-                {
-                    p3_castTxt.text = "Hold";
-                    p3_castGraphic.sprite = atkGraphic;
-                }
-
-                if (gM.gates[2].isOpen == true)
-                {
-                    p3_glassBroken = true;
-                }
-            }
-
-            if (p3_glassBroken)
-            {
-                p3_castTxt.color = GameManager.colors["green"];
-                p3_castTxt.enabled = false;
-                p3_castGraphic.enabled = false;
-
-                p3_breakWSpellcode.enabled = false;
-            }
+        if (player.gamba == null)
+        {
+            return;
         }
 
-        //p4
-        if (gM.players[3] != null)
+        player.gamba.isActive = isActive;
+        if (applyVisualState)
         {
-            if (!p4_joined)
-            {
-                p4_atkTxt.text = "Attack";
-                p4_atkTxt.enabled = false;
-                p4_atkGraphic.enabled = false;
-                p4_moveGraphic.enabled = true;
-                p4_moveTxt.enabled = true;
-                p4_jumpGraphic.enabled = true;
-                p4_jumpTxt.enabled = true;
-
-                p4_joined = true;
-            }
-
-            //if player moves left or right
-            if (!p4_moveComplete)
-            {
-                if (inputSnapshots[3].Direction == 4 || inputSnapshots[3].Direction == 6) { p4_moveComplete = true; p4_moveTxt.color = GameManager.colors["green"]; Debug.Log("Move Onboard Complete"); }
-            }
-
-            //if player jumps
-            if (!p4_jumpComplete)
-            {
-                if (inputSnapshots[3].ButtonStates[1] == ButtonState.Pressed) { p4_jumpComplete = true; p4_jumpTxt.color = GameManager.colors["green"]; Debug.Log("Jump Onboard Complete"); }
-            }
-
-            //if move is done and player has not yet attacked
-            if (p4_moveComplete && p4_jumpComplete && !p4_atkComplete)
-            {
-                p4_moveGraphic.enabled = false;
-                p4_moveTxt.enabled = false;
-                p4_jumpGraphic.enabled = false;
-                p4_jumpTxt.enabled = false;
-
-                p4_atkGraphic.enabled = true;
-                p4_atkTxt.enabled = true;
-
-                if (!p4_gambaActive)
-                {
-                    p4_gamba.isActive = true;
-                    p4_gambaActive = true;
-                }
-
-                if (gM.players[3].basicsFired > 0)
-                {
-                    p4_atkComplete = true;
-                    Debug.Log("Atk Onboard Complete");
-                }
-            }
-
-            //activate the floppy disk & let player get starting spell
-            if (p4_atkComplete && gM.players[3].spellList.Count == 0)
-            {
-                p4_atkGraphic.enabled = false;
-                p4_atkTxt.enabled = false;
-
-                p4_moveGraphic.enabled = false;
-                p4_moveTxt.enabled = false;
-                p4_jumpGraphic.enabled = false;
-                p4_jumpTxt.enabled = false;
-            }
-
-            //hold atk and input code to break free
-            if (gM.players[3].spellList.Count > 0 && !p4_glassBroken)
-            {
-                p4_atkGraphic.enabled = false;
-                p4_atkTxt.enabled = false;
-
-                p4_breakWSpellcode.enabled = true;
-
-                if (p4_castTxt.enabled == false)
-                {
-                    //play the graffiti spawn vfx
-                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GRAFFITI_SPAWN, new FixedVec2(Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.x), Fixed.FromFloat(p4_breakWSpellcode.gameObject.transform.position.y)), 4);
-                }
-
-                p4_castTxt.enabled = true;
-                p4_castGraphic.enabled = true;
-
-                if (inputSnapshots[3].ButtonStates[0] == ButtonState.Held)
-                {
-                    p4_castGraphic.sprite = inputGraphic;
-                    p4_castTxt.text = "Input";
-                }
-                else
-                {
-                    p4_castTxt.text = "Hold";
-                    p4_castGraphic.sprite = atkGraphic;
-                }
-
-                if (gM.gates[3].isOpen == true)
-                {
-                    p4_glassBroken = true;
-                }
-            }
-
-            if (p4_glassBroken)
-            {
-                p4_castTxt.color = GameManager.colors["green"];
-                p4_castTxt.enabled = false;
-                p4_castGraphic.enabled = false;
-
-                p4_breakWSpellcode.enabled = false;
-            }
+            player.gamba.ApplyVisualState();
         }
+    }
+
+    private void EnsureInputSnapshotCount(int count)
+    {
+        while (inputSnapshots.Count < count)
+        {
+            inputSnapshots.Add(default);
+        }
+    }
+
+    private void ShowCastPrompt(
+        int playerIndex,
+        PlayerOnboarding player,
+        InputSnapshot input)
+    {
+        player.attackText.enabled = false;
+        player.breakWithSpellcode.enabled = true;
+
+        if (!player.castText.enabled)
+        {
+            int playerId = playerIndex + 1;
+            Vector3 position = player.breakWithSpellcode.transform.position;
+            FixedVec2 fixedPosition = new FixedVec2(
+                Fixed.FromFloat(position.x),
+                Fixed.FromFloat(position.y));
+
+            VFX_Manager.Instance.PlayVisualEffect(
+                VisualEffects.GRAFFITI_SPAWN,
+                fixedPosition,
+                playerId);
+            VFX_Manager.Instance.PlayVisualEffect(
+                VisualEffects.GRAFFITI_DRIP,
+                fixedPosition,
+                playerId);
+        }
+
+        player.castText.enabled = true;
+        player.castText.text =
+            input.ButtonStates[0] == ButtonState.Held ? "Input Code" : "Hold";
+    }
+
+    private void CompleteOnboarding(
+        int playerIndex,
+        PlayerOnboarding player)
+    {
+        player.castText.color = GameManager.colors["green"];
+        player.castText.enabled = false;
+        player.breakWithSpellcode.enabled = false;
+
+        StopGraffitiDrip(playerIndex);
+    }
+
+    private static void StopGraffitiDrip(int playerIndex)
+    {
+        VFX_Manager.Instance.StopVisualEffect(
+            VisualEffects.GRAFFITI_DRIP,
+            playerIndex + 1);
+    }
+
+    private bool TryGetPlayerOnboarding(
+        int playerIndex,
+        out PlayerOnboarding player)
+    {
+        if (playerIndex >= 0 &&
+            playerIndex < players.Count &&
+            players[playerIndex] != null)
+        {
+            player = players[playerIndex];
+            return true;
+        }
+
+        player = null;
+        return false;
     }
 }

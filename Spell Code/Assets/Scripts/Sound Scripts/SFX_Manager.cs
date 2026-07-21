@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,8 @@ public enum Sounds //enum to store the names of the sounds that can play
     ARMOR_HIT,
     SLIDE, CRITICAL_HIT, CRITICAL_CAST, SWEET_SPOT_HIT,
     ARMOR_BREAK, GAMBA_HIT, DIALOGUE_APPEAR, FLOPPY_PICK_UP, CLEAR_MACHINE_HIT,
-    PARRY, FLOPPY_ARC, FLOPPY_SPAWN
+    PARRY, FLOPPY_ARC, FLOPPY_SPAWN,
+    TELEPORT
 }
 
 [RequireComponent(typeof(AudioSource))]
@@ -159,8 +161,15 @@ public class SFX_Manager : MonoBehaviour
         return RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
     }
 
+    /// <summary>
+    /// Plays the SFX specified by _soundName
+    /// </summary>
+    /// <param name="_soundName"> Name of the sound to be played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
     public void PlaySound(Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
     {
+        //Debug.Log("SFX_Manager | PlaySound called");
         if (SuppressAudioSideEffectDuringRollback())
         {
             return;
@@ -224,6 +233,27 @@ public class SFX_Manager : MonoBehaviour
 
         //load and play the sound with name equal to nameOfSoundToPlay
         sfxAudioSource.PlayOneShot(_soundObject.possibleSounds[_randomSoundIndex], sfxAudioSource.volume);
+    }
+
+    /// <summary>
+    /// Waits for _waitTime before playing the SFX specified by _soundName
+    /// </summary>
+    /// <param name="_waitTime"></param>
+    /// <param name="_soundName"> Name of the sound to be played by the SFX Handler</param>
+    /// <param name="_minPitchShift"> minimum pitch shift for the sound. By default, set to 0.8f</param>
+    /// <param name="_maxPitchShift"> maximum pitch shift for the sound. By default, set to 1.2f</param>
+    public void WaitThenPlaySound(float _waitTime, Sounds _soundName, float _minPitchShift = 0.8f, float _maxPitchShift = 1.2f, float _chanceToPlaySecretVersion = 0.0f)
+    {
+        //Debug.Log("SFX_Manager | WaitThenPlaySound called");
+        //wait for _waitTime seconds,...
+        DOVirtual.DelayedCall(_waitTime, () =>
+        {
+            //play the sfx
+            PlaySound(_soundName, _minPitchShift, _maxPitchShift, _chanceToPlaySecretVersion);
+        }).SetUpdate(false);
+
+        //return
+        return;
     }
 
     /// <summary>

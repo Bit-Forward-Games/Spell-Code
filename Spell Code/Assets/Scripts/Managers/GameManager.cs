@@ -3120,7 +3120,10 @@ public class GameManager : MonoBehaviour
                 InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
                 if (endInputEnabled && (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
                 {
-                    sceneManager.MainMenu();
+                    // Latch first: this accepts Held, so without it every frame of a held jump
+                    // queues another screen-cover tween and another ExecuteOrder66 scene load.
+                    endInputEnabled = false;
+                    sceneManager.SoloLobby();
                     return;
                 }
             }

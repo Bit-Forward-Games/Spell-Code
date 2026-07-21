@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 public class TextSetter : MonoBehaviour
 {
-    [SerializeField] private string message = "Press BUTTONPROMPT to start";
+    [SerializeField] private string stringToReplace = "BUTTONPROMPT";
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] private InputActionReference defaultAction;
@@ -22,17 +22,18 @@ public class TextSetter : MonoBehaviour
     {
         //_playerInput = new PlayerInput();
         _textBox = GetComponent<TMP_Text>();
+        //message = _textBox.text;
     }
 
     private void Start()
     {
         //debug test 
-        SetText(message, defaultAction);
+        SetText(defaultAction);
     }
 
     public void UpdateGlyph()
     {
-        SetText(message, defaultAction);
+        SetText(defaultAction);
     }
 
     public void SetSelectorPID(int playerId)
@@ -48,7 +49,7 @@ public class TextSetter : MonoBehaviour
             _textBox = GetComponent<TMP_Text>();
         }
 
-        _textBox.text = message.Replace("BUTTONPROMPT", string.Empty);
+        _textBox.text = _textBox.text.Replace(stringToReplace, string.Empty);
     }
 
     public InputAction TargetAction
@@ -56,22 +57,9 @@ public class TextSetter : MonoBehaviour
         get { return defaultAction != null ? defaultAction.action : null; }
     }
 
-    public void SetText(string inputMessage, InputAction targetAction)
-    {
-        // This is invoked from Pause.OnDisable -> RefreshControlGlyphs during scene teardown
-        // (ExecuteOrder66, HidePersistentUiForEndScene), when the selected player / its input, or even
-        // this label's own refs, can already be gone. A throw here unwinds the entire scene transition,
-        // so the screen-cover never lifts and the player is stranded on a BLACK SCREEN (host invite/join
-        // never completes; return-to-lobby from the end screen dies). Fail safe instead of throwing.
-        if (_textBox == null)
-        {
-            _textBox = GetComponent<TMP_Text>();
-        }
-        if (_textBox == null || spriteAssets == null || spriteAssets.spriteAssets == null)
-        {
-            return;
-        }
-
+    public void SetText(InputAction targetAction)
+    {   
+        string inputMessage = _textBox.text;
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();
         if(selectedPlayer == null || selectedPlayer.inputs == null)
@@ -93,8 +81,8 @@ public class TextSetter : MonoBehaviour
             return;
         }
 
-
-        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
+        
+        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage,stringToReplace, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
     }
 
     private PlayerController GetSelectedPlayer()

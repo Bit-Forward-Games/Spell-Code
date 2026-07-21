@@ -1055,6 +1055,7 @@ public class GameManager : MonoBehaviour
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
+        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
     }
 
     public bool TryRefreshOnlineLobbyRoster(OnlineMatchRoster roster)

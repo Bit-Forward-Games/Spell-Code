@@ -15,7 +15,7 @@ public class DemonAura : SpellData
         priorityOverride = 3;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[3] { ProcCondition.OnHitSpell, ProcCondition.OnHit, ProcCondition.OnUpdate };
-        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\">.\nAfter {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">.\nSpellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
+        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\"> from ranks F to X.\nAfter {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">.\nSpellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
 
     }
 
@@ -28,6 +28,7 @@ public class DemonAura : SpellData
                 if (owner.demonAura > 0)
                 {
                     owner.demonAuraLifeSpanTimer = DemonAuraResetTime; //refresh demon aura lifespan timer on hit
+                    owner.demonAura = (ushort)(Mathf.Ceil(owner.demonAura/20f)*20);
                 }
                 break;
             case ProcCondition.OnHitSpell:

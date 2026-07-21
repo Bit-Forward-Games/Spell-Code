@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a56beb1570b3e5b4e88fa5a109951a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaBoundRenderer
-  _stageDataSO: {fileID: 11400000, guid: 9fabc7674f4c99d47bf752e9a1bcec05, type: 2}
+  _stageDataSO: {fileID: 11400000, guid: 3ab8bc43a83aeb44f98cecc9d5db03c7, type: 2}
   _renderBorders: 1
   _renderCameraBorders: 0
 --- !u!4 &776632903

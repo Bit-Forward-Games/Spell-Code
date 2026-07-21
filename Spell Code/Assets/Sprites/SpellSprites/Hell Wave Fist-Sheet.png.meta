@@ -94,7 +94,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -108,7 +108,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -132,7 +132,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -186,12 +186,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 76
-        width: 46
-        height: 38
+        x: 0
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -208,12 +208,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_1
       rect:
         serializedVersion: 2
-        x: 66
-        y: 76
-        width: 49
-        height: 38
+        x: 64
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -230,12 +230,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_2
       rect:
         serializedVersion: 2
-        x: 129
-        y: 76
-        width: 50
-        height: 38
+        x: 128
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -253,11 +253,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 192
-        y: 90
-        width: 9
-        height: 10
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -274,12 +274,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_4
       rect:
         serializedVersion: 2
-        x: 202
-        y: 76
-        width: 41
-        height: 38
+        x: 256
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -296,12 +296,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_5
       rect:
         serializedVersion: 2
-        x: 261
-        y: 76
-        width: 46
-        height: 38
+        x: 320
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -318,12 +318,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_6
       rect:
         serializedVersion: 2
-        x: 322
-        y: 76
-        width: 49
-        height: 38
+        x: 384
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -340,12 +340,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_7
       rect:
         serializedVersion: 2
-        x: 385
-        y: 76
-        width: 50
-        height: 38
+        x: 448
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -362,12 +362,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_8
       rect:
         serializedVersion: 2
-        x: 448
-        y: 90
-        width: 9
-        height: 10
+        x: 0
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -384,12 +384,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_9
       rect:
         serializedVersion: 2
-        x: 458
-        y: 76
-        width: 41
-        height: 38
+        x: 64
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -406,12 +406,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_10
       rect:
         serializedVersion: 2
-        x: 4
-        y: 11
-        width: 48
-        height: 40
+        x: 128
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -428,12 +428,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_11
       rect:
         serializedVersion: 2
-        x: 65
-        y: 11
-        width: 51
-        height: 40
+        x: 192
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -450,12 +450,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_12
       rect:
         serializedVersion: 2
-        x: 128
-        y: 11
-        width: 52
-        height: 40
+        x: 256
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -472,12 +472,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_13
       rect:
         serializedVersion: 2
-        x: 191
-        y: 25
-        width: 11
-        height: 12
+        x: 320
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -494,12 +494,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_14
       rect:
         serializedVersion: 2
-        x: 201
-        y: 11
-        width: 43
-        height: 40
+        x: 384
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -516,12 +516,12 @@ TextureImporter:
       name: Hell Wave Fist-Sheet_15
       rect:
         serializedVersion: 2
-        x: 260
-        y: 11
-        width: 48
-        height: 40
+        x: 448
+        y: 0
+        width: 64
+        height: 64
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -534,99 +534,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: Hell Wave Fist-Sheet_16
-      rect:
-        serializedVersion: 2
-        x: 321
-        y: 11
-        width: 51
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 101d6aded21ab2d80800000000000000
-      internalID: -8274342671730421503
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Hell Wave Fist-Sheet_17
-      rect:
-        serializedVersion: 2
-        x: 384
-        y: 11
-        width: 52
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: fd752c5754c3b5980800000000000000
-      internalID: -8549173198606673953
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Hell Wave Fist-Sheet_18
-      rect:
-        serializedVersion: 2
-        x: 447
-        y: 25
-        width: 11
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6a480a2808e13cd40800000000000000
-      internalID: 5603355898675233958
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Hell Wave Fist-Sheet_19
-      rect:
-        serializedVersion: 2
-        x: 457
-        y: 11
-        width: 43
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8dca2413749ccf4e0800000000000000
-      internalID: -1946459631324582696
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2978ca714256d064f8215eee3637db29
     internalID: 0
     vertices: []
     indices: 
@@ -634,7 +546,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       Hell Wave Fist-Sheet_0: 1841412284469708066
       Hell Wave Fist-Sheet_1: -6417617701834282566
@@ -644,10 +558,6 @@ TextureImporter:
       Hell Wave Fist-Sheet_13: -6951619811488672595
       Hell Wave Fist-Sheet_14: -839962945442009062
       Hell Wave Fist-Sheet_15: -115802345084746816
-      Hell Wave Fist-Sheet_16: -8274342671730421503
-      Hell Wave Fist-Sheet_17: -8549173198606673953
-      Hell Wave Fist-Sheet_18: 5603355898675233958
-      Hell Wave Fist-Sheet_19: -1946459631324582696
       Hell Wave Fist-Sheet_2: -2395997156617947023
       Hell Wave Fist-Sheet_3: -4207266492625379738
       Hell Wave Fist-Sheet_4: -8257563842733243654

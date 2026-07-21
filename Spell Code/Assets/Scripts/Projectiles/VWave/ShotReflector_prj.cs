@@ -141,7 +141,7 @@ public class ShotReflector_prj : BaseProjectile
             if(HitboxManager.Instance.ProcessSingleProjectileCollisison(proj, hurtbox, position, out HitboxData hitbox, facingRight))
             {
                 
-                proj.playerIgnoreArr[owner.pID-1] = true;
+                proj.playerHitArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(24).Sum()+1;
                 ownerSpell.cooldownCounter-= 120;
 

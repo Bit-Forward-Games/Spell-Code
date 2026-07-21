@@ -117,4 +117,5 @@ public class CrossmapClip : SpellData
         indicator.SetActive(false);
         return lineRenderer;
     }
+    
 }

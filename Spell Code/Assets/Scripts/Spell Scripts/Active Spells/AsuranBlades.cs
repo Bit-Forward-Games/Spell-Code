@@ -13,7 +13,7 @@ public class AsuranBlades : SpellData
         cooldown = 180;
         spellInput = 0b_0000_0000_0000_0000_0001_0010_0000_0011;
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnSlide };
+        procConditions = new ProcCondition[] { };
         projectilePrefabs = new GameObject[4];
 
         description = "Throw 3 shurikens downward.\nWhen Demon Aura<sprite name=\"DemonAura\"> is B rank or higher, throw more shurikens.";
@@ -65,7 +65,7 @@ public class AsuranBlades : SpellData
                 
                 }
             }
-            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
             //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             //vibeCasted = false;
         }

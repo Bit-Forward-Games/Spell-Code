@@ -82,11 +82,11 @@ public class MineCrafter_prj : BaseProjectile
             ProjectileManager.Instance.DeleteProjectile(this);
         }
         //this basically checks if the projectile hit something
-        if (playerIgnoreArr.Any(ignore => ignore))
+        if (playerHitArr.Any(ignore => ignore))
         {
             hSpeed = Fixed.FromInt(0);
 
-            playerIgnoreArr = new bool[4] { false, false, false, false };
+            playerHitArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(36).Sum() + 1; //set the logic frame to the start of the end animation
         }
 

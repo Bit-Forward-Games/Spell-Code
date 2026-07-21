@@ -147,7 +147,7 @@ public class TrickshotAlley_prj : BaseProjectile
             {
                 hSpeed = Fixed.FromInt(hitbox.xKnockback * (proj.facingRight ? 1 : -1)); 
                 vSpeed = Fixed.FromInt(hitbox.yKnockback); 
-                proj.playerIgnoreArr[owner.pID-1] = true;
+                proj.playerHitArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
                 ownerSpell.cooldownCounter-= 60;
 

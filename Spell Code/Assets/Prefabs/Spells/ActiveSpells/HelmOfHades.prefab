@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3884774707739521384
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7745486899729457613}
+  - component: {fileID: 7691123304163195163}
+  m_Layer: 0
+  m_Name: HelmOfHades
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7745486899729457613
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7691123304163195163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06d0173a73f24f94cab3a2198b18822a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HelmOfHades
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 17d3f9a9efba6b04496b23dbb73d5821, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: 7969ca1ad829e9e49a7619f49ef37d21, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: d709e8f3c40b8ea4283671169f07d517, type: 3}
+  SpellGIF: {fileID: 11400000, guid: 1e862b5b52a7a444286b05748584e773, type: 2}

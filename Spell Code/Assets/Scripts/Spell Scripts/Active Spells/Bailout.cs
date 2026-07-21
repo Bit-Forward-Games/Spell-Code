@@ -72,7 +72,7 @@ public class Bailout : SpellData
                     SFX_Manager.Instance.PlaySound(Sounds.CRITICAL_CAST);
                 }
             }
-            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
         }
     }
 

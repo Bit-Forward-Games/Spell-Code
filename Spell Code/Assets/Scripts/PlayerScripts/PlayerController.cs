@@ -494,8 +494,7 @@ public class PlayerController : MonoBehaviour
         Vector2 spawnPos = GameManager.Instance.GetSpawnPositions()[Array.IndexOf(GameManager.Instance.players, this)];
         startPos = FixedVec2.FromFloat(spawnPos.x, spawnPos.y);
         SpawnPlayer(startPos);
-
-
+        
     }
 
     public void SpawnPlayer(FixedVec2 spawnPos)
@@ -571,6 +570,12 @@ public class PlayerController : MonoBehaviour
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         GameManager.Instance.spellDisplays[Array.IndexOf(GameManager.Instance.players, this)].UpdateSpellDisplay(Array.IndexOf(GameManager.Instance.players, this));
 
+        int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
+        Pause pause = GetPauseMenu();
+        if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
+        {
+            pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
+        }
     }
 
 
@@ -1074,7 +1079,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened)
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1145,7 +1150,10 @@ public class PlayerController : MonoBehaviour
             tapJumpPrimed = true;
         }
 
-
+        if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+        {
+            return;
+        }
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
         if (hitstop > 0)

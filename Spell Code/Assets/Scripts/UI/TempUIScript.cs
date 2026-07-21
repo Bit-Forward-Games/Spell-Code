@@ -100,9 +100,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public bool tutorialPromptMenuOpened;
 
     [Header("Code Mode Options Menu")] // Code Mode Prompt
-    public GameObject _codeModeMenuFirst;
-    public GameObject codeModePromptMenu;
-    public bool codeModePromptMenuOpened;
+    public GameObject[] _codeModeMenuFirst;
+    public GameObject[] codeModePromptMenu;
+    public bool[] codeModePromptMenuOpened;
+
+    [System.Serializable]
+    public class PlayerCodeMode
+    {
+        public ButtonSelectHandler[] codeModes;
+    }
+ 
+    public PlayerCodeMode[] playerCodeMode = new PlayerCodeMode[4];
 
     public Pause pause;
 
@@ -208,24 +216,31 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             CloseGamemodeMenus();
         }
     }
-
-    public void OpenCodeModeMenuPrompt(bool setOpen)
+    
+    public void OpenCodeModeMenuPrompt(bool setOpen, int playerIndex)
     {
         if (setOpen)
         {
-            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            gamemodesMenuPlayerIndex = playerIndex;
             if (pause != null)
             {
                 pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
             }
 
-            codeModePromptMenuOpened = true;
-            codeModePromptMenu.SetActive(true);
+            codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = true;
+            codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(true);
+
+            playerCodeMode[playerIndex].codeModes[0].codeModeSelected = true;
+            playerCodeMode[playerIndex].codeModes[1].codeModeSelected = false;
 
             Sequence mySequence = DOTween.Sequence();
-            Transform screenTransform = codeModePromptMenu.transform.Find("Code Mode Screen");
+            Transform screenTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen");
             RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
-            Transform streaksTransform = codeModePromptMenu.transform.Find("Code Mode Screen Streaks");
+
+            Transform borderTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Menu Border");
+            RectTransform borderRect = borderTransform != null ? borderTransform.GetComponent<RectTransform>() : null;
+
+            Transform streaksTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen Streaks");
             Image streaks = streaksTransform != null ? streaksTransform.GetComponent<Image>() : null;
 
             screenRect?.DOKill();
@@ -235,18 +250,27 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             {
                 streaks.fillAmount = 0f;
             }
+            borderRect.localScale = new Vector3(0f, borderRect.localScale.y, borderRect.localScale.z);
             screenRect.localScale = new Vector3(0f, screenRect.localScale.y, screenRect.localScale.z);
-            mySequence.Append(screenRect
+
+            mySequence.Append(borderRect
             .DOScaleX(1f, 0.35f)
             .SetEase(Ease.OutQuad))
             .SetUpdate(true);
+
+            mySequence.Join(screenRect
+            .DOScaleX(1f, 0.35f)
+            .SetEase(Ease.OutQuad))
+            .SetUpdate(true);
+
             mySequence.AppendInterval(0.2f).SetUpdate(true);
+
             if (streaks != null) 
             {
                 mySequence.Append(DOTween.To(() => (float)streaks.fillAmount, x => streaks.fillAmount = (float)x, 1f, 0.4f)
                 .SetEase(Ease.OutQuad))
                 .SetUpdate(true);
-                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst));
+                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst[gamemodesMenuPlayerIndex]));
             }
         }
         else
@@ -254,6 +278,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             CloseGamemodeMenus();
         }
     }
+
+    // public void NavigateCodeNodeMenu()
+    // {
+    //     if (gamemodesMenuPlayerIndex < 0)
+    //     {
+    //         gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+    //     }
+    // }
 
     public void SetMultiplayerMenuActive(bool setOpen)
     {
@@ -283,20 +315,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // SetSoloMenuActive(false), leaving multiplayerGamemodesMenuOpened true for the whole offline
     // match — PlayerController's pause gate checks that flag, so only P1 (whose pause press closes
     // the hidden menu via the gamemode-menu handler in Update) could ever pause.
-    private void CloseGamemodeMenus()
+    public void CloseGamemodeMenus()
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
-        codeModePromptMenuOpened = false;
+        // codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
 
         if (soloGamemodesMenu != null)
         {
             soloGamemodesMenu.SetActive(false);
-        }
-
-        if (codeModePromptMenu != null)
-        {
-            codeModePromptMenu.SetActive(false);
         }
 
         if (multiplayerGamemodesMenu != null)
@@ -309,6 +336,19 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             gamemodesMenu.SetActive(false);
         }
 
+        gamemodesMenuPlayerIndex = -1;
+        pause?.RestoreScopedUiInputDevices();
+        Time.timeScale = 1f;
+    }
+
+    public void CloseCodeModeMenuPrompt(int playerIndex)
+    {
+        codeModePromptMenuOpened[playerIndex] = false;
+        if (codeModePromptMenu != null)
+        {
+            codeModePromptMenu[playerIndex].SetActive(false);
+            Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + playerIndex);
+        }
         gamemodesMenuPlayerIndex = -1;
         pause?.RestoreScopedUiInputDevices();
         Time.timeScale = 1f;
@@ -329,7 +369,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || codeModePromptMenuOpened) && !pause.paused)
+        // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {
@@ -369,10 +410,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //     StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         //     TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
         // }
-        if (SteamManager.DebugToolsEnabled && Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !codeModePromptMenuOpened && !pause.paused && !gameManager.MainMenuScreen.activeSelf)
-        {
-            OpenCodeModeMenuPrompt(true);
-        }
+        //if (SteamManager.DebugToolsEnabled && Input.GetKeyDown(KeyCode.Space) && !soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !pause.paused && !gameManager.MainMenuScreen.activeSelf)
+        //{
+        //    OpenCodeModeMenuPrompt(true);
+        //}
     }
 
     public void InvitePlayer()
@@ -693,7 +734,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
-    private int ResolveGamemodesMenuPlayerIndex()
+    public int ResolveGamemodesMenuPlayerIndex()
     {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         if (manager == null || manager.players == null)
@@ -1108,14 +1149,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public void ExitTutorialPromptAnimation()
     {
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
-    }
-
-    public void OpenCodeModeMenu()
-    {
-        tutorialPromptMenu.SetActive(true);
-        Time.timeScale = 0f;
-        tutorialPromptMenuOpened = true;
-        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
     }
 
     IEnumerator TypeLine(TextMeshProUGUI screenText, string text, bool reverse, float textSpeed)

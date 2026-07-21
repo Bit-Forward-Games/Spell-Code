@@ -103,6 +103,7 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI spellSelectedText;
     public TextMeshProUGUI cooldownText;
     public TextMeshProUGUI inputText;
+    public TextMeshProUGUI informationDisplayText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
     public RectTransform descriptionPanel;
@@ -119,7 +120,7 @@ public class Pause : MonoBehaviour
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
-    private bool showDescription = true;
+    public bool showDescription = false;
  
     private int tab = 0;
     private int selectedSpell;
@@ -632,6 +633,11 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
+        if (!showDescription)
+            informationDisplayText.text = "MORE INFO";
+        else if (showDescription)
+            informationDisplayText.text = "ZOOM IN";
+
         if (WasPausePlayerSubmitPressedThisFrame() && spells)
         {
             if (!showDescription)

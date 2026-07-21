@@ -343,18 +343,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         UpdateUIBarVals();
         RefreshFindingMatchText();
 
-        // if ()
-        // if (GameManager.Instance.players[gameManager.Instance.players].input.Direction == 4)
-        //     {
-        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = true;
-        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = false;
-        //     }
-        //     else if (GameManager.Instance.players[codeModeIndex].input.Direction == 6)
-        //     {
-        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = false;
-        //         pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = true;
-        //     }
-
         Scene currentScene = SceneManager.GetActiveScene();
 
         if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)

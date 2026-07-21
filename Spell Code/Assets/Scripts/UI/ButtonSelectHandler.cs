@@ -17,6 +17,8 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
     public bool codeModeSelected;
     public int codeModeIndex;
+    bool wasCodeModeMenuOpen;
+    int lastCodeModeDirection;
     
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
@@ -175,42 +177,6 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         }
     }
 
-    void SelectCodeMode()
-    {
-        if (name.Contains("Code Mode"))
-        {
-            if (codeModeSelected)
-            {
-                gameObject.SetActive(true);
-                Image codeModeImage = GetComponent<Image>();
-                codeModeImage.fillAmount = 0f;
-                DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 1f, 0.35f)
-                .SetEase(Ease.OutQuad);
-
-                Transform textImageTransform = transform.Find("Text Image");
-                if (textImageTransform!= null)
-                {
-                    textImageTransform.gameObject.SetActive(true);
-                    RectTransform textImageRectTransform = textImageTransform.gameObject.GetComponent<RectTransform>();
-                    textImageRectTransform.localScale = new Vector3(0f, textImageRectTransform.localScale.y, textImageRectTransform.localScale.z);
-                    textImageRectTransform
-                    .DOScaleX(1f, 0.35f)
-                    .SetEase(Ease.OutQuad)
-                    .SetUpdate(true);
-                }
-            }
-            else if (!codeModeSelected)
-            {
-                gameObject.SetActive(false);
-                Transform textImageTransform = transform.Find("Text Image");
-                if (textImageTransform!= null) 
-                {
-                    textImageTransform.gameObject.SetActive(false);
-                }
-            }
-        } 
-    }
-
     void Start()
     {
         pause = Object.FindAnyObjectByType<Pause>();
@@ -281,10 +247,35 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 Time.timeScale = 1f;
             }
 
-            
+            if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex])
+            {
+                int dir = GameManager.Instance.players[codeModeIndex].input.Direction;
+                if (dir == 4 && lastCodeModeDirection != 4)
+                {
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = true;
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = false;
+
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].SelectCodeMode();
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].SelectCodeMode();
+                }
+                else if (dir == 6 && lastCodeModeDirection != 6)
+                {
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = false;
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].codeModeSelected = true;
+
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].SelectCodeMode();
+                    pause.uiScript.playerCodeMode[codeModeIndex].codeModes[1].SelectCodeMode();
+                }
+                lastCodeModeDirection = dir;
+            }
         }
 
-         if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex] && name.Contains("Code Mode")) SelectCodeMode();
+        bool isOpen = pause.uiScript.codeModePromptMenuOpened[codeModeIndex];
+        if (isOpen && !wasCodeModeMenuOpen && name.Contains("Code Mode"))
+        {
+            SelectCodeMode();
+        }
+        wasCodeModeMenuOpen = isOpen;   
     }
 
     int DisplayOptionsCycle(List<string> optionsList, int currentIndex)
@@ -316,5 +307,56 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         lastNavValue = nav;
 
         return currentIndex;
+    }
+
+    public void SelectCodeMode()
+    {
+        if (!name.Contains("Code Mode")) return;
+
+        Image codeModeImage = GetComponent<Image>();
+        Transform textImageTransform = transform.Find("Text Image");
+
+        // Kill any tween still in flight on these targets so a stale OnComplete
+        // can't deactivate us after a newer tween already changed our state.
+        DOTween.Kill(codeModeImage);
+        if (textImageTransform != null)
+        {
+            textImageTransform.GetComponent<RectTransform>().DOKill();
+        }
+
+        if (codeModeSelected)
+        {
+            gameObject.SetActive(true);
+            codeModeImage.fillAmount = 0f;
+            DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 1f, 0.35f)
+                .SetTarget(codeModeImage)
+                .SetEase(Ease.OutQuad)
+                .SetUpdate(true);
+
+            if (textImageTransform != null)
+            {
+                textImageTransform.gameObject.SetActive(true);
+                RectTransform rt = textImageTransform.GetComponent<RectTransform>();
+                rt.localScale = new Vector3(0f, rt.localScale.y, rt.localScale.z);
+                rt.DOScaleX(1f, 0.35f).SetEase(Ease.OutQuad).SetUpdate(true);
+            }
+        }
+        else
+        {
+            DOTween.To(() => (float)codeModeImage.fillAmount, x => codeModeImage.fillAmount = (float)x, 0f, 0.25f)
+                .SetTarget(codeModeImage)
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true)
+                .OnComplete(() => gameObject.SetActive(false));
+
+            if (textImageTransform != null)
+            {
+                RectTransform rt = textImageTransform.GetComponent<RectTransform>();
+                rt.DOScaleX(0f, 0.25f)
+                    .SetEase(Ease.InQuad)
+                    .SetUpdate(true)
+                    .OnComplete(() => textImageTransform.gameObject.SetActive(false));
+            }
+        }
     }
 }

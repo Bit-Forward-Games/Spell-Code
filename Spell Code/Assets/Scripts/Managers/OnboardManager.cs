@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BestoNet.Types;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -37,6 +38,8 @@ public class OnboardManager : MonoBehaviour
 
     public Sprite inputGraphic;
     public Sprite atkGraphic;
+    [SerializeField] private InputActionReference attackActionReference;
+    [SerializeField] private InputActionReference startActionReference;
 
     [SerializeField]
     private List<PlayerOnboarding> players = new List<PlayerOnboarding>();
@@ -95,8 +98,10 @@ public class OnboardManager : MonoBehaviour
         if (!player.startsJoined)
         {
             player.attackText.text = "Attack:\n[CODE]";
-            //player.attackText.GetComponent<TextSetter>().UpdateGlyph();        
-            ReloadAllGlyphs(playerIndex);
+            player.attackText.GetComponent<TextSetter>().referenceString = "Attack:\n[CODE]";
+            player.attackText.GetComponent<TextSetter>().stringToReplace = "[CODE]";
+            player.attackText.GetComponent<TextSetter>().defaultAction = attackActionReference;
+            
 
         }
 
@@ -120,7 +125,10 @@ public class OnboardManager : MonoBehaviour
         }
 
         player.attackText.GetComponent<TextSetter>().UpdateGlyph();
-        player.moveText.GetComponent<TextSetter>().UpdateGlyph();
+        foreach(TextSetter ts in player.moveText.GetComponents<TextSetter>())
+        {
+            ts.UpdateGlyph();
+        }
         player.jumpText.GetComponent<TextSetter>().UpdateGlyph();
         player.castText.GetComponent<TextSetter>().UpdateGlyph();
 
@@ -187,8 +195,9 @@ public class OnboardManager : MonoBehaviour
             if (!player.startsJoined)
             {
                 player.attackText.text = "Join:\n[START]";
-                //player.attackText.GetComponent<TextSetter>().UpdateGlyph();
-                
+                player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
+                player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
+                player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
             }
             ReloadAllGlyphs(playerIndex);
             SetGambaActive(player, false, false);
@@ -235,7 +244,9 @@ public class OnboardManager : MonoBehaviour
         if (!onboarding.joined)
         {
             onboarding.attackText.text = "Attack:\n[CODE]";
-            onboarding.attackText.GetComponent<TextSetter>().UpdateGlyph();
+            onboarding.attackText.GetComponent<TextSetter>().referenceString = "Attack:\n[CODE]";
+            onboarding.attackText.GetComponent<TextSetter>().stringToReplace = "[CODE]";
+            onboarding.attackText.GetComponent<TextSetter>().defaultAction = attackActionReference;
             onboarding.attackText.enabled = false;
             onboarding.moveText.enabled = true;
             onboarding.jumpText.enabled = true;

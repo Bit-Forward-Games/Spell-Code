@@ -1714,6 +1714,15 @@ public class Pause : MonoBehaviour
         return WasPausePlayerActionPressedThisFrame("Pause");
     }
 
+    // Per-player variant of WasPausePlayerSubmitPressedThisFrame. The code-mode prompt is shown to
+    // every player at once and each confirms their own panel with their own pad, so it cannot route
+    // through the single playerPauseIndex the pause menu uses.
+    public bool WasPlayerSubmitPressedThisFrame(int playerIndex)
+    {
+        InputAction action = FindPlayerAction(GetPlayerAtIndex(playerIndex), "Jump");
+        return action != null && action.WasPressedThisFrame();
+    }
+
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
@@ -1722,7 +1731,11 @@ public class Pause : MonoBehaviour
 
     private InputAction FindPausePlayerAction(string actionName)
     {
-        PlayerController player = GetPausePlayer();
+        return FindPlayerAction(GetPausePlayer(), actionName);
+    }
+
+    private InputAction FindPlayerAction(PlayerController player, string actionName)
+    {
         if (player == null)
         {
             return null;
@@ -1748,18 +1761,25 @@ public class Pause : MonoBehaviour
             }
         }
 
-        return player.inputs.PlayerActionMap != null ? player.inputs.PlayerActionMap.FindAction($"Gameplay/{actionName}", false) : null;
+        return bindings != null && bindings.PlayerActionMap != null
+            ? bindings.PlayerActionMap.FindAction($"Gameplay/{actionName}", false)
+            : null;
     }
 
     private PlayerController GetPausePlayer()
     {
+        return GetPlayerAtIndex(playerPauseIndex);
+    }
+
+    private PlayerController GetPlayerAtIndex(int playerIndex)
+    {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
-        if (manager == null || manager.players == null || playerPauseIndex < 0 || playerPauseIndex >= manager.players.Length)
+        if (manager == null || manager.players == null || playerIndex < 0 || playerIndex >= manager.players.Length)
         {
             return null;
         }
 
-        return manager.players[playerPauseIndex];
+        return manager.players[playerIndex];
     }
 
     private bool TryGetOnlineControlOptions(PlayerController player, out PlayerControlOptionsData options)

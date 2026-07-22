@@ -202,6 +202,8 @@ public class PlayerController : MonoBehaviour
     public HitboxData hitboxData = null; //this represents what they are hit by
     public bool isHit = false;
 
+    public bool dodgedFlag = false;
+
     // Monotonically incremented each time HitboxManager registers a hit on this player.
     // Used by the UI damage bar to fire its animation exactly once per hit, even when
     // online rollback resim re-runs HitboxManager and re-sets isHit. 
@@ -3021,8 +3023,10 @@ public class PlayerController : MonoBehaviour
             iframes--;
             return;
         }
+
+
         // Check to see if hitboxData is not null if it's not null, that means the player has been attacked
-        if (hitboxData != null /*&& isHit*/)
+        if (hitboxData != null && !dodgedFlag)
         {
             BaseProjectile sourceProjectile = hitboxData.parentProjectile;
             PlayerController attacker = sourceProjectile != null ? sourceProjectile.owner : null;
@@ -3033,7 +3037,7 @@ public class PlayerController : MonoBehaviour
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
 
-                if (state == PlayerState.CodeWeave && logicFrame < parryThreshold)
+                if (state == PlayerState.CodeWeave && logicFrame <= parryThreshold)
                 {
                     SpawnToast("PARRY!", GameManager.colors["pink"]);
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnParry);
@@ -3158,6 +3162,7 @@ public class PlayerController : MonoBehaviour
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt);
+            
 
             //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
             if (hitboxData.basicAttackHitbox)
@@ -3182,6 +3187,17 @@ public class PlayerController : MonoBehaviour
             isHit = false;
             hitboxData = null;
 
+        }
+        if (dodgedFlag)
+        {
+            SpawnToast("DODGED!", GameManager.colors["white"]);
+            if(hitboxData != null)
+            {
+                CheckAllSpellConditionsOfProcCon(hitboxData.parentProjectile.owner, ProcCondition.OnDodged);
+            }
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDodge);
+            dodgedFlag = false;
+            hitboxData = null;
         }
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
@@ -3571,6 +3587,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(isHit);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
+        bw.Write(dodgedFlag);
         bw.Write(unchecked((int)0xAABBCCDD));
 
         bool hasHitboxData = hitboxData != null;
@@ -3726,6 +3743,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(isHit);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
+        bw.Write(dodgedFlag);
 
         bool hasHitboxData = hitboxData != null;
         bw.Write(hasHitboxData);
@@ -3889,6 +3907,7 @@ public class PlayerController : MonoBehaviour
         isHit = br.ReadBoolean();
         damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();
+        dodgedFlag = br.ReadBoolean();
         int markerA = br.ReadInt32();
         if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
 

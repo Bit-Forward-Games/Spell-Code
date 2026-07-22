@@ -4953,7 +4953,7 @@ public class GameManager : MonoBehaviour
         if (SettingsManager.Instance.IsFirstLaunch())
         {
             SettingsManager.Instance.MarkFirstLaunchComplete();
-            LoadTutorial();
+            tempUI.OpenTutorialPromptMenu();
         }
     }
 

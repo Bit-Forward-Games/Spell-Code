@@ -418,6 +418,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 #endif
     }
 
+    public void OpenTutorialPromptMenu()
+    {
+        tutorialPromptMenu.SetActive(true);
+        Time.timeScale = 0f;
+        tutorialPromptMenuOpened = true;
+        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
+        TutorialPromptAnimation(0f, new Vector2 (-212f, 62f), new Vector2 (916f, 344f), new Vector2(1432f, 408f));
+    }
+
     public void InvitePlayer()
     {
         CloseGamemodesMenuForOnlineEntry();

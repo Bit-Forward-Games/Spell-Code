@@ -304,6 +304,8 @@ public class Pause : MonoBehaviour
     {
         ScopeUiInputToPausePlayer();
 
+        Debug.Log(EventSystem.current.currentSelectedGameObject);
+
         if (IsWaitingForRebindInput())
         {
             return;

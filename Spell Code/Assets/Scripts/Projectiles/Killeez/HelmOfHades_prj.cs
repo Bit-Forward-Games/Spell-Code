@@ -8,12 +8,12 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class HelmOfHades_prj : BaseProjectile
 {
-    
+    private const ushort baseLifeSpan = 180;
     protected override void InitializeDefaults()
     {
         projName = "Helm Of Hades";
         deleteOnHit = false;
-        lifeSpan = 240;
+        lifeSpan = baseLifeSpan;
         fadeIn = true;
         fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, true);
@@ -22,6 +22,7 @@ public class HelmOfHades_prj : BaseProjectile
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
         base.SpawnProjectile(facingRight, spawnOffset);
+        lifeSpan = (ushort)(baseLifeSpan + 10 * owner.reps);
         activeHitboxGroupIndex = 0;
     }
     public override void LoadProjectile()

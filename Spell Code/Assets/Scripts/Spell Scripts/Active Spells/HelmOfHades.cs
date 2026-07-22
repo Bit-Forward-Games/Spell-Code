@@ -22,7 +22,7 @@ public class HelmOfHades : SpellData
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;
-        description = "Place down a helmet shrouded in darkness.\n while inside the shroud, dodge all attacks from opponents outside the shroud."/*\nGain Reps<sprite name=\"Reps\"> when you dodge a projectile this way."*/;
+        description = "Place down a helmet shrouded in darkness.\n while inside the shroud, dodge all attacks from opponents outside the shroud.\nThe Shroud's duration is based on Reps<sprite name=\"Reps\">.";
     }
 
     
@@ -31,8 +31,13 @@ public class HelmOfHades : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                UpdateProjectileIgnoreFlags();
-                UpdateRangeIndicator(projectileInstances[0].activeSelf);
+                if (projectileInstances[0].activeSelf)
+                {
+                    UpdateProjectileIgnoreFlags();
+                }
+                
+                //UpdateRangeIndicator(projectileInstances[0].activeSelf);
+                
                 break;
             default:
                 break;
@@ -47,11 +52,13 @@ public class HelmOfHades : SpellData
         }
 
         int ownerPlayerIndex = owner.pID - 1;
+
         BaseProjectile shroud = projectileInstances != null &&
             projectileInstances.Count > 0 &&
             projectileInstances[0] != null
             ? projectileInstances[0].GetComponent<BaseProjectile>()
             : null;
+
         bool ownerIsInsideShroud = shroud != null &&
             shroud.gameObject.activeSelf &&
             IsWithinShroud(owner.position+ new FixedVec2(Fixed.FromInt(0), Fixed.FromInt(spawnOffsetY)), shroud.position);
@@ -138,6 +145,22 @@ public class HelmOfHades : SpellData
 
         indicator.SetActive(false);
         return lineRenderer;
+    }
+
+    private void OnDisable()
+    {
+        UpdateRangeIndicator(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (rangeIndicator == null)
+        {
+            return;
+        }
+
+        Destroy(rangeIndicator.gameObject);
+        rangeIndicator = null;
     }
 
 }

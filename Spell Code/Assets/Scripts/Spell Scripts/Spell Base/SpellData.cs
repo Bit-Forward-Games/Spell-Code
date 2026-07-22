@@ -147,7 +147,7 @@ public abstract class SpellData : MonoBehaviour
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
             //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             //vibeCasted = false;
         }
@@ -207,22 +207,22 @@ public abstract class SpellData : MonoBehaviour
             if (projectileInstance == null) continue;
 
             BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
-            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerIgnoreArr == null) continue;
+            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
 
             if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr))
             {
-                mergedIgnoreArr = new bool[projectile.playerIgnoreArr.Length];
+                mergedIgnoreArr = new bool[projectile.playerHitArr.Length];
                 sharedIgnoreMap.Add(projectile.projName, mergedIgnoreArr);
             }
-            else if (mergedIgnoreArr.Length < projectile.playerIgnoreArr.Length)
+            else if (mergedIgnoreArr.Length < projectile.playerHitArr.Length)
             {
-                Array.Resize(ref mergedIgnoreArr, projectile.playerIgnoreArr.Length);
+                Array.Resize(ref mergedIgnoreArr, projectile.playerHitArr.Length);
                 sharedIgnoreMap[projectile.projName] = mergedIgnoreArr;
             }
 
-            for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
+            for (int playerIndex = 0; playerIndex < projectile.playerHitArr.Length; playerIndex++)
             {
-                mergedIgnoreArr[playerIndex] |= projectile.playerIgnoreArr[playerIndex];
+                mergedIgnoreArr[playerIndex] |= projectile.playerHitArr[playerIndex];
             }
         }
 
@@ -232,18 +232,18 @@ public abstract class SpellData : MonoBehaviour
             if (projectileInstance == null) continue;
 
             BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
-            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerIgnoreArr == null) continue;
+            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
 
             if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr)) continue;
 
-            if (projectile.playerIgnoreArr.Length < mergedIgnoreArr.Length)
+            if (projectile.playerHitArr.Length < mergedIgnoreArr.Length)
             {
-                Array.Resize(ref projectile.playerIgnoreArr, mergedIgnoreArr.Length);
+                Array.Resize(ref projectile.playerHitArr, mergedIgnoreArr.Length);
             }
 
-            for (int playerIndex = 0; playerIndex < projectile.playerIgnoreArr.Length; playerIndex++)
+            for (int playerIndex = 0; playerIndex < projectile.playerHitArr.Length; playerIndex++)
             {
-                projectile.playerIgnoreArr[playerIndex] = mergedIgnoreArr[playerIndex];
+                projectile.playerHitArr[playerIndex] = mergedIgnoreArr[playerIndex];
             }
         }
     }

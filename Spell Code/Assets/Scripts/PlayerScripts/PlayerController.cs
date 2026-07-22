@@ -1063,7 +1063,6 @@ public class PlayerController : MonoBehaviour
             {
                 ApplyOnlineControlOptionsFromInput(rawInput);
             }
-            Debug.Log(input.Direction);
         }
         else
         {
@@ -1150,10 +1149,14 @@ public class PlayerController : MonoBehaviour
             tapJumpPrimed = true;
         }
 
-        if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+        if(SceneManager.GetActiveScene().name == "MainMenu")
         {
-            return;
+            if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+            {
+                return;
+            }
         }
+        
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
         if (hitstop > 0)
@@ -1595,7 +1598,7 @@ public class PlayerController : MonoBehaviour
                             
                             storedCode = stateSpecificArg;
 
-                            uint spellCodeLength = (storedCode & 0xFu);
+                            uint spellCodeLength = storedCode & 0xFu;
                             storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", GameManager.colors["white"]);

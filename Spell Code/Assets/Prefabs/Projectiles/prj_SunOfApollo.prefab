@@ -121,6 +121,3 @@ MonoBehaviour:
   - {fileID: 1306855521, guid: 7c0f799891c016c43a2eca2cf552dbaf, type: 3}
   logicFrame: 0
   animationFrame: 0
-  frameData:
-    startFrames: 
-    endFrames: 

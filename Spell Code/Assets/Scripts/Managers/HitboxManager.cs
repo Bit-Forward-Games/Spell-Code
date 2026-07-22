@@ -113,14 +113,17 @@ public class HitboxManager : MonoBehaviour
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
-                if (defendingPlayerIndex < 0) continue;
-                if (projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]) continue;
+                if (defendingPlayerIndex < 0 &&
+                projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]&&
+                projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]) continue;
+
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
                 foreach (HitboxData hitbox in activeProjHit)
                 {   
-                    if(!projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex])
+                    if(!projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex] &&
+                    !projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex])
                     {
                         foreach (HurtboxData hurtbox in activeHurtboxes)
                         {
@@ -171,7 +174,7 @@ public class HitboxManager : MonoBehaviour
                                     defendingPlayer.hitboxData = hitbox;
                                 }
 
-                                projectile.playerIgnoreArr[defendingPlayer.pID == 0?projectile.owner.pID-1:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
+                                projectile.playerHitArr[defendingPlayer.pID == 0?projectile.owner.pID-1:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                                 
                                 projectile.ownerSpell?.ShareHitIgnoreList();
                                 // Stat counter only — gate behind rollback so resim doesn't
@@ -645,9 +648,9 @@ public class HitboxManager : MonoBehaviour
 
     private void EnsureProjectileIgnoreCapacity(BaseProjectile projectile, int playerCount)
     {
-        if (projectile.playerIgnoreArr.Length >= playerCount) return;
+        if (projectile.playerHitArr.Length >= playerCount) return;
 
-        Array.Resize(ref projectile.playerIgnoreArr, playerCount);
+        Array.Resize(ref projectile.playerHitArr, playerCount);
     }
 
     /// <summary>

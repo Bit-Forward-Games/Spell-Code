@@ -2441,7 +2441,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         foreach (BaseProjectile projectile in activeProjectiles)
         {
             int ownerPid = projectile.owner != null ? projectile.owner.pID : -1;
-            string ignoreText = projectile.playerIgnoreArr != null ? string.Join(",", projectile.playerIgnoreArr) : "null";
+            string ignoreText = projectile.playerHitArr != null ? string.Join(",", projectile.playerHitArr) : "null";
             diag += $"\n   {projectile.projName}: pos=({projectile.position.X.RawValue},{projectile.position.Y.RawValue}) frame={projectile.logicFrame} owner={ownerPid} ignore=[{ignoreText}]";
         }
 

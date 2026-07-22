@@ -57,7 +57,7 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
-    public Toggle vibeCodingToggleGraphic;
+    //public Toggle vibeCodingToggleGraphic;
     public Toggle downJumpSlideToggleGraphic;
     public static readonly string[] BannedRebindInputs =
     {
@@ -103,6 +103,7 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI spellSelectedText;
     public TextMeshProUGUI cooldownText;
     public TextMeshProUGUI inputText;
+    public TextMeshProUGUI informationDisplayText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
     public RectTransform descriptionPanel;
@@ -119,7 +120,7 @@ public class Pause : MonoBehaviour
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
-    private bool showDescription = true;
+    public bool showDescription = false;
  
     private int tab = 0;
     private int selectedSpell;
@@ -239,6 +240,8 @@ public class Pause : MonoBehaviour
         scInput = new SCMaster();
         LoadSettings();
     }
+
+    private List<GameObject> mySpellsGlossaryList = new List<GameObject>();
  
     private void Start()
     {
@@ -630,6 +633,11 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
+        if (!showDescription)
+            informationDisplayText.text = "MORE INFO";
+        else if (showDescription)
+            informationDisplayText.text = "ZOOM IN";
+
         if (WasPausePlayerSubmitPressedThisFrame() && spells)
         {
             if (!showDescription)
@@ -1069,6 +1077,9 @@ public class Pause : MonoBehaviour
             grid[i].spells = columnSpells.ToArray();
         }
  
+        SpellGlossaryNewTab();
+        ActivateOnly(tab);
+
         StartCoroutine(SelectFirst(_spellsMenuFirst));
         
  
@@ -1095,9 +1106,28 @@ public class Pause : MonoBehaviour
 
         SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
         
-        int j = 0;
         spellTabList.Clear();
-        
+
+        if (tab == 0)
+        {
+            PopulateMySpellsTab();
+        }
+        else
+        {
+            PopulateDictionaryTab();
+        }
+    }
+
+    // Tabs 1-5: identical to the original working logic. Untouched.
+    private void PopulateDictionaryTab()
+    {
+        for (int k = 0; k < mySpellsGlossaryList.Count; k++)
+        {
+            mySpellsGlossaryList[k].SetActive(false);
+        }
+
+        int j = 0;
+
         for (int i = 0; i < spellGlossaryList.Length; i++)
         {
             if (j >= grid[tab].spells.Length)
@@ -1119,6 +1149,65 @@ public class Pause : MonoBehaviour
             {
                 spellGlossaryList[i].SetActive(false);
             }
+        }
+    }
+
+    // Tab 0: its own pool, indexed directly (not name-matched), so duplicate spells
+    // each get their own GameObject instead of fighting over one dictionary slot.
+    private void PopulateMySpellsTab()
+    {
+        for (int i = 0; i < spellGlossaryList.Length; i++)
+        {
+            spellGlossaryList[i].SetActive(false);
+        }
+
+        SpellData[] mySpells = grid[0].spells;
+
+        while (mySpellsGlossaryList.Count < mySpells.Length)
+        {
+            GameObject entry = Instantiate(unselectedSpell, spellListParent.transform);
+            entry.SetActive(false);
+            mySpellsGlossaryList.Add(entry);
+        }
+
+        for (int j = 0; j < mySpellsGlossaryList.Count; j++)
+        {
+            GameObject entry = mySpellsGlossaryList[j];
+
+            if (j >= mySpells.Length)
+            {
+                entry.SetActive(false);
+                continue;
+            }
+
+            SpellData spell = mySpells[j];
+
+            Transform childTransform = entry.transform.Find("Panel Color");
+            GameObject panel = childTransform != null ? childTransform.gameObject : null;
+            Image panelColor = panel != null ? panel.GetComponent<Image>() : null;
+            TextMeshProUGUI spellNameText = entry.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (panelColor != null)
+            {
+                Brand brand = (spell.brands != null && spell.brands.Length > 0) ? spell.brands[0] : Brand.None;
+                switch (brand)
+                {
+                    case Brand.VWave:   panelColor.color = GameManager.colors["green"];  break;
+                    case Brand.BigStox: panelColor.color = GameManager.colors["blue"];   break;
+                    case Brand.DemonX:  panelColor.color = GameManager.colors["red"];    break;
+                    case Brand.Killeez: panelColor.color = GameManager.colors["yellow"]; break;
+                    default:            panelColor.color = GameManager.colors["grey"];   break;
+                }
+            }
+
+            if (spellNameText != null) spellNameText.text = spell.spellName;
+
+            spellTabList.Add(entry);
+            entry.SetActive(true);
+
+            RectTransform rt = entry.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -(j * 80f));
+            if (spellTabList[j].GetComponent<RectTransform>().anchoredPosition.y < -(4 * 80f)) spellTabList[j].SetActive(false);
         }
     }
  
@@ -1739,7 +1828,7 @@ public class Pause : MonoBehaviour
         player.relativeInputs = relativeInputs;
         player.toggleCodeInput = toggleCodeInput;
         player.tapJump = tapJump;
-        player.vibeCoding = vibeCoding;
+        //player.vibeCoding = vibeCoding;
         player.downJumpSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
     }
@@ -2351,7 +2440,7 @@ public class Pause : MonoBehaviour
         if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
         if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
         if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
         if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 
@@ -2380,8 +2469,8 @@ public class Pause : MonoBehaviour
 
     public void ToggleVibeCoding()
     {
-        UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
     }
 
     public void ToggleDownJumpSlide()

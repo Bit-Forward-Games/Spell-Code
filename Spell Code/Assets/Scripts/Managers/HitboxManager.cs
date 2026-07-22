@@ -113,9 +113,13 @@ public class HitboxManager : MonoBehaviour
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
-                if (defendingPlayerIndex < 0 &&
-                projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]&&
-                projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]) continue;
+                // These must stay TWO separate guards. Collapsing them into one && let an invalid
+                // index fall through and evaluate playerHitArr[-1] -> IndexOutOfRangeException. The
+                // second guard mirrors the inner check below (skip if already hit OR ignored), so the
+                // outcome is identical, just resolved earlier.
+                if (defendingPlayerIndex < 0) continue;
+                int ignoreSlot = defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex;
+                if (projectile.playerHitArr[ignoreSlot] || projectile.playerIgnoreArr[ignoreSlot]) continue;
 
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);

@@ -347,11 +347,12 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         bw.Write(ignoreBrand);
 
-        // Player Ignore Array
+        // Player hit/ignore arrays
         for (int i = 0; i < 4; i++)
         {
             bw.Write(playerHitArr[i]);
             bw.Write(multiHitPlayerHitCounterArr[i]);
+            bw.Write(playerIgnoreArr[i]);
         }
 
         // References as IDs
@@ -414,6 +415,7 @@ public abstract class BaseProjectile : MonoBehaviour
         {
             playerHitArr[i] = br.ReadBoolean();
             multiHitPlayerHitCounterArr[i] = br.ReadUInt16();
+            playerIgnoreArr[i] = br.ReadBoolean();
         }
 
         // References as IDs

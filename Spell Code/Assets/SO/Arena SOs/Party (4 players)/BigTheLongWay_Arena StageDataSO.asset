@@ -24,18 +24,18 @@ MonoBehaviour:
   - {x: 112, y: 2}
   solidCenter:
   - {x: 192, y: 136}
-  - {x: -304, y: 48}
-  - {x: 384, y: 144}
-  - {x: -0.000030517578, y: 304}
-  - {x: 0, y: -16}
-  - {x: -384, y: 144}
+  - {x: -592, y: -232}
+  - {x: 648, y: 88}
+  - {x: -8, y: 512}
+  - {x: -8, y: -280}
+  - {x: -656, y: 88}
   solidExtent:
   - {x: 32, y: 56}
-  - {x: 64, y: 48}
-  - {x: 16, y: 176}
-  - {x: 379, y: 16}
-  - {x: 374, y: 16}
-  - {x: 16, y: 176}
+  - {x: 352, y: 328}
+  - {x: 280, y: 648}
+  - {x: 936, y: 224}
+  - {x: 936, y: 280}
+  - {x: 288, y: 648}
   playerSpawnTransform:
   - {x: -312, y: 193}
   - {x: 184, y: 193}
@@ -46,8 +46,8 @@ MonoBehaviour:
   activatableSolidExtent: []
   portalAs: []
   portalBs: []
-  borderMin: {x: -640, y: -588, z: 0}
-  borderMax: {x: 640, y: 560, z: 0}
+  borderMin: {x: -654, y: -278, z: 0}
+  borderMax: {x: 654, y: 520, z: 0}
   camBorderMin: {x: 0, y: 0, z: 0}
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0

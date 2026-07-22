@@ -19,6 +19,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     public int codeModeIndex;
     bool wasCodeModeMenuOpen;
     int lastCodeModeDirection;
+    const int PUNK_CODE_MODE_INDEX = 1;
     
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
@@ -249,14 +250,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         {
             if (GameManager.Instance.players[codeModeIndex].input.ButtonStates[1] == ButtonState.Pressed)
             {
-                pause.uiScript.codeModePromptMenuOpened[codeModeIndex] = false;
-                if (pause.uiScript.codeModePromptMenu != null)
-                {
-                    pause.uiScript.codeModePromptMenu[codeModeIndex].SetActive(false);
-                    Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + codeModeIndex);
-                }
-                pause?.RestoreScopedUiInputDevices();
-                Time.timeScale = 1f;
+                PlayerController player = GameManager.Instance.players[codeModeIndex];
+                player.vibeCoding = pause.uiScript.playerCodeMode[codeModeIndex]
+                    .codeModes[PUNK_CODE_MODE_INDEX]
+                    .codeModeSelected;
+                SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+                pause.uiScript.CloseCodeModeMenuPrompt(codeModeIndex);
             }
 
             if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex])

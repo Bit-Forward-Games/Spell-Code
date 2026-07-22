@@ -329,6 +329,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -602,6 +603,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[LEFT]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 7536676966697322506, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -619,6 +621,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[RIGHT]'
+  useModifiedString: 1
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 4817417288915841345, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1014,6 +1017,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[LEFT]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 7536676966697322506, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1031,6 +1035,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[RIGHT]'
+  useModifiedString: 1
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 4817417288915841345, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1047,7 +1052,6 @@ GameObject:
   - component: {fileID: 575171301}
   - component: {fileID: 575171302}
   - component: {fileID: 575171303}
-  - component: {fileID: 575171304}
   m_Layer: 0
   m_Name: txt_atk
   m_TagString: Untagged
@@ -1189,26 +1193,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  selectorPID: 1
---- !u!114 &575171304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 575171299}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  stringToReplace: '[START]'
-  spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
-  deviceType: 1
-  defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   selectorPID: 1
 --- !u!1 &593971222
 GameObject:
@@ -1404,6 +1392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[LEFT]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 7536676966697322506, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1421,6 +1410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[RIGHT]'
+  useModifiedString: 1
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 4817417288915841345, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1648,6 +1638,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -1867,6 +1858,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputGraphic: {fileID: 6848354511965341223, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
   atkGraphic: {fileID: -6761789855799388862, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
+  attackActionReference: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+  startActionReference: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   players:
   - startsJoined: 1
     joined: 0
@@ -2081,6 +2074,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[JUMP]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -2238,6 +2232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[JUMP]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -2486,6 +2481,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -2806,6 +2802,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[JUMP]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -2963,6 +2960,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[JUMP]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -3036,7 +3034,6 @@ GameObject:
   - component: {fileID: 1655106394}
   - component: {fileID: 1655106395}
   - component: {fileID: 1655106396}
-  - component: {fileID: 1655106397}
   m_Layer: 0
   m_Name: txt_atk
   m_TagString: Untagged
@@ -3178,26 +3175,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  selectorPID: 3
---- !u!114 &1655106397
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1655106392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  stringToReplace: '[START]'
-  spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
-  deviceType: 1
-  defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   selectorPID: 3
 --- !u!1 &1751649360
 GameObject:
@@ -3211,7 +3192,6 @@ GameObject:
   - component: {fileID: 1751649362}
   - component: {fileID: 1751649363}
   - component: {fileID: 1751649364}
-  - component: {fileID: 1751649365}
   m_Layer: 0
   m_Name: txt_atk
   m_TagString: Untagged
@@ -3353,26 +3333,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  selectorPID: 2
---- !u!114 &1751649365
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1751649360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  stringToReplace: '[START]'
-  spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
-  deviceType: 1
-  defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   selectorPID: 2
 --- !u!1 &1891753784
 GameObject:
@@ -3527,6 +3491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -3543,7 +3508,6 @@ GameObject:
   - component: {fileID: 1921585089}
   - component: {fileID: 1921585088}
   - component: {fileID: 1921585091}
-  - component: {fileID: 1921585092}
   m_Layer: 0
   m_Name: txt_atk
   m_TagString: Untagged
@@ -3685,26 +3649,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[CODE]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
-  selectorPID: 4
---- !u!114 &1921585092
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1921585087}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextSetter
-  stringToReplace: '[START]'
-  spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
-  deviceType: 1
-  defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
   selectorPID: 4
 --- !u!1 &1943419801
 GameObject:
@@ -3951,6 +3899,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[LEFT]'
+  useModifiedString: 0
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 7536676966697322506, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
@@ -3968,6 +3917,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TextSetter
   stringToReplace: '[RIGHT]'
+  useModifiedString: 1
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 1
   defaultAction: {fileID: 4817417288915841345, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}

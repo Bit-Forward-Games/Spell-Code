@@ -15,6 +15,7 @@ public class MineCrafter_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0;
+        deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 2}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

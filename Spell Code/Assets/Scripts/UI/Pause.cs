@@ -45,6 +45,7 @@ public class Pause : MonoBehaviour
     private SceneUiManager sceneUiManager;
     public TempUIScript uiScript;
     private const float MinMixerVolume = 0.0001f;
+    private bool settingsLoaded;
  
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
@@ -247,7 +248,10 @@ public class Pause : MonoBehaviour
     {
         gameManager = GameManager.Instance;
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
- 
+
+        // ExecuteOrder66 recreates SettingsManager from its sceneLoaded callback, which runs after
+        // this component's Awake. Reload here before Resume can save the prefab slider defaults.
+        LoadSettings();
         Resume();
  
         spellListInitialY = spellListParent.transform.position.y;
@@ -756,7 +760,10 @@ public class Pause : MonoBehaviour
         RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
-        SaveSettings(); 
+        if (settingsLoaded)
+        {
+            SaveSettings();
+        }
         Time.timeScale = 1f;
 
         if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
@@ -839,17 +846,10 @@ public class Pause : MonoBehaviour
         screenShake = settings.screenshake;
         RefreshDynamicCameraOptionForScene();
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
-        //if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
-        //if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
-        if (masterVolumeSlider != null) masterVolumeSlider.value = settings.masterVolume;
-        if (musicVolumeSlider != null) musicVolumeSlider.value = settings.musicVolume;
-        if (sfxVolumeSlider != null) sfxVolumeSlider.value = settings.sfxVolume;
-        MasterVolume();
-        MusicVolume();
-        SFXVolume();
-        //Debug.Log("LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
-        //ApplyMusicMixerVolume(settings.musicVolume);
-        //ApplySfxMixerVolume(settings.sfxVolume);
+        ApplyMasterMixerVolume(settings.masterVolume);
+        ApplyMusicMixerVolume(settings.musicVolume);
+        ApplySfxMixerVolume(settings.sfxVolume);
+        settingsLoaded = true;
     }
  
     public void Pausing()
@@ -1452,7 +1452,7 @@ public class Pause : MonoBehaviour
     {
         if (masterVolumeSlider != null)
         {
-            masterVolumeSlider.value = volume;
+            masterVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (masterAudioMixer != null)
@@ -1465,7 +1465,7 @@ public class Pause : MonoBehaviour
     {
         if (musicVolumeSlider != null)
         {
-            musicVolumeSlider.value = volume;
+            musicVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (musicAudioMixer != null)
@@ -1478,7 +1478,7 @@ public class Pause : MonoBehaviour
     {
         if (sfxVolumeSlider != null)
         {
-            sfxVolumeSlider.value = volume;
+            sfxVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (sfxAudioMixer != null)

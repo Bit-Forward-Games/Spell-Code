@@ -395,6 +395,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3669866434089019709, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: BUTTONPROMPT
+      objectReference: {fileID: 0}
     - target: {fileID: 5331417111923557939, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: resolutions.Array.size
       value: 10
@@ -479,9 +483,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7098188792181620007, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: stringToReplace
+      value: '[START]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7745059220566628816, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: BUTTONPROMPT
+      objectReference: {fileID: 0}
+    - target: {fileID: 7931897855868922977, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: press [START] to start
+      objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
       value: pfb_GameManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 9202286124461333798, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: BUTTONPROMPT
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

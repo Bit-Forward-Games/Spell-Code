@@ -348,7 +348,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"[Tutorial-Update] obj={gameObject.name} id={GetInstanceID()} tutorialOpen={tutorialPromptMenuOpened} paused={pause?.paused}");
+        //Debug.Log($"[Tutorial-Update] obj={gameObject.name} id={GetInstanceID()} tutorialOpen={tutorialPromptMenuOpened} paused={pause?.paused}");
 
         UpdateUIBarVals();
         RefreshFindingMatchText();
@@ -886,6 +886,29 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             if (vibeCodeQuadrants != null && i < vibeCodeQuadrants.Length && vibeCodeQuadrants[i] != null)
                     vibeCodeQuadrants[i].SetActive(GameManager.Instance.players[i].vibeCoding);
+            if (quadrantPlayer.flowState !=0)
+            {
+                flowStateVals[i].enabled = true;
+                flowStateDim[i].enabled = true;
+            }
+            if (quadrantPlayer.stockStabilityModified != 0)
+            {
+                stockStabilityVals[i].enabled = true;
+                stockStabilityIcons[i].enabled = true;
+                stockStabilityDim[i].enabled = true;
+            }
+            if (quadrantPlayer.demonAura != 0)
+            {
+                demonAuraVals[i].enabled = true;
+                demonAuraIcons[i].enabled = true;
+                demonAuraDim[i].enabled = true;
+            }
+            if (quadrantPlayer.reps != 0)
+            {
+                repsVals[i].enabled = true;
+                repsIcons[i].enabled = true;
+                repsDim[i].enabled = true;
+            }
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
             {

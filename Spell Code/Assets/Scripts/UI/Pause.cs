@@ -319,7 +319,9 @@ public class Pause : MonoBehaviour
         }
         SpellGlossaryNavigation();
  
-        if (paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
+        // Online pause toggling is owned by PlayerController.Update. Reading the same action here
+        // would let both Update loops toggle the menu in one frame, immediately reopening it.
+        if (!IsOnlineMatchActive() && paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
         {
             Resume();
         }

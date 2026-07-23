@@ -1,16 +1,16 @@
 fileFormatVersion: 2
-guid: 93bed138f1cd8430e836fb9821c2bef6
+guid: dd77e3b6c6a2c497fa3bcdf782094fcc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2259032306106043655
-    second: Untitled_Artwork 306_0
+      213: -8506722604828848501
+    second: Untitled_Artwork 378_0
   - first:
-      213: -1467707347952777440
-    second: Untitled_Artwork 306_1
+      213: 1178937397196883802
+    second: Untitled_Artwork 378_1
   - first:
-      213: 291744889872704865
-    second: Untitled_Artwork 306_2
+      213: 2615716789639952412
+    second: Untitled_Artwork 378_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -106,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Untitled_Artwork 306_0
+      name: Untitled_Artwork 378_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 14
         y: 17
-        width: 291
-        height: 124
+        width: 277
+        height: 107
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -121,20 +121,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9f2fa62261e46a0e0800000000000000
-      internalID: -2259032306106043655
+      spriteID: b8e04688cdc02f980800000000000000
+      internalID: -8506722604828848501
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled_Artwork 306_1
+      name: Untitled_Artwork 378_1
       rect:
         serializedVersion: 2
-        x: 342
+        x: 357
         y: 17
-        width: 292
-        height: 124
+        width: 277
+        height: 107
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -143,14 +143,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0274b0b71f7a1abe0800000000000000
-      internalID: -1467707347952777440
+      spriteID: a570854015d6c5010800000000000000
+      internalID: 1178937397196883802
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled_Artwork 306_2
+      name: Untitled_Artwork 378_2
       rect:
         serializedVersion: 2
         x: 758
@@ -165,8 +165,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 165e5ed7e6c7c0400800000000000000
-      internalID: 291744889872704865
+      spriteID: c18b38fbf84ec4420800000000000000
+      internalID: 2615716789639952412
       vertices: []
       indices: 
       edges: []
@@ -185,9 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Untitled_Artwork 306_0: -2259032306106043655
-      Untitled_Artwork 306_1: -1467707347952777440
-      Untitled_Artwork 306_2: 291744889872704865
+      Untitled_Artwork 378_0: -8506722604828848501
+      Untitled_Artwork 378_1: 1178937397196883802
+      Untitled_Artwork 378_2: 2615716789639952412
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -348,8 +348,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"[Tutorial-Update] obj={gameObject.name} id={GetInstanceID()} tutorialOpen={tutorialPromptMenuOpened} paused={pause?.paused}");
-
         UpdateUIBarVals();
         RefreshFindingMatchText();
         RefreshJoiningMatchText();
@@ -364,13 +362,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         if (tutorialPromptMenuOpened && !pause.paused)
         {
-            Debug.Log($"[Tutoriallllllll] branch entered, paused={pause.paused}, submit={pause.WasPausePlayerSubmitPressedThisFrame()}");
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();
             }
         }
-        
+
         // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
         if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
@@ -429,7 +426,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         pause.ScopeUiInputToPlayerDevices(ResolveGamemodesMenuPlayerIndex());
         StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         TutorialPromptAnimation(0f, new Vector2(-212f, 62f), new Vector2(916f, 344f), new Vector2(1432f, 408f));
-        Debug.Log($"[Tutorial-Open] called on obj={gameObject.name} id={GetInstanceID()}");
     }
 
     public void InvitePlayer()

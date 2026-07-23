@@ -17,8 +17,9 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-12"; // scz-12: GetOverHere/HellWaveFist/HelmOfHades spells (new SpellDictionary entries) + BaseProjectile
-                                                    // savestate now carries playerIgnoreArr (HelmOfHades shroud dodge) + signed xKnockback sim rule.
+    private const string NetcodeVersion = "scz-13"; // scz-13: PlayerController savestate + core[combat] hash now carry dodgedFlag; HelmOfHades
+                                                    // shroud resolves as a dodge (OnDodge/OnDodged procs, +1 rep) instead of skipping the
+                                                    // collision, so hit/hitstop/facing rules changed
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

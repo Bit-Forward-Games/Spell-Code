@@ -113,13 +113,15 @@ public class HitboxManager : MonoBehaviour
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
-                // These must stay TWO separate guards. Collapsing them into one && let an invalid
-                // index fall through and evaluate playerHitArr[-1] -> IndexOutOfRangeException. The
-                // second guard mirrors the inner check below (skip if already hit OR ignored), so the
-                // outcome is identical, just resolved earlier.
+                // Keep the index guard SEPARATE: collapsing it into an && lets an invalid index fall
+                // through and evaluate playerHitArr[-1] -> IndexOutOfRangeException.
                 if (defendingPlayerIndex < 0) continue;
                 int ignoreSlot = defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex;
-                if (projectile.playerHitArr[ignoreSlot] || projectile.playerIgnoreArr[ignoreSlot]) continue;
+                // Only playerHitArr short-circuits here (mirrors the inner check below). playerIgnoreArr
+                // must NOT, the collision has to still resolve so the dodge branch can set dodgedFlag
+                // (Helm of Hades shroud) and fire the OnDodge/OnDodged procs. Skipping here made the
+                // whole dodge feature dead code.
+                if (projectile.playerHitArr[ignoreSlot]) continue;
 
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
@@ -133,26 +135,6 @@ public class HitboxManager : MonoBehaviour
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                             {
-                                
-                                
-                                
-                                if(hitbox.hitstun > 0)
-                                {
-                                    defendingPlayer.facingRight = !projectile.facingRight;
-                                    if (projectile.meleeProjectile)
-                                    {
-                                        projectile.owner.hitstop = hitstopVal;
-                                    }
-                                    defendingPlayer.hitstop = hitstopVal;
-                                    // Re-firing on every rollback resim makes the shake
-                                    // stutter. Same guard as the stat counter below. The hitstop/facing
-                                    // above stay UNGUARDED, they're hashed sim state and must resim.
-                                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                                    {
-                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                                    }
-                                }
-                            
                                 defendingPlayer.hitboxData = hitbox;
                                 defendingPlayer.isHit = true;
                                 
@@ -192,7 +174,13 @@ public class HitboxManager : MonoBehaviour
                                             projectile.owner.hitstop = hitstopVal;
                                         }
                                         defendingPlayer.hitstop = hitstopVal;
-                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                        // Re-firing on every rollback resim makes the shake stutter. Same
+                                        // guard as the stat counter below. The hitstop/facing above stay
+                                        // UNGUARDED, they're hashed sim state and must resim.
+                                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                        {
+                                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                        }
                                     }
                                 
                                     

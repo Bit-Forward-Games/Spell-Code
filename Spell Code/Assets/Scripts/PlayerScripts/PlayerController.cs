@@ -3215,6 +3215,11 @@ public class PlayerController : MonoBehaviour
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDodge);
             dodgedFlag = false;
             hitboxData = null;
+            // The damage block above is skipped for a dodge (`!dodgedFlag`), and that block is what
+            // normally clears isHit. Without this, isHit latches true for the rest of the match.
+            // It's hashed state, so it stays consistent across clients either way, but a stuck flag
+            // still misreports the player as hit (TutorialManager reads it).
+            isHit = false;
         }
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)

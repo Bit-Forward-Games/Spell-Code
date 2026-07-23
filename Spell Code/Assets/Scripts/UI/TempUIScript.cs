@@ -348,8 +348,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"[Tutorial-Update] obj={gameObject.name} id={GetInstanceID()} tutorialOpen={tutorialPromptMenuOpened} paused={pause?.paused}");
-
         UpdateUIBarVals();
         RefreshFindingMatchText();
         RefreshJoiningMatchText();
@@ -362,10 +360,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
-        if (tutorialPromptMenuOpened && !pause.paused)
+        // pause was null-checked inside the branch but dereferenced in the condition; a null pause
+        // with the prompt open threw here every frame.
+        if (tutorialPromptMenuOpened && pause != null && !pause.paused)
         {
-            Debug.Log($"[Tutoriallllllll] branch entered, paused={pause.paused}, submit={pause.WasPausePlayerSubmitPressedThisFrame()}");
-            if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
+            if (pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();
             }
@@ -1162,6 +1161,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public void ExitTutorialPromptAnimation()
     {
+        // Mirror of OpenTutorialPromptMenu, which sets the flag/timeScale/input scope before
+        // animating. Both prompt buttons ("I'm good!" and "Show Me!") route here via UnityEvents on pfb_GameManager
+        // Flag must be cleared BEFORE the call so the animation takes its close branch.
+        tutorialPromptMenuOpened = false;
+        Time.timeScale = 1f;
+        pause?.RestoreScopedUiInputDevices();
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
     }
 

@@ -20,6 +20,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     bool wasCodeModeMenuOpen;
     int lastCodeModeDirection;
     const int PUNK_CODE_MODE_INDEX = 1;
+
+    public void ResetCodeModePromptPresentation()
+    {
+        wasCodeModeMenuOpen = false;
+        lastCodeModeDirection = 5;
+    }
     
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
@@ -266,24 +272,31 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
             if (codeModePlayer != null && pause.uiScript.codeModePromptMenuOpened[codeModeIndex] && confirmed)
             {
-                PlayerController player = codeModePlayer;
-                bool punkSelected = pause.uiScript.playerCodeMode[codeModeIndex]
-                    .codeModes[PUNK_CODE_MODE_INDEX]
-                    .codeModeSelected;
+                bool ownsPrompt = !onlineMatch || codeModeIndex == manager.localPlayerIndex;
+                if (ownsPrompt)
+                {
+                    PlayerController player = codeModePlayer;
+                    bool punkSelected = pause.uiScript.playerCodeMode[codeModeIndex]
+                        .codeModes[PUNK_CODE_MODE_INDEX]
+                        .codeModeSelected;
 
-                // Punk mode drives both options; synthesizer mode leaves both off.
-                player.vibeCoding = punkSelected;
-                player.relativeInputs = punkSelected;
+                    // Punk mode drives both options; synthesizer mode leaves both off.
+                    player.vibeCoding = punkSelected;
+                    player.relativeInputs = punkSelected;
 
-                // Save AFTER the fields are set: the no-value overload snapshots player.*, and the
-                // online input packing re-reads these saved options every frame.
-                SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+                    // Save AFTER the fields are set: the no-value overload snapshots player.*, and
+                    // the online input packing re-reads these saved options every frame.
+                    SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+                }
+
+                // Remote panels only mirror networked state. Their actual control options arrive
+                // through ApplyOnlineControlOptionsFromInput, so this close must remain cosmetic.
                 pause.uiScript.CloseCodeModeMenuPrompt(codeModeIndex);
             }
 
             // Navigation reads the sim input snapshot, which PlayerUpdate refreshes BEFORE the
-            // choosingCodeMode freeze returns, so left/right still moves the highlight while the
-            // character itself stays put.
+            // choosingCodeMode freeze returns. All peers intentionally mirror the owner's networked
+            // left/right highlight; only the owning peer may commit or save the option above.
             if (codeModePlayer != null && pause.uiScript.codeModePromptMenuOpened[codeModeIndex])
             {
                 int dir = codeModePlayer.input.Direction;

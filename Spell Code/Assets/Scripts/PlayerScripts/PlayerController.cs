@@ -584,6 +584,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GetPauseMenu();
         bool inMainMenu = SceneManager.GetActiveScene().name == "MainMenu";
         bool onlineMatch = GameManager.Instance.isOnlineMatchActive;
+        bool onlineMatchInitializing = GameManager.Instance.IsOnlineMatchInitializing;
 
         // SIM state: must be identical on every machine, so it keys off the scene ALONE. It
         // deliberately ignores the local menu flags and localPlayerIndex used below -- every machine
@@ -593,17 +594,15 @@ public class PlayerController : MonoBehaviour
             choosingCodeMode = inMainMenu;
         }
 
-        // UI is local and cosmetic. Online, only the LOCAL player gets a visible prompt, remote
-        // players have no paired input device on this machine, so
-        // Pause.WasPlayerSubmitPressedThisFrame(remoteIndex) falls through FindPlayerAction to a
-        // shared action map, and one local confirm press closed every open prompt at once ("choosing
-        // a mode wipes everyone else's"). A remote player's real choice arrives over their own input
-        // packet (ApplyOnlineControlOptionsFromInput), so a local prompt for someone else's
-        // character is not just wrong, it has nothing to drive
-        bool showPromptOnThisMachine = onlineMatch
-            ? playerIndex == GameManager.Instance.localPlayerIndex && choosingCodeMode
-            : !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.paused;
-        if (showPromptOnThisMachine && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
+        // Online prompt visibility is reconciled from choosingCodeMode by TempUIScript on every
+        // render frame. Keeping those cosmetic side effects out of SpawnPlayer matters because this
+        // method also runs during rollback re-simulation. Offline retains its existing local flow.
+        bool showOfflinePrompt = !onlineMatch
+            && !onlineMatchInitializing
+            && !pause.uiScript.soloGamemodesMenuOpened
+            && !pause.uiScript.multiplayerGamemodesMenuOpened
+            && !pause.paused;
+        if (showOfflinePrompt && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }

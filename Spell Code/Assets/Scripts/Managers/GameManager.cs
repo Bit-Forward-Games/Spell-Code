@@ -17,7 +17,6 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
 using System;
 using static RollbackManager;
-using UnityEngine.InputSystem.Composites;
 
 public class GameManager : MonoBehaviour
 {
@@ -3850,6 +3849,23 @@ public class GameManager : MonoBehaviour
             return playerNPCs[0];
         }
         return players[pID-1];
+    }
+
+    public StageDataSO GetCurrentStageDataSO()
+    {
+        switch (currentStageIndex)
+        {
+            case -1:
+                return lobbySO;
+            case -2:
+                return TutorialSO;
+            case -3:
+                return trainingGroundsSO;
+            case -4:
+                return soloLobbySO;
+            default:
+                return stages[currentStageIndex];
+        }
     }
 
     public Vector2[] GetNPCSpawnPositions()

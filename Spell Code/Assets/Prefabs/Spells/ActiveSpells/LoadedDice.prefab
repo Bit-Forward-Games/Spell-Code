@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3884774707739521384
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7745486899729457613}
+  - component: {fileID: -2459868919722841417}
+  m_Layer: 0
+  m_Name: LoadedDice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7745486899729457613
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-2459868919722841417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dc4bdc1f60ae734ab5d21b9f2467c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LoadedDice
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 7e4ca68a8a725404399293e0c61b288c, type: 3}
+  - {fileID: 3459829395073810853, guid: 934ba1556935eea45a3918a67f86e222, type: 3}
+  - {fileID: 3459829395073810853, guid: eb05cb137f0bc174ebd0449f9a7246e8, type: 3}
+  - {fileID: 3459829395073810853, guid: 2e657a1f8a1ba22488acbdb2e9073063, type: 3}
+  - {fileID: 3459829395073810853, guid: 90a6b6ae29596054ca3e421af0107717, type: 3}
+  - {fileID: 3459829395073810853, guid: f70e73e45c27fb040906ef33b1d1391a, type: 3}
+  - {fileID: 3459829395073810853, guid: 74dda9aa16a93ef43a7c74752bcb13b7, type: 3}
+  - {fileID: 3459829395073810853, guid: e76efbc5824197c4ea03312c656ee1b9, type: 3}
+  - {fileID: 3459829395073810853, guid: 4c47e5ac402f3c54ca3c4eabb22a0cbc, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: 1157a8d2d88a054439701ad519e9b580, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 61422e04c388a4042ae5229660abcaa5, type: 3}
+  SpellGIF: {fileID: 11400000, guid: f4fb1fcdd4576ed4cb88f32b18570597, type: 2}
+  doesCrit: 0
+  storedStockStability: 0

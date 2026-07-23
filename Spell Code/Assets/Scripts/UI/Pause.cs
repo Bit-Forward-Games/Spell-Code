@@ -1516,7 +1516,28 @@ public class Pause : MonoBehaviour
     // never gated, so a menu already open when the scene changes can still be closed.
     public bool CanOpenPauseMenu()
     {
-        return SceneManager.GetActiveScene().name != "End";
+        if (SceneManager.GetActiveScene().name == "End")
+        {
+            return false;
+        }
+
+        // Block while this player still has their code-mode prompt up
+        PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
+        if (pausingPlayer != null && pausingPlayer.choosingCodeMode)
+        {
+            return false;
+        }
+
+        if (uiScript != null
+            && uiScript.codeModePromptMenuOpened != null
+            && playerPauseIndex >= 0
+            && playerPauseIndex < uiScript.codeModePromptMenuOpened.Length
+            && uiScript.codeModePromptMenuOpened[playerPauseIndex])
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void ScopeUiInputToPausePlayer()

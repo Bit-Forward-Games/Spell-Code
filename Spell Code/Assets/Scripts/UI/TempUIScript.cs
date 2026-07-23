@@ -333,6 +333,42 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         Time.timeScale = 1f;
     }
 
+    private void RefreshOnlineCodeModePrompt()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null || !manager.isOnlineMatchActive || manager.players == null)
+        {
+            return;
+        }
+
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        int localIndex = manager.localPlayerIndex;
+        if (localIndex < 0
+            || localIndex >= manager.players.Length
+            || codeModePromptMenuOpened == null
+            || localIndex >= codeModePromptMenuOpened.Length
+            || codeModePromptMenu == null
+            || localIndex >= codeModePromptMenu.Length)
+        {
+            return;
+        }
+
+        PlayerController localPlayer = manager.players[localIndex];
+        if (localPlayer == null || !localPlayer.choosingCodeMode)
+        {
+            return;
+        }
+
+        if (!codeModePromptMenuOpened[localIndex])
+        {
+            OpenCodeModeMenuPrompt(true, localIndex);
+        }
+    }
+
     public void CloseCodeModeMenuPrompt(int playerIndex)
     {
         codeModePromptMenuOpened[playerIndex] = false;
@@ -351,6 +387,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         UpdateUIBarVals();
         RefreshFindingMatchText();
         RefreshJoiningMatchText();
+        RefreshOnlineCodeModePrompt();
 
         Scene currentScene = SceneManager.GetActiveScene();
 

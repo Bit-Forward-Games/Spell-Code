@@ -308,8 +308,6 @@ public class Pause : MonoBehaviour
     {
         ScopeUiInputToPausePlayer();
 
-        Debug.Log(EventSystem.current.currentSelectedGameObject);
-
         if (IsWaitingForRebindInput())
         {
             return;
@@ -1283,6 +1281,7 @@ public class Pause : MonoBehaviour
     public void TriggerSelectedButton()
     {
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
+        Debug.Log($"[TriggerSelectedButton] selected={selectedObject?.name}, hasSelectable={(selectedObject?.GetComponent<Selectable>() != null)}, interactable={(selectedObject?.GetComponent<Selectable>()?.IsInteractable())}");
         if (selectedObject == null) return;
 
         Selectable selectedControl = selectedObject.GetComponent<Selectable>();
@@ -1518,7 +1517,7 @@ public class Pause : MonoBehaviour
                 && uiScript.codeModePromptMenuOpened != null
                 && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || anyCodeModeMenuOpen))
+            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;

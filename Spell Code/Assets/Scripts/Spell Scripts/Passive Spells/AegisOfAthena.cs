@@ -60,7 +60,7 @@ public class AegisOfAthena : SpellData
                 reflectedProjectile.ResetValues();;
                 reflectedProjectile.hSpeed = -reflectedProjectile.hSpeed;
                 reflectedProjectile.vSpeed = -reflectedProjectile.vSpeed;
-                reflectedProjectile.playerIgnoreArr = new bool[4] { false, false, false, false };
+                reflectedProjectile.playerHitArr = new bool[4] { false, false, false, false };
 
                 cooldownCounter = owner.vibeCoding? (int)(cooldown*1.25f) : cooldown;
                 break;

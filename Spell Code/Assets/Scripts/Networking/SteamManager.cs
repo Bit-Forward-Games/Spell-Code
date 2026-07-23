@@ -66,6 +66,11 @@ public class SteamManager : MonoBehaviour
 
             SteamNetworking.AllowP2PPacketRelay(true);
 
+            // Pre-warm the relay network. Without this, Steam only fetches the relay config and
+            // runs its ping measurement lazily on the first P2P connection, which costs several
+            // seconds on a cold client and can push a joining peer past the connection timeout.
+            SteamNetworkingUtils.InitRelayNetworkAccess();
+
             // Set the verbosity level (Msg = normal info, Verbose = everything)
             SteamNetworkingUtils.DebugLevel = NetDebugOutput.Msg;
 

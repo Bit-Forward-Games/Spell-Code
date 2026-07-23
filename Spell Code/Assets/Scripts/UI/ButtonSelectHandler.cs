@@ -19,6 +19,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     public int codeModeIndex;
     bool wasCodeModeMenuOpen;
     int lastCodeModeDirection;
+    const int PUNK_CODE_MODE_INDEX = 1;
     
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
@@ -244,19 +245,33 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 }
             }
         }
-//&& pause.WasPausePlayerSubmitPressedThisFrame()
         if (name.Contains("Code Mode"))
         {
-            if (GameManager.Instance.players[codeModeIndex].input.ButtonStates[1] == ButtonState.Pressed)
+            // Confirm reads the InputAction edge, NOT the simulation snapshot. player.input is
+            // written once per FIXED frame and ButtonState.Pressed lives for exactly one sim frame,
+            // while this Update runs once per RENDER frame — whenever two sim frames fall between
+            // two renders, Pressed is overwritten by Held and the press is never observed. 
+            // wasCodeModeMenuOpen arms the confirm one frame after the prompt opens. The prompt is
+            // opened from SpawnPlayer, and players jump around the MainMenu lobby, so a respawn can
+            // land on the same frame Jump was pressed — without this the prompt would open and
+            // instantly confirm itself on that press, closing on the default (synthesizer) mode.
+            if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex]
+                && wasCodeModeMenuOpen
+                && pause.WasPlayerSubmitPressedThisFrame(codeModeIndex))
             {
-                pause.uiScript.codeModePromptMenuOpened[codeModeIndex] = false;
-                if (pause.uiScript.codeModePromptMenu != null)
-                {
-                    pause.uiScript.codeModePromptMenu[codeModeIndex].SetActive(false);
-                    Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + codeModeIndex);
-                }
-                pause?.RestoreScopedUiInputDevices();
-                Time.timeScale = 1f;
+                PlayerController player = GameManager.Instance.players[codeModeIndex];
+                bool punkSelected = pause.uiScript.playerCodeMode[codeModeIndex]
+                    .codeModes[PUNK_CODE_MODE_INDEX]
+                    .codeModeSelected;
+
+                // Punk mode drives both options; synthesizer mode leaves both off.
+                player.vibeCoding = punkSelected;
+                player.relativeInputs = punkSelected;
+
+                // Save AFTER the fields are set: the no-value overload snapshots player.*, and the
+                // online input packing re-reads these saved options every frame.
+                SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+                pause.uiScript.CloseCodeModeMenuPrompt(codeModeIndex);
             }
 
             if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex])

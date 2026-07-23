@@ -52,7 +52,7 @@ public class TridentOfPoseidon : SpellData
             {
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
-            cooldownCounter = owner.vibeCoding?(int)(cooldown*1.25f):cooldown;
+            cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
             //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
             //vibeCasted = false;
         }

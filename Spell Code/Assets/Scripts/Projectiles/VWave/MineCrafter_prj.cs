@@ -15,6 +15,7 @@ public class MineCrafter_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0;
+        deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 2}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -82,11 +83,11 @@ public class MineCrafter_prj : BaseProjectile
             ProjectileManager.Instance.DeleteProjectile(this);
         }
         //this basically checks if the projectile hit something
-        if (playerIgnoreArr.Any(ignore => ignore))
+        if (playerHitArr.Any(ignore => ignore))
         {
             hSpeed = Fixed.FromInt(0);
 
-            playerIgnoreArr = new bool[4] { false, false, false, false };
+            playerHitArr = new bool[4] { false, false, false, false };
             logicFrame = animFrames.frameLengths.Take(36).Sum() + 1; //set the logic frame to the start of the end animation
         }
 

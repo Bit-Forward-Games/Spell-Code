@@ -89,6 +89,13 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
     private const byte PACKET_TYPE_PEER_DROP = 50;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
+    // Connection-establishment grace. A P2P failure that lands before the match simulation has
+    // started means the peer is still finishing its cold join (relay warmup, lobby slot metadata
+    // propagation), not that it dropped mid-match. Adjudicating a drop there ends the match at
+    // frame 0 with a bogus "win by disconnect", so we retry the handshake for a bounded window
+    // and only fall back to the normal disconnect path once it expires.
+    private const float PREMATCH_CONNECT_GRACE_SECONDS = 20f;
+    private const float PREMATCH_CONNECT_RETRY_INTERVAL_SECONDS = 1f;
 
     [Header("Ping Calculation")]
     public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
@@ -111,6 +118,15 @@ public class MatchMessageManager : MonoBehaviour
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
     private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
     private readonly HashSet<int> locallyRemovedPeerSlots = new HashSet<int>();
+
+    private struct PrematchConnectRetry
+    {
+        public float deadline;
+        public float lastAttemptTime;
+        public int attempts;
+    }
+
+    private readonly Dictionary<SteamId, PrematchConnectRetry> prematchConnectRetries = new Dictionary<SteamId, PrematchConnectRetry>();
 
     private struct PendingOutboundPacket
     {
@@ -212,6 +228,13 @@ public class MatchMessageManager : MonoBehaviour
             && GameManager.Instance != null
             && GameManager.Instance.isOnlineMatchActive)
         {
+            // Still waiting for everyone to be ready, so the simulation hasn't started: treat this
+            // as a slow cold join rather than a disconnect and keep trying to reach the peer.
+            if (TryPrematchConnectGrace(steamId, error, slot))
+            {
+                return;
+            }
+
             if (GameManager.Instance.IsOnlineHostSlot(slot))
             {
                 GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed: {error}");
@@ -249,6 +272,57 @@ public class MatchMessageManager : MonoBehaviour
         {
             SendHandshakeToPeer(steamId);
         }
+    }
+
+    /// <summary>
+    /// Absorbs a P2P connection failure that happens after the roster is applied but before the
+    /// match simulation starts, retrying the handshake instead of letting the caller adjudicate a
+    /// disconnect.
+    /// </summary>
+    /// <remarks>
+    /// A peer joining cold has to warm up the Steam relay network and receive its lobby slot
+    /// metadata before it can answer us. That can outlast Steam's P2P session timeout, and the
+    /// resulting failure used to be handled identically to a mid-match disconnect: the host
+    /// dropped the guest at frame 0 and immediately won by disconnect, so the match ended before
+    /// it began.
+    ///
+    /// The grace only applies while <see cref="GameManager.isWaitingForOpponent"/> is set, which
+    /// is exactly the window where GameManager skips the simulation, so the in-match drop path -
+    /// where every peer must eliminate a player on the same frame - is untouched. If the peer is
+    /// still unreachable when the window expires we return false and the original handling runs.
+    /// </remarks>
+    /// <returns>True if the failure was absorbed and the caller should stop processing it.</returns>
+    private bool TryPrematchConnectGrace(SteamId peerId, P2PSessionError error, int slot)
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || !gameManager.isOnlineMatchActive || !gameManager.isWaitingForOpponent)
+        {
+            return false;
+        }
+
+        float now = Time.unscaledTime;
+        if (!prematchConnectRetries.TryGetValue(peerId, out PrematchConnectRetry retry))
+        {
+            retry = new PrematchConnectRetry { deadline = now + PREMATCH_CONNECT_GRACE_SECONDS };
+        }
+
+        if (now >= retry.deadline)
+        {
+            Debug.LogWarning($"[P2P] Pre-match connect grace expired for P{slot + 1} after {retry.attempts} retries ({error}); handing back to normal disconnect handling.");
+            prematchConnectRetries.Remove(peerId);
+            return false;
+        }
+
+        if (now - retry.lastAttemptTime >= PREMATCH_CONNECT_RETRY_INTERVAL_SECONDS)
+        {
+            retry.lastAttemptTime = now;
+            retry.attempts++;
+            SendHandshakeToPeer(peerId);
+            Debug.LogWarning($"[P2P] P{slot + 1} not connected yet ({error}); match hasn't started, retrying handshake #{retry.attempts} for another {retry.deadline - now:F1}s.");
+        }
+
+        prematchConnectRetries[peerId] = retry;
+        return true;
     }
 
     private void Update()
@@ -529,6 +603,7 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
+        prematchConnectRetries.Clear();
         ResetReadyFlags();
         SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -723,6 +798,7 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
+        prematchConnectRetries.Clear();
         sceneMismatchedInputByPeer.Clear();
         sceneMismatchedInputAgeByPeer.Clear();
         lastLoggedMismatchSignatureByPeer.Clear();

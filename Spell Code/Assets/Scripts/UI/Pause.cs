@@ -45,6 +45,7 @@ public class Pause : MonoBehaviour
     private SceneUiManager sceneUiManager;
     public TempUIScript uiScript;
     private const float MinMixerVolume = 0.0001f;
+    private bool settingsLoaded;
  
     public GameObject _pauseMenuFirst;
     public GameObject _optionsMenuFirst;
@@ -57,7 +58,7 @@ public class Pause : MonoBehaviour
     public Toggle relativeInputToggleGraphic;
     public Toggle codeInputToggleGraphic;
     public Toggle tapJumpToggleGraphic;
-    public Toggle vibeCodingToggleGraphic;
+    //public Toggle vibeCodingToggleGraphic;
     public Toggle downJumpSlideToggleGraphic;
     public static readonly string[] BannedRebindInputs =
     {
@@ -103,6 +104,7 @@ public class Pause : MonoBehaviour
     public TextMeshProUGUI spellSelectedText;
     public TextMeshProUGUI cooldownText;
     public TextMeshProUGUI inputText;
+    public TextMeshProUGUI informationDisplayText;
     public Image spellSelectedBorder;
     public RectTransform spellSelectedBorderTransform;
     public RectTransform descriptionPanel;
@@ -119,7 +121,7 @@ public class Pause : MonoBehaviour
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
-    private bool showDescription = true;
+    public bool showDescription = false;
  
     private int tab = 0;
     private int selectedSpell;
@@ -239,12 +241,17 @@ public class Pause : MonoBehaviour
         scInput = new SCMaster();
         LoadSettings();
     }
+
+    private List<GameObject> mySpellsGlossaryList = new List<GameObject>();
  
     private void Start()
     {
         gameManager = GameManager.Instance;
         sceneUiManager = GameObject.Find("pfb_GameManager").gameObject.GetComponent<SceneUiManager>();
- 
+
+        // ExecuteOrder66 recreates SettingsManager from its sceneLoaded callback, which runs after
+        // this component's Awake. Reload here before Resume can save the prefab slider defaults.
+        LoadSettings();
         Resume();
  
         spellListInitialY = spellListParent.transform.position.y;
@@ -630,6 +637,11 @@ public class Pause : MonoBehaviour
  
     private void UpdateSpellDisplay()
     {
+        if (!showDescription)
+            informationDisplayText.text = "MORE INFO";
+        else if (showDescription)
+            informationDisplayText.text = "ZOOM IN";
+
         if (WasPausePlayerSubmitPressedThisFrame() && spells)
         {
             if (!showDescription)
@@ -748,7 +760,10 @@ public class Pause : MonoBehaviour
         RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
-        SaveSettings(); 
+        if (settingsLoaded)
+        {
+            SaveSettings();
+        }
         Time.timeScale = 1f;
 
         if (uiScript.soloGamemodesMenuOpened) StartCoroutine(BackToGameModeSelector());
@@ -831,17 +846,10 @@ public class Pause : MonoBehaviour
         screenShake = settings.screenshake;
         RefreshDynamicCameraOptionForScene();
         if (screenShakeToggle != null) screenShakeToggle.SetIsOnWithoutNotify(screenShake);
-        //if (musicVolumeSlider != null) musicVolumeSlider.SetValueWithoutNotify(settings.musicVolume);
-        //if (sfxVolumeSlider != null) sfxVolumeSlider.SetValueWithoutNotify(settings.sfxVolume);
-        if (masterVolumeSlider != null) masterVolumeSlider.value = settings.masterVolume;
-        if (musicVolumeSlider != null) musicVolumeSlider.value = settings.musicVolume;
-        if (sfxVolumeSlider != null) sfxVolumeSlider.value = settings.sfxVolume;
-        MasterVolume();
-        MusicVolume();
-        SFXVolume();
-        //Debug.Log("LoadSettings | saved music volume = " + settings.musicVolume + ", and saved sfx volume = " + settings.sfxVolume);
-        //ApplyMusicMixerVolume(settings.musicVolume);
-        //ApplySfxMixerVolume(settings.sfxVolume);
+        ApplyMasterMixerVolume(settings.masterVolume);
+        ApplyMusicMixerVolume(settings.musicVolume);
+        ApplySfxMixerVolume(settings.sfxVolume);
+        settingsLoaded = true;
     }
  
     public void Pausing()
@@ -1069,6 +1077,9 @@ public class Pause : MonoBehaviour
             grid[i].spells = columnSpells.ToArray();
         }
  
+        SpellGlossaryNewTab();
+        ActivateOnly(tab);
+
         StartCoroutine(SelectFirst(_spellsMenuFirst));
         
  
@@ -1095,9 +1106,28 @@ public class Pause : MonoBehaviour
 
         SpellSelectBorderAnimation(spellSelectedBorderTransform, 3f);
         
-        int j = 0;
         spellTabList.Clear();
-        
+
+        if (tab == 0)
+        {
+            PopulateMySpellsTab();
+        }
+        else
+        {
+            PopulateDictionaryTab();
+        }
+    }
+
+    // Tabs 1-5: identical to the original working logic. Untouched.
+    private void PopulateDictionaryTab()
+    {
+        for (int k = 0; k < mySpellsGlossaryList.Count; k++)
+        {
+            mySpellsGlossaryList[k].SetActive(false);
+        }
+
+        int j = 0;
+
         for (int i = 0; i < spellGlossaryList.Length; i++)
         {
             if (j >= grid[tab].spells.Length)
@@ -1119,6 +1149,65 @@ public class Pause : MonoBehaviour
             {
                 spellGlossaryList[i].SetActive(false);
             }
+        }
+    }
+
+    // Tab 0: its own pool, indexed directly (not name-matched), so duplicate spells
+    // each get their own GameObject instead of fighting over one dictionary slot.
+    private void PopulateMySpellsTab()
+    {
+        for (int i = 0; i < spellGlossaryList.Length; i++)
+        {
+            spellGlossaryList[i].SetActive(false);
+        }
+
+        SpellData[] mySpells = grid[0].spells;
+
+        while (mySpellsGlossaryList.Count < mySpells.Length)
+        {
+            GameObject entry = Instantiate(unselectedSpell, spellListParent.transform);
+            entry.SetActive(false);
+            mySpellsGlossaryList.Add(entry);
+        }
+
+        for (int j = 0; j < mySpellsGlossaryList.Count; j++)
+        {
+            GameObject entry = mySpellsGlossaryList[j];
+
+            if (j >= mySpells.Length)
+            {
+                entry.SetActive(false);
+                continue;
+            }
+
+            SpellData spell = mySpells[j];
+
+            Transform childTransform = entry.transform.Find("Panel Color");
+            GameObject panel = childTransform != null ? childTransform.gameObject : null;
+            Image panelColor = panel != null ? panel.GetComponent<Image>() : null;
+            TextMeshProUGUI spellNameText = entry.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (panelColor != null)
+            {
+                Brand brand = (spell.brands != null && spell.brands.Length > 0) ? spell.brands[0] : Brand.None;
+                switch (brand)
+                {
+                    case Brand.VWave:   panelColor.color = GameManager.colors["green"];  break;
+                    case Brand.BigStox: panelColor.color = GameManager.colors["blue"];   break;
+                    case Brand.DemonX:  panelColor.color = GameManager.colors["red"];    break;
+                    case Brand.Killeez: panelColor.color = GameManager.colors["yellow"]; break;
+                    default:            panelColor.color = GameManager.colors["grey"];   break;
+                }
+            }
+
+            if (spellNameText != null) spellNameText.text = spell.spellName;
+
+            spellTabList.Add(entry);
+            entry.SetActive(true);
+
+            RectTransform rt = entry.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, -(j * 80f));
+            if (spellTabList[j].GetComponent<RectTransform>().anchoredPosition.y < -(4 * 80f)) spellTabList[j].SetActive(false);
         }
     }
  
@@ -1363,7 +1452,7 @@ public class Pause : MonoBehaviour
     {
         if (masterVolumeSlider != null)
         {
-            masterVolumeSlider.value = volume;
+            masterVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (masterAudioMixer != null)
@@ -1376,7 +1465,7 @@ public class Pause : MonoBehaviour
     {
         if (musicVolumeSlider != null)
         {
-            musicVolumeSlider.value = volume;
+            musicVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (musicAudioMixer != null)
@@ -1389,7 +1478,7 @@ public class Pause : MonoBehaviour
     {
         if (sfxVolumeSlider != null)
         {
-            sfxVolumeSlider.value = volume;
+            sfxVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         if (sfxAudioMixer != null)
@@ -1417,6 +1506,16 @@ public class Pause : MonoBehaviour
     {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
         return manager != null && manager.isOnlineMatchActive;
+    }
+
+    // The End screen has no pause menu. GameManager.HidePersistentUiForEndScene deactivates the
+    // TempUI object THIS component lives on, so Update() stops running there — but pausemenu /
+    // darkPanel / the submenus live outside TempUI (pfb_GameManager/Pause/...), so they would
+    // still draw with no handler left to close them. Callers gate opening on this; Resume() is
+    // never gated, so a menu already open when the scene changes can still be closed.
+    public bool CanOpenPauseMenu()
+    {
+        return SceneManager.GetActiveScene().name != "End";
     }
 
     private void ScopeUiInputToPausePlayer()
@@ -1615,6 +1714,15 @@ public class Pause : MonoBehaviour
         return WasPausePlayerActionPressedThisFrame("Pause");
     }
 
+    // Per-player variant of WasPausePlayerSubmitPressedThisFrame. The code-mode prompt is shown to
+    // every player at once and each confirms their own panel with their own pad, so it cannot route
+    // through the single playerPauseIndex the pause menu uses.
+    public bool WasPlayerSubmitPressedThisFrame(int playerIndex)
+    {
+        InputAction action = FindPlayerAction(GetPlayerAtIndex(playerIndex), "Jump");
+        return action != null && action.WasPressedThisFrame();
+    }
+
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
@@ -1623,7 +1731,11 @@ public class Pause : MonoBehaviour
 
     private InputAction FindPausePlayerAction(string actionName)
     {
-        PlayerController player = GetPausePlayer();
+        return FindPlayerAction(GetPausePlayer(), actionName);
+    }
+
+    private InputAction FindPlayerAction(PlayerController player, string actionName)
+    {
         if (player == null)
         {
             return null;
@@ -1649,18 +1761,25 @@ public class Pause : MonoBehaviour
             }
         }
 
-        return player.inputs.PlayerActionMap != null ? player.inputs.PlayerActionMap.FindAction($"Gameplay/{actionName}", false) : null;
+        return bindings != null && bindings.PlayerActionMap != null
+            ? bindings.PlayerActionMap.FindAction($"Gameplay/{actionName}", false)
+            : null;
     }
 
     private PlayerController GetPausePlayer()
     {
+        return GetPlayerAtIndex(playerPauseIndex);
+    }
+
+    private PlayerController GetPlayerAtIndex(int playerIndex)
+    {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
-        if (manager == null || manager.players == null || playerPauseIndex < 0 || playerPauseIndex >= manager.players.Length)
+        if (manager == null || manager.players == null || playerIndex < 0 || playerIndex >= manager.players.Length)
         {
             return null;
         }
 
-        return manager.players[playerPauseIndex];
+        return manager.players[playerIndex];
     }
 
     private bool TryGetOnlineControlOptions(PlayerController player, out PlayerControlOptionsData options)
@@ -1729,7 +1848,7 @@ public class Pause : MonoBehaviour
         player.relativeInputs = relativeInputs;
         player.toggleCodeInput = toggleCodeInput;
         player.tapJump = tapJump;
-        player.vibeCoding = vibeCoding;
+        //player.vibeCoding = vibeCoding;
         player.downJumpSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
     }
@@ -2341,7 +2460,7 @@ public class Pause : MonoBehaviour
         if (relativeInputToggleGraphic != null) relativeInputToggleGraphic.SetIsOnWithoutNotify(UIRelativeInput);
         if (codeInputToggleGraphic != null) codeInputToggleGraphic.SetIsOnWithoutNotify(UIToggleCodeInput);
         if (tapJumpToggleGraphic != null) tapJumpToggleGraphic.SetIsOnWithoutNotify(UITapJump);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
         if (downJumpSlideToggleGraphic != null) downJumpSlideToggleGraphic.SetIsOnWithoutNotify(UIDownJumpSlide);
     }
 
@@ -2370,8 +2489,8 @@ public class Pause : MonoBehaviour
 
     public void ToggleVibeCoding()
     {
-        UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
-        if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
+        //UIVibeCode = GetToggleValue(vibeCodingToggleGraphic, UIVibeCode);
+        //if (vibeCodingToggleGraphic != null) vibeCodingToggleGraphic.SetIsOnWithoutNotify(UIVibeCode);
     }
 
     public void ToggleDownJumpSlide()

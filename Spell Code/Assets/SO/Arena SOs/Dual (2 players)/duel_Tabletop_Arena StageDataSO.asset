@@ -26,19 +26,19 @@ MonoBehaviour:
   - {x: 0, y: -16}
   - {x: 0, y: 168}
   - {x: 0, y: -168}
-  - {x: 240, y: 0}
-  - {x: -240, y: 0}
+  - {x: 288, y: 0}
+  - {x: -288, y: 0}
   solidExtent:
   - {x: 32, y: 16}
-  - {x: 286, y: 56}
-  - {x: 286, y: 56}
-  - {x: 48, y: 224}
-  - {x: 48, y: 224}
+  - {x: 384, y: 56}
+  - {x: 384, y: 56}
+  - {x: 96, y: 224}
+  - {x: 96, y: 224}
   playerSpawnTransform:
   - {x: -168, y: -32}
   - {x: 168, y: -32}
-  - {x: -168, y: -112}
-  - {x: 168, y: -112}
+  - {x: -168, y: -32}
+  - {x: 168, y: -32}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
@@ -51,4 +51,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 1
   dynamicCamera: 1
-  stageName: TableTop
+  stageName: Tabletop

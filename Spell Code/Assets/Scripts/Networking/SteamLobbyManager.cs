@@ -17,9 +17,9 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-13"; // scz-13: PlayerController savestate + core[combat] hash now carry dodgedFlag; HelmOfHades
-                                                    // shroud resolves as a dodge (OnDodge/OnDodged procs, +1 rep) instead of skipping the
-                                                    // collision, so hit/hitstop/facing rules changed
+    private const string NetcodeVersion = "scz-14"; // scz-14: PlayerUpdate no longer early-returns on the LOCAL codeModePromptMenuOpened UI
+                                                    // flag during an online match (it desynced the MainMenu lobby the moment any player
+                                                    // picked a code mode). Sim-rule change; savestate layout unchanged from scz-13.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

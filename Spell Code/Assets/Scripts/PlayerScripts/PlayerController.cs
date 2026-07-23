@@ -574,7 +574,15 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         Pause pause = GetPauseMenu();
-        if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
+        // Online, only the LOCAL player gets a prompt. Remote players have no paired input device on
+        // this machine, so Pause.WasPlayerSubmitPressedThisFrame(remoteIndex) falls back through
+        // FindPlayerAction to a shared action map, one local confirm press then closed every open
+        // prompt at once ("choosing a mode wipes everyone else's"). Their real choice arrives over
+        // their own input packet instead (ApplyOnlineControlOptionsFromInput), so a local prompt for
+        // someone else's character is not just wrong, it has nothing to drive.
+        bool promptBelongsToThisMachine = !GameManager.Instance.isOnlineMatchActive
+            || playerIndex == GameManager.Instance.localPlayerIndex;
+        if (promptBelongsToThisMachine && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }
@@ -1151,7 +1159,16 @@ public class PlayerController : MonoBehaviour
             tapJumpPrimed = true;
         }
 
-        if(SceneManager.GetActiveScene().name == "MainMenu")
+        // DESYNC GUARD: codeModePromptMenuOpened is local, non-networked, non-serialized UI state,
+        // and this early-return sits inside the deterministic sim. Each machine only ever closes its
+        // OWN player's prompt (the confirm reads a local InputAction, not the networked input), so
+        // the array diverges the instant anyone picks a mode: the picker's machine resumes that
+        // player's PlayerUpdate while every other machine still early-returns for them. It is also
+        // un-rollbackable, a resim reads whatever the flag happens to be NOW, not its value on the
+        // frame being replayed. Online, every player's code mode already reaches every machine over
+        // the input packet (ApplyOnlineControlOptionsFromInput), so the prompt is purely cosmetic
+        // there and must not steer the sim. Offline the gate is correct and unchanged.
+        if (!GameManager.Instance.isOnlineMatchActive && SceneManager.GetActiveScene().name == "MainMenu")
         {
             if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
             {

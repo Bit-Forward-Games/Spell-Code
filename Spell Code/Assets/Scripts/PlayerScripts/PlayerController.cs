@@ -204,6 +204,14 @@ public class PlayerController : MonoBehaviour
 
     public bool dodgedFlag = false;
 
+    // True while this player is picking their code mode in the MainMenu lobby, which freezes them.
+    // This is SIM state, not UI state, it is serialized + hashed, set in SpawnPlayer, and cleared
+    // inside PlayerUpdate off the NETWORKED jump edge, so every machine freezes and releases each
+    // player on exactly the same frame and a rollback restores the correct value. The UI array
+    // TempUIScript.codeModePromptMenuOpened is a purely local mirror of this and must never be read
+    // by the simulation (doing so was the online lobby desync).
+    public bool choosingCodeMode = false;
+
     // Monotonically incremented each time HitboxManager registers a hit on this player.
     // Used by the UI damage bar to fire its animation exactly once per hit, even when
     // online rollback resim re-runs HitboxManager and re-sets isHit. 
@@ -574,15 +582,28 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         Pause pause = GetPauseMenu();
-        // Online, only the LOCAL player gets a prompt. Remote players have no paired input device on
-        // this machine, so Pause.WasPlayerSubmitPressedThisFrame(remoteIndex) falls back through
-        // FindPlayerAction to a shared action map, one local confirm press then closed every open
-        // prompt at once ("choosing a mode wipes everyone else's"). Their real choice arrives over
-        // their own input packet instead (ApplyOnlineControlOptionsFromInput), so a local prompt for
-        // someone else's character is not just wrong, it has nothing to drive.
-        bool promptBelongsToThisMachine = !GameManager.Instance.isOnlineMatchActive
-            || playerIndex == GameManager.Instance.localPlayerIndex;
-        if (promptBelongsToThisMachine && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
+        bool inMainMenu = SceneManager.GetActiveScene().name == "MainMenu";
+        bool onlineMatch = GameManager.Instance.isOnlineMatchActive;
+
+        // SIM state: must be identical on every machine, so it keys off the scene ALONE. It
+        // deliberately ignores the local menu flags and localPlayerIndex used below -- every machine
+        // has to freeze every player here, including the ones it only simulates remotely.
+        if (onlineMatch)
+        {
+            choosingCodeMode = inMainMenu;
+        }
+
+        // UI is local and cosmetic. Online, only the LOCAL player gets a visible prompt, remote
+        // players have no paired input device on this machine, so
+        // Pause.WasPlayerSubmitPressedThisFrame(remoteIndex) falls through FindPlayerAction to a
+        // shared action map, and one local confirm press closed every open prompt at once ("choosing
+        // a mode wipes everyone else's"). A remote player's real choice arrives over their own input
+        // packet (ApplyOnlineControlOptionsFromInput), so a local prompt for someone else's
+        // character is not just wrong, it has nothing to drive
+        bool showPromptOnThisMachine = onlineMatch
+            ? playerIndex == GameManager.Instance.localPlayerIndex && choosingCodeMode
+            : !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.paused;
+        if (showPromptOnThisMachine && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }
@@ -1165,12 +1186,25 @@ public class PlayerController : MonoBehaviour
         // the array diverges the instant anyone picks a mode: the picker's machine resumes that
         // player's PlayerUpdate while every other machine still early-returns for them. It is also
         // un-rollbackable, a resim reads whatever the flag happens to be NOW, not its value on the
-        // frame being replayed. Online, every player's code mode already reaches every machine over
-        // the input packet (ApplyOnlineControlOptionsFromInput), so the prompt is purely cosmetic
-        // there and must not steer the sim. Offline the gate is correct and unchanged.
-        if (!GameManager.Instance.isOnlineMatchActive && SceneManager.GetActiveScene().name == "MainMenu")
+        // frame being replayed. So online the freeze runs off SIM state (choosingCodeMode: set in
+        // SpawnPlayer, serialized, hashed) and releases on the NETWORKED jump edge, which every
+        // machine sees on the same frame. Offline the gate is correct and unchanged.
+        if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+            if (GameManager.Instance.isOnlineMatchActive)
+            {
+                if (choosingCodeMode)
+                {
+                    if (input.ButtonStates[1] == ButtonState.Pressed)
+                    {
+                        choosingCodeMode = false;
+                    }
+                    // Stay frozen for the confirm frame too, so the jump that dismisses the prompt
+                    // can never also be consumed as an actual jump.
+                    return;
+                }
+            }
+            else if (pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
             {
                 return;
             }
@@ -3627,6 +3661,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
         bw.Write(dodgedFlag);
+        bw.Write(choosingCodeMode);
         bw.Write(unchecked((int)0xAABBCCDD));
 
         bool hasHitboxData = hitboxData != null;
@@ -3822,6 +3857,9 @@ public class PlayerController : MonoBehaviour
     public void SerializeCoreCodeHash(BinaryWriter bw)
     {
         bw.Write(relativeInputs);
+        // Gates the whole of PlayerUpdate in the MainMenu lobby, so a divergence here reads as a
+        // player frozen on one machine and moving on another. Lives in exactly ONE sub-group.
+        bw.Write(choosingCodeMode);
         bw.Write(stateSpecificArg);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
@@ -3947,6 +3985,7 @@ public class PlayerController : MonoBehaviour
         damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();
         dodgedFlag = br.ReadBoolean();
+        choosingCodeMode = br.ReadBoolean();
         int markerA = br.ReadInt32();
         if (markerA != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at A: {markerA:X8}");
 

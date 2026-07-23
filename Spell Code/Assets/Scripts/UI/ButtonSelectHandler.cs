@@ -247,19 +247,26 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         }
         if (name.Contains("Code Mode"))
         {
-            // Confirm reads the InputAction edge, NOT the simulation snapshot. player.input is
-            // written once per FIXED frame and ButtonState.Pressed lives for exactly one sim frame,
-            // while this Update runs once per RENDER frame — whenever two sim frames fall between
-            // two renders, Pressed is overwritten by Held and the press is never observed. 
-            // wasCodeModeMenuOpen arms the confirm one frame after the prompt opens. The prompt is
-            // opened from SpawnPlayer, and players jump around the MainMenu lobby, so a respawn can
-            // land on the same frame Jump was pressed — without this the prompt would open and
-            // instantly confirm itself on that press, closing on the default (synthesizer) mode.
-            if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex]
-                && wasCodeModeMenuOpen
-                && pause.WasPlayerSubmitPressedThisFrame(codeModeIndex))
+            // Runs every render frame, including mid-teardown, so resolve the player defensively.
+            GameManager manager = GameManager.Instance;
+            PlayerController codeModePlayer =
+                manager != null && manager.players != null
+                && codeModeIndex >= 0 && codeModeIndex < manager.players.Length
+                    ? manager.players[codeModeIndex]
+                    : null;
+            bool onlineMatch = manager != null && manager.isOnlineMatchActive;
+
+            // ONLINE: the SIM owns the decision. PlayerUpdate clears choosingCodeMode off the
+            // NETWORKED jump edge, so every machine agrees on the release frame; the UI only watches
+            // that flag. Reading the local InputAction here instead is what let one press close every
+            // player's prompt at once, and what desynced the lobby.
+            bool confirmed = onlineMatch
+                ? (codeModePlayer != null && !codeModePlayer.choosingCodeMode)
+                : (wasCodeModeMenuOpen && pause.WasPlayerSubmitPressedThisFrame(codeModeIndex));
+
+            if (codeModePlayer != null && pause.uiScript.codeModePromptMenuOpened[codeModeIndex] && confirmed)
             {
-                PlayerController player = GameManager.Instance.players[codeModeIndex];
+                PlayerController player = codeModePlayer;
                 bool punkSelected = pause.uiScript.playerCodeMode[codeModeIndex]
                     .codeModes[PUNK_CODE_MODE_INDEX]
                     .codeModeSelected;
@@ -274,9 +281,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pause.uiScript.CloseCodeModeMenuPrompt(codeModeIndex);
             }
 
-            if (pause.uiScript.codeModePromptMenuOpened[codeModeIndex])
+            // Navigation reads the sim input snapshot, which PlayerUpdate refreshes BEFORE the
+            // choosingCodeMode freeze returns, so left/right still moves the highlight while the
+            // character itself stays put.
+            if (codeModePlayer != null && pause.uiScript.codeModePromptMenuOpened[codeModeIndex])
             {
-                int dir = GameManager.Instance.players[codeModeIndex].input.Direction;
+                int dir = codeModePlayer.input.Direction;
                 if (dir == 4 && lastCodeModeDirection != 4)
                 {
                     pause.uiScript.playerCodeMode[codeModeIndex].codeModes[0].codeModeSelected = true;

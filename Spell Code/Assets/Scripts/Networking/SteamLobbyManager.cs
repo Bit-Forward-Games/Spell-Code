@@ -17,9 +17,11 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-14"; // scz-14: PlayerUpdate no longer early-returns on the LOCAL codeModePromptMenuOpened UI
-                                                    // flag during an online match (it desynced the MainMenu lobby the moment any player
-                                                    // picked a code mode). Sim-rule change; savestate layout unchanged from scz-13.
+    private const string NetcodeVersion = "scz-14"; // scz-14: the MainMenu-lobby code-mode freeze moved out of the LOCAL
+                                                    // codeModePromptMenuOpened UI array (reading it inside PlayerUpdate desynced the lobby
+                                                    // the moment any player picked a mode) and onto new SIM state PlayerController
+                                                    // .choosingCodeMode, released on the networked jump edge. Savestate + core[code] hash
+                                                    // both grew a bool, so this is byte-incompatible with scz-13, not just a rule change.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

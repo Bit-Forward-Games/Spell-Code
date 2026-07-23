@@ -203,7 +203,12 @@ public abstract class BaseProjectile : MonoBehaviour
 
 
         //this is what happens when this projectile hits something
-        if(playerHitArr.Any(ignore => ignore))
+        bool allHitPlayersAreIgnored = playerHitArr
+            .Select((wasHit, index) => !wasHit ||
+                (index < playerIgnoreArr.Length && playerIgnoreArr[index]))
+            .All(hitPlayerIsIgnored => hitPlayerIsIgnored);
+
+        if(playerHitArr.Any(wasHit => wasHit) && !allHitPlayersAreIgnored)
         {
             //first, if we've added an onhit action in an override for a projectile, do it
             if(onHitAction != null) onHitAction();

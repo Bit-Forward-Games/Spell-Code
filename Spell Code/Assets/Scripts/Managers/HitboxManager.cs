@@ -126,13 +126,12 @@ public class HitboxManager : MonoBehaviour
 
                 foreach (HitboxData hitbox in activeProjHit)
                 {   
-                    if(!projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex] &&
-                    !projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex])
+                    if(!projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex] )
                     {
                         foreach (HurtboxData hurtbox in activeHurtboxes)
                         {
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
-                                    projectile.facingRight, defendingPlayer.facingRight))
+                                projectile.facingRight, defendingPlayer.facingRight))
                             {
                                 
                                 
@@ -156,6 +155,7 @@ public class HitboxManager : MonoBehaviour
                             
                                 defendingPlayer.hitboxData = hitbox;
                                 defendingPlayer.isHit = true;
+                                
                                 // Monotonic per-hit counter (in state hash, deterministic). UI
                                 // watches this to fire its damage bar animation exactly once per
                                 // hit. Must increment in BOTH normal sim and rollback resim so
@@ -172,22 +172,46 @@ public class HitboxManager : MonoBehaviour
                                     bakedHitbox.parentProjectile = projectile;
                                     defendingPlayer.hitboxData = bakedHitbox;
                                 }
+                                // else
+                                // {
+                                //     //defendingPlayer.facingRight = !projectile.facingRight;
+                                //     defendingPlayer.hitboxData = hitbox;
+                                // }
+                                
+                                if(projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex])
+                                {
+                                    defendingPlayer.dodgedFlag = true;
+                                }
                                 else
                                 {
-                                    //defendingPlayer.facingRight = !projectile.facingRight;
-                                    defendingPlayer.hitboxData = hitbox;
+                                    if(hitbox.hitstun > 0)
+                                    {
+                                        defendingPlayer.facingRight = !projectile.facingRight;
+                                        if (projectile.meleeProjectile)
+                                        {
+                                            projectile.owner.hitstop = hitstopVal;
+                                        }
+                                        defendingPlayer.hitstop = hitstopVal;
+                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                    }
+                                
+                                    
+
+                                    // Stat counter only — gate behind rollback so resim doesn't
+                                    // double-count hits the original frame already counted.
+                                    // Not part of state hash, but skews end-of-match stats.
+                                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                    {
+                                        projectile.owner.spellsHit++;
+                                    }
                                 }
+                                
 
                                 projectile.playerHitArr[defendingPlayer.pID == 0?projectile.owner.pID-1:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                                 
                                 projectile.ownerSpell?.ShareHitIgnoreList();
-                                // Stat counter only — gate behind rollback so resim doesn't
-                                // double-count hits the original frame already counted.
-                                // Not part of state hash, but skews end-of-match stats.
-                                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                                {
-                                    projectile.owner.spellsHit++;
-                                }
+                                
+                                
                             }
                         }
                     } 

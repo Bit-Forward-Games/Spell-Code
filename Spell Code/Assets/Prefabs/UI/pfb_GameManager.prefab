@@ -14282,7 +14282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7247799145956432797
 RectTransform:
   m_ObjectHideFlags: 0
@@ -171330,6 +171330,14 @@ PrefabInstance:
       propertyPath: fella
       value: 
       objectReference: {fileID: 4797279516715122566}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: backPage
+      value: 
+      objectReference: {fileID: 5693781845850059693}
+    - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: nextPage
+      value: 
+      objectReference: {fileID: 8556923040358250636}
     - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: darkPanel
       value: 

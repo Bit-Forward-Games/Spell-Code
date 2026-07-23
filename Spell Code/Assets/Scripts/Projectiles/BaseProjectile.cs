@@ -34,6 +34,7 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public SpellData ownerSpell;
     [NonSerialized] public bool[] playerHitArr = new bool[4] { false, false, false, false }; //which players this projectile Has hit 
     [NonSerialized] public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
+    [NonSerialized] public bool allHitPlayersAreIgnored;
     //Multihit projectile fields
     [NonSerialized] public ushort[] multiHitPlayerHitCounterArr = new ushort[]{ 0, 0, 0, 0 };
     [NonSerialized] public byte[] multiHitCount = new byte[]{ 0, 0, 0, 0 };
@@ -203,7 +204,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
 
         //this is what happens when this projectile hits something
-        bool allHitPlayersAreIgnored = playerHitArr
+        allHitPlayersAreIgnored = playerHitArr
             .Select((wasHit, index) => !wasHit ||
                 (index < playerIgnoreArr.Length && playerIgnoreArr[index]))
             .All(hitPlayerIsIgnored => hitPlayerIsIgnored);
@@ -346,6 +347,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
         bw.Write(deleteOnHurt);
+        bw.Write(allHitPlayersAreIgnored);
         for (int i = 0; i < 4; i++)
         {
             bw.Write(multiHitCount != null && i < multiHitCount.Length ? multiHitCount[i] : (byte)0);
@@ -393,6 +395,7 @@ public abstract class BaseProjectile : MonoBehaviour
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();
         deleteOnHurt = br.ReadBoolean();
+        allHitPlayersAreIgnored = br.ReadBoolean();
         if (multiHitCount == null || multiHitCount.Length != 4)
         {
             multiHitCount = new byte[4];

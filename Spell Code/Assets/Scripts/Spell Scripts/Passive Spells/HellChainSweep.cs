@@ -15,7 +15,7 @@ public class HellChainSweep : SpellData
         procConditions = new ProcCondition[] { ProcCondition.OnSlide};
         brands = new Brand[1] { Brand.DemonX };
         projectilePrefabs = new GameObject[2];
-        description = $"Deal damage with your slide.\nWhen Demon Aura<sprite name=\"DemonAura\"> is B rank or higher, this spell breaks armor.";
+        description = $"Deal damage with your slide.\nWhen Demon Aura<sprite name=\"DemonAura\"> is A rank or higher, this spell breaks armor.";
         spawnOffsetX = 15;
         spawnOffsetY = 0;
     }

@@ -31,7 +31,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public Image[] stockStabilityIcons;
     public Image[] stockStabilityDim;
     public TextMeshProUGUI[] demonAuraVals;
-    [NonSerialized] public string[] demonAuraGradeVals ={"F", "D", "C", "B", "A", "X"};
+    [NonSerialized] public string[] demonAuraGradeVals ={"D", "C", "B", "A", "S", "X"};
     public Image[] demonAuraIcons;
     public Image[] demonAuraDim;
     public TextMeshProUGUI[] repsVals;

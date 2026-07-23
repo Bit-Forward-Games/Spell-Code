@@ -1,61 +1,79 @@
-using BestoNet.Types;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Windows;
+using BestoNet.Types;
+
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class TridentOfPoseidonWave_prj : BaseProjectile
+public class LoadedDice_prj : BaseProjectile
 {
-
+    
     public bool isGrounded = false;
-    public ushort lifeTime = 0;
-    Fixed projectileWidth = Fixed.FromInt(8);
-    Fixed projectileHeight = Fixed.FromInt(8);
+    
+    Fixed projectileWidth = Fixed.FromInt(44);
+    Fixed projectileHeight = Fixed.FromInt(44);
+    
     protected override void InitializeDefaults()
     {
-        projName = "Trident Of Poseidon Wave";
-        ignoreBrand = true;
-        //lifeSpan = 240;
-        deleteOnHit = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3, 3 }, false);
+        projName = "Loaded Dice";
+        hSpeed = Fixed.FromInt(0);
+        vSpeed = Fixed.FromInt(0);
+        lifeSpan = 0;
+        fadeIn = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6}, false);
     }
-
+    
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
-        isGrounded = false;
-        lifeTime = 0;
-        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 3); // Set horizontal speed based on facing direction
-        vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
+        base.SpawnProjectile(facingRight, spawnOffset, "Loaded Dice");
+        activeHitboxGroupIndex = 0;
+        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4); 
+        vSpeed = Fixed.FromInt(5); 
     }
     public override void LoadProjectile()
     {
 
-        deleteOnHit = true;
-        projectileHitboxes = new HitboxGroup[1];
-
-        projectileHitboxes[0] = new HitboxGroup
+        projectileHitboxes = new HitboxGroup[2];
+        projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
                 new HitboxData
                 {
-                    xOffset = -32,
-                    yOffset = 32,
-                    width =64,
-                    height = 32,
-                    xKnockback = 5,
-                    yKnockback = 3,
-                    damage = 15,
-                    hitstun = 10,
-                    attackLvl = 1
+                    xOffset = -22,
+                    yOffset = 22,
+                    width = 22*2,
+                    height = 22*2,
+                    xKnockback = 3,
+                    yKnockback = 10,
+                    damage = 20,
+                    hitstun = 45,
+                    attackLvl = 4,
                 }
             },
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                0
+            },
+            endFrames = new List<int>
+            {
+                animFrames.frameLengths.Take(12).Sum()
+            }
         };
         base.LoadProjectile();
     }
@@ -63,34 +81,51 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-
         CheckStageDataSOCollision();
-        if (!isGrounded)
+        
+        if (logicFrame == animFrames.frameLengths.Take(12).Sum())
         {
-            vSpeed -= owner.gravity/Fixed.FromFloat(2f); // Apply gravity to the vertical speed
+            ProjectileManager.Instance.DeleteProjectile(this);
         }
-        if (logicFrame == animFrames.frameLengths.Take(4).Sum())
-        {
-            logicFrame = 0; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
-        }
-        if (lifeTime == owner.reps*5)
-        {
-            logicFrame = animFrames.frameLengths.Take(4).Sum() + 1;
-        }
-        lifeTime ++;
-    }
+        
 
+        //this basically checks if the projectile hit something
+        if (playerHitArr.Any(ignore => ignore) && !allHitPlayersAreIgnored)
+        {
+            hSpeed = Fixed.FromInt(0);
+            vSpeed = Fixed.FromInt(0);
+            activeHitboxGroupIndex = 0;
+
+            playerHitArr = new bool[4] { false, false, false, false };
+            logicFrame = animFrames.frameLengths.Take(12).Sum()+1; //set the logic frame to the start of the end animation
+        }
+        else if(logicFrame <= animFrames.frameLengths.Take(12).Sum())
+        {
+            if (!isGrounded)
+            {
+                vSpeed -= owner.gravity; // Apply gravity to the vertical speed
+            }
+            else
+            {
+                float slowVal = 1; 
+                hSpeed += Fixed.FromFloat(hSpeed > Fixed.FromInt(0) ? -slowVal : slowVal);
+                if(hSpeed > Fixed.FromFloat(-.1f) &&hSpeed < Fixed.FromFloat(.1f)) hSpeed = Fixed.FromInt(0);
+            }
+        }
+    }
 
     public void CheckStageDataSOCollision()
     {
         isGrounded = false; //we set it true here, and will set it to false in the function if at some point the projectile has collided with ground
-        StageDataSO stageDataSO = GameManager.Instance.GetCurrentStageDataSO(); if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
+        StageDataSO stageDataSO = GameManager.Instance.GetCurrentStageDataSO(); 
+
+        if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
             // if there's no stage or no solids at all, still check platforms below (handled later)
             if (stageDataSO == null) return;
         }
 
-        #region  --- SOLIDS (unchanged behavior) ---
+        #region  --- SOLIDS ---
         if (stageDataSO.solidCenter != null && stageDataSO.solidExtent != null)
         {
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
@@ -104,8 +139,8 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
                 //FixedVec2 nextPosition = position + new FixedVec2(hSpd, vSpd);
                 Fixed pMinX = position.X + hSpeed - halfW;
                 Fixed pMaxX = position.X + hSpeed + halfW;
-                Fixed pMinY = position.Y + vSpeed;
-                Fixed pMaxY = position.Y + vSpeed + projectileHeight;
+                Fixed pMinY = position.Y + vSpeed - halfH;
+                Fixed pMaxY = position.Y + vSpeed + halfH;
 
                 for (int i = 0; i < solidCount; i++)
                 {
@@ -159,13 +194,13 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
                         {
                             // projectile is below solid -> push down
                             position = new FixedVec2(position.X, sMin.Y - halfH);
-                            vSpeed = Fixed.FromInt(0);
+                            vSpeed = -vSpeed;
                         }
                         else
                         {
                             // projectile is above solid -> land on top
-                            position = new FixedVec2(position.X, sMax.Y);
-                            vSpeed = Fixed.FromInt(0);
+                            position = new FixedVec2(position.X, sMax.Y + halfH);
+                            vSpeed = vSpeed * Fixed.FromFloat(-0.8f);
                             isGrounded = true;
                         }
                     }
@@ -173,7 +208,7 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
             }
         }
         #endregion
-        #region --- PLATFORMS (one-way: only collide from above while falling/standing) ---
+        #region --- PLATFORMS ---
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
            int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
@@ -185,8 +220,8 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
            // projectile AABB
            Fixed pMinX = position.X + hSpeed - halfW;
            Fixed pMaxX = position.X + hSpeed + halfW;
-           Fixed pMinY = position.Y + vSpeed;
-           Fixed pMaxY = position.Y + vSpeed + projectileHeight;
+           Fixed pMinY = position.Y + vSpeed - halfH;
+           Fixed pMaxY = position.Y + vSpeed + halfH;
 
            for (int i = 0; i < platformCount; i++)
            {
@@ -222,10 +257,10 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
                // Only land on the platform when the projectile's bottom is at or above the platform top (or intersecting it)
                // and the projectile is moving downward (vSpd <= 0) or already essentially resting on it.
                // This avoids blocking the projectile from jumping up through the platform.
-               if (pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))
+               if (pMinY <= platformTop && position.Y -halfH >= platformTop && vSpeed <= Fixed.FromInt(0))
                {
-                    position = new FixedVec2(position.X, platformTop);
-                    vSpeed = Fixed.FromInt(0);
+                    position = new FixedVec2(position.X, platformTop + halfH);
+                    vSpeed = vSpeed * Fixed.FromFloat(-0.8f);
                     isGrounded = true;
                }
 
@@ -233,25 +268,21 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
         }
         #endregion
     }
-
     public override void ResetValues()
     {
         base.ResetValues();
         isGrounded = false;
-        lifeTime = 0;
     }
 
     public override void Serialize(System.IO.BinaryWriter bw)
     {
         base.Serialize(bw);
         bw.Write(isGrounded);
-        bw.Write(lifeTime);
     }
 
     public override void Deserialize(System.IO.BinaryReader br)
     {
         base.Deserialize(br);
         isGrounded = br.ReadBoolean();
-        lifeTime = br.ReadUInt16();
     }
 }

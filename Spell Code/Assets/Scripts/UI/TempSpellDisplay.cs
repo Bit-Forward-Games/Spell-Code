@@ -173,12 +173,6 @@ public class TempSpellDisplay : MonoBehaviour
             // Fix #1: avoid hierarchy search + LINQ allocs every update; use cached refs instead.
             GameObject parent = (cooldownBarParents != null && i < cooldownBarParents.Length) ? cooldownBarParents[i] : null;
 
-            //if (parent == null)
-            //{
-            //    // Deprecated - was doing GetComponentsInParent + LINQ every call.
-            //    // parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
-            //    continue;
-            //}
 
             if (i < playerSpells.Count)
             {

@@ -62,6 +62,20 @@ public class TextSetter : MonoBehaviour
 
     public void SetText(InputAction targetAction)
     {
+        // This is invoked from Pause.OnDisable -> RefreshControlGlyphs during scene teardown
+        // (ExecuteOrder66, HidePersistentUiForEndScene), when the selected player / its input, or even
+        // this label's own refs, can already be gone. A throw here unwinds the entire scene transition,
+        // so the screen-cover never lifts and the player is stranded on a BLACK SCREEN (host invite/join
+        // never completes; return-to-lobby from the end screen dies). Fail safe instead of throwing.
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+        if (_textBox == null || spriteAssets == null || spriteAssets.spriteAssets == null)
+        {
+            return;
+        }
+
         if (useModifiedString)
         {
             Debug.Log("waow");
@@ -69,7 +83,7 @@ public class TextSetter : MonoBehaviour
         string inputMessage = useModifiedString?_textBox.text:referenceString;
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();
-        if(selectedPlayer == null)
+        if(selectedPlayer == null || selectedPlayer.inputs == null)
         {
             //Debug.LogError("Player ID either not set or not found.");
             deviceType = GetDefaultDeviceType();
@@ -77,11 +91,15 @@ public class TextSetter : MonoBehaviour
         }
         else
         {
-            deviceType = GetDeviceType(selectedPlayer.inputs.InputDevice);
+            // ActiveInputDevice, not InputDevice: online the local player is paired with every
+            // shared device at once, so devices[0] is always the keyboard regardless of what they
+            // are really holding.
+            InputDevice activeDevice = selectedPlayer.inputs.ActiveInputDevice;
+            deviceType = activeDevice != null ? GetDeviceType(activeDevice) : GetDefaultDeviceType();
             targetBinding = GetBindingForAction(GetPlayerAction(selectedPlayer, targetAction),deviceType);
         }
 
-        
+
         if((int)deviceType > spriteAssets.spriteAssets.Count - 1)
         {
             Debug.LogError($"missing Sprite Asset for {deviceType}");

@@ -193,6 +193,13 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<int, GameplayReadyContext> pendingGameplayReadyBySlot = new Dictionary<int, GameplayReadyContext>();
     private readonly Dictionary<int, int> pendingGameplayReadyTransitionBySlot = new Dictionary<int, int>();
     private readonly Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)> pendingSceneReadyBySlot = new Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)>();
+
+    // StartOnlineMatch assigns the roster before creating/initializing its player objects, then
+    // raises isOnlineMatchActive after that bootstrap is complete. UI code uses this narrow state
+    // to avoid treating those online players as offline during InitCharacter -> SpawnPlayer.
+    public bool IsOnlineMatchInitializing =>
+        activeOnlineRoster != null && !isOnlineMatchActive;
+
     private int timeoutFrames = 0; // Timeout counter
     public int randomSeed = 0;
     public int randomCallCount = 0;
@@ -514,13 +521,16 @@ public class GameManager : MonoBehaviour
             BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
         }
 
-#if UNITY_EDITOR
-        //if = is pressed, player 1 win
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+        if (SteamManager.DebugToolsEnabled)
         {
-            players[0].roundRam = 600;
+            //if = is pressed, player 1 win
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+            {
+                players[0].roundRam = 600;
+            }
+
+            PrivateBetaDebugHotkeys();
         }
-#endif
     }
 
     /// <summary>
@@ -545,10 +555,8 @@ public class GameManager : MonoBehaviour
             ;
     }
 
-    private void EditorOnlyDebugHotkeys()
+    private void PrivateBetaDebugHotkeys()
     {
-#if UNITY_EDITOR
-
         if (UnityEngine.Input.GetKeyDown(KeyCode.RightBracket))
         {
             loadSoloLobby();
@@ -561,7 +569,6 @@ public class GameManager : MonoBehaviour
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
-#endif
     }
     public void loadMainMenu()
     {
@@ -910,6 +917,7 @@ public class GameManager : MonoBehaviour
         // symptom). This runs from the network receive path in Update, which is not gated by
         // timeScale, so it reliably fires even while the client is frozen.
         ForceResumeLocalPauseMenuForOnline();
+        tempUI?.CloseAllCodeModePrompts();
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
@@ -1048,13 +1056,13 @@ public class GameManager : MonoBehaviour
         MatchMessageManager.Instance?.SendReadySignal();
 
         isOnlineMatchActive = true;
-        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
         isWaitingForOpponent = true;
         SetNetworkInfoVisible(true);
         ProjectileManager.Instance.InitializeAllProjectiles();
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
+        SteamLobbyManager.Instance?.NotifyOnlineMatchStarted();
     }
 
     public bool TryRefreshOnlineLobbyRoster(OnlineMatchRoster roster)
@@ -2373,6 +2381,7 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Cleaning up online match state...");
             ResetOnlineTransitionTracking();
+            tempUI?.CloseAllCodeModePrompts();
 
             if (SteamLobbyManager.Instance != null)
             {
@@ -3119,7 +3128,10 @@ public class GameManager : MonoBehaviour
                 InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
                 if (endInputEnabled && (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
                 {
-                    sceneManager.MainMenu();
+                    // Latch first: this accepts Held, so without it every frame of a held jump
+                    // queues another screen-cover tween and another ExecuteOrder66 scene load.
+                    endInputEnabled = false;
+                    sceneManager.SoloLobby();
                     return;
                 }
             }
@@ -3748,6 +3760,12 @@ public class GameManager : MonoBehaviour
             gates[playerIndex].SetOpen(false);
         }
 
+        // This reset runs inside the deterministic sim (CheckStageDataSOCollision), so under rollback
+        // it re-runs. Keep the deterministic sim mutations above (spellList/stats/respawn, gamba
+        // state, gate) but fire the purely-visual/local side effects only on the real frame, or they
+        // flicker/re-pop on every rollback
+        bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
+
         for (int i = 0; i < gambas.Count; i++)
         {
             GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
@@ -3755,7 +3773,7 @@ public class GameManager : MonoBehaviour
             {
                 gamba.ResetLobbyState();
                 gamba.isActive = false;
-                gamba.ApplyVisualState();
+                if (isRealFrame) gamba.ApplyVisualState();
                 break;
             }
         }
@@ -3764,7 +3782,7 @@ public class GameManager : MonoBehaviour
         {
             onboardManager = FindFirstObjectByType<OnboardManager>();
         }
-        if (onboardManager != null)
+        if (isRealFrame && onboardManager != null)
         {
             onboardManager.ResetPlayerOnboarding(playerIndex);
         }
@@ -4889,6 +4907,17 @@ public class GameManager : MonoBehaviour
     {
         if (tempUI != null)
         {
+            // Close BEFORE deactivating. An online match keeps simulating at timeScale 1 with the
+            // local pause menu open, so it can reach the End screen while paused — and the menu
+            // panels live under pfb_GameManager/Pause, NOT under TempUI, so deactivating TempUI
+            // only kills Pause.Update() (the sole way to close the menu) and strands the panels
+            // on screen. See Pause.CanOpenPauseMenu, which blocks opening one here in the first place.
+            Pause pauseMenu = tempUI.gameObject.GetComponent<Pause>();
+            if (pauseMenu != null && pauseMenu.paused)
+            {
+                pauseMenu.Resume();
+            }
+
             tempUI.gameObject.SetActive(false);
         }
 

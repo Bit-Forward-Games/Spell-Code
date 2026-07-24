@@ -112,6 +112,9 @@ public class InputPlayerBindings : MonoBehaviour
 
     private InputAction slideMacroAction;
 
+    // Last device that actually drove one of this player's actions. See ActiveInputDevice.
+    private InputDevice lastUsedDevice;
+
     private bool[] direction = new bool[4];
     private bool[] codeButton = new bool[2];
     private bool[] jumpButton = new bool[2];
@@ -131,6 +134,26 @@ public class InputPlayerBindings : MonoBehaviour
     public InputAction PauseAction { get { return pauseAction; } }
     public InputAction SlideMacroAction {get{return slideMacroAction;}}
     public InputDevice InputDevice { get { return inputActionAsset.devices.Value[0]; } }
+
+    // The device this player is ACTUALLY using, for button-glyph rendering.
+    public InputDevice ActiveInputDevice
+    {
+        get
+        {
+            if (lastUsedDevice != null && lastUsedDevice.added)
+            {
+                return lastUsedDevice;
+            }
+
+            if (inputActionAsset == null || !inputActionAsset.devices.HasValue)
+            {
+                return null;
+            }
+
+            ReadOnlyArray<InputDevice> devices = inputActionAsset.devices.Value;
+            return devices.Count > 0 ? devices[0] : null;
+        }
+    }
     public InputActionMap PlayerActionMap { get { return playerActionMap; } }
     public InputSnapshot CurrentSnapshot { get; private set; }
 
@@ -316,8 +339,30 @@ public class InputPlayerBindings : MonoBehaviour
     }
 
 
+    // activeControl is non-null only while an action is actuated, so this latches the device that
+    // last produced real input and ignores idle devices (a connected-but-unused pad never wins).
+    private void TrackLastUsedDevice()
+    {
+        InputDevice device =
+            upAction?.activeControl?.device ??
+            downAction?.activeControl?.device ??
+            leftAction?.activeControl?.device ??
+            rightAction?.activeControl?.device ??
+            codeAction?.activeControl?.device ??
+            jumpAction?.activeControl?.device ??
+            pauseAction?.activeControl?.device ??
+            slideMacroAction?.activeControl?.device;
+
+        if (device != null)
+        {
+            lastUsedDevice = device;
+        }
+    }
+
     public long UpdateInputs()
     {
+        TrackLastUsedDevice();
+
         direction[0] = upAction.ReadValue<float>() > 0.33f;
         direction[1] = downAction.ReadValue<float>() > 0.33f;
         direction[2] = leftAction.ReadValue<float>() > 0.33f;

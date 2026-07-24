@@ -31,18 +31,29 @@ public class HelmOfHades : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                if (projectileInstances[0].activeSelf)
+                // Must run even while the shroud is INACTIVE. UpdateProjectileIgnoreFlags is also the
+                // path that CLEARS the flags (ownerIsInsideShroud already tests activeSelf, so it
+                // writes false for every projectile when the helmet is down). Gating the call on
+                // activeSelf froze playerIgnoreArr at its last value, so a helmet that expired while
+                // the owner stood inside it left them permanently dodging every projectile still in
+                // flight.
+                if(projectileInstances[0].activeSelf)
                 {
                     UpdateProjectileIgnoreFlags();
                 }
                 
-                //UpdateRangeIndicator(projectileInstances[0].activeSelf);
+                UpdateRangeIndicator(projectileInstances[0].activeSelf);
                 
+
                 break;
             case ProcCondition.OnDodge:
                 //grant the resource
-                owner.reps++;
-                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                if(projectileInstances[0].activeSelf)
+                {
+                    owner.reps++;
+                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                }
+                
                 break;
             default:
                 break;

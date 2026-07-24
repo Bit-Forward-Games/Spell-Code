@@ -17,9 +17,12 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-11"; // scz-11: AoA projectile-reflect rework -- BaseProjectile savestate now carries the ownerBackup
-                                                    // index (3rd reference int) + JFS OnKill mark-clear; sim rules changed.
-                                                   
+    private const string NetcodeVersion = "scz-15"; // scz-15: Dev-New merge. BaseProjectile savestate grew a bool (allHitPlayersAreIgnored),
+                                                    // and the new "Loaded Dice" spell adds SpellDictionary entries (shifting the spell IDs
+                                                    // fed into the state hash) plus its own serialized fields. Byte- and hash-incompatible
+                                                    // with scz-14. Its RNG rides the existing serialized LCG (rngState), so it is
+                                                    // rollback-safe; the version gate only exists to keep mismatched builds from pairing.
+
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
     private const string SizeKey = "size";
@@ -40,6 +43,11 @@ public class SteamLobbyManager : MonoBehaviour
     private readonly HashSet<SteamId> activeMatchPeerIds = new HashSet<SteamId>();
     private readonly Dictionary<SteamId, float> pendingLobbySnapshotPeers = new Dictionary<SteamId, float>();
     private const float LobbySnapshotResendSeconds = 1f;
+    // A fast Steam join can begin and complete between two UI frames. Keep its status presentation
+    // alive briefly so the label renders without delaying the actual match start.
+    private const float MatchStatusMinimumVisibleSeconds = 0.25f;
+    private float startingMatchStatusVisibleUntil;
+    private int startingMatchStatusVisibleThroughFrame = -1;
     private bool onlineEntryTransitionInProgress;
 
     // A lobby join requested while the player is outside MainMenu is deferred across the clean
@@ -50,6 +58,8 @@ public class SteamLobbyManager : MonoBehaviour
     // True from the moment the player accepts a Steam lobby invite until GameManager has actually
     // started that online match. Static so the status survives a deferred MainMenu rebuild.
     private static bool joiningMatchRequested;
+    private static float joiningMatchStatusVisibleUntil;
+    private static int joiningMatchStatusVisibleThroughFrame = -1;
     private static bool launchConnectChecked;
 
     // A host+invite requested outside MainMenu (e.g. the solo lobby's online door) is deferred
@@ -76,19 +86,24 @@ public class SteamLobbyManager : MonoBehaviour
 
     public bool IsInLobby => currentLobby.HasValue;
     public bool IsHostingFlow => isHostingFlow;
-    public bool IsJoiningMatch => joiningMatchRequested;
+    public bool IsJoiningMatch =>
+        joiningMatchRequested
+        || Time.unscaledTime < joiningMatchStatusVisibleUntil
+        || Time.frameCount <= joiningMatchStatusVisibleThroughFrame;
     // Latched by the validated member-joined callback for a lobby this client actually created.
     // The live member-count gate lets Quick Match return to "finding" if that guest leaves pre-start.
     public bool IsStartingMatch =>
-        startingHostedMatch
-        && !isShuttingDown
+        !isShuttingDown
         && SteamClient.IsValid
         && activeHostedLobbyId.HasValue
         && currentLobby.HasValue
         && currentLobby.Value.Id == activeHostedLobbyId.Value
         && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId)
-        && currentLobby.Value.MemberCount >= MinimumOnlineLobbyStartSize
-        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
+        && (Time.unscaledTime < startingMatchStatusVisibleUntil
+            || Time.frameCount <= startingMatchStatusVisibleThroughFrame
+            || (startingHostedMatch
+                && currentLobby.Value.MemberCount >= MinimumOnlineLobbyStartSize
+                && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)));
 
     // True while a Quick Match search is in flight: either DEFERRED (Find Match was pressed outside
     // MainMenu and we're transitioning there) or actively querying / hosting / waiting for opponents.
@@ -102,6 +117,24 @@ public class SteamLobbyManager : MonoBehaviour
 
     // Size (2-4) of the in-flight Quick Match search. Only meaningful while IsSearchingForMatch.
     public int SearchingMatchSize => matchmakingSearchSize;
+
+    private static void BeginJoiningMatchStatus()
+    {
+        joiningMatchRequested = true;
+        joiningMatchStatusVisibleUntil = Mathf.Max(
+            joiningMatchStatusVisibleUntil,
+            Time.unscaledTime + MatchStatusMinimumVisibleSeconds);
+        joiningMatchStatusVisibleThroughFrame = Mathf.Max(
+            joiningMatchStatusVisibleThroughFrame,
+            Time.frameCount + 1);
+    }
+
+    private static void ClearJoiningMatchStatus()
+    {
+        joiningMatchRequested = false;
+        joiningMatchStatusVisibleUntil = 0f;
+        joiningMatchStatusVisibleThroughFrame = -1;
+    }
 
     public bool OpenInviteOverlayOrHost()
     {
@@ -321,6 +354,8 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby = lobby.Value;
             activeHostedLobbyId = currentLobby.Value.Id;
             startingHostedMatch = false;
+            startingMatchStatusVisibleUntil = 0f;
+            startingMatchStatusVisibleThroughFrame = -1;
             currentLobby.Value.SetFriendsOnly();
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
@@ -490,6 +525,8 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby = lobby.Value;
             activeHostedLobbyId = currentLobby.Value.Id;
             startingHostedMatch = false;
+            startingMatchStatusVisibleUntil = 0f;
+            startingMatchStatusVisibleThroughFrame = -1;
             currentLobby.Value.SetPublic();        // searchable by other matchmakers (vs SetFriendsOnly)
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData(MatchmakingKey, "1");
@@ -515,7 +552,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     public void LeaveLobby()
     {
-        joiningMatchRequested = false;
+        ClearJoiningMatchStatus();
         LeaveLobbyInternal();
     }
 
@@ -537,6 +574,8 @@ public class SteamLobbyManager : MonoBehaviour
         isHostingFlow = false;
         activeHostedLobbyId = null;
         startingHostedMatch = false;
+        startingMatchStatusVisibleUntil = 0f;
+        startingMatchStatusVisibleThroughFrame = -1;
         startedCurrentLobbyMatch = false;
         currentMatchStartToken = string.Empty;
         activeMatchPeerIds.Clear();
@@ -566,7 +605,7 @@ public class SteamLobbyManager : MonoBehaviour
                 {
                     pendingJoinLobbyId = new SteamId { Value = lobbyRaw };
                     pendingJoinInviterId = null;
-                    joiningMatchRequested = true;
+                    BeginJoiningMatchStatus();
                     Debug.Log($"[SteamLobbyManager] Launched from a Steam invite (+connect_lobby {lobbyRaw}). Queued join for when MainMenu and Steam are ready.");
                     return;
                 }
@@ -585,13 +624,15 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        joiningMatchRequested = true;
+        BeginJoiningMatchStatus();
         // Cancel any lobby creation/query that was already in flight before this invite arrived.
         // Its completion checks hostFlowVersion/isMatchmaking and must not overwrite the joined lobby.
         hostFlowVersion++;
         isHostingFlow = false;
         activeHostedLobbyId = null;
         startingHostedMatch = false;
+        startingMatchStatusVisibleUntil = 0f;
+        startingMatchStatusVisibleThroughFrame = -1;
         isMatchmaking = false;
         pendingMatchmakingRequested = false;
         pendingHostInviteRequested = false;
@@ -624,14 +665,14 @@ public class SteamLobbyManager : MonoBehaviour
         {
             if (showJoiningStatus)
             {
-                joiningMatchRequested = false;
+                ClearJoiningMatchStatus();
             }
             return;
         }
 
         if (showJoiningStatus)
         {
-            joiningMatchRequested = true;
+            BeginJoiningMatchStatus();
             isMatchmaking = false;
         }
 
@@ -669,7 +710,7 @@ public class SteamLobbyManager : MonoBehaviour
             }
             else if (showJoiningStatus)
             {
-                joiningMatchRequested = false;
+                ClearJoiningMatchStatus();
             }
         }
         catch (Exception e)
@@ -677,7 +718,7 @@ public class SteamLobbyManager : MonoBehaviour
             Debug.LogError($"Failed to join lobby: {e.Message}");
             if (showJoiningStatus)
             {
-                joiningMatchRequested = false;
+                ClearJoiningMatchStatus();
             }
         }
     }
@@ -866,6 +907,12 @@ public class SteamLobbyManager : MonoBehaviour
             && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
         {
             startingHostedMatch = true;
+            startingMatchStatusVisibleUntil = Mathf.Max(
+                startingMatchStatusVisibleUntil,
+                Time.unscaledTime + MatchStatusMinimumVisibleSeconds);
+            startingMatchStatusVisibleThroughFrame = Mathf.Max(
+                startingMatchStatusVisibleThroughFrame,
+                Time.frameCount + 1);
         }
 
         EnsureSlotAssignedForMember(lobby, friend.Id);
@@ -1357,6 +1404,9 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        // Static join presentation survives scene rebuilds, but must not leak into the next Editor
+        // play session when domain reload is disabled.
+        ClearJoiningMatchStatus();
         Shutdown();
     }
 

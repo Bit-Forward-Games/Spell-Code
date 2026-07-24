@@ -321,7 +321,9 @@ public class Pause : MonoBehaviour
         }
         SpellGlossaryNavigation();
  
-        if (paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
+        // Online pause toggling is owned by PlayerController.Update. Reading the same action here
+        // would let both Update loops toggle the menu in one frame, immediately reopening it.
+        if (!IsOnlineMatchActive() && paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
         {
             Resume();
         }
@@ -1519,6 +1521,37 @@ public class Pause : MonoBehaviour
         return manager != null && manager.isOnlineMatchActive;
     }
 
+    // The End screen has no pause menu. GameManager.HidePersistentUiForEndScene deactivates the
+    // TempUI object THIS component lives on, so Update() stops running there — but pausemenu /
+    // darkPanel / the submenus live outside TempUI (pfb_GameManager/Pause/...), so they would
+    // still draw with no handler left to close them. Callers gate opening on this; Resume() is
+    // never gated, so a menu already open when the scene changes can still be closed.
+    public bool CanOpenPauseMenu()
+    {
+        if (SceneManager.GetActiveScene().name == "End")
+        {
+            return false;
+        }
+
+        // Block while this player still has their code-mode prompt up
+        PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
+        if (pausingPlayer != null && pausingPlayer.choosingCodeMode)
+        {
+            return false;
+        }
+
+        if (uiScript != null
+            && uiScript.codeModePromptMenuOpened != null
+            && playerPauseIndex >= 0
+            && playerPauseIndex < uiScript.codeModePromptMenuOpened.Length
+            && uiScript.codeModePromptMenuOpened[playerPauseIndex])
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private void ScopeUiInputToPausePlayer()
     {
         if (!paused)
@@ -1715,6 +1748,15 @@ public class Pause : MonoBehaviour
         return WasPausePlayerActionPressedThisFrame("Pause");
     }
 
+    // Per-player variant of WasPausePlayerSubmitPressedThisFrame. The code-mode prompt is shown to
+    // every player at once and each confirms their own panel with their own pad, so it cannot route
+    // through the single playerPauseIndex the pause menu uses.
+    public bool WasPlayerSubmitPressedThisFrame(int playerIndex)
+    {
+        InputAction action = FindPlayerAction(GetPlayerAtIndex(playerIndex), "Jump");
+        return action != null && action.WasPressedThisFrame();
+    }
+
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
@@ -1723,7 +1765,11 @@ public class Pause : MonoBehaviour
 
     private InputAction FindPausePlayerAction(string actionName)
     {
-        PlayerController player = GetPausePlayer();
+        return FindPlayerAction(GetPausePlayer(), actionName);
+    }
+
+    private InputAction FindPlayerAction(PlayerController player, string actionName)
+    {
         if (player == null)
         {
             return null;
@@ -1749,18 +1795,25 @@ public class Pause : MonoBehaviour
             }
         }
 
-        return player.inputs.PlayerActionMap != null ? player.inputs.PlayerActionMap.FindAction($"Gameplay/{actionName}", false) : null;
+        return bindings != null && bindings.PlayerActionMap != null
+            ? bindings.PlayerActionMap.FindAction($"Gameplay/{actionName}", false)
+            : null;
     }
 
     private PlayerController GetPausePlayer()
     {
+        return GetPlayerAtIndex(playerPauseIndex);
+    }
+
+    private PlayerController GetPlayerAtIndex(int playerIndex)
+    {
         GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
-        if (manager == null || manager.players == null || playerPauseIndex < 0 || playerPauseIndex >= manager.players.Length)
+        if (manager == null || manager.players == null || playerIndex < 0 || playerIndex >= manager.players.Length)
         {
             return null;
         }
 
-        return manager.players[playerPauseIndex];
+        return manager.players[playerIndex];
     }
 
     private bool TryGetOnlineControlOptions(PlayerController player, out PlayerControlOptionsData options)

@@ -112,9 +112,15 @@ public class HitboxManager : MonoBehaviour
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
-                if (defendingPlayerIndex < 0 &&
-                projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]&&
-                projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex]) continue;
+                // Keep the index guard SEPARATE: collapsing it into an && lets an invalid index fall
+                // through and evaluate playerHitArr[-1] -> IndexOutOfRangeException.
+                if (defendingPlayerIndex < 0) continue;
+                int ignoreSlot = defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex;
+                // Only playerHitArr short-circuits here (mirrors the inner check below). playerIgnoreArr
+                // must NOT, the collision has to still resolve so the dodge branch can set dodgedFlag
+                // (Helm of Hades shroud) and fire the OnDodge/OnDodged procs. Skipping here made the
+                // whole dodge feature dead code.
+                if (projectile.playerHitArr[ignoreSlot]) continue;
 
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
@@ -128,7 +134,6 @@ public class HitboxManager : MonoBehaviour
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                             {
-
                                 defendingPlayer.hitboxData = hitbox;
                                 defendingPlayer.isHit = true;
                                 
@@ -142,7 +147,9 @@ public class HitboxManager : MonoBehaviour
                                 {
                                     HitboxData bakedHitbox = hitbox.Clone();
                                     int attackerFacing = projectile.facingRight ? 1 : -1;
-                                    bakedHitbox.xKnockback = Math.Abs(hitbox.xKnockback) * attackerFacing;
+                                    // Knockback is signed relative to the projectile's facing.
+                                    // Preserve intentional reverse launches such as Bailout's explosion.
+                                    bakedHitbox.xKnockback = hitbox.xKnockback * attackerFacing;
                                     bakedHitbox.parentProjectile = projectile;
                                     defendingPlayer.hitboxData = bakedHitbox;
                                 }
@@ -166,7 +173,13 @@ public class HitboxManager : MonoBehaviour
                                             projectile.owner.hitstop = hitstopVal;
                                         }
                                         defendingPlayer.hitstop = hitstopVal;
-                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                        // Re-firing on every rollback resim makes the shake stutter. Same
+                                        // guard as the stat counter below. The hitstop/facing above stay
+                                        // UNGUARDED, they're hashed sim state and must resim.
+                                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                        {
+                                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                        }
                                     }
                                 
                                     
@@ -224,7 +237,12 @@ public class HitboxManager : MonoBehaviour
                             projectile.owner.hitstop = hitstopVal;
                         }
                         //defendingPlayer.hitstop = hitstopVal;
-                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                        // Don't re-shake on rollback resims (the owner.hitstop above is
+                        // hashed sim state, so it stays unguarded).
+                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                        {
+                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                        }
                     }
                 return true;
             }

@@ -354,11 +354,12 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         bw.Write(ignoreBrand);
 
-        // Player Ignore Array
+        // Player hit/ignore arrays
         for (int i = 0; i < 4; i++)
         {
             bw.Write(playerHitArr[i]);
             bw.Write(multiHitPlayerHitCounterArr[i]);
+            bw.Write(playerIgnoreArr[i]);
         }
 
         // References as IDs
@@ -378,6 +379,17 @@ public abstract class BaseProjectile : MonoBehaviour
             spellIndex = owner.spellList.IndexOf(ownerSpell);
         }
         bw.Write(spellIndex); // Write -1 if no owner spell or owner
+
+        // Owner BACKUP index (set while a projectile is reflected, e.g. Aegis of Athena). MUST be
+        // written. Deserialize reads three reference ints, and the AoA rework added the read without
+        // this write, every projectile load consumed 4 extra bytes and shifted the whole savestate
+        // stream, corrupting all projectile state on any rollback.
+        int ownerBackupIndex = -1;
+        if (ownerBackup != null)
+        {
+            ownerBackupIndex = System.Array.IndexOf(GameManager.Instance.players, ownerBackup);
+        }
+        bw.Write(ownerBackupIndex);
     }
 
     public virtual void Deserialize(BinaryReader br)
@@ -411,6 +423,7 @@ public abstract class BaseProjectile : MonoBehaviour
         {
             playerHitArr[i] = br.ReadBoolean();
             multiHitPlayerHitCounterArr[i] = br.ReadUInt16();
+            playerIgnoreArr[i] = br.ReadBoolean();
         }
 
         // References as IDs
@@ -422,6 +435,9 @@ public abstract class BaseProjectile : MonoBehaviour
         // Clear actual references, they will be restored in ResolveReferences
         owner = null;
         ownerSpell = null;
+        // Also clear the reflect backup, rolling back to a pre-reflect state (saved index -1) must not
+        // leave a stale live backup behind, or DeleteProjectile later "restores" the wrong owner.
+        ownerBackup = null;
     }
 
     /// <summary>
@@ -442,10 +458,13 @@ public abstract class BaseProjectile : MonoBehaviour
             }
         }
 
-        // Restore Owner Backup reference
+        // Restore Owner Backup reference. Assign ownerBackup, NOT owner, owner was already restored
+        // from _tempOwnerIndex above (the reflector, for a reflected projectile). Earlier it
+        // overwrote owner with the backup here, silently un-reflecting the projectile on every
+        // rollback load wrong hit attribution vs. peers that didn't roll back (desync).
         if (_tempOwnerBackupIndex >= 0 && _tempOwnerBackupIndex < GameManager.Instance.playerCount)
         {
-            owner = GameManager.Instance.players[_tempOwnerBackupIndex];
+            ownerBackup = GameManager.Instance.players[_tempOwnerBackupIndex];
         }
 
         // Clear temporary IDs after use

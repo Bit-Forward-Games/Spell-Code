@@ -41,9 +41,14 @@ public class JigokuFlashStep : SpellData
             case ProcCondition.OnCast:
                 if(markedOpponentPID >= 0)
                 {
+                    // Skip the teleport if the marked player disconnected (null), but still clear the
+                    // mark + projectile so state stays consistent on every client.
                     PlayerController markedOpponent = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
-                    owner.TeleportToDestination(markedOpponent.position + new FixedVec2(Fixed.FromInt(markedOpponent.facingRight?-teleportOffset:teleportOffset), Fixed.FromInt(0)));
-                    owner.facingRight = markedOpponent.facingRight;
+                    if (markedOpponent != null)
+                    {
+                        owner.TeleportToDestination(markedOpponent.position + new FixedVec2(Fixed.FromInt(markedOpponent.facingRight?-teleportOffset:teleportOffset), Fixed.FromInt(0)));
+                        owner.facingRight = markedOpponent.facingRight;
+                    }
                     markedOpponentPID = -1;
                     ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
 
@@ -54,9 +59,15 @@ public class JigokuFlashStep : SpellData
                 //handle the marked vfx
                 if (projectileInstances[1].activeSelf)
                 {
-                    projectileInstances[1].GetComponent<BaseProjectile>().position = GameManager.Instance.GetPlayerByPID(markedOpponentPID).position;
-                    //we shall see if this works
-                    if (!GameManager.Instance.GetPlayerByPID(markedOpponentPID).isAlive)
+                    // Guard EVERY deref, the marked player can be gone entirely (disconnect in a 3/4P
+                    // match -> GetPlayerByPID returns null; stale -1 pID would even index players[-2])
+                    // an unguarded deref crashes the sim on every client.
+                    PlayerController marked = markedOpponentPID >= 0 ? GameManager.Instance.GetPlayerByPID(markedOpponentPID) : null;
+                    if (marked != null && marked.isAlive)
+                    {
+                        projectileInstances[1].GetComponent<BaseProjectile>().position = marked.position;
+                    }
+                    else
                     {
                         ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
                         markedOpponentPID = -1;

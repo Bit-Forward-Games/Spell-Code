@@ -158,8 +158,8 @@ public class GetOverHere_prj : BaseProjectile
                 // projectile AABB
                 Fixed pMinX = position.X + hSpeed + Fixed.FromInt(facingRight?hurtbox.xOffset:(-hurtbox.xOffset-hurtbox.width));
                 Fixed pMaxX = position.X + hSpeed + Fixed.FromInt(!facingRight?(-hurtbox.xOffset):(hurtbox.xOffset+hurtbox.width));
-                Fixed pMinY = position.Y + vSpeed + Fixed.FromInt(hurtbox.yOffset);
-                Fixed pMaxY = position.Y + vSpeed + Fixed.FromInt(hurtbox.yOffset + hurtbox.height);
+                Fixed pMinY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset);
+                Fixed pMaxY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset - hurtbox.height);
 
                 for (int i = 0; i < solidCount; i++)
                 {

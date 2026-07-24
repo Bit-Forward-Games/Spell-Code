@@ -6,21 +6,33 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class MineCrafter : SpellData
 {
+    private byte projectileSpawnIndex = 0;
+    private const byte maxProjectiles = 3;
 
     public MineCrafter()
     {
         spellName = "Mine Crafter";
-        cooldown = 1;
+        cooldown = 60;
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[1] { ProcCondition.OnSlide };
         brands = new Brand[1] { Brand.VWave };
         description = "While in Flow State<sprite name=\"FlowState\">, slide crafts a mine.";
 
-        projectilePrefabs = new GameObject[1];
+        projectilePrefabs = new GameObject[maxProjectiles];
         spawnOffsetX = 0;
         spawnOffsetY = 10;
     }
 
+    public override void SpellUpdate()
+    {
+        //basic cooldown handling
+        if (cooldownCounter > 0)
+        {
+            cooldownCounter--;
+            return;
+        }
+
+    }
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
     {
@@ -28,14 +40,33 @@ public class MineCrafter : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnSlide:
+                
                 if (owner.flowState > 0)
                 {
-                    activateFlag = true;
+                    if(cooldownCounter <= 0)
+                    {
+                        
+                        cooldownCounter = cooldown;
+                        
+
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileSpawnIndex].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                        projectileSpawnIndex = (byte)((projectileSpawnIndex+1) % maxProjectiles);
+                    }
                 }
-                else { activateFlag = false; }
                 break;
             default:
                 break;
         }
+    }
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(projectileSpawnIndex);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        projectileSpawnIndex = br.ReadByte();
     }
 }

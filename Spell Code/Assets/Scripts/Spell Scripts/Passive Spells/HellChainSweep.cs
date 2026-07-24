@@ -35,7 +35,7 @@ public class HellChainSweep : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnSlide:
-            if(cooldownCounter <= 0)
+                if(cooldownCounter <= 0)
                 {
                     
                     cooldownCounter = cooldown;

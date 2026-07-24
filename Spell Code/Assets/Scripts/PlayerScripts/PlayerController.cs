@@ -2729,6 +2729,11 @@ public class PlayerController : MonoBehaviour
                     {
                         if (SceneManager.GetActiveScene().name != "MainMenu")
                         {
+                            FixedVec2 tempResPos = position;
+                            position = new FixedVec2(
+                                Fixed.Clamp(position.X, resetMinX, resetMaxX),
+                                Fixed.Clamp(position.Y, resetMinY, resetMaxY));
+                                returnVal = !tempResPos.Equals(position);
                             break;
                         }
 

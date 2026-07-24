@@ -17,11 +17,11 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-14"; // scz-14: the MainMenu-lobby code-mode freeze moved out of the LOCAL
-                                                    // codeModePromptMenuOpened UI array (reading it inside PlayerUpdate desynced the lobby
-                                                    // the moment any player picked a mode) and onto new SIM state PlayerController
-                                                    // .choosingCodeMode, released on the networked jump edge. Savestate + core[code] hash
-                                                    // both grew a bool, so this is byte-incompatible with scz-13, not just a rule change.
+    private const string NetcodeVersion = "scz-15"; // scz-15: Dev-New merge. BaseProjectile savestate grew a bool (allHitPlayersAreIgnored),
+                                                    // and the new "Loaded Dice" spell adds SpellDictionary entries (shifting the spell IDs
+                                                    // fed into the state hash) plus its own serialized fields. Byte- and hash-incompatible
+                                                    // with scz-14. Its RNG rides the existing serialized LCG (rngState), so it is
+                                                    // rollback-safe; the version gate only exists to keep mismatched builds from pairing.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

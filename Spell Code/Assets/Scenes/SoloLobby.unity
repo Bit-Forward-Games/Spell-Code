@@ -447,6 +447,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1575185965359535343, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Elimination Option Select
+      objectReference: {fileID: 0}
     - target: {fileID: 1670324031221498034, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -535,6 +539,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4902785219425798633, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Chaos Option Select
+      objectReference: {fileID: 0}
     - target: {fileID: 5362399704496346723, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -599,6 +607,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -310.61328
       objectReference: {fileID: 0}
+    - target: {fileID: 5937221876115379180, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Turbo Option Select
+      objectReference: {fileID: 0}
+    - target: {fileID: 6336463642458857690, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: _multiplayerGamemodesChooserMenuFirst
+      value: 
+      objectReference: {fileID: 1635516065}
+    - target: {fileID: 6699293942464455912, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Normal Option Select
+      objectReference: {fileID: 0}
     - target: {fileID: 6844216020657661611, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -622,6 +642,10 @@ PrefabInstance:
     - target: {fileID: 8580017817177031714, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8639215553718587643, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Fighting Game Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 8947561330561377217, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_Name
@@ -949,6 +973,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d19779b7af744e444876a5eb792544ce, type: 3}
+--- !u!1 &1635516065 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6699293942464455912, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1269099311}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &3149903017911321216
 PrefabInstance:
   m_ObjectHideFlags: 0

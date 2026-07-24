@@ -310,7 +310,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         if (setOpen)
         {
-            Debug.Log("Hello???");
             gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
             if (pause != null)
             {
@@ -322,7 +321,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             multiplayerGamemodesMenuOpened = false;
             multiplayerGamemodesChooserMenu.SetActive(true);
             multiplayerGamemodesChooserMenuOpened = true;
-            EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesChooserMenuFirst);
+            // EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesChooserMenuFirst);
+            StartCoroutine(pause.SelectFirst(_multiplayerGamemodesChooserMenuFirst));
             Time.timeScale = 0f;
         }
         else
@@ -425,6 +425,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (soloGamemodesMenuOpened)
                 {
                     SetSoloMenuActive(false);
+                }
+                else if (multiplayerGamemodesChooserMenuOpened)
+                {
+                    SetMultiplayerGameModesMenuActive(false);
                 }
                 else
                 {

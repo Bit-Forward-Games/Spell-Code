@@ -112421,7 +112421,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 286.4
+      value: 333
       objectReference: {fileID: 0}
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -112570,6 +112570,10 @@ PrefabInstance:
     - target: {fileID: 3151815435690467711, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Name
       value: Elimination Mode Option
+      objectReference: {fileID: 0}
+    - target: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Name
+      value: Elimination Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 3416676647549773614, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
@@ -171401,7 +171405,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 286.4
+      value: 333
       objectReference: {fileID: 0}
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -171566,6 +171570,10 @@ PrefabInstance:
     - target: {fileID: 3151815435690467711, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Name
       value: Fighting Game Mode Option
+      objectReference: {fileID: 0}
+    - target: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Name
+      value: Fighting Game Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 3416676647549773614, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
@@ -173156,7 +173164,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 286.4
+      value: 333
       objectReference: {fileID: 0}
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -173321,6 +173329,10 @@ PrefabInstance:
     - target: {fileID: 3151815435690467711, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Name
       value: Chaos Mode Option
+      objectReference: {fileID: 0}
+    - target: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Name
+      value: Chaos Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 3416676647549773614, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
@@ -173796,7 +173808,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 286.4
+      value: 333.7
       objectReference: {fileID: 0}
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -173849,6 +173861,10 @@ PrefabInstance:
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Navigation.m_Mode
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Colors.m_NormalColor.a
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Navigation.m_WrapAround
@@ -173961,6 +173977,10 @@ PrefabInstance:
     - target: {fileID: 3151815435690467711, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Name
       value: Normal Mode Option
+      objectReference: {fileID: 0}
+    - target: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Name
+      value: Normal Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 3416676647549773614, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
@@ -248916,7 +248936,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 286.4
+      value: 333
       objectReference: {fileID: 0}
     - target: {fileID: 89471438589264296, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_ConstrainProportionsScale
@@ -249065,6 +249085,10 @@ PrefabInstance:
     - target: {fileID: 3151815435690467711, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_Name
       value: Turbo Mode Option
+      objectReference: {fileID: 0}
+    - target: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_Name
+      value: Turbo Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 3416676647549773614, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_SizeDelta.x

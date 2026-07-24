@@ -35,15 +35,11 @@ public class HelmOfHades : SpellData
                 // path that CLEARS the flags (ownerIsInsideShroud already tests activeSelf, so it
                 // writes false for every projectile when the helmet is down). Gating the call on
                 // activeSelf froze playerIgnoreArr at its last value, so a helmet that expired while
-                // the owner stood inside it left them permanently dodging every projectile still in
-                // flight.
-                if(projectileInstances[0].activeSelf)
-                {
-                    UpdateProjectileIgnoreFlags();
-                }
-                
+                // the owner stood inside it left them dodging every projectile still in flight
+                UpdateProjectileIgnoreFlags();
+
                 UpdateRangeIndicator(projectileInstances[0].activeSelf);
-                
+
 
                 break;
             case ProcCondition.OnDodge:

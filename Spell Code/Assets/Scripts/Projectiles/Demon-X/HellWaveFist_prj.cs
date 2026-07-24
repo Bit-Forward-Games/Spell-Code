@@ -36,10 +36,10 @@ public class HellWaveFist_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -16,
-                    yOffset = 16,
-                    width = 32,
-                    height = 32,
+                    xOffset = -15*2,
+                    yOffset = 15*2,
+                    width = 30*2,
+                    height = 30*2,
                     xKnockback = 3,
                     yKnockback = 5,
                     damage = 15,

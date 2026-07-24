@@ -17,7 +17,6 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using UnityEngine.Windows;
 using System;
 using static RollbackManager;
-using UnityEngine.InputSystem.Composites;
 
 public class GameManager : MonoBehaviour
 {
@@ -740,7 +739,50 @@ public class GameManager : MonoBehaviour
 
     private void MarkOnlineRemotePlayerInputInactive(PlayerController player)
     {
+        PlayerInput playerInput = player != null ? player.GetComponent<PlayerInput>() : null;
+        if (playerInput != null)
+        {
+            playerInput.DeactivateInput();
+            if (playerInput.user.valid)
+            {
+                playerInput.user.UnpairDevices();
+            }
+        }
+
         player?.inputs?.SetActiveWithoutChangingActions(false);
+    }
+
+    private PlayerController GetPreOnlineLocalControlPlayer()
+    {
+        if (players == null)
+        {
+            return null;
+        }
+
+        if ((isOnlineMatchActive || IsOnlineMatchInitializing)
+            && localPlayerIndex >= 0
+            && localPlayerIndex < players.Length
+            && players[localPlayerIndex] != null)
+        {
+            return players[localPlayerIndex];
+        }
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null && players[i].inputs != null && players[i].inputs.IsActive)
+            {
+                return players[i];
+            }
+        }
+
+        if (localPlayerIndex >= 0
+            && localPlayerIndex < players.Length
+            && players[localPlayerIndex] != null)
+        {
+            return players[localPlayerIndex];
+        }
+
+        return players.FirstOrDefault(player => player != null);
     }
 
     private void EnsureOnlineLocalPlayerInputActive()
@@ -919,6 +961,7 @@ public class GameManager : MonoBehaviour
         // timeScale, so it reliably fires even while the client is frozen.
         ForceResumeLocalPauseMenuForOnline();
         tempUI?.CloseAllCodeModePrompts();
+        SettingsManager.Instance?.BeginOnlineLocalControlSession(GetPreOnlineLocalControlPlayer());
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
@@ -3868,6 +3911,23 @@ public class GameManager : MonoBehaviour
             return playerNPCs[0];
         }
         return players[pID-1];
+    }
+
+    public StageDataSO GetCurrentStageDataSO()
+    {
+        switch (currentStageIndex)
+        {
+            case -1:
+                return lobbySO;
+            case -2:
+                return TutorialSO;
+            case -3:
+                return trainingGroundsSO;
+            case -4:
+                return soloLobbySO;
+            default:
+                return stages[currentStageIndex];
+        }
     }
 
     public Vector2[] GetNPCSpawnPositions()

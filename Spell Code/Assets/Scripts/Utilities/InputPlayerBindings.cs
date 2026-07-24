@@ -334,6 +334,9 @@ public class InputPlayerBindings : MonoBehaviour
             codeAction = playerActionMap.FindAction("Code");
             jumpAction = playerActionMap.FindAction("Jump");
             pauseAction = playerActionMap.FindAction("Pause");
+            // PlayerInput gives each instantiated online player its own action-map clone.
+            // Refresh Slide with the rest or joining clients keep reading the prefab map.
+            slideMacroAction = playerActionMap.FindAction("Slide");
             IsActive = true;
         }
     }
@@ -377,7 +380,7 @@ public class InputPlayerBindings : MonoBehaviour
         jumpButton[1] = jumpAction.inProgress;
         pauseButton[1] = pauseAction.inProgress;
 
-        if (slideMacroAction.inProgress)
+        if (slideMacroAction != null && slideMacroAction.inProgress)
         {
             direction[1] = true;
             jumpButton[1] = true;   
@@ -459,10 +462,12 @@ public class InputPlayerBindings : MonoBehaviour
             codeAction?.Enable();
             jumpAction?.Enable();
             pauseAction?.Enable();
+            slideMacroAction?.Enable();
 
             Debug.Log($"[CheckForInputs] Enabled - Actions enabled: " +
                      $"Up={upAction?.enabled}, Down={downAction?.enabled}, " +
-                     $"Left={leftAction?.enabled}, Right={rightAction?.enabled}");
+                     $"Left={leftAction?.enabled}, Right={rightAction?.enabled}, " +
+                     $"Slide={slideMacroAction?.enabled}");
         }
         else
         {
@@ -473,6 +478,7 @@ public class InputPlayerBindings : MonoBehaviour
             codeAction?.Disable();
             jumpAction?.Disable();
             pauseAction?.Disable();
+            slideMacroAction?.Disable();
 
             Debug.Log($"[CheckForInputs] Disabled");
         }

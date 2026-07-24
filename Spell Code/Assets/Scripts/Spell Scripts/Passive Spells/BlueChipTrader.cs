@@ -47,10 +47,13 @@ public class BlueChipTrader : SpellData
                 owner.SpawnToast($"+{stockStabilityProvidedAmount}% STOCK STABILITY", GameManager.colors["blue"]);
                 break;
             case ProcCondition.OnHitSpell:
-                owner.SpawnToast($"RESET STOCK STABILITY", GameManager.colors["grey"]);
-                owner.stockStability -= storedStockStability;
-                owner.stockStabilityModified = owner.stockStability;
-                storedStockStability = 0;
+                if(storedStockStability > 0)
+                {
+                    owner.SpawnToast($"RESET STOCK STABILITY", GameManager.colors["grey"]);
+                    owner.stockStability -= storedStockStability;
+                    owner.stockStabilityModified = owner.stockStability;
+                    storedStockStability = 0;
+                }
                 
                 break;
             default:

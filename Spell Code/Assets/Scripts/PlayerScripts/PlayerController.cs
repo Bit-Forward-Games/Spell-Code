@@ -528,6 +528,7 @@ public class PlayerController : MonoBehaviour
         hitstopActive = false;
         superArmor = false;
         portalCooldown = 0;
+        portalPrimed = true; // rollback-critical portal entry gate
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
@@ -2271,7 +2272,7 @@ public class PlayerController : MonoBehaviour
         touchingLeftWall = false;
         touchingRightWall = false;
         bool returnVal = false;
-        StageDataSO stageDataSO = GameManager.Instance.currentStageIndex < 0 ? (GameManager.Instance.currentStageIndex == -1?GameManager.Instance.lobbySO: (GameManager.Instance.currentStageIndex == -2?GameManager.Instance.TutorialSO: (GameManager.Instance.currentStageIndex == -3?GameManager.Instance.trainingGroundsSO: GameManager.Instance.soloLobbySO))) : GameManager.Instance.stages[GameManager.Instance.currentStageIndex];
+        StageDataSO stageDataSO = GameManager.Instance.GetCurrentStageDataSO();
         //Debug.Log("stage: " + GameManager.Instance.currentStageIndex);
         if (stageDataSO == null || stageDataSO.solidCenter == null || stageDataSO.solidExtent == null)
         {
@@ -2729,6 +2730,11 @@ public class PlayerController : MonoBehaviour
                     {
                         if (SceneManager.GetActiveScene().name != "MainMenu")
                         {
+                            FixedVec2 tempResPos = position;
+                            position = new FixedVec2(
+                                Fixed.Clamp(position.X, resetMinX, resetMaxX),
+                                Fixed.Clamp(position.Y, resetMinY, resetMaxY));
+                                returnVal = !tempResPos.Equals(position);
                             break;
                         }
 
@@ -3610,7 +3616,7 @@ public class PlayerController : MonoBehaviour
             ? $"dir{input.Direction}/b0:{input.ButtonStates[0]}/b1:{input.ButtonStates[1]}/b2:{input.ButtonStates[2]}"
             : "n/a";
         return $"grav={gravity.RawValue} lerp={lerpDelay} ssArg={stateSpecificArg} jc={jumpCount}/{maxJumpCount} " +
-               $"grnd={isGrounded} plat={onPlatform} tmr={timer.RawValue} animF={animationFrame} prev={prevState} " +
+               $"grnd={isGrounded} plat={onPlatform} portal={portalCooldown}:primed={portalPrimed} tmr={timer.RawValue} animF={animationFrame} prev={prevState} " +
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
@@ -3637,6 +3643,9 @@ public class PlayerController : MonoBehaviour
         bw.Write(touchingLeftWall);
         bw.Write(touchingRightWall);
         bw.Write(portalCooldown);
+        // This gate decides whether entering a portal teleports the player. It must be restored on
+        // rollback or a resim can retain the future frame's value and skip the teleport.
+        bw.Write(portalPrimed); // serialized simulation state
         bw.Write(relativeInputs);
         bw.Write((byte)state);
         bw.Write((byte)prevState);
@@ -3792,6 +3801,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(touchingLeftWall);
         bw.Write(touchingRightWall);
         bw.Write(portalCooldown);
+        bw.Write(portalPrimed); // physics hash
         bw.Write((byte)state);
         bw.Write(logicFrame);
         bw.Write(jumpCount);
@@ -3960,6 +3970,7 @@ public class PlayerController : MonoBehaviour
         touchingLeftWall = br.ReadBoolean();
         touchingRightWall = br.ReadBoolean();
         portalCooldown = br.ReadByte();
+        portalPrimed = br.ReadBoolean(); // paired with Serialize
         relativeInputs = br.ReadBoolean();
         state = (PlayerState)br.ReadByte();
         prevState = (PlayerState)br.ReadByte();

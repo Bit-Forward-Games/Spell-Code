@@ -18,11 +18,11 @@ public class HelmOfHades : SpellData
         cooldown = 540;
         spellType = SpellType.Active;
         spellInput = 0b_0000_0000_0000_0000_0000_1110_0000_0010;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.OnUpdate };
+        procConditions = new ProcCondition[] { ProcCondition.OnDodge, ProcCondition.OnUpdate };
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;
-        description = "Place down a helmet shrouded in darkness.\n while inside the shroud, dodge all attacks from opponents outside the shroud.\nThe Shroud's duration is based on Reps<sprite name=\"Reps\">.";
+        description = "Place down a helmet shrouded in darkness.\n while inside the shroud, dodge all attacks from opponents outside the shroud.\nGain 1 Rep<sprite name=\"Reps\"> when you dodge a projectile.";
     }
 
     
@@ -31,13 +31,21 @@ public class HelmOfHades : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                if (projectileInstances[0].activeSelf)
-                {
-                    UpdateProjectileIgnoreFlags();
-                }
-                
+                // Must run even while the shroud is INACTIVE. UpdateProjectileIgnoreFlags is also the
+                // path that CLEARS the flags (ownerIsInsideShroud already tests activeSelf, so it
+                // writes false for every projectile when the helmet is down). Gating the call on
+                // activeSelf froze playerIgnoreArr at its last value, so a helmet that expired while
+                // the owner stood inside it left them permanently dodging every projectile still in
+                // flight.
+                UpdateProjectileIgnoreFlags();
+
                 //UpdateRangeIndicator(projectileInstances[0].activeSelf);
-                
+
+                break;
+            case ProcCondition.OnDodge:
+                //grant the resource
+                owner.reps++;
+                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

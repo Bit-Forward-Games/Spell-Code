@@ -113,49 +113,31 @@ public class HitboxManager : MonoBehaviour
             foreach (PlayerController defendingPlayer in defendingPlayers)
             {
                 int defendingPlayerIndex = GetActivePlayerIndex(defendingPlayer, activePlayers);
-                // These must stay TWO separate guards. Collapsing them into one && let an invalid
-                // index fall through and evaluate playerHitArr[-1] -> IndexOutOfRangeException. The
-                // second guard mirrors the inner check below (skip if already hit OR ignored), so the
-                // outcome is identical, just resolved earlier.
+                // Keep the index guard SEPARATE: collapsing it into an && lets an invalid index fall
+                // through and evaluate playerHitArr[-1] -> IndexOutOfRangeException.
                 if (defendingPlayerIndex < 0) continue;
                 int ignoreSlot = defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex;
-                if (projectile.playerHitArr[ignoreSlot] || projectile.playerIgnoreArr[ignoreSlot]) continue;
+                // Only playerHitArr short-circuits here (mirrors the inner check below). playerIgnoreArr
+                // must NOT, the collision has to still resolve so the dodge branch can set dodgedFlag
+                // (Helm of Hades shroud) and fire the OnDodge/OnDodged procs. Skipping here made the
+                // whole dodge feature dead code.
+                if (projectile.playerHitArr[ignoreSlot]) continue;
 
                 (HurtboxGroup, List<int>) hurtInfo = GetHurtboxes(defendingPlayer);
                 GetActiveHurtBoxes(out activeHurtboxes, hurtInfo, defendingPlayer);
 
                 foreach (HitboxData hitbox in activeProjHit)
                 {   
-                    if(!projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex] &&
-                    !projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex])
+                    if(!projectile.playerHitArr[defendingPlayer.pID == 0 ? projectile.owner.pID - 1 : defendingPlayerIndex] )
                     {
                         foreach (HurtboxData hurtbox in activeHurtboxes)
                         {
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
-                                    projectile.facingRight, defendingPlayer.facingRight))
+                                projectile.facingRight, defendingPlayer.facingRight))
                             {
-                                
-                                
-                                
-                                if(hitbox.hitstun > 0)
-                                {
-                                    defendingPlayer.facingRight = !projectile.facingRight;
-                                    if (projectile.meleeProjectile)
-                                    {
-                                        projectile.owner.hitstop = hitstopVal;
-                                    }
-                                    defendingPlayer.hitstop = hitstopVal;
-                                    // Re-firing on every rollback resim makes the shake
-                                    // stutter. Same guard as the stat counter below. The hitstop/facing
-                                    // above stay UNGUARDED, they're hashed sim state and must resim.
-                                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                                    {
-                                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                                    }
-                                }
-                            
                                 defendingPlayer.hitboxData = hitbox;
                                 defendingPlayer.isHit = true;
+                                
                                 // Monotonic per-hit counter (in state hash, deterministic). UI
                                 // watches this to fire its damage bar animation exactly once per
                                 // hit. Must increment in BOTH normal sim and rollback resim so
@@ -172,22 +154,52 @@ public class HitboxManager : MonoBehaviour
                                     bakedHitbox.parentProjectile = projectile;
                                     defendingPlayer.hitboxData = bakedHitbox;
                                 }
+                                // else
+                                // {
+                                //     //defendingPlayer.facingRight = !projectile.facingRight;
+                                //     defendingPlayer.hitboxData = hitbox;
+                                // }
+                                
+                                if(projectile.playerIgnoreArr[defendingPlayer.pID == 0 ? projectile.owner.pID-1 : defendingPlayerIndex])
+                                {
+                                    defendingPlayer.dodgedFlag = true;
+                                }
                                 else
                                 {
-                                    //defendingPlayer.facingRight = !projectile.facingRight;
-                                    defendingPlayer.hitboxData = hitbox;
+                                    if(hitbox.hitstun > 0)
+                                    {
+                                        defendingPlayer.facingRight = !projectile.facingRight;
+                                        if (projectile.meleeProjectile)
+                                        {
+                                            projectile.owner.hitstop = hitstopVal;
+                                        }
+                                        defendingPlayer.hitstop = hitstopVal;
+                                        // Re-firing on every rollback resim makes the shake stutter. Same
+                                        // guard as the stat counter below. The hitstop/facing above stay
+                                        // UNGUARDED, they're hashed sim state and must resim.
+                                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                        {
+                                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                                        }
+                                    }
+                                
+                                    
+
+                                    // Stat counter only — gate behind rollback so resim doesn't
+                                    // double-count hits the original frame already counted.
+                                    // Not part of state hash, but skews end-of-match stats.
+                                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                                    {
+                                        projectile.owner.spellsHit++;
+                                    }
                                 }
+                                
 
                                 projectile.playerHitArr[defendingPlayer.pID == 0?projectile.owner.pID-1:defendingPlayerIndex] = true;//dummys use the attacker's own spot in the ignoreArray
                                 
                                 projectile.ownerSpell?.ShareHitIgnoreList();
-                                // Stat counter only — gate behind rollback so resim doesn't
-                                // double-count hits the original frame already counted.
-                                // Not part of state hash, but skews end-of-match stats.
-                                if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                                {
-                                    projectile.owner.spellsHit++;
-                                }
+                                
+                                
                             }
                         }
                     } 

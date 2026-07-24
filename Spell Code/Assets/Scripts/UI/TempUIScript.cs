@@ -178,6 +178,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         transitionScreenDisplayed = false;
         shopScreenDisplayed = false;
 
+        if (scene.name != "MainMenu")
+        {
+            CloseAllCodeModePrompts();
+        }
+
         if (scene.name == "Gameplay")
         {
             transitionScreenDisplayed = true;
@@ -219,28 +224,51 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     
     public void OpenCodeModeMenuPrompt(bool setOpen, int playerIndex)
     {
+        OpenCodeModeMenuPrompt(setOpen, playerIndex, true);
+    }
+
+    private void OpenCodeModeMenuPrompt(bool setOpen, int playerIndex, bool interactive)
+    {
         if (setOpen)
         {
-            gamemodesMenuPlayerIndex = playerIndex;
-            if (pause != null)
+            if (interactive)
             {
-                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+                gamemodesMenuPlayerIndex = playerIndex;
+                if (pause != null)
+                {
+                    pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+                }
             }
 
-            codeModePromptMenuOpened[gamemodesMenuPlayerIndex] = true;
-            codeModePromptMenu[gamemodesMenuPlayerIndex].SetActive(true);
+            codeModePromptMenuOpened[playerIndex] = true;
+            codeModePromptMenu[playerIndex].SetActive(true);
+            CanvasGroup promptCanvasGroup = codeModePromptMenu[playerIndex].GetComponent<CanvasGroup>();
+            if (promptCanvasGroup == null)
+            {
+                promptCanvasGroup = codeModePromptMenu[playerIndex].AddComponent<CanvasGroup>();
+            }
+            // Passive remote panels should look identical, but must not accept local pointer focus.
+            promptCanvasGroup.interactable = true;
+            promptCanvasGroup.blocksRaycasts = interactive;
 
+            playerCodeMode[playerIndex].codeModes[0].ResetCodeModePromptPresentation();
+            playerCodeMode[playerIndex].codeModes[1].ResetCodeModePromptPresentation();
             playerCodeMode[playerIndex].codeModes[0].codeModeSelected = true;
             playerCodeMode[playerIndex].codeModes[1].codeModeSelected = false;
+            // A previously selected option deactivates its sibling after the close animation. On a
+            // later lobby reset that inactive handler cannot run Update to restore the default, so
+            // apply both visuals explicitly whenever this panel reopens.
+            playerCodeMode[playerIndex].codeModes[0].SelectCodeMode();
+            playerCodeMode[playerIndex].codeModes[1].SelectCodeMode();
 
             Sequence mySequence = DOTween.Sequence();
-            Transform screenTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen");
+            Transform screenTransform = codeModePromptMenu[playerIndex].transform.Find("Code Mode Screen");
             RectTransform screenRect = screenTransform != null ? screenTransform.GetComponent<RectTransform>() : null;
 
-            Transform borderTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Menu Border");
+            Transform borderTransform = codeModePromptMenu[playerIndex].transform.Find("Code Mode Menu Border");
             RectTransform borderRect = borderTransform != null ? borderTransform.GetComponent<RectTransform>() : null;
 
-            Transform streaksTransform = codeModePromptMenu[gamemodesMenuPlayerIndex].transform.Find("Code Mode Screen Streaks");
+            Transform streaksTransform = codeModePromptMenu[playerIndex].transform.Find("Code Mode Screen Streaks");
             Image streaks = streaksTransform != null ? streaksTransform.GetComponent<Image>() : null;
 
             screenRect?.DOKill();
@@ -270,22 +298,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 mySequence.Append(DOTween.To(() => (float)streaks.fillAmount, x => streaks.fillAmount = (float)x, 1f, 0.4f)
                 .SetEase(Ease.OutQuad))
                 .SetUpdate(true);
-                StartCoroutine(pause.SelectFirst(_codeModeMenuFirst[gamemodesMenuPlayerIndex]));
+                if (interactive && pause != null)
+                {
+                    StartCoroutine(pause.SelectFirst(_codeModeMenuFirst[playerIndex]));
+                }
             }
         }
         else
         {
-            CloseGamemodeMenus();
+            CloseCodeModeMenuPrompt(playerIndex);
         }
     }
-
-    // public void NavigateCodeNodeMenu()
-    // {
-    //     if (gamemodesMenuPlayerIndex < 0)
-    //     {
-    //         gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
-    //     }
-    // }
 
     public void SetMultiplayerMenuActive(bool setOpen)
     {
@@ -341,17 +364,90 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         Time.timeScale = 1f;
     }
 
+    private void RefreshOnlineCodeModePrompts()
+    {
+        GameManager manager = GameManager.Instance;
+        if (manager == null
+            || !manager.isOnlineMatchActive
+            || manager.players == null
+            || codeModePromptMenuOpened == null
+            || codeModePromptMenu == null
+            || playerCodeMode == null)
+        {
+            return;
+        }
+
+        bool inMainMenu = SceneManager.GetActiveScene().name == "MainMenu";
+        int localIndex = manager.localPlayerIndex;
+        int promptCount = Math.Min(
+            manager.players.Length,
+            Math.Min(codeModePromptMenuOpened.Length, Math.Min(codeModePromptMenu.Length, playerCodeMode.Length)));
+
+        for (int playerIndex = 0; playerIndex < promptCount; playerIndex++)
+        {
+            PlayerController player = manager.players[playerIndex];
+            bool shouldShow = inMainMenu
+                && player != null
+                && manager.IsPlayerSlotConnected(playerIndex)
+                && player.choosingCodeMode;
+
+            if (shouldShow && !codeModePromptMenuOpened[playerIndex])
+            {
+                // Every peer mirrors the same visual state, but only this machine's player is
+                // allowed to own EventSystem focus or scope the local UI input devices.
+                OpenCodeModeMenuPrompt(true, playerIndex, playerIndex == localIndex);
+            }
+            else if (!shouldShow && codeModePromptMenuOpened[playerIndex])
+            {
+                bool waitingForLocalCommit = playerIndex == localIndex
+                    && inMainMenu
+                    && player != null
+                    && manager.IsPlayerSlotConnected(playerIndex);
+                if (!waitingForLocalCommit)
+                {
+                    // Remote prompts and terminal local cases (disconnect/scene exit) can close
+                    // immediately. A normal local confirmation remains open for its handler to
+                    // commit the selected option before closing.
+                    CloseCodeModeMenuPrompt(playerIndex);
+                }
+            }
+        }
+    }
+
     public void CloseCodeModeMenuPrompt(int playerIndex)
     {
+        bool ownsLocalUiControl = gamemodesMenuPlayerIndex == playerIndex;
         codeModePromptMenuOpened[playerIndex] = false;
         if (codeModePromptMenu != null)
         {
             codeModePromptMenu[playerIndex].SetActive(false);
-            Debug.Log("[TempUIScript] CloseCodeModeMenuPrompt: Deactivating codeModePromptMenu for player index " + playerIndex);
         }
-        gamemodesMenuPlayerIndex = -1;
-        pause?.RestoreScopedUiInputDevices();
-        Time.timeScale = 1f;
+
+        // Closing a remote visual must not clear focus/input ownership from a local prompt that is
+        // still open. Only the prompt that acquired those shared UI resources may release them.
+        if (ownsLocalUiControl)
+        {
+            gamemodesMenuPlayerIndex = -1;
+            pause?.RestoreScopedUiInputDevices();
+            Time.timeScale = 1f;
+        }
+    }
+
+    public void CloseAllCodeModePrompts()
+    {
+        if (codeModePromptMenuOpened == null || codeModePromptMenu == null)
+        {
+            return;
+        }
+
+        int promptCount = Math.Min(codeModePromptMenuOpened.Length, codeModePromptMenu.Length);
+        for (int playerIndex = 0; playerIndex < promptCount; playerIndex++)
+        {
+            if (codeModePromptMenuOpened[playerIndex])
+            {
+                CloseCodeModeMenuPrompt(playerIndex);
+            }
+        }
     }
 
     // Update is called once per frame
@@ -360,6 +456,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         UpdateUIBarVals();
         RefreshFindingMatchText();
         RefreshJoiningMatchText();
+        RefreshOnlineCodeModePrompts();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
@@ -369,6 +466,16 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
         }
 
+        // pause was null-checked inside the branch but dereferenced in the condition; a null pause
+        // with the prompt open threw here every frame.
+        if (tutorialPromptMenuOpened && pause != null && !pause.paused)
+        {
+            if (pause.WasPausePlayerSubmitPressedThisFrame())
+            {
+                pause.TriggerSelectedButton();
+            }
+        }
+        
         // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
         if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
@@ -400,6 +507,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
         }
+
     }
 
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -414,6 +522,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //{
         //    OpenCodeModeMenuPrompt(true);
         //}
+    }
+
+    public void OpenTutorialPromptMenu()
+    {
+        tutorialPromptMenu.SetActive(true);
+        Time.timeScale = 0f;
+        tutorialPromptMenuOpened = true;
+        pause.ScopeUiInputToPlayerDevices(ResolveGamemodesMenuPlayerIndex());
+        StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
+        TutorialPromptAnimation(0f, new Vector2(-212f, 62f), new Vector2(916f, 344f), new Vector2(1432f, 408f));
+        Debug.Log($"[Tutorial-Open] called on obj={gameObject.name} id={GetInstanceID()}");
     }
 
     public void InvitePlayer()
@@ -1148,6 +1267,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public void ExitTutorialPromptAnimation()
     {
+        // Mirror of OpenTutorialPromptMenu, which sets the flag/timeScale/input scope before
+        // animating. Both prompt buttons ("I'm good!" and "Show Me!") route here via UnityEvents on pfb_GameManager
+        // Flag must be cleared BEFORE the call so the animation takes its close branch.
+        tutorialPromptMenuOpened = false;
+        Time.timeScale = 1f;
+        pause?.RestoreScopedUiInputDevices();
         TutorialPromptAnimation(-1000f, new Vector2(-1820f, -480f), new Vector2(0f, 0f), new Vector2(0f, 0f));
     }
 

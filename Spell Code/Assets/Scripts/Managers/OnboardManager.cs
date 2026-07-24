@@ -116,6 +116,56 @@ public class OnboardManager : MonoBehaviour
         StopGraffitiDrip(playerIndex);
     }
 
+    // Online the local player is paired with keyboard AND pad simultaneously,
+    // so the prompts have to re-render whenever they actually switch. Runs
+    // outside the sim (plain Update) because glyphs are pure visuals, doing this from
+    // OnboardUpdate would re-render on every rollback resim. Reloads only on an actual change.
+    private InputDevice[] lastGlyphDevices;
+
+    private void Update()
+    {
+        if (gameManager == null)
+        {
+            gameManager = GameManager.Instance;
+        }
+
+        if (gameManager == null || gameManager.players == null || players == null)
+        {
+            return;
+        }
+
+        if (lastGlyphDevices == null || lastGlyphDevices.Length != players.Count)
+        {
+            lastGlyphDevices = new InputDevice[players.Count];
+        }
+
+        for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
+        {
+            if (playerIndex >= gameManager.players.Length)
+            {
+                break;
+            }
+
+            if (players[playerIndex] == null)
+            {
+                continue;
+            }
+
+            PlayerController player = gameManager.players[playerIndex];
+            InputDevice device = player != null && player.inputs != null
+                ? player.inputs.ActiveInputDevice
+                : null;
+
+            if (device == null || lastGlyphDevices[playerIndex] == device)
+            {
+                continue;
+            }
+
+            lastGlyphDevices[playerIndex] = device;
+            ReloadAllGlyphs(playerIndex);
+        }
+    }
+
     public void ReloadAllGlyphs(int playerIndex)
     {
         if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))

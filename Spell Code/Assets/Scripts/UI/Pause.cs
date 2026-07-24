@@ -343,7 +343,7 @@ public class Pause : MonoBehaviour
         bool anyCodeModeMenuOpen = System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
         if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened 
-            && !uiScript.multiplayerGamemodesMenuOpened 
+            && !uiScript.multiplayerGamemodesMenuOpened && !uiScript.multiplayerGamemodesChooserMenuOpened
             && !anyCodeModeMenuOpen) 
         {
             Time.timeScale = 1f;
@@ -1560,7 +1560,7 @@ public class Pause : MonoBehaviour
                 && uiScript.codeModePromptMenuOpened != null
                 && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
+            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.multiplayerGamemodesChooserMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;

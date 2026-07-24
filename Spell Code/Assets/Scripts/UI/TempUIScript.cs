@@ -89,6 +89,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public GameObject multiplayerGamemodesMenu;
     public bool multiplayerGamemodesMenuOpened;
 
+    [Header("Multiplayer Gamemodes Chooser Menu")] // Tutorial Prompt
+    public GameObject _multiplayerGamemodesChooserMenuFirst;
+    public GameObject multiplayerGamemodesChooserMenu;
+    public bool multiplayerGamemodesChooserMenuOpened;
+
     [Header("Tutorial Prompt Menu")] // Tutorial Prompt
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
@@ -334,6 +339,31 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    public void SetMultiplayerGameModesMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
+            gamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenu.SetActive(false);
+            multiplayerGamemodesMenuOpened = false;
+            multiplayerGamemodesChooserMenu.SetActive(true);
+            multiplayerGamemodesChooserMenuOpened = true;
+            // EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesChooserMenuFirst);
+            StartCoroutine(pause.SelectFirst(_multiplayerGamemodesChooserMenuFirst));
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            CloseGamemodeMenus();
+        }
+    }
+
     // Closing either gamemode menu closes BOTH and clears BOTH flags. The two menus share the
     // gamemodesMenu container so they are never open together, and a close wired to the wrong
     // variant must not strand the other flag: the multiplayer menu's Local Play button called
@@ -354,6 +384,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (multiplayerGamemodesMenu != null)
         {
             multiplayerGamemodesMenu.SetActive(false);
+        }
+
+        if (multiplayerGamemodesChooserMenu != null)
+        {
+            multiplayerGamemodesChooserMenu.SetActive(false);
         }
 
         if (gamemodesMenu != null)
@@ -479,7 +514,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
 
         // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || multiplayerGamemodesChooserMenuOpened) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {
@@ -500,6 +535,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (soloGamemodesMenuOpened)
                 {
                     SetSoloMenuActive(false);
+                }
+                else if (multiplayerGamemodesChooserMenuOpened)
+                {
+                    SetMultiplayerGameModesMenuActive(false);
                 }
                 else
                 {
@@ -833,7 +872,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
         // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
-        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened)
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened)
         {
             return;
         }

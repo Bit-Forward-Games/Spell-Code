@@ -43,7 +43,7 @@ public class MineCrafter_prj : BaseProjectile
                     yKnockback = 6,
                     damage = 15,
                     hitstun = 30,
-                    attackLvl = 2,
+                    attackLvl = 1,
                 }
             },
             hitbox2 = new List<HitboxData>(),

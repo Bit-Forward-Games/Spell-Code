@@ -2315,6 +2315,16 @@ public class Pause : MonoBehaviour
             return null;
         }
 
+        // Online players listen to every local device at once. Use the device that actually drove
+        // this player's actions instead of devices[0], whose order depends on network-slot spawn.
+        InputDevice activeInputDevice = player.inputs != null
+            ? player.inputs.ActiveInputDevice
+            : null;
+        if (activeInputDevice != null && InputDeviceManager.IsValidInput(activeInputDevice))
+        {
+            return activeInputDevice;
+        }
+
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
         if (playerInput != null && playerInput.devices.Count > 0)
         {

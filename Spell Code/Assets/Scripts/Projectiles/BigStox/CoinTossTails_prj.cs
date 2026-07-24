@@ -40,7 +40,7 @@ public class CoinTossTails_prj : BaseProjectile
                     xKnockback = 3,
                     yKnockback = 10,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 15,
                     attackLvl = 2,
                 }
             },

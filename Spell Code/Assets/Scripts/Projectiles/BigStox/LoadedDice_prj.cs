@@ -48,7 +48,7 @@ public class LoadedDice_prj : BaseProjectile
                     xKnockback = 3,
                     yKnockback = 10,
                     damage = 20,
-                    hitstun = 45,
+                    hitstun = 20,
                     attackLvl = 4,
                 }
             },

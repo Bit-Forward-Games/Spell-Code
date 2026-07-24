@@ -43,7 +43,7 @@ public class HellWaveFist_prj : BaseProjectile
                     xKnockback = 3,
                     yKnockback = 5,
                     damage = 15,
-                    hitstun = 15,
+                    hitstun = 20,
                     attackLvl = 2,
                 }
             },

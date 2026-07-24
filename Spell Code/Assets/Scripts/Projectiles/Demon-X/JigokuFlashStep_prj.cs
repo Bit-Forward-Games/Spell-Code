@@ -43,7 +43,7 @@ public class JigokuFlashStep_prj : BaseProjectile
                     xKnockback = 2,
                     yKnockback = 1,
                     damage = 15,
-                    hitstun = 20,
+                    hitstun = 25,
                     attackLvl = 2,
                 }
             },

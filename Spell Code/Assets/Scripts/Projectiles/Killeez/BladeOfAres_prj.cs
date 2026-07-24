@@ -39,7 +39,7 @@ public class BladeOfAres_prj : BaseProjectile
                     xKnockback = 1,
                     yKnockback = 8,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 20,
                     attackLvl = 2,
                 }
             },

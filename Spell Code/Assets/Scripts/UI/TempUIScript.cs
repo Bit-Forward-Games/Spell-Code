@@ -31,7 +31,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public Image[] stockStabilityIcons;
     public Image[] stockStabilityDim;
     public TextMeshProUGUI[] demonAuraVals;
-    [NonSerialized] public string[] demonAuraGradeVals ={"F", "D", "C", "B", "A", "X"};
+    [NonSerialized] public string[] demonAuraGradeVals ={"D", "C", "B", "A", "S", "X"};
     public Image[] demonAuraIcons;
     public Image[] demonAuraDim;
     public TextMeshProUGUI[] repsVals;
@@ -348,8 +348,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"[Tutorial-Update] obj={gameObject.name} id={GetInstanceID()} tutorialOpen={tutorialPromptMenuOpened} paused={pause?.paused}");
-
         UpdateUIBarVals();
         RefreshFindingMatchText();
         RefreshJoiningMatchText();
@@ -364,13 +362,12 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         if (tutorialPromptMenuOpened && !pause.paused)
         {
-            Debug.Log($"[Tutoriallllllll] branch entered, paused={pause.paused}, submit={pause.WasPausePlayerSubmitPressedThisFrame()}");
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();
             }
         }
-        
+
         // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
         if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
         {
@@ -429,7 +426,6 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         pause.ScopeUiInputToPlayerDevices(ResolveGamemodesMenuPlayerIndex());
         StartCoroutine(pause.SelectFirst(_tutorialPromptMenuFirst));
         TutorialPromptAnimation(0f, new Vector2(-212f, 62f), new Vector2(916f, 344f), new Vector2(1432f, 408f));
-        Debug.Log($"[Tutorial-Open] called on obj={gameObject.name} id={GetInstanceID()}");
     }
 
     public void InvitePlayer()
@@ -886,6 +882,29 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             if (vibeCodeQuadrants != null && i < vibeCodeQuadrants.Length && vibeCodeQuadrants[i] != null)
                     vibeCodeQuadrants[i].SetActive(GameManager.Instance.players[i].vibeCoding);
+            if (quadrantPlayer.flowState !=0)
+            {
+                flowStateVals[i].enabled = true;
+                flowStateDim[i].enabled = true;
+            }
+            if (quadrantPlayer.stockStabilityModified != 0)
+            {
+                stockStabilityVals[i].enabled = true;
+                stockStabilityIcons[i].enabled = true;
+                stockStabilityDim[i].enabled = true;
+            }
+            if (quadrantPlayer.demonAura != 0)
+            {
+                demonAuraVals[i].enabled = true;
+                demonAuraIcons[i].enabled = true;
+                demonAuraDim[i].enabled = true;
+            }
+            if (quadrantPlayer.reps != 0)
+            {
+                repsVals[i].enabled = true;
+                repsIcons[i].enabled = true;
+                repsDim[i].enabled = true;
+            }
 
             foreach (SpellData spell in GameManager.Instance.players[i].spellList)
             {

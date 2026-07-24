@@ -15,7 +15,7 @@ public class DemonAura : SpellData
         priorityOverride = 3;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[3] { ProcCondition.OnHitSpell, ProcCondition.OnHit, ProcCondition.OnUpdate };
-        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\"> from ranks F to X.\nAfter {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">.\nSpellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
+        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\"> from ranks D to X.\nAfter {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">.\nSpellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
 
     }
 
@@ -54,7 +54,7 @@ public class DemonAura : SpellData
                     //grant the resource
                     owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
                     owner.demonAuraLifeSpanTimer = DemonAuraResetTime;
-                    owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
+                    owner.SpawnToast("RANK UP!", GameManager.colors["red"]);
                 }
                 
                 break;

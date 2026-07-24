@@ -194,6 +194,13 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<int, GameplayReadyContext> pendingGameplayReadyBySlot = new Dictionary<int, GameplayReadyContext>();
     private readonly Dictionary<int, int> pendingGameplayReadyTransitionBySlot = new Dictionary<int, int>();
     private readonly Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)> pendingSceneReadyBySlot = new Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)>();
+
+    // StartOnlineMatch assigns the roster before creating/initializing its player objects, then
+    // raises isOnlineMatchActive after that bootstrap is complete. UI code uses this narrow state
+    // to avoid treating those online players as offline during InitCharacter -> SpawnPlayer.
+    public bool IsOnlineMatchInitializing =>
+        activeOnlineRoster != null && !isOnlineMatchActive;
+
     private int timeoutFrames = 0; // Timeout counter
     public int randomSeed = 0;
     public int randomCallCount = 0;
@@ -911,6 +918,7 @@ public class GameManager : MonoBehaviour
         // symptom). This runs from the network receive path in Update, which is not gated by
         // timeScale, so it reliably fires even while the client is frozen.
         ForceResumeLocalPauseMenuForOnline();
+        tempUI?.CloseAllCodeModePrompts();
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
@@ -2374,6 +2382,7 @@ public class GameManager : MonoBehaviour
         {
             //Debug.Log("Cleaning up online match state...");
             ResetOnlineTransitionTracking();
+            tempUI?.CloseAllCodeModePrompts();
 
             if (SteamLobbyManager.Instance != null)
             {
@@ -4973,7 +4982,7 @@ public class GameManager : MonoBehaviour
         if (SettingsManager.Instance.IsFirstLaunch())
         {
             SettingsManager.Instance.MarkFirstLaunchComplete();
-            LoadTutorial();
+            tempUI.OpenTutorialPromptMenu();
         }
     }
 

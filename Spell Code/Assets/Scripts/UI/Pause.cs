@@ -319,7 +319,9 @@ public class Pause : MonoBehaviour
         }
         SpellGlossaryNavigation();
  
-        if (paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
+        // Online pause toggling is owned by PlayerController.Update. Reading the same action here
+        // would let both Update loops toggle the menu in one frame, immediately reopening it.
+        if (!IsOnlineMatchActive() && paused && Time.frameCount != openedFrame && WasPausePlayerCancelPressedThisFrame())
         {
             Resume();
         }
@@ -1281,6 +1283,7 @@ public class Pause : MonoBehaviour
     public void TriggerSelectedButton()
     {
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
+        Debug.Log($"[TriggerSelectedButton] selected={selectedObject?.name}, hasSelectable={(selectedObject?.GetComponent<Selectable>() != null)}, interactable={(selectedObject?.GetComponent<Selectable>()?.IsInteractable())}");
         if (selectedObject == null) return;
 
         Selectable selectedControl = selectedObject.GetComponent<Selectable>();
@@ -1515,7 +1518,28 @@ public class Pause : MonoBehaviour
     // never gated, so a menu already open when the scene changes can still be closed.
     public bool CanOpenPauseMenu()
     {
-        return SceneManager.GetActiveScene().name != "End";
+        if (SceneManager.GetActiveScene().name == "End")
+        {
+            return false;
+        }
+
+        // Block while this player still has their code-mode prompt up
+        PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
+        if (pausingPlayer != null && pausingPlayer.choosingCodeMode)
+        {
+            return false;
+        }
+
+        if (uiScript != null
+            && uiScript.codeModePromptMenuOpened != null
+            && playerPauseIndex >= 0
+            && playerPauseIndex < uiScript.codeModePromptMenuOpened.Length
+            && uiScript.codeModePromptMenuOpened[playerPauseIndex])
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void ScopeUiInputToPausePlayer()
@@ -1526,7 +1550,7 @@ public class Pause : MonoBehaviour
                 && uiScript.codeModePromptMenuOpened != null
                 && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || anyCodeModeMenuOpen))
+            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;

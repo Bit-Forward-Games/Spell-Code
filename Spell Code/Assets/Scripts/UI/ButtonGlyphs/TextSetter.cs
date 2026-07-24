@@ -91,7 +91,11 @@ public class TextSetter : MonoBehaviour
         }
         else
         {
-            deviceType = GetDeviceType(selectedPlayer.inputs.InputDevice);
+            // ActiveInputDevice, not InputDevice: online the local player is paired with every
+            // shared device at once, so devices[0] is always the keyboard regardless of what they
+            // are really holding.
+            InputDevice activeDevice = selectedPlayer.inputs.ActiveInputDevice;
+            deviceType = activeDevice != null ? GetDeviceType(activeDevice) : GetDefaultDeviceType();
             targetBinding = GetBindingForAction(GetPlayerAction(selectedPlayer, targetAction),deviceType);
         }
 

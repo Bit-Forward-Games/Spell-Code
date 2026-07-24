@@ -148,6 +148,10 @@ public class TempSpellDisplay : MonoBehaviour
     public void UpdateSpellDisplay(int playerIndex)
     {
         if (IsRollbackFrame) return;
+        bool hasDemonX = false;
+        bool hasBigStox = false;
+        bool hasKilleez = false;
+        bool hasVWave = false;
 
         PlayerController player = GameManager.Instance.players[playerIndex];
 
@@ -173,12 +177,6 @@ public class TempSpellDisplay : MonoBehaviour
             // Fix #1: avoid hierarchy search + LINQ allocs every update; use cached refs instead.
             GameObject parent = (cooldownBarParents != null && i < cooldownBarParents.Length) ? cooldownBarParents[i] : null;
 
-            //if (parent == null)
-            //{
-            //    // Deprecated - was doing GetComponentsInParent + LINQ every call.
-            //    // parent = FindParentByNameContains(cooldownFills[i].transform, "CooldownBar");
-            //    continue;
-            //}
 
             if (i < playerSpells.Count)
             {
@@ -191,30 +189,30 @@ public class TempSpellDisplay : MonoBehaviour
                     case Brand.VWave:
                         cooldownFills[i].color = new Color32(107, 255, 116, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                        if (i < uiScript.flowStateVals.Length && uiScript.flowStateVals[i] != null)
-                            uiScript.flowStateVals[i].enabled = true;
+                        // if (i < uiScript.flowStateVals.Length && uiScript.flowStateVals[i] != null)
+                        //     uiScript.flowStateVals[i].enabled = true;
                         break;
                     case Brand.BigStox:
                         cooldownFills[i].color = new Color32(67, 122, 252, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
-                        if (i < uiScript.stockStabilityVals.Length && uiScript.stockStabilityVals[i] != null)
-                            uiScript.stockStabilityVals[i].enabled = true;
-                        if (i < uiScript.stockStabilityIcons.Length && uiScript.stockStabilityIcons[i] != null)
-                            uiScript.stockStabilityIcons[i].enabled = true;
+                        // if (i < uiScript.stockStabilityVals.Length && uiScript.stockStabilityVals[i] != null)
+                        //     uiScript.stockStabilityVals[i].enabled = true;
+                        // if (i < uiScript.stockStabilityIcons.Length && uiScript.stockStabilityIcons[i] != null)
+                        //     uiScript.stockStabilityIcons[i].enabled = true;
                         break;
                     case Brand.DemonX:
                         cooldownFills[i].color = new Color32(255, 62, 117, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                        if (i < uiScript.demonAuraVals.Length && uiScript.demonAuraVals[i] != null)
-                            uiScript.demonAuraVals[i].enabled = true;
+                        // if (i < uiScript.demonAuraVals.Length && uiScript.demonAuraVals[i] != null)
+                        //     uiScript.demonAuraVals[i].enabled = true;
                         break;
                     case Brand.Killeez:
                         cooldownFills[i].color = new Color32(255, 207, 0, 255);
                         main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                        if (i < uiScript.repsVals.Length && uiScript.repsVals[i] != null)
-                            uiScript.repsVals[i].enabled = true;
-                        if (i < uiScript.repsIcons.Length && uiScript.repsIcons[i] != null)
-                            uiScript.repsIcons[i].enabled = true;
+                        // if (i < uiScript.repsVals.Length && uiScript.repsVals[i] != null)
+                        //     uiScript.repsVals[i].enabled = true;
+                        // if (i < uiScript.repsIcons.Length && uiScript.repsIcons[i] != null)
+                        //     uiScript.repsIcons[i].enabled = true;
                         break;
                 }
 
@@ -276,6 +274,23 @@ public class TempSpellDisplay : MonoBehaviour
 
             spellSlots[i].alignment = invertAlign ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         }
+
+        //Resource Icons
+        // PlayerController targetPlayer =GameManager.Instance.players[playerIndex];
+
+      
+        // uiScript.demonAuraVals[playerIndex].enabled = targetPlayer.demonAura != 0 || hasDemonX;
+        // uiScript.demonAuraIcons[playerIndex].enabled = targetPlayer.demonAura != 0 || hasDemonX;
+        
+        // uiScript.stockStabilityVals[playerIndex].enabled = targetPlayer.stockStabilityModified != 0 || hasBigStox;
+        // uiScript.stockStabilityIcons[playerIndex].enabled = targetPlayer.stockStabilityModified != 0 || hasBigStox;
+    
+        // uiScript.repsVals[playerIndex].enabled = targetPlayer.reps != 0 || hasKilleez;
+        // uiScript.repsIcons[playerIndex].enabled = targetPlayer.reps != 0 || hasKilleez;
+    
+        // uiScript.flowStateVals[playerIndex].enabled = targetPlayer.flowState != 0 || hasVWave;
+        
+        
     }
 
     /// <summary>

@@ -22,7 +22,7 @@ public class HelmOfHades : SpellData
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;
-        description = "Place down a helmet shrouded in darkness.\n while inside the shroud, dodge all attacks from opponents outside the shroud.\nGain 1 Rep<sprite name=\"Reps\"> when you dodge a projectile.";
+        description = "Place down a helmet shrouded in darkness.\nWhile inside the shroud, dodge all attacks from opponents outside the shroud.\nGain 1 Rep<sprite name=\"Reps\"> when you dodge a projectile.";
     }
 
     

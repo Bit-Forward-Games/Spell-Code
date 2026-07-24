@@ -88,7 +88,7 @@ public class GetOverHere_prj : BaseProjectile
                     xKnockback = -8,
                     yKnockback = 3,
                     damage = 20,
-                    hitstun = 45,
+                    hitstun = 30,
                     attackLvl = 2,
                     sweetSpot = true                    
                 }

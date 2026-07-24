@@ -31,11 +31,13 @@ public class HelmOfHades : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnUpdate:
-                // Must run even while the shroud is INACTIVE. UpdateProjectileIgnoreFlags is also the
-                // path that CLEARS the flags (ownerIsInsideShroud already tests activeSelf, so it
-                // writes false for every projectile when the helmet is down). Gating the call on
-                // activeSelf froze playerIgnoreArr at its last value, so a helmet that expired while
-                // the owner stood inside it left them dodging every projectile still in flight
+                // UpdateProjectileIgnoreFlags writes the per-OWNER slot
+                // playerIgnoreArr[ownerPlayerIndex] on every projectile, so ALL of an owner's Helm Of
+                // Hades copies write the SAME shared slot. When a player holds more than one Helm, the
+                // extra (unplaced) copies are inactive; if an inactive copy ran this every frame it
+                // would compute ownerIsInsideShroud == false and ASSIGN false, clobbering the flags the
+                // ACTIVE copy just set -> with 2+ Helms the player dodges nothing. The gate keeps
+                // inactive copies from touching the shared slot
                 if (projectileInstances[0].activeSelf)
                 {
                     UpdateProjectileIgnoreFlags();

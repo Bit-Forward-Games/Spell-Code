@@ -17,9 +17,9 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-16"; // scz-16: Dev-New merge. MineCrafter reworked into a cooldown-gated round-robin that
-                                                    // serializes a new projectileSpawnIndex byte -> savestate wire format grew, byte-
-                                                    // incompatible with scz-15
+    private const string NetcodeVersion = "scz-17"; // scz-17: HelmOfHades OnUpdate re-gated UpdateProjectileIgnoreFlags behind
+                                                    // projectileInstances[0].activeSelf (required for multi-Helm; without it an inactive
+                                                    // copy clobbers the shared per-owner playerIgnoreArr slot)
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

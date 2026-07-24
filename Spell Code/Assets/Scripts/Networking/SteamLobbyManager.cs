@@ -17,9 +17,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-17"; // scz-17: HelmOfHades OnUpdate re-gated UpdateProjectileIgnoreFlags behind
-                                                    // projectileInstances[0].activeSelf (required for multi-Helm; without it an inactive
-                                                    // copy clobbers the shared per-owner playerIgnoreArr slot)
+    private const string NetcodeVersion = "scz-18"; // scz-18: CheckStageDataSOCollision now CLAMPS position back inside CharacterReset
+                                                    // bounds in non-MainMenu scenes (shop-duct softlock fix) instead of doing nothing.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

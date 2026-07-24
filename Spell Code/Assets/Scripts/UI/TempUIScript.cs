@@ -13,6 +13,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI[] playerRamVals;
     public GameManager gameManager;
     public Image[] playerStoreBar;
+    public Image[] playerBasicReplaceIcon;
     public Image[] followPlayerHpBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
@@ -139,6 +140,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
+        playerBasicReplaceIcon = new Image[4];
         SpellInputBorder = new RectTransform[4];
         SpellInputs = new TextMeshPro[4];
         onPlayerUI = new GameObject[4];
@@ -907,6 +909,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (i < playerRamVals.Length && playerRamVals[i] != null) playerRamVals[i].text = "";
                 if (i < playerGoldBar.Length && playerGoldBar[i] != null) playerGoldBar[i].fillAmount = 0f;
                 if (i < playerStoreBar.Length && playerStoreBar[i] != null) playerStoreBar[i].fillAmount = 0f;
+                if (i < playerBasicReplaceIcon.Length && playerBasicReplaceIcon[i] != null) playerBasicReplaceIcon[i].enabled = false;
                 if (i < flowStateVals.Length && flowStateVals[i] != null) flowStateVals[i].enabled = false;
                 if (i < flowStateDim.Length && flowStateDim[i] != null) flowStateDim[i].enabled = false;
                 if (i < stockStabilityVals.Length && stockStabilityVals[i] != null) stockStabilityVals[i].enabled = false;
@@ -925,6 +928,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
+            playerBasicReplaceIcon[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Basic Attack Replacement Icon").GetComponent<Image>();
             SpellInputBorder[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell Input Border").GetComponent<RectTransform>();
             SpellInputs[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell_Inputs").GetComponent<TextMeshPro>();
 
@@ -1069,6 +1073,18 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             //Spell Store Bar
             float storeFillAmount = (float)GameManager.Instance.players[i].storedCodeDuration / 240;//TODO: change 240 to use the scale the bar length based on spell length
             playerStoreBar[i].fillAmount = storeFillAmount;
+            
+
+            //Basic attack replacement Icon logic
+            if(GameManager.Instance.players[i].basicSpawnOverride != "")
+            {
+                playerBasicReplaceIcon[i].enabled = true;
+                playerBasicReplaceIcon[i].sprite = SpellDictionary.Instance.spellDict[GameManager.Instance.players[i].basicSpawnOverride].readyIcon;
+            }
+            else
+            {
+                playerBasicReplaceIcon[i].enabled = false;
+            }
         }
     }
 

@@ -5,6 +5,7 @@ public class PlayerUI : MonoBehaviour
 {
     public PlayerController playerHealth;
     public Image healthBar;
+    public Image BasicReplaceIcon;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     //void Start()
     //{

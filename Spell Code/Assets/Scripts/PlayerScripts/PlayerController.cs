@@ -298,7 +298,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
-    public string basicSpawnOverride = ""; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
+    [NonSerialized] public string basicSpawnOverride = string.Empty; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -532,7 +532,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
-        basicSpawnOverride = "";
+        basicSpawnOverride = string.Empty;
         isHit = false;
         damageBarHitCount = 0;
         hitboxData = null;
@@ -1866,7 +1866,7 @@ public class PlayerController : MonoBehaviour
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
 
-                    if (basicSpawnOverride == "")
+                    if (basicSpawnOverride == string.Empty)
                     {
                         //create an instance of your basic spell here
                         BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
@@ -1875,7 +1875,7 @@ public class PlayerController : MonoBehaviour
                     }
                     else
                     {
-                        basicSpawnOverride = "";
+                        basicSpawnOverride = string.Empty;
                     }
 
                     //basic spell is fired
@@ -3949,7 +3949,7 @@ public class PlayerController : MonoBehaviour
 
     private static string GetSpellNameFromSerializationId(int spellId)
     {
-        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : "";
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : string.Empty;
     }
 
     public void Deserialize(BinaryReader br)
@@ -4426,7 +4426,7 @@ public class PlayerController : MonoBehaviour
     {
         if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
-            inputDisplay.text = "";
+            inputDisplay.text = string.Empty;
             inputDisplay.color = GameManager.colors["white"];
         }
     }
@@ -4542,7 +4542,7 @@ public class PlayerController : MonoBehaviour
     {
         if (color == null) { color = GameManager.colors["white"]; }
 
-        string codeString = "";
+        string codeString = string.Empty;
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
         for (int i = 0; i < codeCount; i++)
         {

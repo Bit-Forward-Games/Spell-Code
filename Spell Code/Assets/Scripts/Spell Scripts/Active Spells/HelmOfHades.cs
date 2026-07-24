@@ -37,15 +37,23 @@ public class HelmOfHades : SpellData
                 // activeSelf froze playerIgnoreArr at its last value, so a helmet that expired while
                 // the owner stood inside it left them permanently dodging every projectile still in
                 // flight.
-                UpdateProjectileIgnoreFlags();
-
-                //UpdateRangeIndicator(projectileInstances[0].activeSelf);
+                if(projectileInstances[0].activeSelf)
+                {
+                    UpdateProjectileIgnoreFlags();
+                }
+                
+                UpdateRangeIndicator(projectileInstances[0].activeSelf);
+                
 
                 break;
             case ProcCondition.OnDodge:
                 //grant the resource
-                owner.reps++;
-                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                if(projectileInstances[0].activeSelf)
+                {
+                    owner.reps++;
+                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                }
+                
                 break;
             default:
                 break;

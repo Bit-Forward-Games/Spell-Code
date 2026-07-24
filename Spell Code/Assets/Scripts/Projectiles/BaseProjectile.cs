@@ -32,10 +32,10 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public PlayerController ownerBackup; //this gets set if for whatever reason the owner of a projectile changes, like if its reflected.
     [NonSerialized] public PlayerController owner;
     [NonSerialized] public SpellData ownerSpell;
+    [NonSerialized] public bool[] playerHitArr = new bool[4] { false, false, false, false }; //which players this projectile Has hit 
     [NonSerialized] public bool[] playerIgnoreArr = new bool[4] { false, false, false, false }; //which players this projectile should ignore collisions with 
-
     //Multihit projectile fields
-    [NonSerialized] public ushort[] multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
+    [NonSerialized] public ushort[] multiHitPlayerHitCounterArr = new ushort[]{ 0, 0, 0, 0 };
     [NonSerialized] public byte[] multiHitCount = new byte[]{ 0, 0, 0, 0 };
     [NonSerialized] public byte maxMultiHitCount = 0;
     [NonSerialized] public byte multiHitCooldown = 0;
@@ -102,8 +102,9 @@ public abstract class BaseProjectile : MonoBehaviour
         //hSpeed = Fixed.FromInt(0); 
         //vSpeed = Fixed.FromInt(0);
         //position = FixedVec2.Zero;
-        playerIgnoreArr = new bool[4] { false, false, false, false };
-        multiHitPlayerIgnoreCounterArr = new ushort[]{ 0, 0, 0, 0 };
+        playerHitArr = new bool[4] { false, false, false, false };
+        playerIgnoreArr = new bool[4] {false, false, false, false};
+        multiHitPlayerHitCounterArr = new ushort[]{ 0, 0, 0, 0 };
         Array.Fill(multiHitCount, maxMultiHitCount);
         facingRight = true;
 
@@ -202,7 +203,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
 
         //this is what happens when this projectile hits something
-        if(playerIgnoreArr.Any(ignore => ignore))
+        if(playerHitArr.Any(ignore => ignore))
         {
             //first, if we've added an onhit action in an override for a projectile, do it
             if(onHitAction != null) onHitAction();
@@ -211,21 +212,21 @@ public abstract class BaseProjectile : MonoBehaviour
             if(maxMultiHitCount != 0 && multiHitCount != null && multiHitCount.Any(count => count > 0))
             {
                 //loop through all the players
-                for(int i = 0; i < multiHitPlayerIgnoreCounterArr.Length; i++)
+                for(int i = 0; i < multiHitPlayerHitCounterArr.Length; i++)
                 {
-                    if (playerIgnoreArr[i])
+                    if (playerHitArr[i])
                     {
                         //if a given player was hit and has had long enough since last hit, consume a hit, restart the cooldown per that player, and set that player back to false
-                        if( multiHitPlayerIgnoreCounterArr[i] >= multiHitCooldown && multiHitCount[i] > 0)
+                        if( multiHitPlayerHitCounterArr[i] >= multiHitCooldown && multiHitCount[i] > 0)
                         {
                             multiHitCount[i] --;
                             
-                            playerIgnoreArr[i] = false;
-                            multiHitPlayerIgnoreCounterArr[i] = 0;
+                            playerHitArr[i] = false;
+                            multiHitPlayerHitCounterArr[i] = 0;
                         }   
                         else
                         {
-                            multiHitPlayerIgnoreCounterArr[i]++;
+                            multiHitPlayerHitCounterArr[i]++;
                         }
                     }
                     
@@ -346,11 +347,12 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         bw.Write(ignoreBrand);
 
-        // Player Ignore Array
+        // Player hit/ignore arrays
         for (int i = 0; i < 4; i++)
         {
+            bw.Write(playerHitArr[i]);
+            bw.Write(multiHitPlayerHitCounterArr[i]);
             bw.Write(playerIgnoreArr[i]);
-            bw.Write(multiHitPlayerIgnoreCounterArr[i]);
         }
 
         // References as IDs
@@ -411,8 +413,9 @@ public abstract class BaseProjectile : MonoBehaviour
         // Player Ignore Array
         for (int i = 0; i < 4; i++)
         {
+            playerHitArr[i] = br.ReadBoolean();
+            multiHitPlayerHitCounterArr[i] = br.ReadUInt16();
             playerIgnoreArr[i] = br.ReadBoolean();
-            multiHitPlayerIgnoreCounterArr[i] = br.ReadUInt16();
         }
 
         // References as IDs

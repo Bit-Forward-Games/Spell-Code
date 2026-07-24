@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BestoNet.Types;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -37,6 +38,8 @@ public class OnboardManager : MonoBehaviour
 
     public Sprite inputGraphic;
     public Sprite atkGraphic;
+    [SerializeField] private InputActionReference attackActionReference;
+    [SerializeField] private InputActionReference startActionReference;
 
     [SerializeField]
     private List<PlayerOnboarding> players = new List<PlayerOnboarding>();
@@ -75,6 +78,7 @@ public class OnboardManager : MonoBehaviour
             }
 
             ResetProgress(player, player.startsJoined);
+            ReloadAllGlyphs(playerIndex);
         }
 
         ApplyInitialUiState();
@@ -94,7 +98,11 @@ public class OnboardManager : MonoBehaviour
         if (!player.startsJoined)
         {
             player.attackText.text = "Attack:\n[CODE]";
-            player.attackText.GetComponent<TextSetter>().UpdateGlyph();
+            player.attackText.GetComponent<TextSetter>().referenceString = "Attack:\n[CODE]";
+            player.attackText.GetComponent<TextSetter>().stringToReplace = "[CODE]";
+            player.attackText.GetComponent<TextSetter>().defaultAction = attackActionReference;
+            
+
         }
 
         player.moveText.enabled = true;
@@ -103,8 +111,27 @@ public class OnboardManager : MonoBehaviour
         player.castText.enabled = false;
         player.breakWithSpellcode.enabled = false;
         SetGambaActive(player, false, true);
+        ReloadAllGlyphs(playerIndex);
 
         StopGraffitiDrip(playerIndex);
+    }
+
+    public void ReloadAllGlyphs(int playerIndex)
+    {
+        if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+        {
+            Debug.LogWarning($"Cannot reset onboarding for player index {playerIndex}.");
+            return;
+        }
+
+        player.attackText.GetComponent<TextSetter>().UpdateGlyph();
+        foreach(TextSetter ts in player.moveText.GetComponents<TextSetter>())
+        {
+            ts.UpdateGlyph();
+        }
+        player.jumpText.GetComponent<TextSetter>().UpdateGlyph();
+        player.castText.GetComponent<TextSetter>().UpdateGlyph();
+
     }
 
     private static void ResetProgress(PlayerOnboarding player, bool joined)
@@ -168,9 +195,11 @@ public class OnboardManager : MonoBehaviour
             if (!player.startsJoined)
             {
                 player.attackText.text = "Join:\n[START]";
-                player.attackText.GetComponent<TextSetter>().UpdateGlyph();
+                player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
+                player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
+                player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
             }
-
+            ReloadAllGlyphs(playerIndex);
             SetGambaActive(player, false, false);
         }
     }
@@ -215,12 +244,15 @@ public class OnboardManager : MonoBehaviour
         if (!onboarding.joined)
         {
             onboarding.attackText.text = "Attack:\n[CODE]";
-            onboarding.attackText.GetComponent<TextSetter>().UpdateGlyph();
+            onboarding.attackText.GetComponent<TextSetter>().referenceString = "Attack:\n[CODE]";
+            onboarding.attackText.GetComponent<TextSetter>().stringToReplace = "[CODE]";
+            onboarding.attackText.GetComponent<TextSetter>().defaultAction = attackActionReference;
             onboarding.attackText.enabled = false;
             onboarding.moveText.enabled = true;
             onboarding.jumpText.enabled = true;
             onboarding.joined = true;
         }
+        ReloadAllGlyphs(playerIndex);
 
         if (!onboarding.moveComplete &&
             (input.Direction == 4 || input.Direction == 6))

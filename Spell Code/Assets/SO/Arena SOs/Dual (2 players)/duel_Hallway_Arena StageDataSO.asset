@@ -29,16 +29,16 @@ MonoBehaviour:
   - {x: -272, y: 128}
   solidExtent:
   - {x: 128, y: 88}
-  - {x: 128, y: 56}
+  - {x: 384, y: 56}
   - {x: 128, y: 88}
   - {x: 112, y: 96}
-  - {x: 160, y: 56}
+  - {x: 384, y: 56}
   - {x: 112, y: 96}
   playerSpawnTransform:
   - {x: -104, y: -48}
   - {x: 104, y: -48}
-  - {x: -104, y: -112}
-  - {x: 104, y: -112}
+  - {x: -104, y: -48}
+  - {x: 104, y: -48}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []

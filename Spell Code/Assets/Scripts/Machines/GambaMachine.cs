@@ -316,6 +316,7 @@ public class GambaMachine : MonoBehaviour
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Rip And Tear");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
                         break;
                     //BigStox
@@ -342,6 +343,7 @@ public class GambaMachine : MonoBehaviour
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
                         break;
                     //VWave
@@ -355,6 +357,7 @@ public class GambaMachine : MonoBehaviour
 
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         break;
                 }

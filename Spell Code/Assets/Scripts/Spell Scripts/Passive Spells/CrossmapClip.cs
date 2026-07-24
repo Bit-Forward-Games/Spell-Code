@@ -117,4 +117,21 @@ public class CrossmapClip : SpellData
         indicator.SetActive(false);
         return lineRenderer;
     }
+
+    private void OnDisable()
+    {
+        UpdateRangeIndicator(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (rangeIndicator == null)
+        {
+            return;
+        }
+
+        Destroy(rangeIndicator.gameObject);
+        rangeIndicator = null;
+    }
+
 }

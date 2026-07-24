@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -5,10 +6,12 @@ using UnityEngine.InputSystem;
 
 public class TextSetter : MonoBehaviour
 {
-    [SerializeField] private string stringToReplace = "BUTTONPROMPT";
+    [SerializeField] public string stringToReplace = "BUTTONPROMPT";
+    [NonSerialized] public string referenceString;
+    [SerializeField] private bool useModifiedString = false;
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
-    [SerializeField] private InputActionReference defaultAction;
+    [SerializeField] public InputActionReference defaultAction;
     public int selectorPID = 0;
 
     private TMP_Text _textBox;
@@ -22,7 +25,7 @@ public class TextSetter : MonoBehaviour
     {
         //_playerInput = new PlayerInput();
         _textBox = GetComponent<TMP_Text>();
-        //message = _textBox.text;
+        referenceString = _textBox.text;
     }
 
     private void Start()
@@ -49,7 +52,7 @@ public class TextSetter : MonoBehaviour
             _textBox = GetComponent<TMP_Text>();
         }
 
-        _textBox.text = _textBox.text.Replace(stringToReplace, string.Empty);
+        _textBox.text = referenceString.Replace(stringToReplace, string.Empty);
     }
 
     public InputAction TargetAction
@@ -73,7 +76,11 @@ public class TextSetter : MonoBehaviour
             return;
         }
 
-        string inputMessage = _textBox.text;
+        if (useModifiedString)
+        {
+            Debug.Log("waow");
+        }
+        string inputMessage = useModifiedString?_textBox.text:referenceString;
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();
         if(selectedPlayer == null || selectedPlayer.inputs == null)

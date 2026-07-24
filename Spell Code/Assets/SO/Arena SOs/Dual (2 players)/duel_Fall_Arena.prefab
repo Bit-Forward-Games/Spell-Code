@@ -62,7 +62,6 @@ MonoBehaviour:
   _borderType: 1
   _stageType: 1
   _stageSize: 0
-  stageName: Fall
 --- !u!1001 &210041520579401236
 PrefabInstance:
   m_ObjectHideFlags: 0

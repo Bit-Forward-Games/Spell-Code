@@ -604,6 +604,7 @@ public class PlayerController : MonoBehaviour
             && !pause.uiScript.multiplayerGamemodesMenuOpened
             && !pause.paused;
         if (showOfflinePrompt && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
+            pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);

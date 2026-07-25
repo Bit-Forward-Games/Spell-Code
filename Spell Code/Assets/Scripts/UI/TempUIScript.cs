@@ -374,6 +374,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
+        multiplayerGamemodesChooserMenuOpened = false;
         // codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
 
         if (soloGamemodesMenu != null)

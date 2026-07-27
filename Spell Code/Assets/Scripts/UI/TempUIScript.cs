@@ -364,7 +364,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         Time.timeScale = 1f;
     }
 
-    private void RefreshOnlineCodeModePrompts()
+    private void RefreshOnlineCodeModePrompts(bool onlineEntryPending)
     {
         GameManager manager = GameManager.Instance;
         if (manager == null
@@ -386,7 +386,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         for (int playerIndex = 0; playerIndex < promptCount; playerIndex++)
         {
             PlayerController player = manager.players[playerIndex];
+            // choosingCodeMode is already true through the opponent wait (SpawnPlayer sets it and
+            // the sim that would clear it isn't running yet), so the pending gate is what keeps the
+            // prompts off screen until the match is actually live.
             bool shouldShow = inMainMenu
+                && !onlineEntryPending
                 && player != null
                 && manager.IsPlayerSlotConnected(playerIndex)
                 && player.choosingCodeMode;
@@ -401,6 +405,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             {
                 bool waitingForLocalCommit = playerIndex == localIndex
                     && inMainMenu
+                    && !onlineEntryPending
                     && player != null
                     && manager.IsPlayerSlotConnected(playerIndex);
                 if (!waitingForLocalCommit)
@@ -450,17 +455,87 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    // Drives the two edges of the online-entry window. Entering it tears down whatever lobby
+    // presentation the offline MainMenu already put up (a host can be mid-banner with their
+    // code-mode prompt open when a friend accepts the invite); leaving it re-arms the banner so it
+    // plays on the frame the match goes live, for the host too -- no scene load happens on their
+    // side, so OnSceneLoaded would never clear transitionScreenDisplayed for them.
+    private void RefreshOnlineEntryPresentation(bool onlineEntryPending)
+    {
+        if (onlineEntryPending == onlineEntryPendingLastFrame)
+        {
+            return;
+        }
+
+        onlineEntryPendingLastFrame = onlineEntryPending;
+
+        if (onlineEntryPending)
+        {
+            CancelTransitionScreen();
+            CloseAllCodeModePrompts();
+        }
+        else
+        {
+            transitionScreenDisplayed = false;
+        }
+    }
+
+    // Hard-stops an in-flight announcer banner and leaves it re-armed. Unlike the coroutine's own
+    // exit path this is instant: the point is to clear the screen for the "JOINING/STARTING
+    // MATCH..." label, not to play a graceful outro.
+    private void CancelTransitionScreen()
+    {
+        // Bumping the id makes any live DisplayTransitionScreen bail at its next checkpoint instead
+        // of waking up later and re-showing the box we just hid.
+        activeTransitionRequestId++;
+        StopTransitionTextCoroutines();
+
+        if (announcer != null)
+        {
+            foreach (var item in announcer)
+            {
+                if (item == null)
+                {
+                    continue;
+                }
+
+                item.transform.DOKill();
+                item.transform.localScale = Vector3.zero;
+            }
+        }
+
+        if (textBoxAnim != null)
+        {
+            textBoxAnim.speed = 1f;
+            textBoxAnim.SetInteger("Reverse", 0);
+        }
+
+        if (textBoxUI != null)
+        {
+            textBoxUI.SetActive(false);
+        }
+
+        transitionScreenDisplayed = false;
+    }
+
     // Update is called once per frame
     void Update()
     {
+        // One read per frame: every piece of lobby presentation below keys off the same window, so
+        // the label, the banner and the prompts can never disagree about whether the match is live.
+        bool onlineEntryPending = GameManager.Instance != null && GameManager.Instance.IsOnlineEntryPending;
+        RefreshOnlineEntryPresentation(onlineEntryPending);
+
         UpdateUIBarVals();
         RefreshFindingMatchText();
-        RefreshJoiningMatchText();
-        RefreshOnlineCodeModePrompts();
+        RefreshJoiningMatchText(onlineEntryPending);
+        RefreshOnlineCodeModePrompts(onlineEntryPending);
 
         Scene currentScene = SceneManager.GetActiveScene();
 
-        if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed)
+        // Suppressed for the whole online handshake, so the banner plays once the match is actually
+        // live rather than the instant the joining player's object exists.
+        if (currentScene.name == "MainMenu" && GameManager.Instance.players[0] != null && !transitionScreenDisplayed && !onlineEntryPending)
         {
             transitionScreenDisplayed = true;
             StartCoroutine(DisplayTransitionScreen(3.5f, "Pick your first Spellcode"));
@@ -576,8 +651,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     private bool joiningMatchShown;
     private CanvasGroup joiningMatchGroup;
     private Tween joiningMatchPulseTween;
+    // Latched wording for the current online-entry window; null while no entry is in flight.
+    private string joiningMatchStatusText;
     private const string JoiningMatchStatusText = "JOINING MATCH...";
     private const string StartingMatchStatusText = "STARTING MATCH...";
+
+    // Previous frame's GameManager.IsOnlineEntryPending, so the presentation only reacts to the two
+    // edges of that window rather than re-running every frame.
+    private bool onlineEntryPendingLastFrame;
 
     private int matchmakingSize = MinMatchSize;
     private const int MinMatchSize = 2;
@@ -680,7 +761,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     // Shows the shared online-entry label for the entire handshake. Invite joiners see "JOINING
     // MATCH..." while a lobby owner whose guest has arrived sees "STARTING MATCH...".
-    private void RefreshJoiningMatchText()
+    // Visibility is the pending window, NOT the lobby manager's own flags: those both clear the
+    // moment StartOnlineMatch runs, which is still one opponent-ready handshake short of the sim
+    // actually running. The label has to survive that tail, otherwise it disappears while the
+    // screen is still empty.
+    private void RefreshJoiningMatchText(bool onlineEntryPending)
     {
         if (joiningMatchText == null)
         {
@@ -690,24 +775,37 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         bool starting = lobbyManager != null && lobbyManager.IsStartingMatch;
         bool joining = lobbyManager != null && lobbyManager.IsJoiningMatch;
-        bool visible = starting || joining;
 
-        if (visible)
+        if (onlineEntryPending)
         {
-            string statusText = starting ? StartingMatchStatusText : JoiningMatchStatusText;
-            if (joiningMatchText.text != statusText)
+            // Latch the wording: the role flags go quiet for the last stretch of the window, and the
+            // host's label must not flip to "JOINING MATCH..." on the way out.
+            if (starting)
             {
-                joiningMatchText.text = statusText;
+                joiningMatchStatusText = StartingMatchStatusText;
+            }
+            else if (joining || string.IsNullOrEmpty(joiningMatchStatusText))
+            {
+                joiningMatchStatusText = JoiningMatchStatusText;
+            }
+
+            if (joiningMatchText.text != joiningMatchStatusText)
+            {
+                joiningMatchText.text = joiningMatchStatusText;
             }
         }
+        else
+        {
+            joiningMatchStatusText = null;
+        }
 
-        if (visible == joiningMatchShown)
+        if (onlineEntryPending == joiningMatchShown)
         {
             return;
         }
 
-        joiningMatchShown = visible;
-        SetJoiningMatchVisible(visible);
+        joiningMatchShown = onlineEntryPending;
+        SetJoiningMatchVisible(onlineEntryPending);
     }
 
     private void SetJoiningMatchVisible(bool visible)
@@ -814,6 +912,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
 
         joiningMatchShown = false;
+        joiningMatchStatusText = null;
 
         joiningMatchPulseTween?.Kill();
         joiningMatchPulseTween = null;

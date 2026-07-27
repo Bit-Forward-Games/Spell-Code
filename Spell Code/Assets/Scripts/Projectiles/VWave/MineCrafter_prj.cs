@@ -42,7 +42,7 @@ public class MineCrafter_prj : BaseProjectile
                     xKnockback = 2,
                     yKnockback = 6,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 15,
                     attackLvl = 1,
                 }
             },

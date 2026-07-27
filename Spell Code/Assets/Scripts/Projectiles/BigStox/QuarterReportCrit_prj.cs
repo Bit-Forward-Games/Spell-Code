@@ -43,7 +43,7 @@ public class QuarterReportCrit_prj : BaseProjectile
                     xKnockback = 6,
                     yKnockback = 8,
                     damage = 15,
-                    hitstun = 45,
+                    hitstun = 30,
                     attackLvl = 2,
                     sweetSpot = true,
                 }

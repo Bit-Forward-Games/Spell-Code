@@ -40,7 +40,7 @@ public class MightOfZeus_Projectile : BaseProjectile
                     xKnockback = 3,
                     yKnockback = 1,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 20,
                     attackLvl = 2,
                     //cancelOptions = new List<int> { } // No cancel options
                 }

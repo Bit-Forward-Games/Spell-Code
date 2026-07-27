@@ -41,7 +41,7 @@ public class BifronsBladeBasic_prj : BaseProjectile
                     xKnockback = 1,
                     yKnockback = 7,
                     damage = 15,
-                    hitstun = 20,
+                    hitstun = 25,
                     attackLvl = 2,
                 }
             },

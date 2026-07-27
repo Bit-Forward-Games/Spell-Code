@@ -212,7 +212,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
         private int firstHashMismatchFrame = -1;
-        private readonly Dictionary<int, PendingRemoteHash> pendingRemoteHashes = new Dictionary<int, PendingRemoteHash>();
+        // A frame can have up to three remote hashes in a 4P match. Keep them separated by
+        // sender slot so a later peer cannot overwrite an earlier peer's pending comparison.
+        private readonly Dictionary<int, Dictionary<int, PendingRemoteHash>> pendingRemoteHashes = new Dictionary<int, Dictionary<int, PendingRemoteHash>>();
         // --- End Runtime State ---
 
         // --- External References (Set via Inspector or Init) ---
@@ -223,6 +225,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         private struct PendingRemoteHash
         {
+            public int remoteSlot;
             public int frame;
             public uint remoteHash;
             public uint remoteSharedHash;
@@ -506,6 +509,32 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
             PruneSlotDictionary(lobbyLeadAlignedInputPacketBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
+            PrunePendingRemoteHashes(validRemoteSlots);
+        }
+
+        private void PrunePendingRemoteHashes(HashSet<int> validRemoteSlots)
+        {
+            List<int> emptyFrames = new List<int>();
+            foreach (KeyValuePair<int, Dictionary<int, PendingRemoteHash>> frameEntry in pendingRemoteHashes)
+            {
+                List<int> staleSlots = frameEntry.Value.Keys
+                    .Where(slot => slot >= 0 && !validRemoteSlots.Contains(slot))
+                    .ToList();
+                for (int i = 0; i < staleSlots.Count; i++)
+                {
+                    frameEntry.Value.Remove(staleSlots[i]);
+                }
+
+                if (frameEntry.Value.Count == 0)
+                {
+                    emptyFrames.Add(frameEntry.Key);
+                }
+            }
+
+            for (int i = 0; i < emptyFrames.Count; i++)
+            {
+                pendingRemoteHashes.Remove(emptyFrames[i]);
+            }
         }
 
         private void PruneSlotDictionary<T>(Dictionary<int, T> valuesBySlot, HashSet<int> validRemoteSlots)
@@ -2092,7 +2121,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
     public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint remotePlayer0Hash, uint remotePlayer1Hash, uint remotePlayer0CoreHash, uint remotePlayer1CoreHash, uint remotePlayer0SpellHash, uint remotePlayer1SpellHash)
     {
-        OnRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash,
+        OnRemoteStateHash(-1, frame, remoteHash, remoteSharedHash, remoteProjectileHash,
             new uint[] { remotePlayer0Hash, remotePlayer1Hash },
             new uint[] { remotePlayer0CoreHash, remotePlayer1CoreHash },
             new uint[] { remotePlayer0SpellHash, remotePlayer1SpellHash },
@@ -2101,10 +2130,23 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
     public void OnRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
     {
+        OnRemoteStateHash(-1, frame, remoteHash, remoteSharedHash, remoteProjectileHash,
+            remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
+    }
+
+    public void OnRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
+    {
         if (frame > syncFrame)
         {
-            pendingRemoteHashes[frame] = new PendingRemoteHash()
+            if (!pendingRemoteHashes.TryGetValue(frame, out Dictionary<int, PendingRemoteHash> hashesBySlot))
             {
+                hashesBySlot = new Dictionary<int, PendingRemoteHash>();
+                pendingRemoteHashes[frame] = hashesBySlot;
+            }
+
+            hashesBySlot[remoteSlot] = new PendingRemoteHash()
+            {
+                remoteSlot = remoteSlot,
                 frame = frame,
                 remoteHash = remoteHash,
                 remoteSharedHash = remoteSharedHash,
@@ -2117,7 +2159,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return;
         }
 
-        EvaluateRemoteStateHash(frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
+        EvaluateRemoteStateHash(remoteSlot, frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
     }
 
     private void ProcessPendingRemoteHashes()
@@ -2134,21 +2176,25 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         foreach (int frame in readyFrames)
         {
-            PendingRemoteHash pending = pendingRemoteHashes[frame];
+            Dictionary<int, PendingRemoteHash> hashesBySlot = pendingRemoteHashes[frame];
             pendingRemoteHashes.Remove(frame);
-            EvaluateRemoteStateHash(
-                pending.frame,
-                pending.remoteHash,
-                pending.remoteSharedHash,
-                pending.remoteProjectileHash,
-                pending.remotePlayerHashes,
-                pending.remotePlayerCoreHashes,
-                pending.remotePlayerSpellHashes,
-                pending.remotePlayerCoreSubHashes);
+            foreach (PendingRemoteHash pending in hashesBySlot.Values.OrderBy(hash => hash.remoteSlot))
+            {
+                EvaluateRemoteStateHash(
+                    pending.remoteSlot,
+                    pending.frame,
+                    pending.remoteHash,
+                    pending.remoteSharedHash,
+                    pending.remoteProjectileHash,
+                    pending.remotePlayerHashes,
+                    pending.remotePlayerCoreHashes,
+                    pending.remotePlayerSpellHashes,
+                    pending.remotePlayerCoreSubHashes);
+            }
         }
     }
 
-    private void EvaluateRemoteStateHash(int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
+    private void EvaluateRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
     {
         if (!IsStableGameplayHashFrame())
         {
@@ -2170,7 +2216,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             uint remotePlayer1CoreHash = remotePlayerCoreHashes != null && remotePlayerCoreHashes.Length > 1 ? remotePlayerCoreHashes[1] : 0;
             uint remotePlayer0SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 0 ? remotePlayerSpellHashes[0] : 0;
             uint remotePlayer1SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 1 ? remotePlayerSpellHashes[1] : 0;
-            Debug.LogError($"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}");
+            string remotePeerLabel = remoteSlot >= 0 ? $" peer=P{remoteSlot + 1}" : "";
+            Debug.LogError($"[DESYNC HASH] Frame {frame}{remotePeerLabel} local={localHash} remote={remoteHash}");
             Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
             Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
 
@@ -2182,7 +2229,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             uint[] localSpellHashes = states[index].playerSpellHashes ?? System.Array.Empty<uint>();
             uint[] localCoreSubHashes = states[index].playerCoreSubHashes ?? System.Array.Empty<uint>();
             int hashPlayerCount = Mathf.Max(localCoreHashes.Length, remotePlayerCoreHashes?.Length ?? 0);
-            var allPlayersHash = new System.Text.StringBuilder("[DESYNC HASH] AllPlayers");
+            var allPlayersHash = new System.Text.StringBuilder($"[DESYNC HASH] AllPlayers{remotePeerLabel}");
             for (int hp = 0; hp < hashPlayerCount; hp++)
             {
                 uint lc = hp < localCoreHashes.Length ? localCoreHashes[hp] : 0;
@@ -2221,6 +2268,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
                 DumpLocalHashState(frame, localHash, remoteHash);
                 WriteDesyncTextReport(
+                    remoteSlot,
                     frame,
                     localHash,
                     remoteHash,
@@ -2274,6 +2322,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     }
 
     private void WriteDesyncTextReport(
+        int remoteSlot,
         int frame,
         uint localHash,
         uint remoteHash,
@@ -2297,9 +2346,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         string fileName = $"desync_report_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
         string path = Path.Combine(dir, fileName);
 
+        string remotePeerLabel = remoteSlot >= 0 ? $" peer=P{remoteSlot + 1}" : "";
         List<string> lines = new List<string>
         {
-            $"[DESYNC HASH] Frame {frame} local={localHash} remote={remoteHash}",
+            $"[DESYNC HASH] Frame {frame}{remotePeerLabel} local={localHash} remote={remoteHash}",
             $"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}",
             $"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}"
         };

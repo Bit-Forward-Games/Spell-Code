@@ -37,6 +37,11 @@ public class SettingsManager : MonoBehaviour
     private string SavePath => Path.Combine(Application.persistentDataPath, SettingsFileName);
     private string ControlOptionsSavePath => Path.Combine(Application.persistentDataPath, ControlOptionsFileName);
 
+    // Online input is shared across every local device, so PlayerInput.devices[0] is not a stable
+    // profile identity. Preserve the device/profile used by the pre-online local player for the
+    // lifetime of the match instead of letting network slot spawn order choose one.
+    private int onlineLocalControllerId = -1;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
     {
@@ -305,6 +310,20 @@ public class SettingsManager : MonoBehaviour
         SaveInputBindingOverrides(player, options);
 
         SaveControlOptions();
+    }
+
+    public void BeginOnlineLocalControlSession(PlayerController sourcePlayer)
+    {
+        // StartOnlineMatch can be re-entered while applying a roster snapshot. In that case the
+        // current online player is already using the correct cached profile, so retain it.
+        if (onlineLocalControllerId >= 0 && IsOnlineLocalPlayer(sourcePlayer))
+        {
+            return;
+        }
+
+        onlineLocalControllerId = TryGetDirectControllerId(sourcePlayer, out int controllerId)
+            ? controllerId
+            : -1;
     }
 
     public bool TryGetControlOptionsForPlayer(PlayerController player, out PlayerControlOptionsData options)
@@ -580,53 +599,120 @@ public class SettingsManager : MonoBehaviour
             return false;
         }
 
+        // Resolve the local online player's profile before inspecting PlayerInput. On a joining
+        // client, lower-numbered remote prefabs spawn first and can otherwise change device order.
+        // IsOnlineMatchInitializing is required because the first apply happens before the active
+        // flag is raised.
+        if (IsOnlineLocalPlayer(player))
+        {
+            if (onlineLocalControllerId < 0
+                && !TryChooseOnlineControllerId(player, out onlineLocalControllerId))
+            {
+                return false;
+            }
+
+            controllerId = onlineLocalControllerId;
+            return true;
+        }
+
+        return TryGetDirectControllerId(player, out controllerId);
+    }
+
+    private bool TryGetDirectControllerId(PlayerController player, out int controllerId)
+    {
+        controllerId = -1;
+        if (player == null)
+        {
+            return false;
+        }
+
+        InputDevice activeInputDevice = player.inputs != null
+            ? player.inputs.ActiveInputDevice
+            : null;
+        if (activeInputDevice != null && InputDeviceManager.IsValidInput(activeInputDevice))
+        {
+            controllerId = activeInputDevice.deviceId;
+            return true;
+        }
+
         PlayerInput playerInput = player.GetComponent<PlayerInput>();
-        if (playerInput != null && playerInput.devices.Count > 0 && playerInput.devices[0] != null)
+        if (playerInput != null
+            && playerInput.devices.Count > 0
+            && playerInput.devices[0] != null
+            && InputDeviceManager.IsValidInput(playerInput.devices[0]))
         {
             controllerId = playerInput.devices[0].deviceId;
             return true;
         }
 
-        InputDevice inputDevice = null;
-        try
+        return false;
+    }
+
+    private bool TryChooseOnlineControllerId(PlayerController player, out int controllerId)
+    {
+        controllerId = -1;
+
+        if (ControlOptions == null)
         {
-            inputDevice = player.inputs != null ? player.inputs.InputDevice : null;
-        }
-        catch (Exception)
-        {
-            inputDevice = null;
+            LoadControlOptions();
         }
 
-        if (inputDevice != null)
+        // A cold/deferred join may have no live pre-online player to capture. If exactly one saved
+        // profile belongs to a connected device, it is the least ambiguous carry-over.
+        int savedConnectedControllerId = -1;
+        foreach (InputDevice device in InputSystem.devices)
         {
-            controllerId = inputDevice.deviceId;
+            if (device == null
+                || !InputDeviceManager.IsValidInput(device)
+                || FindControlOptions(device.deviceId) == null)
+            {
+                continue;
+            }
+
+            if (savedConnectedControllerId >= 0)
+            {
+                savedConnectedControllerId = -1;
+                break;
+            }
+
+            savedConnectedControllerId = device.deviceId;
+        }
+
+        if (savedConnectedControllerId >= 0)
+        {
+            controllerId = savedConnectedControllerId;
             return true;
         }
 
-        // Online, the LOCAL player reads all devices as shared input: its assigned device is
-        // deliberately null (AssignInputDevice(null)) and the PlayerInput device pairing is
-        // skipped whenever playerInput.user is invalid (online players spawn outside
-        // PlayerInputManager). Without an id every option read/save above silently no-ops, which
-        // made the pause-menu control toggles unchangeable mid-match. Key that player's options
-        // by the first valid system device instead — stable within the session, and the same id
-        // TryApply/TryGet/Save all resolve to
-        GameManager manager = GameManager.Instance;
-        if (manager != null && manager.isOnlineMatchActive
-            && manager.localPlayerIndex >= 0
-            && manager.localPlayerIndex < manager.players.Length
-            && manager.players[manager.localPlayerIndex] == player)
+        if (TryGetDirectControllerId(player, out controllerId))
         {
-            foreach (InputDevice device in InputSystem.devices)
+            return true;
+        }
+
+        // Last resort for a player that spawned without a valid InputUser. Cache this choice once
+        // so later pairing or active-device changes cannot switch profiles during the match.
+        foreach (InputDevice device in InputSystem.devices)
+        {
+            if (device != null && InputDeviceManager.IsValidInput(device))
             {
-                if (device != null && InputDeviceManager.IsValidInput(device))
-                {
-                    controllerId = device.deviceId;
-                    return true;
-                }
+                controllerId = device.deviceId;
+                return true;
             }
         }
 
         return false;
+    }
+
+    private bool IsOnlineLocalPlayer(PlayerController player)
+    {
+        GameManager manager = GameManager.Instance;
+        return player != null
+            && manager != null
+            && (manager.isOnlineMatchActive || manager.IsOnlineMatchInitializing)
+            && manager.players != null
+            && manager.localPlayerIndex >= 0
+            && manager.localPlayerIndex < manager.players.Length
+            && manager.players[manager.localPlayerIndex] == player;
     }
 
     private void DeleteControlOptionsSave()

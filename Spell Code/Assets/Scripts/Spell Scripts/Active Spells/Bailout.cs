@@ -31,7 +31,7 @@ public class Bailout : SpellData
         projectilePrefabs = new GameObject[6];
         spawnOffsetX = 0;
         spawnOffsetY = 36;
-        description = "Longe-range bag toss.\nWhen the bag hits and opponent or the stage, swap places with bag, leaving a burst of money where you were.\nOn \"Crit\"<sprite name=\"StockStability\">, money bursts from your starting point to you.";
+        description = "Long-range bag toss.\nWhen the bag hits an opponent or the stage, swap places with the bag, leaving a burst of money where you were.\nOn \"Crit\"<sprite name=\"StockStability\">, money bursts from your starting point to you.";
     }
 
     public override void LoadSpell()

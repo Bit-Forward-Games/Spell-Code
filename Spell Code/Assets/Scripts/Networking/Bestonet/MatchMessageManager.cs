@@ -1489,7 +1489,7 @@ public class MatchMessageManager : MonoBehaviour
                     uint[] playerCoreHashes = ReadUIntArray(reader);
                     uint[] playerSpellHashes = ReadUIntArray(reader);
                     uint[] playerCoreSubHashes = ReadUIntArray(reader);
-                    RollbackManager.Instance.OnRemoteStateHash(frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes, playerCoreSubHashes);
+                    RollbackManager.Instance.OnRemoteStateHash(senderSlot, frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes, playerCoreSubHashes);
                     return;
                 }
 

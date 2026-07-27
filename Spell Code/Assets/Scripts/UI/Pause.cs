@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using GifImporter; 
+using GifImporter;
 
 public class Pause : MonoBehaviour
 {
@@ -118,6 +118,8 @@ public class Pause : MonoBehaviour
     public Image colorLayer2;
     public Image colorLayer3;
     public Image colorLayer4;
+    public RectTransform nextPage;
+    public RectTransform backPage;
     public GifPlayer gifPlayer;
     public Sprite[] fellas;
     public GameObject fella;
@@ -603,6 +605,7 @@ public class Pause : MonoBehaviour
                     tab = (tab == 0) ? 5 : tab - 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                    SpellGlossaryButtonAnimation(backPage, new Vector2(-1342.1f, 527.9f));
                 }
             }
             else if (nav.x > 0)
@@ -615,6 +618,7 @@ public class Pause : MonoBehaviour
                     tab = (tab == 5) ? 0 : tab + 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
+                    SpellGlossaryButtonAnimation(nextPage, new Vector2(-999f, 527.9f));
                 }
             }
  
@@ -633,6 +637,12 @@ public class Pause : MonoBehaviour
                 + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
+    }
+
+    private void SpellGlossaryButtonAnimation(RectTransform button, Vector2 originalPosition)
+    {
+        button.anchoredPosition = new Vector2(originalPosition.x + 18, originalPosition.y - 25);
+        button.DOAnchorPos(new Vector2(originalPosition.x, originalPosition.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
     private Brand lastFellaBrand = (Brand)(-1);
@@ -2303,6 +2313,16 @@ public class Pause : MonoBehaviour
         if (player == null)
         {
             return null;
+        }
+
+        // Online players listen to every local device at once. Use the device that actually drove
+        // this player's actions instead of devices[0], whose order depends on network-slot spawn.
+        InputDevice activeInputDevice = player.inputs != null
+            ? player.inputs.ActiveInputDevice
+            : null;
+        if (activeInputDevice != null && InputDeviceManager.IsValidInput(activeInputDevice))
+        {
+            return activeInputDevice;
         }
 
         PlayerInput playerInput = player.GetComponent<PlayerInput>();

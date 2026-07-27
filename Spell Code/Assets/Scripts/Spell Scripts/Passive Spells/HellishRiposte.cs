@@ -71,7 +71,7 @@ public class HellishRiposte : SpellData
                         //grant the resource
                         owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 40, 0, PlayerController.maxDemonAura);
                         owner.demonAuraLifeSpanTimer = DemonAura.DemonAuraResetTime;
-                        owner.SpawnToast("+20 DEMON AURA", GameManager.colors["red"]);
+                        owner.SpawnToast(" DOUBLE RANK UP!!!", GameManager.colors["red"]);
                     }
                 }
                 break;

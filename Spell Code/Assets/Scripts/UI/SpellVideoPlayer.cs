@@ -3,19 +3,18 @@ using UnityEngine.UI;
 using UnityEngine.Video;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(RectTransform))]
 public sealed class SpellVideoPlayer : MonoBehaviour
 {
-    [Tooltip("Drag a spell MP4 VideoClip here to preview it.")]
+    [Tooltip("Drag an MP4 VideoClip here to preview it.")]
     public VideoClip Video;
 
     [SerializeField]
-    [Tooltip("Keep decoding while the UI is hidden so it can be revealed without playback startup delay.")]
+    [Tooltip("Keep decoding while the output is hidden so it can be revealed without playback startup delay.")]
     private bool keepWarmWhileHidden;
 
     private VideoPlayer videoPlayer;
     private RawImage videoImage;
-    //private Image legacyImage;
+    private Renderer videoRenderer;
     private bool eventsRegistered;
     private bool isPreparing;
     private bool playWhenPrepared;
@@ -120,7 +119,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
 
         if (videoPlayer.isPrepared)
         {
-            videoImage.texture = videoPlayer.texture;
+            ApplyOutputTexture(videoPlayer.texture);
 
             if (keepWarmWhileHidden && isActiveAndEnabled && Application.isPlaying)
             {
@@ -165,7 +164,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
         if (videoPlayer.isPrepared)
         {
             isPreparing = false;
-            videoImage.texture = videoPlayer.texture;
+            ApplyOutputTexture(videoPlayer.texture);
             videoPlayer.Play();
         }
         else if (!isPreparing && isActiveAndEnabled && Application.isPlaying)
@@ -222,7 +221,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
         if (videoPlayer.isPrepared)
         {
             isPreparing = false;
-            videoImage.texture = videoPlayer.texture;
+            ApplyOutputTexture(videoPlayer.texture);
             videoPlayer.time = 0d;
             videoPlayer.Play();
         }
@@ -240,7 +239,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
         videoPlayer.Stop();
         Video = clip;
         videoPlayer.clip = clip;
-        videoImage.texture = null;
+        ApplyOutputTexture(null);
     }
 
     private void PauseAtBeginning()
@@ -263,33 +262,22 @@ public sealed class SpellVideoPlayer : MonoBehaviour
 
             if (videoImage != null)
             {
-                videoImage.texture = videoPlayer.texture;
+                ApplyOutputTexture(videoPlayer.texture);
             }
         }
     }
 
     private void EnsureComponents()
     {
-        //legacyImage ??= GetComponent<Image>();
         videoImage ??= GetComponent<RawImage>();
+        videoRenderer ??= GetComponent<Renderer>();
 
-        if (videoImage == null)
+        if (videoImage == null
+            && videoRenderer == null
+            && transform is RectTransform)
         {
             videoImage = gameObject.AddComponent<RawImage>();
-
-            // if (legacyImage != null)
-            // {
-            //     videoImage.color = legacyImage.color;
-            //     videoImage.material = legacyImage.material;
-            //     videoImage.raycastTarget = legacyImage.raycastTarget;
-            //     videoImage.maskable = legacyImage.maskable;
-            // }
         }
-
-        // if (legacyImage != null)
-        // {
-        //     legacyImage.enabled = false;
-        // }
 
         videoPlayer ??= GetComponent<VideoPlayer>();
 
@@ -301,9 +289,25 @@ public sealed class SpellVideoPlayer : MonoBehaviour
         videoPlayer.playOnAwake = false;
         videoPlayer.isLooping = true;
         videoPlayer.waitForFirstFrame = true;
-        videoPlayer.skipOnDrop = true;
-        videoPlayer.renderMode = VideoRenderMode.APIOnly;
+        videoPlayer.skipOnDrop = false;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+
+        if (videoImage != null)
+        {
+            videoPlayer.renderMode = VideoRenderMode.APIOnly;
+        }
+        else if (videoRenderer != null)
+        {
+            videoPlayer.renderMode = VideoRenderMode.MaterialOverride;
+            videoPlayer.targetMaterialRenderer = videoRenderer;
+            videoPlayer.targetMaterialProperty = "_MainTex";
+        }
+        else
+        {
+            Debug.LogError(
+                $"{nameof(SpellVideoPlayer)} requires a RawImage or Renderer.",
+                this);
+        }
 
         if (!eventsRegistered)
         {
@@ -322,7 +326,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
             return;
         }
 
-        videoImage.texture = source.texture;
+        ApplyOutputTexture(source.texture);
 
         if ((playWhenPrepared || keepWarmWhileHidden) && isActiveAndEnabled)
         {
@@ -335,5 +339,13 @@ public sealed class SpellVideoPlayer : MonoBehaviour
         isPreparing = false;
         playWhenPrepared = false;
         Debug.LogWarning($"Could not play spell video '{source.clip?.name}': {message}", this);
+    }
+
+    private void ApplyOutputTexture(Texture texture)
+    {
+        if (videoImage != null)
+        {
+            videoImage.texture = texture;
+        }
     }
 }

@@ -229,7 +229,10 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
-        CancelActiveRebind();
+        // OnDisable also runs while the scene/application is being torn down. At that point the
+        // controls menu and its sprite assets may already be destroyed, so only clean up rebind
+        // state here; there is no visible UI left to refresh.
+        CancelActiveRebind(false);
         RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
@@ -2160,12 +2163,11 @@ public class Pause : MonoBehaviour
         }
     }
 
-    private void CancelActiveRebind()
+    private void CancelActiveRebind(bool refreshGlyphs = true)
     {
         if (activeRebindOperation != null && activeRebindOperation.started && !activeRebindOperation.completed && !activeRebindOperation.canceled)
         {
             activeRebindOperation.Cancel();
-            return;
         }
 
         StopActiveRebindCapture();
@@ -2173,7 +2175,10 @@ public class Pause : MonoBehaviour
         RestoreMenuNavigationAfterRebind();
         StopActiveRebindTimeout();
         DisposeActiveRebindOperation();
-        RefreshControlGlyphs();
+        if (refreshGlyphs)
+        {
+            RefreshControlGlyphs();
+        }
     }
 
     private void StopActiveRebindCapture()

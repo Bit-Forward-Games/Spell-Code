@@ -15,6 +15,7 @@ public class SpellCode_Gate : MonoBehaviour
     public Animator gateAnimator;
     public int ownerPID;
     Bounds gateBounds;
+    public GambaMachine gamba;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -73,7 +74,7 @@ public class SpellCode_Gate : MonoBehaviour
 
                 if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                 {
-                    if (projectile.ownerSpell == null)
+                    if (projectile.ownerSpell == null || gamba.isActive)
                     {
                         // Play the armor-hit SFX only on real frames; rollback resim revisits this
                         // collision and would otherwise replay the sound every resim

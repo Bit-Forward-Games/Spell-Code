@@ -74,7 +74,7 @@ public class SpellCode_Gate : MonoBehaviour
 
                 if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                 {
-                    if (projectile.ownerSpell == null || gamba.isActive)
+                    if (projectile.ownerSpell == null || gamba != null && gamba.isActive)
                     {
                         // Play the armor-hit SFX only on real frames; rollback resim revisits this
                         // collision and would otherwise replay the sound every resim

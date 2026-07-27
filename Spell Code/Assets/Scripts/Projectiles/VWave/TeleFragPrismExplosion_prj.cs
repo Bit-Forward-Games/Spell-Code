@@ -39,9 +39,9 @@ public class TeleFragPrismExplosion_prj : BaseProjectile
                     width = 16*2,
                     height = 16*2,
                     xKnockback = 2,
-                    yKnockback = 7,
+                    yKnockback = 10,
                     damage = 15,
-                    hitstun = 20,
+                    hitstun = 30,
                     attackLvl = 2,
                     sweetSpot = true
                 }
@@ -58,7 +58,7 @@ public class TeleFragPrismExplosion_prj : BaseProjectile
                     xKnockback = 5,
                     yKnockback = 4,
                     damage = 15,
-                    hitstun = 15,
+                    hitstun = 20,
                     attackLvl = 2,
                 }
             },

@@ -42,7 +42,7 @@ public class TridentOfPoseidon_prj : BaseProjectile
                     xKnockback = 3,
                     yKnockback = -7,
                     damage = 15,
-                    hitstun = 30,
+                    hitstun = 20,
                     attackLvl = 2,
                 }
             },

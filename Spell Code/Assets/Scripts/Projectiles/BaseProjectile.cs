@@ -54,6 +54,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
     // Temporary storage for deserialized IDs before references are resolved
     private int _tempOwnerIndex = -1;
+    private int _tempOwnerSpellOwnerIndex = -1;
     private int _tempOwnerSpellIndex = -1;
     private int _tempOwnerBackupIndex = -1;
     private SpriteRenderer spriteRenderer;
@@ -111,6 +112,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
         _tempOwnerIndex = -1;
         _tempOwnerBackupIndex = -1;
+        _tempOwnerSpellOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
         ResetSpriteAlpha();
     }
@@ -372,16 +374,53 @@ public abstract class BaseProjectile : MonoBehaviour
         }
         bw.Write(ownerIndex); // Write -1 if no owner
 
-        // Owner Spell Index (in the owner's spell list)
+        // Owner Spell, stored as (holder player index, index within that player's spellList).
+        // The holder is looked up in whichever player's spellList ACTUALLY contains the spell, NOT
+        // blindly in owner.spellList. Aegis of Athena reassigns owner to the reflector, whose
+        // spellList does not contain the original caster's spell, so an owner-relative lookup wrote
+        // -1 and ownerSpell came back null on the next rollback load. Any melee projectile then NREs
+        // on ownerSpell.spawnOffsetX in ProjectileUpdate, which throws out of the resim and hard
+        // freezes the sim in a rollback loop that can never confirm a frame.
+        int spellOwnerIndex = -1;
         int spellIndex = -1;
-        if (owner != null && ownerSpell != null)
+        if (ownerSpell != null)
         {
-            spellIndex = owner.spellList.IndexOf(ownerSpell);
+            // Fast path: the ordinary, un-reflected case.
+            if (owner != null && owner.spellList != null)
+            {
+                spellIndex = owner.spellList.IndexOf(ownerSpell);
+                if (spellIndex >= 0)
+                {
+                    spellOwnerIndex = System.Array.IndexOf(GameManager.Instance.players, owner);
+                }
+            }
+
+            // Reflected (possibly more than once, so ownerBackup is not reliable either): find the
+            // player who really holds the spell.
+            if (spellOwnerIndex < 0 || spellIndex < 0)
+            {
+                spellOwnerIndex = -1;
+                spellIndex = -1;
+                for (int i = 0; i < GameManager.Instance.playerCount; i++)
+                {
+                    PlayerController candidate = GameManager.Instance.players[i];
+                    if (candidate == null || candidate.spellList == null) continue;
+
+                    int candidateSpellIndex = candidate.spellList.IndexOf(ownerSpell);
+                    if (candidateSpellIndex >= 0)
+                    {
+                        spellOwnerIndex = i;
+                        spellIndex = candidateSpellIndex;
+                        break;
+                    }
+                }
+            }
         }
-        bw.Write(spellIndex); // Write -1 if no owner spell or owner
+        bw.Write(spellOwnerIndex); // Write -1 if no owner spell (basic attack projectiles have none)
+        bw.Write(spellIndex);
 
         // Owner BACKUP index (set while a projectile is reflected, e.g. Aegis of Athena). MUST be
-        // written. Deserialize reads three reference ints, and the AoA rework added the read without
+        // written. Deserialize reads four reference ints, and the AoA rework added the read without
         // this write, every projectile load consumed 4 extra bytes and shifted the whole savestate
         // stream, corrupting all projectile state on any rollback.
         int ownerBackupIndex = -1;
@@ -429,6 +468,7 @@ public abstract class BaseProjectile : MonoBehaviour
         // References as IDs
         // Read IDs and store them temporarily. Actual references will be restored later.
         _tempOwnerIndex = br.ReadInt32();
+        _tempOwnerSpellOwnerIndex = br.ReadInt32();
         _tempOwnerSpellIndex = br.ReadInt32();
         _tempOwnerBackupIndex = br.ReadInt32();
 
@@ -450,11 +490,18 @@ public abstract class BaseProjectile : MonoBehaviour
         if (_tempOwnerIndex >= 0 && _tempOwnerIndex < GameManager.Instance.playerCount)
         {
             owner = GameManager.Instance.players[_tempOwnerIndex];
+        }
 
-            // Restore Owner Spell reference (only if owner was successfully restored)
-            if (owner != null && _tempOwnerSpellIndex >= 0 && _tempOwnerSpellIndex < owner.spellList.Count)
+        // Restore Owner Spell from the player who HOLDS the spell, which is not necessarily owner:
+        // a reflected projectile's owner is the reflector while the spell still belongs to the
+        // original caster. Resolving this off owner is what left ownerSpell null after a reflect.
+        if (_tempOwnerSpellOwnerIndex >= 0 && _tempOwnerSpellOwnerIndex < GameManager.Instance.playerCount)
+        {
+            PlayerController spellHolder = GameManager.Instance.players[_tempOwnerSpellOwnerIndex];
+            if (spellHolder != null && spellHolder.spellList != null
+                && _tempOwnerSpellIndex >= 0 && _tempOwnerSpellIndex < spellHolder.spellList.Count)
             {
-                ownerSpell = owner.spellList[_tempOwnerSpellIndex];
+                ownerSpell = spellHolder.spellList[_tempOwnerSpellIndex];
             }
         }
 
@@ -469,6 +516,7 @@ public abstract class BaseProjectile : MonoBehaviour
 
         // Clear temporary IDs after use
         _tempOwnerIndex = -1;
+        _tempOwnerSpellOwnerIndex = -1;
         _tempOwnerSpellIndex = -1;
         _tempOwnerBackupIndex = -1;
     }

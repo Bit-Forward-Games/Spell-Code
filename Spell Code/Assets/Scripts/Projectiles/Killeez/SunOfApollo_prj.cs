@@ -48,7 +48,7 @@ public class SunOfApollo_prj : BaseProjectile
                     xKnockback = 5,
                     yKnockback = 15,
                     damage = 20,
-                    hitstun = 30,
+                    hitstun = 45,
                     attackLvl = 3,
                     //cancelOptions = new List<int> { } // No cancel options
                 }

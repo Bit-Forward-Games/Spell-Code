@@ -200,6 +200,31 @@ public class GameManager : MonoBehaviour
     public bool IsOnlineMatchInitializing =>
         activeOnlineRoster != null && !isOnlineMatchActive;
 
+    // True for the whole online-entry handshake: from the moment a lobby invite/host/Quick Match
+    // starts connecting, through the roster bootstrap, until the match's simulation actually runs.
+    // The lobby presentation (announcer banner + code-mode prompts) is suppressed for this entire
+    // window so only the "JOINING/STARTING MATCH..." label is on screen; everything else appears
+    // together on the frame the match goes live. isWaitingForOpponent is the tail of it -- players
+    // exist and isOnlineMatchActive is already set there, but FixedUpdate still skips the sim.
+    public bool IsOnlineEntryPending
+    {
+        get
+        {
+            if (isOnlineMatchActive)
+            {
+                return isWaitingForOpponent;
+            }
+
+            if (IsOnlineMatchInitializing)
+            {
+                return true;
+            }
+
+            SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+            return lobbyManager != null && (lobbyManager.IsJoiningMatch || lobbyManager.IsStartingMatch);
+        }
+    }
+
     private int timeoutFrames = 0; // Timeout counter
     public int randomSeed = 0;
     public int randomCallCount = 0;

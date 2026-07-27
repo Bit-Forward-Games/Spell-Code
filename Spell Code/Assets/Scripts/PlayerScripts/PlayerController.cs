@@ -586,6 +586,7 @@ public class PlayerController : MonoBehaviour
         bool inMainMenu = SceneManager.GetActiveScene().name == "MainMenu";
         bool onlineMatch = GameManager.Instance.isOnlineMatchActive;
         bool onlineMatchInitializing = GameManager.Instance.IsOnlineMatchInitializing;
+        bool onlineEntryPending = GameManager.Instance.IsOnlineEntryPending;
 
         // SIM state: must be identical on every machine, so it keys off the scene ALONE. It
         // deliberately ignores the local menu flags and localPlayerIndex used below -- every machine
@@ -598,8 +599,12 @@ public class PlayerController : MonoBehaviour
         // Online prompt visibility is reconciled from choosingCodeMode by TempUIScript on every
         // render frame. Keeping those cosmetic side effects out of SpawnPlayer matters because this
         // method also runs during rollback re-simulation. Offline retains its existing local flow.
+        // onlineEntryPending is the wider window: a player respawning while an invite/Quick Match is
+        // still connecting is not offline for presentation purposes, and must not put its prompt up
+        // over the "JOINING/STARTING MATCH..." label. Purely local UI -- no sim state is read here.
         bool showOfflinePrompt = !onlineMatch
             && !onlineMatchInitializing
+            && !onlineEntryPending
             && !pause.uiScript.soloGamemodesMenuOpened
             && !pause.uiScript.multiplayerGamemodesMenuOpened
             && !pause.paused;

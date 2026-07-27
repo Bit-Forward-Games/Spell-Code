@@ -11,7 +11,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using GifImporter;
 
 public class Pause : MonoBehaviour
 {
@@ -120,7 +119,7 @@ public class Pause : MonoBehaviour
     public Image colorLayer4;
     public RectTransform nextPage;
     public RectTransform backPage;
-    public GifPlayer gifPlayer;
+    public SpellVideoPlayer videoPlayer;
     public Sprite[] fellas;
     public GameObject fella;
     public bool showDescription = false;
@@ -667,7 +666,7 @@ public class Pause : MonoBehaviour
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
             displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
             spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
-            gifPlayer.Gif = grid[tab].spells[selectedSpell].SpellGIF;
+            videoPlayer.SetVideo(grid[tab].spells[selectedSpell].SpellVideo);
             cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
             inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
             

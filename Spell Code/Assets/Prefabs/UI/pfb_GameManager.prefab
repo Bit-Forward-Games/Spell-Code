@@ -4957,7 +4957,7 @@ GameObject:
   - component: {fileID: 8774415917025319486}
   - component: {fileID: 5161506373779269516}
   m_Layer: 0
-  m_Name: GIF Player
+  m_Name: Spell Video Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5010,7 +5010,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 4813481498007227080, guid: f3929d98004507546857903c5c75dd83, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5029,10 +5029,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1676958741966180573}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c3f106a78e1aa142b294d8d1a41114b, type: 3}
+  m_Script: {fileID: 11500000, guid: 3db6de68a69c4ea39e991b303f0b23b8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: GifForUnity::GifImporter.GifPlayer
-  Gif: {fileID: 0}
+  m_EditorClassIdentifier:
+  Video: {fileID: 0}
 --- !u!1 &1704281432217651099
 GameObject:
   m_ObjectHideFlags: 0
@@ -172406,7 +172406,7 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7450275235462941353}
     - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
-      propertyPath: gifPlayer
+      propertyPath: videoPlayer
       value: 
       objectReference: {fileID: 5161506373779269516}
     - target: {fileID: 2436096640147908583, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}

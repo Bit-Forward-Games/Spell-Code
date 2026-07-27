@@ -573,6 +573,15 @@ public class GameManager : MonoBehaviour
         {
             return true;
         }
+
+        // The online menus (Online Play / VS Friends lobby / VS the World) are modal for the same
+        // reason: a second player must not press start and join the local roster while someone is
+        // arranging an online match that is about to replace it.
+        if (OnlineMenuPanel.OpenPanelCount > 0)
+        {
+            return true;
+        }
+
         //|| tempUI.codeModePromptMenuOpened[localPlayerIndex]
         return tempUI.soloGamemodesMenuOpened
             || tempUI.multiplayerGamemodesMenuOpened
@@ -961,6 +970,34 @@ public class GameManager : MonoBehaviour
 
         // Hard guarantee regardless of menu state: an active online match always runs at real time.
         Time.timeScale = 1f;
+    }
+
+    /// <summary>
+    /// Game mode the current online match is being played under. Set from the host's pick in the 
+    /// VS Friends lobby, the default for everything else.
+    /// </summary>
+    public OnlineGameModeSelection ActiveOnlineGameMode { get; private set; } = OnlineGameModeSelection.Default;
+
+    /// <summary>
+    /// Adopts the game mode the lobby published. Called on EVERY peer with the SAME id, read out of
+    /// the same Steam lobby data, immediately before the match starts (and again for a drop-in
+    /// joiner) that is what keeps the mode from being a source of desync. An unknown or empty id
+    /// resolves to the default, so a peer on an older build lands somewhere every peer can name.
+    /// </summary>
+    public void ApplyOnlineGameMode(string gameModeId, string gameModeDisplayName = null)
+    {
+        OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
+        if (ActiveOnlineGameMode.Id == mode.Id && ActiveOnlineGameMode.DisplayName == mode.DisplayName)
+        {
+            return;
+        }
+
+        ActiveOnlineGameMode = mode;
+        Debug.Log($"[GameManager] Online game mode set to '{mode.Id}' ({mode.DisplayName}).");
+
+        // Nothing in the simulation reads the mode yet -- see the notes on OnlineGameModeSelection
+        // for the two ramNeededToWinRound sites that have to agree with each other before any rule
+        // can be driven from here.
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)

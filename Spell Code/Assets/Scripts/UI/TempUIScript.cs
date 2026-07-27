@@ -767,11 +767,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field
             // and the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player
             // default. Rebuild the string only when the size changes; this runs every frame.
+            // SearchingMatchSize is the primary size and doubles as the change detector; the label
+            // itself uses the full accepted set, which reads "2 OR 4" when the player picked both.
             int size = lobbyManager.SearchingMatchSize;
             if (size != lastFindingMatchSize)
             {
                 lastFindingMatchSize = size;
-                findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
+                findingMatchText.text = $"FINDING {lobbyManager.SearchingMatchSizesLabel}-PLAYER MATCH...";
             }
         }
         else

@@ -11,20 +11,48 @@ public class SteamLobbyManager : MonoBehaviour
     private const int MinimumOnlineLobbyStartSize = 2;
     private const string MatchReadyKey = "matchReady";
     private const string MatchStartTokenKey = "matchStartToken";
+    // Set by the host once its match is actually simulating. Anyone who arrives after that must come
+    // in through the lobby snapshot instead of cold-starting -- see TryStartOnlineMatchFromLobby.
+    private const string MatchRunningKey = "matchRunning";
     private const string LobbySlotKeyPrefix = "slot_";
 
     // Matchmaking (Quick Match)
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-19"; // scz-19: BaseProjectile now serializes ownerSpell as (holder player index, spell
-                                                    // index) instead of an owner-relative index. A reflected projectile's owner is the
-                                                    // reflector, so the old lookup wrote -1 and ownerSpell came back null on rollback,
-                                                    // NREing every melee projectile and freezing the sim. +4 bytes per projectile.
+    private const string NetcodeVersion = "scz-20"; // scz-20: online lobby handshake reworked lobbies now declare a
+                                                    // lobbyMode ("party" holds the start until the host presses Start,
+                                                    // "quick" auto-starts), carry a gameMode id, and Quick Match
+                                                    // advertises a SET of accepted sizes (mmsize_2 / mmsize_4) instead of
+                                                    // one "size" bucket. An scz-19 peer would auto-start a party lobby
+                                                    // out from under its host, so the two builds must not pair.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
     private const string SizeKey = "size";
+
+    // Online lobby flavour, published by whoever creates the lobby and read by every member.
+    // Absent  -> legacy host+invite lobby: auto-starts as soon as a second member arrives.
+    // "party" -> VS Friends: fills up to 4 slots and waits for the host to press Start Match.
+    // "quick" -> VS the World: auto-starts, and the accepted-size keys below apply.
+    private const string LobbyModeKey = "lobbyMode";
+    private const string LobbyModePartyValue = "party";
+    private const string LobbyModeQuickMatchValue = "quick";
+
+    // Host's chosen game mode (authored in the scene as OnlineGameModeOption components). Every peer
+    // applies the values it reads here, so the choice is identical across the match without adding
+    // anything to the wire format. The label rides along so a guest can show the host's mode name
+    // even if that mode does not exist in its own build.
+    private const string GameModeKey = "gameMode";
+    private const string GameModeNameKey = "gameModeName";
+
+    // Quick Match accepted sizes. A searcher can accept 2-player matches, 4-player matches, or both,
+    // so a single "size" value cannot express the request: each accepted size gets its own
+    // "mmsize_<n>" = "1" lobby key, and a searcher queries one key per size it accepts. Members
+    // publish their own accepted set as MEMBER data so the host can narrow the lobby to a size
+    // everyone agreed to.
+    private const string SizeFlagKeyPrefix = "mmsize_";
+    private const string MemberSizePrefsKey = "mmsizes";
 
     public static SteamLobbyManager Instance { get; private set; }
 
@@ -72,13 +100,55 @@ public class SteamLobbyManager : MonoBehaviour
     // the scene the online lobby actually simulates in. Static for the same ExecuteOrder66-survival
     // reason as the pending-join/host fields above.
     private static bool pendingMatchmakingRequested;
-    private static int pendingMatchmakingSize;
 
     // Size (2-4) of the Quick Match currently being searched for, set the moment Find Match is pressed.
     // Static for the same ExecuteOrder66-survival reason, the deferred MainMenu transition can rebuild
     // the UI, so the "finding match" label must read the size from here rather than from TempUIScript's
     // own matchmakingSize (an instance field that would reset to the 2-player default).
     private static int matchmakingSearchSize;
+
+    // VS the World: which match sizes the local player is willing to be matched into. Both may be
+    // selected at once. Static for the same ExecuteOrder66-survival reason as the fields above -- the
+    // selection is made in SoloLobby and consumed after the deferred MainMenu transition.
+    public static readonly int[] QuickMatchSizes = { 2, 4 };
+    private static readonly bool[] quickMatchSizeSelected = { true, false };
+
+    // Sizes actually being searched for by the in-flight Quick Match, in query order.
+    private static readonly List<int> pendingMatchmakingSizes = new List<int>();
+
+    // VS Friends (party lobby). A party lobby is created and then HELD: the host invites friends into
+    // the 4 slots and the match only becomes ready once they press Start Match. partyStartRequested is
+    // the host-side latch for that press; guests never write lobby data and simply wait for matchReady.
+    private static bool pendingPartyHostRequested;
+    private bool partyStartRequested;
+    private OnlineGameModeSelection localPartyGameMode = OnlineGameModeSelection.Default;
+
+    // Per-frame cache for the slot readout the party UI polls. Rebuilt at most once a frame because
+    // every entry costs a Steam lobby-data lookup and four slot widgets ask for it every Update.
+    private readonly PartySlotInfo[] partySlotCache = new PartySlotInfo[TargetOnlineLobbySize];
+    private int partySlotCacheFrame = -1;
+
+    // Host-side resolved Quick Match capacity: the largest size every current member said they accept.
+    // -1 until it can be resolved. Caps who may still join so a 2-players-only searcher is never
+    // dragged into a lobby that keeps growing toward 4.
+    private int resolvedQuickMatchBucket = -1;
+    private bool quickMatchBucketFullyKnown;
+    // Unscaled time the bucket first went unresolved, so an unpublished member cannot wedge the lobby
+    // shut forever. 0 == currently resolved.
+    private float quickMatchBucketUnknownSince;
+    private const float QuickMatchPreferenceGraceSeconds = 3f;
+
+    /// <summary>One party-lobby slot as the VS Friends UI wants to draw it.</summary>
+    public struct PartySlotInfo
+    {
+        public bool IsOccupied;
+        public SteamId SteamId;
+        public string DisplayName;
+        public bool IsHost;
+        public bool IsLocalPlayer;
+        /// <summary>True while the host has not published this member's slot index yet.</summary>
+        public bool IsProvisional;
+    }
 
     [SerializeField] private bool debugLogs = true;
     [SerializeField] private KeyCode inviteOverlayKey = KeyCode.F6;
@@ -91,6 +161,8 @@ public class SteamLobbyManager : MonoBehaviour
         || Time.frameCount <= joiningMatchStatusVisibleThroughFrame;
     // Latched by the validated member-joined callback for a lobby this client actually created.
     // The live member-count gate lets Quick Match return to "finding" if that guest leaves pre-start.
+    // A party lobby is excluded outright: it sits there filling slots until the host presses Start, so
+    // "STARTING MATCH..." would be a lie for the whole time the VS Friends panel is up.
     public bool IsStartingMatch =>
         !isShuttingDown
         && SteamClient.IsValid
@@ -98,6 +170,7 @@ public class SteamLobbyManager : MonoBehaviour
         && currentLobby.HasValue
         && currentLobby.Value.Id == activeHostedLobbyId.Value
         && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId)
+        && !IsPartyLobbyWaitingForHostStart
         && (Time.unscaledTime < startingMatchStatusVisibleUntil
             || Time.frameCount <= startingMatchStatusVisibleThroughFrame
             || (startingHostedMatch
@@ -116,6 +189,319 @@ public class SteamLobbyManager : MonoBehaviour
 
     // Size (2-4) of the in-flight Quick Match search. Only meaningful while IsSearchingForMatch.
     public int SearchingMatchSize => matchmakingSearchSize;
+
+    // ------------------------------------------------------------------------------------------
+    // VS FRIENDS -- party lobby
+    //
+    // Flow: HostPartyLobby() (from the solo lobby door, so it defers into MainMenu first) creates a
+    // friends-only lobby that does NOT auto-start. The UI draws four slots from TryGetPartySlot();
+    // pressing an empty one calls InviteToParty() to open the Steam overlay. SetPartyGameMode()
+    // publishes the host's pick. StartPartyMatch() is what finally arms the existing matchReady
+    // handshake, so the match begins with exactly the players standing in the lobby at that moment.
+    // ------------------------------------------------------------------------------------------
+
+    /// <summary>True while this client is in a lobby created by the VS Friends flow.</summary>
+    public bool IsInPartyLobby => currentLobby.HasValue && IsPartyLobby(currentLobby.Value);
+
+    /// <summary>True when this client owns the party lobby (i.e. occupies slot 1 and may press Start).</summary>
+    public bool IsPartyHost =>
+        IsInPartyLobby
+        && SteamClient.IsValid
+        && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId);
+
+    /// <summary>True while a party lobby is still gathering players and no match has been started.</summary>
+    public bool IsPartyLobbyWaitingForHostStart =>
+        IsInPartyLobby
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        && currentLobby.Value.GetData(MatchReadyKey) != "1";
+
+    /// <summary>Members currently sitting in the party lobby, host included.</summary>
+    public int PartyMemberCount => currentLobby.HasValue ? currentLobby.Value.MemberCount : 0;
+
+    /// <summary>Maximum number of party slots (also the number the UI should draw).</summary>
+    public int PartySlotCount => TargetOnlineLobbySize;
+
+    /// <summary>
+    /// Whether the Start Match button should be interactable. The host may start with any roster they
+    /// have gathered, but an "online match" still needs a second machine in it -- StartOnlineMatch
+    /// refuses a one-player roster outright, so a solo party lobby has nothing to start.
+    /// </summary>
+    public bool CanStartPartyMatch =>
+        IsPartyHost
+        && !partyStartRequested
+        && PartyMemberCount >= MinimumOnlineLobbyStartSize
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
+
+    /// <summary>Currently selected game mode. Guests read the host's pick straight out of lobby data.</summary>
+    public OnlineGameModeSelection PartyGameMode
+    {
+        get
+        {
+            if (currentLobby.HasValue)
+            {
+                string publishedId = currentLobby.Value.GetData(GameModeKey);
+                if (!string.IsNullOrEmpty(publishedId))
+                {
+                    return OnlineGameModeSelection.Resolve(
+                        publishedId,
+                        currentLobby.Value.GetData(GameModeNameKey));
+                }
+            }
+
+            return localPartyGameMode;
+        }
+    }
+
+    /// <summary>
+    /// VS Friends entry point. Creates the party lobby the host will invite friends into. Safe to call
+    /// from any scene: like every other online entry it transitions to MainMenu first, because that is
+    /// the only scene the online lobby simulates in.
+    /// </summary>
+    public bool HostPartyLobby()
+    {
+        if (isShuttingDown || !SteamClient.IsValid)
+        {
+            Debug.LogError("[SteamLobbyManager] Steam is not running or is shutting down. Cannot host a party lobby.");
+            return false;
+        }
+
+        if (SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            pendingPartyHostRequested = true;
+            // Accepting one online entry cancels the others; otherwise a stale deferred flow fires
+            // after this one lands and fights over currentLobby.
+            pendingHostInviteRequested = false;
+            pendingMatchmakingRequested = false;
+
+            GameManager.Instance?.tempUI?.CloseGamemodesMenuForOnlineEntry();
+
+            Debug.Log($"[SteamLobbyManager] Party lobby requested outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Transitioning to the lobby scene first.");
+            TransitionToMainMenuForOnlineEntry();
+            return true;
+        }
+
+        if (IsInPartyLobby)
+        {
+            return true; // already sitting in one
+        }
+
+        if (isHostingFlow)
+        {
+            if (debugLogs)
+            {
+                Debug.Log("[SteamLobbyManager] Party host request ignored; lobby creation is already in progress.");
+            }
+            return true;
+        }
+
+        CreatePartyLobbyAsync();
+        return true;
+    }
+
+    /// <summary>
+    /// Empty-slot button handler: opens the Steam invite overlay so the host can pick a friend. Steam
+    /// has no notion of inviting into a specific slot, so the slot index is presentational only -- the
+    /// host assigns whoever accepts to the first free slot.
+    /// </summary>
+    public bool InviteToParty()
+    {
+        if (!IsPartyHost)
+        {
+            return false;
+        }
+
+        if (PartyMemberCount >= TargetOnlineLobbySize)
+        {
+            if (debugLogs)
+            {
+                Debug.Log("[SteamLobbyManager] Invite ignored; the party lobby is already full.");
+            }
+            return false;
+        }
+
+        return TryOpenInviteOverlay();
+    }
+
+    /// <summary>Host-only. Publishes the chosen game mode so every member starts on the same rules.</summary>
+    public bool SetPartyGameMode(string gameModeId, string gameModeDisplayName)
+    {
+        OnlineGameModeSelection selection = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
+        localPartyGameMode = selection;
+
+        if (!IsPartyHost)
+        {
+            return false;
+        }
+
+        currentLobby.Value.SetData(GameModeKey, selection.Id);
+        currentLobby.Value.SetData(GameModeNameKey, selection.DisplayName);
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Party game mode set to '{selection.Id}' ({selection.DisplayName}).");
+        }
+        return true;
+    }
+
+    /// <summary>Overload for callers that only have the id; the label is looked up or falls back to it.</summary>
+    public bool SetPartyGameMode(string gameModeId)
+    {
+        return SetPartyGameMode(gameModeId, null);
+    }
+
+    /// <summary>
+    /// Host-only "Start Match" button. Arms the existing matchReady/token handshake for the roster
+    /// standing in the lobby right now; TryStartOnlineMatchFromLobby (which runs every Update while a
+    /// lobby is held) does the rest on every peer.
+    /// </summary>
+    public bool StartPartyMatch()
+    {
+        if (!IsPartyHost)
+        {
+            return false;
+        }
+
+        if (PartyMemberCount < MinimumOnlineLobbyStartSize)
+        {
+            Debug.LogWarning("[SteamLobbyManager] Start Match ignored; an online match needs at least one other player in the lobby.");
+            return false;
+        }
+
+        partyStartRequested = true;
+        Debug.Log($"[SteamLobbyManager] Host started the party match. Members={PartyMemberCount} GameMode='{PartyGameMode.Id}'.");
+        TryStartOnlineMatchFromLobby(currentLobby.Value);
+        return true;
+    }
+
+    /// <summary>Back/leave button for the VS Friends panel.</summary>
+    public void LeaveParty()
+    {
+        if (!IsInPartyLobby)
+        {
+            return;
+        }
+
+        ClearJoiningMatchStatus();
+        LeaveLobbyInternal();
+    }
+
+    /// <summary>
+    /// Reads one party slot for the UI. Slot 0 is always the host. Returns false (and an empty info)
+    /// for a slot nobody occupies, which is what the UI draws as an "invite" button.
+    /// </summary>
+    public bool TryGetPartySlot(int slotIndex, out PartySlotInfo slot)
+    {
+        slot = default;
+        if (slotIndex < 0 || slotIndex >= partySlotCache.Length)
+        {
+            return false;
+        }
+
+        RefreshPartySlotCache();
+        slot = partySlotCache[slotIndex];
+        return slot.IsOccupied;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // VS THE WORLD -- Quick Match size selection
+    //
+    // The player toggles the 2-player and/or 4-player buttons and presses Start Matchmaking. Selecting
+    // both means "either is fine": the search queries each accepted size, and a hosted lobby advertises
+    // all of them so a stricter searcher can still find it.
+    // ------------------------------------------------------------------------------------------
+
+    /// <summary>True if the local player would accept a match of this size.</summary>
+    public bool IsQuickMatchSizeSelected(int size)
+    {
+        int index = IndexOfQuickMatchSize(size);
+        return index >= 0 && quickMatchSizeSelected[index];
+    }
+
+    /// <summary>Sets (or clears) one of the size buttons.</summary>
+    public void SetQuickMatchSizeSelected(int size, bool selected)
+    {
+        int index = IndexOfQuickMatchSize(size);
+        if (index < 0)
+        {
+            return;
+        }
+
+        quickMatchSizeSelected[index] = selected;
+    }
+
+    /// <summary>Size-button OnClick. Returns the new state so the UI can restyle itself.</summary>
+    public bool ToggleQuickMatchSize(int size)
+    {
+        int index = IndexOfQuickMatchSize(size);
+        if (index < 0)
+        {
+            return false;
+        }
+
+        quickMatchSizeSelected[index] = !quickMatchSizeSelected[index];
+        return quickMatchSizeSelected[index];
+    }
+
+    /// <summary>Whether Start Matchmaking should be interactable (at least one size chosen).</summary>
+    public bool HasQuickMatchSizeSelection
+    {
+        get
+        {
+            for (int i = 0; i < quickMatchSizeSelected.Length; i++)
+            {
+                if (quickMatchSizeSelected[i])
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// "Start Matchmaking" button. Searches for every selected size and, if nothing is open, hosts a
+    /// lobby that accepts all of them. Like the other online entries it transitions to MainMenu first
+    /// when pressed from another scene, and the player waits there exactly as they do today.
+    /// </summary>
+    public bool StartQuickMatch()
+    {
+        List<int> sizes = GetSelectedQuickMatchSizes();
+        if (sizes.Count == 0)
+        {
+            Debug.LogWarning("[SteamLobbyManager] Start Matchmaking ignored; no match size is selected.");
+            return false;
+        }
+
+        FindMatch(sizes);
+        return true;
+    }
+
+    private static int IndexOfQuickMatchSize(int size)
+    {
+        for (int i = 0; i < QuickMatchSizes.Length; i++)
+        {
+            if (QuickMatchSizes[i] == size)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static List<int> GetSelectedQuickMatchSizes()
+    {
+        List<int> sizes = new List<int>();
+        for (int i = 0; i < QuickMatchSizes.Length; i++)
+        {
+            if (quickMatchSizeSelected[i])
+            {
+                sizes.Add(QuickMatchSizes[i]);
+            }
+        }
+
+        return sizes;
+    }
 
     private static void BeginJoiningMatchStatus()
     {
@@ -272,6 +658,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         TryResumePendingOnlineJoin();
         TryResumePendingHostInvite();
+        TryResumePendingPartyHost();
         TryResumePendingMatchmaking();
 
         if (!currentLobby.HasValue)
@@ -286,6 +673,7 @@ public class SteamLobbyManager : MonoBehaviour
                 TryOpenInviteOverlay();
             }
 
+            UpdateQuickMatchBucket(currentLobby.Value);
             UpdateLobbyJoinableState(currentLobby.Value);
             TryStartOnlineMatchFromLobby(currentLobby.Value);
             TrySendPendingLobbySnapshots(currentLobby.Value);
@@ -361,6 +749,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            currentLobby.Value.SetData(MatchRunningKey, "0");
             currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
@@ -379,11 +768,30 @@ public class SteamLobbyManager : MonoBehaviour
 
     // Matchmaking (Quick Match)
 
-    // UI entry point. Quick Match into a host-chosen bucket size (2..TargetOnlineLobbySize): finds an
-    // open PUBLIC match of that size + this build's NetcodeVersion and joins it, otherwise hosts one
-    // and waits. The match then starts through the existing matchReady / TryStartOnlineMatchFromLobby
-    // flow (at MinimumOnlineLobbyStartSize, then drop-in fills up to the bucket) -- same as invites.
+    // UI entry point. Quick Match into a single bucket size. Kept for the existing "Find Match" button
+    // and its 2/3/4 arrow selector; the VS the World panel calls StartQuickMatch() instead.
     public void FindMatch(int desiredSize)
+    {
+        int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
+
+        // Keep the new panel's toggles in step when the size is one it can express (2 or 4).
+        if (IndexOfQuickMatchSize(clamped) >= 0)
+        {
+            for (int i = 0; i < QuickMatchSizes.Length; i++)
+            {
+                quickMatchSizeSelected[i] = QuickMatchSizes[i] == clamped;
+            }
+        }
+
+        FindMatch(new List<int> { clamped });
+    }
+
+    // Quick Match across every size the player accepts: finds an open PUBLIC match of one of those
+    // sizes + this build's NetcodeVersion and joins it, otherwise hosts one that advertises ALL of
+    // them and waits. The match then starts through the existing matchReady /
+    // TryStartOnlineMatchFromLobby flow (at MinimumOnlineLobbyStartSize, then drop-in fills up to the
+    // bucket) -- same as invites.
+    public void FindMatch(List<int> desiredSizes)
     {
         if (joiningMatchRequested)
         {
@@ -394,8 +802,17 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        int clamped = Mathf.Clamp(desiredSize, MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
-        matchmakingSearchSize = clamped;
+        List<int> sizes = NormalizeMatchSizes(desiredSizes);
+        if (sizes.Count == 0)
+        {
+            Debug.LogWarning("[SteamLobbyManager] Quick Match ignored; no valid match size was requested.");
+            return;
+        }
+
+        // The status label reads the primary (smallest accepted) size; SearchingMatchSizes has the set.
+        matchmakingSearchSize = sizes[0];
+        pendingMatchmakingSizes.Clear();
+        pendingMatchmakingSizes.AddRange(sizes);
 
         // The online lobby only simulates in MainMenu, so Quick Match — like host/join — defers there
         // first when triggered from another scene (SoloLobby's multiplayer door). Otherwise both
@@ -403,7 +820,9 @@ public class SteamLobbyManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
             pendingMatchmakingRequested = true;
-            pendingMatchmakingSize = clamped;
+            // One online entry at a time: a queued party host would otherwise fire after this lands.
+            pendingPartyHostRequested = false;
+            pendingHostInviteRequested = false;
 
             GameManager manager = GameManager.Instance;
             bool hasLocalPlayer = manager != null
@@ -426,7 +845,58 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        FindMatchAsync(clamped);
+        FindMatchAsync(sizes);
+    }
+
+    /// <summary>All sizes the in-flight Quick Match accepts, smallest first. Only meaningful while searching.</summary>
+    public IReadOnlyList<int> SearchingMatchSizes => pendingMatchmakingSizes;
+
+    /// <summary>Ready-made size fragment for the "finding match" status, e.g. "2" or "2 OR 4".</summary>
+    public string SearchingMatchSizesLabel
+    {
+        get
+        {
+            if (pendingMatchmakingSizes.Count == 0)
+            {
+                return matchmakingSearchSize.ToString();
+            }
+
+            string joined = string.Empty;
+            for (int i = 0; i < pendingMatchmakingSizes.Count; i++)
+            {
+                if (i > 0)
+                {
+                    joined += i == pendingMatchmakingSizes.Count - 1 ? " OR " : ", ";
+                }
+
+                joined += pendingMatchmakingSizes[i].ToString();
+            }
+
+            return joined;
+        }
+    }
+
+    // Clamps, de-duplicates and sorts a requested size set. Smallest first so the search prefers the
+    // bucket most likely to already have someone waiting in it.
+    private static List<int> NormalizeMatchSizes(List<int> desiredSizes)
+    {
+        List<int> sizes = new List<int>();
+        if (desiredSizes == null)
+        {
+            return sizes;
+        }
+
+        for (int i = 0; i < desiredSizes.Count; i++)
+        {
+            int clamped = Mathf.Clamp(desiredSizes[i], MinimumOnlineLobbyStartSize, TargetOnlineLobbySize);
+            if (!sizes.Contains(clamped))
+            {
+                sizes.Add(clamped);
+            }
+        }
+
+        sizes.Sort();
+        return sizes;
     }
 
     // Cancel an in-progress search / leave the matchmaking lobby. Wire this to a "Cancel" button.
@@ -434,10 +904,11 @@ public class SteamLobbyManager : MonoBehaviour
     {
         isMatchmaking = false;
         pendingMatchmakingRequested = false;
+        pendingMatchmakingSizes.Clear();
         LeaveLobbyInternal();
     }
 
-    private async void FindMatchAsync(int desiredSize)
+    private async void FindMatchAsync(List<int> desiredSizes)
     {
         if (isShuttingDown || !SteamClient.IsValid)
         {
@@ -452,35 +923,46 @@ public class SteamLobbyManager : MonoBehaviour
         isMatchmaking = true;
         try
         {
-            // Query for an open public match of the same size + version with a free slot.
-            Lobby[] results = await SteamMatchmaking.LobbyList
-                .WithKeyValue(MatchmakingKey, "1")
-                .WithKeyValue(VersionKey, NetcodeVersion)
-                .WithKeyValue(SizeKey, desiredSize.ToString())
-                .WithSlotsAvailable(1)
-                .RequestAsync();
-
-            if (isShuttingDown || !isMatchmaking)
+            // One query per accepted size, smallest first. Steam lobby filters are exact key/value
+            // matches, so "2 or 4 players" cannot be a single query -- it is one query per size flag.
+            for (int i = 0; i < desiredSizes.Count; i++)
             {
-                return;
-            }
+                int desiredSize = desiredSizes[i];
 
-            if (results != null)
-            {
+                // Query for an open public match that accepts this size, on the same version, with a
+                // free slot.
+                Lobby[] results = await SteamMatchmaking.LobbyList
+                    .WithKeyValue(MatchmakingKey, "1")
+                    .WithKeyValue(VersionKey, NetcodeVersion)
+                    .WithKeyValue(GetSizeFlagKey(desiredSize), "1")
+                    .WithSlotsAvailable(1)
+                    .RequestAsync();
+
+                // Re-checked after every await: a Steam invite can land mid-search and cancel us.
+                if (isShuttingDown || !isMatchmaking)
+                {
+                    return;
+                }
+
+                if (results == null)
+                {
+                    continue;
+                }
+
                 foreach (Lobby found in results)
                 {
                     if (currentLobby.HasValue && found.Id == currentLobby.Value.Id) continue;
                     if (found.MemberCount <= 0 || found.MemberCount >= found.MaxMembers) continue;
 
-                    if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: joining open lobby {found.Id.Value} (size {desiredSize}, members {found.MemberCount}/{found.MaxMembers}).");
+                    if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: joining open lobby {found.Id.Value} (accepts size {desiredSize}, members {found.MemberCount}/{found.MaxMembers}).");
                     JoinRequestedLobbyAsync(found.Id, default);
                     return;
                 }
             }
 
-            // Nothing open -> host a public match of this size and wait for an opponent.
-            if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: no open size-{desiredSize} match found, hosting one.");
-            CreateMatchmakingLobbyAsync(desiredSize);
+            // Nothing open -> host a public match that accepts every selected size and wait.
+            if (debugLogs) Debug.Log($"[SteamLobbyManager] Quick Match: no open match found for sizes [{string.Join(",", desiredSizes)}], hosting one.");
+            CreateMatchmakingLobbyAsync(desiredSizes);
         }
         catch (Exception e)
         {
@@ -489,9 +971,12 @@ public class SteamLobbyManager : MonoBehaviour
         }
     }
 
-    // Creates a public, tagged, host-sized lobby other matchmakers can find. Mirrors HostAndInvite but
-    // SetPublic + matchmaking tags, and no invite overlay (matchmade players find it by query).
-    private async void CreateMatchmakingLobbyAsync(int size)
+    // Creates a public, tagged lobby other matchmakers can find. Mirrors HostAndInvite but SetPublic +
+    // matchmaking tags, and no invite overlay (matchmade players find it by query). The lobby is sized
+    // to the LARGEST accepted size and advertises a flag per accepted size, so a stricter searcher
+    // (2-players-only) can still find a "2 or 4" host; UpdateQuickMatchBucket then narrows the lobby
+    // to a size everybody actually agreed to.
+    private async void CreateMatchmakingLobbyAsync(List<int> sizes)
     {
         isHostingFlow = true;
         isShuttingDown = false;
@@ -499,9 +984,15 @@ public class SteamLobbyManager : MonoBehaviour
         uint currentHostFlowVersion = hostFlowVersion;
         LeaveLobbyInternal();
 
+        int maxSize = MinimumOnlineLobbyStartSize;
+        for (int i = 0; i < sizes.Count; i++)
+        {
+            maxSize = Mathf.Max(maxSize, sizes[i]);
+        }
+
         try
         {
-            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(size);
+            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(maxSize);
             if (isShuttingDown || currentHostFlowVersion != hostFlowVersion || !SteamClient.IsValid)
             {
                 if (lobby.HasValue) lobby.Value.Leave();
@@ -530,22 +1021,101 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetJoinable(true);
             currentLobby.Value.SetData(MatchmakingKey, "1");
             currentLobby.Value.SetData(VersionKey, NetcodeVersion);
-            currentLobby.Value.SetData(SizeKey, size.ToString());
+            currentLobby.Value.SetData(LobbyModeKey, LobbyModeQuickMatchValue);
+            currentLobby.Value.SetData(GameModeKey, OnlineGameModeSelection.DefaultId);
+            currentLobby.Value.SetData(GameModeNameKey, OnlineGameModeSelection.DefaultDisplayName);
+            currentLobby.Value.SetData(SizeKey, maxSize.ToString());
+            for (int i = 0; i < sizes.Count; i++)
+            {
+                currentLobby.Value.SetData(GetSizeFlagKey(sizes[i]), "1");
+            }
             currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
-            currentLobby.Value.SetData("targetSize", size.ToString());
+            currentLobby.Value.SetData("targetSize", maxSize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            currentLobby.Value.SetData(MatchRunningKey, "0");
             currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
+            resolvedQuickMatchBucket = maxSize;
+            quickMatchBucketFullyKnown = false;
+            PublishLocalQuickMatchPreferences(currentLobby.Value);
 
-            if (debugLogs) Debug.Log($"[SteamLobbyManager] Hosting public matchmaking lobby {currentLobby.Value.Id.Value} (size {size}, ver {NetcodeVersion}). Waiting for opponents.");
+            if (debugLogs) Debug.Log($"[SteamLobbyManager] Hosting public matchmaking lobby {currentLobby.Value.Id.Value} (accepts [{string.Join(",", sizes)}], max {maxSize}, ver {NetcodeVersion}). Waiting for opponents.");
         }
         catch (Exception e)
         {
             Debug.LogError($"Exception while creating matchmaking lobby: {e.Message}");
             isHostingFlow = false;
             isMatchmaking = false;
+        }
+    }
+
+    // Creates the VS Friends party lobby: friends-only, four slots, and deliberately NOT auto-starting.
+    // No invite overlay here -- the panel's slot buttons open it, so the host can look at the lobby
+    // first and pick a game mode before pulling anyone in.
+    private async void CreatePartyLobbyAsync()
+    {
+        isHostingFlow = true;
+        isShuttingDown = false;
+        hostFlowVersion++;
+        uint currentHostFlowVersion = hostFlowVersion;
+        LeaveLobbyInternal();
+
+        try
+        {
+            Lobby? lobby = await SteamMatchmaking.CreateLobbyAsync(TargetOnlineLobbySize);
+            if (isShuttingDown || currentHostFlowVersion != hostFlowVersion || !SteamClient.IsValid)
+            {
+                if (lobby.HasValue) lobby.Value.Leave();
+                isHostingFlow = false;
+                return;
+            }
+            if (!lobby.HasValue && lastLobbyCreateResult == Result.OK && lastLobbyCreated.HasValue)
+            {
+                lobby = lastLobbyCreated;
+            }
+            if (!lobby.HasValue)
+            {
+                Debug.LogError($"Failed to create party lobby. Result={lastLobbyCreateResult}");
+                isHostingFlow = false;
+                return;
+            }
+
+            currentLobby = lobby.Value;
+            activeHostedLobbyId = currentLobby.Value.Id;
+            startingHostedMatch = false;
+            startingMatchStatusVisibleUntil = 0f;
+            startingMatchStatusVisibleThroughFrame = -1;
+            partyStartRequested = false;
+
+            // Open on the first mode authored in the chooser panel, so the lobby's "Selected
+            // GameMode" label starts on something the menu can actually show. Falls back to the
+            // built-in default when no modes have been authored yet.
+            localPartyGameMode = OnlineGameModeRegistry.FirstOrDefault();
+
+            currentLobby.Value.SetFriendsOnly();
+            currentLobby.Value.SetJoinable(true);
+            currentLobby.Value.SetData(LobbyModeKey, LobbyModePartyValue);
+            currentLobby.Value.SetData(VersionKey, NetcodeVersion);
+            currentLobby.Value.SetData(GameModeKey, localPartyGameMode.Id);
+            currentLobby.Value.SetData(GameModeNameKey, localPartyGameMode.DisplayName);
+            currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
+            currentLobby.Value.SetData(MatchReadyKey, "0");
+            currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
+            currentLobby.Value.SetData(MatchRunningKey, "0");
+            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            startedCurrentLobbyMatch = false;
+            currentMatchStartToken = string.Empty;
+            partySlotCacheFrame = -1;
+
+            Debug.Log($"[SteamLobbyManager] Party lobby {currentLobby.Value.Id.Value} created. Waiting for the host to invite friends and press Start.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Exception while creating party lobby: {e.Message}");
+            isHostingFlow = false;
         }
     }
 
@@ -579,6 +1149,14 @@ public class SteamLobbyManager : MonoBehaviour
         currentMatchStartToken = string.Empty;
         activeMatchPeerIds.Clear();
         pendingLobbySnapshotPeers.Clear();
+
+        // Party/Quick Match state belongs to the lobby that just went away. Leaving partyStartRequested
+        // latched would arm the NEXT party lobby's match the instant a second member walked in.
+        partyStartRequested = false;
+        partySlotCacheFrame = -1;
+        resolvedQuickMatchBucket = -1;
+        quickMatchBucketFullyKnown = false;
+        quickMatchBucketUnknownSince = 0f;
     }
 
     // When a friend clicks "Join Game" / accepts an invite while our game is NOT running, Steam
@@ -635,6 +1213,7 @@ public class SteamLobbyManager : MonoBehaviour
         isMatchmaking = false;
         pendingMatchmakingRequested = false;
         pendingHostInviteRequested = false;
+        pendingPartyHostRequested = false;
 
         // The mode selectors freeze the game and scope UI input to the player who opened them.
         // Dismiss either selector synchronously before joining or beginning a deferred scene
@@ -675,10 +1254,11 @@ public class SteamLobbyManager : MonoBehaviour
             isMatchmaking = false;
         }
 
-        // Accepting an invite supersedes any queued host+invite or matchmaking intent; without this,
-        // a deferred flow could fire after the join and fight over the lobby state.
+        // Accepting an invite supersedes any queued host+invite, party host or matchmaking intent;
+        // without this, a deferred flow could fire after the join and fight over the lobby state.
         pendingHostInviteRequested = false;
         pendingMatchmakingRequested = false;
+        pendingPartyHostRequested = false;
 
         try
         {
@@ -836,6 +1416,34 @@ public class SteamLobbyManager : MonoBehaviour
         OpenInviteOverlayOrHost();
     }
 
+    // Resumes a VS Friends party lobby requested outside MainMenu (deferred by HostPartyLobby).
+    // Mirrors TryResumePendingHostInvite: fires once the rebuilt scene's managers are alive and Steam
+    // is ready, so the lobby the friends join is created in the scene the match will simulate in.
+    private void TryResumePendingPartyHost()
+    {
+        if (!pendingPartyHostRequested || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return;
+        }
+
+        pendingPartyHostRequested = false;
+        onlineEntryTransitionInProgress = false;
+        Debug.Log("[SteamLobbyManager] Resuming deferred party lobby host in MainMenu.");
+        // Arrival is for the party lobby, not menu browsing — hide the title panel like the other
+        // deferred online entries. Set the panel directly; SetMenuActive would also run the
+        // first-launch tutorial check.
+        if (GameManager.Instance.MainMenuScreen != null)
+        {
+            GameManager.Instance.MainMenuScreen.SetActive(false);
+        }
+        HostPartyLobby();
+    }
+
     // Resumes a Quick Match requested outside MainMenu (deferred by FindMatch)
     // Fires once the rebuilt scene's managers are alive and Steam is ready.
     private void TryResumePendingMatchmaking()
@@ -851,13 +1459,247 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         pendingMatchmakingRequested = false;
-        Debug.Log($"[SteamLobbyManager] Resuming deferred Quick Match (size {pendingMatchmakingSize}) in MainMenu.");
+        onlineEntryTransitionInProgress = false;
+        Debug.Log($"[SteamLobbyManager] Resuming deferred Quick Match (sizes [{string.Join(",", pendingMatchmakingSizes)}]) in MainMenu.");
         // Arrival is for matchmaking, not menu browsing — hide the title panel like the deferred host/join.
         if (GameManager.Instance.MainMenuScreen != null)
         {
             GameManager.Instance.MainMenuScreen.SetActive(false);
         }
-        FindMatchAsync(pendingMatchmakingSize);
+        FindMatchAsync(new List<int>(pendingMatchmakingSizes));
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // Lobby flavour helpers
+    // ------------------------------------------------------------------------------------------
+
+    private static bool IsPartyLobby(Lobby lobby)
+    {
+        return lobby.GetData(LobbyModeKey) == LobbyModePartyValue;
+    }
+
+    private static bool IsQuickMatchLobby(Lobby lobby)
+    {
+        return lobby.GetData(LobbyModeKey) == LobbyModeQuickMatchValue
+            || lobby.GetData(MatchmakingKey) == "1";
+    }
+
+    private static string GetSizeFlagKey(int size)
+    {
+        return $"{SizeFlagKeyPrefix}{size}";
+    }
+
+    // Publishes the local player's accepted Quick Match sizes as MEMBER data (lobby data is
+    // owner-only, so this is the only channel a guest has). The host reads it back in
+    // UpdateQuickMatchBucket to narrow the lobby to a size everybody agreed to.
+    private void PublishLocalQuickMatchPreferences(Lobby lobby)
+    {
+        List<int> sizes = pendingMatchmakingSizes.Count > 0
+            ? new List<int>(pendingMatchmakingSizes)
+            : GetSelectedQuickMatchSizes();
+
+        if (sizes.Count == 0)
+        {
+            // Nothing selected locally (e.g. joined straight from an invite): accept anything the
+            // lobby can hold rather than publishing an empty set the host would have to ignore.
+            for (int i = 0; i < QuickMatchSizes.Length; i++)
+            {
+                sizes.Add(QuickMatchSizes[i]);
+            }
+        }
+
+        lobby.SetMemberData(MemberSizePrefsKey, string.Join(",", sizes));
+    }
+
+    private static List<int> ParseSizePreferences(string raw)
+    {
+        List<int> sizes = new List<int>();
+        if (string.IsNullOrEmpty(raw))
+        {
+            return sizes;
+        }
+
+        string[] parts = raw.Split(',');
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (int.TryParse(parts[i], out int size)
+                && size >= MinimumOnlineLobbyStartSize
+                && size <= TargetOnlineLobbySize
+                && !sizes.Contains(size))
+            {
+                sizes.Add(size);
+            }
+        }
+
+        return sizes;
+    }
+
+    // Host-side narrowing for a Quick Match lobby that advertised more than one size. The bucket is
+    // the LARGEST size every current member said they accept: everyone in the lobby explicitly opted
+    // into it, and it leaves the most room for the drop-in fill the match start already supports.
+    // While any member's preferences are still unknown the lobby stays closed (see
+    // UpdateLobbyJoinableState) so a 2-players-only searcher can't be dragged toward a 4-player match
+    // by someone who joined in the same instant.
+    private void UpdateQuickMatchBucket(Lobby lobby)
+    {
+        if (!IsQuickMatchLobby(lobby)
+            || !SameSteamId(lobby.Owner.Id, SteamClient.SteamId)
+            || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
+        {
+            return;
+        }
+
+        List<int> accepted = null;
+        bool allKnown = true;
+
+        foreach (Friend member in lobby.Members)
+        {
+            List<int> memberSizes = ParseSizePreferences(lobby.GetMemberData(member, MemberSizePrefsKey));
+            if (memberSizes.Count == 0)
+            {
+                allKnown = false;
+                continue;
+            }
+
+            if (accepted == null)
+            {
+                accepted = memberSizes;
+                continue;
+            }
+
+            for (int i = accepted.Count - 1; i >= 0; i--)
+            {
+                if (!memberSizes.Contains(accepted[i]))
+                {
+                    accepted.RemoveAt(i);
+                }
+            }
+        }
+
+        quickMatchBucketFullyKnown = allKnown;
+        if (allKnown)
+        {
+            quickMatchBucketUnknownSince = 0f;
+        }
+        else if (quickMatchBucketUnknownSince <= 0f)
+        {
+            quickMatchBucketUnknownSince = Time.unscaledTime;
+        }
+
+        if (accepted == null || accepted.Count == 0)
+        {
+            // No usable intersection (or nobody has published yet): leave the bucket where lobby
+            // creation put it rather than inventing a size nobody asked for.
+            return;
+        }
+
+        int bucket = MinimumOnlineLobbyStartSize;
+        for (int i = 0; i < accepted.Count; i++)
+        {
+            bucket = Mathf.Max(bucket, accepted[i]);
+        }
+
+        if (bucket == resolvedQuickMatchBucket)
+        {
+            return;
+        }
+
+        resolvedQuickMatchBucket = bucket;
+        lobby.SetData(SizeKey, bucket.ToString());
+        lobby.SetData("targetSize", bucket.ToString());
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Quick Match lobby narrowed to {bucket} players (every member accepts it).");
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // Party slot readout for the VS Friends panel
+    // ------------------------------------------------------------------------------------------
+
+    // Rebuilt at most once per frame: four slot widgets poll this every Update and each entry costs
+    // Steam lobby-data lookups.
+    private void RefreshPartySlotCache()
+    {
+        if (partySlotCacheFrame == Time.frameCount)
+        {
+            return;
+        }
+
+        partySlotCacheFrame = Time.frameCount;
+        Array.Clear(partySlotCache, 0, partySlotCache.Length);
+
+        if (!currentLobby.HasValue || !SteamClient.IsValid)
+        {
+            return;
+        }
+
+        Lobby lobby = currentLobby.Value;
+        SteamId ownerId = lobby.Owner.Id;
+        List<Friend> unplaced = new List<Friend>();
+
+        foreach (Friend member in lobby.Members)
+        {
+            if (!member.Id.IsValid)
+            {
+                continue;
+            }
+
+            // Slot 0 is the owner by definition (BuildAssignedSlots agrees), so it never needs to
+            // wait on metadata. Everyone else reads the index the host published for them.
+            int slot = SameSteamId(member.Id, ownerId) ? 0 : -1;
+            if (slot < 0)
+            {
+                string slotText = lobby.GetData(GetSlotKey(member.Id));
+                if (!int.TryParse(slotText, out slot) || slot <= 0 || slot >= partySlotCache.Length)
+                {
+                    slot = -1;
+                }
+            }
+
+            if (slot < 0 || partySlotCache[slot].IsOccupied)
+            {
+                unplaced.Add(member);
+                continue;
+            }
+
+            partySlotCache[slot] = BuildPartySlotInfo(member, ownerId, false);
+        }
+
+        // A member who has just arrived is in the lobby before the host has published their slot.
+        // Show them in the first free slot, flagged provisional, so the panel does not flicker an
+        // empty "Invite" button at someone who is visibly connecting.
+        for (int i = 0; i < unplaced.Count; i++)
+        {
+            for (int slot = 0; slot < partySlotCache.Length; slot++)
+            {
+                if (!partySlotCache[slot].IsOccupied)
+                {
+                    partySlotCache[slot] = BuildPartySlotInfo(unplaced[i], ownerId, true);
+                    break;
+                }
+            }
+        }
+    }
+
+    private PartySlotInfo BuildPartySlotInfo(Friend member, SteamId ownerId, bool provisional)
+    {
+        bool isLocal = SteamClient.IsValid && SameSteamId(member.Id, SteamClient.SteamId);
+        string name = isLocal ? SteamClient.Name : member.Name;
+        if (string.IsNullOrEmpty(name))
+        {
+            name = member.Id.Value.ToString();
+        }
+
+        return new PartySlotInfo
+        {
+            IsOccupied = true,
+            SteamId = member.Id,
+            DisplayName = name,
+            IsHost = SameSteamId(member.Id, ownerId),
+            IsLocalPlayer = isLocal,
+            IsProvisional = provisional
+        };
     }
 
     private void HandleLobbyEntered(Lobby lobby)
@@ -870,6 +1712,14 @@ public class SteamLobbyManager : MonoBehaviour
 
         currentLobby = lobby;
         startedCurrentLobbyMatch = false;
+        partySlotCacheFrame = -1;
+
+        // Publish what sizes we accept the moment we are actually in the lobby (member data needs
+        // membership). Fires for the creator as well as a joiner, so the host's own entry is covered.
+        if (IsQuickMatchLobby(lobby))
+        {
+            PublishLocalQuickMatchPreferences(lobby);
+        }
 
         TryStartOnlineMatchFromLobby(lobby);
     }
@@ -901,8 +1751,13 @@ public class SteamLobbyManager : MonoBehaviour
             Debug.Log($"[SteamLobbyManager] Lobby member joined. Member={friend.Id.Value} LobbyId={lobby.Id.Value}");
         }
 
+        partySlotCacheFrame = -1;
+
+        // A party lobby is not "starting" when someone joins -- it is filling. Latching the status
+        // here would paint "STARTING MATCH..." over the VS Friends panel until the host pressed Start.
         if (activeHostedLobbyId.HasValue
             && lobby.Id == activeHostedLobbyId.Value
+            && !IsPartyLobby(lobby)
             && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
         {
             startingHostedMatch = true;
@@ -932,10 +1787,20 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        // VS Friends: the lobby is deliberately held open. The host gathers up to four players and
+        // decides when to go, so nothing may publish matchReady until StartPartyMatch sets this latch.
+        // Guests need no equivalent check: they only ever read matchReady, they never write it.
+        bool holdForPartyStart = IsPartyLobby(lobby) && !partyStartRequested;
+
         string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
         if (GameManager.Instance.isOnlineMatchActive)
         {
-            if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+            if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && lobby.GetData(MatchRunningKey) != "1")
+            {
+                lobby.SetData(MatchRunningKey, "1");
+            }
+
+            if (!holdForPartyStart && SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
             {
                 string currentReady = lobby.GetData(MatchReadyKey);
                 string currentToken = lobby.GetData(MatchStartTokenKey);
@@ -954,6 +1819,8 @@ public class SteamLobbyManager : MonoBehaviour
 
             if (GameManager.Instance.TryRefreshOnlineLobbyRoster(roster))
             {
+                // Drop-in joiner: make sure they land on the same rules as everyone already playing.
+                GameManager.Instance.ApplyOnlineGameMode(lobby.GetData(GameModeKey), lobby.GetData(GameModeNameKey));
                 RememberRosterPeers(roster);
                 if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
@@ -970,7 +1837,7 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
+        if (!holdForPartyStart && SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
         {
             string currentReady = lobby.GetData(MatchReadyKey);
             string currentToken = lobby.GetData(MatchStartTokenKey);
@@ -986,7 +1853,14 @@ public class SteamLobbyManager : MonoBehaviour
 
         if (roster.PlayerCount < MinimumOnlineLobbyStartSize || matchReady != "1" || matchStartToken != expectedMatchStartToken)
         {
-            if (debugLogs)
+            // A party guest is settled, not mid-handshake: they sit in the lobby panel watching slots
+            // fill until the host presses Start. Drop the "JOINING MATCH..." status or it would pulse
+            // over the panel for the entire wait.
+            if (IsPartyLobby(lobby))
+            {
+                ClearJoiningMatchStatus();
+            }
+            else if (debugLogs)
             {
                 Debug.Log($"[SteamLobbyManager] Waiting for at least one guest before starting. Members={roster?.PlayerCount ?? 0}/{MinimumOnlineLobbyStartSize}");
             }
@@ -998,20 +1872,43 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount > MinimumOnlineLobbyStartSize)
+        // A guest must not cold-start into a match that is ALREADY running on the host -- it would
+        // begin from a different initial state and desync instantly; the host's lobby snapshot is
+        // what brings a late arrival in. Two ways to detect that:
+        //   * matchRunning, which the host publishes the moment its match goes live. Authoritative.
+        //   * on an auto-starting lobby, a roster bigger than the start size, because those lobbies go
+        //     live at two players and anything beyond that is by definition a late arrival.
+        // The second test must NOT be applied to a party lobby: there the whole roster (up to four)
+        // cold-starts together off one Start press, so treating three or four players as "late" would
+        // leave every guest waiting on a snapshot the host has no reason to send.
+        bool hostMatchAlreadyRunning = lobby.GetData(MatchRunningKey) == "1";
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId)
+            && (hostMatchAlreadyRunning
+                || (!IsPartyLobby(lobby) && roster.PlayerCount > MinimumOnlineLobbyStartSize)))
         {
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] Waiting for host lobby snapshot before joining active roster. Members={roster.PlayerCount}");
+                Debug.Log($"[SteamLobbyManager] Waiting for host lobby snapshot before joining active roster. Members={roster.PlayerCount} MatchRunning={hostMatchAlreadyRunning}");
             }
             return;
         }
 
         startedCurrentLobbyMatch = true;
         currentMatchStartToken = matchStartToken;
+        // Every peer reads the mode out of the SAME lobby data, so all of them enter the match on
+        // identical rules without adding a field to the wire format. Must happen before
+        // StartOnlineMatch, which is where the match's initial state is built.
+        GameManager.Instance.ApplyOnlineGameMode(lobby.GetData(GameModeKey), lobby.GetData(GameModeNameKey));
         GameManager.Instance.StartOnlineMatch(roster);
         RememberRosterPeers(roster);
         isHostingFlow = false;
+
+        // Publish "the match is live" as early as possible so anyone who walks in from here on waits
+        // for a snapshot instead of cold-starting into a running simulation.
+        if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
+        {
+            lobby.SetData(MatchRunningKey, "1");
+        }
     }
 
     private void UpdateLobbyJoinableState(Lobby lobby)
@@ -1021,7 +1918,29 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        lobby.SetJoinable(GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers());
+        bool joinable = GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers();
+
+        // Quick Match lobbies that advertised several sizes must stop taking joins once the agreed
+        // bucket is full, and must stay shut while any member's accepted sizes are still unknown --
+        // otherwise a player who only wanted 2-player matches can be filled past that in the window
+        // before their preferences arrive. Steam drops non-joinable lobbies from search results too,
+        // so this doubles as removing a full lobby from matchmaking.
+        if (joinable
+            && IsQuickMatchLobby(lobby)
+            && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
+        {
+            // Grace period so a member whose preferences never arrive degrades to "let people in"
+            // instead of wedging the lobby shut and stranding the search forever.
+            bool preferencesSettled = quickMatchBucketFullyKnown
+                || (quickMatchBucketUnknownSince > 0f
+                    && Time.unscaledTime - quickMatchBucketUnknownSince > QuickMatchPreferenceGraceSeconds);
+
+            joinable = preferencesSettled
+                && resolvedQuickMatchBucket > 0
+                && lobby.MemberCount < resolvedQuickMatchBucket;
+        }
+
+        lobby.SetJoinable(joinable);
     }
 
     public bool IsCurrentLobbyMember(SteamId steamId)
@@ -1134,7 +2053,9 @@ public class SteamLobbyManager : MonoBehaviour
 
     private string BuildMatchStartToken(Lobby lobby, OnlineMatchRoster roster)
     {
-        string token = lobby.Id.Value.ToString();
+        // The game mode is part of the token so a host who changes modes after arming the lobby
+        // invalidates the old ready state instead of leaving a guest to start on the previous rules.
+        string token = $"{lobby.Id.Value}|{OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id}";
         if (roster?.Peers == null)
         {
             return token;

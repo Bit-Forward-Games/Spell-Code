@@ -20,6 +20,30 @@ public class OnlineMatchRoster
 
     public int PlayerCount => Peers?.Count ?? 0;
 
+    /// <summary>
+    /// Number of simulation slots needed to preserve the authored P1-P4 assignments. This differs
+    /// from PlayerCount for a sparse party roster: P1 + P3 has two peers but occupies three slots.
+    /// </summary>
+    public int SlotCount
+    {
+        get
+        {
+            int highestSlot = -1;
+            if (Peers != null)
+            {
+                for (int i = 0; i < Peers.Count; i++)
+                {
+                    if (Peers[i] != null && Peers[i].PlayerSlot > highestSlot)
+                    {
+                        highestSlot = Peers[i].PlayerSlot;
+                    }
+                }
+            }
+
+            return highestSlot + 1;
+        }
+    }
+
     public bool TryGetSteamIdForSlot(int slot, out SteamId steamId)
     {
         if (Peers != null)

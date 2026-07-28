@@ -116,25 +116,28 @@ public class DataManager : MonoBehaviour
         matchData.matchNum = (byte)(totalRoundsPlayed);
         matchData.matchLength = roundTimer / 60;
 
-        //player data, looped for each player
-        if (gM.playerCount > 0)
+        // playerCount is the serialized slot span for sparse online rosters. Save only live
+        // participants so P1+P3 does not produce a fabricated P2 statistics row.
+        PlayerController[] matchPlayers = gM.GetMatchParticipantControllers();
+        if (matchPlayers.Length > 0)
         {
-            matchData.playerData = new PlayerData[gM.playerCount];
+            matchData.playerData = new PlayerData[matchPlayers.Length];
 
-            for (int i = 0; i < gM.playerCount; i++)
+            for (int i = 0; i < matchPlayers.Length; i++)
             {
+                PlayerController player = matchPlayers[i];
                 Fixed totalSpelltime = Fixed.FromInt(0);
 
                 //raw stats
                 matchData.playerData[i] = new PlayerData();
-                matchData.playerData[i].pID = gM.players[i].pID;
-                matchData.playerData[i].basicsFired = gM.players[i].basicsFired;
-                matchData.playerData[i].codesFired = gM.players[i].spellsFired;
-                matchData.playerData[i].codesHit = gM.players[i].spellsHit;
-                matchData.playerData[i].synthesizer = gM.players[i].characterName;
-                matchData.playerData[i].times = gM.players[i].times;
+                matchData.playerData[i].pID = player.pID;
+                matchData.playerData[i].basicsFired = player.basicsFired;
+                matchData.playerData[i].codesFired = player.spellsFired;
+                matchData.playerData[i].codesHit = player.spellsHit;
+                matchData.playerData[i].synthesizer = player.characterName;
+                matchData.playerData[i].times = player.times;
 
-                if (gM.players[i].currentPlayerHealth > 0)
+                if (player.currentPlayerHealth > 0)
                 {
                     matchData.playerData[i].matchWon = true;
                 }
@@ -144,24 +147,24 @@ public class DataManager : MonoBehaviour
                 }
 
                 //calculated accuracy
-                if (gM.players[i].basicsFired > 0 && gM.players[i].spellsFired > 0)
+                if (player.basicsFired > 0 && player.spellsFired > 0)
                 {
-                    matchData.playerData[i].accuracy = gM.players[i].spellsHit / (gM.players[i].basicsFired + gM.players[i].spellsFired);
+                    matchData.playerData[i].accuracy = player.spellsHit / (player.basicsFired + player.spellsFired);
                 }               
-                if (gM.players[i].basicsFired == 0 || gM.players[i].spellsFired == 0)
+                if (player.basicsFired == 0 || player.spellsFired == 0)
                 {
                     matchData.playerData[i].accuracy = 0f;
                 }
 
                 //calculated avg time to cast a spell (totalTime / instances of times) 
-                for (int k = 0; k < gM.players[i].times.Count; k++)
+                for (int k = 0; k < player.times.Count; k++)
                 {
-                    totalSpelltime += gM.players[i].times[k];
+                    totalSpelltime += player.times[k];
                 }
 
-                if (gM.players[i].times.Count > 0)
+                if (player.times.Count > 0)
                 {
-                    Fixed playerTimesCount = Fixed.FromInt(gM.players[i].times.Count);
+                    Fixed playerTimesCount = Fixed.FromInt(player.times.Count);
                     matchData.playerData[i].avgTimeToCast = totalSpelltime / playerTimesCount;
                 }
                 else
@@ -170,17 +173,17 @@ public class DataManager : MonoBehaviour
                 }
 
                 //save spell name to spellList provided it isn't null. If null, add 'no spell'
-                matchData.playerData[i].spellList = new string[gM.players[i].spellList.Count];
+                matchData.playerData[i].spellList = new string[player.spellList.Count];
 
-                for (int j = 0; j < gM.players[i].spellList.Count; j++)
+                for (int j = 0; j < player.spellList.Count; j++)
                 {
-                    if (gM.players[i].spellList[j] is null)
+                    if (player.spellList[j] is null)
                     {
                         matchData.playerData[i].spellList[j] = "no spell";
                     }
                     else
                     {
-                        matchData.playerData[i].spellList[j] = gM.players[i].spellList[j].spellName;
+                        matchData.playerData[i].spellList[j] = player.spellList[j].spellName;
                     }
                 }
             }

@@ -274,9 +274,22 @@ public class OnboardManager : MonoBehaviour
             inputSnapshots[playerIndex] =
                 InputConverter.ConvertFromLong(playerInputs[playerIndex]);
 
-            if (gameManager.players[playerIndex] == null ||
-                !TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+            if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
             {
+                continue;
+            }
+
+            if (gameManager.players[playerIndex] == null
+                || !gameManager.IsPlayerSlotConnected(playerIndex))
+            {
+                // Sparse party gaps (for example empty P2 in a P1+P3 match) never receive input, so
+                // their default "Join: [START]" prompt would otherwise remain visible forever.
+                player.moveText.enabled = false;
+                player.jumpText.enabled = false;
+                player.attackText.enabled = false;
+                player.castText.enabled = false;
+                player.breakWithSpellcode.enabled = false;
+                SetGambaActive(player, false, false);
                 continue;
             }
 

@@ -392,6 +392,15 @@ public class GambaMachine : MonoBehaviour
             return;
         }
 
+        if (!ownerPlayer.isConnected)
+        {
+            isActive = false;
+            activatedCount = 3;
+            ClearFloppysForPID(ownerPID);
+            ApplyVisualState();
+            return;
+        }
+
         if (activeScene.name == "MainMenu")
         {
             if (ownerPlayer.spellList.Count > 0)

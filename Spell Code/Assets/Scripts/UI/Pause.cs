@@ -344,12 +344,12 @@ public class Pause : MonoBehaviour
 
         bool anyCodeModeMenuOpen = System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened
             && !uiScript.multiplayerGamemodesMenuOpened && !uiScript.multiplayerGamemodesChooserMenuOpened
-            && !anyCodeModeMenuOpen) 
+            && !anyCodeModeMenuOpen && OnlineMenuPanel.OpenPanelCount == 0)
         {
             Time.timeScale = 1f;
-            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current?.SetSelectedGameObject(null);
             RestoreUiInputDevices();
         }
     }

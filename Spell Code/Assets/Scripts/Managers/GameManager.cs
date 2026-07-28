@@ -1005,8 +1005,10 @@ public class GameManager : MonoBehaviour
 
     public void StartOnlineMatch(OnlineMatchRoster roster)
     {
-        if (roster == null || roster.PlayerCount < 2)
+        if (!TryGetOnlineRosterSlotCount(roster, out int simulationSlotCount)
+            || playerPrefab == null)
         {
+            Debug.LogWarning("[GameManager] Refused to start an online match with an invalid roster or missing player prefab.");
             return;
         }
 
@@ -1030,27 +1032,7 @@ public class GameManager : MonoBehaviour
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
-        ResetOnlineRosterState();
-        activeOnlineRoster = roster;
-        syncedInput = new ulong[Mathf.Max(2, roster.PlayerCount)];
-        localPlayerIndex = roster.LocalPlayerSlot;
-        remotePlayerIndex = -1;
-
-        for (int i = 0; i < roster.Peers.Count; i++)
-        {
-            OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer == null)
-            {
-                continue;
-            }
-
-            onlineSlotToPeer[peer.PlayerSlot] = peer.SteamId;
-            onlinePeerToSlot[peer.SteamId] = peer.PlayerSlot;
-            if (peer.PlayerSlot != localPlayerIndex && remotePlayerIndex < 0)
-            {
-                remotePlayerIndex = peer.PlayerSlot;
-            }
-        }
+        ApplyOnlineRoster(roster);
 
         onboardManager = FindFirstObjectByType<OnboardManager>();
         if (onboardManager != null)
@@ -1113,11 +1095,13 @@ public class GameManager : MonoBehaviour
         lastPacketReceivedTime = 0f;
         ResetMatchState();
         ClearPlayerObjects();
-        playerCount = roster.PlayerCount;
-
-        if (playerPrefab == null)
+        // playerCount is the serialized/input slot span, not necessarily the number of peers.
+        // P1 + P3 therefore uses slots 0..2, with slot 1 represented by an inert placeholder.
+        playerCount = simulationSlotCount;
+        syncedInput = new ulong[Mathf.Max(2, playerCount)];
+        for (int i = 0; i < syncedInput.Length; i++)
         {
-            return;
+            syncedInput[i] = 5UL;
         }
 
         for (int i = 0; i < playerCount; i++)
@@ -1155,6 +1139,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        ApplyOnlineRosterSlotOccupancy(
+            roster,
+            playerCount,
+            preserveExistingDisconnects: false,
+            newlyOccupiedSlots: null);
+
         RollbackManager.Instance.Init(roster);
         if (StressTestController.Instance != null && StressTestController.Instance.enableStressTest)
         {
@@ -1176,33 +1166,74 @@ public class GameManager : MonoBehaviour
 
     public bool TryRefreshOnlineLobbyRoster(OnlineMatchRoster roster)
     {
-        if (!CanStartOrRefreshOnlineLobby(roster) || playerPrefab == null)
+        if (!TryGetOnlineRosterSlotCount(roster, out int rosterSlotCount)
+            || !CanStartOrRefreshOnlineLobby(roster)
+            || playerPrefab == null)
         {
             return false;
         }
 
-        ApplyOnlineRoster(roster);
+        HashSet<int> previouslyOccupiedSlots = new HashSet<int>();
+        if (activeOnlineRoster?.Peers != null)
+        {
+            for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
+            {
+                OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
+                if (peer != null)
+                {
+                    previouslyOccupiedSlots.Add(peer.PlayerSlot);
+                }
+            }
+        }
 
-        bool createdPlayer = false;
+        HashSet<int> newlyOccupiedSlots = new HashSet<int>();
         for (int i = 0; i < roster.Peers.Count; i++)
         {
             OnlineMatchPeerInfo peer = roster.Peers[i];
-            if (peer == null || peer.PlayerSlot < 0 || peer.PlayerSlot >= players.Length)
+            if (peer != null && !previouslyOccupiedSlots.Contains(peer.PlayerSlot))
             {
-                return false;
+                newlyOccupiedSlots.Add(peer.PlayerSlot);
+            }
+        }
+
+        ApplyOnlineRoster(roster);
+
+        // Never shrink an already-running serialized slot span. A later member may fill a gap or
+        // extend it (P1+P2 adding P4 creates inert P3 plus live P4), but every existing peer must
+        // retain the same state layout while the roster update and snapshot are exchanged.
+        playerCount = Mathf.Max(playerCount, rosterSlotCount);
+        bool createdPlayer = false;
+        for (int slot = 0; slot < playerCount; slot++)
+        {
+            bool slotIsOccupied = roster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _);
+
+            // A slot that used to be an inert placeholder now belongs to a joining peer. Recreate
+            // it so no eliminated health/input/UI state leaks into the new participant.
+            if (slotIsOccupied && newlyOccupiedSlots.Contains(slot) && players[slot] != null)
+            {
+                Destroy(players[slot].gameObject);
+                players[slot] = null;
             }
 
-            if (players[peer.PlayerSlot] == null)
+            if (players[slot] == null)
             {
-                CreateOnlinePlayerForSlot(peer.PlayerSlot, peer.PlayerSlot == localPlayerIndex);
+                CreateOnlinePlayerForSlot(slot, slotIsOccupied && slot == localPlayerIndex);
                 createdPlayer = true;
             }
         }
 
+        ApplyOnlineRosterSlotOccupancy(
+            roster,
+            playerCount,
+            preserveExistingDisconnects: true,
+            newlyOccupiedSlots: newlyOccupiedSlots);
         EnsureOnlineLocalPlayerInputActive();
 
-        playerCount = roster.PlayerCount;
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
+        for (int i = 0; i < syncedInput.Length; i++)
+        {
+            syncedInput[i] = 5UL;
+        }
         if (createdPlayer && ProjectileManager.Instance != null)
         {
             ProjectileManager.Instance.InitializeAllProjectiles();
@@ -1718,6 +1749,19 @@ public class GameManager : MonoBehaviour
 
     private void ApplyDisconnectedPlayerSlots(bool cleanupProjectiles)
     {
+        // A lobby snapshot serializes PlayerController.isConnected but not this runtime set. Import
+        // any disconnected slot from the restored state so a later roster refresh cannot revive it.
+        if (activeOnlineRoster != null)
+        {
+            for (int slot = 0; slot < playerCount; slot++)
+            {
+                if (players[slot] != null && !players[slot].isConnected)
+                {
+                    onlineDisconnectedSlots.Add(slot);
+                }
+            }
+        }
+
         if (onlineDisconnectedSlots.Count == 0)
         {
             return;
@@ -1742,6 +1786,9 @@ public class GameManager : MonoBehaviour
             p.isConnected = false;
             p.isAlive = false;
             p.currentPlayerHealth = 0;
+            if (p.spriteRenderer != null) p.spriteRenderer.enabled = false;
+            if (p.inputDisplay != null) p.inputDisplay.enabled = false;
+            if (p.playerNum != null) p.playerNum.enabled = false;
 
             // Clear the dropped player's lingering shots so every peer converges on the same
             // clean state (mirrors the death cleanup in CheckDeathsAndRoundEnd).
@@ -1790,6 +1837,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Number of players still connected to an online match.
     /// </summary>
+    public int ActivePlayerCount =>
+        activeOnlineRoster != null ? CountConnectedPlayers() : playerCount;
+
     private int CountConnectedPlayers()
     {
         int count = 0;
@@ -1800,6 +1850,29 @@ public class GameManager : MonoBehaviour
                 count++;
             }
         }
+        return count;
+    }
+
+    private int CountRegisteredOnlineRosterPlayers()
+    {
+        if (activeOnlineRoster?.Peers == null)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (int i = 0; i < activeOnlineRoster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = activeOnlineRoster.Peers[i];
+            if (peer != null
+                && peer.PlayerSlot >= 0
+                && peer.PlayerSlot < players.Length
+                && players[peer.PlayerSlot] != null)
+            {
+                count++;
+            }
+        }
+
         return count;
     }
 
@@ -2722,9 +2795,9 @@ public class GameManager : MonoBehaviour
         // Round-start registration gate
         if (frameNumber == 0
             && activeOnlineRoster != null
-            && playerCount < activeOnlineRoster.PlayerCount)
+            && CountRegisteredOnlineRosterPlayers() < activeOnlineRoster.PlayerCount)
         {
-            Debug.Log($"[OnlineState] Holding round start: {playerCount}/{activeOnlineRoster.PlayerCount} players registered.");
+            Debug.Log($"[OnlineState] Holding round start: {CountRegisteredOnlineRosterPlayers()}/{activeOnlineRoster.PlayerCount} players registered.");
             return;
         }
 
@@ -3576,18 +3649,40 @@ public class GameManager : MonoBehaviour
         Debug.Log($"-----------------Updating Bounties------------------");
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
+        int activePlayerCount = 0;
         //bool disregardRam = false;
         for (int i = 0; i < playerCount; i++)
         {
+            if (!IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
             averageRoundRam += players[i].roundRam;
             averageRoundWins += players[i].roundsWon;
+            activePlayerCount++;
         }
-        averageRoundRam = (ushort)(averageRoundRam / playerCount);
-        averageRoundWins = averageRoundWins / playerCount;
-        
+
+        if (activePlayerCount == 0)
+        {
+            return;
+        }
+
+        averageRoundRam = (ushort)(averageRoundRam / activePlayerCount);
+        averageRoundWins = averageRoundWins / activePlayerCount;
+
 
         for (int i = 0; i < playerCount; i++)
         {
+            if (!IsPlayerSlotConnected(i))
+            {
+                if (players[i] != null)
+                {
+                    players[i].ramBounty = 0;
+                }
+                continue;
+            }
+
             int ramRoundBounty = roundOver? 0: (players[i].roundRam - averageRoundRam)/3;
             int oldBounty = players[i].ramBounty;
             
@@ -3618,6 +3713,11 @@ public class GameManager : MonoBehaviour
             players[i].hasHighestBounty = false;
             //VFX_Manager.Instance.StopVisualEffect(VisualEffects.BOUNTY_AURA, i + 1, true);
 
+            if (!IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
             if (players[i].ramBounty > largestBounty)
             {
                 playerWithHighestBountyIndex = i;
@@ -3645,12 +3745,18 @@ public class GameManager : MonoBehaviour
         }
 
         //create a variable to hold the index of the player with the highest bounty
-        int _playerWithHighestBountyIndex = 0;
+        int _playerWithHighestBountyIndex = -1;
 
-        //iterate through players list and find the player with the highest bounty      
+        //iterate through players list and find the player with the highest bounty
         for (int i = 0; i < playerCount; i++)
         {
-            if (players[i].ramBounty > players[_playerWithHighestBountyIndex].ramBounty)
+            if (!IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
+            if (_playerWithHighestBountyIndex < 0
+                || players[i].ramBounty > players[_playerWithHighestBountyIndex].ramBounty)
             {
                 _playerWithHighestBountyIndex = i;
             }
@@ -3665,6 +3771,11 @@ public class GameManager : MonoBehaviour
         //iterate through players array
         for (int i = 0; i < playerCount; i++)
         {
+            if (!IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
             //if any player bounty is NOT 0,...
             if (players[i].ramBounty != 0)
             {
@@ -3753,6 +3864,11 @@ public class GameManager : MonoBehaviour
                     PlayerController winner = null;
                     for (int i = 0; i < playerCount; i++)
                     {
+                        if (!IsPlayerSlotConnected(i))
+                        {
+                            continue;
+                        }
+
                         if (players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
                         {
                             winner = players[i];
@@ -3769,6 +3885,11 @@ public class GameManager : MonoBehaviour
 
                         for (int i = 0; i < playerCount; i++)
                         {
+                            if (!IsPlayerSlotConnected(i))
+                            {
+                                continue;
+                            }
+
                             if (!isRollback)
                             {
                                 players[i].playerNum.enabled = false;
@@ -3824,7 +3945,8 @@ public class GameManager : MonoBehaviour
                 players[i].spellsHit = 0;
                 players[i].times = new List<Fixed>();
                 players[i].isAlive = true;
-                players[i].SpawnPlayer(spawnPos[i]);
+                int spawnIndex = ResolveSpawnIndexForSlot(i, spawnPos.Length);
+                players[i].SpawnPlayer(spawnPos[spawnIndex]);
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
             }
@@ -3903,7 +4025,23 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         gameOver = false;
-        onlineDisconnectedSlots.Clear();
+        if (activeOnlineRoster == null)
+        {
+            onlineDisconnectedSlots.Clear();
+        }
+        else
+        {
+            // Preserve peers that dropped during the prior round/match; their transport was removed
+            // and a rematch cannot silently resurrect them. Also reassert the roster's sparse gaps.
+            for (int slot = 0; slot < playerCount; slot++)
+            {
+                if (!activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _))
+                {
+                    onlineDisconnectedSlots.Add(slot);
+                }
+            }
+        }
+
         Vector2[] spawnPositions = GetSpawnPositions();
         // Convert spawn positions to FixedVec2
         FixedVec2[] fixedSpawnPositions = spawnPositions
@@ -3914,10 +4052,17 @@ public class GameManager : MonoBehaviour
         {
             if (players[i] != null)
             {
+                if (onlineDisconnectedSlots.Contains(i))
+                {
+                    ApplyDisconnectedPlayerSlot(i, cleanupProjectiles: false);
+                    continue;
+                }
+
                 //this is different from ResetPlayers()
                 players[i].isConnected = true; // Fresh match: clear any prior disconnect.
                 players[i].ResetPlayer();
-                players[i].SpawnPlayer(fixedSpawnPositions[i]);
+                int spawnIndex = ResolveSpawnIndexForSlot(i, fixedSpawnPositions.Length);
+                players[i].SpawnPlayer(fixedSpawnPositions[spawnIndex]);
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
             }
@@ -3969,13 +4114,59 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private int ResolveSpawnIndexForSlot(int playerSlot, int spawnCount)
+    {
+        if (spawnCount <= 0)
+        {
+            return 0;
+        }
+
+        int slotIndex = Mathf.Clamp(playerSlot, 0, spawnCount - 1);
+        bool isSparseDuel =
+            activeOnlineRoster != null
+            && activeOnlineRoster.PlayerCount < playerCount
+            && currentStageIndex >= 0
+            && currentStageIndex < stages.Count
+            && stages[currentStageIndex] != null
+            && stages[currentStageIndex].stageType == StageType.Duel;
+        if (!isSparseDuel)
+        {
+            return slotIndex;
+        }
+
+        // Duel assets intentionally repeat [left, right, left, right]. Assign sparse fighters by
+        // roster order so P1+P3 do not both spawn on the duplicated left position.
+        int participantIndex = 0;
+        for (int slot = 0; slot < playerSlot; slot++)
+        {
+            if (activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _))
+            {
+                participantIndex++;
+            }
+        }
+
+        return Mathf.Clamp(participantIndex, 0, spawnCount - 1);
+    }
+
     public PlayerController GetPlayerByPID(int pID)
     {
         if (pID == 0)
         {
-            return playerNPCs[0];
+            return playerNPCs.Count > 0 ? playerNPCs[0] : null;
         }
-        return players[pID-1];
+
+        int slot = pID - 1;
+        if (slot < 0 || slot >= players.Length || players[slot] == null)
+        {
+            return null;
+        }
+
+        if (activeOnlineRoster != null && !IsPlayerSlotConnected(slot))
+        {
+            return null;
+        }
+
+        return players[slot];
     }
 
     public StageDataSO GetCurrentStageDataSO()
@@ -4411,12 +4602,37 @@ public class GameManager : MonoBehaviour
 
     public PlayerController[] GetActivePlayerControllers()
     {
-        PlayerController[] activePlayers = new PlayerController[playerCount];
+        List<PlayerController> activePlayers = new List<PlayerController>(playerCount);
         for (int i = 0; i < playerCount; i++)
         {
-            activePlayers[i] = players[i];
+            if (players[i] != null && IsPlayerSlotConnected(i))
+            {
+                activePlayers.Add(players[i]);
+            }
         }
-        return activePlayers;
+        return activePlayers.ToArray();
+    }
+
+    public PlayerController[] GetMatchParticipantControllers()
+    {
+        List<PlayerController> matchPlayers = new List<PlayerController>(playerCount);
+        for (int slot = 0; slot < playerCount; slot++)
+        {
+            if (players[slot] == null)
+            {
+                continue;
+            }
+
+            // Preserve a real peer's statistics even if they disconnected, while excluding the
+            // inert objects used only to hold sparse P-number gaps in rollback state.
+            if (activeOnlineRoster == null
+                || activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _))
+            {
+                matchPlayers.Add(players[slot]);
+            }
+        }
+
+        return matchPlayers.ToArray();
     }
 
     public void SetStage(int stageIndex)
@@ -5055,7 +5271,10 @@ public class GameManager : MonoBehaviour
             if (gamba == null) continue;
 
             gamba.resetTimer = 0;
-            bool hasActiveOwner = gamba.ownerPID > 0 && gamba.ownerPID <= playerCount && players[gamba.ownerPID - 1] != null;
+            bool hasActiveOwner = gamba.ownerPID > 0
+                && gamba.ownerPID <= playerCount
+                && players[gamba.ownerPID - 1] != null
+                && IsPlayerSlotConnected(gamba.ownerPID - 1);
             bool ownerCanUseShop = hasActiveOwner
                 && players[gamba.ownerPID - 1].spellList != null
                 && players[gamba.ownerPID - 1].spellList.Count < 6
@@ -5870,8 +6089,13 @@ public class GameManager : MonoBehaviour
         //first, fill gameStages with all possible stages,...
         gameStages = new List<StageDataSO>(stages);
 
-        //then, based on playerCount, remove all irrelevant stages from gameStages 
-        switch (playerCount)
+        // A sparse roster's playerCount is its serialized slot span (P1+P3 => 3), so stage rules
+        // must use the actual number of peers rather than accidentally treating an empty slot as a
+        // third fighter.
+        int participantCount = activeOnlineRoster != null
+            ? activeOnlineRoster.PlayerCount
+            : playerCount;
+        switch (participantCount)
         {
             case 2:
                 gameStages.RemoveAll(stage => stage != null && stage.stageType != StageType.Duel);
@@ -5909,6 +6133,54 @@ public class GameManager : MonoBehaviour
         return activeOnlineRoster.LocalPlayerSlot == roster.LocalPlayerSlot;
     }
 
+    private bool TryGetOnlineRosterSlotCount(OnlineMatchRoster roster, out int slotCount)
+    {
+        slotCount = 0;
+        if (roster?.Peers == null
+            || roster.PlayerCount < 2
+            || players == null
+            || roster.PlayerCount > players.Length
+            || roster.LocalPlayerSlot < 0
+            || !roster.HostSteamId.IsValid)
+        {
+            return false;
+        }
+
+        HashSet<int> usedSlots = new HashSet<int>();
+        HashSet<ulong> usedSteamIds = new HashSet<ulong>();
+        bool foundLocalSlot = false;
+        bool foundHostInSlotZero = false;
+        int highestSlot = -1;
+
+        for (int i = 0; i < roster.Peers.Count; i++)
+        {
+            OnlineMatchPeerInfo peer = roster.Peers[i];
+            if (peer == null
+                || !peer.SteamId.IsValid
+                || peer.PlayerSlot < 0
+                || peer.PlayerSlot >= players.Length
+                || !usedSlots.Add(peer.PlayerSlot)
+                || !usedSteamIds.Add(peer.SteamId.Value))
+            {
+                return false;
+            }
+
+            highestSlot = Mathf.Max(highestSlot, peer.PlayerSlot);
+            foundLocalSlot |= peer.PlayerSlot == roster.LocalPlayerSlot;
+            foundHostInSlotZero |=
+                peer.PlayerSlot == 0
+                && peer.SteamId.Value == roster.HostSteamId.Value;
+        }
+
+        if (!foundLocalSlot || !foundHostInSlotZero)
+        {
+            return false;
+        }
+
+        slotCount = Mathf.Max(2, highestSlot + 1);
+        return slotCount <= players.Length;
+    }
+
     private void ApplyOnlineRoster(OnlineMatchRoster roster)
     {
         ResetOnlineRosterState();
@@ -5929,6 +6201,48 @@ public class GameManager : MonoBehaviour
             if (peer.PlayerSlot != localPlayerIndex && remotePlayerIndex < 0)
             {
                 remotePlayerIndex = peer.PlayerSlot;
+            }
+        }
+    }
+
+    private void ApplyOnlineRosterSlotOccupancy(
+        OnlineMatchRoster roster,
+        int slotCount,
+        bool preserveExistingDisconnects,
+        HashSet<int> newlyOccupiedSlots)
+    {
+        int boundedSlotCount = Mathf.Min(slotCount, players.Length);
+        for (int slot = 0; slot < boundedSlotCount; slot++)
+        {
+            bool occupied = roster != null
+                && roster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _);
+            bool newlyOccupied = newlyOccupiedSlots != null && newlyOccupiedSlots.Contains(slot);
+            bool alreadyDisconnected =
+                onlineDisconnectedSlots.Contains(slot)
+                || (players[slot] != null && !players[slot].isConnected);
+
+            if (!occupied)
+            {
+                onlineDisconnectedSlots.Add(slot);
+                ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: false);
+                continue;
+            }
+
+            if (!preserveExistingDisconnects
+                || newlyOccupied
+                || !alreadyDisconnected)
+            {
+                onlineDisconnectedSlots.Remove(slot);
+                if (players[slot] != null)
+                {
+                    players[slot].isConnected = true;
+                }
+            }
+            else
+            {
+                // A peer that disconnected earlier stays eliminated when an unrelated player joins.
+                onlineDisconnectedSlots.Add(slot);
+                ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: false);
             }
         }
     }
@@ -6063,12 +6377,15 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        return playerCount < players.Length;
+        int participantCount = activeOnlineRoster != null
+            ? activeOnlineRoster.PlayerCount
+            : playerCount;
+        return participantCount < players.Length;
     }
 
     public bool CanStartOrRefreshOnlineLobby(OnlineMatchRoster roster)
     {
-        if (roster == null || roster.PlayerCount < 2 || roster.PlayerCount > players.Length)
+        if (!TryGetOnlineRosterSlotCount(roster, out int _))
         {
             return false;
         }

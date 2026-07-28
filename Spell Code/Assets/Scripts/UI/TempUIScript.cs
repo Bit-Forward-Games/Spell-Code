@@ -826,12 +826,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             visible);
     }
 
-    // Shows the shared online-entry label for the entire handshake. Invite joiners see "JOINING
-    // MATCH..." while a lobby owner whose guest has arrived sees "STARTING MATCH...".
-    // Visibility is the pending window, NOT the lobby manager's own flags: those both clear the
-    // moment StartOnlineMatch runs, which is still one opponent-ready handshake short of the sim
-    // actually running. The label has to survive that tail, otherwise it disappears while the
-    // screen is still empty.
+    // Shows the shared online-entry label for the match-start handshake. A VS Friends lobby still
+    // counts as an online entry while it gathers players (that broader window suppresses gameplay
+    // prompts), but it is not joining/starting a match until the host presses Start Match.
     private void RefreshJoiningMatchText(bool onlineEntryPending)
     {
         if (joiningMatchText == null)
@@ -842,8 +839,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         bool starting = lobbyManager != null && lobbyManager.IsStartingMatch;
         bool joining = lobbyManager != null && lobbyManager.IsJoiningMatch;
+        bool gatheringParty =
+            lobbyManager != null
+            && lobbyManager.IsPartyEntryPending
+            && !lobbyManager.IsPartyMatchStartRequested
+            && (!lobbyManager.IsInPartyLobby || lobbyManager.IsPartyLobbyWaitingForHostStart);
+        bool showMatchStatus = onlineEntryPending && !gatheringParty;
 
-        if (onlineEntryPending)
+        if (showMatchStatus)
         {
             // Latch the wording: the role flags go quiet for the last stretch of the window, and the
             // host's label must not flip to "JOINING MATCH..." on the way out.
@@ -866,13 +869,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             joiningMatchStatusText = null;
         }
 
-        if (onlineEntryPending == joiningMatchShown)
+        if (showMatchStatus == joiningMatchShown)
         {
             return;
         }
 
-        joiningMatchShown = onlineEntryPending;
-        SetJoiningMatchVisible(onlineEntryPending);
+        joiningMatchShown = showMatchStatus;
+        SetJoiningMatchVisible(showMatchStatus);
     }
 
     private void SetJoiningMatchVisible(bool visible)

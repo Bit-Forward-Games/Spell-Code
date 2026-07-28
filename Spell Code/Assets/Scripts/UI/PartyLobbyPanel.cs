@@ -26,7 +26,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
     [System.Serializable]
     public class SlotWidgets
     {
-        [Tooltip("The slot button. Only the host's empty slots are interactable.")]
+        [Tooltip("The slot button. Every profile remains selectable; only a host confirming an empty friend slot performs an invite.")]
         public Button button;
 
         [Tooltip("Shows the occupant's Steam name, or the empty-slot prompt.")]
@@ -126,7 +126,12 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         // After the refreshes, so interactable states are current before focus is chosen.
         MaintainFreeze();
-        MaintainFocus();
+        if (!gameModeMenuOpen)
+        {
+            // The game-mode chooser is a sibling of panelRoot. Reclaiming lobby focus while it is
+            // open would immediately steal selection from the mode button focused above.
+            MaintainFocus();
+        }
 
         LogLobbyDiagnostics();
 
@@ -188,9 +193,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
     // ----------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Friend Profile button. On an empty slot the host opens the Steam invite overlay. Steam has no
-    /// concept of inviting into a particular slot, so the index is presentational -- whoever accepts
-    /// takes the first free one.
+    /// Friend Profile button. On an empty slot the host opens the Steam invite overlay and reserves
+    /// that exact P-number for the next member who accepts.
     /// </summary>
     public void OnSlotPressed(int slotIndex)
     {
@@ -328,8 +332,9 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
             if (widgets.button != null)
             {
-                // Only the host has anything to do with a slot, and only with an empty one.
-                widgets.button.interactable = isHost && !occupied;
+                // Profiles remain navigable for hosts and guests. OnSlotPressed is still the action
+                // authority: occupied/host profiles and all guest presses are deliberate no-ops.
+                widgets.button.interactable = true;
             }
         }
     }
@@ -359,7 +364,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
         {
             startMatchLabel.text = startMatchText;
         }
-        else if (lobby != null && !lobby.IsPartyLobbyWaitingForHostStart)
+        else if (lobby != null
+            && (lobby.IsPartyMatchStartRequested || !lobby.IsPartyLobbyWaitingForHostStart))
         {
             startMatchLabel.text = startingText;
         }

@@ -185,7 +185,9 @@ public class ProjectileManager : MonoBehaviour
         //loop through all players
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
-            if (GameManager.Instance.players[i] == null || GameManager.Instance.players[i].charData == null)
+            if (GameManager.Instance.players[i] == null
+                || !GameManager.Instance.IsPlayerSlotConnected(i)
+                || GameManager.Instance.players[i].charData == null)
             {
                 continue;
             }

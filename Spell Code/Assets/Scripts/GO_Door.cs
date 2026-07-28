@@ -139,7 +139,8 @@ public class GO_Door : MonoBehaviour
     public bool CheckOpenDoor()
     {
 
-        if (GameManager.Instance.playerCount > 1)
+        int activePlayerCount = GameManager.Instance.ActivePlayerCount;
+        if (activePlayerCount > 1)
         {
             isOpen = true;
         }
@@ -153,9 +154,9 @@ public class GO_Door : MonoBehaviour
             return isOpen;
         }
         
-        if (GameManager.Instance.playerCount != animator.GetInteger("numPlayers"))
+        if (activePlayerCount != animator.GetInteger("numPlayers"))
         {
-            animator.SetInteger("numPlayers", GameManager.Instance.playerCount);
+            animator.SetInteger("numPlayers", activePlayerCount);
         }
         return isOpen;
     }

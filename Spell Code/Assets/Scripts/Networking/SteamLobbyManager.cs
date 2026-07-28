@@ -26,12 +26,10 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-20"; // scz-20: online lobby handshake reworked lobbies now declare a
-                                                    // lobbyMode ("party" holds the start until the host presses Start,
-                                                    // "quick" auto-starts), carry a gameMode id, and Quick Match
-                                                    // advertises a SET of accepted sizes (mmsize_2 / mmsize_4) instead of
-                                                    // one "size" bucket. An scz-19 peer would auto-start a party lobby
-                                                    // out from under its host, so the two builds must not pair.
+    private const string NetcodeVersion = "scz-21"; // scz-21: sparse party assignments preserve their P1-P4 slot span
+                                                    // in rollback/input state (P1+P3 serializes an inert P2 slot).
+                                                    // scz-20 compacted that roster to two objects, so the builds must
+                                                    // not match with one another.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -138,6 +136,8 @@ public class SteamLobbyManager : MonoBehaviour
     // Slot the host most recently opened the invite overlay for, claimed by the next member to join.
     // -1 = no reservation, take the first free slot. See InviteToParty(int).
     private int pendingInviteSlot = -1;
+    private float pendingInviteSlotExpiresAt;
+    private const float PendingInviteSlotLifetimeSeconds = 300f;
     private OnlineGameModeSelection localPartyGameMode = OnlineGameModeSelection.Default;
 
     // Per-frame cache for the slot readout the party UI polls. Rebuilt at most once a frame because
@@ -187,7 +187,7 @@ public class SteamLobbyManager : MonoBehaviour
         && currentLobby.HasValue
         && currentLobby.Value.Id == activeHostedLobbyId.Value
         && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId)
-        && !IsPartyLobbyWaitingForHostStart
+        && (!IsPartyLobbyWaitingForHostStart || IsPartyMatchStartRequested)
         && (Time.unscaledTime < startingMatchStatusVisibleUntil
             || Time.frameCount <= startingMatchStatusVisibleThroughFrame
             || (startingHostedMatch
@@ -231,6 +231,12 @@ public class SteamLobbyManager : MonoBehaviour
         IsInPartyLobby
         && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         && currentLobby.Value.GetData(MatchReadyKey) != "1";
+
+    /// <summary>True on the host immediately after Start Match is pressed, before lobby data propagates.</summary>
+    public bool IsPartyMatchStartRequested =>
+        IsInPartyLobby
+        && partyStartRequested
+        && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive);
 
     /// <summary>
     /// True from the moment VS Friends is chosen until the party match actually starts. Covers the
@@ -327,9 +333,8 @@ public class SteamLobbyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Empty-slot button handler: opens the Steam invite overlay so the host can pick a friend. Steam
-    /// has no notion of inviting into a specific slot, so the slot index is presentational only -- the
-    /// host assigns whoever accepts to the first free slot.
+    /// Empty-slot button handler: opens the Steam invite overlay so the host can pick a friend. With
+    /// no requested slot, whoever accepts takes the first free guest slot.
     /// </summary>
     public bool InviteToParty()
     {
@@ -348,7 +353,9 @@ public class SteamLobbyManager : MonoBehaviour
     /// </summary>
     public bool InviteToParty(int slotIndex)
     {
-        if (!IsPartyHost)
+        if (!IsPartyHost
+            || partyStartRequested
+            || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
         {
             return false;
         }
@@ -364,12 +371,21 @@ public class SteamLobbyManager : MonoBehaviour
 
         // Slot 0 is the host and can never be reserved for a guest.
         pendingInviteSlot = (slotIndex > 0 && slotIndex < TargetOnlineLobbySize) ? slotIndex : -1;
+        pendingInviteSlotExpiresAt = pendingInviteSlot >= 0
+            ? Time.unscaledTime + PendingInviteSlotLifetimeSeconds
+            : 0f;
         if (debugLogs)
         {
             Debug.Log($"[SteamLobbyManager] Opening invite overlay. ReservedSlot={pendingInviteSlot} (P{pendingInviteSlot + 1})");
         }
 
-        return TryOpenInviteOverlay();
+        bool overlayOpened = TryOpenInviteOverlay();
+        if (!overlayOpened)
+        {
+            pendingInviteSlot = -1;
+            pendingInviteSlotExpiresAt = 0f;
+        }
+        return overlayOpened;
     }
 
     /// <summary>Host-only. Publishes the chosen game mode so every member starts on the same rules.</summary>
@@ -378,7 +394,9 @@ public class SteamLobbyManager : MonoBehaviour
         OnlineGameModeSelection selection = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         localPartyGameMode = selection;
 
-        if (!IsPartyHost)
+        if (!IsPartyHost
+            || partyStartRequested
+            || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
         {
             return false;
         }
@@ -416,7 +434,27 @@ public class SteamLobbyManager : MonoBehaviour
             return false;
         }
 
+        OnlineMatchRoster roster = BuildRoster(currentLobby.Value);
+        if (GameManager.Instance == null
+            || roster == null
+            || !GameManager.Instance.CanStartOrRefreshOnlineLobby(roster))
+        {
+            Debug.LogWarning("[SteamLobbyManager] Start Match ignored; the party roster is not ready yet.");
+            return false;
+        }
+
         partyStartRequested = true;
+        // Party membership is mutable only while gathering in the lobby. Freezing it before the
+        // ready/token handshake prevents an in-flight invite from changing different peers' rollback
+        // slot layouts on different frames.
+        currentLobby.Value.SetJoinable(false);
+        startingHostedMatch = true;
+        startingMatchStatusVisibleUntil = Mathf.Max(
+            startingMatchStatusVisibleUntil,
+            Time.unscaledTime + MatchStatusMinimumVisibleSeconds);
+        startingMatchStatusVisibleThroughFrame = Mathf.Max(
+            startingMatchStatusVisibleThroughFrame,
+            Time.frameCount + 1);
         Debug.Log($"[SteamLobbyManager] Host started the party match. Members={PartyMemberCount} GameMode='{PartyGameMode.Id}'.");
         TryStartOnlineMatchFromLobby(currentLobby.Value);
         return true;
@@ -694,6 +732,8 @@ public class SteamLobbyManager : MonoBehaviour
     {
         SteamMatchmaking.OnLobbyEntered += HandleLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined += HandleLobbyMemberJoined;
+        SteamMatchmaking.OnLobbyMemberLeave += HandleLobbyMemberLeft;
+        SteamMatchmaking.OnLobbyMemberDisconnected += HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyCreated += HandleLobbyCreated;
         SteamFriends.OnGameLobbyJoinRequested += HandleGameLobbyJoinRequested;
     }
@@ -702,6 +742,8 @@ public class SteamLobbyManager : MonoBehaviour
     {
         SteamMatchmaking.OnLobbyEntered -= HandleLobbyEntered;
         SteamMatchmaking.OnLobbyMemberJoined -= HandleLobbyMemberJoined;
+        SteamMatchmaking.OnLobbyMemberLeave -= HandleLobbyMemberLeft;
+        SteamMatchmaking.OnLobbyMemberDisconnected -= HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyCreated -= HandleLobbyCreated;
         SteamFriends.OnGameLobbyJoinRequested -= HandleGameLobbyJoinRequested;
     }
@@ -733,7 +775,10 @@ public class SteamLobbyManager : MonoBehaviour
             UpdateQuickMatchBucket(currentLobby.Value);
             UpdateLobbyJoinableState(currentLobby.Value);
             TryStartOnlineMatchFromLobby(currentLobby.Value);
-            TrySendPendingLobbySnapshots(currentLobby.Value);
+            if (currentLobby.HasValue)
+            {
+                TrySendPendingLobbySnapshots(currentLobby.Value);
+            }
         }
     }
 
@@ -1224,6 +1269,7 @@ public class SteamLobbyManager : MonoBehaviour
         partyStartRequested = false;
         hostCreatedPartyLobby = false;
         pendingInviteSlot = -1;
+        pendingInviteSlotExpiresAt = 0f;
         partySlotCacheFrame = -1;
         resolvedQuickMatchBucket = -1;
         quickMatchBucketFullyKnown = false;
@@ -1549,6 +1595,15 @@ public class SteamLobbyManager : MonoBehaviour
         return lobby.GetData(LobbyModeKey) == LobbyModePartyValue;
     }
 
+    private bool IsPartyRosterFrozen(Lobby lobby)
+    {
+        return (IsPartyLobby(lobby) || hostCreatedPartyLobby)
+            && (partyStartRequested
+                || lobby.GetData(MatchReadyKey) == "1"
+                || startedCurrentLobbyMatch
+                || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive));
+    }
+
     private static bool IsQuickMatchLobby(Lobby lobby)
     {
         return lobby.GetData(LobbyModeKey) == LobbyModeQuickMatchValue
@@ -1824,6 +1879,12 @@ public class SteamLobbyManager : MonoBehaviour
 
         partySlotCacheFrame = -1;
 
+        if (IsPartyRosterFrozen(lobby))
+        {
+            Debug.LogWarning($"[SteamLobbyManager] Ignoring member {friend.Id.Value}; the party roster was frozen when Start Match was pressed.");
+            return;
+        }
+
         // A party lobby is not "starting" when someone joins -- it is filling. Latching the status
         // here would paint "STARTING MATCH..." over the VS Friends panel until the host pressed Start.
         if (activeHostedLobbyId.HasValue
@@ -1844,6 +1905,25 @@ public class SteamLobbyManager : MonoBehaviour
         TryStartOnlineMatchFromLobby(lobby);
     }
 
+    private void HandleLobbyMemberLeft(Lobby lobby, Friend friend)
+    {
+        if (isShuttingDown
+            || !currentLobby.HasValue
+            || lobby.Id != currentLobby.Value.Id)
+        {
+            return;
+        }
+
+        partySlotCacheFrame = -1;
+
+        // Slot metadata is keyed by Steam id. Remove it when a member leaves so accepting a later
+        // invite from a different profile button cannot resurrect that member's old P-number.
+        if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && friend.Id.IsValid)
+        {
+            lobby.SetData(GetSlotKey(friend.Id), string.Empty);
+        }
+    }
+
     private void TryStartOnlineMatchFromLobby(Lobby lobby)
     {
         if (GameManager.Instance == null)
@@ -1852,9 +1932,36 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        OnlineMatchRoster roster = BuildRoster(lobby);
+        // VS Friends has no drop-in phase: once Start is pressed, every peer keeps the exact sparse
+        // P1-P4 roster that was armed. Rebuilding players during live rollback would attach the new
+        // slot at different simulation frames on different machines.
+        if (GameManager.Instance.isOnlineMatchActive && IsPartyRosterFrozen(lobby))
+        {
+            return;
+        }
+
+        string publishedReady = lobby.GetData(MatchReadyKey);
+        string publishedStartToken = lobby.GetData(MatchStartTokenKey);
+        bool useFrozenPartyRoster = (IsPartyLobby(lobby) || hostCreatedPartyLobby)
+            && publishedReady == "1"
+            && !string.IsNullOrEmpty(publishedStartToken);
+
+        // Once the host commits a party start, derive the roster from that immutable token instead
+        // of live lobby membership. This closes the small Steam propagation race where an already
+        // accepted invite appears after SetJoinable(false) and would otherwise wedge existing guests
+        // on a different roster.
+        OnlineMatchRoster roster = useFrozenPartyRoster
+            ? BuildRosterFromMatchStartToken(lobby, publishedStartToken)
+            : BuildRoster(lobby);
         if (roster == null)
         {
+            if (useFrozenPartyRoster
+                && !MatchStartTokenContainsSteamId(publishedStartToken, SteamClient.SteamId))
+            {
+                Debug.LogWarning("[SteamLobbyManager] This party match already started with a frozen roster; leaving the closed lobby.");
+                ClearJoiningMatchStatus();
+                LeaveLobbyInternal();
+            }
             return;
         }
 
@@ -1863,7 +1970,9 @@ public class SteamLobbyManager : MonoBehaviour
         // Guests need no equivalent check: they only ever read matchReady, they never write it.
         bool holdForPartyStart = (IsPartyLobby(lobby) || hostCreatedPartyLobby) && !partyStartRequested;
 
-        string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
+        string expectedMatchStartToken = useFrozenPartyRoster
+            ? publishedStartToken
+            : BuildMatchStartToken(lobby, roster);
         if (GameManager.Instance.isOnlineMatchActive)
         {
             // NOTE: matchRunning is deliberately NOT refreshed here. It must keep naming the roster
@@ -1877,8 +1986,8 @@ public class SteamLobbyManager : MonoBehaviour
                 string currentToken = lobby.GetData(MatchStartTokenKey);
                 if (currentReady != "1" || currentToken != expectedMatchStartToken)
                 {
-                    lobby.SetData(MatchReadyKey, "1");
                     lobby.SetData(MatchStartTokenKey, expectedMatchStartToken);
+                    lobby.SetData(MatchReadyKey, "1");
                 }
             }
 
@@ -1917,8 +2026,14 @@ public class SteamLobbyManager : MonoBehaviour
                 // Loud, because arming a match is the one irreversible thing this method does. If a
                 // party lobby ever prints this without the host pressing Start, the hold is broken.
                 Debug.Log($"[SteamLobbyManager] Arming match. Members={roster.PlayerCount} lobbyMode='{lobby.GetData(LobbyModeKey)}' hostCreatedParty={hostCreatedPartyLobby} partyStartRequested={partyStartRequested}");
-                lobby.SetData(MatchReadyKey, "1");
+                if (IsPartyLobby(lobby) || hostCreatedPartyLobby)
+                {
+                    lobby.SetJoinable(false);
+                }
                 lobby.SetData(MatchStartTokenKey, expectedMatchStartToken);
+                // Ready is the commit marker. Publish it last so guests never observe "ready" with
+                // a stale/empty token and construct different initial rosters.
+                lobby.SetData(MatchReadyKey, "1");
             }
         }
 
@@ -1997,7 +2112,8 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        bool joinable = GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers();
+        bool joinable = !IsPartyRosterFrozen(lobby)
+            && GameManager.Instance.IsOnlineLobbyAcceptingAdditionalPlayers();
 
         // Quick Match lobbies that advertised several sizes must stop taking joins once the agreed
         // bucket is full, and must stay shut while any member's accepted sizes are still unknown --
@@ -2134,7 +2250,7 @@ public class SteamLobbyManager : MonoBehaviour
     {
         // The game mode is part of the token so a host who changes modes after arming the lobby
         // invalidates the old ready state instead of leaving a guest to start on the previous rules.
-        string token = $"{lobby.Id.Value}|{OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id}";
+        string token = $"{lobby.Id.Value}|{OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id}|r";
         if (roster?.Peers == null)
         {
             return token;
@@ -2152,6 +2268,113 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         return token;
+    }
+
+    private OnlineMatchRoster BuildRosterFromMatchStartToken(Lobby lobby, string token)
+    {
+        string expectedPrefix = $"{lobby.Id.Value}|";
+        if (string.IsNullOrEmpty(token)
+            || !token.StartsWith(expectedPrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        int rosterMarker = token.LastIndexOf("|r:", StringComparison.Ordinal);
+        if (rosterMarker < expectedPrefix.Length || rosterMarker >= token.Length - 3)
+        {
+            return null;
+        }
+
+        string[] encodedPeers = token.Substring(rosterMarker + 3)
+            .Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+        OnlineMatchRoster roster = new OnlineMatchRoster
+        {
+            LocalPlayerSlot = -1
+        };
+        HashSet<ulong> usedSteamIds = new HashSet<ulong>();
+        HashSet<int> usedSlots = new HashSet<int>();
+
+        for (int i = 0; i < encodedPeers.Length; i++)
+        {
+            int separator = encodedPeers[i].IndexOf('-');
+            if (separator <= 0
+                || separator >= encodedPeers[i].Length - 1
+                || !int.TryParse(encodedPeers[i].Substring(0, separator), out int playerSlot)
+                || !ulong.TryParse(encodedPeers[i].Substring(separator + 1), out ulong steamIdValue)
+                || playerSlot < 0
+                || playerSlot >= TargetOnlineLobbySize
+                || steamIdValue == 0UL
+                || !usedSlots.Add(playerSlot)
+                || !usedSteamIds.Add(steamIdValue))
+            {
+                Debug.LogWarning($"[SteamLobbyManager] Ignoring malformed frozen party roster token '{token}'.");
+                return null;
+            }
+
+            SteamId steamId = steamIdValue;
+            roster.Peers.Add(new OnlineMatchPeerInfo
+            {
+                SteamId = steamId,
+                PlayerSlot = playerSlot
+            });
+
+            if (playerSlot == 0)
+            {
+                roster.HostSteamId = steamId;
+            }
+
+            if (SameSteamId(steamId, SteamClient.SteamId))
+            {
+                roster.LocalPlayerSlot = playerSlot;
+            }
+        }
+
+        roster.Peers.Sort((a, b) => a.PlayerSlot.CompareTo(b.PlayerSlot));
+        if (!roster.HostSteamId.IsValid
+            || roster.LocalPlayerSlot < 0
+            || roster.Peers.Count < MinimumOnlineLobbyStartSize
+            || roster.Peers.Count > TargetOnlineLobbySize)
+        {
+            // A late joiner is intentionally absent from the committed token and therefore cannot
+            // enter this match. Existing members still decode and start from the same frozen roster.
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Local player is not part of frozen party roster '{token}'.");
+            }
+            return null;
+        }
+
+        return roster;
+    }
+
+    private bool MatchStartTokenContainsSteamId(string token, SteamId steamId)
+    {
+        if (!steamId.IsValid || string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        int rosterMarker = token.LastIndexOf("|r:", StringComparison.Ordinal);
+        if (rosterMarker < 0 || rosterMarker >= token.Length - 3)
+        {
+            return false;
+        }
+
+        string[] encodedPeers = token.Substring(rosterMarker + 3)
+            .Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < encodedPeers.Length; i++)
+        {
+            int separator = encodedPeers[i].IndexOf('-');
+            if (separator > 0
+                && separator < encodedPeers[i].Length - 1
+                && ulong.TryParse(encodedPeers[i].Substring(separator + 1), out ulong encodedSteamId)
+                && encodedSteamId == steamId.Value)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private OnlineMatchRoster BuildRoster(Lobby lobby)
@@ -2326,12 +2549,19 @@ public class SteamLobbyManager : MonoBehaviour
     // reservation cannot be consumed by the wrong machine.
     private int TakeSlotForNewMember(HashSet<int> usedSlots)
     {
-        if (pendingInviteSlot > 0
-            && pendingInviteSlot < TargetOnlineLobbySize
-            && !usedSlots.Contains(pendingInviteSlot))
+        // A reservation belongs to exactly one arriving member. Consume it even if the slot became
+        // unavailable while the overlay was open, otherwise it could incorrectly capture a later
+        // join and move that player away from the button the host used for them.
+        int reserved = Time.unscaledTime <= pendingInviteSlotExpiresAt
+            ? pendingInviteSlot
+            : -1;
+        pendingInviteSlot = -1;
+        pendingInviteSlotExpiresAt = 0f;
+
+        if (reserved > 0
+            && reserved < TargetOnlineLobbySize
+            && !usedSlots.Contains(reserved))
         {
-            int reserved = pendingInviteSlot;
-            pendingInviteSlot = -1;
             if (debugLogs)
             {
                 Debug.Log($"[SteamLobbyManager] Placing new member in reserved slot {reserved} (P{reserved + 1}).");

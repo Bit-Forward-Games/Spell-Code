@@ -330,6 +330,10 @@ public class FloppyPickup : MonoBehaviour
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
                 player = GameManager.Instance.players[i];
+                if (player == null || !GameManager.Instance.IsPlayerSlotConnected(i))
+                {
+                    continue;
+                }
 
                 FixedVec2 floppyPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
                 // Compute squared distance (avoid square root):

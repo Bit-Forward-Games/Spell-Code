@@ -301,6 +301,11 @@ public class VFX_Manager : MonoBehaviour
         //loop through each player
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            if (!GameManager.Instance.IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
             //define and instantiate an empty gameobject to help organize the particle systems
             GameObject _headingGameobject = new GameObject();
             _headingGameobject.transform.SetParent(VFX_Manager.Instance.gameObject.transform);

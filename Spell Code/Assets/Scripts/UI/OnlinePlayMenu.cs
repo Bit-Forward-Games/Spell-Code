@@ -54,6 +54,9 @@ public class OnlinePlayMenu : OnlineMenuPanel
             return;
         }
 
+        MaintainFreeze();
+        MaintainFocus();
+
         PollMenuInput(Back);
     }
 

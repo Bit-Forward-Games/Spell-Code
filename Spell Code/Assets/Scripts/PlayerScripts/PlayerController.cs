@@ -602,15 +602,23 @@ public class PlayerController : MonoBehaviour
         // onlineEntryPending is the wider window: a player respawning while an invite/Quick Match is
         // still connecting is not offline for presentation purposes, and must not put its prompt up
         // over the "JOINING/STARTING MATCH..." label. Purely local UI -- no sim state is read here.
+        // An online menu panel owning the screen counts as a modal menu here. The Friends Lobby lives
+        // in MainMenu and opens AFTER CloseGamemodesMenuForOnlineEntry has cleared every uiScript
+        // flag, so without this the code-mode prompt pops straight over the party lobby the moment
+        // VS Friends is chosen -- and dismissing it hands UI input and timeScale back to the player.
+        // The prompt belongs to a match that has actually started, which the panel closing signals.
+        bool onlineMenuOpen = OnlineMenuPanel.OpenPanelCount > 0;
+
         bool showOfflinePrompt = !onlineMatch
             && !onlineMatchInitializing
             && !onlineEntryPending
+            && !onlineMenuOpen
             && !pause.uiScript.soloGamemodesMenuOpened
             && !pause.uiScript.multiplayerGamemodesMenuOpened
             && !pause.paused;
         if (showOfflinePrompt && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
-        if (!pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu") 
+        if (!onlineMenuOpen && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }

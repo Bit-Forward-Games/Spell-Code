@@ -90,6 +90,9 @@ public class QuickMatchPanel : OnlineMenuPanel
         RefreshFindMatchButton();
         RefreshStatus();
 
+        MaintainFreeze();
+        MaintainFocus();
+
         PollMenuInput(Back);
     }
 

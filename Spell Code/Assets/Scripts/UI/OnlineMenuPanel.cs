@@ -262,6 +262,69 @@ public abstract class OnlineMenuPanel : MonoBehaviour
     }
 
     /// <summary>
+    /// Keeps a usable Selectable focused while the panel is open. Without this, focus can end up on
+    /// nothing at all -- e.g. firstSelected points at Start Match, which is non-interactable until a
+    /// second player joins, so it silently refuses focus and directional navigation has no origin.
+    /// A prompt that stole focus and then closed leaves the same hole. Cheap: it early-outs unless
+    /// the current selection is actually unusable.
+    /// </summary>
+    protected void MaintainFocus()
+    {
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null || panelRoot == null)
+        {
+            return;
+        }
+
+        GameObject current = eventSystem.currentSelectedGameObject;
+        if (current != null
+            && current.activeInHierarchy
+            && current.transform.IsChildOf(panelRoot.transform))
+        {
+            UnityEngine.UI.Selectable selectable = current.GetComponent<UnityEngine.UI.Selectable>();
+            if (selectable != null && selectable.IsInteractable())
+            {
+                return;
+            }
+        }
+
+        UnityEngine.UI.Selectable preferred = firstSelected != null
+            ? firstSelected.GetComponent<UnityEngine.UI.Selectable>()
+            : null;
+        if (preferred != null && preferred.gameObject.activeInHierarchy && preferred.IsInteractable())
+        {
+            eventSystem.SetSelectedGameObject(preferred.gameObject);
+            return;
+        }
+
+        UnityEngine.UI.Selectable[] candidates =
+            panelRoot.GetComponentsInChildren<UnityEngine.UI.Selectable>(false);
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i] != null
+                && candidates[i].IsInteractable()
+                && candidates[i].gameObject.activeInHierarchy)
+            {
+                eventSystem.SetSelectedGameObject(candidates[i].gameObject);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Re-asserts the pause while the panel is open. Other systems reset timeScale out from under
+    /// us -- CloseCodeModeMenuPrompt sets it back to 1 unconditionally, for one -- and a panel that
+    /// is meant to freeze the game must not silently stop freezing it.
+    /// </summary>
+    protected void MaintainFreeze()
+    {
+        if (IsOpen && freezeGameWhileOpen && Time.timeScale != 0f)
+        {
+            Time.timeScale = 0f;
+        }
+    }
+
+    /// <summary>
     /// Finds a sibling menu controller without needing it dragged into the Inspector. These three
     /// components are all meant to sit on the same persistent object, so an unassigned reference is
     /// almost always "same GameObject" -- and a field typed as a component cannot accept the panel

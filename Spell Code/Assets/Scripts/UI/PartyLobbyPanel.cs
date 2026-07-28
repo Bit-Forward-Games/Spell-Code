@@ -124,6 +124,10 @@ public class PartyLobbyPanel : OnlineMenuPanel
         RefreshGameMode();
         RefreshStatus();
 
+        // After the refreshes, so interactable states are current before focus is chosen.
+        MaintainFreeze();
+        MaintainFocus();
+
         PollMenuInput(HandleCancel);
     }
 

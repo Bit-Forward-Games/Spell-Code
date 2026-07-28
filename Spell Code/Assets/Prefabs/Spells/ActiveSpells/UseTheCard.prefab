@@ -52,5 +52,5 @@ MonoBehaviour:
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 778aca859a0eb2545a5f8f0612787162, type: 3}
   notReadyIcon: {fileID: 21300000, guid: a0d41f68d0133544597acba2de41c54f, type: 3}
-  SpellGIF: {fileID: 11400000, guid: 9866f91ca638d944392cf777c9f047ed, type: 2}
+  SpellVideo: {fileID: 32900000, guid: bc1fd941f845f054f9e9365a0c6f890b, type: 3}
   doesCrit: 0

@@ -356,27 +356,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_Tiles.Array.data[12681].second.m_TileObjectToInstantiateIndex
-      value: 65535
-      objectReference: {fileID: 0}
-    - target: {fileID: 4202372651526213820, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_text
-      value: Holding x puts you in an armored state. Basic Attacks cannot pierce
-        armor. Try one on the armored bot.
-      objectReference: {fileID: 0}
-    - target: {fileID: 4879613695797683855, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: npc
-      value: 
-      objectReference: {fileID: 1212670699}
-    - target: {fileID: 4879613695797683855, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: textSetter
-      value: 
-      objectReference: {fileID: 978990245}
-    - target: {fileID: 4879613695797683855, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: blockingDisplay
-      value: 
-      objectReference: {fileID: 978990247}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -432,28 +411,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: cf9ff075889653145904aa04bae7428c, type: 3}
---- !u!114 &978990245 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3436151116240837933, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-  m_PrefabInstance: {fileID: 978990243}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66d22b5fa4cc8bb4ca14f876dc3f8a10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TextSetter
---- !u!114 &978990247 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4202372651526213820, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-  m_PrefabInstance: {fileID: 978990243}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1013759790
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,17 +648,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1137343025}
   m_CullTransparentMesh: 1
---- !u!114 &1212670699 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4480974881053222495, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-  m_PrefabInstance: {fileID: 978990243}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8d082d44c8ed57408fff74c92a74a82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1938499277
 PrefabInstance:
   m_ObjectHideFlags: 0

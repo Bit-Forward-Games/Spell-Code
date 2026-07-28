@@ -7,7 +7,7 @@ using System.IO;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using System;
-using GifImporter;
+using UnityEngine.Video;
 
 /*public enum SpellDirection 
 { 
@@ -116,7 +116,8 @@ public abstract class SpellData : MonoBehaviour
     public Sprite readyIcon;
     public Sprite notReadyIcon;
 
-    public Gif SpellGIF;
+    [Tooltip("Drag the spell's MP4 VideoClip here.")]
+    public VideoClip SpellVideo;
 
 
     private void Awake()

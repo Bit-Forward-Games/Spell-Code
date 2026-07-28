@@ -3367,6 +3367,7 @@ public class PlayerController : MonoBehaviour
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
             }    
 
+            ResetSpellResources();
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 
             currentPlayerHealth = 0;

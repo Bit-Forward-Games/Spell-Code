@@ -1153,6 +1153,11 @@ public class SteamLobbyManager : MonoBehaviour
             partyStartRequested = false;
             hostCreatedPartyLobby = true;
 
+            // The host is not joining anything -- it is hosting. joiningMatchRequested is static and
+            // survives scene rebuilds, so any stale "JOINING MATCH..." left over from an earlier
+            // invite would otherwise sit on screen for the whole party lobby.
+            ClearJoiningMatchStatus();
+
             // Open on the first mode authored in the chooser panel, so the lobby's "Selected
             // GameMode" label starts on something the menu can actually show. Falls back to the
             // built-in default when no modes have been authored yet.

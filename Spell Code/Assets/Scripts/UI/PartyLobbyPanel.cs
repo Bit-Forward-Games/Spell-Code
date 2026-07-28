@@ -128,7 +128,43 @@ public class PartyLobbyPanel : OnlineMenuPanel
         MaintainFreeze();
         MaintainFocus();
 
+        LogLobbyDiagnostics();
+
         PollMenuInput(HandleCancel);
+    }
+
+    // Throttled state dump. Three symptoms (character walking, dead navigation, a stuck status
+    // label) all come down to values that are invisible from outside, so print them once a second
+    // rather than guess which one is causing the others.
+    private float nextDiagnosticTime;
+
+    private void LogLobbyDiagnostics()
+    {
+        if (Time.unscaledTime < nextDiagnosticTime)
+        {
+            return;
+        }
+        nextDiagnosticTime = Time.unscaledTime + 1f;
+
+        SteamLobbyManager lobby = Lobby;
+        UnityEngine.EventSystems.EventSystem eventSystem = UnityEngine.EventSystems.EventSystem.current;
+        GameObject selected = eventSystem != null ? eventSystem.currentSelectedGameObject : null;
+
+        int interactableSlots = 0;
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] != null && slots[i].button != null && slots[i].button.interactable)
+            {
+                interactableSlots++;
+            }
+        }
+
+        Debug.Log(
+            $"[PartyLobbyPanel] open={IsOpen} panels={OpenPanelCount} timeScale={Time.timeScale} " +
+            $"freeze={freezeGameWhileOpen} isHost={(lobby != null && lobby.IsPartyHost)} " +
+            $"members={(lobby != null ? lobby.PartyMemberCount : 0)} interactableSlots={interactableSlots} " +
+            $"selected={(selected != null ? selected.name : "NONE")} " +
+            $"joining={(lobby != null && lobby.IsJoiningMatch)} starting={(lobby != null && lobby.IsStartingMatch)}");
     }
 
     protected override void OnOpened()

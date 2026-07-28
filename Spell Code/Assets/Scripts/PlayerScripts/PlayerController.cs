@@ -618,7 +618,10 @@ public class PlayerController : MonoBehaviour
             && !pause.paused;
         if (showOfflinePrompt && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
-        if (!onlineMenuOpen && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
+        // onlineEntryPending matters here too: the panel-based guard above only covers the window
+        // where a panel is actually open, and choosing VS Friends spends a scene transition plus an
+        // async lobby creation with no panel up at all.
+        if (!onlineMenuOpen && !onlineEntryPending && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }

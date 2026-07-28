@@ -134,6 +134,10 @@ public class SteamLobbyManager : MonoBehaviour
     // started. This local flag makes the host's own hold unconditional -- and the host is the only
     // client that can arm a match, so it is sufficient on its own.
     private bool hostCreatedPartyLobby;
+
+    // Slot the host most recently opened the invite overlay for, claimed by the next member to join.
+    // -1 = no reservation, take the first free slot. See InviteToParty(int).
+    private int pendingInviteSlot = -1;
     private OnlineGameModeSelection localPartyGameMode = OnlineGameModeSelection.Default;
 
     // Per-frame cache for the slot readout the party UI polls. Rebuilt at most once a frame because
@@ -228,6 +232,17 @@ public class SteamLobbyManager : MonoBehaviour
         && !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         && currentLobby.Value.GetData(MatchReadyKey) != "1";
 
+    /// <summary>
+    /// True from the moment VS Friends is chosen until the party match actually starts. Covers the
+    /// gap the Friends Lobby panel cannot: the deferred MainMenu transition and the async lobby
+    /// creation, during which no panel is open yet and nothing else marks the player as "entering an
+    /// online match" -- which is exactly when the code-mode prompt used to pop up over the lobby.
+    /// Goes false once the match is live, so the prompt appears normally after Start Match.
+    /// </summary>
+    public bool IsPartyEntryPending =>
+        !(GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        && (pendingPartyHostRequested || IsInPartyLobby);
+
     /// <summary>Members currently sitting in the party lobby, host included.</summary>
     public int PartyMemberCount => currentLobby.HasValue ? currentLobby.Value.MemberCount : 0;
 
@@ -318,6 +333,21 @@ public class SteamLobbyManager : MonoBehaviour
     /// </summary>
     public bool InviteToParty()
     {
+        return InviteToParty(-1);
+    }
+
+    /// <summary>
+    /// Opens the Steam invite overlay and RESERVES the given slot for whoever accepts, so the button
+    /// the host pressed decides that player's number (slot 1 = P2, slot 2 = P3, slot 3 = P4).
+    ///
+    /// Steam itself has no concept of inviting into a slot -- an invite is just an invite -- so the
+    /// reservation is held locally by the host and consumed by the next member to arrive. Pressing a
+    /// different slot before anyone accepts simply moves the reservation. If someone joins without an
+    /// invite (Steam's "Join Game" on a friend), there is no reservation and they take the first free
+    /// slot, which is the old behaviour.
+    /// </summary>
+    public bool InviteToParty(int slotIndex)
+    {
         if (!IsPartyHost)
         {
             return false;
@@ -330,6 +360,13 @@ public class SteamLobbyManager : MonoBehaviour
                 Debug.Log("[SteamLobbyManager] Invite ignored; the party lobby is already full.");
             }
             return false;
+        }
+
+        // Slot 0 is the host and can never be reserved for a guest.
+        pendingInviteSlot = (slotIndex > 0 && slotIndex < TargetOnlineLobbySize) ? slotIndex : -1;
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Opening invite overlay. ReservedSlot={pendingInviteSlot} (P{pendingInviteSlot + 1})");
         }
 
         return TryOpenInviteOverlay();
@@ -1181,6 +1218,7 @@ public class SteamLobbyManager : MonoBehaviour
         // latched would arm the NEXT party lobby's match the instant a second member walked in.
         partyStartRequested = false;
         hostCreatedPartyLobby = false;
+        pendingInviteSlot = -1;
         partySlotCacheFrame = -1;
         resolvedQuickMatchBucket = -1;
         quickMatchBucketFullyKnown = false;
@@ -2246,7 +2284,7 @@ public class SteamLobbyManager : MonoBehaviour
                 continue;
             }
 
-            int slot = GetFirstOpenSlot(usedSlots);
+            int slot = TakeSlotForNewMember(usedSlots);
             if (slot < 0)
             {
                 continue;
@@ -2276,6 +2314,27 @@ public class SteamLobbyManager : MonoBehaviour
     private bool SameSteamId(SteamId a, SteamId b)
     {
         return a.IsValid && b.IsValid && a.Value == b.Value;
+    }
+
+    // Honours the slot the host invited from, if it is still free, then falls back to the first open
+    // one. Only ever reached on the host (BuildAssignedSlots returns early for guests), so the
+    // reservation cannot be consumed by the wrong machine.
+    private int TakeSlotForNewMember(HashSet<int> usedSlots)
+    {
+        if (pendingInviteSlot > 0
+            && pendingInviteSlot < TargetOnlineLobbySize
+            && !usedSlots.Contains(pendingInviteSlot))
+        {
+            int reserved = pendingInviteSlot;
+            pendingInviteSlot = -1;
+            if (debugLogs)
+            {
+                Debug.Log($"[SteamLobbyManager] Placing new member in reserved slot {reserved} (P{reserved + 1}).");
+            }
+            return reserved;
+        }
+
+        return GetFirstOpenSlot(usedSlots);
     }
 
     private int GetFirstOpenSlot(HashSet<int> usedSlots)

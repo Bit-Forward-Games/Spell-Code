@@ -221,7 +221,10 @@ public class GameManager : MonoBehaviour
             }
 
             SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
-            return lobbyManager != null && (lobbyManager.IsJoiningMatch || lobbyManager.IsStartingMatch);
+            return lobbyManager != null
+                && (lobbyManager.IsJoiningMatch
+                    || lobbyManager.IsStartingMatch
+                    || lobbyManager.IsPartyEntryPending);
         }
     }
 

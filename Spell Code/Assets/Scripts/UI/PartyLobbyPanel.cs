@@ -171,7 +171,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
             return;
         }
 
-        lobby.InviteToParty();
+        // Pass the slot so the button decides the invited player's number: slot 1 = P2, 2 = P3, 3 = P4.
+        lobby.InviteToParty(slotIndex);
     }
 
     /// <summary>Host-only "Start Match".</summary>

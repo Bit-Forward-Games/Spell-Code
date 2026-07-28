@@ -696,6 +696,12 @@ public class SteamLobbyManager : MonoBehaviour
 
     public async void HostAndInvite()
     {
+        // This creates a lobby with NO lobbyMode, which means it AUTO-STARTS as soon as a second
+        // member joins. That is correct for the legacy host+invite flow but catastrophic if it runs
+        // during VS Friends -- the party lobby would be bypassed entirely. Loud on purpose: if this
+        // appears in a VS Friends test, something is still routing through the old entry point.
+        Debug.LogWarning("[SteamLobbyManager] HostAndInvite() -- creating a LEGACY auto-starting lobby (no lobbyMode). This is NOT the VS Friends party lobby.");
+
         if (isShuttingDown || !SteamClient.IsValid)
         {
             Debug.LogError("Steam is not running or is shutting down. Cannot host online match.");

@@ -662,8 +662,20 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         TutorialPromptAnimation(0f, new Vector2(-212f, 62f), new Vector2(916f, 344f), new Vector2(1432f, 408f));
     }
 
+    /// <summary>
+    /// LEGACY entry point from the pre-rework online option. It used to call
+    /// OpenInviteOverlayOrHost, which creates a lobby WITHOUT a lobbyMode -- that lobby auto-starts
+    /// the instant a second member joins, so a stale button still wired to this would silently
+    /// bypass the VS Friends party lobby and drag everyone into a match the host never started.
+    ///
+    /// It now routes to the same party flow as VS Friends, so pressing any leftover copy of that
+    /// button does the right thing instead of the dangerous thing. Prefer wiring buttons to
+    /// OnlinePlayMenu.ChooseVsFriends; this exists only so old wiring cannot cause harm.
+    /// </summary>
     public void InvitePlayer()
     {
+        Debug.LogWarning("[TempUIScript] InvitePlayer() is the legacy online entry point -- redirecting to the VS Friends party lobby. Re-wire this button to OnlinePlayMenu.ChooseVsFriends.");
+
         CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
@@ -673,9 +685,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             return;
         }
 
-        if (!lobbyManager.OpenInviteOverlayOrHost())
+        if (!lobbyManager.HostPartyLobby())
         {
-            Debug.LogWarning("[TempUIScript] Online invite request could not be started.");
+            Debug.LogWarning("[TempUIScript] Online party lobby request could not be started.");
         }
     }
 

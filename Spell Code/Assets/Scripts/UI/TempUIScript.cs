@@ -599,6 +599,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             pause?.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
 
+            // An online sub-panel (Online Modes / Friends Lobby / Matchmaking) sits on top of this
+            // menu and owns confirm/back while it is up. Running both handlers would fire the
+            // focused button TWICE in one frame, and a single Back would collapse the whole door
+            // menu instead of stepping back one level. The scoping above still has to run every
+            // frame -- Pause re-evaluates device scoping from these flags continuously, so the
+            // flags must stay set or UI input falls back to the character.
+            if (OnlineMenuPanel.OpenPanelCount > 0)
+            {
+                return;
+            }
+
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();

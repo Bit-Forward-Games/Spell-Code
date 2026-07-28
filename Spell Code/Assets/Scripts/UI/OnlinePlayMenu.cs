@@ -39,10 +39,6 @@ public class OnlinePlayMenu : OnlineMenuPanel
     [Tooltip("The QuickMatchPanel COMPONENT (on pfb_GameManager), not the Matchmaking object.")]
     [SerializeField] private QuickMatchPanel matchmakingController;
 
-    // True while this menu has taken modality away from the door's multiplayer panel; see
-    // OpenOnlineModes for why that flag cannot simply be left set.
-    private bool suppressedMultiplayerMenuFlag;
-
     private void Update()
     {
         if (!IsOpen)
@@ -68,17 +64,13 @@ public class OnlinePlayMenu : OnlineMenuPanel
         // OnClick never fired". If this line is absent from the Console, the click never arrived.
         Debug.Log($"[OnlinePlayMenu] Online Play pressed. panelRoot={(panelRoot != null ? panelRoot.name : "MISSING")}", this);
 
-        TempUIScript tempUI = TempUI;
-        if (tempUI != null && tempUI.multiplayerGamemodesMenuOpened)
-        {
-            // Take modality over from the door's multiplayer panel. Leaving multiplayerGamemodesMenuOpened
-            // set would have TempUIScript's Update call TriggerSelectedButton() on the very same frame
-            // this panel does -- the focused button would fire twice -- and a Back press would collapse
-            // the whole door menu instead of stepping back one level. Back() puts the flag back.
-            suppressedMultiplayerMenuFlag = true;
-            tempUI.multiplayerGamemodesMenuOpened = false;
-        }
-
+        // multiplayerGamemodesMenuOpened stays SET while this panel is up. It is not just a
+        // bookkeeping flag: Pause re-evaluates UI device scoping from it every frame and calls
+        // RestoreUiInputDevices() the moment no menu flag is set -- which hands the sticks straight
+        // back to the character (it walks around, and the menu stops responding). PlayerController
+        // and Pause also gate the pause button and the code-mode prompt on it. TempUIScript.Update
+        // skips its own confirm/back handling while OnlineMenuPanel.OpenPanelCount > 0, which is what
+        // stops the double-fire this used to clear the flag to avoid.
         if (multiplayerGamemodesPanel != null)
         {
             multiplayerGamemodesPanel.SetActive(false);
@@ -95,9 +87,22 @@ public class OnlinePlayMenu : OnlineMenuPanel
     /// </summary>
     public void ChooseVsFriends()
     {
+        // Entry log first, unconditionally: it is the only way to tell "the handler ran and bailed"
+        // apart from "the click never got here", and those have completely different causes.
+        Debug.Log("[OnlinePlayMenu] VS Friends pressed.", this);
+
         if (!IsSteamReady())
         {
-            Debug.LogWarning("[OnlinePlayMenu] VS Friends unavailable; Steam is not running.");
+            // LogError, not LogWarning -- a warning is easy to miss or filter out of the Console,
+            // and without a message this looks identical to a dead button.
+            Debug.LogError(
+                "[OnlinePlayMenu] VS Friends needs Steam, which is unavailable. " +
+                $"SteamLobbyManager={(SteamLobbyManager.Instance != null ? "present" : "MISSING")}, " +
+                $"SteamClient.IsValid={Steamworks.SteamClient.IsValid}. " +
+                "In the Unity Editor this is expected: SteamManager.Awake disables itself under " +
+                "UNITY_EDITOR, so it never runs SteamClient.Init or creates the SteamLobbyManager. " +
+                "Test this in a player build.",
+                this);
             return;
         }
 
@@ -111,6 +116,8 @@ public class OnlinePlayMenu : OnlineMenuPanel
     /// </summary>
     public void ChooseVsTheWorld()
     {
+        Debug.Log("[OnlinePlayMenu] VS The World pressed.", this);
+
         QuickMatchPanel matchmaking = ResolveController(ref matchmakingController);
         if (matchmaking == null)
         {
@@ -126,7 +133,6 @@ public class OnlinePlayMenu : OnlineMenuPanel
     public void Back()
     {
         Close();
-        RestoreMultiplayerMenuModality();
 
         if (multiplayerGamemodesPanel != null)
         {
@@ -142,32 +148,14 @@ public class OnlinePlayMenu : OnlineMenuPanel
     }
 
     /// <summary>
-    /// Tears the whole door-menu stack down for an entry that is about to leave this scene. The
-    /// suppressed flag has to go back first: CloseGamemodesMenuForOnlineEntry does nothing at all
-    /// unless one of the gamemode-menu flags is set, and it is what releases timeScale and the
-    /// player-scoped UI input the door menu took.
+    /// Tears the whole door-menu stack down for an entry that is about to leave this scene.
+    /// CloseGamemodesMenuForOnlineEntry is what releases timeScale and the player-scoped UI input
+    /// the door menu took; it no-ops unless a gamemode-menu flag is set, which it still is.
     /// </summary>
     public void CloseForOnlineEntry()
     {
-        RestoreMultiplayerMenuModality();
         TempUI?.CloseGamemodesMenuForOnlineEntry();
         Close();
-    }
-
-    private void RestoreMultiplayerMenuModality()
-    {
-        if (!suppressedMultiplayerMenuFlag)
-        {
-            return;
-        }
-
-        suppressedMultiplayerMenuFlag = false;
-
-        TempUIScript tempUI = TempUI;
-        if (tempUI != null)
-        {
-            tempUI.multiplayerGamemodesMenuOpened = true;
-        }
     }
 
     /// <summary>Exposed so the Friends Lobby panel can hand control back here.</summary>

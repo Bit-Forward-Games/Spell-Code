@@ -1562,7 +1562,13 @@ public class Pause : MonoBehaviour
                 && uiScript.codeModePromptMenuOpened != null
                 && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.multiplayerGamemodesChooserMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
+            // OnlineMenuPanel.OpenPanelCount covers the online menus (Online Modes / Friends Lobby /
+            // Matchmaking). The Friends Lobby in particular opens in MainMenu AFTER
+            // CloseGamemodesMenuForOnlineEntry has cleared every uiScript flag, so without this it
+            // owns the screen while this method hands the devices straight back to the character --
+            // the player walks around behind the lobby and the panel stops responding.
+            if (OnlineMenuPanel.OpenPanelCount > 0
+                || (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.multiplayerGamemodesChooserMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen)))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;

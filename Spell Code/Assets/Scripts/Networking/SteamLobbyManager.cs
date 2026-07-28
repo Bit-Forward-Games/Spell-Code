@@ -121,6 +121,13 @@ public class SteamLobbyManager : MonoBehaviour
     // the host-side latch for that press; guests never write lobby data and simply wait for matchReady.
     private static bool pendingPartyHostRequested;
     private bool partyStartRequested;
+
+    // Set synchronously by CreatePartyLobbyAsync. The party hold must NOT depend solely on reading
+    // "lobbyMode" back out of Steam: that is an async round-trip, and if it ever returns empty for a
+    // frame the host publishes matchReady and every peer is yanked into a match the host never
+    // started. This local flag makes the host's own hold unconditional -- and the host is the only
+    // client that can arm a match, so it is sufficient on its own.
+    private bool hostCreatedPartyLobby;
     private OnlineGameModeSelection localPartyGameMode = OnlineGameModeSelection.Default;
 
     // Per-frame cache for the slot readout the party UI polls. Rebuilt at most once a frame because
@@ -1095,6 +1102,7 @@ public class SteamLobbyManager : MonoBehaviour
             startingMatchStatusVisibleUntil = 0f;
             startingMatchStatusVisibleThroughFrame = -1;
             partyStartRequested = false;
+            hostCreatedPartyLobby = true;
 
             // Open on the first mode authored in the chooser panel, so the lobby's "Selected
             // GameMode" label starts on something the menu can actually show. Falls back to the
@@ -1160,6 +1168,7 @@ public class SteamLobbyManager : MonoBehaviour
         // Party/Quick Match state belongs to the lobby that just went away. Leaving partyStartRequested
         // latched would arm the NEXT party lobby's match the instant a second member walked in.
         partyStartRequested = false;
+        hostCreatedPartyLobby = false;
         partySlotCacheFrame = -1;
         resolvedQuickMatchBucket = -1;
         quickMatchBucketFullyKnown = false;
@@ -1797,7 +1806,7 @@ public class SteamLobbyManager : MonoBehaviour
         // VS Friends: the lobby is deliberately held open. The host gathers up to four players and
         // decides when to go, so nothing may publish matchReady until StartPartyMatch sets this latch.
         // Guests need no equivalent check: they only ever read matchReady, they never write it.
-        bool holdForPartyStart = IsPartyLobby(lobby) && !partyStartRequested;
+        bool holdForPartyStart = (IsPartyLobby(lobby) || hostCreatedPartyLobby) && !partyStartRequested;
 
         string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
         if (GameManager.Instance.isOnlineMatchActive)
@@ -1850,6 +1859,9 @@ public class SteamLobbyManager : MonoBehaviour
             string currentToken = lobby.GetData(MatchStartTokenKey);
             if (currentReady != "1" || currentToken != expectedMatchStartToken)
             {
+                // Loud, because arming a match is the one irreversible thing this method does. If a
+                // party lobby ever prints this without the host pressing Start, the hold is broken.
+                Debug.Log($"[SteamLobbyManager] Arming match. Members={roster.PlayerCount} lobbyMode='{lobby.GetData(LobbyModeKey)}' hostCreatedParty={hostCreatedPartyLobby} partyStartRequested={partyStartRequested}");
                 lobby.SetData(MatchReadyKey, "1");
                 lobby.SetData(MatchStartTokenKey, expectedMatchStartToken);
             }

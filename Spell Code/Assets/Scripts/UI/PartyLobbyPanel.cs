@@ -328,12 +328,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
             if (widgets.button != null)
             {
-                // Deliberately ALWAYS interactable. Explicit navigation refuses to move onto a
-                // non-interactable Selectable -- it does not skip past it -- so disabling the host
-                // slot and filled slots turned every navigation link pointing at them into a dead
-                // end and focus could not move at all. Pressing one is already a no-op in
-                // OnSlotPressed; use the empty/occupied state objects to show availability.
-                widgets.button.interactable = true;
+                // Only the host has anything to do with a slot, and only with an empty one.
+                widgets.button.interactable = isHost && !occupied;
             }
         }
     }
@@ -346,10 +342,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         if (startMatchButton != null)
         {
-            // Stays interactable so it remains a valid navigation target (see RefreshSlots).
-            // StartMatch() already refuses when CanStartPartyMatch is false, and the label below
-            // tells the player why.
-            startMatchButton.interactable = true;
+            // A guest sees the button but can never press it; they are waiting on the host.
+            startMatchButton.interactable = canStart;
         }
 
         if (startMatchLabel == null)
@@ -401,9 +395,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         if (gameModeButton != null)
         {
-            // Same reasoning as the slot buttons: stays navigable. OpenGameModeMenu() already
-            // refuses for a guest, who can see the host's pick but not change it.
-            gameModeButton.interactable = true;
+            // Guests see the host's pick but cannot change it.
+            gameModeButton.interactable = lobby.IsPartyHost;
         }
 
         // Let each authored mode button show whether it is the current pick.

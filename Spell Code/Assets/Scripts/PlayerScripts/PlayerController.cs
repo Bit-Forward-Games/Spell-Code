@@ -1967,7 +1967,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide end frame to trigger onSlide spell conditions
-                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(2).Sum() + 1)
+                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(1).Sum() + 1)
                 {
                     // Check conditions of all spells with the onSlide condition
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnSlide);

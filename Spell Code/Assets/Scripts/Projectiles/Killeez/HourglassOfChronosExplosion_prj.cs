@@ -16,7 +16,7 @@ public class HourglassOfChronosExplosion_prj : BaseProjectile
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset, "Hourglass Of Chronos Explosion");
         activeHitboxGroupIndex = 0;

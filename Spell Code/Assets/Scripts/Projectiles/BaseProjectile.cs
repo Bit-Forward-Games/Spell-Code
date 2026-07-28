@@ -71,11 +71,11 @@ public abstract class BaseProjectile : MonoBehaviour
         
     }
 
-    public virtual void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    public virtual void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         //this.owner = owner;
         this.facingRight = facingRight;
-        position = owner.position + (new FixedVec2(spawnOffset.X * Fixed.FromInt((facingRight ? 1 : -1)), spawnOffset.Y));
+        position = useAbsolutePosition? spawnOffset : owner.position + new FixedVec2(spawnOffset.X * Fixed.FromInt(facingRight ? 1 : -1), spawnOffset.Y);
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
         SetInitialSpriteAlpha();

@@ -409,15 +409,22 @@ public class SteamLobbyManager : MonoBehaviour
     // all of them so a stricter searcher can still find it.
     // ------------------------------------------------------------------------------------------
 
+    // These four are STATIC on purpose. Which lobby sizes the player is willing to accept is a local
+    // preference -- it is pure UI state that happens to be read later when a search starts. Making
+    // them instance members meant the Matchmaking panel could not toggle anything unless a
+    // SteamLobbyManager existed, which is never true in the Editor (SteamManager disables itself
+    // under UNITY_EDITOR and never creates one), so the buttons were dead there for no good reason.
+    // The backing array was already static; only the accessors needed fixing.
+
     /// <summary>True if the local player would accept a match of this size.</summary>
-    public bool IsQuickMatchSizeSelected(int size)
+    public static bool IsQuickMatchSizeSelected(int size)
     {
         int index = IndexOfQuickMatchSize(size);
         return index >= 0 && quickMatchSizeSelected[index];
     }
 
     /// <summary>Sets (or clears) one of the size buttons.</summary>
-    public void SetQuickMatchSizeSelected(int size, bool selected)
+    public static void SetQuickMatchSizeSelected(int size, bool selected)
     {
         int index = IndexOfQuickMatchSize(size);
         if (index < 0)
@@ -429,7 +436,7 @@ public class SteamLobbyManager : MonoBehaviour
     }
 
     /// <summary>Size-button OnClick. Returns the new state so the UI can restyle itself.</summary>
-    public bool ToggleQuickMatchSize(int size)
+    public static bool ToggleQuickMatchSize(int size)
     {
         int index = IndexOfQuickMatchSize(size);
         if (index < 0)
@@ -441,8 +448,8 @@ public class SteamLobbyManager : MonoBehaviour
         return quickMatchSizeSelected[index];
     }
 
-    /// <summary>Whether Start Matchmaking should be interactable (at least one size chosen).</summary>
-    public bool HasQuickMatchSizeSelection
+    /// <summary>Whether Find Match should be interactable (at least one size chosen).</summary>
+    public static bool HasQuickMatchSizeSelection
     {
         get
         {

@@ -123,13 +123,9 @@ public class QuickMatchPanel : OnlineMenuPanel
     /// <summary>Toggles one lobby size on or off. Both may be on at once.</summary>
     public void ToggleLobbySize(int size)
     {
-        SteamLobbyManager lobby = Lobby;
-        if (lobby == null)
-        {
-            return;
-        }
-
-        lobby.ToggleQuickMatchSize(size);
+        // Deliberately does NOT require a SteamLobbyManager: this is a local preference, so the
+        // buttons stay usable in the Editor where Steam never initialises.
+        SteamLobbyManager.ToggleQuickMatchSize(size);
         RefreshSizeToggles();
         RefreshFindMatchButton();
     }
@@ -148,7 +144,7 @@ public class QuickMatchPanel : OnlineMenuPanel
             return;
         }
 
-        if (!lobby.HasQuickMatchSizeSelection)
+        if (!SteamLobbyManager.HasQuickMatchSizeSelection)
         {
             return;
         }
@@ -193,8 +189,6 @@ public class QuickMatchPanel : OnlineMenuPanel
 
     private void RefreshSizeToggles()
     {
-        SteamLobbyManager lobby = Lobby;
-
         for (int i = 0; i < sizeToggles.Length; i++)
         {
             SizeToggleWidgets toggle = sizeToggles[i];
@@ -203,7 +197,7 @@ public class QuickMatchPanel : OnlineMenuPanel
                 continue;
             }
 
-            bool selected = lobby != null && lobby.IsQuickMatchSizeSelected(toggle.size);
+            bool selected = SteamLobbyManager.IsQuickMatchSizeSelected(toggle.size);
 
             if (toggle.tintTarget != null)
             {
@@ -221,8 +215,7 @@ public class QuickMatchPanel : OnlineMenuPanel
 
     private void RefreshFindMatchButton()
     {
-        SteamLobbyManager lobby = Lobby;
-        bool canStart = lobby != null && lobby.HasQuickMatchSizeSelection;
+        bool canStart = SteamLobbyManager.HasQuickMatchSizeSelection;
 
         if (findMatchButton != null)
         {

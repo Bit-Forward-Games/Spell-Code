@@ -11,8 +11,14 @@ public class SteamLobbyManager : MonoBehaviour
     private const int MinimumOnlineLobbyStartSize = 2;
     private const string MatchReadyKey = "matchReady";
     private const string MatchStartTokenKey = "matchStartToken";
-    // Set by the host once its match is actually simulating. Anyone who arrives after that must come
-    // in through the lobby snapshot instead of cold-starting -- see TryStartOnlineMatchFromLobby.
+    // Holds the match-start TOKEN of the roster that actually went live, written by the host the
+    // moment its match starts and never rewritten afterwards. Empty means no match is running.
+    //
+    // It has to be the token, not a bare "1". Every member of a party lobby starts from the same
+    // press of Start Match, so the host publishes this at the same instant the guests are still
+    // deciding whether to start -- a bare flag makes every guest think it arrived late and wait for
+    // a snapshot the host has no reason to send. Comparing tokens instead answers the real question:
+    // "is the running match the same roster I am in, or one that formed before me?"
     private const string MatchRunningKey = "matchRunning";
     private const string LobbySlotKeyPrefix = "slot_";
 
@@ -769,7 +775,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
-            currentLobby.Value.SetData(MatchRunningKey, "0");
+            currentLobby.Value.SetData(MatchRunningKey, string.Empty);
             currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
@@ -1053,7 +1059,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetData("targetSize", maxSize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
-            currentLobby.Value.SetData(MatchRunningKey, "0");
+            currentLobby.Value.SetData(MatchRunningKey, string.Empty);
             currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
@@ -1125,7 +1131,7 @@ public class SteamLobbyManager : MonoBehaviour
             currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
             currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
-            currentLobby.Value.SetData(MatchRunningKey, "0");
+            currentLobby.Value.SetData(MatchRunningKey, string.Empty);
             currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
@@ -1817,10 +1823,10 @@ public class SteamLobbyManager : MonoBehaviour
         string expectedMatchStartToken = BuildMatchStartToken(lobby, roster);
         if (GameManager.Instance.isOnlineMatchActive)
         {
-            if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && lobby.GetData(MatchRunningKey) != "1")
-            {
-                lobby.SetData(MatchRunningKey, "1");
-            }
+            // NOTE: matchRunning is deliberately NOT refreshed here. It must keep naming the roster
+            // that went live, so a drop-in joiner (for whom the host is about to publish a NEW
+            // matchReady token) can tell its token apart from the running one and wait for a
+            // snapshot instead of cold-starting into a simulation already in progress.
 
             if (!holdForPartyStart && SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && roster.PlayerCount >= MinimumOnlineLobbyStartSize)
             {
@@ -1897,23 +1903,27 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        // A guest must not cold-start into a match that is ALREADY running on the host -- it would
-        // begin from a different initial state and desync instantly; the host's lobby snapshot is
-        // what brings a late arrival in. Two ways to detect that:
-        //   * matchRunning, which the host publishes the moment its match goes live. Authoritative.
-        //   * on an auto-starting lobby, a roster bigger than the start size, because those lobbies go
-        //     live at two players and anything beyond that is by definition a late arrival.
-        // The second test must NOT be applied to a party lobby: there the whole roster (up to four)
-        // cold-starts together off one Start press, so treating three or four players as "late" would
-        // leave every guest waiting on a snapshot the host has no reason to send.
-        bool hostMatchAlreadyRunning = lobby.GetData(MatchRunningKey) == "1";
-        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId)
-            && (hostMatchAlreadyRunning
-                || (!IsPartyLobby(lobby) && roster.PlayerCount > MinimumOnlineLobbyStartSize)))
+        // A guest must not cold-start into a match that is ALREADY running -- it would begin from a
+        // different initial state and desync instantly; the host's lobby snapshot is what brings a
+        // late arrival in.
+        //
+        // Execution only reaches here once matchStartToken == expectedMatchStartToken, i.e. the host
+        // armed THIS exact roster, this guest included. So the only question left is whether the
+        // running match is that same roster or an earlier, smaller one:
+        //   * empty                      -> nothing running yet. Cold-start (normal first start).
+        //   * equal to our token         -> the running match IS this roster; we were part of the
+        //                                   press of Start Match. Cold-start alongside everyone else.
+        //   * different from our token   -> a match formed before us is live and the host has since
+        //                                   re-armed to include us. Wait for the snapshot.
+        string runningMatchToken = lobby.GetData(MatchRunningKey);
+        bool joiningAlreadyRunningMatch = !string.IsNullOrEmpty(runningMatchToken)
+            && runningMatchToken != matchStartToken;
+
+        if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && joiningAlreadyRunningMatch)
         {
             if (debugLogs)
             {
-                Debug.Log($"[SteamLobbyManager] Waiting for host lobby snapshot before joining active roster. Members={roster.PlayerCount} MatchRunning={hostMatchAlreadyRunning}");
+                Debug.Log($"[SteamLobbyManager] Waiting for host lobby snapshot before joining active roster. Members={roster.PlayerCount} running='{runningMatchToken}' mine='{matchStartToken}'");
             }
             return;
         }
@@ -1928,11 +1938,12 @@ public class SteamLobbyManager : MonoBehaviour
         RememberRosterPeers(roster);
         isHostingFlow = false;
 
-        // Publish "the match is live" as early as possible so anyone who walks in from here on waits
-        // for a snapshot instead of cold-starting into a running simulation.
+        // Record WHICH roster went live, as early as possible, so anyone who walks in from here on
+        // sees a token that differs from their own and waits for a snapshot instead of cold-starting
+        // into a running simulation. Peers that started from this same token are unaffected.
         if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
         {
-            lobby.SetData(MatchRunningKey, "1");
+            lobby.SetData(MatchRunningKey, matchStartToken);
         }
     }
 

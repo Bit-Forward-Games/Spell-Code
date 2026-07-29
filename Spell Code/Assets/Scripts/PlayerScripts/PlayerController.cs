@@ -298,7 +298,7 @@ public class PlayerController : MonoBehaviour
     public int spellsFired = 0;
     public int basicsFired = 0;
     public int spellsHit = 0;
-    public string basicSpawnOverride = ""; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
+    [NonSerialized] public string basicSpawnOverride = string.Empty; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -532,7 +532,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
-        basicSpawnOverride = "";
+        basicSpawnOverride = string.Empty;
         isHit = false;
         damageBarHitCount = 0;
         hitboxData = null;
@@ -602,13 +602,26 @@ public class PlayerController : MonoBehaviour
         // onlineEntryPending is the wider window: a player respawning while an invite/Quick Match is
         // still connecting is not offline for presentation purposes, and must not put its prompt up
         // over the "JOINING/STARTING MATCH..." label. Purely local UI -- no sim state is read here.
+        // An online menu panel owning the screen counts as a modal menu here. The Friends Lobby lives
+        // in MainMenu and opens AFTER CloseGamemodesMenuForOnlineEntry has cleared every uiScript
+        // flag, so without this the code-mode prompt pops straight over the party lobby the moment
+        // VS Friends is chosen -- and dismissing it hands UI input and timeScale back to the player.
+        // The prompt belongs to a match that has actually started, which the panel closing signals.
+        bool onlineMenuOpen = OnlineMenuPanel.OpenPanelCount > 0;
+
         bool showOfflinePrompt = !onlineMatch
             && !onlineMatchInitializing
             && !onlineEntryPending
+            && !onlineMenuOpen
             && !pause.uiScript.soloGamemodesMenuOpened
             && !pause.uiScript.multiplayerGamemodesMenuOpened
             && !pause.paused;
         if (showOfflinePrompt && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && inMainMenu)
+            pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
+        // onlineEntryPending matters here too: the panel-based guard above only covers the window
+        // where a panel is actually open, and choosing VS Friends spends a scene transition plus an
+        // async lobby creation with no panel up at all.
+        if (!onlineMenuOpen && !onlineEntryPending && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[playerIndex] && !pause.paused && SceneManager.GetActiveScene().name == "MainMenu")
         {
             pause.uiScript.OpenCodeModeMenuPrompt(true, playerIndex);
         }
@@ -1114,7 +1127,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1871,7 +1884,7 @@ public class PlayerController : MonoBehaviour
                     }
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCastBasic);
 
-                    if (basicSpawnOverride == "")
+                    if (basicSpawnOverride == string.Empty)
                     {
                         //create an instance of your basic spell here
                         BaseProjectile newProjectile = ProjectileDictionary.Instance.projectileDict[charData.basicAttackProjId];
@@ -1880,7 +1893,7 @@ public class PlayerController : MonoBehaviour
                     }
                     else
                     {
-                        basicSpawnOverride = "";
+                        basicSpawnOverride = string.Empty;
                     }
 
                     //basic spell is fired
@@ -1970,7 +1983,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide end frame to trigger onSlide spell conditions
-                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(2).Sum() + 1)
+                if (logicFrame == CharacterDataDictionary.GetAnimFrames(characterName, PlayerState.Slide).frameLengths.Take(1).Sum() + 1)
                 {
                     // Check conditions of all spells with the onSlide condition
                     CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnSlide);
@@ -3365,6 +3378,7 @@ public class PlayerController : MonoBehaviour
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
             }    
 
+            ResetSpellResources();
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDeath);
 
             currentPlayerHealth = 0;
@@ -3954,7 +3968,7 @@ public class PlayerController : MonoBehaviour
 
     private static string GetSpellNameFromSerializationId(int spellId)
     {
-        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : "";
+        return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : string.Empty;
     }
 
     public void Deserialize(BinaryReader br)
@@ -4431,7 +4445,7 @@ public class PlayerController : MonoBehaviour
     {
         if ((RollbackManager.Instance != null && !RollbackManager.Instance.isRollbackFrame) || RollbackManager.Instance == null)
         {
-            inputDisplay.text = "";
+            inputDisplay.text = string.Empty;
             inputDisplay.color = GameManager.colors["white"];
         }
     }
@@ -4547,7 +4561,7 @@ public class PlayerController : MonoBehaviour
     {
         if (color == null) { color = GameManager.colors["white"]; }
 
-        string codeString = "";
+        string codeString = string.Empty;
         byte codeCount = (byte)(code & 0xF); //get the last 4 bits of stateSpecificArg
         for (int i = 0; i < codeCount; i++)
         {

@@ -79,7 +79,7 @@ public class StageCamera : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance.playerCount > 0)
+        if (GameManager.Instance.ActivePlayerCount > 0)
         {
             
 
@@ -135,14 +135,34 @@ public class StageCamera : MonoBehaviour
 
     private Bounds GetGreatestDistance()
     {
+        int firstConnectedSlot = -1;
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            if (GameManager.Instance.IsPlayerSlotConnected(i))
+            {
+                firstConnectedSlot = i;
+                break;
+            }
+        }
+
+        if (firstConnectedSlot < 0)
+        {
+            return new Bounds(transform.position, Vector3.zero);
+        }
+
         Vector3 initialCenter = new Vector3(
-        GameManager.Instance.players[0].position.X.ToFloat(),
-        GameManager.Instance.players[0].position.Y.ToFloat(),
+        GameManager.Instance.players[firstConnectedSlot].position.X.ToFloat(),
+        GameManager.Instance.players[firstConnectedSlot].position.Y.ToFloat(),
         -10f // Use -10f for Z
     );
         Bounds bounds = new Bounds(initialCenter, Vector3.zero);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
+            if (!GameManager.Instance.IsPlayerSlotConnected(i))
+            {
+                continue;
+            }
+
             Vector3 playerPosV3 = new Vector3(
             GameManager.Instance.players[i].position.X.ToFloat(),
             GameManager.Instance.players[i].position.Y.ToFloat(),

@@ -6476,7 +6476,7 @@ MonoBehaviour:
   colorLayer2: {fileID: 0}
   colorLayer3: {fileID: 0}
   colorLayer4: {fileID: 0}
-  gifPlayer: {fileID: 0}
+  videoPlayer: {fileID: 0}
   fellas:
   - {fileID: 21300000, guid: ba523e01739174ee0b847ee619db7ac9, type: 3}
   - {fileID: 21300000, guid: bd560bdc0363242febd0ceebddad59a7, type: 3}

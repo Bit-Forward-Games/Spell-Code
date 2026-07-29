@@ -34,7 +34,7 @@ public class BailoutCrit_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 2, 2, 2, 2, 2, 2}, true);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset, "Bailout");
         activeHitboxGroupIndex = 0;

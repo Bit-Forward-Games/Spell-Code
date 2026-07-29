@@ -785,10 +785,10 @@ GameObject:
   m_Component:
   - component: {fileID: 6731804393699350861}
   - component: {fileID: 8339661400934456666}
-  - component: {fileID: 6508632965876758220}
+  - component: {fileID: 428476516295411701}
   - component: {fileID: 8586967801031056990}
   m_Layer: 0
-  m_Name: SpellGif
+  m_Name: Spell Video
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -821,7 +821,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6077235013831864501}
   m_CullTransparentMesh: 1
---- !u!114 &6508632965876758220
+--- !u!114 &428476516295411701
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -830,9 +830,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6077235013831864501}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
@@ -841,16 +841,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 34695701966309443a25fb41c15a7524, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_Texture: {fileID: 0}
+  m_UVRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
 --- !u!114 &8586967801031056990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -860,10 +857,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 6077235013831864501}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c3f106a78e1aa142b294d8d1a41114b, type: 3}
+  m_Script: {fileID: 11500000, guid: 3db6de68a69c4ea39e991b303f0b23b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Gif: {fileID: 0}
+  Video: {fileID: 0}
+  keepWarmWhileHidden: 1
 --- !u!1 &6169780916911671888
 GameObject:
   m_ObjectHideFlags: 0
@@ -1499,8 +1497,8 @@ MonoBehaviour:
   spellIcon: {fileID: 3771624913181416436}
   Background: {fileID: 493017004347557889}
   selectFill: {fileID: 8986287750903000276}
-  SpellGifPlayer: {fileID: 8586967801031056990}
-  SpellGifGO: {fileID: 6077235013831864501}
+  spellVideoPlayer: {fileID: 8586967801031056990}
+  spellVideoObject: {fileID: 6077235013831864501}
   showDesc: 0
   canvasObject: {fileID: 2740045602536577552}
   spellData: {fileID: -3969159087852126958, guid: fba9adf08a7477541b0fe5409906df9a, type: 3}

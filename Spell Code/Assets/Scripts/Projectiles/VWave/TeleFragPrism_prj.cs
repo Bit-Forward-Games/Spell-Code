@@ -18,7 +18,7 @@ public class TeleFragPrism_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4}, true);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset, "Tele-Frag Prism");
         activeHitboxGroupIndex = 0;

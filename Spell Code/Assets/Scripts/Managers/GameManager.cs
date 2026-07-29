@@ -571,26 +571,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //all functions act the same for now
-    public void SetGamemode(Gamemode mode)
+    //int because OnClick() doesn't accept enums as parameters
+    public void SetGamemode(int mode)
     {
-        gamemode = mode;
+        gamemode = (Gamemode)mode;
+        Debug.Log("Gamemode set to: " + gamemode);
 
-        switch (mode)
+        switch (gamemode)
         {
-            case Gamemode.Normal:
+            case Gamemode.Normal: //0
                 loadMainMenu();
                 break;
 
-            case Gamemode.Turbo:
+            case Gamemode.Turbo: //1
                 loadMainMenu();
                 break;
 
-            case Gamemode.Elimination:
+            case Gamemode.Elimination: //2
                 loadMainMenu();
                 break;
 
-            case Gamemode.Fighter:
+            case Gamemode.Fighter: //3
                 loadMainMenu();
                 break;
         }

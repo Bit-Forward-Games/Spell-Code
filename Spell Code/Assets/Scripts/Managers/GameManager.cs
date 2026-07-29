@@ -36,6 +36,16 @@ public class GameManager : MonoBehaviour
         { "black", HexToColor("#000000") }
     };
 
+    public enum Gamemode
+    {
+        Normal,
+        Turbo,
+        Elimination,
+        Fighter
+    }
+
+    public Gamemode gamemode;
+
     private static Color HexToColor(string hexCode)
     {
         ColorUtility.TryParseHtmlString(hexCode, out Color color);
@@ -558,6 +568,31 @@ public class GameManager : MonoBehaviour
             }
 
             PrivateBetaDebugHotkeys();
+        }
+    }
+
+    //all functions act the same for now
+    public void SetGamemode(Gamemode mode)
+    {
+        gamemode = mode;
+
+        switch (mode)
+        {
+            case Gamemode.Normal:
+                loadMainMenu();
+                break;
+
+            case Gamemode.Turbo:
+                loadMainMenu();
+                break;
+
+            case Gamemode.Elimination:
+                loadMainMenu();
+                break;
+
+            case Gamemode.Fighter:
+                loadMainMenu();
+                break;
         }
     }
 

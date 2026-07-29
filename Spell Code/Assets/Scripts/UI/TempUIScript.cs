@@ -674,7 +674,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     /// </summary>
     public void InvitePlayer()
     {
-        Debug.LogWarning("[TempUIScript] InvitePlayer() is the legacy online entry point -- redirecting to the VS Friends party lobby. Re-wire this button to OnlinePlayMenu.ChooseVsFriends.");
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.LogWarning("[TempUIScript] InvitePlayer() is the legacy online entry point -- redirecting to the VS Friends party lobby. Re-wire this button to OnlinePlayMenu.ChooseVsFriends.");
+        }
 
         CloseGamemodesMenuForOnlineEntry();
 

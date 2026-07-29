@@ -63,9 +63,10 @@ public class OnlinePlayMenu : OnlineMenuPanel
     /// <summary>"Online Play" button on the Multiplayer Gamemodes Panel. Opens Online Modes.</summary>
     public void OpenOnlineModes()
     {
-        // Deliberately noisy: "the button does nothing" is otherwise indistinguishable from "the
-        // OnClick never fired". If this line is absent from the Console, the click never arrived.
-        Debug.Log($"[OnlinePlayMenu] Online Play pressed. panelRoot={(panelRoot != null ? panelRoot.name : "MISSING")}", this);
+        // On the debug branches only: "the button does nothing" is otherwise indistinguishable from
+        // "the OnClick never fired". If this line is absent from the Console, the click never arrived.
+        if (SteamManager.DebugToolsEnabled)
+            Debug.Log($"[OnlinePlayMenu] Online Play pressed. panelRoot={(panelRoot != null ? panelRoot.name : "MISSING")}", this);
 
         // multiplayerGamemodesMenuOpened stays SET while this panel is up. It is not just a
         // bookkeeping flag: Pause re-evaluates UI device scoping from it every frame and calls
@@ -90,9 +91,9 @@ public class OnlinePlayMenu : OnlineMenuPanel
     /// </summary>
     public void ChooseVsFriends()
     {
-        // Entry log first, unconditionally: it is the only way to tell "the handler ran and bailed"
-        // apart from "the click never got here", and those have completely different causes.
-        Debug.Log("[OnlinePlayMenu] VS Friends pressed.", this);
+        // Entry log first: it is the only way to tell "the handler ran and bailed" apart from "the
+        // click never got here", and those have completely different causes.
+        if (SteamManager.DebugToolsEnabled) Debug.Log("[OnlinePlayMenu] VS Friends pressed.", this);
 
         if (!IsSteamReady())
         {
@@ -119,7 +120,7 @@ public class OnlinePlayMenu : OnlineMenuPanel
     /// </summary>
     public void ChooseVsTheWorld()
     {
-        Debug.Log("[OnlinePlayMenu] VS The World pressed.", this);
+        if (SteamManager.DebugToolsEnabled) Debug.Log("[OnlinePlayMenu] VS The World pressed.", this);
 
         QuickMatchPanel matchmaking = ResolveController(ref matchmakingController);
         if (matchmaking == null)

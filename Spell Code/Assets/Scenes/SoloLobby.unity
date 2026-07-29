@@ -144,6 +144,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 528773476}
     - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
+      propertyPath: gameModeButtonLabel
+      value:
+      objectReference: {fileID: 528773475}
+    - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
       propertyPath: startMatchLabel
       value: 
       objectReference: {fileID: 1796724903}
@@ -154,7 +158,7 @@ PrefabInstance:
     - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
       propertyPath: selectedGameModeLabel
       value: 
-      objectReference: {fileID: 528773475}
+      objectReference: {fileID: 528773477}
     - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
       propertyPath: gameModePanelFirstSelected
       value: 
@@ -741,6 +745,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &528773477 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6903674859287601526, guid: 8af38054bffbefe4fa1f245a8b03c0b6, type: 3}
+  m_PrefabInstance: {fileID: 2067710159}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &606735452 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2713228583802885228, guid: 786420d3516db0347b8feaa276572acf, type: 3}

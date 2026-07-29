@@ -279,8 +279,9 @@ public class OnboardManager : MonoBehaviour
                 continue;
             }
 
-            if (gameManager.players[playerIndex] == null
-                || !gameManager.IsPlayerSlotConnected(playerIndex))
+            if (gameManager.isOnlineMatchActive
+                && (gameManager.players[playerIndex] == null
+                    || !gameManager.IsPlayerSlotConnected(playerIndex)))
             {
                 // Sparse party gaps (for example empty P2 in a P1+P3 match) never receive input, so
                 // their default "Join: [START]" prompt would otherwise remain visible forever.
@@ -290,6 +291,13 @@ public class OnboardManager : MonoBehaviour
                 player.castText.enabled = false;
                 player.breakWithSpellcode.enabled = false;
                 SetGambaActive(player, false, false);
+                continue;
+            }
+
+            if (gameManager.players[playerIndex] == null)
+            {
+                // Offline unjoined slots intentionally keep the Join prompt configured by
+                // ApplyInitialUiState until a local PlayerController is created for them.
                 continue;
             }
 

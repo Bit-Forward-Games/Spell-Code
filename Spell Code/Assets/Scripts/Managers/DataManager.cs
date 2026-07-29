@@ -116,8 +116,8 @@ public class DataManager : MonoBehaviour
         matchData.matchNum = (byte)(totalRoundsPlayed);
         matchData.matchLength = roundTimer / 60;
 
-        // playerCount is the serialized slot span for sparse online rosters. Save only live
-        // participants so P1+P3 does not produce a fabricated P2 statistics row.
+        // playerCount is the serialized slot span for sparse online rosters. Save real roster
+        // participants (including a peer who later disconnected), but not fabricated gap objects.
         PlayerController[] matchPlayers = gM.GetMatchParticipantControllers();
         if (matchPlayers.Length > 0)
         {

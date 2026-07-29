@@ -1827,11 +1827,19 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool IsPlayerSlotConnected(int slot)
     {
-        return slot >= 0
-            && slot < players.Length
-            && !onlineDisconnectedSlots.Contains(slot)
-            && players[slot] != null
-            && players[slot].isConnected;
+        if (slot < 0 || slot >= players.Length || players[slot] == null)
+        {
+            return false;
+        }
+
+        // Connectivity/disconnect elimination belongs to peer-roster matches. Offline local
+        // players retain the original behavior: every registered slot is active.
+        if (activeOnlineRoster == null)
+        {
+            return true;
+        }
+
+        return !onlineDisconnectedSlots.Contains(slot) && players[slot].isConnected;
     }
 
     /// <summary>

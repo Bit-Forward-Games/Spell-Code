@@ -26,10 +26,11 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-21"; // scz-21: sparse party assignments preserve their P1-P4 slot span
-                                                    // in rollback/input state (P1+P3 serializes an inert P2 slot).
-                                                    // scz-20 compacted that roster to two objects, so the builds must
-                                                    // not match with one another.
+    private const string NetcodeVersion = "scz-22"; // scz-22: the onSlide spell-condition trigger frame moved from
+                                                    // frameLengths.Take(2) to .Take(1) in PlayerController's Slide state,
+                                                    // BaseProjectile.SpawnProjectile gained a useAbsolutePosition branch,
+                                                    // and two new passives (Back To Basics, Quiver Of Artemis) plus their
+                                                    // projectiles were added
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

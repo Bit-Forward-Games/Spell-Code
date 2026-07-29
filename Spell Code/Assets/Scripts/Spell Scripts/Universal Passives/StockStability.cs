@@ -30,7 +30,7 @@ public class StockStability : SpellData
                     //non bigstox spells can crit here
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified && !defender.hitboxData.ignoreEffectDamage)
                     {
-                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
+                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                     }
                 }
                 break;

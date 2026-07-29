@@ -9,11 +9,10 @@ public class HotStreak : SpellData
 {
     private bool doesCrit = false;
     private const short timeUntilSelfCast = 60;
-    private short selfCastCounter = 0;
-
+    private short selfCastCounter = -1;
+    public FixedVec2 PlayerCenterOffset;
     private short hotStreakSourcePID = -1;
 
-    
     public const int rangeThreshold = 150;
     private const int RangeIndicatorSegments = 96;
     private const float RangeIndicatorLineWidth = 1.5f;
@@ -26,7 +25,7 @@ public class HotStreak : SpellData
         spellType = SpellType.Passive;
         procConditions = new ProcCondition[] { ProcCondition.OnCrit, ProcCondition.OnUpdate};
         brands = new Brand[1] { Brand.BigStox };
-        projectilePrefabs = new GameObject[1];
+        projectilePrefabs = new GameObject[2];
         description = "On Crit<sprite name=\"StockStability\">, launch a chain reaction to the nearest other opponent. This Spellcode can Crit<sprite name=\"StockStability\">.";
     }
 
@@ -36,27 +35,34 @@ public class HotStreak : SpellData
         {
             case ProcCondition.OnCrit:
                 selfCastCounter = timeUntilSelfCast;
-                hotStreakSourcePID = defender.pID;
+                hotStreakSourcePID = defender.pID == owner.pID? (short)0 : defender.pID;
                 break;
             case ProcCondition.OnUpdate:
+                if(hotStreakSourcePID >= 0)
+                {
+                    PlayerCenterOffset = new FixedVec2(Fixed.FromInt(0), GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).playerHeight/Fixed.FromInt(2));
+
+                }
                 if(selfCastCounter == 0)
                 {
                     selfCastCounter = -1;
                     int projectileIndex = doesCrit ? 1 : 0;
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), defender.facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position, true);
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
                     projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().targetPID = hotStreakSourcePID;
                 }
                 else if (selfCastCounter > 0)
                 {
-                    UpdateRangeIndicator(true);
+                    UpdateRangeIndicator(true, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset);
                     selfCastCounter--;
                     for(short i = 0; i < GameManager.Instance.playerCount; i++)
                     {
-                        if (IsWithinRadius(GameManager.Instance.players[i].position, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position))
+                        if (i != owner.pID-1 && 
+                            i != hotStreakSourcePID-1 && 
+                            IsWithinRadius(GameManager.Instance.players[i].position + PlayerCenterOffset, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset))
                         {
                             selfCastCounter = -1;
                             int projectileIndex = doesCrit ? 1 : 0;
-                            ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), defender.facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position, true);
+                            ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
                             projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().playerIgnoreArr[hotStreakSourcePID == 0? owner.pID-1 : hotStreakSourcePID-1] = true;
                             projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().targetPID = i;
                         }
@@ -64,7 +70,7 @@ public class HotStreak : SpellData
                 }
                 else
                 {
-                    UpdateRangeIndicator(false);
+                    UpdateRangeIndicator(false, FixedVec2.Zero);
                 }
 
                 
@@ -75,7 +81,7 @@ public class HotStreak : SpellData
         }
     }
 
-    private void UpdateRangeIndicator(bool shouldShow)
+    private void UpdateRangeIndicator(bool shouldShow, FixedVec2 position)
     {
         if (!shouldShow || owner == null)
         {
@@ -93,7 +99,7 @@ public class HotStreak : SpellData
         }
 
         rangeIndicator.gameObject.SetActive(true);
-        rangeIndicator.transform.position = new Vector3(owner.position.X.ToFloat(), owner.position.Y.ToFloat(), 0f);
+        rangeIndicator.transform.position = new Vector3(position.X.ToFloat(), position.Y.ToFloat(), 0f);
     }
     public bool IsWithinRadius(FixedVec2 targetPosition, FixedVec2 RadiusPosition)
     {
@@ -153,7 +159,7 @@ public class HotStreak : SpellData
     }
     private void OnDisable()
     {
-        UpdateRangeIndicator(false);
+        UpdateRangeIndicator(false, FixedVec2.Zero);
     }
 
     private void OnDestroy()

@@ -104,6 +104,8 @@ public abstract class SpellData : MonoBehaviour
     [NonSerialized]
     public int spawnOffsetY = 36;
 
+    
+
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;
 

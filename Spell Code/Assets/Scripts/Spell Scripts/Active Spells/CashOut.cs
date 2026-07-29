@@ -97,7 +97,7 @@ public class CashOut : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
                 {
-                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                 }
                 break;
             default:

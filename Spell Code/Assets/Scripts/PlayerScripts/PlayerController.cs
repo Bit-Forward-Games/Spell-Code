@@ -3130,7 +3130,7 @@ public class PlayerController : MonoBehaviour
                 if (state == PlayerState.CodeWeave && logicFrame <= parryThreshold)
                 {
                     SpawnToast("PARRY!", GameManager.colors["pink"]);
-                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnParry);
+                    CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnParry, attacker);
 
                     //play the parry sound
                     SFX_Manager.Instance.PlaySound(Sounds.PARRY, 1.0f, 1.0f);
@@ -3161,7 +3161,7 @@ public class PlayerController : MonoBehaviour
                     //Play the blocked visual effect
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BLOCKED, position, pID, facingRight);
 
-                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnBlock);
+                    CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnBlock, attacker);
                     
 
                     isHit = false;
@@ -3244,14 +3244,14 @@ public class PlayerController : MonoBehaviour
             //call the checkProcEffect call of every spell that has ProcEffect.OnHit in the attacker's spell list
             if (attacker != null)
             {
-                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit);
+                CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHit, this);
 
-                if(currentPlayerHealth <= 0)CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnKill);
+                if(currentPlayerHealth <= 0)CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnKill, this);
             }
             
 
             //now call the checkProcEffect call of every spell that has ProcEffect.OnHurt in this player's spell list
-            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt);
+            CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurt, attacker);
             
 
             //now check for OnHitBasic or OnHitSpell depending on whether the hitbox was a basic attack hitbox
@@ -3259,17 +3259,17 @@ public class PlayerController : MonoBehaviour
             {
                 if (attacker != null)
                 {
-                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic);
+                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitBasic, this);
                 }
-                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtBasic, attacker);
             }
             else
             {
                 if (attacker != null)
                 {
-                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell);
+                    CheckAllSpellConditionsOfProcCon(attacker, ProcCondition.OnHitSpell, this);
                 }
-                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell);
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnHurtSpell, attacker);
 
             }
 
@@ -3444,7 +3444,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     /// <param name="targetPlayer"></param>
     /// <param name="targetProcCon"></param>
-    public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon)
+    public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon, PlayerController defender = null)
     {
         BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
@@ -3452,7 +3452,7 @@ public class PlayerController : MonoBehaviour
         {
             if (sortedSpellList[i].procConditions.Contains(targetProcCon))
             {
-                sortedSpellList[i].CheckCondition(this, targetProcCon);
+                sortedSpellList[i].CheckCondition(defender, targetProcCon);
             }
         }
     }

@@ -72,7 +72,7 @@ public class UseTheCredit : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit && !defender.hitboxData.ignoreEffectDamage && IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
-                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                 }
                 break;
             default:

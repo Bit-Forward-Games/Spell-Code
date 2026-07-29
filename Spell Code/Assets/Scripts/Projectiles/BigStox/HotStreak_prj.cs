@@ -65,7 +65,7 @@ public class HotStreak_prj : BaseProjectile
         if (targetPID >= 0)
         {
             PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
-            FixedVec2 directionVector = new FixedVec2(cachedTargetPlayer.position.X -position.X, cachedTargetPlayer.position.X -position.Y).Normalized();
+            FixedVec2 directionVector = new FixedVec2(cachedTargetPlayer.position.X -position.X, cachedTargetPlayer.position.Y - position.Y).Normalized();
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);
         }

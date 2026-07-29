@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -14,7 +17,8 @@ using UnityEngine.UI;
 ///   "Start Match"           -> StartMatch()
 ///   "Game Modes"            -> OpenGameModeMenu()
 ///   Back / cancel           -> LeaveLobby()
-///   each mode button in Panel 2 -> its own OnlineGameModeOption.Select()
+///   mode buttons in Panel 2 are borrowed from the offline flow at runtime; their offline callbacks
+///   are restored as soon as the party chooser closes
 ///
 /// The panel opens itself the moment a party lobby exists, so it comes up on the host after the
 /// deferred MainMenu transition and on a guest as soon as they accept the invite -- no wiring needed
@@ -63,8 +67,11 @@ public class PartyLobbyPanel : OnlineMenuPanel
     [SerializeField] private string startingText = "Starting...";
 
     [Header("Game Modes")]
-    [Tooltip("The 'Game Modes' button in this lobby.")]
+    [Tooltip("The 'Gamemodes' button in this lobby.")]
     [SerializeField] private Button gameModeButton;
+
+    [Tooltip("The text inside the Gamemodes button. Auto-resolved from the button when unassigned.")]
+    [SerializeField] private TextMeshProUGUI gameModeButtonLabel;
 
     [Tooltip("The 'Selected GameMode' label. Shows the host's current pick.")]
     [SerializeField] private TextMeshProUGUI selectedGameModeLabel;
@@ -80,14 +87,39 @@ public class PartyLobbyPanel : OnlineMenuPanel
     [SerializeField] private TextMeshProUGUI statusLabel;
 
     private bool gameModeMenuOpen;
+    private bool partyPanelHiddenForGameMode;
+    private const string GameModeButtonText = "Gamemodes";
 
-    // Last mode id this panel drew. Picking a mode changes it, which is how the chooser knows to
-    // close itself -- the mode buttons talk to SteamLobbyManager, not to this panel.
+    private sealed class GameModeButtonBinding
+    {
+        public Button Button;
+        public Button.ButtonClickedEvent OriginalOnClick;
+    }
+
+    private readonly List<GameModeButtonBinding> gameModeButtonBindings =
+        new List<GameModeButtonBinding>();
+
+    // Panel 2 is shared with Local Play, so its serialized buttons deliberately keep their offline
+    // callbacks. These stable ids are used only while the same visuals are borrowed by a party.
+    private static readonly Dictionary<string, OnlineGameModeSelection> PartyModesByOptionRoot =
+        new Dictionary<string, OnlineGameModeSelection>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Normal Mode Option", new OnlineGameModeSelection("normal", "Normal mode") },
+            { "Elimination Mode Option", new OnlineGameModeSelection("elimination", "Elimination") },
+            { "Fighting Game Mode Option", new OnlineGameModeSelection("fighting-game", "Fighting Game") },
+            { "Chaos Mode Option", new OnlineGameModeSelection("chaos", "Chaos") },
+            { "Turbo Mode Option", new OnlineGameModeSelection("turbo", "Turbo") },
+        };
+
+    // Last mode id this panel drew. This also catches a host-side mode change made by some future
+    // authored OnlineGameModeOption rather than through SelectPartyGameMode below.
     private string lastSeenGameModeId;
 
     protected override void Awake()
     {
         base.Awake();
+        ResolveGameModeLabels();
+        RefreshGameModeButtonLabel();
 
         if (gameModePanel != null)
         {
@@ -126,10 +158,12 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         // After the refreshes, so interactable states are current before focus is chosen.
         MaintainFreeze();
-        if (!gameModeMenuOpen)
+        if (gameModeMenuOpen)
         {
-            // The game-mode chooser is a sibling of panelRoot. Reclaiming lobby focus while it is
-            // open would immediately steal selection from the mode button focused above.
+            MaintainGameModeMenuFocus();
+        }
+        else
+        {
             MaintainFocus();
         }
 
@@ -180,7 +214,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
     protected override void OnOpened()
     {
-        CloseGameModeMenuInternal();
+        CloseGameModeMenuInternal(false);
         lastSeenGameModeId = null;
 
         RefreshSlots();
@@ -191,7 +225,9 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
     protected override void OnClosed()
     {
-        CloseGameModeMenuInternal();
+        // OnlineMenuPanel.Close already disabled panelRoot before this hook. Do not reactivate it
+        // while tearing the whole party screen down.
+        CloseGameModeMenuInternal(false);
     }
 
     // ----------------------------------------------------------------------------------------
@@ -237,12 +273,31 @@ public class PartyLobbyPanel : OnlineMenuPanel
     public void OpenGameModeMenu()
     {
         SteamLobbyManager lobby = Lobby;
-        if (gameModePanel == null || lobby == null || !lobby.IsPartyHost)
+        if (gameModeMenuOpen || gameModePanel == null || lobby == null || !lobby.IsPartyHost)
         {
             return;
         }
 
+        InstallPartyGameModeHandlers();
+
         gameModeMenuOpen = true;
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        // Friends Lobby was added after Panel 2 under the shared GameModesPanel, so it otherwise
+        // renders and raycast-blocks on top of the chooser. Treat the chooser as a real subview:
+        // keep this controller/IsOpen alive, but temporarily replace its visible panel.
+        partyPanelHiddenForGameMode = panelRoot != null
+            && !gameModePanel.transform.IsChildOf(panelRoot.transform)
+            && panelRoot.activeSelf;
+        if (partyPanelHiddenForGameMode)
+        {
+            panelRoot.SetActive(false);
+        }
+
         gameModePanel.SetActive(true);
         FocusSelectable(gameModePanelFirstSelected);
     }
@@ -250,7 +305,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
     /// <summary>Closes the mode chooser and returns focus to the Game Modes button.</summary>
     public void CloseGameModeMenu()
     {
-        CloseGameModeMenuInternal();
+        CloseGameModeMenuInternal(true);
 
         if (gameModeButton != null)
         {
@@ -287,13 +342,37 @@ public class PartyLobbyPanel : OnlineMenuPanel
         LeaveLobby();
     }
 
-    private void CloseGameModeMenuInternal()
+    private void CloseGameModeMenuInternal(bool restorePartyPanel)
     {
         gameModeMenuOpen = false;
+
+        if (EventSystem.current != null)
+        {
+            GameObject selected = EventSystem.current.currentSelectedGameObject;
+            if (selected != null
+                && gameModePanel != null
+                && selected.transform.IsChildOf(gameModePanel.transform))
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+        }
+
         if (gameModePanel != null)
         {
             gameModePanel.SetActive(false);
         }
+
+        RestoreOfflineGameModeHandlers();
+
+        if (restorePartyPanel
+            && IsOpen
+            && partyPanelHiddenForGameMode
+            && panelRoot != null)
+        {
+            panelRoot.SetActive(true);
+        }
+
+        partyPanelHiddenForGameMode = false;
     }
 
     // ----------------------------------------------------------------------------------------
@@ -391,14 +470,16 @@ public class PartyLobbyPanel : OnlineMenuPanel
         }
 
         OnlineGameModeSelection mode = lobby.PartyGameMode;
+        ResolveGameModeLabels();
+        RefreshGameModeButtonLabel();
 
         if (selectedGameModeLabel != null && selectedGameModeLabel.text != mode.DisplayName)
         {
             selectedGameModeLabel.text = mode.DisplayName;
         }
 
-        // A mode button publishes straight to the lobby, so the pick shows up here as a changed id.
-        // That is the cue to dismiss the chooser -- the host picked, the label updated, done.
+        // Usually SelectPartyGameMode closes immediately. Keep this change detector for authored
+        // mode controls that publish to the lobby without calling back into this panel.
         if (lastSeenGameModeId != null && lastSeenGameModeId != mode.Id && gameModeMenuOpen)
         {
             CloseGameModeMenu();
@@ -419,6 +500,188 @@ public class PartyLobbyPanel : OnlineMenuPanel
             if (option != null)
             {
                 option.SetSelectedVisual(option.ModeId == mode.Id);
+            }
+        }
+    }
+
+    private void ResolveGameModeLabels()
+    {
+        if (gameModeButtonLabel == null && gameModeButton != null)
+        {
+            gameModeButtonLabel = gameModeButton.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
+        bool selectedLabelIsButtonLabel = selectedGameModeLabel != null
+            && gameModeButton != null
+            && selectedGameModeLabel.transform.IsChildOf(gameModeButton.transform);
+        if (selectedGameModeLabel != null && !selectedLabelIsButtonLabel)
+        {
+            return;
+        }
+
+        // Repairs the old SoloLobby Inspector assignment too: it pointed this field at the button's
+        // child TMP instead of the standalone "Selected GameMode" object.
+        TextMeshProUGUI[] labels = panelRoot != null
+            ? panelRoot.GetComponentsInChildren<TextMeshProUGUI>(true)
+            : Array.Empty<TextMeshProUGUI>();
+        for (int i = 0; i < labels.Length; i++)
+        {
+            if (labels[i] != null && labels[i].gameObject.name == "Selected GameMode")
+            {
+                selectedGameModeLabel = labels[i];
+                return;
+            }
+        }
+    }
+
+    private void RefreshGameModeButtonLabel()
+    {
+        if (gameModeButtonLabel == null)
+        {
+            return;
+        }
+
+        if (gameModeButtonLabel.text != GameModeButtonText)
+        {
+            gameModeButtonLabel.text = GameModeButtonText;
+        }
+    }
+
+    private void InstallPartyGameModeHandlers()
+    {
+        RestoreOfflineGameModeHandlers();
+
+        Button[] buttons = gameModePanel.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            Button button = buttons[i];
+            if (button == null || !TryResolvePartyMode(button, out OnlineGameModeSelection mode))
+            {
+                continue;
+            }
+
+            GameModeButtonBinding binding = new GameModeButtonBinding
+            {
+                Button = button,
+                OriginalOnClick = button.onClick,
+            };
+
+            OnlineGameModeSelection capturedMode = mode;
+            Button.ButtonClickedEvent partyClick = new Button.ButtonClickedEvent();
+            partyClick.AddListener(() => SelectPartyGameMode(capturedMode));
+            button.onClick = partyClick;
+            gameModeButtonBindings.Add(binding);
+        }
+
+        if (gameModeButtonBindings.Count == 0)
+        {
+            Debug.LogError(
+                "[PartyLobbyPanel] No game mode buttons were found in the assigned chooser panel.",
+                this);
+        }
+    }
+
+    private void RestoreOfflineGameModeHandlers()
+    {
+        for (int i = 0; i < gameModeButtonBindings.Count; i++)
+        {
+            GameModeButtonBinding binding = gameModeButtonBindings[i];
+            if (binding != null && binding.Button != null)
+            {
+                binding.Button.onClick = binding.OriginalOnClick;
+            }
+        }
+
+        gameModeButtonBindings.Clear();
+    }
+
+    private void SelectPartyGameMode(OnlineGameModeSelection mode)
+    {
+        SteamLobbyManager lobby = Lobby;
+        if (!gameModeMenuOpen
+            || lobby == null
+            || !lobby.SetPartyGameMode(mode.Id, mode.DisplayName))
+        {
+            return;
+        }
+
+        // Close explicitly rather than waiting for RefreshGameMode to see an id change. That also
+        // closes correctly when the host selects the mode that was already active.
+        lastSeenGameModeId = mode.Id;
+        CloseGameModeMenu();
+    }
+
+    private bool TryResolvePartyMode(Button button, out OnlineGameModeSelection mode)
+    {
+        OnlineGameModeOption authoredOption = button.GetComponent<OnlineGameModeOption>();
+        if (authoredOption != null)
+        {
+            mode = authoredOption.Selection;
+            return true;
+        }
+
+        Transform optionRoot = button.transform;
+        while (optionRoot.parent != null && optionRoot.parent != gameModePanel.transform)
+        {
+            optionRoot = optionRoot.parent;
+        }
+
+        if (optionRoot.parent != gameModePanel.transform)
+        {
+            mode = default;
+            return false;
+        }
+
+        if (PartyModesByOptionRoot.TryGetValue(optionRoot.name, out mode))
+        {
+            return true;
+        }
+
+        mode = default;
+        return false;
+    }
+
+    private void MaintainGameModeMenuFocus()
+    {
+        if (gameModePanel == null || !gameModePanel.activeInHierarchy)
+        {
+            return;
+        }
+
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return;
+        }
+
+        GameObject current = eventSystem.currentSelectedGameObject;
+        if (current != null && current.transform.IsChildOf(gameModePanel.transform))
+        {
+            Selectable currentSelectable = current.GetComponent<Selectable>();
+            if (currentSelectable != null && currentSelectable.IsInteractable())
+            {
+                return;
+            }
+        }
+
+        Selectable preferred = gameModePanelFirstSelected != null
+            ? gameModePanelFirstSelected.GetComponent<Selectable>()
+            : null;
+        if (preferred != null && preferred.gameObject.activeInHierarchy && preferred.IsInteractable())
+        {
+            eventSystem.SetSelectedGameObject(preferred.gameObject);
+            return;
+        }
+
+        Selectable[] candidates = gameModePanel.GetComponentsInChildren<Selectable>(false);
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i] != null
+                && candidates[i].gameObject.activeInHierarchy
+                && candidates[i].IsInteractable())
+            {
+                eventSystem.SetSelectedGameObject(candidates[i].gameObject);
+                return;
             }
         }
     }

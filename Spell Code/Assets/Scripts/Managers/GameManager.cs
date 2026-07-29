@@ -3343,6 +3343,25 @@ public class GameManager : MonoBehaviour
             inputs[i] = players[i].GetInputs();
         }
 
+        switch (gamemode)
+        {
+            case Gamemode.Normal:
+                break;
+            case Gamemode.Turbo:
+                foreach (PlayerController player in players)
+                {
+                    if (player != null)
+                    {
+                        for (int i = 0; i < player.spellList.Count; i++)
+                        {
+                            //no cooldown
+                            if (player.spellList[i] != null) { player.spellList[i].cooldown = 1; }
+                        }
+                    }
+                }
+                break;
+        }
+
         if (activeScene.name == "End")
         {
             if (tempUI != null)

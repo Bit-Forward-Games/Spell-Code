@@ -1121,7 +1121,6 @@ public class PlayerController : MonoBehaviour
                 input = npcAI.npcInputSnapshot;
             }
         }
-        
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();

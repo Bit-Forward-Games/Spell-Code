@@ -37,7 +37,7 @@ public class LuckyBreak : SpellData
                 {
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified && !defender.hitboxData.ignoreEffectDamage)
                     {
-                        defender.TakeEffectDamage(extraBasicDamage,owner, GameManager.colors["blue"]);
+                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
                     }
                 }
                 break;

@@ -38,7 +38,7 @@ public class QuarterReport : SpellData
             // Assuming you have a reference to the player GameObject
             if (owner != null && projectilePrefabs.Length > 1)
             {
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[(doesCrit?1:0)].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[doesCrit?1:0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
 
                 //if the spell will crit,...
                 if(doesCrit)
@@ -51,19 +51,12 @@ public class QuarterReport : SpellData
                 }
             }
             cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
-            //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
-            //vibeCasted = false;
         }
     }
 
     public override void LoadSpell()
     {
         base.LoadSpell();
-        // if (owner != null && !owner.suppressSpellLoadSideEffects)
-        // {
-        //     owner.stockStability += 10;
-        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        // }
         doesCrit = false;
     }
 
@@ -77,7 +70,7 @@ public class QuarterReport : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
                 {
-                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
                 }
                 break;
             default:

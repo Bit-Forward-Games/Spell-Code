@@ -58,7 +58,9 @@ public enum ProcCondition
     OnKill,
     OnDeath,
     OnStart,
-    OnUpdate
+    OnUpdate,
+    OnCrit,
+    OnSweetSpot
     
 }
 

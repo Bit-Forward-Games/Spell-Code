@@ -71542,7 +71542,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5154062766818853245, guid: ceb9d8b42faf29a409f65ef7f2db2b56, type: 3}
       propertyPath: trainingLocs.Array.data[11].x
-      value: -8
+      value: 93
       objectReference: {fileID: 0}
     - target: {fileID: 5154062766818853245, guid: ceb9d8b42faf29a409f65ef7f2db2b56, type: 3}
       propertyPath: trainingLocs.Array.data[11].y

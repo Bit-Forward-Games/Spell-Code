@@ -110,13 +110,14 @@ public class LoadedDice : SpellData
                 else if(projectileInstances[4].activeSelf || projectileInstances[7].activeSelf)
                 {
                     owner.SpawnToast($"CRIT!!", GameManager.colors["blue"]);
-                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
                 }
                 else if(projectileInstances[5].activeSelf || projectileInstances[8].activeSelf)
                 {
                     
                     owner.SpawnToast($"SUPER CRIT!!!", GameManager.colors["blue"]);
-                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage*3,owner, GameManager.colors["blue"]);
+                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage*2,owner, GameManager.colors["blue"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit);
                 }
 
                 break;

@@ -322,7 +322,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Combo Demon");
                         break;
                     //BigStox
                     case 2:

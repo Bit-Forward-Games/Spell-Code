@@ -77,6 +77,11 @@ public class SteamLobbyManager : MonoBehaviour
     private Lobby? lastLobbyCreated;
     private uint hostFlowVersion;
     private SteamId? activeHostedLobbyId;
+    // Facepunch exposes the lobby owner through a live native getter, but it has no owner-changed
+    // callback. Track it per lobby and compare it in Update so Steam's automatic owner transfer can
+    // be adopted on Unity's main thread after the previous host leaves or disconnects.
+    private SteamId? observedLobbyOwnerLobbyId;
+    private SteamId? observedLobbyOwnerId;
     private bool startingHostedMatch;
     private bool startedCurrentLobbyMatch;
     private string currentMatchStartToken = string.Empty;
@@ -255,6 +260,7 @@ public class SteamLobbyManager : MonoBehaviour
     public bool IsPartyHost =>
         IsInPartyLobby
         && SteamClient.IsValid
+        && hostCreatedPartyLobby
         && SameSteamId(currentLobby.Value.Owner.Id, SteamClient.SteamId);
 
     /// <summary>True while a party lobby is still gathering players and no match has been started.</summary>
@@ -798,6 +804,7 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        UpdateLobbyOwnerState(currentLobby.Value);
         ProcessPendingPartyLobbyChatMessages(currentLobby.Value);
         MaintainPartyStartDelivery(currentLobby.Value);
 
@@ -1306,6 +1313,8 @@ public class SteamLobbyManager : MonoBehaviour
         ResetPartyStartDeliveryState();
         lastJoinableLobbyId = null;
         lastPublishedJoinableState = null;
+        observedLobbyOwnerLobbyId = null;
+        observedLobbyOwnerId = null;
 
         // Party/Quick Match state belongs to the lobby that just went away. Leaving partyStartRequested
         // latched would arm the NEXT party lobby's match the instant a second member walked in.
@@ -1638,12 +1647,187 @@ public class SteamLobbyManager : MonoBehaviour
         return lobby.GetData(LobbyModeKey) == LobbyModePartyValue;
     }
 
+    private void UpdateLobbyOwnerState(Lobby lobby)
+    {
+        if (!SteamClient.IsValid)
+        {
+            return;
+        }
+
+        SteamId ownerId = lobby.Owner.Id;
+        if (!ownerId.IsValid)
+        {
+            // Steam may briefly report no owner while processing the departure. Keep the previous
+            // observation and retry next frame rather than treating that transient value as a handoff.
+            return;
+        }
+
+        bool isTrackedLobby = observedLobbyOwnerLobbyId.HasValue
+            && observedLobbyOwnerLobbyId.Value == lobby.Id;
+        if (!isTrackedLobby)
+        {
+            observedLobbyOwnerLobbyId = lobby.Id;
+            observedLobbyOwnerId = ownerId;
+
+            // Covers the narrow case where this client enters just as the original owner disappears:
+            // the first owner we ever observe is already local, so there is no old value to compare.
+            if (IsPartyLobby(lobby)
+                && SameSteamId(ownerId, SteamClient.SteamId)
+                && !hostCreatedPartyLobby)
+            {
+                RecoverPartyLobbyAfterOwnerChange(lobby, default);
+            }
+            return;
+        }
+
+        if (!observedLobbyOwnerId.HasValue)
+        {
+            observedLobbyOwnerId = ownerId;
+            return;
+        }
+
+        SteamId previousOwnerId = observedLobbyOwnerId.Value;
+        if (SameSteamId(previousOwnerId, ownerId))
+        {
+            // Lobby metadata can become visible a frame after entering. If this client was promoted
+            // before the first party-flavour read succeeded, adopt the role once that data arrives.
+            if (IsPartyLobby(lobby)
+                && SameSteamId(ownerId, SteamClient.SteamId)
+                && !hostCreatedPartyLobby)
+            {
+                RecoverPartyLobbyAfterOwnerChange(lobby, default);
+            }
+            return;
+        }
+
+        observedLobbyOwnerId = ownerId;
+        partySlotCacheFrame = -1;
+
+        if (!IsPartyLobby(lobby))
+        {
+            return;
+        }
+
+        if (GameManager.Instance != null
+            && (GameManager.Instance.isOnlineMatchActive
+                || GameManager.Instance.IsOnlineMatchInitializing))
+        {
+            // Changing rollback authority during a live simulation is a different protocol. Do not
+            // rewrite its frozen roster here; this recovery is deliberately for the gathering lobby.
+            Debug.LogWarning(
+                $"[SteamLobbyManager] Lobby owner changed during an active party match. " +
+                $"PreviousOwner={previousOwnerId.Value} NewOwner={ownerId.Value}; " +
+                "pre-match host migration was not applied.");
+            return;
+        }
+
+        RecoverPartyLobbyAfterOwnerChange(lobby, previousOwnerId);
+    }
+
+    private void RecoverPartyLobbyAfterOwnerChange(Lobby lobby, SteamId previousOwnerId)
+    {
+        if (GameManager.Instance != null
+            && (GameManager.Instance.isOnlineMatchActive
+                || GameManager.Instance.IsOnlineMatchInitializing))
+        {
+            // This method is also reached by the "entered as owner" and delayed-metadata fallbacks.
+            // Keep the guard here so neither path can rewrite an active/bootstrapping match later.
+            return;
+        }
+
+        bool localIsNewOwner = SameSteamId(lobby.Owner.Id, SteamClient.SteamId);
+
+        // Every survivor can hold an owner-authenticated chat commit locally. Once that owner is gone,
+        // the frozen roster names a departed P1 and must be abandoned before any peer evaluates it.
+        partyStartRequested = false;
+        startingHostedMatch = false;
+        startingMatchStatusVisibleUntil = 0f;
+        startingMatchStatusVisibleThroughFrame = -1;
+        startedCurrentLobbyMatch = false;
+        currentMatchStartToken = string.Empty;
+        loggedDeferredStartToken = string.Empty;
+        activeMatchPeerIds.Clear();
+        pendingLobbySnapshotPeers.Clear();
+        ResetPartyStartDeliveryState();
+        pendingInviteSlot = -1;
+        pendingInviteSlotExpiresAt = 0f;
+        partySlotCacheFrame = -1;
+        lastJoinableLobbyId = null;
+        lastPublishedJoinableState = null;
+        // The local host latch is raised only after the new owner has successfully repaired every
+        // critical lobby field below. Until then the next Update retries this recovery, and host-only
+        // UI/actions stay disabled instead of racing partially migrated metadata.
+        hostCreatedPartyLobby = false;
+        activeHostedLobbyId = localIsNewOwner ? lobby.Id : (SteamId?)null;
+        isHostingFlow = localIsNewOwner;
+        ClearJoiningMatchStatus();
+
+        // Preserve the previous host's selected mode as the promoted host's local fallback too.
+        localPartyGameMode = OnlineGameModeSelection.Resolve(
+            lobby.GetData(GameModeKey),
+            lobby.GetData(GameModeNameKey));
+
+        if (!localIsNewOwner)
+        {
+            return;
+        }
+
+        // Only the newly promoted owner may repair shared lobby metadata.
+        bool sharedStateRepaired = lobby.SetFriendsOnly();
+        sharedStateRepaired &= lobby.SetData("hostId", SteamClient.SteamId.Value.ToString());
+        sharedStateRepaired &= lobby.SetData("targetSize", TargetOnlineLobbySize.ToString());
+        sharedStateRepaired &= lobby.SetData(MatchReadyKey, "0");
+        sharedStateRepaired &= lobby.SetData(MatchStartTokenKey, string.Empty);
+        sharedStateRepaired &= lobby.SetData(MatchRunningKey, string.Empty);
+
+        if (previousOwnerId.IsValid && !SameSteamId(previousOwnerId, SteamClient.SteamId))
+        {
+            sharedStateRepaired &= lobby.SetData(GetSlotKey(previousOwnerId), string.Empty);
+        }
+        sharedStateRepaired &= lobby.SetData(GetSlotKey(SteamClient.SteamId), "0");
+
+        if (!sharedStateRepaired)
+        {
+            Debug.LogWarning(
+                $"[SteamLobbyManager] Steam only partially accepted party-host migration for lobby " +
+                $"{lobby.Id.Value}; retrying on the next frame.");
+            return;
+        }
+
+        hostCreatedPartyLobby = true;
+
+        // The promoted player moves to P1. Everyone else retains a valid positive slot; any member
+        // caught in the join/departure race is assigned the first genuinely open slot.
+        List<SteamId> members = GetLobbyMemberIds(lobby);
+        if (!ContainsSteamId(members, SteamClient.SteamId))
+        {
+            members.Add(SteamClient.SteamId);
+        }
+        BuildAssignedSlots(lobby, members);
+        partySlotCacheFrame = -1;
+
+        bool shouldBeJoinable = members.Count < TargetOnlineLobbySize;
+        if (lobby.SetJoinable(shouldBeJoinable))
+        {
+            lastJoinableLobbyId = lobby.Id;
+            lastPublishedJoinableState = shouldBeJoinable;
+        }
+
+        Debug.Log(
+            $"[SteamLobbyManager] Party host migrated. PreviousOwner={previousOwnerId.Value} " +
+            $"NewOwner={SteamClient.SteamId.Value} Members={members.Count} Joinable={shouldBeJoinable}. " +
+            "The new host can invite friends, choose a mode, and start the match.");
+    }
+
     private bool IsPartyRosterFrozen(Lobby lobby)
     {
         bool hasDirectCommit = TryGetPartyStartCommit(lobby, out string _);
+        string publishedStartToken = lobby.GetData(MatchStartTokenKey);
+        bool hasPublishedCommit = lobby.GetData(MatchReadyKey) == "1"
+            && MatchStartTokenNamesLobbyOwner(lobby, publishedStartToken);
         return (IsPartyLobby(lobby) || hostCreatedPartyLobby || hasDirectCommit)
             && (partyStartRequested
-                || lobby.GetData(MatchReadyKey) == "1"
+                || hasPublishedCommit
                 || hasDirectCommit
                 || startedCurrentLobbyMatch
                 || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive));
@@ -2092,7 +2276,8 @@ public class SteamLobbyManager : MonoBehaviour
         token = string.Empty;
         if (!partyStartCommitLobbyId.HasValue
             || partyStartCommitLobbyId.Value != lobby.Id
-            || string.IsNullOrEmpty(partyStartCommitToken))
+            || string.IsNullOrEmpty(partyStartCommitToken)
+            || !MatchStartTokenNamesLobbyOwner(lobby, partyStartCommitToken))
         {
             return false;
         }
@@ -2282,7 +2467,7 @@ public class SteamLobbyManager : MonoBehaviour
         string publishedReady = lobby.GetData(MatchReadyKey);
         string publishedStartToken = lobby.GetData(MatchStartTokenKey);
         bool hasPublishedPartyCommit = publishedReady == "1"
-            && !string.IsNullOrEmpty(publishedStartToken);
+            && MatchStartTokenNamesLobbyOwner(lobby, publishedStartToken);
         string frozenPartyStartToken = hasDirectPartyCommit
             ? directPartyStartToken
             : publishedStartToken;
@@ -2686,6 +2871,42 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         return OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id;
+    }
+
+    private bool MatchStartTokenNamesLobbyOwner(Lobby lobby, string token)
+    {
+        string expectedPrefix = $"{lobby.Id.Value}|";
+        if (string.IsNullOrEmpty(token)
+            || !token.StartsWith(expectedPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        int rosterMarker = token.LastIndexOf("|r:", StringComparison.Ordinal);
+        if (rosterMarker < expectedPrefix.Length || rosterMarker >= token.Length - 3)
+        {
+            return false;
+        }
+
+        string[] encodedPeers = token.Substring(rosterMarker + 3)
+            .Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < encodedPeers.Length; i++)
+        {
+            int separator = encodedPeers[i].IndexOf('-');
+            if (separator <= 0
+                || separator >= encodedPeers[i].Length - 1
+                || !int.TryParse(encodedPeers[i].Substring(0, separator), out int playerSlot)
+                || playerSlot != 0
+                || !ulong.TryParse(encodedPeers[i].Substring(separator + 1), out ulong hostSteamIdValue))
+            {
+                continue;
+            }
+
+            SteamId encodedHostId = hostSteamIdValue;
+            return SameSteamId(encodedHostId, lobby.Owner.Id);
+        }
+
+        return false;
     }
 
     private OnlineMatchRoster BuildRosterFromMatchStartToken(Lobby lobby, string token)

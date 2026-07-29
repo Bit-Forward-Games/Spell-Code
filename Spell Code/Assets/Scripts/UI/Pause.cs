@@ -11,7 +11,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
-using GifImporter;
 
 public class Pause : MonoBehaviour
 {
@@ -120,7 +119,7 @@ public class Pause : MonoBehaviour
     public Image colorLayer4;
     public RectTransform nextPage;
     public RectTransform backPage;
-    public GifPlayer gifPlayer;
+    public SpellVideoPlayer videoPlayer;
     public Sprite[] fellas;
     public GameObject fella;
     public bool showDescription = false;
@@ -230,7 +229,10 @@ public class Pause : MonoBehaviour
     }
     void OnDisable() 
     { 
-        CancelActiveRebind();
+        // OnDisable also runs while the scene/application is being torn down. At that point the
+        // controls menu and its sprite assets may already be destroyed, so only clean up rebind
+        // state here; there is no visible UI left to refresh.
+        CancelActiveRebind(false);
         RestoreUiInputDevices();
         input.Disable(); 
         scInput.Disable(); 
@@ -342,12 +344,12 @@ public class Pause : MonoBehaviour
 
         bool anyCodeModeMenuOpen = System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened 
-            && !uiScript.multiplayerGamemodesMenuOpened 
-            && !anyCodeModeMenuOpen) 
+        if (!uiScript.soloGamemodesMenuOpened && !paused && !uiScript.tutorialPromptMenuOpened
+            && !uiScript.multiplayerGamemodesMenuOpened && !uiScript.multiplayerGamemodesChooserMenuOpened
+            && !anyCodeModeMenuOpen && OnlineMenuPanel.OpenPanelCount == 0)
         {
             Time.timeScale = 1f;
-            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current?.SetSelectedGameObject(null);
             RestoreUiInputDevices();
         }
     }
@@ -667,7 +669,7 @@ public class Pause : MonoBehaviour
             displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
             displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
             spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
-            gifPlayer.Gif = grid[tab].spells[selectedSpell].SpellGIF;
+            videoPlayer.SetVideo(grid[tab].spells[selectedSpell].SpellVideo);
             cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
             inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
             
@@ -1560,7 +1562,13 @@ public class Pause : MonoBehaviour
                 && uiScript.codeModePromptMenuOpened != null
                 && System.Array.Exists(uiScript.codeModePromptMenuOpened, open => open);
 
-            if (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen))
+            // OnlineMenuPanel.OpenPanelCount covers the online menus (Online Modes / Friends Lobby /
+            // Matchmaking). The Friends Lobby in particular opens in MainMenu AFTER
+            // CloseGamemodesMenuForOnlineEntry has cleared every uiScript flag, so without this it
+            // owns the screen while this method hands the devices straight back to the character --
+            // the player walks around behind the lobby and the panel stops responding.
+            if (OnlineMenuPanel.OpenPanelCount > 0
+                || (uiScript != null && (uiScript.soloGamemodesMenuOpened || uiScript.multiplayerGamemodesMenuOpened || uiScript.multiplayerGamemodesChooserMenuOpened || uiScript.tutorialPromptMenuOpened || anyCodeModeMenuOpen)))
             {
                 ScopeUiInputToCurrentPausePlayerDevices();
                 return;
@@ -2161,12 +2169,11 @@ public class Pause : MonoBehaviour
         }
     }
 
-    private void CancelActiveRebind()
+    private void CancelActiveRebind(bool refreshGlyphs = true)
     {
         if (activeRebindOperation != null && activeRebindOperation.started && !activeRebindOperation.completed && !activeRebindOperation.canceled)
         {
             activeRebindOperation.Cancel();
-            return;
         }
 
         StopActiveRebindCapture();
@@ -2174,7 +2181,10 @@ public class Pause : MonoBehaviour
         RestoreMenuNavigationAfterRebind();
         StopActiveRebindTimeout();
         DisposeActiveRebindOperation();
-        RefreshControlGlyphs();
+        if (refreshGlyphs)
+        {
+            RefreshControlGlyphs();
+        }
     }
 
     private void StopActiveRebindCapture()

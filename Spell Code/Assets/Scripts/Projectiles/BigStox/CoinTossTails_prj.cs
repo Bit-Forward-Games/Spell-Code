@@ -16,7 +16,7 @@ public class CoinTossTails_prj : BaseProjectile
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 }, false);
     }
     
-    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "")
+    public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset, "Coin Toss");
         activeHitboxGroupIndex = 0;

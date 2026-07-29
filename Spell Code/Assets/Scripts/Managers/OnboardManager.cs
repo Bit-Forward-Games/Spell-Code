@@ -18,6 +18,7 @@ public class OnboardManager : MonoBehaviour
 
         [Header("Progress")]
         public bool joined;
+        public bool codeModePromptSelected;
         public bool moveComplete;
         public bool jumpComplete;
         public bool attackComplete;
@@ -187,6 +188,7 @@ public class OnboardManager : MonoBehaviour
     private static void ResetProgress(PlayerOnboarding player, bool joined)
     {
         player.joined = joined;
+        player.codeModePromptSelected = false;
         player.moveComplete = false;
         player.jumpComplete = false;
         player.attackComplete = false;
@@ -274,9 +276,30 @@ public class OnboardManager : MonoBehaviour
             inputSnapshots[playerIndex] =
                 InputConverter.ConvertFromLong(playerInputs[playerIndex]);
 
-            if (gameManager.players[playerIndex] == null ||
-                !TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+            if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
             {
+                continue;
+            }
+
+            if (gameManager.isOnlineMatchActive
+                && (gameManager.players[playerIndex] == null
+                    || !gameManager.IsPlayerSlotConnected(playerIndex)))
+            {
+                // Sparse party gaps (for example empty P2 in a P1+P3 match) never receive input, so
+                // their default "Join: [START]" prompt would otherwise remain visible forever.
+                player.moveText.enabled = false;
+                player.jumpText.enabled = false;
+                player.attackText.enabled = false;
+                player.castText.enabled = false;
+                player.breakWithSpellcode.enabled = false;
+                SetGambaActive(player, false, false);
+                continue;
+            }
+
+            if (gameManager.players[playerIndex] == null)
+            {
+                // Offline unjoined slots intentionally keep the Join prompt configured by
+                // ApplyInitialUiState until a local PlayerController is created for them.
                 continue;
             }
 
@@ -304,62 +327,73 @@ public class OnboardManager : MonoBehaviour
         }
         ReloadAllGlyphs(playerIndex);
 
-        if (!onboarding.moveComplete &&
-            (input.Direction == 4 || input.Direction == 6))
+        if (!onboarding.codeModePromptSelected)
         {
-            onboarding.moveComplete = true;
-            onboarding.moveText.color = GameManager.colors["green"];
-            Debug.Log("Move Onboard Complete");
-        }
-
-        if (!onboarding.jumpComplete &&
-            input.ButtonStates[1] == ButtonState.Pressed)
-        {
-            onboarding.jumpComplete = true;
-            onboarding.jumpText.color = GameManager.colors["green"];
-            Debug.Log("Jump Onboard Complete");
-        }
-
-        if (onboarding.moveComplete &&
-            onboarding.jumpComplete &&
-            !onboarding.attackComplete)
-        {
-            onboarding.moveText.enabled = false;
-            onboarding.jumpText.enabled = false;
-            onboarding.attackText.enabled = true;
-
-            if (!onboarding.gambaActive)
+            if (gameManager.tempUI.codeModePromptMenuOpened[playerIndex] == false)
             {
-                SetGambaActive(onboarding, true, false);
-            }
-
-            if (player.basicsFired > 0)
-            {
-                onboarding.attackComplete = true;
-                Debug.Log("Atk Onboard Complete");
+                onboarding.codeModePromptSelected = true;
             }
         }
 
-        if (onboarding.attackComplete && player.spellList.Count == 0)
+        if (onboarding.codeModePromptSelected)
         {
-            onboarding.attackText.enabled = false;
-            onboarding.moveText.enabled = false;
-            onboarding.jumpText.enabled = false;
-        }
-
-        if (player.spellList.Count > 0 && !onboarding.glassBroken)
-        {
-            ShowCastPrompt(playerIndex, onboarding, input);
-
-            if (gameManager.gates[playerIndex].isOpen)
+            if (!onboarding.moveComplete &&
+                (input.Direction == 4 || input.Direction == 6))
             {
-                onboarding.glassBroken = true;
+                onboarding.moveComplete = true;
+                onboarding.moveText.color = GameManager.colors["green"];
+                Debug.Log("Move Onboard Complete");
             }
-        }
 
-        if (onboarding.glassBroken)
-        {
-            CompleteOnboarding(playerIndex, onboarding);
+            if (!onboarding.jumpComplete &&
+                input.ButtonStates[1] == ButtonState.Pressed)
+            {
+                onboarding.jumpComplete = true;
+                onboarding.jumpText.color = GameManager.colors["green"];
+                Debug.Log("Jump Onboard Complete");
+            }
+
+            if (onboarding.moveComplete &&
+                onboarding.jumpComplete &&
+                !onboarding.attackComplete)
+            {
+                onboarding.moveText.enabled = false;
+                onboarding.jumpText.enabled = false;
+                onboarding.attackText.enabled = true;
+
+                if (!onboarding.gambaActive)
+                {
+                    SetGambaActive(onboarding, true, false);
+                }
+
+                if (player.basicsFired > 0)
+                {
+                    onboarding.attackComplete = true;
+                    Debug.Log("Atk Onboard Complete");
+                }
+            }
+
+            if (onboarding.attackComplete && player.spellList.Count == 0)
+            {
+                onboarding.attackText.enabled = false;
+                onboarding.moveText.enabled = false;
+                onboarding.jumpText.enabled = false;
+            }
+
+            if (player.spellList.Count > 0 && !onboarding.glassBroken)
+            {
+                ShowCastPrompt(playerIndex, onboarding, input);
+
+                if (gameManager.gates[playerIndex].isOpen)
+                {
+                    onboarding.glassBroken = true;
+                }
+            }
+
+            if (onboarding.glassBroken)
+            {
+                CompleteOnboarding(playerIndex, onboarding);
+            }
         }
     }
 
@@ -417,8 +451,17 @@ public class OnboardManager : MonoBehaviour
         }
 
         player.castText.enabled = true;
-        player.castText.text =
-            input.ButtonStates[0] == ButtonState.Held ? "Input Code" : "Hold";
+        //player.castText.text =
+            //input.ButtonStates[0] == ButtonState.Held ? "Input Code" : "Hold:\n[CODE]";
+        if (input.ButtonStates[0] == ButtonState.Held) { player.castText.text = "Input Code"; }
+        else
+        {
+            player.castText.text = "Hold:\n[CODE]";
+            player.castText.GetComponent<TextSetter>().referenceString = "Hold:\n[CODE]";
+            player.castText.GetComponent<TextSetter>().stringToReplace = "[CODE]";
+            player.castText.GetComponent<TextSetter>().defaultAction = attackActionReference;
+            ReloadAllGlyphs(playerIndex);
+        }
     }
 
     private void CompleteOnboarding(

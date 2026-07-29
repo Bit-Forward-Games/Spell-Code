@@ -6,9 +6,13 @@ public static class ButtonPromptCompleter
 {
     public static string ReadAndReplaceBinding(string textToDisplay, string stringToReplace, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset)
     {
+        if (string.IsNullOrEmpty(textToDisplay) || string.IsNullOrEmpty(stringToReplace) || spriteAsset == null)
+        {
+            return textToDisplay ?? string.Empty;
+        }
+
         string stringButtonName = GetInputString(actionNeeded);
-        textToDisplay = textToDisplay.Replace(stringToReplace, $"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
-        return textToDisplay;
+        return textToDisplay.Replace(stringToReplace, $"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
     }
 
     private static string GetInputString(InputBinding actionNeeded)

@@ -23,9 +23,7 @@ public class TextSetter : MonoBehaviour
 
     private void Awake()
     {
-        //_playerInput = new PlayerInput();
-        _textBox = GetComponent<TMP_Text>();
-        referenceString = _textBox.text;
+        EnsureTextBoxInitialized();
     }
 
     private void Start()
@@ -47,9 +45,9 @@ public class TextSetter : MonoBehaviour
 
     public void ClearGlyph()
     {
-        if (_textBox == null)
+        if (!EnsureTextBoxInitialized())
         {
-            _textBox = GetComponent<TMP_Text>();
+            return;
         }
 
         _textBox.text = referenceString.Replace(stringToReplace, string.Empty);
@@ -62,16 +60,7 @@ public class TextSetter : MonoBehaviour
 
     public void SetText(InputAction targetAction)
     {
-        // This is invoked from Pause.OnDisable -> RefreshControlGlyphs during scene teardown
-        // (ExecuteOrder66, HidePersistentUiForEndScene), when the selected player / its input, or even
-        // this label's own refs, can already be gone. A throw here unwinds the entire scene transition,
-        // so the screen-cover never lifts and the player is stranded on a BLACK SCREEN (host invite/join
-        // never completes; return-to-lobby from the end screen dies). Fail safe instead of throwing.
-        if (_textBox == null)
-        {
-            _textBox = GetComponent<TMP_Text>();
-        }
-        if (_textBox == null || spriteAssets == null || spriteAssets.spriteAssets == null)
+        if (!EnsureTextBoxInitialized() || spriteAssets == null || spriteAssets.spriteAssets == null)
         {
             return;
         }
@@ -100,14 +89,41 @@ public class TextSetter : MonoBehaviour
         }
 
 
-        if((int)deviceType > spriteAssets.spriteAssets.Count - 1)
+        int spriteAssetIndex = (int)deviceType;
+        if (spriteAssetIndex < 0
+            || spriteAssetIndex >= spriteAssets.spriteAssets.Count
+            || spriteAssets.spriteAssets[spriteAssetIndex] == null)
         {
             Debug.LogError($"missing Sprite Asset for {deviceType}");
             return;
         }
 
         
-        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(inputMessage,stringToReplace, targetBinding,spriteAssets.spriteAssets[(int)deviceType]);
+        _textBox.text = ButtonPromptCompleter.ReadAndReplaceBinding(
+            inputMessage,
+            stringToReplace,
+            targetBinding,
+            spriteAssets.spriteAssets[spriteAssetIndex]);
+    }
+
+    private bool EnsureTextBoxInitialized()
+    {
+        if (_textBox == null)
+        {
+            _textBox = GetComponent<TMP_Text>();
+        }
+
+        if (_textBox == null)
+        {
+            return false;
+        }
+
+        if (referenceString == null)
+        {
+            referenceString = _textBox.text ?? string.Empty;
+        }
+
+        return true;
     }
 
     private PlayerController GetSelectedPlayer()

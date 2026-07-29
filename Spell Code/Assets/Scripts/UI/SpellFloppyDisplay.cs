@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System;
-using GifImporter;
 using DG.Tweening;
 
 public class SpellFloppyDisplay : MonoBehaviour
@@ -18,14 +17,14 @@ public class SpellFloppyDisplay : MonoBehaviour
     public Image spellIcon;
     public Image Background;
     public Image selectFill;
-    public GifPlayer SpellGifPlayer;
-    public GameObject SpellGifGO;
+    public SpellVideoPlayer spellVideoPlayer;
+    public GameObject spellVideoObject;
 
 
 //fields for animated interactivity
     public bool showDesc = false;
-    public const float gifScaleNoDesc = 2.75f;
-    public const float gifScaleDesc = 2f;
+    public const float videoScaleNoDesc = 2.75f;
+    public const float videoScaleDesc = 2f;
 
 
 
@@ -54,7 +53,7 @@ public class SpellFloppyDisplay : MonoBehaviour
         spellCooldown.text = $"Cooldown: {displayCooldown}s";
         spellInput.text = spellData.spellType == SpellType.Active? $"Input: {PlayerController.ConvertCodeToString(spellData.spellInput)}": "Passive";
         spellIcon.sprite = spellData.readyIcon;
-        SpellGifPlayer.Gif = spellData.SpellGIF;;
+        spellVideoPlayer.Preload(spellData.SpellVideo);
         switch (spellData.brands[0])
         {
             case Brand.Killeez:
@@ -76,9 +75,9 @@ public class SpellFloppyDisplay : MonoBehaviour
     public void StartFloppyDisplay()
     {
         SetCanvasEnabled(true);
-        if (SpellGifPlayer != null)
+        if (spellVideoPlayer != null)
         {
-            SpellGifPlayer.Reset();
+            spellVideoPlayer.PlayPrepared();
         }
         SetDescriptionVisible(false, false);
     }
@@ -92,6 +91,7 @@ public class SpellFloppyDisplay : MonoBehaviour
         }
 
         KillDisplayTweens();
+        spellVideoPlayer?.Hide();
         canvas.enabled = false;
     }
 
@@ -107,9 +107,9 @@ public class SpellFloppyDisplay : MonoBehaviour
 
         if (showDesc)
         {
-            if (SpellGifGO != null)
+            if (spellVideoObject != null)
             {
-                Tween tween = SpellGifGO.transform.DOScale(gifScaleDesc, .25f).SetLink(SpellGifGO);
+                Tween tween = spellVideoObject.transform.DOScale(videoScaleDesc, .25f).SetLink(spellVideoObject);
                 tween.OnComplete(() =>
                 {
                     if (spellDesc != null)
@@ -126,9 +126,9 @@ public class SpellFloppyDisplay : MonoBehaviour
                 Tween tween = spellDesc.DOColor(Color.clear, .25f).SetLink(spellDesc.gameObject);
                 tween.OnComplete(() =>
                 {
-                    if (SpellGifGO != null)
+                    if (spellVideoObject != null)
                     {
-                        SpellGifGO.transform.DOScale(gifScaleNoDesc, .25f).SetLink(SpellGifGO);
+                        spellVideoObject.transform.DOScale(videoScaleNoDesc, .25f).SetLink(spellVideoObject);
                     }
                 });
             }
@@ -147,9 +147,12 @@ public class SpellFloppyDisplay : MonoBehaviour
 
         KillDisplayTweens();
 
-        if (SpellGifGO != null)
+        if (spellVideoObject != null)
         {
-            SpellGifGO.transform.localScale = new Vector3(showDesc ? gifScaleDesc : gifScaleNoDesc, showDesc ? gifScaleDesc : gifScaleNoDesc, 1);
+            spellVideoObject.transform.localScale = new Vector3(
+                showDesc ? videoScaleDesc : videoScaleNoDesc,
+                showDesc ? videoScaleDesc : videoScaleNoDesc,
+                1);
         }
 
         if (spellDesc != null)
@@ -194,9 +197,9 @@ public class SpellFloppyDisplay : MonoBehaviour
 
     private void KillDisplayTweens()
     {
-        if (SpellGifGO != null)
+        if (spellVideoObject != null)
         {
-            SpellGifGO.transform.DOKill();
+            spellVideoObject.transform.DOKill();
         }
 
         if (spellDesc != null)

@@ -1614,7 +1614,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int GetMaxPredictionAheadFrames()
         {
             int maxHistoryAhead = StateArraySize - 32;
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.ActivePlayerCount > 2)
             {
                 return Mathf.Min(maxHistoryAhead, Mathf.Max(InputDelay + 1, InputDelay + MultiplayerMaxPredictionAheadFrames));
             }
@@ -1638,7 +1638,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // After a disconnect the match is smaller and the strict 3/4P "never pulse" hold
             // would deadlock the survivors against the prediction cap (idle Shop crawl/freeze).
             // Fall back to the 2P-style pulse so the match keeps pacing forward.
-            if (usePeerRoster && !peerDroppedThisMatch && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            if (usePeerRoster && !peerDroppedThisMatch && GameManager.Instance != null && GameManager.Instance.ActivePlayerCount > 2)
             {
                 return Mathf.Max(0, MultiplayerMaxConsecutiveFrameDrops);
             }
@@ -1819,7 +1819,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // Offline never reaches this prediction path.
         private int GetDirectionPredictionHoldFrames(int slot)
         {
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.ActivePlayerCount > 2)
             {
                 int baseHold = Mathf.Max(0, MultiplayerDirectionPredictionHoldFrames);
                 int stabilityCap = Mathf.Max(baseHold, MultiplayerDirectionPredictionHoldMaxFrames);
@@ -1850,7 +1850,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // Jump button decay window. Mirrors GetDirectionPredictionHoldFrames pattern.
         private int GetJumpButtonPredictionHoldFrames()
         {
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.ActivePlayerCount > 2)
             {
                 return MultiplayerJumpButtonPredictionHoldFrames;
             }
@@ -1862,7 +1862,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         private int GetPauseButtonPredictionHoldFrames()
         {
-            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.playerCount > 2)
+            if (usePeerRoster && GameManager.Instance != null && GameManager.Instance.ActivePlayerCount > 2)
             {
                 return MultiplayerPauseButtonPredictionHoldFrames;
             }
@@ -2950,7 +2950,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return GameManager.Instance != null
                 && GameManager.Instance.isOnlineMatchActive
                 && usePeerRoster
-                && GameManager.Instance.playerCount >= 2
+                && GameManager.Instance.ActivePlayerCount >= 2
                 && SceneManager.GetActiveScene().name == "MainMenu"
                 && !GameManager.Instance.isTransitioning;
         }

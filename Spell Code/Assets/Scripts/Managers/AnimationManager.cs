@@ -207,7 +207,8 @@ public class AnimationManager : MonoBehaviour
                 player.position.Y.ToFloat(), // Corrected: Uppercase Y, ToFloat()
                 zIndex
             );
-            player.transform.position = GetPlayerRenderPosition(player, targetPosition, i);
+            int playerSlot = Array.IndexOf(GameManager.Instance.players, player);
+            player.transform.position = GetPlayerRenderPosition(player, targetPosition, playerSlot);
         }
 
         for(int i = 0; i < ProjectileManager.Instance.projectilePrefabs.Count; i++)
@@ -246,6 +247,7 @@ public class AnimationManager : MonoBehaviour
     private PlayerController[] GetFighters()
     {
         return GameManager.Instance.players[0..GameManager.Instance.playerCount]
+            .Where(player => player != null && player.isConnected)
             .Concat(GameManager.Instance.playerNPCs.Where(player => player != null))
             .Distinct()
             .ToArray();
@@ -276,7 +278,9 @@ public class AnimationManager : MonoBehaviour
             return false;
         }
 
-        return ownerIndex >= 0 && ownerIndex == GameManager.Instance.remotePlayerIndex;
+        return ownerIndex >= 0
+            && ownerIndex != GameManager.Instance.localPlayerIndex
+            && GameManager.Instance.IsPlayerSlotConnected(ownerIndex);
     }
 
     private Vector3 GetSmoothedRenderPosition<T>(Dictionary<T, Vector3> positions, T key, Vector3 targetPosition, bool shouldSmooth, float smoothing)

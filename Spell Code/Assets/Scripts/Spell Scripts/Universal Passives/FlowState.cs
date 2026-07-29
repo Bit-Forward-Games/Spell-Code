@@ -25,7 +25,7 @@ public class FlowState : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnHitSpell:
-                // deal extra damage based on demon aura
+                // deal extra damage when in flow state
                 if(owner.flowState > 0 && !defender.hitboxData.ignoreEffectDamage &&
                 IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {

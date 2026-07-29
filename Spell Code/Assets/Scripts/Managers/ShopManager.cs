@@ -128,7 +128,8 @@ public class ShopManager : MonoBehaviour
 
                 bool hasActiveOwner = gambaMachine.ownerPID > 0
                     && gambaMachine.ownerPID <= gameManager.playerCount
-                    && gameManager.players[gambaMachine.ownerPID - 1] != null;
+                    && gameManager.players[gambaMachine.ownerPID - 1] != null
+                    && gameManager.IsPlayerSlotConnected(gambaMachine.ownerPID - 1);
                 int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
                 PlayerController owner = hasActiveOwner ? gameManager.players[gambaMachine.ownerPID - 1] : null;
                 bool ownerCanUseShop = hasActiveOwner

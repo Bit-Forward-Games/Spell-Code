@@ -13,6 +13,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public TextMeshProUGUI[] playerRamVals;
     public GameManager gameManager;
     public Image[] playerStoreBar;
+    public Image[] playerBasicReplaceIcon;
     public Image[] followPlayerHpBar;
     public Image[] followPlayerDamageBar;
     public Image[] playerGoldBar;
@@ -88,6 +89,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     public GameObject multiplayerGamemodesMenu;
     public bool multiplayerGamemodesMenuOpened;
 
+    [Header("Multiplayer Gamemodes Chooser Menu")] // Tutorial Prompt
+    public GameObject _multiplayerGamemodesChooserMenuFirst;
+    public GameObject multiplayerGamemodesChooserMenu;
+    public bool multiplayerGamemodesChooserMenuOpened;
+
     [Header("Tutorial Prompt Menu")] // Tutorial Prompt
     public GameObject _tutorialPromptMenuFirst;
     public GameObject tutorialPromptMenu;
@@ -139,6 +145,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         followPlayerHpBar = new Image[4];
         followPlayerDamageBar = new Image[4];
         playerStoreBar = new Image[4];
+        playerBasicReplaceIcon = new Image[4];
         SpellInputBorder = new RectTransform[4];
         SpellInputs = new TextMeshPro[4];
         onPlayerUI = new GameObject[4];
@@ -332,6 +339,31 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
     }
 
+    public void SetMultiplayerGameModesMenuActive(bool setOpen)
+    {
+        if (setOpen)
+        {
+            gamemodesMenuPlayerIndex = ResolveGamemodesMenuPlayerIndex();
+            if (pause != null)
+            {
+                pause.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+            }
+
+            gamemodesMenu.SetActive(true);
+            multiplayerGamemodesMenu.SetActive(false);
+            multiplayerGamemodesMenuOpened = false;
+            multiplayerGamemodesChooserMenu.SetActive(true);
+            multiplayerGamemodesChooserMenuOpened = true;
+            // EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesChooserMenuFirst);
+            StartCoroutine(pause.SelectFirst(_multiplayerGamemodesChooserMenuFirst));
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            CloseGamemodeMenus();
+        }
+    }
+
     // Closing either gamemode menu closes BOTH and clears BOTH flags. The two menus share the
     // gamemodesMenu container so they are never open together, and a close wired to the wrong
     // variant must not strand the other flag: the multiplayer menu's Local Play button called
@@ -342,6 +374,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         soloGamemodesMenuOpened = false;
         multiplayerGamemodesMenuOpened = false;
+        multiplayerGamemodesChooserMenuOpened = false;
         // codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()] = false;
 
         if (soloGamemodesMenu != null)
@@ -352,6 +385,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (multiplayerGamemodesMenu != null)
         {
             multiplayerGamemodesMenu.SetActive(false);
+        }
+
+        if (multiplayerGamemodesChooserMenu != null)
+        {
+            multiplayerGamemodesChooserMenu.SetActive(false);
         }
 
         if (gamemodesMenu != null)
@@ -552,7 +590,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         }
 
         // || codeModePromptMenuOpened[ResolveGamemodesMenuPlayerIndex()]
-        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened) && !pause.paused)
+        if ((soloGamemodesMenuOpened || multiplayerGamemodesMenuOpened || multiplayerGamemodesChooserMenuOpened) && !pause.paused)
         {
             if (gamemodesMenuPlayerIndex < 0)
             {
@@ -560,6 +598,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
 
             pause?.ScopeUiInputToPlayerDevices(gamemodesMenuPlayerIndex);
+
+            // An online sub-panel (Online Modes / Friends Lobby / Matchmaking) sits on top of this
+            // menu and owns confirm/back while it is up. Running both handlers would fire the
+            // focused button TWICE in one frame, and a single Back would collapse the whole door
+            // menu instead of stepping back one level. The scoping above still has to run every
+            // frame -- Pause re-evaluates device scoping from these flags continuously, so the
+            // flags must stay set or UI input falls back to the character.
+            if (OnlineMenuPanel.OpenPanelCount > 0)
+            {
+                return;
+            }
 
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
@@ -573,6 +622,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (soloGamemodesMenuOpened)
                 {
                     SetSoloMenuActive(false);
+                }
+                else if (multiplayerGamemodesChooserMenuOpened)
+                {
+                    SetMultiplayerGameModesMenuActive(false);
                 }
                 else
                 {
@@ -609,8 +662,20 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         TutorialPromptAnimation(0f, new Vector2(-212f, 62f), new Vector2(916f, 344f), new Vector2(1432f, 408f));
     }
 
+    /// <summary>
+    /// LEGACY entry point from the pre-rework online option. It used to call
+    /// OpenInviteOverlayOrHost, which creates a lobby WITHOUT a lobbyMode -- that lobby auto-starts
+    /// the instant a second member joins, so a stale button still wired to this would silently
+    /// bypass the VS Friends party lobby and drag everyone into a match the host never started.
+    ///
+    /// It now routes to the same party flow as VS Friends, so pressing any leftover copy of that
+    /// button does the right thing instead of the dangerous thing. Prefer wiring buttons to
+    /// OnlinePlayMenu.ChooseVsFriends; this exists only so old wiring cannot cause harm.
+    /// </summary>
     public void InvitePlayer()
     {
+        Debug.LogWarning("[TempUIScript] InvitePlayer() is the legacy online entry point -- redirecting to the VS Friends party lobby. Re-wire this button to OnlinePlayMenu.ChooseVsFriends.");
+
         CloseGamemodesMenuForOnlineEntry();
 
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
@@ -620,9 +685,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             return;
         }
 
-        if (!lobbyManager.OpenInviteOverlayOrHost())
+        if (!lobbyManager.HostPartyLobby())
         {
-            Debug.LogWarning("[TempUIScript] Online invite request could not be started.");
+            Debug.LogWarning("[TempUIScript] Online party lobby request could not be started.");
         }
     }
 
@@ -725,11 +790,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             // Read the size from the lobby manager, NOT from matchmakingSize, that's an instance field
             // and the deferred MainMenu transition can rebuild this UI, resetting it to the 2-player
             // default. Rebuild the string only when the size changes; this runs every frame.
+            // SearchingMatchSize is the primary size and doubles as the change detector; the label
+            // itself uses the full accepted set, which reads "2 OR 4" when the player picked both.
             int size = lobbyManager.SearchingMatchSize;
             if (size != lastFindingMatchSize)
             {
                 lastFindingMatchSize = size;
-                findingMatchText.text = $"FINDING {size}-PLAYER MATCH...";
+                findingMatchText.text = $"FINDING {lobbyManager.SearchingMatchSizesLabel}-PLAYER MATCH...";
             }
         }
         else
@@ -759,12 +826,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             visible);
     }
 
-    // Shows the shared online-entry label for the entire handshake. Invite joiners see "JOINING
-    // MATCH..." while a lobby owner whose guest has arrived sees "STARTING MATCH...".
-    // Visibility is the pending window, NOT the lobby manager's own flags: those both clear the
-    // moment StartOnlineMatch runs, which is still one opponent-ready handshake short of the sim
-    // actually running. The label has to survive that tail, otherwise it disappears while the
-    // screen is still empty.
+    // Shows the shared online-entry label for the match-start handshake. A VS Friends lobby still
+    // counts as an online entry while it gathers players (that broader window suppresses gameplay
+    // prompts), but it is not joining/starting a match until the host presses Start Match.
     private void RefreshJoiningMatchText(bool onlineEntryPending)
     {
         if (joiningMatchText == null)
@@ -775,8 +839,14 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         bool starting = lobbyManager != null && lobbyManager.IsStartingMatch;
         bool joining = lobbyManager != null && lobbyManager.IsJoiningMatch;
+        bool gatheringParty =
+            lobbyManager != null
+            && lobbyManager.IsPartyEntryPending
+            && !lobbyManager.IsPartyMatchStartRequested
+            && (!lobbyManager.IsInPartyLobby || lobbyManager.IsPartyLobbyWaitingForHostStart);
+        bool showMatchStatus = onlineEntryPending && !gatheringParty;
 
-        if (onlineEntryPending)
+        if (showMatchStatus)
         {
             // Latch the wording: the role flags go quiet for the last stretch of the window, and the
             // host's label must not flip to "JOINING MATCH..." on the way out.
@@ -799,13 +869,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             joiningMatchStatusText = null;
         }
 
-        if (onlineEntryPending == joiningMatchShown)
+        if (showMatchStatus == joiningMatchShown)
         {
             return;
         }
 
-        joiningMatchShown = onlineEntryPending;
-        SetJoiningMatchVisible(onlineEntryPending);
+        joiningMatchShown = showMatchStatus;
+        SetJoiningMatchVisible(showMatchStatus);
     }
 
     private void SetJoiningMatchVisible(bool visible)
@@ -930,7 +1000,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
         // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
-        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened)
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened)
         {
             return;
         }
@@ -1006,6 +1076,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 if (i < playerRamVals.Length && playerRamVals[i] != null) playerRamVals[i].text = "";
                 if (i < playerGoldBar.Length && playerGoldBar[i] != null) playerGoldBar[i].fillAmount = 0f;
                 if (i < playerStoreBar.Length && playerStoreBar[i] != null) playerStoreBar[i].fillAmount = 0f;
+                if (i < playerBasicReplaceIcon.Length && playerBasicReplaceIcon[i] != null) playerBasicReplaceIcon[i].enabled = false;
                 if (i < flowStateVals.Length && flowStateVals[i] != null) flowStateVals[i].enabled = false;
                 if (i < flowStateDim.Length && flowStateDim[i] != null) flowStateDim[i].enabled = false;
                 if (i < stockStabilityVals.Length && stockStabilityVals[i] != null) stockStabilityVals[i].enabled = false;
@@ -1024,6 +1095,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();
+            playerBasicReplaceIcon[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Basic Attack Replacement Icon").GetComponent<Image>();
             SpellInputBorder[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell Input Border").GetComponent<RectTransform>();
             SpellInputs[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Spell_Inputs").GetComponent<TextMeshPro>();
 
@@ -1168,6 +1240,18 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             //Spell Store Bar
             float storeFillAmount = (float)GameManager.Instance.players[i].storedCodeDuration / 240;//TODO: change 240 to use the scale the bar length based on spell length
             playerStoreBar[i].fillAmount = storeFillAmount;
+            
+
+            //Basic attack replacement Icon logic
+            if(GameManager.Instance.players[i].basicSpawnOverride != "")
+            {
+                playerBasicReplaceIcon[i].enabled = true;
+                playerBasicReplaceIcon[i].sprite = SpellDictionary.Instance.spellDict[GameManager.Instance.players[i].basicSpawnOverride].readyIcon;
+            }
+            else
+            {
+                playerBasicReplaceIcon[i].enabled = false;
+            }
         }
     }
 

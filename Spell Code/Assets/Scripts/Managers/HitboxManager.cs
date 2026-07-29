@@ -640,6 +640,8 @@ public class HitboxManager : MonoBehaviour
     {
         return GameManager.Instance.players[0..GameManager.Instance.playerCount]
             .Concat(GameManager.Instance.playerNPCs.Where(player => player != null))
+            // Keep inert sparse placeholders in this array so human-player indices remain identical
+            // to their authoritative P1-P4 slots. Collision targets already filter on isAlive.
             .Where(player => player != null)
             .Distinct()
             .ToArray();

@@ -148,10 +148,10 @@ public class TempSpellDisplay : MonoBehaviour
     public void UpdateSpellDisplay(int playerIndex)
     {
         if (IsRollbackFrame) return;
-        bool hasDemonX = false;
-        bool hasBigStox = false;
-        bool hasKilleez = false;
-        bool hasVWave = false;
+        // bool hasDemonX = false;
+        // bool hasBigStox = false;
+        // bool hasKilleez = false;
+        // bool hasVWave = false;
 
         PlayerController player = GameManager.Instance.players[playerIndex];
 

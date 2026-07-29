@@ -6,8 +6,8 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class CrossmapClip : SpellData
 {
-    public static int flowStateIncrease = 180;
-    public static int rangeThreshold = 200;
+    public const int flowStateIncrease = 240;
+    public const int rangeThreshold = 175;
     private const int RangeIndicatorSegments = 96;
     private const float RangeIndicatorLineWidth = 1.5f;
     private LineRenderer rangeIndicator;

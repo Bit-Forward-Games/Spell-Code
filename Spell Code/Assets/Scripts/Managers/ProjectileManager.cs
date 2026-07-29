@@ -310,13 +310,13 @@ public class ProjectileManager : MonoBehaviour
 
     }
 
-    public void SpawnProjectile(BaseProjectile projectilePrefab, bool facingRight, FixedVec2 spawnOffset)
+    public void SpawnProjectile(BaseProjectile projectilePrefab, bool facingRight, FixedVec2 spawnOffset, bool useAbsolutePosition = false)
     {
         if (!projectilePrefab.gameObject.activeSelf)
         {
             projectilePrefab.ResetValues();
             projectilePrefab.gameObject.SetActive(true);
-            projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+            projectilePrefab.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
             RegisterActiveProjectile(projectilePrefab);
             return;
         }
@@ -325,7 +325,7 @@ public class ProjectileManager : MonoBehaviour
             // Respawn the projectile
             projectilePrefab.ResetValues();
             projectilePrefab.gameObject.SetActive(true);
-            projectilePrefab.SpawnProjectile(facingRight, spawnOffset);
+            projectilePrefab.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
             RegisterActiveProjectile(projectilePrefab);
         }
     }

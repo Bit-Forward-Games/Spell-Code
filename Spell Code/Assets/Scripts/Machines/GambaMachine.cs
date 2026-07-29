@@ -318,6 +318,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;
                     //BigStox
                     case 2:
@@ -332,6 +333,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Loaded Dice");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;
                     //Killeez
                     case 3:
@@ -346,6 +348,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Quiver Of Artemis");
                         break;
                     //VWave
                     case 4:
@@ -360,6 +363,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;
                 }
 

@@ -42,6 +42,9 @@ public class PartyLobbyPanel : OnlineMenuPanel
         [Tooltip("Optional. Shown only while the slot is occupied.")]
         public GameObject occupiedState;
 
+        [Tooltip("Optional. Character portrait shown once this exact slot assignment is confirmed. The matching 'P# Character Art' child is found automatically when unassigned.")]
+        public GameObject characterArt;
+
         [Tooltip("Optional. Shown while a player is connecting and has no confirmed slot yet.")]
         public GameObject connectingState;
     }
@@ -118,6 +121,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
     protected override void Awake()
     {
         base.Awake();
+        ResolveSlotCharacterArt();
         ResolveGameModeLabels();
         RefreshGameModeButtonLabel();
 
@@ -379,6 +383,26 @@ public class PartyLobbyPanel : OnlineMenuPanel
     // Presentation
     // ----------------------------------------------------------------------------------------
 
+    private void ResolveSlotCharacterArt()
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            SlotWidgets widgets = slots[i];
+            if (widgets == null || widgets.characterArt != null || widgets.button == null)
+            {
+                continue;
+            }
+
+            // The Friends Lobby prefab already keeps each portrait directly under its profile
+            // button, so no fragile cross-prefab scene references are required here.
+            Transform characterArt = widgets.button.transform.Find($"P{i + 1} Character Art");
+            if (characterArt != null)
+            {
+                widgets.characterArt = characterArt.gameObject;
+            }
+        }
+    }
+
     private void RefreshSlots()
     {
         SteamLobbyManager lobby = Lobby;
@@ -413,6 +437,10 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
             SetActiveIfPresent(widgets.emptyState, !occupied);
             SetActiveIfPresent(widgets.occupiedState, occupied);
+            // A joining member is briefly displayed in a provisional fallback slot while the
+            // host's exact P-number metadata propagates. Wait for confirmation so a P3/P4 invite
+            // cannot flash P2's portrait first.
+            SetActiveIfPresent(widgets.characterArt, occupied && !slot.IsProvisional);
             SetActiveIfPresent(widgets.connectingState, occupied && slot.IsProvisional);
 
             if (widgets.button != null)

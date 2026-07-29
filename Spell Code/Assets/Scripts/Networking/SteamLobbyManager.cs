@@ -788,7 +788,10 @@ public class SteamLobbyManager : MonoBehaviour
         // member joins. That is correct for the legacy host+invite flow but catastrophic if it runs
         // during VS Friends -- the party lobby would be bypassed entirely. Loud on purpose: if this
         // appears in a VS Friends test, something is still routing through the old entry point.
-        Debug.LogWarning("[SteamLobbyManager] HostAndInvite() -- creating a LEGACY auto-starting lobby (no lobbyMode). This is NOT the VS Friends party lobby.");
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.LogWarning("[SteamLobbyManager] HostAndInvite() -- creating a LEGACY auto-starting lobby (no lobbyMode). This is NOT the VS Friends party lobby.");
+        }
 
         if (isShuttingDown || !SteamClient.IsValid)
         {
@@ -2023,9 +2026,13 @@ public class SteamLobbyManager : MonoBehaviour
             string currentToken = lobby.GetData(MatchStartTokenKey);
             if (currentReady != "1" || currentToken != expectedMatchStartToken)
             {
-                // Loud, because arming a match is the one irreversible thing this method does. If a
-                // party lobby ever prints this without the host pressing Start, the hold is broken.
-                Debug.Log($"[SteamLobbyManager] Arming match. Members={roster.PlayerCount} lobbyMode='{lobby.GetData(LobbyModeKey)}' hostCreatedParty={hostCreatedPartyLobby} partyStartRequested={partyStartRequested}");
+                // The tripwire for the party hold: if a party lobby ever prints this WITHOUT the host
+                // pressing Start, the hold is broken and the fields below name which check failed.
+                // Debug branches only, which is where this would be caught anyway.
+                if (SteamManager.DebugToolsEnabled)
+                {
+                    Debug.Log($"[SteamLobbyManager] Arming match. Members={roster.PlayerCount} lobbyMode='{lobby.GetData(LobbyModeKey)}' hostCreatedParty={hostCreatedPartyLobby} partyStartRequested={partyStartRequested}");
+                }
                 if (IsPartyLobby(lobby) || hostCreatedPartyLobby)
                 {
                     lobby.SetJoinable(false);

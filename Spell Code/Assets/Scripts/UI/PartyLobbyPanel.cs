@@ -145,6 +145,12 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
     private void LogLobbyDiagnostics()
     {
+        // Editor + the private beta branches only; a shipping player never sees this.
+        if (!SteamManager.DebugToolsEnabled)
+        {
+            return;
+        }
+
         if (Time.unscaledTime < nextDiagnosticTime)
         {
             return;

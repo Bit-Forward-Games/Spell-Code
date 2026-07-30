@@ -1026,35 +1026,43 @@ public class GameManager : MonoBehaviour
     public void ApplyOnlineGameMode(string gameModeId, string gameModeDisplayName = null)
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
-        if (ActiveOnlineGameMode.Id == mode.Id && ActiveOnlineGameMode.DisplayName == mode.DisplayName)
-        {
-            return;
-        }
+        Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
+        bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
+            || ActiveOnlineGameMode.DisplayName != mode.DisplayName
+            || gamemode != resolvedGamemode;
 
+        // Always reassert both values. GameManager survives scene changes and the offline chooser can
+        // change gamemode independently, so returning early for repeated lobby metadata could leave
+        // this peer running stale local rules.
         ActiveOnlineGameMode = mode;
-
-        // Drive the SIM-affecting gamemode field from the propagated id. This matters: the switch in
-        // RunFrame writes real sim state (Turbo sets every spellList[i].cooldown = 1), and `gamemode`
-        // is neither serialized nor hashed nor synchronised, SetGamemode() only ever sets it on the
-        // machine whose button was pressed. Without this, a host on Turbo and a guest still on Normal
-        // desync on the first cooldown tick. Every peer calls this with the SAME id read out of the
-        // same Steam lobby data, immediately before the match starts, so they all land on one value.
-        //
-        // Ids come from the OnlineGameModeOption components in the scene, so matching on the enum
-        // name keeps that authoring free-form, set Mode Id to "turbo"/"elimination"/"fighter" and it
-        // just works. Anything unrecognised falls back to Normal rather than silently disagreeing.
-        Gamemode resolvedGamemode = Gamemode.Normal;
-        foreach (Gamemode candidate in System.Enum.GetValues(typeof(Gamemode)))
-        {
-            if (string.Equals(candidate.ToString(), mode.Id, System.StringComparison.OrdinalIgnoreCase))
-            {
-                resolvedGamemode = candidate;
-                break;
-            }
-        }
         gamemode = resolvedGamemode;
 
-        Debug.Log($"[GameManager] Online game mode set to '{mode.Id}' ({mode.DisplayName}) -> Gamemode.{gamemode}.");
+        if (modeChanged)
+        {
+            Debug.Log($"[GameManager] Online game mode set to '{mode.Id}' ({mode.DisplayName}) -> Gamemode.{gamemode}.");
+        }
+    }
+
+    private static Gamemode ResolveOnlineGamemode(string gameModeId)
+    {
+        if (string.Equals(gameModeId, "turbo", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Turbo;
+        }
+
+        if (string.Equals(gameModeId, "elimination", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Elimination;
+        }
+
+        if (string.Equals(gameModeId, "fighter", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(gameModeId, "fighting-game", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Fighter;
+        }
+
+        // Normal, empty, Chaos (until it has rules), and unknown ids all use the safe baseline.
+        return Gamemode.Normal;
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)
@@ -3361,25 +3369,6 @@ public class GameManager : MonoBehaviour
             inputs[i] = players[i].GetInputs();
         }
 
-        switch (gamemode)
-        {
-            case Gamemode.Normal:
-                break;
-            case Gamemode.Turbo:
-                foreach (PlayerController player in players)
-                {
-                    if (player != null)
-                    {
-                        for (int i = 0; i < player.spellList.Count; i++)
-                        {
-                            //no cooldown
-                            if (player.spellList[i] != null) { player.spellList[i].cooldown = 1; }
-                        }
-                    }
-                }
-                break;
-        }
-
         if (activeScene.name == "End")
         {
             if (tempUI != null)
@@ -3557,6 +3546,8 @@ public class GameManager : MonoBehaviour
     /// <param name="inputs">Array of inputs for each player.</param>
     public void UpdateGameState(ulong[] inputs)
     {
+        ApplyDeterministicGamemodeRules();
+
         ProjectileManager.Instance.UpdateProjectiles();
         HitboxManager.Instance.ProcessCollisions();
 
@@ -3576,6 +3567,36 @@ public class GameManager : MonoBehaviour
             if (players[i].isAlive)
             {
                 players[i].ProcEffectUpdate();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies simulation-affecting mode rules once per simulated frame.
+    /// This must remain inside UpdateGameState: rollback resimulation calls UpdateGameState directly
+    /// and bypasses both RunFrame and RunOnlineFrame.
+    /// </summary>
+    private void ApplyDeterministicGamemodeRules()
+    {
+        if (gamemode != Gamemode.Turbo)
+        {
+            return;
+        }
+
+        foreach (PlayerController player in players)
+        {
+            if (player == null || player.spellList == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < player.spellList.Count; i++)
+            {
+                if (player.spellList[i] != null)
+                {
+                    // Turbo reduces every spell cooldown to one simulation tick.
+                    player.spellList[i].cooldown = 1;
+                }
             }
         }
     }

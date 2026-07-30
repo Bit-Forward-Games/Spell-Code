@@ -2374,7 +2374,52 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         Debug.Log($"[SteamLobbyManager] Removed from party lobby by host {senderId.Value}.");
+        GameManager manager = GameManager.Instance;
         LeaveParty();
+        ReturnKickedPartyMemberToSoloLobby(manager);
+    }
+
+    private static void ReturnKickedPartyMemberToSoloLobby(GameManager manager)
+    {
+        if (manager == null)
+        {
+            Debug.LogError("[SteamLobbyManager] Could not return the kicked party member to SoloLobby because GameManager is missing.");
+            return;
+        }
+
+        // Unlike the pause-menu restart, keep this GameManager (and its local PlayerInput player)
+        // alive across the hub transition. A cold ExecuteOrder66 would destroy that player and the
+        // new SoloLobby manager would deliberately show its title/join screen again.
+        if (manager.MainMenuScreen != null)
+        {
+            manager.MainMenuScreen.SetActive(false);
+        }
+
+        bool hasLocalPlayer = manager.players != null
+            && manager.players.Length > 0
+            && manager.players[0] != null;
+
+        if (hasLocalPlayer)
+        {
+            // Same screen-covered, player-preserving scene path used when entering MainMenu from
+            // the solo hub, in reverse. LeaveParty already cleared every Steam party/start flag.
+            manager.loadSoloLobby();
+            return;
+        }
+
+        // An invite accepted before the title-screen join input can legitimately be playerless.
+        // Preserve the manager here too: PlayerInputManager remains available for the next join
+        // press, while the explicitly hidden title canvas cannot cover the SoloLobby scene.
+        manager.SetStage(-4);
+        if (manager.sceneManager != null)
+        {
+            manager.sceneManager.LoadScene("SoloLobby");
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene("SoloLobby");
+        }
     }
 
     private void ProcessPartyStartChatMessage(Lobby lobby, SteamId senderId, string message)

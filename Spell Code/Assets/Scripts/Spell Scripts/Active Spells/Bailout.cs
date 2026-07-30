@@ -97,7 +97,7 @@ public class Bailout : SpellData
 
                     if (doesCrit)
                     {
-                        defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                         ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), trailFacingRight, GetSpawnOffsetForWorldPosition(GetCritTrailWorldPosition(oldPos)));
                         StartCritTrail();
                     }

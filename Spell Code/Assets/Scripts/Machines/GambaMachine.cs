@@ -135,6 +135,7 @@ public class GambaMachine : MonoBehaviour
                 SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
 
                 isActive = false;
+                resetTimer = 0;
 
                 if (ownerPID == 1) {
                     foreach (GameObject flop in p1_floppys) { Destroy(flop); }
@@ -220,6 +221,7 @@ public class GambaMachine : MonoBehaviour
                     SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
 
                     isActive = false;
+                    resetTimer = 0;
                     activatedCount++;
 
                     if (ownerPID == 1)
@@ -275,6 +277,7 @@ public class GambaMachine : MonoBehaviour
                 SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
 
                 isActive = false;
+                resetTimer = 0;
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
             }
@@ -298,6 +301,7 @@ public class GambaMachine : MonoBehaviour
                 SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
 
                 isActive = false;
+                resetTimer = 0;
 
                 //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave
                 counter++;
@@ -318,7 +322,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Combo Demon");
                         break;
                     //BigStox
                     case 2:
@@ -333,7 +337,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Loaded Dice");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Hot Streak");
                         break;
                     //Killeez
                     case 3:
@@ -417,6 +421,7 @@ public class GambaMachine : MonoBehaviour
             if (isActive && CheckOnlineHitboxCollision())
             {
                 isActive = false;
+                resetTimer = 0;
                 SpawnFloppysForOwnerOnline(isRollback);
                 if (!isRollback)
                 {
@@ -465,6 +470,7 @@ public class GambaMachine : MonoBehaviour
         {
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
+            resetTimer = 0;
             activatedCount++;
 
             ClearFloppysForPID(ownerPID);

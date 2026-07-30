@@ -13,7 +13,7 @@ public class StockStability : SpellData
         cooldown = 1;
         priorityOverride = 5;
         spellType = SpellType.Universal;
-        procConditions = new ProcCondition[2] { ProcCondition.OnStart, ProcCondition.OnHitSpell};
+        procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.OnHitSpell, ProcCondition.OnCrit};
         description = $"On Spawn: Gain 10% Stock Stability<sprite name=\"StockStability\"> for every BigStox Spellcode you have.\nhitting a Spellcode has a random chance based on Stock Stability<sprite name=\"StockStability\"> to \"Crit\", dealing increased damage.";
 
     }
@@ -30,7 +30,7 @@ public class StockStability : SpellData
                     //non bigstox spells can crit here
                     if(GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified && !defender.hitboxData.ignoreEffectDamage)
                     {
-                        defender.TakeEffectDamage(bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                     }
                 }
                 break;
@@ -44,6 +44,9 @@ public class StockStability : SpellData
                     }
                 }
                 owner.stockStabilityModified = owner.stockStability;
+                break;
+            case ProcCondition.OnCrit:
+                defender.TakeEffectDamage(bigStoxCritDamage,owner, GameManager.colors["blue"]);
                 break;
             default:
                 break;

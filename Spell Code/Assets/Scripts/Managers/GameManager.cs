@@ -36,6 +36,16 @@ public class GameManager : MonoBehaviour
         { "black", HexToColor("#000000") }
     };
 
+    public enum Gamemode
+    {
+        Normal,
+        Turbo,
+        Elimination,
+        Fighter
+    }
+
+    public Gamemode gamemode;
+
     private static Color HexToColor(string hexCode)
     {
         ColorUtility.TryParseHtmlString(hexCode, out Color color);
@@ -558,6 +568,32 @@ public class GameManager : MonoBehaviour
             }
 
             PrivateBetaDebugHotkeys();
+        }
+    }
+
+    //int because OnClick() doesn't accept enums as parameters
+    public void SetGamemode(int mode)
+    {
+        gamemode = (Gamemode)mode;
+        Debug.Log("Gamemode set to: " + gamemode);
+
+        switch (gamemode)
+        {
+            case Gamemode.Normal: //0
+                loadMainMenu();
+                break;
+
+            case Gamemode.Turbo: //1
+                loadMainMenu();
+                break;
+
+            case Gamemode.Elimination: //2
+                loadMainMenu();
+                break;
+
+            case Gamemode.Fighter: //3
+                loadMainMenu();
+                break;
         }
     }
 
@@ -3305,6 +3341,25 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < inputs.Length; ++i)
         {
             inputs[i] = players[i].GetInputs();
+        }
+
+        switch (gamemode)
+        {
+            case Gamemode.Normal:
+                break;
+            case Gamemode.Turbo:
+                foreach (PlayerController player in players)
+                {
+                    if (player != null)
+                    {
+                        for (int i = 0; i < player.spellList.Count; i++)
+                        {
+                            //no cooldown
+                            if (player.spellList[i] != null) { player.spellList[i].cooldown = 1; }
+                        }
+                    }
+                }
+                break;
         }
 
         if (activeScene.name == "End")

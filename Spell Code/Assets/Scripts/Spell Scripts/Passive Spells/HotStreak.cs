@@ -23,7 +23,7 @@ public class HotStreak : SpellData
         spellName = "Hot Streak";
         cooldown = 1;
         spellType = SpellType.Passive;
-        procConditions = new ProcCondition[] { ProcCondition.OnCrit, ProcCondition.OnUpdate};
+        procConditions = new ProcCondition[] { ProcCondition.OnCrit, ProcCondition.OnUpdate, ProcCondition.ActiveOnHit };
         brands = new Brand[1] { Brand.BigStox };
         projectilePrefabs = new GameObject[2];
         description = "On Crit<sprite name=\"StockStability\">, launch a chain reaction to the nearest other opponent. This Spellcode can Crit<sprite name=\"StockStability\">.";
@@ -34,8 +34,16 @@ public class HotStreak : SpellData
         switch (targetProcCon)
         {
             case ProcCondition.OnCrit:
+                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified;
                 selfCastCounter = timeUntilSelfCast;
                 hotStreakSourcePID = defender.pID == owner.pID? (short)0 : defender.pID;
+                break;
+            case ProcCondition.ActiveOnHit:
+                if (defender.hitboxData.parentProjectile is HotStreakCrit_prj &&
+                    IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                {
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
+                }
                 break;
             case ProcCondition.OnUpdate:
                 if(hotStreakSourcePID >= 0)
@@ -47,8 +55,9 @@ public class HotStreak : SpellData
                 {
                     selfCastCounter = -1;
                     int projectileIndex = doesCrit ? 1 : 0;
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
-                    projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().targetPID = hotStreakSourcePID;
+                    BaseProjectile projectile = projectileInstances[projectileIndex].GetComponent<BaseProjectile>();
+                    ProjectileManager.Instance.SpawnProjectile(projectile, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
+                    SetProjectileTarget(projectile, hotStreakSourcePID);
                 }
                 else if (selfCastCounter > 0)
                 {
@@ -62,9 +71,10 @@ public class HotStreak : SpellData
                         {
                             selfCastCounter = -1;
                             int projectileIndex = doesCrit ? 1 : 0;
-                            ProjectileManager.Instance.SpawnProjectile(projectileInstances[projectileIndex].GetComponent<BaseProjectile>(), GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
-                            projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().playerIgnoreArr[hotStreakSourcePID == 0? owner.pID-1 : hotStreakSourcePID-1] = true;
-                            projectileInstances[projectileIndex].GetComponent<HotStreak_prj>().targetPID = i;
+                            BaseProjectile projectile = projectileInstances[projectileIndex].GetComponent<BaseProjectile>();
+                            ProjectileManager.Instance.SpawnProjectile(projectile, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).facingRight, GameManager.Instance.GetPlayerByPID(hotStreakSourcePID).position + PlayerCenterOffset, true);
+                            projectile.playerIgnoreArr[hotStreakSourcePID == 0? owner.pID-1 : hotStreakSourcePID-1] = true;
+                            SetProjectileTarget(projectile, (short)(i+1));
                         }
                     }
                 }
@@ -78,6 +88,18 @@ public class HotStreak : SpellData
                 break;
             default:
                 break;
+        }
+    }
+
+    private static void SetProjectileTarget(BaseProjectile projectile, short targetPID)
+    {
+        if (projectile is HotStreak_prj normalProjectile)
+        {
+            normalProjectile.targetPID = targetPID;
+        }
+        else if (projectile is HotStreakCrit_prj critProjectile)
+        {
+            critProjectile.targetPID = targetPID;
         }
     }
 

@@ -49,4 +49,4 @@ MonoBehaviour:
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 80c9d8d53c6e13e459468d68def415a2, type: 3}
   notReadyIcon: {fileID: 21300000, guid: f13807573fd88ca4ebc6e6cbe30f8e3d, type: 3}
-  SpellVideo: {fileID: 32900000, guid: 0c43530073c06de47bdb48d67c223f0d, type: 3}
+  SpellVideo: {fileID: 32900000, guid: a1e07293af59b734985373bc5c35f96b, type: 3}

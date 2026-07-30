@@ -25,11 +25,6 @@ public class CashOut : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        // if (owner != null && !owner.suppressSpellLoadSideEffects)
-        // {
-        //     owner.stockStability += 10;
-        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        // }
         doesCrit = false;
     }
     public override void SpellUpdate()
@@ -102,7 +97,7 @@ public class CashOut : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
                 {
-                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                 }
                 break;
             default:

@@ -54,6 +54,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public GameObject MainMenuScreen;
 
+    [Header("Party Kick Message")]
+    [SerializeField] private GameObject kickedMessage;
+    private bool showKickedMessageOnSoloLobbyLoad;
+    private bool kickedMessageVisible;
+    private bool suppressPauseUntilKickedMessageInputReleased;
+
+    public bool IsKickedMessageBlockingPause =>
+        kickedMessageVisible || suppressPauseUntilKickedMessageInputReleased;
+
     public GameObject textBoxUI;
     public Animator textBoxAnim;
     public GameObject[] announcer;
@@ -138,6 +147,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void Awake()
     {
         input = new InputSystem_Actions();
+        ResolveKickedMessage();
+        if (kickedMessage != null)
+        {
+            kickedMessage.SetActive(false);
+        }
     }
 
     void Start()
@@ -184,6 +198,25 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         transitionScreenDisplayed = false;
         shopScreenDisplayed = false;
+
+        if (showKickedMessageOnSoloLobbyLoad)
+        {
+            // Consume this on the very next scene arrival so an interrupted transition cannot make
+            // an unrelated later SoloLobby visit display a stale kick notification.
+            showKickedMessageOnSoloLobbyLoad = false;
+            if (scene.name == "SoloLobby")
+            {
+                ShowKickedMessage();
+            }
+            else
+            {
+                Debug.LogWarning($"[TempUIScript] Kicked-message transition reached '{scene.name}' instead of SoloLobby.");
+            }
+        }
+        else if (scene.name != "SoloLobby" && kickedMessageVisible)
+        {
+            HideKickedMessage();
+        }
 
         if (scene.name != "MainMenu")
         {
@@ -559,6 +592,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Update is called once per frame
     void Update()
     {
+        UpdateKickedMessage();
+
         // One read per frame: every piece of lobby presentation below keys off the same window, so
         // the label, the banner and the prompts can never disagree about whether the match is live.
         bool onlineEntryPending = GameManager.Instance != null && GameManager.Instance.IsOnlineEntryPending;
@@ -650,6 +685,88 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //{
         //    OpenCodeModeMenuPrompt(true);
         //}
+    }
+
+    public void QueueKickedMessageForSoloLobby()
+    {
+        showKickedMessageOnSoloLobbyLoad = true;
+        HideKickedMessage();
+    }
+
+    private void ResolveKickedMessage()
+    {
+        if (kickedMessage != null)
+        {
+            return;
+        }
+
+        Transform messageTransform = transform.Find("Canvas/Kicked Message");
+        if (messageTransform == null)
+        {
+            Transform[] descendants = GetComponentsInChildren<Transform>(true);
+            messageTransform = descendants.FirstOrDefault(
+                descendant => descendant != null && descendant.name == "Kicked Message");
+        }
+
+        kickedMessage = messageTransform != null ? messageTransform.gameObject : null;
+    }
+
+    private void ShowKickedMessage()
+    {
+        ResolveKickedMessage();
+        if (kickedMessage == null)
+        {
+            Debug.LogError("[TempUIScript] Cannot show the kick notification because 'Kicked Message' was not found under TempUI.");
+            suppressPauseUntilKickedMessageInputReleased = false;
+            return;
+        }
+
+        kickedMessage.SetActive(true);
+        kickedMessageVisible = true;
+        suppressPauseUntilKickedMessageInputReleased = true;
+    }
+
+    private void HideKickedMessage()
+    {
+        if (kickedMessage != null)
+        {
+            kickedMessage.SetActive(false);
+        }
+
+        kickedMessageVisible = false;
+        suppressPauseUntilKickedMessageInputReleased = false;
+    }
+
+    private void UpdateKickedMessage()
+    {
+        bool dismissInputHeld = input != null && input.UI.Cancel.IsPressed();
+
+        if (!kickedMessageVisible)
+        {
+            if (suppressPauseUntilKickedMessageInputReleased && !dismissInputHeld)
+            {
+                suppressPauseUntilKickedMessageInputReleased = false;
+            }
+            return;
+        }
+
+        // UI/Cancel is the same physical pair shown by the prefab's [START] glyph: keyboard Escape
+        // and every gamepad's Start button. It stays enabled even for a playerless invite client.
+        if (input == null || !input.UI.Cancel.WasPressedThisFrame())
+        {
+            return;
+        }
+
+        if (kickedMessage != null)
+        {
+            kickedMessage.SetActive(false);
+        }
+
+        kickedMessageVisible = false;
+
+        // Keep pause blocked until this press is physically released. Otherwise the same Escape/
+        // Start edge can dismiss this overlay and open Pause through PlayerController.FixedUpdate.
+        suppressPauseUntilKickedMessageInputReleased = true;
     }
 
     public void OpenTutorialPromptMenu()

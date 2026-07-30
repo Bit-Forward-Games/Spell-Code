@@ -7,17 +7,17 @@ using UnityEngine;
 /// The modes themselves are authored in the scene ("Multiplayer Gamemodes Panel 2") rather than
 /// hardcoded here: each mode button carries an <see cref="OnlineGameModeOption"/> holding a
 /// wire-stable <see cref="Id"/> and the <see cref="DisplayName"/> shown in the Friends Lobby's
-/// "Selected GameMode" label. Adding or renaming a mode is then pure Inspector work.
+/// "Selected GameMode" label. Adding or renaming a displayed option is Inspector work; adding new
+/// simulation rules still requires an explicit deterministic implementation in GameManager.
 ///
 /// How the choice stays in sync: the host publishes the id AND the display name into Steam lobby
 /// data, every member reads the same values back out of that lobby, and each one calls
-/// <see cref="GameManager.ApplyOnlineGameMode"/> immediately before the match starts. Nothing about
-/// the mode touches the netcode wire format, so no serializer change and no state-hash risk.
+/// <see cref="GameManager.ApplyOnlineGameMode"/> immediately before the match starts. Mode rules run
+/// from GameManager.UpdateGameState on forward and rollback-resimulated frames, so every peer applies
+/// the committed rules at the same deterministic point.
 ///
-/// NOTE: nothing in the simulation reads a mode yet, so every mode currently plays identically.
-/// Making them differ needs the two RAM-target sites reconciled first -- GameManager.OnSceneLoaded
-/// uses baseRamNeeddedtowin(400) + 100/round while ApplyOnlineTotalRoundsPlayed hardcodes 300 +
-/// 100/round. Wire a rule at only one of them and the mode applies for round 1 then evaporates.
+/// Turbo currently reduces spell cooldowns to one simulation tick. Normal, Elimination, and Fighter
+/// otherwise use the common rules until their own deterministic behavior is implemented.
 /// </summary>
 public struct OnlineGameModeSelection
 {
@@ -151,9 +151,15 @@ public static class OnlineGameModeRegistry
         return null;
     }
 
-    /// <summary>First option authored in the scene, used as the lobby's opening pick.</summary>
+    /// <summary>Normal when authored; otherwise the first available option or the built-in default.</summary>
     public static OnlineGameModeSelection FirstOrDefault()
     {
+        OnlineGameModeOption normal = Find(OnlineGameModeSelection.DefaultId);
+        if (normal != null)
+        {
+            return normal.Selection;
+        }
+
         for (int i = 0; i < All.Count; i++)
         {
             if (All[i] != null)

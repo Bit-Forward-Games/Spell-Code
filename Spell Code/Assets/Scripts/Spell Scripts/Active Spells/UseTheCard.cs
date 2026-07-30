@@ -59,11 +59,6 @@ public class UseTheCredit : SpellData
     public override void LoadSpell()
     {
         base.LoadSpell();
-        // if (owner != null && !owner.suppressSpellLoadSideEffects)
-        // {
-        //     owner.stockStability += 10;
-        //     owner.SpawnToast("+10% STOCK STABILITY", GameManager.colors["blue"]);
-        // }
         doesCrit = false;
     }
 
@@ -77,7 +72,7 @@ public class UseTheCredit : SpellData
             case ProcCondition.ActiveOnHit:
                 if (doesCrit && !defender.hitboxData.ignoreEffectDamage && IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
                 {
-                    defender.TakeEffectDamage(StockStability.bigStoxCritDamage,owner, GameManager.colors["blue"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                 }
                 break;
             default:

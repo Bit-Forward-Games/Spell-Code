@@ -1032,11 +1032,29 @@ public class GameManager : MonoBehaviour
         }
 
         ActiveOnlineGameMode = mode;
-        Debug.Log($"[GameManager] Online game mode set to '{mode.Id}' ({mode.DisplayName}).");
 
-        // Nothing in the simulation reads the mode yet -- see the notes on OnlineGameModeSelection
-        // for the two ramNeededToWinRound sites that have to agree with each other before any rule
-        // can be driven from here.
+        // Drive the SIM-affecting gamemode field from the propagated id. This matters: the switch in
+        // RunFrame writes real sim state (Turbo sets every spellList[i].cooldown = 1), and `gamemode`
+        // is neither serialized nor hashed nor synchronised, SetGamemode() only ever sets it on the
+        // machine whose button was pressed. Without this, a host on Turbo and a guest still on Normal
+        // desync on the first cooldown tick. Every peer calls this with the SAME id read out of the
+        // same Steam lobby data, immediately before the match starts, so they all land on one value.
+        //
+        // Ids come from the OnlineGameModeOption components in the scene, so matching on the enum
+        // name keeps that authoring free-form, set Mode Id to "turbo"/"elimination"/"fighter" and it
+        // just works. Anything unrecognised falls back to Normal rather than silently disagreeing.
+        Gamemode resolvedGamemode = Gamemode.Normal;
+        foreach (Gamemode candidate in System.Enum.GetValues(typeof(Gamemode)))
+        {
+            if (string.Equals(candidate.ToString(), mode.Id, System.StringComparison.OrdinalIgnoreCase))
+            {
+                resolvedGamemode = candidate;
+                break;
+            }
+        }
+        gamemode = resolvedGamemode;
+
+        Debug.Log($"[GameManager] Online game mode set to '{mode.Id}' ({mode.DisplayName}) -> Gamemode.{gamemode}.");
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)

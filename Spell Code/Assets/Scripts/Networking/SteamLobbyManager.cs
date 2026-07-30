@@ -34,11 +34,14 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-22"; // scz-22: the onSlide spell-condition trigger frame moved from
-                                                    // frameLengths.Take(2) to .Take(1) in PlayerController's Slide state,
-                                                    // BaseProjectile.SpawnProjectile gained a useAbsolutePosition branch,
-                                                    // and two new passives (Back To Basics, Quiver Of Artemis) plus their
-                                                    // projectiles were added
+    private const string NetcodeVersion = "scz-23"; // scz-23: Dev-New merge. CheckAllSpellConditionsOfProcCon now
+                                                    // forwards the DEFENDER to SpellData.CheckCondition instead of the
+                                                    // acting player, changing what many spells receive on
+                                                    // hit/hurt/parry/block/kill; ProcCondition gained OnCrit/OnSweetSpot
+                                                    // (appended, so existing values are stable); new Combo Demon + Hot
+                                                    // Streak passives and projectiles; StockStability/Bailout/CashOut/
+                                                    // CoinToss/GetAJob/LoadedDice/QuarterReport/UseTheCard/LetItRide/
+                                                    // LuckyBreak all changed
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

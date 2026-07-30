@@ -114348,7 +114348,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -114372,7 +114372,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: loadMainMenu
+      value: SetGamemode
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -114381,6 +114381,10 @@ PrefabInstance:
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -114591,8 +114595,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1407857980670715718}
   m_SourcePrefab: {fileID: 100100000, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+--- !u!1 &1575185965359535343 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+  m_PrefabInstance: {fileID: 4083974044024673507}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1407857980670715718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1575185965359535343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcce29c0de798cd448eced88569816a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnlineGameModeOption
+  modeId: elimination
+  displayName: Elimination
+  selectedState: {fileID: 0}
+  tintTarget: {fileID: 0}
+  selectedTint: {r: 1, g: 1, b: 1, a: 1}
+  unselectedTint: {r: 1, g: 1, b: 1, a: 0.5}
 --- !u!224 &5362399704496346723 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8270336110847820416, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
@@ -174125,7 +174155,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_Mode
@@ -174165,7 +174195,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: loadMainMenu
+      value: SetGamemode
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -174174,6 +174204,10 @@ PrefabInstance:
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -174382,13 +174416,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5287044578905879503}
   m_SourcePrefab: {fileID: 100100000, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
 --- !u!224 &2905830641082339959 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8270336110847820416, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
   m_PrefabInstance: {fileID: 6527324778146238711}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8639215553718587643 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+  m_PrefabInstance: {fileID: 6527324778146238711}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5287044578905879503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8639215553718587643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcce29c0de798cd448eced88569816a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnlineGameModeOption
+  modeId: fighter
+  displayName: Fighting Game
+  selectedState: {fileID: 0}
+  tintTarget: {fileID: 0}
+  selectedTint: {r: 1, g: 1, b: 1, a: 1}
+  unselectedTint: {r: 1, g: 1, b: 1, a: 0.5}
 --- !u!1001 &6616396179551401100
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -176576,7 +176636,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_Mode
@@ -176616,7 +176676,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: loadMainMenu
+      value: SetGamemode
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -176833,7 +176893,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3018464173584827315}
   m_SourcePrefab: {fileID: 100100000, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
 --- !u!224 &238568786750383716 stripped
 RectTransform:
@@ -176845,6 +176908,24 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
   m_PrefabInstance: {fileID: 8181267920151323876}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3018464173584827315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6699293942464455912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcce29c0de798cd448eced88569816a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnlineGameModeOption
+  modeId: normal
+  displayName: Normal
+  selectedState: {fileID: 0}
+  tintTarget: {fileID: 0}
+  selectedTint: {r: 1, g: 1, b: 1, a: 1}
+  unselectedTint: {r: 1, g: 1, b: 1, a: 0.5}
 --- !u!1001 &8263035644470204235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -251700,7 +251781,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -251724,7 +251805,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
-      value: loadMainMenu
+      value: SetGamemode
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -251733,6 +251814,10 @@ PrefabInstance:
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1422434611812561387, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -251943,13 +252028,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8038586134038017112}
   m_SourcePrefab: {fileID: 100100000, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
 --- !u!224 &995861226662433120 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8270336110847820416, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
   m_PrefabInstance: {fileID: 9156979528451953632}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5937221876115379180 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3274433087654461452, guid: 23432dd75384d4299bb69a6d687985c1, type: 3}
+  m_PrefabInstance: {fileID: 9156979528451953632}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8038586134038017112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5937221876115379180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcce29c0de798cd448eced88569816a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OnlineGameModeOption
+  modeId: turbo
+  displayName: Turbo
+  selectedState: {fileID: 0}
+  tintTarget: {fileID: 0}
+  selectedTint: {r: 1, g: 1, b: 1, a: 1}
+  unselectedTint: {r: 1, g: 1, b: 1, a: 0.5}
 --- !u!1001 &9182775908530848809
 PrefabInstance:
   m_ObjectHideFlags: 0

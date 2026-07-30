@@ -1535,6 +1535,13 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        // Escape/Start dismisses the post-kick notice. Keep that same press (and its held state)
+        // from also opening Pause behind the notice in the SoloLobby.
+        if (uiScript != null && uiScript.IsKickedMessageBlockingPause)
+        {
+            return false;
+        }
+
         // Block while this player still has their code-mode prompt up
         PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
         if (pausingPlayer != null && pausingPlayer.choosingCodeMode)

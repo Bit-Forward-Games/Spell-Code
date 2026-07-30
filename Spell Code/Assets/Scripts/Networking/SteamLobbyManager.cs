@@ -2395,6 +2395,17 @@ public class SteamLobbyManager : MonoBehaviour
             manager.MainMenuScreen.SetActive(false);
         }
 
+        // TempUI survives this warm hub transition. Queue the notice before loading so its existing
+        // sceneLoaded callback can reveal it only after SoloLobby has actually arrived.
+        if (manager.tempUI != null)
+        {
+            manager.tempUI.QueueKickedMessageForSoloLobby();
+        }
+        else
+        {
+            Debug.LogWarning("[SteamLobbyManager] TempUI is missing; the kicked-player notice cannot be shown.");
+        }
+
         bool hasLocalPlayer = manager.players != null
             && manager.players.Length > 0
             && manager.players[0] != null;

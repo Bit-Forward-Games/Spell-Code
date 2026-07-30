@@ -1768,7 +1768,64 @@ public class Pause : MonoBehaviour
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
-        return action != null && action.WasPressedThisFrame();
+        if (action != null && action.enabled)
+        {
+            return action.WasPressedThisFrame();
+        }
+
+        // A Steam invite can rebuild MainMenu before this client has a local PlayerController.
+        // OnlineMenuPanel can still navigate because the EventSystem owns a global Move action, but
+        // MainMenu deliberately has no Submit/Cancel actions assigned; these menus normally borrow
+        // Jump/Code/Pause from the local player instead. Without a player, every confirm reads false
+        // forever -- most visibly after that guest is promoted to party host.
+        //
+        // Keep this fallback strictly scoped to an open online panel. Normal pause, offline menus,
+        // split-screen ownership and remapped player actions continue through the branch above.
+        if (OnlineMenuPanel.OpenPanelCount <= 0)
+        {
+            return false;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            if (actionName == "Jump"
+                && (keyboard.iKey.wasPressedThisFrame
+                    || keyboard.spaceKey.wasPressedThisFrame
+                    || keyboard.enterKey.wasPressedThisFrame
+                    || keyboard.numpadEnterKey.wasPressedThisFrame))
+            {
+                return true;
+            }
+
+            if (actionName == "Code" && keyboard.uKey.wasPressedThisFrame)
+            {
+                return true;
+            }
+
+            if (actionName == "Pause" && keyboard.escapeKey.wasPressedThisFrame)
+            {
+                return true;
+            }
+        }
+
+        for (int i = 0; i < Gamepad.all.Count; i++)
+        {
+            Gamepad gamepad = Gamepad.all[i];
+            if (gamepad == null || !InputDeviceManager.IsValidInput(gamepad))
+            {
+                continue;
+            }
+
+            if ((actionName == "Jump" && gamepad.buttonSouth.wasPressedThisFrame)
+                || (actionName == "Code" && gamepad.buttonWest.wasPressedThisFrame)
+                || (actionName == "Pause" && gamepad.startButton.wasPressedThisFrame))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private InputAction FindPausePlayerAction(string actionName)

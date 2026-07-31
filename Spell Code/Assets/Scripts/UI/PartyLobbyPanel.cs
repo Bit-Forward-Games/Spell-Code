@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Steamworks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,12 +9,13 @@ using UnityEngine.UI;
 /// <summary>
 /// The "Friends Lobby" screen. Four slots: Host Profile is always the host, the three Friend Profile
 /// buttons read "Invite Friend" until somebody takes them and then show that player's Steam name.
+/// Confirming a joined friend's slot as host opens Player Options to kick them or transfer ownership.
 /// "Game Modes" opens the mode chooser ("Multiplayer Gamemodes Panel 2") and the pick lands in the
 /// "Selected GameMode" label. "Start Match" starts an online match with whoever is standing there --
 /// two players is enough, all four is not required.
 ///
 /// Wiring (public, Button.OnClick-ready):
-///   Friend Profile buttons  -> OnSlotPressed with 1, 2, 3   (0 is the host's own slot)
+///   Friend Profile buttons  -> OnSlotPressed with 1, 2, 3   (empty invites; occupied opens options)
 ///   "Start Match"           -> StartMatch()
 ///   "Game Modes"            -> OpenGameModeMenu()
 ///   Back / cancel           -> LeaveLobby()
@@ -85,12 +87,25 @@ public class PartyLobbyPanel : OnlineMenuPanel
     [Tooltip("Optional. Selectable to focus when the mode chooser opens.")]
     [SerializeField] private GameObject gameModePanelFirstSelected;
 
+    [Header("Player Options")]
+    [Tooltip("The modal shown when the host confirms an occupied friend slot. Auto-resolved by name when unassigned.")]
+    [SerializeField] private GameObject playerOptionsPanel;
+
+    [Tooltip("Removes the selected member from the party. Auto-resolved by name when unassigned.")]
+    [SerializeField] private Button kickPlayerButton;
+
+    [Tooltip("Transfers lobby ownership to the selected member. Auto-resolved by name when unassigned.")]
+    [SerializeField] private Button makeHostButton;
+
     [Header("Status")]
     [Tooltip("Optional. Shows e.g. '2/4 players'.")]
     [SerializeField] private TextMeshProUGUI statusLabel;
 
     private bool gameModeMenuOpen;
     private bool partyPanelHiddenForGameMode;
+    private bool playerOptionsOpen;
+    private SteamId selectedPlayerId;
+    private int selectedPlayerSlotIndex = -1;
     private const string GameModeButtonText = "Gamemodes";
 
     private sealed class GameModeButtonBinding
@@ -124,10 +139,16 @@ public class PartyLobbyPanel : OnlineMenuPanel
         ResolveSlotCharacterArt();
         ResolveGameModeLabels();
         RefreshGameModeButtonLabel();
+        ResolvePlayerOptions();
 
         if (gameModePanel != null)
         {
             gameModePanel.SetActive(false);
+        }
+
+        if (playerOptionsPanel != null)
+        {
+            playerOptionsPanel.SetActive(false);
         }
     }
 
@@ -155,6 +176,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
             return;
         }
 
+        RefreshPlayerOptions();
         RefreshSlots();
         RefreshStartButton();
         RefreshGameMode();
@@ -165,6 +187,10 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (gameModeMenuOpen)
         {
             MaintainGameModeMenuFocus();
+        }
+        else if (playerOptionsOpen)
+        {
+            MaintainPlayerOptionsFocus();
         }
         else
         {
@@ -219,6 +245,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
     protected override void OnOpened()
     {
         CloseGameModeMenuInternal(false);
+        ClosePlayerOptionsInternal(false);
         lastSeenGameModeId = null;
 
         RefreshSlots();
@@ -232,6 +259,20 @@ public class PartyLobbyPanel : OnlineMenuPanel
         // OnlineMenuPanel.Close already disabled panelRoot before this hook. Do not reactivate it
         // while tearing the whole party screen down.
         CloseGameModeMenuInternal(false);
+        ClosePlayerOptionsInternal(false);
+    }
+
+    private void OnDestroy()
+    {
+        if (kickPlayerButton != null)
+        {
+            kickPlayerButton.onClick.RemoveListener(KickSelectedPlayer);
+        }
+
+        if (makeHostButton != null)
+        {
+            makeHostButton.onClick.RemoveListener(MakeSelectedPlayerHost);
+        }
     }
 
     // ----------------------------------------------------------------------------------------
@@ -250,15 +291,59 @@ public class PartyLobbyPanel : OnlineMenuPanel
             return;
         }
 
-        if (lobby.TryGetPartySlot(slotIndex, out SteamLobbyManager.PartySlotInfo _))
+        if (lobby.TryGetPartySlot(slotIndex, out SteamLobbyManager.PartySlotInfo slot))
         {
-            // Occupied. Steam lobbies have no clean kick, so this is a deliberate no-op rather than
-            // a half-working action.
+            // The host and a still-provisional arrival cannot be managed. A confirmed joined friend
+            // opens the modal with that Steam id captured, so later slot changes cannot target the
+            // wrong member.
+            if (slotIndex > 0
+                && !slot.IsHost
+                && !slot.IsLocalPlayer
+                && !slot.IsProvisional)
+            {
+                OpenPlayerOptions(slotIndex, slot);
+            }
             return;
         }
 
         // Pass the slot so the button decides the invited player's number: slot 1 = P2, 2 = P3, 3 = P4.
         lobby.InviteToParty(slotIndex);
+    }
+
+    /// <summary>Closes the occupied-slot actions without leaving the party.</summary>
+    public void ClosePlayerOptions()
+    {
+        ClosePlayerOptionsInternal(true);
+    }
+
+    /// <summary>Host-only removal of the member whose occupied slot opened the modal.</summary>
+    public void KickSelectedPlayer()
+    {
+        SteamLobbyManager lobby = Lobby;
+        if (!playerOptionsOpen
+            || lobby == null
+            || !selectedPlayerId.IsValid
+            || !lobby.KickPartyMember(selectedPlayerId))
+        {
+            return;
+        }
+
+        ClosePlayerOptionsInternal(true);
+    }
+
+    /// <summary>Host-only transfer of lobby ownership to the selected member.</summary>
+    public void MakeSelectedPlayerHost()
+    {
+        SteamLobbyManager lobby = Lobby;
+        if (!playerOptionsOpen
+            || lobby == null
+            || !selectedPlayerId.IsValid
+            || !lobby.TransferPartyHost(selectedPlayerId))
+        {
+            return;
+        }
+
+        ClosePlayerOptionsInternal(false);
     }
 
     /// <summary>Host-only "Start Match".</summary>
@@ -337,6 +422,12 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
     private void HandleCancel()
     {
+        if (playerOptionsOpen)
+        {
+            ClosePlayerOptions();
+            return;
+        }
+
         if (gameModeMenuOpen)
         {
             CloseGameModeMenu();
@@ -344,6 +435,222 @@ public class PartyLobbyPanel : OnlineMenuPanel
         }
 
         LeaveLobby();
+    }
+
+    private void ResolvePlayerOptions()
+    {
+        if (playerOptionsPanel == null && panelRoot != null)
+        {
+            Transform[] descendants = panelRoot.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < descendants.Length; i++)
+            {
+                if (descendants[i] != null && descendants[i].name == "Player Options")
+                {
+                    playerOptionsPanel = descendants[i].gameObject;
+                    break;
+                }
+            }
+        }
+
+        if (playerOptionsPanel == null)
+        {
+            Debug.LogError("[PartyLobbyPanel] The Player Options panel could not be resolved.", this);
+            return;
+        }
+
+        Button[] optionButtons = playerOptionsPanel.GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < optionButtons.Length; i++)
+        {
+            Button button = optionButtons[i];
+            if (button == null)
+            {
+                continue;
+            }
+
+            if (kickPlayerButton == null && button.gameObject.name == "Kick Player Button")
+            {
+                kickPlayerButton = button;
+            }
+            else if (makeHostButton == null && button.gameObject.name == "Make Host Button")
+            {
+                makeHostButton = button;
+            }
+        }
+
+        if (kickPlayerButton == null || makeHostButton == null)
+        {
+            Debug.LogError("[PartyLobbyPanel] Player Options needs both Kick Player and Make Host buttons.", this);
+            return;
+        }
+
+        kickPlayerButton.onClick.RemoveListener(KickSelectedPlayer);
+        kickPlayerButton.onClick.AddListener(KickSelectedPlayer);
+        makeHostButton.onClick.RemoveListener(MakeSelectedPlayerHost);
+        makeHostButton.onClick.AddListener(MakeSelectedPlayerHost);
+
+        // The authored buttons use Explicit navigation but currently have no links. Keep the modal
+        // self-contained so up/down cannot escape to the lobby controls underneath it.
+        Navigation kickNavigation = kickPlayerButton.navigation;
+        kickNavigation.mode = Navigation.Mode.Explicit;
+        kickNavigation.selectOnUp = makeHostButton;
+        kickNavigation.selectOnDown = makeHostButton;
+        kickPlayerButton.navigation = kickNavigation;
+
+        Navigation hostNavigation = makeHostButton.navigation;
+        hostNavigation.mode = Navigation.Mode.Explicit;
+        hostNavigation.selectOnUp = kickPlayerButton;
+        hostNavigation.selectOnDown = kickPlayerButton;
+        makeHostButton.navigation = hostNavigation;
+    }
+
+    private void OpenPlayerOptions(int slotIndex, SteamLobbyManager.PartySlotInfo slot)
+    {
+        if (playerOptionsPanel == null || kickPlayerButton == null || makeHostButton == null)
+        {
+            return;
+        }
+
+        selectedPlayerId = slot.SteamId;
+        selectedPlayerSlotIndex = slotIndex;
+        playerOptionsOpen = true;
+        playerOptionsPanel.SetActive(true);
+        SetMainLobbyControlsInteractable(false);
+
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        FocusSelectable(kickPlayerButton.gameObject);
+    }
+
+    private void ClosePlayerOptionsInternal(bool restoreSlotFocus)
+    {
+        int previousSlotIndex = selectedPlayerSlotIndex;
+        playerOptionsOpen = false;
+        selectedPlayerId = default;
+        selectedPlayerSlotIndex = -1;
+
+        if (EventSystem.current != null && playerOptionsPanel != null)
+        {
+            GameObject selected = EventSystem.current.currentSelectedGameObject;
+            if (selected != null && selected.transform.IsChildOf(playerOptionsPanel.transform))
+            {
+                EventSystem.current.SetSelectedGameObject(null);
+            }
+        }
+
+        if (playerOptionsPanel != null)
+        {
+            playerOptionsPanel.SetActive(false);
+        }
+
+        if (restoreSlotFocus
+            && IsOpen
+            && previousSlotIndex >= 0
+            && previousSlotIndex < slots.Length
+            && slots[previousSlotIndex] != null
+            && slots[previousSlotIndex].button != null)
+        {
+            FocusSelectable(slots[previousSlotIndex].button.gameObject);
+        }
+    }
+
+    private void RefreshPlayerOptions()
+    {
+        if (!playerOptionsOpen)
+        {
+            return;
+        }
+
+        SteamLobbyManager lobby = Lobby;
+        bool targetStillValid = lobby != null
+            && lobby.IsPartyHost
+            && !lobby.IsPartyMatchStartRequested
+            && selectedPlayerId.IsValid
+            && selectedPlayerSlotIndex > 0
+            && lobby.TryGetPartySlot(selectedPlayerSlotIndex, out SteamLobbyManager.PartySlotInfo slot)
+            && slot.IsOccupied
+            && !slot.IsHost
+            && !slot.IsLocalPlayer
+            && !slot.IsProvisional
+            && slot.SteamId.Value == selectedPlayerId.Value;
+
+        if (!targetStillValid)
+        {
+            ClosePlayerOptionsInternal(false);
+            return;
+        }
+
+        if (kickPlayerButton != null)
+        {
+            kickPlayerButton.interactable = true;
+        }
+
+        if (makeHostButton != null)
+        {
+            makeHostButton.interactable = true;
+        }
+    }
+
+    private void SetMainLobbyControlsInteractable(bool interactable)
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] != null && slots[i].button != null)
+            {
+                slots[i].button.interactable = interactable;
+            }
+        }
+
+        if (startMatchButton != null)
+        {
+            startMatchButton.interactable = interactable;
+        }
+
+        if (gameModeButton != null)
+        {
+            gameModeButton.interactable = interactable;
+        }
+    }
+
+    private void MaintainPlayerOptionsFocus()
+    {
+        if (playerOptionsPanel == null || !playerOptionsPanel.activeInHierarchy)
+        {
+            return;
+        }
+
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return;
+        }
+
+        GameObject current = eventSystem.currentSelectedGameObject;
+        if (current != null && current.transform.IsChildOf(playerOptionsPanel.transform))
+        {
+            Selectable currentSelectable = current.GetComponent<Selectable>();
+            if (currentSelectable != null && currentSelectable.IsInteractable())
+            {
+                return;
+            }
+        }
+
+        if (kickPlayerButton != null
+            && kickPlayerButton.gameObject.activeInHierarchy
+            && kickPlayerButton.IsInteractable())
+        {
+            eventSystem.SetSelectedGameObject(kickPlayerButton.gameObject);
+            return;
+        }
+
+        if (makeHostButton != null
+            && makeHostButton.gameObject.activeInHierarchy
+            && makeHostButton.IsInteractable())
+        {
+            eventSystem.SetSelectedGameObject(makeHostButton.gameObject);
+        }
     }
 
     private void CloseGameModeMenuInternal(bool restorePartyPanel)
@@ -446,8 +753,8 @@ public class PartyLobbyPanel : OnlineMenuPanel
             if (widgets.button != null)
             {
                 // Profiles remain navigable for hosts and guests. OnSlotPressed is still the action
-                // authority: occupied/host profiles and all guest presses are deliberate no-ops.
-                widgets.button.interactable = true;
+                // authority. Disable them only while the host's occupied-slot modal owns focus.
+                widgets.button.interactable = !playerOptionsOpen;
             }
         }
     }
@@ -461,7 +768,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (startMatchButton != null)
         {
             // A guest sees the button but can never press it; they are waiting on the host.
-            startMatchButton.interactable = canStart;
+            startMatchButton.interactable = !playerOptionsOpen && canStart;
         }
 
         if (startMatchLabel == null)
@@ -517,7 +824,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (gameModeButton != null)
         {
             // Guests see the host's pick but cannot change it.
-            gameModeButton.interactable = lobby.IsPartyHost;
+            gameModeButton.interactable = !playerOptionsOpen && lobby.IsPartyHost;
         }
 
         // Let each authored mode button show whether it is the current pick.

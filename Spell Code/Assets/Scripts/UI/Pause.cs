@@ -1535,6 +1535,13 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        // Escape/Start dismisses the post-kick notice. Keep that same press (and its held state)
+        // from also opening Pause behind the notice in the SoloLobby.
+        if (uiScript != null && uiScript.IsKickedMessageBlockingPause)
+        {
+            return false;
+        }
+
         // Block while this player still has their code-mode prompt up
         PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
         if (pausingPlayer != null && pausingPlayer.choosingCodeMode)
@@ -1768,12 +1775,17 @@ public class Pause : MonoBehaviour
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
-        if (action != null && action.enabled)
+        if (action != null && action.enabled && action.WasPressedThisFrame())
         {
-            return action.WasPressedThisFrame();
+            return true;
         }
 
-        // A Steam invite can rebuild MainMenu before this client has a local PlayerController.
+        // A Steam invite can rebuild MainMenu before this client has a local PlayerController, or
+        // leave an existing player's action temporarily paired to the old scene/device. In the
+        // latter case the first physical press repairs/switches that pairing but the action itself
+        // reports false until the next press, so continue to the online fallback instead of
+        // returning that false result immediately.
+        //
         // OnlineMenuPanel can still navigate because the EventSystem owns a global Move action, but
         // MainMenu deliberately has no Submit/Cancel actions assigned; these menus normally borrow
         // Jump/Code/Pause from the local player instead. Without a player, every confirm reads false

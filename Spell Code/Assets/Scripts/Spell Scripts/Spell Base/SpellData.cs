@@ -58,7 +58,9 @@ public enum ProcCondition
     OnKill,
     OnDeath,
     OnStart,
-    OnUpdate
+    OnUpdate,
+    OnCrit,
+    OnSweetSpot
     
 }
 
@@ -101,6 +103,8 @@ public abstract class SpellData : MonoBehaviour
     public int spawnOffsetX = 16;
     [NonSerialized]
     public int spawnOffsetY = 36;
+
+    
 
     //[Header("Prefab")]
     public GameObject[] projectilePrefabs;

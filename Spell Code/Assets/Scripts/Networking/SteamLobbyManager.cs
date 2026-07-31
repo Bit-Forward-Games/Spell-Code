@@ -17,6 +17,7 @@ public class SteamLobbyManager : MonoBehaviour
     // travel over lobby chat and are retried until every frozen-roster peer acknowledges starting.
     private const string PartyStartChatPrefix = "SCZ_PARTY_START|";
     private const string PartyStartAckChatPrefix = "SCZ_PARTY_START_ACK|";
+    private const string PartyKickChatPrefix = "SCZ_PARTY_KICK|";
     private const float PartyStartResendSeconds = 0.5f;
     private const float PartyStartDeliveryTimeoutSeconds = 30f;
     // Holds the match-start TOKEN of the roster that actually went live, written by the host the
@@ -34,11 +35,14 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-22"; // scz-22: the onSlide spell-condition trigger frame moved from
-                                                    // frameLengths.Take(2) to .Take(1) in PlayerController's Slide state,
-                                                    // BaseProjectile.SpawnProjectile gained a useAbsolutePosition branch,
-                                                    // and two new passives (Back To Basics, Quiver Of Artemis) plus their
-                                                    // projectiles were added
+    private const string NetcodeVersion = "scz-23"; // scz-23: Dev-New merge. CheckAllSpellConditionsOfProcCon now
+                                                    // forwards the DEFENDER to SpellData.CheckCondition instead of the
+                                                    // acting player, changing what many spells receive on
+                                                    // hit/hurt/parry/block/kill; ProcCondition gained OnCrit/OnSweetSpot
+                                                    // (appended, so existing values are stable); new Combo Demon + Hot
+                                                    // Streak passives and projectiles; StockStability/Bailout/CashOut/
+                                                    // CoinToss/GetAJob/LoadedDice/QuarterReport/UseTheCard/LetItRide/
+                                                    // LuckyBreak all changed
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -497,6 +501,121 @@ public class SteamLobbyManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Host-only removal of one joined party member. Steam's lobby API does not expose a kick
+    /// operation, so the owner sends an authenticated control message and the selected client leaves
+    /// itself after verifying that the sender is still the current lobby owner.
+    /// </summary>
+    public bool KickPartyMember(SteamId memberId)
+    {
+        if (!IsPartyHost
+            || !memberId.IsValid
+            || SameSteamId(memberId, SteamClient.SteamId)
+            || !IsCurrentLobbyMember(memberId))
+        {
+            return false;
+        }
+
+        Lobby lobby = currentLobby.Value;
+        if (IsPartyRosterFrozen(lobby))
+        {
+            Debug.LogWarning("[SteamLobbyManager] Kick ignored; the party roster is already starting or live.");
+            return false;
+        }
+
+        bool sent = lobby.SendChatString(PartyKickChatPrefix + memberId.Value);
+        if (sent)
+        {
+            Debug.Log($"[SteamLobbyManager] Party kick requested. Member={memberId.Value}.");
+        }
+        else
+        {
+            Debug.LogWarning($"[SteamLobbyManager] Steam did not queue the party kick for member {memberId.Value}.");
+        }
+
+        return sent;
+    }
+
+    /// <summary>
+    /// Host-only ownership handoff to one confirmed party member. The selected player's former
+    /// positive slot is assigned to the old host before Steam moves the selected member to P1.
+    /// </summary>
+    public bool TransferPartyHost(SteamId memberId)
+    {
+        if (!IsPartyHost
+            || !memberId.IsValid
+            || SameSteamId(memberId, SteamClient.SteamId))
+        {
+            return false;
+        }
+
+        Lobby lobby = currentLobby.Value;
+        if (IsPartyRosterFrozen(lobby))
+        {
+            Debug.LogWarning("[SteamLobbyManager] Host transfer ignored; the party roster is already starting or live.");
+            return false;
+        }
+
+        Friend targetMember = default;
+        bool targetFound = false;
+        foreach (Friend member in lobby.Members)
+        {
+            if (SameSteamId(member.Id, memberId))
+            {
+                targetMember = member;
+                targetFound = true;
+                break;
+            }
+        }
+
+        if (!targetFound)
+        {
+            Debug.LogWarning($"[SteamLobbyManager] Host transfer ignored; member {memberId.Value} is no longer in the lobby.");
+            return false;
+        }
+
+        string targetSlotText = lobby.GetData(GetSlotKey(memberId));
+        if (!int.TryParse(targetSlotText, out int targetSlot)
+            || targetSlot <= 0
+            || targetSlot >= TargetOnlineLobbySize)
+        {
+            Debug.LogWarning($"[SteamLobbyManager] Host transfer ignored; member {memberId.Value} has no confirmed party slot.");
+            return false;
+        }
+
+        // Slot 0 is defined by lobby ownership, not by this metadata. Give the outgoing host the
+        // selected member's old slot first so a sparse P3/P4 handoff swaps those two players instead
+        // of compacting the old host into an earlier empty slot.
+        if (!lobby.SetData(GetSlotKey(SteamClient.SteamId), targetSlot.ToString()))
+        {
+            Debug.LogWarning("[SteamLobbyManager] Steam did not accept the outgoing host's replacement slot.");
+            return false;
+        }
+
+        // Facepunch's public setter discards Steam's native boolean result. UpdateLobbyOwnerState
+        // verifies the live Owner every frame and completes the existing migration repair once Steam
+        // exposes the handoff on each client.
+        lobby.Owner = targetMember;
+        partySlotCacheFrame = -1;
+
+        // SetLobbyOwner is synchronous in the bundled Facepunch version even though its public
+        // property setter hides the native result. Confirm through Steam's live owner getter so a
+        // member leaving during this call cannot make the UI report a handoff that was rejected.
+        if (!SameSteamId(lobby.Owner.Id, memberId))
+        {
+            lobby.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            Debug.LogWarning(
+                $"[SteamLobbyManager] Steam rejected the host transfer to member {memberId.Value}; " +
+                "the current host remains owner.");
+            return false;
+        }
+
+        Debug.Log(
+            $"[SteamLobbyManager] Party host transfer requested. " +
+            $"PreviousOwner={SteamClient.SteamId.Value} NewOwner={memberId.Value} PreviousSlot={targetSlot}.");
+        return true;
+    }
+
     /// <summary>Back/leave button for the VS Friends panel.</summary>
     public void LeaveParty()
     {
@@ -806,6 +925,12 @@ public class SteamLobbyManager : MonoBehaviour
 
         UpdateLobbyOwnerState(currentLobby.Value);
         ProcessPendingPartyLobbyChatMessages(currentLobby.Value);
+        // A validated kick command makes the targeted client leave from inside the chat drain.
+        // Do not dereference the cleared nullable lobby during the rest of this Update.
+        if (!currentLobby.HasValue)
+        {
+            return;
+        }
         MaintainPartyStartDelivery(currentLobby.Value);
 
         if (GameManager.Instance != null)
@@ -1772,6 +1897,20 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        List<SteamId> members = GetLobbyMemberIds(lobby);
+        if (!ContainsSteamId(members, SteamClient.SteamId))
+        {
+            members.Add(SteamClient.SteamId);
+        }
+
+        // Before replacing the promoted member's metadata with P1, remember the positive slot they
+        // occupied as a guest. An explicit Make Host handoff swaps the outgoing host into this exact
+        // slot, even if an earlier P2/P3 slot is empty.
+        string promotedPlayerSlotText = lobby.GetData(GetSlotKey(SteamClient.SteamId));
+        bool hasPromotedPlayerSlot = int.TryParse(promotedPlayerSlotText, out int promotedPlayerSlot)
+            && promotedPlayerSlot > 0
+            && promotedPlayerSlot < TargetOnlineLobbySize;
+
         // Only the newly promoted owner may repair shared lobby metadata.
         bool sharedStateRepaired = lobby.SetFriendsOnly();
         sharedStateRepaired &= lobby.SetData("hostId", SteamClient.SteamId.Value.ToString());
@@ -1780,9 +1919,21 @@ public class SteamLobbyManager : MonoBehaviour
         sharedStateRepaired &= lobby.SetData(MatchStartTokenKey, string.Empty);
         sharedStateRepaired &= lobby.SetData(MatchRunningKey, string.Empty);
 
-        if (previousOwnerId.IsValid && !SameSteamId(previousOwnerId, SteamClient.SteamId))
+        // A disconnected owner is gone, so its old key can be discarded. During an explicit Make
+        // Host handoff the previous owner is still a member; explicitly give it the promoted
+        // player's former slot so the result does not depend on lobby-data propagation order.
+        if (previousOwnerId.IsValid
+            && !SameSteamId(previousOwnerId, SteamClient.SteamId))
         {
-            sharedStateRepaired &= lobby.SetData(GetSlotKey(previousOwnerId), string.Empty);
+            if (ContainsSteamId(members, previousOwnerId) && hasPromotedPlayerSlot)
+            {
+                sharedStateRepaired &=
+                    lobby.SetData(GetSlotKey(previousOwnerId), promotedPlayerSlot.ToString());
+            }
+            else if (!ContainsSteamId(members, previousOwnerId))
+            {
+                sharedStateRepaired &= lobby.SetData(GetSlotKey(previousOwnerId), string.Empty);
+            }
         }
         sharedStateRepaired &= lobby.SetData(GetSlotKey(SteamClient.SteamId), "0");
 
@@ -1798,11 +1949,6 @@ public class SteamLobbyManager : MonoBehaviour
 
         // The promoted player moves to P1. Everyone else retains a valid positive slot; any member
         // caught in the join/departure race is assigned the first genuinely open slot.
-        List<SteamId> members = GetLobbyMemberIds(lobby);
-        if (!ContainsSteamId(members, SteamClient.SteamId))
-        {
-            members.Add(SteamClient.SteamId);
-        }
         BuildAssignedSlots(lobby, members);
         partySlotCacheFrame = -1;
 
@@ -2157,7 +2303,8 @@ public class SteamLobbyManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(message)
             || (!message.StartsWith(PartyStartChatPrefix, StringComparison.Ordinal)
-                && !message.StartsWith(PartyStartAckChatPrefix, StringComparison.Ordinal)))
+                && !message.StartsWith(PartyStartAckChatPrefix, StringComparison.Ordinal)
+                && !message.StartsWith(PartyKickChatPrefix, StringComparison.Ordinal)))
         {
             return;
         }
@@ -2192,6 +2339,97 @@ public class SteamLobbyManager : MonoBehaviour
             {
                 ProcessPartyStartAckChatMessage(lobby, pending.SenderId, pending.Message);
             }
+            else if (pending.Message.StartsWith(PartyKickChatPrefix, StringComparison.Ordinal))
+            {
+                ProcessPartyKickChatMessage(lobby, pending.SenderId, pending.Message);
+            }
+        }
+    }
+
+    private void ProcessPartyKickChatMessage(Lobby lobby, SteamId senderId, string message)
+    {
+        // Lobby chat is writable by every member. Only the live owner may remove someone, and only
+        // the Steam id named in the message is allowed to act on it.
+        if (!IsPartyLobby(lobby) || !SameSteamId(senderId, lobby.Owner.Id))
+        {
+            if (debugLogs)
+            {
+                Debug.LogWarning($"[SteamLobbyManager] Ignored party-kick control message from non-owner {senderId.Value}.");
+            }
+            return;
+        }
+
+        string targetText = message.Substring(PartyKickChatPrefix.Length);
+        if (!ulong.TryParse(targetText, out ulong targetValue) || targetValue == 0)
+        {
+            Debug.LogWarning("[SteamLobbyManager] Ignored a malformed party-kick control message.");
+            return;
+        }
+
+        SteamId targetId = new SteamId { Value = targetValue };
+        if (!SameSteamId(targetId, SteamClient.SteamId)
+            || SameSteamId(senderId, SteamClient.SteamId))
+        {
+            return;
+        }
+
+        Debug.Log($"[SteamLobbyManager] Removed from party lobby by host {senderId.Value}.");
+        GameManager manager = GameManager.Instance;
+        LeaveParty();
+        ReturnKickedPartyMemberToSoloLobby(manager);
+    }
+
+    private static void ReturnKickedPartyMemberToSoloLobby(GameManager manager)
+    {
+        if (manager == null)
+        {
+            Debug.LogError("[SteamLobbyManager] Could not return the kicked party member to SoloLobby because GameManager is missing.");
+            return;
+        }
+
+        // Unlike the pause-menu restart, keep this GameManager (and its local PlayerInput player)
+        // alive across the hub transition. A cold ExecuteOrder66 would destroy that player and the
+        // new SoloLobby manager would deliberately show its title/join screen again.
+        if (manager.MainMenuScreen != null)
+        {
+            manager.MainMenuScreen.SetActive(false);
+        }
+
+        // TempUI survives this warm hub transition. Queue the notice before loading so its existing
+        // sceneLoaded callback can reveal it only after SoloLobby has actually arrived.
+        if (manager.tempUI != null)
+        {
+            manager.tempUI.QueueKickedMessageForSoloLobby();
+        }
+        else
+        {
+            Debug.LogWarning("[SteamLobbyManager] TempUI is missing; the kicked-player notice cannot be shown.");
+        }
+
+        bool hasLocalPlayer = manager.players != null
+            && manager.players.Length > 0
+            && manager.players[0] != null;
+
+        if (hasLocalPlayer)
+        {
+            // Same screen-covered, player-preserving scene path used when entering MainMenu from
+            // the solo hub, in reverse. LeaveParty already cleared every Steam party/start flag.
+            manager.loadSoloLobby();
+            return;
+        }
+
+        // An invite accepted before the title-screen join input can legitimately be playerless.
+        // Preserve the manager here too: PlayerInputManager remains available for the next join
+        // press, while the explicitly hidden title canvas cannot cover the SoloLobby scene.
+        manager.SetStage(-4);
+        if (manager.sceneManager != null)
+        {
+            manager.sceneManager.LoadScene("SoloLobby");
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene("SoloLobby");
         }
     }
 

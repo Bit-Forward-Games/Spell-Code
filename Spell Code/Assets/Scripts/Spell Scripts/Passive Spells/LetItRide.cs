@@ -14,7 +14,7 @@ public class LetItRide : SpellData
         cooldown = 1;
         spellType = SpellType.Passive;
         priorityOverride = 1;
-        procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnHitSpell };
+        procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnCrit };
         brands = new Brand[1] { Brand.BigStox };
         description = "Your Stock Stability<sprite name=\"StockStability\"> is cut in half.\nConvert consumed Stock Stability<sprite name=\"StockStability\"> into bonus damage on \"Crit\"<sprite name=\"StockStability\"> for your BigStox Spellcodes.";
     }
@@ -29,12 +29,9 @@ public class LetItRide : SpellData
                     owner.stockStabilityModified = (ushort)((int)owner.stockStability/2);
                 }
                 break;
-            case ProcCondition.OnHitSpell:
-                if (defender.hitboxData.sweetSpot && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.BigStox))
-                {
-                    int effectDamage = owner.stockStability/2;
-                    defender.TakeEffectDamage(effectDamage, owner, GameManager.colors["blue"]);
-                }
+            case ProcCondition.OnCrit:
+                int effectDamage = owner.stockStability/2;
+                defender.TakeEffectDamage(effectDamage, owner, GameManager.colors["blue"]);
                 break;
             default:
                 break;

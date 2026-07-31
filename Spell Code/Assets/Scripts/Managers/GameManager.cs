@@ -2632,6 +2632,13 @@ public class GameManager : MonoBehaviour
         if (isOnlineMatchActive)
         {
             //Debug.Log("Cleaning up online match state...");
+            PlayerController onlineLocalPlayer = players != null
+                && localPlayerIndex >= 0
+                && localPlayerIndex < players.Length
+                    ? players[localPlayerIndex]
+                    : null;
+            SettingsManager.Instance?.EndOnlineLocalControlSession(onlineLocalPlayer);
+
             ResetOnlineTransitionTracking();
             tempUI?.CloseAllCodeModePrompts();
 

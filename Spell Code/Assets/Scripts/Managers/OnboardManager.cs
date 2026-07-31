@@ -342,7 +342,7 @@ public class OnboardManager : MonoBehaviour
             {
                 onboarding.moveComplete = true;
                 onboarding.moveText.color = GameManager.colors["green"];
-                Debug.Log("Move Onboard Complete");
+                if (SteamManager.DebugToolsEnabled) Debug.Log("Move Onboard Complete");
             }
 
             if (!onboarding.jumpComplete &&
@@ -350,7 +350,7 @@ public class OnboardManager : MonoBehaviour
             {
                 onboarding.jumpComplete = true;
                 onboarding.jumpText.color = GameManager.colors["green"];
-                Debug.Log("Jump Onboard Complete");
+                if (SteamManager.DebugToolsEnabled) Debug.Log("Jump Onboard Complete");
             }
 
             if (onboarding.moveComplete &&
@@ -369,7 +369,7 @@ public class OnboardManager : MonoBehaviour
                 if (player.basicsFired > 0)
                 {
                     onboarding.attackComplete = true;
-                    Debug.Log("Atk Onboard Complete");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Atk Onboard Complete");
                 }
             }
 

@@ -1535,6 +1535,13 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        // Escape/Start dismisses the post-kick notice. Keep that same press (and its held state)
+        // from also opening Pause behind the notice in the SoloLobby.
+        if (uiScript != null && uiScript.IsKickedMessageBlockingPause)
+        {
+            return false;
+        }
+
         // Block while this player still has their code-mode prompt up
         PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
         if (pausingPlayer != null && pausingPlayer.choosingCodeMode)
@@ -1768,7 +1775,69 @@ public class Pause : MonoBehaviour
     private bool WasPausePlayerActionPressedThisFrame(string actionName)
     {
         InputAction action = FindPausePlayerAction(actionName);
-        return action != null && action.WasPressedThisFrame();
+        if (action != null && action.enabled && action.WasPressedThisFrame())
+        {
+            return true;
+        }
+
+        // A Steam invite can rebuild MainMenu before this client has a local PlayerController, or
+        // leave an existing player's action temporarily paired to the old scene/device. In the
+        // latter case the first physical press repairs/switches that pairing but the action itself
+        // reports false until the next press, so continue to the online fallback instead of
+        // returning that false result immediately.
+        //
+        // OnlineMenuPanel can still navigate because the EventSystem owns a global Move action, but
+        // MainMenu deliberately has no Submit/Cancel actions assigned; these menus normally borrow
+        // Jump/Code/Pause from the local player instead. Without a player, every confirm reads false
+        // forever -- most visibly after that guest is promoted to party host.
+        //
+        // Keep this fallback strictly scoped to an open online panel. Normal pause, offline menus,
+        // split-screen ownership and remapped player actions continue through the branch above.
+        if (OnlineMenuPanel.OpenPanelCount <= 0)
+        {
+            return false;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            if (actionName == "Jump"
+                && (keyboard.iKey.wasPressedThisFrame
+                    || keyboard.spaceKey.wasPressedThisFrame
+                    || keyboard.enterKey.wasPressedThisFrame
+                    || keyboard.numpadEnterKey.wasPressedThisFrame))
+            {
+                return true;
+            }
+
+            if (actionName == "Code" && keyboard.uKey.wasPressedThisFrame)
+            {
+                return true;
+            }
+
+            if (actionName == "Pause" && keyboard.escapeKey.wasPressedThisFrame)
+            {
+                return true;
+            }
+        }
+
+        for (int i = 0; i < Gamepad.all.Count; i++)
+        {
+            Gamepad gamepad = Gamepad.all[i];
+            if (gamepad == null || !InputDeviceManager.IsValidInput(gamepad))
+            {
+                continue;
+            }
+
+            if ((actionName == "Jump" && gamepad.buttonSouth.wasPressedThisFrame)
+                || (actionName == "Code" && gamepad.buttonWest.wasPressedThisFrame)
+                || (actionName == "Pause" && gamepad.startButton.wasPressedThisFrame))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private InputAction FindPausePlayerAction(string actionName)
@@ -1897,9 +1966,20 @@ public class Pause : MonoBehaviour
 
     public void ResetPlayerControlsToDefaults()
     {
+        PlayerController player = GetPausePlayer();
+        InputDevice inputDevice = FindPausePlayerInputDevice(player);
         CancelActiveRebind();
         ResetPausePlayerBindingOverrides();
-        SetPauseControlOptions(false, false, false, false, false);
+
+        if (IsOnlineMatchActive())
+        {
+            SettingsManager.Instance?.ResetControlOptionsForPlayer(player, inputDevice);
+        }
+        else
+        {
+            SetPauseControlOptions(false, false, false, false, false);
+        }
+
         RefreshControlToggleGraphics();
         RefreshControlGlyphs();
     }
@@ -2006,15 +2086,23 @@ public class Pause : MonoBehaviour
             }
 
             string selectedPath = GetBindingPathForControl(selectedControl, inputDevice);
+            string[] changedBindingIds = null;
             if (!string.IsNullOrEmpty(selectedPath))
             {
                 action.ApplyBindingOverride(bindingIndex, selectedPath);
-                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
+                SwapConflictingBinding(
+                    player,
+                    inputDevice,
+                    action,
+                    bindingIndex,
+                    previousBindingPath);
+                string reboundBindingId = action.bindings[bindingIndex].id.ToString();
+                changedBindingIds = new[] { reboundBindingId };
             }
 
             waitingForManualRebindInput = false;
             activeRebindCaptureCoroutine = null;
-            FinishControlRebind(player, textSetter);
+            FinishControlRebind(player, inputDevice, changedBindingIds, textSetter);
             yield break;
         }
 
@@ -2095,7 +2183,11 @@ public class Pause : MonoBehaviour
         operation.Complete();
     }
 
-    private void FinishControlRebind(PlayerController player, TextSetter textSetter)
+    private void FinishControlRebind(
+        PlayerController player,
+        InputDevice inputDevice,
+        string[] changedBindingIds,
+        TextSetter textSetter)
     {
         StopActiveRebindCapture();
         StopActiveRebindTimeout();
@@ -2103,7 +2195,16 @@ public class Pause : MonoBehaviour
         RestoreActiveRebindAction();
         DisposeActiveRebindOperation();
 
-        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (IsOnlineMatchActive())
+        {
+            settingsManager?.SaveInputBindingOverridesForPlayer(player, inputDevice, changedBindingIds);
+        }
+        else
+        {
+            // Preserve the existing offline behavior, including its control-option snapshot.
+            settingsManager?.SaveControlOptionsForPlayer(player);
+        }
         RefreshControlGlyphs();
         textSetter?.UpdateGlyph();
     }

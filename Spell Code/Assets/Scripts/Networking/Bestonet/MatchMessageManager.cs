@@ -113,6 +113,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
     private const byte PACKET_TYPE_PEER_DROP = 50;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
+    private const float READY_SIGNAL_RESEND_SECONDS = 0.75f;
     // Connection-establishment grace. A P2P failure that lands before the match simulation has
     // started means the peer is still finishing its cold join (relay warmup, lobby slot metadata
     // propagation), not that it dropped mid-match. Adjudicating a drop there ends the match at
@@ -130,6 +131,7 @@ public class MatchMessageManager : MonoBehaviour
 
     private bool isRunning;
     private bool localReadySent;
+    private float lastReadySignalSendTime = float.NegativeInfinity;
     private int highestRemoteFrameSeen = -1;
     private readonly HashSet<SteamId> remoteReadyReceived = new HashSet<SteamId>();
     private OnlineMatchRoster activeRoster;
@@ -760,6 +762,17 @@ public class MatchMessageManager : MonoBehaviour
 
             SendHandshakeToPeer(peer.SteamId);
         }
+
+        // READY used to be a one-shot broadcast. In a 4-player roster SendPacketToAll can queue for
+        // one peer while another P2P session is still opening, and the successful send latched
+        // localReadySent forever. Retry during the pre-match wait; READY is idempotent on receive.
+        if (GameManager.Instance != null
+            && GameManager.Instance.isOnlineMatchActive
+            && GameManager.Instance.isWaitingForOpponent
+            && now - lastReadySignalSendTime >= READY_SIGNAL_RESEND_SECONDS)
+        {
+            SendReadySignal(forceResend: true);
+        }
     }
 
     private void PrunePeerSet(HashSet<SteamId> peers, HashSet<SteamId> rosterPeerIds)
@@ -831,6 +844,7 @@ public class MatchMessageManager : MonoBehaviour
     public void ResetReadyFlags()
     {
         localReadySent = false;
+        lastReadySignalSendTime = float.NegativeInfinity;
         remoteReadyReceived.Clear();
         highestRemoteFrameSeen = -1;
         peerHighestRemoteFrameSeen.Clear();
@@ -894,11 +908,17 @@ public class MatchMessageManager : MonoBehaviour
 
     public void SendReadySignal()
     {
-        if (!HasRemotePeers() || localReadySent)
+        SendReadySignal(forceResend: false);
+    }
+
+    private void SendReadySignal(bool forceResend)
+    {
+        if (!HasRemotePeers() || (!forceResend && localReadySent))
         {
             return;
         }
 
+        lastReadySignalSendTime = Time.unscaledTime;
         try
         {
             using (MemoryStream memoryStream = new MemoryStream())

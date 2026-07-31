@@ -1966,9 +1966,20 @@ public class Pause : MonoBehaviour
 
     public void ResetPlayerControlsToDefaults()
     {
+        PlayerController player = GetPausePlayer();
+        InputDevice inputDevice = FindPausePlayerInputDevice(player);
         CancelActiveRebind();
         ResetPausePlayerBindingOverrides();
-        SetPauseControlOptions(false, false, false, false, false);
+
+        if (IsOnlineMatchActive())
+        {
+            SettingsManager.Instance?.ResetControlOptionsForPlayer(player, inputDevice);
+        }
+        else
+        {
+            SetPauseControlOptions(false, false, false, false, false);
+        }
+
         RefreshControlToggleGraphics();
         RefreshControlGlyphs();
     }
@@ -2075,15 +2086,23 @@ public class Pause : MonoBehaviour
             }
 
             string selectedPath = GetBindingPathForControl(selectedControl, inputDevice);
+            string[] changedBindingIds = null;
             if (!string.IsNullOrEmpty(selectedPath))
             {
                 action.ApplyBindingOverride(bindingIndex, selectedPath);
-                SwapConflictingBinding(player, inputDevice, action, bindingIndex, previousBindingPath);
+                SwapConflictingBinding(
+                    player,
+                    inputDevice,
+                    action,
+                    bindingIndex,
+                    previousBindingPath);
+                string reboundBindingId = action.bindings[bindingIndex].id.ToString();
+                changedBindingIds = new[] { reboundBindingId };
             }
 
             waitingForManualRebindInput = false;
             activeRebindCaptureCoroutine = null;
-            FinishControlRebind(player, textSetter);
+            FinishControlRebind(player, inputDevice, changedBindingIds, textSetter);
             yield break;
         }
 
@@ -2164,7 +2183,11 @@ public class Pause : MonoBehaviour
         operation.Complete();
     }
 
-    private void FinishControlRebind(PlayerController player, TextSetter textSetter)
+    private void FinishControlRebind(
+        PlayerController player,
+        InputDevice inputDevice,
+        string[] changedBindingIds,
+        TextSetter textSetter)
     {
         StopActiveRebindCapture();
         StopActiveRebindTimeout();
@@ -2172,7 +2195,16 @@ public class Pause : MonoBehaviour
         RestoreActiveRebindAction();
         DisposeActiveRebindOperation();
 
-        SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
+        SettingsManager settingsManager = SettingsManager.Instance;
+        if (IsOnlineMatchActive())
+        {
+            settingsManager?.SaveInputBindingOverridesForPlayer(player, inputDevice, changedBindingIds);
+        }
+        else
+        {
+            // Preserve the existing offline behavior, including its control-option snapshot.
+            settingsManager?.SaveControlOptionsForPlayer(player);
+        }
         RefreshControlGlyphs();
         textSetter?.UpdateGlyph();
     }

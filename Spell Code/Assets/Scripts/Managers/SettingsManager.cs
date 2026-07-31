@@ -312,6 +312,99 @@ public class SettingsManager : MonoBehaviour
         SaveControlOptions();
     }
 
+    public void SaveInputBindingOverridesForPlayer(
+        PlayerController player,
+        InputDevice bindingDevice = null,
+        string[] changedBindingIds = null)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        bool hasProfileController = TryGetControllerId(player, out int profileControllerId);
+        bool hasBindingController = bindingDevice != null
+            && InputDeviceManager.IsValidInput(bindingDevice);
+        if (!hasProfileController && !hasBindingController)
+        {
+            return;
+        }
+
+        if (ControlOptions == null)
+        {
+            ControlOptions = CreateDefaultControlOptions();
+        }
+
+        bool bindingsSaved = false;
+        if (hasProfileController)
+        {
+            bindingsSaved = SaveInputBindingOverridesForController(player, profileControllerId);
+        }
+
+        // An online PlayerInput listens to every local device, while its control-option profile is
+        // pinned to the device that entered the match. Also update the device that was actually
+        // rebound so the same device can restore its override when it joins the SoloLobby again.
+        // Merge only the bindings changed by this operation: the shared online map was initialized
+        // from the pinned profile and must not replace unrelated overrides in another profile.
+        if (hasBindingController && bindingDevice.deviceId != profileControllerId)
+        {
+            bool bindingDeviceSaved = MergeInputBindingOverridesForController(
+                player,
+                bindingDevice.deviceId,
+                changedBindingIds);
+            bindingsSaved = bindingDeviceSaved || bindingsSaved;
+        }
+
+        if (bindingsSaved)
+        {
+            SaveControlOptions();
+        }
+    }
+
+    public void ResetControlOptionsForPlayer(PlayerController player, InputDevice bindingDevice = null)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        bool hasProfileController = TryGetControllerId(player, out int profileControllerId);
+        bool hasBindingController = bindingDevice != null
+            && InputDeviceManager.IsValidInput(bindingDevice);
+        if (!hasProfileController && !hasBindingController)
+        {
+            return;
+        }
+
+        if (ControlOptions == null)
+        {
+            ControlOptions = CreateDefaultControlOptions();
+        }
+
+        if (hasProfileController)
+        {
+            ResetControlOptionsForController(player, profileControllerId);
+        }
+
+        // Reset is intentionally broader than an individual rebind: both the binding map and the
+        // five control toggles must be cleared for the device that will own the offline profile.
+        if (hasBindingController && bindingDevice.deviceId != profileControllerId)
+        {
+            ResetControlOptionsForController(player, bindingDevice.deviceId);
+        }
+
+        SaveControlOptions();
+    }
+
+    public void EndOnlineLocalControlSession(PlayerController player)
+    {
+        // This must run while GameManager still identifies player as the online local player. It
+        // captures the only live action-map clone before StopMatch destroys it, without replacing
+        // control toggles that may still be delayed in rollback-simulated PlayerController fields.
+        SaveInputBindingOverridesForPlayer(player);
+        onlineLocalControllerId = -1;
+    }
+
     public void BeginOnlineLocalControlSession(PlayerController sourcePlayer)
     {
         // StartOnlineMatch can be re-entered while applying a roster snapshot. In that case the
@@ -522,21 +615,250 @@ public class SettingsManager : MonoBehaviour
         return null;
     }
 
-    private void SaveInputBindingOverrides(PlayerController player, PlayerControlOptionsData options)
+    private bool SaveInputBindingOverridesForController(PlayerController player, int controllerId)
     {
-        if (options == null)
+        PlayerControlOptionsData options = GetOrCreateControlOptions(controllerId);
+        options.controllerId = controllerId;
+        return SaveInputBindingOverrides(player, options);
+    }
+
+    private void ResetControlOptionsForController(PlayerController player, int controllerId)
+    {
+        PlayerControlOptionsData options = GetOrCreateControlOptions(controllerId);
+        options.controllerId = controllerId;
+        options.relativeInputs = false;
+        options.toggleCodeInput = false;
+        options.tapJump = false;
+        options.vibeCoding = false;
+        options.downJumpSlide = false;
+        SaveInputBindingOverrides(player, options);
+    }
+
+    private bool MergeInputBindingOverridesForController(
+        PlayerController player,
+        int controllerId,
+        string[] changedBindingIds)
+    {
+        if (changedBindingIds == null || changedBindingIds.Length == 0)
         {
-            return;
+            return false;
         }
 
         InputActionMap actionMap = GetPlayerActionMap(player);
         if (actionMap == null)
         {
+            return false;
+        }
+
+        PlayerControlOptionsData options = GetOrCreateControlOptions(controllerId);
+        options.controllerId = controllerId;
+        InputActionMap[] temporaryMaps = null;
+        try
+        {
+            // Rebuild an unmodified copy with the same action/binding GUIDs, then layer the
+            // destination device's saved profile onto it. This lets conflict swapping use that
+            // profile's real bindings instead of the pinned online profile's different map.
+            temporaryMaps = InputActionMap.FromJson(actionMap.ToJson());
+            if (temporaryMaps == null || temporaryMaps.Length == 0 || temporaryMaps[0] == null)
+            {
+                return false;
+            }
+
+            InputActionMap destinationMap = temporaryMaps[0];
+            destinationMap.LoadBindingOverridesFromJson(options.inputBindingOverridesJson);
+
+            bool appliedAnyBinding = false;
+            for (int i = 0; i < changedBindingIds.Length; i++)
+            {
+                string bindingId = changedBindingIds[i];
+                if (string.IsNullOrEmpty(bindingId)
+                    || !TryFindBindingById(actionMap, bindingId, out InputAction liveAction, out int liveBindingIndex)
+                    || !TryFindBindingById(destinationMap, bindingId, out InputAction destinationAction, out int destinationBindingIndex))
+                {
+                    continue;
+                }
+
+                InputBinding liveBinding = liveAction.bindings[liveBindingIndex];
+                InputBinding destinationBinding = destinationAction.bindings[destinationBindingIndex];
+                string previousDestinationPath = destinationBinding.effectivePath;
+                string newBindingPath = liveBinding.effectivePath;
+                if (string.IsNullOrEmpty(newBindingPath))
+                {
+                    continue;
+                }
+
+                ApplyPathOverridePreservingOtherOverrides(
+                    destinationAction,
+                    destinationBindingIndex,
+                    newBindingPath);
+                SwapConflictingBindingInMap(
+                    destinationMap,
+                    destinationAction,
+                    newBindingPath,
+                    previousDestinationPath);
+                appliedAnyBinding = true;
+            }
+
+            if (!appliedAnyBinding)
+            {
+                return false;
+            }
+
+            options.inputBindingsSaved = true;
+            options.inputBindingOverridesJson = destinationMap.SaveBindingOverridesAsJson();
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to merge saved input bindings. Error: {exception.Message}");
+            return false;
+        }
+        finally
+        {
+            if (temporaryMaps != null)
+            {
+                for (int i = 0; i < temporaryMaps.Length; i++)
+                {
+                    temporaryMaps[i]?.Dispose();
+                }
+            }
+        }
+    }
+
+    private bool TryFindBindingById(
+        InputActionMap actionMap,
+        string bindingId,
+        out InputAction action,
+        out int bindingIndex)
+    {
+        action = null;
+        bindingIndex = -1;
+        if (actionMap == null || string.IsNullOrEmpty(bindingId))
+        {
+            return false;
+        }
+
+        foreach (InputAction candidateAction in actionMap.actions)
+        {
+            if (candidateAction == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < candidateAction.bindings.Count; i++)
+            {
+                if (!string.Equals(
+                    candidateAction.bindings[i].id.ToString(),
+                    bindingId,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                action = candidateAction;
+                bindingIndex = i;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void SwapConflictingBindingInMap(
+        InputActionMap actionMap,
+        InputAction reboundAction,
+        string newBindingPath,
+        string previousBindingPath)
+    {
+        if (actionMap == null
+            || reboundAction == null
+            || string.IsNullOrEmpty(newBindingPath)
+            || string.IsNullOrEmpty(previousBindingPath)
+            || BindingPathsMatch(newBindingPath, previousBindingPath))
+        {
             return;
+        }
+
+        foreach (InputAction action in actionMap.actions)
+        {
+            if (action == null || action == reboundAction)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < action.bindings.Count; i++)
+            {
+                InputBinding binding = action.bindings[i];
+                if (binding.isComposite
+                    || binding.isPartOfComposite
+                    || string.IsNullOrEmpty(binding.effectivePath)
+                    || !BindingPathsMatch(binding.effectivePath, newBindingPath))
+                {
+                    continue;
+                }
+
+                ApplyPathOverridePreservingOtherOverrides(action, i, previousBindingPath);
+                return;
+            }
+        }
+    }
+
+    private void ApplyPathOverridePreservingOtherOverrides(
+        InputAction action,
+        int bindingIndex,
+        string overridePath)
+    {
+        InputBinding binding = action.bindings[bindingIndex];
+        action.ApplyBindingOverride(bindingIndex, new InputBinding
+        {
+            overridePath = overridePath,
+            overrideInteractions = binding.overrideInteractions,
+            overrideProcessors = binding.overrideProcessors
+        });
+    }
+
+    private bool BindingPathsMatch(string firstPath, string secondPath)
+    {
+        return string.Equals(firstPath, secondPath, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                CanonicalizeBindingPath(firstPath),
+                CanonicalizeBindingPath(secondPath),
+                StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string CanonicalizeBindingPath(string bindingPath)
+    {
+        if (string.IsNullOrEmpty(bindingPath) || bindingPath[0] != '/')
+        {
+            return bindingPath;
+        }
+
+        int deviceEndIndex = bindingPath.IndexOf('/', 1);
+        if (deviceEndIndex < 0)
+        {
+            return $"<{bindingPath.Substring(1)}>";
+        }
+
+        string deviceName = bindingPath.Substring(1, deviceEndIndex - 1);
+        return $"<{deviceName}>{bindingPath.Substring(deviceEndIndex)}";
+    }
+
+    private bool SaveInputBindingOverrides(PlayerController player, PlayerControlOptionsData options)
+    {
+        if (options == null)
+        {
+            return false;
+        }
+
+        InputActionMap actionMap = GetPlayerActionMap(player);
+        if (actionMap == null)
+        {
+            return false;
         }
 
         options.inputBindingsSaved = true;
         options.inputBindingOverridesJson = actionMap.SaveBindingOverridesAsJson();
+        return true;
     }
 
     private void ApplyInputBindingOverrides(PlayerController player, PlayerControlOptionsData options)

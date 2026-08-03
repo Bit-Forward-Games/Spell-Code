@@ -108,6 +108,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_END_OPTION_STATE = 16;
     private const byte PACKET_TYPE_END_OPTION_RESULT = 17;
     private const byte PACKET_TYPE_END_OPTION_RESULT_ACK = 18;
+    private const byte PACKET_TYPE_REMATCH_LOBBY_TRANSITION = 19;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
@@ -150,6 +151,8 @@ public class MatchMessageManager : MonoBehaviour
     private readonly HashSet<int> locallyRemovedPeerSlots = new HashSet<int>();
     private byte[] lastStageSelectPacket;
     private int lastStageSelectTransitionId;
+    private byte[] lastRematchLobbyTransitionPacket;
+    private int lastRematchLobbyTransitionId;
 
     private struct PrematchConnectRetry
     {
@@ -680,6 +683,10 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
         prematchConnectRetries.Clear();
+        lastStageSelectPacket = null;
+        lastStageSelectTransitionId = 0;
+        lastRematchLobbyTransitionPacket = null;
+        lastRematchLobbyTransitionId = 0;
         ResetReadyFlags();
         SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -891,6 +898,8 @@ public class MatchMessageManager : MonoBehaviour
         lastLoggedMismatchSignatureByPeer.Clear();
         lastStageSelectPacket = null;
         lastStageSelectTransitionId = 0;
+        lastRematchLobbyTransitionPacket = null;
+        lastRematchLobbyTransitionId = 0;
     }
 
     public void ResetReadyFlags()
@@ -1005,7 +1014,7 @@ public class MatchMessageManager : MonoBehaviour
         SendTransitionPacket(PACKET_TYPE_SHOP_READY, transitionId);
     }
 
-    public void SendSceneTransitionReadySignal(int transitionId)
+    public void SendSceneTransitionReadySignal(int transitionId, bool isRecoveryResponse = false)
     {
         if (!HasRemotePeers())
         {
@@ -1021,6 +1030,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(transitionId);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(isRecoveryResponse);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1078,6 +1088,34 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending end transition signal: {e}");
+        }
+    }
+
+    public void SendRematchLobbyTransition(int transitionId)
+    {
+        if (!HasRemotePeers()
+            || GameManager.Instance == null
+            || !GameManager.Instance.IsOnlineHostAuthority())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_REMATCH_LOBBY_TRANSITION);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance.GetConnectedPlayerSlotMask());
+                lastRematchLobbyTransitionPacket = memoryStream.ToArray();
+                lastRematchLobbyTransitionId = transitionId;
+                SendPacketToAll(lastRematchLobbyTransitionPacket, P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending rematch lobby transition: {e}");
         }
     }
 
@@ -1407,6 +1445,18 @@ public class MatchMessageManager : MonoBehaviour
         }
 
         SendPacketToAll(lastStageSelectPacket, P2PSend.Reliable);
+    }
+
+    public void ResendLastRematchLobbyTransition(int transitionId)
+    {
+        if (!HasRemotePeers()
+            || lastRematchLobbyTransitionPacket == null
+            || lastRematchLobbyTransitionId != transitionId)
+        {
+            return;
+        }
+
+        SendPacketToAll(lastRematchLobbyTransitionPacket, P2PSend.Reliable);
     }
 
     public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData, bool forceApply = false)
@@ -1755,9 +1805,16 @@ public class MatchMessageManager : MonoBehaviour
                     int transitionId = reader.ReadInt32();
                     byte sceneType = reader.ReadByte();
                     int sceneSignature = reader.ReadInt32();
+                    bool isRecoveryResponse = reader.BaseStream.Position < reader.BaseStream.Length
+                        && reader.ReadBoolean();
                     if (senderSlot >= 0)
                     {
-                        GameManager.Instance?.OnPeerSceneTransitionReady(senderSlot, transitionId, sceneType, sceneSignature);
+                        GameManager.Instance?.OnPeerSceneTransitionReady(
+                            senderSlot,
+                            transitionId,
+                            sceneType,
+                            sceneSignature,
+                            isRecoveryResponse);
                     }
                     return;
                 }
@@ -1784,6 +1841,23 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         GameManager.Instance?.OnPeerEndTransition(senderSlot, transitionId, sceneType, sceneSignature, winnerPid);
                     }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_REMATCH_LOBBY_TRANSITION)
+                {
+                    if (activeRoster == null
+                        || !activeRoster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    {
+                        return;
+                    }
+
+                    int transitionId = reader.ReadInt32();
+                    int connectedPlayerSlotMask = reader.ReadInt32();
+                    GameManager.Instance?.HandleOnlineRematchLobbyTransition(
+                        transitionId,
+                        connectedPlayerSlotMask);
                     return;
                 }
 

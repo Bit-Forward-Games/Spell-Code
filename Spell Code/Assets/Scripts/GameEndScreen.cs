@@ -280,9 +280,9 @@ public class GameEndScreen : MonoBehaviour
         SetButtonsInteractable(false);
         if (result == RematchOption)
         {
-            if (GameManager.Instance.PrepareRematchFromEnd())
+            if (!GameManager.Instance.StartOfflineRematchLobbyFromEnd())
             {
-                GameManager.Instance.LoadRandomGameplayStage();
+                ReturnToSoloLobby();
             }
         }
         else
@@ -405,8 +405,9 @@ public class GameEndScreen : MonoBehaviour
 
         if (result == RematchOption)
         {
-            // The host's authoritative STAGE_SELECT performs the actual reset. Keeping this result
-            // packet cosmetic also makes packet reordering harmless under the chaos test harness.
+            // The host sends a separate cached MainMenu transition after every connected player
+            // ACKs this result. Keeping the result cosmetic prevents an early-loading client from
+            // destroying this screen before its ACK can reach the host under simulated latency.
         }
         else
         {

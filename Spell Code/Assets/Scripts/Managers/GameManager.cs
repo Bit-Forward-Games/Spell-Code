@@ -207,6 +207,7 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<int, GameplayReadyContext> pendingGameplayReadyBySlot = new Dictionary<int, GameplayReadyContext>();
     private readonly Dictionary<int, int> pendingGameplayReadyTransitionBySlot = new Dictionary<int, int>();
     private readonly Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)> pendingSceneReadyBySlot = new Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)>();
+    private readonly Dictionary<int, float> completedSceneReadyResponseTimeBySlot = new Dictionary<int, float>();
     private readonly Dictionary<int, int> pendingPeerDropFrames = new Dictionary<int, int>();
     private readonly Dictionary<int, HashSet<int>> peerDropAcknowledgedSlots = new Dictionary<int, HashSet<int>>();
 
@@ -300,6 +301,7 @@ public class GameManager : MonoBehaviour
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
     private int lastAppliedGameplayStageTransitionId = 0;
+    private int lastAppliedRematchLobbyTransitionId = 0;
     private int localGameplayReadyTransitionId = 0;
     private int remoteGameplayReadyTransitionId = 0;
     private int pendingRemoteGameplayReadyTransitionId = 0;
@@ -1733,6 +1735,7 @@ public class GameManager : MonoBehaviour
         onlineTransitionSequence = 0;
         activeOnlineTransitionId = 0;
         lastAppliedGameplayStageTransitionId = 0;
+        lastAppliedRematchLobbyTransitionId = 0;
         localGameplayReadyTransitionId = 0;
         remoteGameplayReadyTransitionId = 0;
         pendingRemoteGameplayReadyTransitionId = 0;
@@ -1742,6 +1745,7 @@ public class GameManager : MonoBehaviour
         pendingStageSelectTotalRoundsPlayed = -1;
         pendingPeerDropFrames.Clear();
         peerDropAcknowledgedSlots.Clear();
+        completedSceneReadyResponseTimeBySlot.Clear();
         onlineTransitionLivenessGraceArmed = false;
         onlineTransitionLivenessGraceDeadline = 0f;
     }
@@ -1754,6 +1758,7 @@ public class GameManager : MonoBehaviour
         remoteSceneTransitionReady = false;
         sceneReadyPeerSlots.Clear();
         pendingSceneReadyBySlot.Clear();
+        completedSceneReadyResponseTimeBySlot.Clear();
         hasPendingRemoteSceneReady = false;
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
@@ -1766,6 +1771,10 @@ public class GameManager : MonoBehaviour
 
     private void CompleteTrackedOnlineTransition()
     {
+        bool completedRematchLobbyTransition = activeOnlineTransitionId > 0
+            && activeOnlineTransitionId == lastAppliedRematchLobbyTransitionId
+            && SceneManager.GetActiveScene().name == "MainMenu";
+
         if (activeOnlineTransitionId > 0)
         {
             onlineTransitionSequence = Mathf.Max(onlineTransitionSequence, activeOnlineTransitionId);
@@ -1798,6 +1807,16 @@ public class GameManager : MonoBehaviour
         onlineTransitionLivenessGraceArmed = false;
         onlineTransitionLivenessGraceDeadline = 0f;
         RefreshNetworkActivityGrace();
+
+        if (completedRematchLobbyTransition && tempUI != null)
+        {
+            tempUI.gameObject.SetActive(true);
+            if (roundEndedText != null)
+            {
+                roundEndedText.enabled = true;
+            }
+            SetNetworkInfoVisible(true);
+        }
     }
 
     /// <summary>
@@ -2275,10 +2294,15 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentSceneTransitionReady(int transitionId, byte sceneType, int sceneSignature)
     {
-        OnPeerSceneTransitionReady(remotePlayerIndex, transitionId, sceneType, sceneSignature);
+        OnPeerSceneTransitionReady(remotePlayerIndex, transitionId, sceneType, sceneSignature, false);
     }
 
-    public void OnPeerSceneTransitionReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
+    public void OnPeerSceneTransitionReady(
+        int playerSlot,
+        int transitionId,
+        byte sceneType,
+        int sceneSignature,
+        bool isRecoveryResponse = false)
     {
         // Scene-ready signals are sent ONCE per peer (Reliable, but one-shot at the application
         // level). Discarding one here used to be unrecoverable — the waiter's FixedUpdate
@@ -2297,6 +2321,28 @@ public class GameManager : MonoBehaviour
 
         if (!isTransitioning)
         {
+            // A peer can complete locally while another survivor is still missing its ready
+            // packet. The waiter keeps broadcasting its own ready once per second, so answer it
+            // with this completed id. Recovery responses are explicitly tagged and never answered,
+            // which prevents completed peers from bouncing ready packets back and forth forever.
+            if (transitionId == onlineTransitionSequence
+                && sceneType == GetNetworkSceneTypeCode()
+                && sceneSignature == GetNetworkSceneSignature()
+                && !isRecoveryResponse
+                && MatchMessageManager.Instance != null)
+            {
+                float now = Time.unscaledTime;
+                if (!completedSceneReadyResponseTimeBySlot.TryGetValue(playerSlot, out float lastResponseTime)
+                    || now - lastResponseTime >= 0.5f)
+                {
+                    completedSceneReadyResponseTimeBySlot[playerSlot] = now;
+                    MatchMessageManager.Instance.SendSceneTransitionReadySignal(
+                        transitionId,
+                        isRecoveryResponse: true);
+                }
+                return;
+            }
+
             // A peer can finish loading before we begin (or after we completed) our own
             // transition. A stale id can never match a future activeOnlineTransitionId (ids
             // strictly increase), so stashing is safe and a discarded-early ready is not.
@@ -2442,6 +2488,7 @@ public class GameManager : MonoBehaviour
             // therefore can never answer scene-ready. Re-send the exact cached packet while this
             // transition is pending; receivers treat same-id duplicates as idempotent below.
             MatchMessageManager.Instance.ResendLastStageSelect(activeOnlineTransitionId);
+            MatchMessageManager.Instance.ResendLastRematchLobbyTransition(activeOnlineTransitionId);
         }
 
         ApplyPendingSceneTransitionReadyIfAvailable();
@@ -4478,10 +4525,50 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ResetPlayersForStartingSpellSelection()
+    {
+        if (activeOnlineRoster == null)
+        {
+            onlineDisconnectedSlots.Clear();
+        }
+        else
+        {
+            // Keep sparse roster gaps and peers that left the completed match inert. A rematch
+            // lobby preserves the surviving roster; it must not silently resurrect a departed
+            // player just because the match counters are being reset.
+            for (int slot = 0; slot < playerCount; slot++)
+            {
+                if (!activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _))
+                {
+                    onlineDisconnectedSlots.Add(slot);
+                }
+            }
+        }
+
+        for (int slot = 0; slot < players.Length; slot++)
+        {
+            PlayerController player = players[slot];
+            if (player == null)
+            {
+                continue;
+            }
+
+            if (onlineDisconnectedSlots.Contains(slot))
+            {
+                ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: false);
+                continue;
+            }
+
+            player.isConnected = true;
+            player.ResetPlayerForStartingSpellSelection();
+        }
+    }
+
     /// <summary>
     /// Resets a completed match while preserving the currently joined local players or online
-    /// roster. This is deliberately separate from SceneUiManager.Restart, whose direct scene load
-    /// is not safe for non-host online peers.
+    /// roster, leaving every surviving player's spell list empty for a new MainMenu starter
+    /// selection. This is deliberately separate from SceneUiManager.Restart, whose direct scene
+    /// load is not safe for retained players or non-host online peers.
     /// </summary>
     public bool PrepareRematchFromEnd(int onlineEndEpoch = 0)
     {
@@ -4546,24 +4633,10 @@ public class GameManager : MonoBehaviour
         isSaved = false;
         damageMatrix = new byte[4, 4];
 
-        // Undo only the blanket End-screen hiding first. RestartGame/SpawnPlayer then applies the
-        // fresh-match visibility (including reviving a loser whose sprite was already hidden).
+        // Undo only the blanket End-screen hiding first. The MainMenu scene arrival then respawns
+        // every retained player with fresh-match visibility at the lobby spawn points.
         RestorePlayerRenderersAfterEnd();
-        RestartGame();
-        for (int slot = 0; slot < players.Length; slot++)
-        {
-            PlayerController player = players[slot];
-            if (player == null || !IsPlayerSlotConnected(slot))
-            {
-                continue;
-            }
-
-            player.roundRam = 0;
-            player.storedKillBonus = 0;
-            player.ramBounty = 0;
-            player.hasHighestBounty = false;
-            player.chosenSpell = false;
-        }
+        ResetPlayersForStartingSpellSelection();
 
         // A rematch is a new match, so begin a fresh filtered stage cycle instead of carrying the
         // exhausted/non-repeating stage pool from the completed game.
@@ -4580,7 +4653,7 @@ public class GameManager : MonoBehaviour
         }
         if (roundEndedText != null)
         {
-            roundEndedText.enabled = true;
+            roundEndedText.enabled = false;
         }
 
         Time.timeScale = 1f;
@@ -4590,20 +4663,41 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            isRunning = true;
+            // Keep the retained players paused while the screen cover loads MainMenu. The
+            // MainMenu arrival block resumes the offline simulation after their lobby state and
+            // persistent machines have been reset.
+            isRunning = false;
         }
 
         return true;
     }
 
+    public bool StartOfflineRematchLobbyFromEnd()
+    {
+        if (isOnlineMatchActive || !PrepareRematchFromEnd())
+        {
+            return false;
+        }
+
+        SetStage(-1);
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        sceneManager.LoadScene("MainMenu");
+        return true;
+    }
+
     /// <summary>
-    /// Starts an online rematch through the existing host-authoritative stage-select and
-    /// all-player scene-ready handshake.
+    /// Returns a completed online match to the retained-player MainMenu lobby through a
+    /// host-authoritative transition. The existing lobby-ready/stage-select flow starts Gameplay
+    /// only after everyone has chosen a starter and entered the door again.
     /// </summary>
     public bool StartOnlineRematchFromEnd(int onlineEndEpoch)
     {
         if (!isOnlineMatchActive
             || !IsOnlineHostAuthority()
+            || MatchMessageManager.Instance == null
             || ActivePlayerCount < 2
             || onlineEndEpoch <= 0
             || onlineEndEpoch != OnlineEndOptionsEpoch
@@ -4614,9 +4708,89 @@ public class GameManager : MonoBehaviour
 
         int transitionId = onlineEndEpoch + 1;
         isRunning = true;
-        BeginTrackedOnlineTransition(transitionId);
-        LoadRandomGameplayStage();
+        BeginOnlineRematchLobbyTransition(transitionId, broadcastTransition: true);
         return true;
+    }
+
+    public bool HandleOnlineRematchLobbyTransition(int transitionId, int connectedPlayerSlotMask)
+    {
+        if (!isOnlineMatchActive
+            || IsOnlineHostAuthority()
+            || transitionId <= 0
+            || connectedPlayerSlotMask < 0
+            || localPlayerIndex < 0
+            || (connectedPlayerSlotMask & (1 << localPlayerIndex)) == 0)
+        {
+            return false;
+        }
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        if (transitionId == lastAppliedRematchLobbyTransitionId)
+        {
+            // The host keeps resending its cached commit until every survivor answers scene-ready.
+            // A peer that already completed locally must answer duplicates as well, otherwise a
+            // lost final ready packet could leave only the host waiting forever.
+            if (activeSceneName == "MainMenu"
+                && (!isTransitioning || localSceneTransitionReady)
+                && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal(transitionId);
+            }
+            return activeSceneName == "MainMenu" || isTransitioning;
+        }
+
+        if (transitionId < lastAppliedRematchLobbyTransitionId
+            || activeSceneName != "End"
+            || OnlineEndOptionsEpoch <= 0
+            || transitionId != OnlineEndOptionsEpoch + 1)
+        {
+            return false;
+        }
+
+        ApplyOnlineConnectedPlayerSlotMask(connectedPlayerSlotMask);
+        if (ActivePlayerCount < 2 || !PrepareRematchFromEnd(OnlineEndOptionsEpoch))
+        {
+            return false;
+        }
+
+        isRunning = true;
+        BeginOnlineRematchLobbyTransition(transitionId, broadcastTransition: false);
+        return true;
+    }
+
+    private void BeginOnlineRematchLobbyTransition(int transitionId, bool broadcastTransition)
+    {
+        lastAppliedRematchLobbyTransitionId = transitionId;
+        isWaitingForOpponent = false;
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
+        gameplayReadyPeerSlots.Clear();
+        pendingGameplayReadyBySlot.Clear();
+        pendingGameplayReadyTransitionBySlot.Clear();
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
+        pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        pendingOpponentShopTransition = false;
+        pendingOpponentShopTransitionId = 0;
+        ClearPendingStageSelect();
+
+        BeginTrackedOnlineTransition(transitionId);
+        SetStage(-1);
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        SetNetworkInfoVisible(true);
+
+        if (broadcastTransition)
+        {
+            MatchMessageManager.Instance?.SendRematchLobbyTransition(transitionId);
+        }
+
+        sceneManager.LoadScene("MainMenu");
     }
 
     /// <summary>
@@ -5308,6 +5482,14 @@ public class GameManager : MonoBehaviour
 
     public void LoadRandomGameplayStage()
     {
+        // MainMenu is the first-stage lobby for a new match. Rebuild here (not only when End is
+        // reset) so local joins or online peer drops that happened while choosing starters use the
+        // correct Duel/General pool at the exact moment the roster commits to Gameplay.
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            FillGameStages();
+        }
+
         if (isOnlineMatchActive)
         {
             if (IsOnlineHostAuthority())
@@ -5418,6 +5600,11 @@ public class GameManager : MonoBehaviour
 
     private void ApplyOnlineStageSelectionState(int stageIndex, uint? syncedStageRngState = null)
     {
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            FillGameStages();
+        }
+
         if (syncedStageRngState.HasValue)
         {
             stageRngState = syncedStageRngState.Value;
@@ -5646,6 +5833,89 @@ public class GameManager : MonoBehaviour
             FindAllFloppyDisks();
         }
 
+        // For an OFFLINE rematch lobby. The lobby map and machines live under the persistent game
+        // manager, so loading MainMenu does not recreate them; explicitly reopen the starter
+        // machines and onboarding state for the retained local players.
+        if (!isOnlineMatchActive && scene.name == "MainMenu" && rematchPreparationStarted)
+        {
+            SetStage(-1);
+            InitializeRematchLobbySceneState();
+            FindAllFloppyDisks();
+            if (MainMenuScreen != null)
+            {
+                MainMenuScreen.SetActive(false);
+            }
+            if (playerWinText != null)
+            {
+                playerWinText.enabled = false;
+            }
+            if (roundEndedText != null)
+            {
+                roundEndedText.enabled = true;
+            }
+            isRunning = true;
+            rematchPreparationStarted = false;
+        }
+
+        // For an ONLINE rematch lobby. This is a warm return: the player objects, sparse roster,
+        // Steam session, and input ownership survive, while the deterministic match baseline and
+        // starter-selection machines are rebuilt before the normal lobby simulation resumes.
+        if (isOnlineMatchActive && scene.name == "MainMenu" && isTransitioning)
+        {
+            SetStage(-1);
+            roundOver = false;
+            gameOver = false;
+            roundEndFrameCounter = 0;
+            roundEndTimer = 0f;
+            roundTransitionPending = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
+            pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
+            onlineRoundAdvanceApplied = false;
+            playersChosenSpell = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+            gameplayReadyPeerSlots.Clear();
+            pendingGameplayReadyBySlot.Clear();
+            pendingGameplayReadyTransitionBySlot.Clear();
+            localGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
+            pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyTransitionId = 0;
+            ClearPendingStageSelect();
+            localSceneTransitionReady = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[Mathf.Max(2, IsRosterBasedOnlineMatch() ? playerCount : 2)];
+            for (int i = 0; i < syncedInput.Length; i++)
+            {
+                syncedInput[i] = 5UL;
+            }
+            timeoutFrames = 0;
+            isWaitingForOpponent = false;
+
+            tempUI?.CloseAllCodeModePrompts();
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.ResetFrameSyncForSceneTransition();
+            }
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+                RollbackManager.Instance.MarkAllRemoteSlotsPendingUntilInput();
+            }
+
+            StartCoroutine(FinalizeOnlineRematchLobbyArrival(activeOnlineTransitionId));
+        }
+
         // For ONLINE gameplay
         if (isOnlineMatchActive && scene.name == "Gameplay" && isTransitioning)
         {
@@ -5810,6 +6080,107 @@ public class GameManager : MonoBehaviour
             {
                 players[i].chosenSpell = false;
             }
+        }
+    }
+
+    private IEnumerator FinalizeOnlineRematchLobbyArrival(int transitionId)
+    {
+        // sceneLoaded runs before Start on objects created with MainMenu. Wait one frame so the
+        // new OnboardManager/GambaMachine Start methods finish, then reapply the same lobby reset
+        // used by initial online setup and save that final state as rollback frame zero.
+        yield return null;
+
+        if (!isOnlineMatchActive
+            || !isTransitioning
+            || activeOnlineTransitionId != transitionId
+            || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            yield break;
+        }
+
+        InitializeRematchLobbySceneState();
+        FindAllFloppyDisks();
+        ProjectileManager.Instance.InitializeAllProjectiles();
+        if (RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.SaveState();
+        }
+
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        if (playerWinText != null)
+        {
+            playerWinText.enabled = false;
+        }
+        if (roundEndedText != null)
+        {
+            roundEndedText.enabled = true;
+        }
+        SetNetworkInfoVisible(true);
+        isRunning = true;
+        localSceneTransitionReady = true;
+        sceneReadyPeerSlots.Add(localPlayerIndex);
+
+        // Announce before applying a peer-ready packet that may already be pending. Applying the
+        // pending packet can complete this transition and clear activeOnlineTransitionId.
+        MatchMessageManager.Instance?.SendSceneTransitionReadySignal(transitionId);
+        ApplyPendingSceneTransitionReadyIfAvailable();
+        CheckSceneTransitionReady();
+    }
+
+    private void InitializeRematchLobbySceneState()
+    {
+        onboardManager = FindFirstObjectByType<OnboardManager>();
+        if (onboardManager != null)
+        {
+            onboardManager.ResetOnboarding();
+        }
+
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            if (gambaGO == null)
+            {
+                continue;
+            }
+
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba == null)
+            {
+                continue;
+            }
+
+            int ownerSlot = gamba.ownerPID - 1;
+            bool hasActiveOwner = ownerSlot >= 0
+                && ownerSlot < playerCount
+                && players[ownerSlot] != null
+                && IsPlayerSlotConnected(ownerSlot);
+            gamba.ownerPlayer = hasActiveOwner ? players[ownerSlot] : null;
+            gamba.ResetLobbyState();
+            if (!hasActiveOwner)
+            {
+                gamba.activatedCount = 3;
+                gamba.isActive = false;
+                gamba.ApplyVisualState();
+            }
+        }
+
+        foreach (SpellCode_Gate gate in gates)
+        {
+            if (gate == null)
+            {
+                continue;
+            }
+
+            gate.isOpen = false;
+            gate.SetOpen(false);
+        }
+
+        if (goDoorPrefab != null)
+        {
+            goDoorPrefab.isPrimed = true;
+            goDoorPrefab.CheckOpenDoor();
         }
     }
 

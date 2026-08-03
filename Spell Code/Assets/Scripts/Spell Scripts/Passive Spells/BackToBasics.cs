@@ -7,7 +7,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class BackToBasics : SpellData
 {
     public const int flowStateCost = 60;
-    public const int flowStateIncrease = 240;
+    public const int flowStateIncrease = 300;
     public BackToBasics()
     {
         spellName = "Back To Basics";

@@ -27,7 +27,7 @@ public class GameEndScreen : MonoBehaviour
     private readonly bool[] confirmedOptions = new bool[MaxPlayerSlots];
     private readonly uint[] optionRevisions = new uint[MaxPlayerSlots];
     private readonly Image[] playerIndicators = new Image[MaxPlayerSlots];
-    private readonly Color[] unconfirmedIndicatorColors = new Color[MaxPlayerSlots];
+    private readonly Color[] confirmedIndicatorColors = new Color[MaxPlayerSlots];
     private readonly Vector2[] indicatorAnchoredPositions = new Vector2[MaxPlayerSlots];
     private readonly Vector3[] indicatorLocalScales = new Vector3[MaxPlayerSlots];
     private readonly HashSet<int> resultAcknowledgedSlots = new HashSet<int>();
@@ -617,7 +617,7 @@ public class GameEndScreen : MonoBehaviour
         for (int slot = 0; slot < MaxPlayerSlots; slot++)
         {
             RectTransform indicatorRect = playerIndicators[slot].rectTransform;
-            unconfirmedIndicatorColors[slot] = playerIndicators[slot].color;
+            confirmedIndicatorColors[slot] = playerIndicators[slot].color;
             indicatorAnchoredPositions[slot] = indicatorRect.anchoredPosition;
             indicatorLocalScales[slot] = indicatorRect.localScale;
         }
@@ -705,7 +705,7 @@ public class GameEndScreen : MonoBehaviour
 
         indicatorRect.anchoredPosition = indicatorAnchoredPositions[slot];
         indicatorRect.localScale = indicatorLocalScales[slot];
-        indicator.color = confirmedOptions[slot] ? Color.white : unconfirmedIndicatorColors[slot];
+        indicator.color = confirmedOptions[slot] ? confirmedIndicatorColors[slot] : Color.white;
     }
 
     private void SetButtonsInteractable(bool interactable)

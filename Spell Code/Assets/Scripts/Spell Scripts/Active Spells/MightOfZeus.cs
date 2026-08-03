@@ -11,10 +11,10 @@ public class MightOfZeus : SpellData
         spellName = "Might Of Zeus";
         brands = new Brand[]{ Brand.Killeez };
         cooldown = 240;
-        spellInput = 0b_0000_0000_0000_0000_0000_0011_0000_0100; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        projectilePrefabs = new GameObject[3];
+        projectilePrefabs = new GameObject[4];
 
         description = "Summon tall, medium-range lightning.\nThis spell gains stun based on Reps<sprite name=\"Reps\">.";
 
@@ -28,12 +28,17 @@ public class MightOfZeus : SpellData
 
         if (projectileInstances[0].activeSelf && projectileInstances[0].GetComponent<BaseProjectile>().logicFrame == 3)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 40), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 30), Fixed.FromInt(spawnOffsetY)));
         }
 
         if (projectileInstances[1].activeSelf && projectileInstances[1].GetComponent<BaseProjectile>().logicFrame == 3)
         {
-            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 80), Fixed.FromInt(spawnOffsetY)));
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 60), Fixed.FromInt(spawnOffsetY)));
+        }
+
+        if (projectileInstances[2].activeSelf && projectileInstances[2].GetComponent<BaseProjectile>().logicFrame == 3)
+        {
+            ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), projectileInstances[0].GetComponent<BaseProjectile>().facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX + 90), Fixed.FromInt(spawnOffsetY)));
         }
 
 

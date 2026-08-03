@@ -45,7 +45,7 @@ public class VFX_Manager : MonoBehaviour
         public VisualEffects visualEffectName; //name of the visual effect
         public GameObject particleSystemPrefab; //prefab of the particle system for this visual effect
 
-        [Range(1, 10)]
+        [Range(1, 12)]
         public uint numParticleSystemsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
 
         [HideInInspector] public List<ParticleSystem>[] particleSystems; //Array of Lists of particle systems that each play the visual effect. Each list of particle systems in the array is associated with a unique player as well as a non player specific particle system list
@@ -58,7 +58,7 @@ public class VFX_Manager : MonoBehaviour
         public VisualEffects trailName; //name of the visual effect
         public GameObject trailPrefab; //prefab of the particle system for this visual effect
 
-        [Range(1, 10)]
+        [Range(1, 12)]
         public uint numTrailsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
 
         [HideInInspector] public List<TrailRenderer>[] trailRenderers; //Array of Lists of trail renderers that each play the visual effect. Each list of trail renderers in the array is associated with a unique player as well as a non player specific trail renderer list
@@ -241,6 +241,10 @@ public class VFX_Manager : MonoBehaviour
 
                     //add the newly created particle system to the particleSystems array for this player number (i)
                     _visualEffectObject.particleSystems[i].Add(_createdParticleSystem.GetComponent<ParticleSystem>());
+
+                    //prewarm the particle effect
+                    //_visualEffectObject.particleSystems[i][j].Simulate(5f, true, true);
+                    //_visualEffectObject.particleSystems[i][j].Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 }
             }
         }

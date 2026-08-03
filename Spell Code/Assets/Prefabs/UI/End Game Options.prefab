@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 7221986820289853659}
   - component: {fileID: 6243950470107477089}
   m_Layer: 5
-  m_Name: Quit Button
+  m_Name: Main Menu Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -283,7 +283,7 @@ GameObject:
   - component: {fileID: 5928851681877792251}
   - component: {fileID: 5652268687470330488}
   m_Layer: 5
-  m_Name: Play Button
+  m_Name: Rematch Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

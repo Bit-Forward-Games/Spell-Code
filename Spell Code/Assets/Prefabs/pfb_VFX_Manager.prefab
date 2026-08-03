@@ -74,16 +74,16 @@ MonoBehaviour:
     numParticleSystemsPerPlayer: 1
   - visualEffectName: 10
     particleSystemPrefab: {fileID: 5475398249184600050, guid: cf1a4ec86db264146a31376d7f6804a8, type: 3}
-    numParticleSystemsPerPlayer: 10
+    numParticleSystemsPerPlayer: 12
   - visualEffectName: 11
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 4c424583f3d8b7b46b21ddb56aa7602f, type: 3}
-    numParticleSystemsPerPlayer: 10
+    numParticleSystemsPerPlayer: 12
   - visualEffectName: 12
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 67f9c280e364e1b47a1328d893d6cc05, type: 3}
-    numParticleSystemsPerPlayer: 10
+    numParticleSystemsPerPlayer: 12
   - visualEffectName: 13
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 39021a632c012114b80000478a10ad2a, type: 3}
-    numParticleSystemsPerPlayer: 10
+    numParticleSystemsPerPlayer: 12
   - visualEffectName: 14
     particleSystemPrefab: {fileID: 5475398249184600050, guid: c896e9074d21cd4488d67ddee48bdc1e, type: 3}
     numParticleSystemsPerPlayer: 1
@@ -154,13 +154,13 @@ MonoBehaviour:
   trailObjects:
   - trailName: 29
     trailPrefab: {fileID: 8156234568415061252, guid: b2daff341d5475c4d93fa400162ad3c3, type: 3}
-    numTrailsPerPlayer: 10
+    numTrailsPerPlayer: 12
   - trailName: 30
     trailPrefab: {fileID: 8156234568415061252, guid: 5d003b88119516049a8b113b04512b5b, type: 3}
-    numTrailsPerPlayer: 10
+    numTrailsPerPlayer: 12
   - trailName: 31
     trailPrefab: {fileID: 8156234568415061252, guid: 485a1c91919b68b4b9da27e2df2e4278, type: 3}
-    numTrailsPerPlayer: 10
+    numTrailsPerPlayer: 12
   - trailName: 32
     trailPrefab: {fileID: 8156234568415061252, guid: c1f9d5300daad2841ac057ffcf090c24, type: 3}
-    numTrailsPerPlayer: 10
+    numTrailsPerPlayer: 12

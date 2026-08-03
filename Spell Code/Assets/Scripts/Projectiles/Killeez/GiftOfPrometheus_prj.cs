@@ -11,25 +11,29 @@ public class GiftOfPrometheus_prj : BaseProjectile
 {
 
     [NonSerialized] public bool isGrounded = false;
-    [NonSerialized] public ushort lifeTime = 0;
-    [NonSerialized] private ushort baseLifeTime = 60;
+    //[NonSerialized] public ushort lifeTime = 0;
+    private const ushort baseLifeTime = 60;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
     {
         projName = "Gift Of Prometheus";
         //ignoreBrand = true;
-        multiHitCooldown = 30;
-        maxMultiHitCount = 5;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6}, false);
+        lifeSpan = baseLifeTime;
+        multiHitCooldown = 15;
+        maxMultiHitCount = 100;
+        fadeIn = true;
+        fadeOut = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6}, true);
     }
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         isGrounded = false;
-        lifeTime = 0;
+        lifeSpan = (ushort)( baseLifeTime + owner.reps * 15 );
         activeHitboxGroupIndex = 0;
+        frameData.endFrames[0] = lifeSpan;
         //hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
         //vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
     }
@@ -52,7 +56,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
                     yKnockback = 0,
                     damage = 1,
                     hitstun = 0,
-                    attackLvl = 1,
+                    attackLvl = 2,
                     ignoreEffectDamage = true
                 }
             },
@@ -71,11 +75,11 @@ public class GiftOfPrometheus_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                animFrames.frameLengths.Take(4).Sum()+1
+                animFrames.frameLengths.Take(2).Sum()+1
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(12).Sum()-1
+                lifeSpan
             }
         };
         base.LoadProjectile();
@@ -90,24 +94,24 @@ public class GiftOfPrometheus_prj : BaseProjectile
         {
             vSpeed -= owner.gravity/Fixed.FromFloat(10f); // Apply gravity to the vertical speed
         }
-        if (logicFrame == animFrames.frameLengths.Take(12).Sum())
-        {
-            logicFrame = animFrames.frameLengths.Take(4).Sum() + 1; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
-        }
+        // if (logicFrame == animFrames.frameLengths.Take(12).Sum())
+        // {
+        //     logicFrame = animFrames.frameLengths.Take(4).Sum() + 1; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
+        // }
 
         //if this is the start of the looping animation,...
         if (logicFrame == animFrames.frameLengths.Take(5).Sum() + 1)
         {
-            //Replay the Rip and Tear looping SFX
+            //Replay the GoP looping SFX
             SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus", 1.0f, 1.0f);
         }
 
-        if (lifeTime == owner.reps*15 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
-        {
-            logicFrame = animFrames.frameLengths.Take(12).Sum() + 1;
-            Array.Fill(multiHitCount, maxMultiHitCount);
-        }
-        lifeTime ++;
+        // if (lifeTime == owner.reps*15 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
+        // {
+        //     logicFrame = animFrames.frameLengths.Take(12).Sum() + 1;
+        //     Array.Fill(multiHitCount, maxMultiHitCount);
+        // }
+        // lifeTime ++;
     }
 
 
@@ -268,20 +272,20 @@ public class GiftOfPrometheus_prj : BaseProjectile
     {
         base.ResetValues();
         isGrounded = false;
-        lifeTime = 0;
+        //lifeTime = 0;
     }
 
     public override void Serialize(System.IO.BinaryWriter bw)
     {
         base.Serialize(bw);
         bw.Write(isGrounded);
-        bw.Write(lifeTime);
+        //bw.Write(lifeTime);
     }
 
     public override void Deserialize(System.IO.BinaryReader br)
     {
         base.Deserialize(br);
         isGrounded = br.ReadBoolean();
-        lifeTime = br.ReadUInt16();
+        //lifeTime = br.ReadUInt16();
     }
 }

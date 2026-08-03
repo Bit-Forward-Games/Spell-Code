@@ -890,6 +890,27 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void ResetPlayer()
     {
+        ResetPlayerForNewMatch(includeStartingSpell: true);
+    }
+
+    /// <summary>
+    /// Resets this player for the MainMenu match lobby while deliberately leaving the spell list
+    /// empty. The retained player can then choose a new starting spell before the next match.
+    /// </summary>
+    public void ResetPlayerForStartingSpellSelection()
+    {
+        ResetPlayerForNewMatch(includeStartingSpell: false);
+        chosenSpell = false;
+        chosenStartingSpell = false;
+        startingSpellAdded = false;
+        storedKillBonus = 0;
+        roundRam = 0;
+        ramBounty = 0;
+        hasHighestBounty = false;
+    }
+
+    private void ResetPlayerForNewMatch(bool includeStartingSpell)
+    {
         ClearToasts();
         ClearSpellList();
 
@@ -905,7 +926,10 @@ public class PlayerController : MonoBehaviour
         // AddSpellToSpellList(charData.startingInventory[i]);
         //}
 
-        AddSpellToSpellList(startingSpell);
+        if (includeStartingSpell)
+        {
+            AddSpellToSpellList(startingSpell);
+        }
 
         roundsWon = 0;
 

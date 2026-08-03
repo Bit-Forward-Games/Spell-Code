@@ -42,7 +42,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 }
             }
             
-            if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign"))
+            if (name.Split('_')[0] == "Options" || name.Contains("Slider") || name.Contains("Sign") || name.Contains("Rebind"))
             {
                 Transform optionsChildTransform = transform.Find("SignText");
                 if (optionsChildTransform != null && !pause.suppressingSelectionColor) 
@@ -75,9 +75,9 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 }
             }
 
-            if (name.Contains("Slider") || name.Contains("Digital"))
+            if (name.Contains("Slider") || name.Contains("Digital") || name.Contains("Rebind") || name.Split('_')[0] == "Options")
             {
-                Transform sliderChildTransform = transform.Find("SignSelecter");
+                Transform sliderChildTransform = transform.Find("SignSelector");
                 if (sliderChildTransform!= null) 
                 {
                     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
@@ -147,9 +147,9 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 }
             } 
 
-            if (name.Contains("Slider") || name.Contains("Digital"))
+            if (name.Contains("Slider") || name.Contains("Digital") || name.Contains("Rebind") || name.Split('_')[0] == "Options")
             {
-                Transform sliderChildTransform = transform.Find("SignSelecter");
+                Transform sliderChildTransform = transform.Find("SignSelector");
                 if (sliderChildTransform!= null) 
                 {
                     RectTransform signSelector = sliderChildTransform.gameObject.GetComponent<RectTransform>();
@@ -200,7 +200,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         if (EventSystem.current.currentSelectedGameObject == gameObject)
         {
             // 2. Check if the user is actively holding down the Submit key/button
-            if (name.Contains("Slider") || name.Split('_')[0] == "Digital")
+            if (name.Contains("Slider") || name.Split('_')[0] == "Digital" || name.Contains("Rebind"))
             {
                 Transform childTransform = transform.Find("SignText");
                 if (childTransform != null)

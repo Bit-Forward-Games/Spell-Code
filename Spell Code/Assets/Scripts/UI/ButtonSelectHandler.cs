@@ -106,13 +106,16 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             if (name.Contains("Lobby"))
             {
                 Transform lobbyChildTransform = transform.Find("LobbySelector");
-                Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
-                lobbyChildTransform.gameObject.SetActive(true);
-                lobbySelector.fillAmount = 0f;
-                DOTween.To(() => (float)lobbySelector.fillAmount, x => lobbySelector.fillAmount = (float)x, 1f, 0.35f)
-                    .SetTarget(lobbySelector)
-                    .SetEase(Ease.OutQuad)
-                    .SetUpdate(true);
+                if (lobbyChildTransform != null)
+                {
+                    Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
+                    lobbyChildTransform.gameObject.SetActive(true);
+                    lobbySelector.fillAmount = 0f;
+                    DOTween.To(() => (float)lobbySelector.fillAmount, x => lobbySelector.fillAmount = (float)x, 1f, 0.35f)
+                        .SetTarget(lobbySelector)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+                }
             }
             
             if (name.Contains("FindMatch"))
@@ -208,15 +211,17 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             if (name.Contains("Lobby"))
             {
                 Transform lobbyChildTransform = transform.Find("LobbySelector");
-                Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
-                lobbyChildTransform.gameObject.SetActive(false);
-                lobbySelector.fillAmount = 0f;
+                if (lobbyChildTransform != null)
+                {
+                    Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
+                    lobbyChildTransform.gameObject.SetActive(false);
+                    lobbySelector.fillAmount = 0f;
+                }
             }
 
             if (name.Contains("FindMatch"))
             {
                 Image findMatchSelector = GetComponent<Image>();
-                findMatchSelector.gameObject.SetActive(false);
                 findMatchSelector.fillAmount = 0f;
             }
         }

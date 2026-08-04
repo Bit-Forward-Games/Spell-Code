@@ -35,11 +35,10 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-24"; // scz-24: Double-tap no longer triggers during
-                                                    // CodeWeave; Might of Zeus got a 4th projectile, a new spellInput
-                                                    // bitmask and moved spawn offsets; Quiver of Artemis now requires
-                                                    // PlayerState.Slide; Back To Basics + Crossmap Clip flowStateIncrease
-                                                    // 240->300; Hot Streak damage 20->10 and attackLvl 2->1
+    private const string NetcodeVersion = "scz-25"; // scz-25: the End screen's option-result byte now carries a 4-bit MASK
+                                                    // of the slots that chose Rematch, not a single option enum. Each peer
+                                                    // derives its own outcome from its own bit, so rematchers play on
+                                                    // (keeping their slots) while leavers return to Main Menu
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

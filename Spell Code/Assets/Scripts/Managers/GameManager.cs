@@ -2103,6 +2103,21 @@ public class GameManager : MonoBehaviour
         return mask;
     }
 
+    /// <summary>
+    /// Drops every online slot that is NOT in the mask, outside the simulation. Used by the End
+    /// screen when only some players chose Rematch: the leavers are removed exactly like a clean
+    /// disconnect, so the survivors keep their existing P1-P4 slots and every downstream consumer
+    /// (GetConnectedPlayerSlotMask, ActivePlayerCount, the rematch transition) is already correct
+    /// without needing to know a vote happened.
+    ///
+    /// Call this only AFTER the leavers have acknowledged the result -- dropping their transport
+    /// first would strand them without ever hearing the outcome.
+    /// </summary>
+    public void DropOnlineSlotsOutsideMask(int survivingSlotMask)
+    {
+        ApplyOnlineConnectedPlayerSlotMask(survivingSlotMask);
+    }
+
     private void ApplyOnlineConnectedPlayerSlotMask(int connectedSlotMask)
     {
         if (activeOnlineRoster == null || connectedSlotMask < 0)

@@ -1,0 +1,897 @@
+fileFormatVersion: 2
+guid: 59dadeb44c757a044a55811507212809
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -9066656367402476759
+    second: ArmoryOfHephaestus-Sheet_0
+  - first:
+      213: 185576061002838910
+    second: ArmoryOfHephaestus-Sheet_1
+  - first:
+      213: 3993986663749085073
+    second: ArmoryOfHephaestus-Sheet_2
+  - first:
+      213: -6419966999799814207
+    second: ArmoryOfHephaestus-Sheet_3
+  - first:
+      213: 8786806901687466860
+    second: ArmoryOfHephaestus-Sheet_4
+  - first:
+      213: -464071350092003028
+    second: ArmoryOfHephaestus-Sheet_5
+  - first:
+      213: 2719990778066685800
+    second: ArmoryOfHephaestus-Sheet_6
+  - first:
+      213: -7643685875442981892
+    second: ArmoryOfHephaestus-Sheet_7
+  - first:
+      213: -1113527431893602745
+    second: ArmoryOfHephaestus-Sheet_8
+  - first:
+      213: 9125734377838956255
+    second: ArmoryOfHephaestus-Sheet_9
+  - first:
+      213: -2554078078466921402
+    second: ArmoryOfHephaestus-Sheet_10
+  - first:
+      213: -2976075272975119022
+    second: ArmoryOfHephaestus-Sheet_11
+  - first:
+      213: 6950418964356622011
+    second: ArmoryOfHephaestus-Sheet_12
+  - first:
+      213: -9108088302626275143
+    second: ArmoryOfHephaestus-Sheet_13
+  - first:
+      213: 969989117595712070
+    second: ArmoryOfHephaestus-Sheet_14
+  - first:
+      213: -633922880001316121
+    second: ArmoryOfHephaestus-Sheet_15
+  - first:
+      213: 7225708502682973954
+    second: ArmoryOfHephaestus-Sheet_16
+  - first:
+      213: -3273041591498473781
+    second: ArmoryOfHephaestus-Sheet_17
+  - first:
+      213: 8958514168026255253
+    second: ArmoryOfHephaestus-Sheet_18
+  - first:
+      213: -7783173617317106838
+    second: ArmoryOfHephaestus-Sheet_19
+  - first:
+      213: 3522583208220025607
+    second: ArmoryOfHephaestus-Sheet_20
+  - first:
+      213: 7244142233509628533
+    second: ArmoryOfHephaestus-Sheet_21
+  - first:
+      213: 3228256943292726068
+    second: ArmoryOfHephaestus-Sheet_22
+  - first:
+      213: -3253699846172565080
+    second: ArmoryOfHephaestus-Sheet_23
+  - first:
+      213: 6015264016357391761
+    second: ArmoryOfHephaestus-Sheet_24
+  - first:
+      213: 6578295514003967743
+    second: ArmoryOfHephaestus-Sheet_25
+  - first:
+      213: -7013776772453893396
+    second: ArmoryOfHephaestus-Sheet_26
+  - first:
+      213: 1081592825087978755
+    second: ArmoryOfHephaestus-Sheet_27
+  - first:
+      213: 4426825604604140754
+    second: ArmoryOfHephaestus-Sheet_28
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92b11703214cc2280800000000000000
+      internalID: -9066656367402476759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e73f3eab17c439200800000000000000
+      internalID: 185576061002838910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 197696aa5bd7d6730800000000000000
+      internalID: 3993986663749085073
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c7a3333702b7e6a0800000000000000
+      internalID: -6419966999799814207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6b3805925201f970800000000000000
+      internalID: 8786806901687466860
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c29845bd0994f89f0800000000000000
+      internalID: -464071350092003028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 793
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86fc00793395fb520800000000000000
+      internalID: 2719990778066685800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 132
+        width: 41
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf3ec8bb13c2ce590800000000000000
+      internalID: -7643685875442981892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 73
+        width: 74
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74e245e43b4fb80f0800000000000000
+      internalID: -1113527431893602745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 73
+        width: 74
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fde49a1011f15ae70800000000000000
+      internalID: 9125734377838956255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 72
+        width: 74
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64ced5c05871e8cd0800000000000000
+      internalID: -2554078078466921402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 69
+        width: 98
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25d8e71ae4bd2b6d0800000000000000
+      internalID: -2976075272975119022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 549
+        y: 65
+        width: 82
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb66d922939d47060800000000000000
+      internalID: 6950418964356622011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 679
+        y: 73
+        width: 81
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b0021b02f1999180800000000000000
+      internalID: -9108088302626275143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 814
+        y: 73
+        width: 74
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64a794696f7167d00800000000000000
+      internalID: 969989117595712070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 73
+        width: 74
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ea6782df7ad337f0800000000000000
+      internalID: -633922880001316121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 1058
+        y: 73
+        width: 74
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20730f8899fd64460800000000000000
+      internalID: 7225708502682973954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 9
+        width: 40
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bce77ab8302d392d0800000000000000
+      internalID: -3273041591498473781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 10
+        width: 40
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59f428ceb29035c70800000000000000
+      internalID: 8958514168026255253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 12
+        width: 40
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6b2f9205dc9cf390800000000000000
+      internalID: -7783173617317106838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 393
+        y: 13
+        width: 32
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 703e5b1b3cab2e030800000000000000
+      internalID: 3522583208220025607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 14
+        width: 32
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57a0fb2fafc588460800000000000000
+      internalID: 7244142233509628533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 670
+        y: 12
+        width: 22
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43bb6acf5921dcc20800000000000000
+      internalID: 3228256943292726068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 807
+        y: 1
+        width: 53
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a1242f8a3988d2d0800000000000000
+      internalID: -3253699846172565080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 935
+        y: 1
+        width: 62
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19dfb2da0c28a7350800000000000000
+      internalID: 6015264016357391761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_25
+      rect:
+        serializedVersion: 2
+        x: 1063
+        y: 1
+        width: 70
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffe80cbaaecca4b50800000000000000
+      internalID: 6578295514003967743
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_26
+      rect:
+        serializedVersion: 2
+        x: 1191
+        y: 1
+        width: 74
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceaffff9f2f0aae90800000000000000
+      internalID: -7013776772453893396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_27
+      rect:
+        serializedVersion: 2
+        x: 1319
+        y: 1
+        width: 49
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30deaf2a1f6920f00800000000000000
+      internalID: 1081592825087978755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ArmoryOfHephaestus-Sheet_28
+      rect:
+        serializedVersion: 2
+        x: 1447
+        y: 1
+        width: 49
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dc980dde6e3f6d30800000000000000
+      internalID: 4426825604604140754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ArmoryOfHephaestus-Sheet_0: -9066656367402476759
+      ArmoryOfHephaestus-Sheet_1: 185576061002838910
+      ArmoryOfHephaestus-Sheet_10: -2554078078466921402
+      ArmoryOfHephaestus-Sheet_11: -2976075272975119022
+      ArmoryOfHephaestus-Sheet_12: 6950418964356622011
+      ArmoryOfHephaestus-Sheet_13: -9108088302626275143
+      ArmoryOfHephaestus-Sheet_14: 969989117595712070
+      ArmoryOfHephaestus-Sheet_15: -633922880001316121
+      ArmoryOfHephaestus-Sheet_16: 7225708502682973954
+      ArmoryOfHephaestus-Sheet_17: -3273041591498473781
+      ArmoryOfHephaestus-Sheet_18: 8958514168026255253
+      ArmoryOfHephaestus-Sheet_19: -7783173617317106838
+      ArmoryOfHephaestus-Sheet_2: 3993986663749085073
+      ArmoryOfHephaestus-Sheet_20: 3522583208220025607
+      ArmoryOfHephaestus-Sheet_21: 7244142233509628533
+      ArmoryOfHephaestus-Sheet_22: 3228256943292726068
+      ArmoryOfHephaestus-Sheet_23: -3253699846172565080
+      ArmoryOfHephaestus-Sheet_24: 6015264016357391761
+      ArmoryOfHephaestus-Sheet_25: 6578295514003967743
+      ArmoryOfHephaestus-Sheet_26: -7013776772453893396
+      ArmoryOfHephaestus-Sheet_27: 1081592825087978755
+      ArmoryOfHephaestus-Sheet_28: 4426825604604140754
+      ArmoryOfHephaestus-Sheet_3: -6419966999799814207
+      ArmoryOfHephaestus-Sheet_4: 8786806901687466860
+      ArmoryOfHephaestus-Sheet_5: -464071350092003028
+      ArmoryOfHephaestus-Sheet_6: 2719990778066685800
+      ArmoryOfHephaestus-Sheet_7: -7643685875442981892
+      ArmoryOfHephaestus-Sheet_8: -1113527431893602745
+      ArmoryOfHephaestus-Sheet_9: 9125734377838956255
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

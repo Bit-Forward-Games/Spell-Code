@@ -217,6 +217,23 @@ public class GameEndScreen : MonoBehaviour
             if (slot == GameManager.Instance.localPlayerIndex)
             {
                 BroadcastLocalOnlineState();
+
+                // Depart now; the others resolve among themselves.
+                // The short grace exists only so the confirmed state
+                // above actually reaches the host before this client tears its session down.
+                //
+                // The HOST is the exception: it still drives the rematch handshake for everyone
+                // else, so it has to stay until the result is delivered (see the host-chose-Main-Menu
+                // note in TryResolveSelections, which forces an all-Main-Menu outcome in that case).
+                if (selectedOptions[slot] == MainMenuOption
+                    && !GameManager.Instance.IsOnlineHostAuthority())
+                {
+                    resolutionTriggered = true;
+                    resolvedOption = MainMenuOption;
+                    SetButtonsInteractable(false);
+                    StartCoroutine(ReturnToSoloLobbyAfterDeliveryGrace());
+                    return;
+                }
             }
 
             if (GameManager.Instance.IsOnlineHostAuthority())
@@ -407,11 +424,23 @@ public class GameEndScreen : MonoBehaviour
 
         for (int slot = 0; slot < MaxPlayerSlots; slot++)
         {
-            if (GameManager.Instance.IsPlayerSlotConnected(slot)
-                && !resultAcknowledgedSlots.Contains(slot))
+            if (!GameManager.Instance.IsPlayerSlotConnected(slot)
+                || resultAcknowledgedSlots.Contains(slot))
             {
-                return false;
+                continue;
             }
+
+            // A peer that confirmed Main Menu departs the moment it confirms, it never waits for
+            // the result and will never ACK it. Waiting on that ACK would stall the rematch for
+            // everyone else until the 10s liveness timeout fired. Only players who chose Rematch
+            // are still on the end screen awaiting the outcome (including the case where the
+            // rematch fell through and they need to be told to leave).
+            if (confirmedOptions[slot] && selectedOptions[slot] == MainMenuOption)
+            {
+                continue;
+            }
+
+            return false;
         }
 
         return true;

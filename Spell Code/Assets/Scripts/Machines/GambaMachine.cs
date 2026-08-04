@@ -281,6 +281,28 @@ public class GambaMachine : MonoBehaviour
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
             }
+
+            if (isActive && CheckHitboxCollision() && machineID == 2)
+            {
+                ownerPlayer.vibeCoding = true;
+
+                Debug.Log("Hitbox collision detected!");
+                Debug.Log("TUTORIAL GAMBA");
+
+                //play the gamba hit sfx
+                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                //play the floppy arc sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                //play the floppy spawn sfx after a 0.5 second delay
+                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                isActive = false;
+                resetTimer = 0;
+
+                SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Amon Slash");
+            }
         }
 
         else if (activeScene.name == "TrainingGrounds")

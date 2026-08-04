@@ -85,9 +85,50 @@ namespace BestoNet.Types
             return new Fixed32((int)(value * One));
         }
 
+        /// <summary>
+        /// Bit-exact fixed-point square root. Pure integer math, so every platform produces the
+        /// identical result -- which is the whole point of Fixed32. Do NOT reimplement this via
+        /// MathF.Sqrt/ToFloat/FromFloat: that puts IEEE float rounding inside the deterministic
+        /// simulation and is a classic cross-platform (Win vs Mac) desync source.
+        ///
+        /// sqrt(raw / 2^F) == sqrt(raw * 2^F) / 2^F, so the result's raw value is the integer square
+        /// root of (raw &lt;&lt; F). The shift needs 64 bits of headroom, hence the ulong.
+        /// Negative inputs have no real root; returns 0 rather than throwing, because this runs
+        /// inside the rollback sim where an exception freezes the match outright.
+        /// </summary>
         public static Fixed32 Sqrt(Fixed32 value)
         {
-            throw new NotImplementedException();
+            if (value._rawValue <= 0)
+            {
+                return new Fixed32(0);
+            }
+
+            // Classic digit-by-digit (binary restoring) integer square root.
+            ulong remainder = ((ulong)(uint)value._rawValue) << FractionBits;
+            ulong result = 0;
+            ulong bit = 1UL << 62;
+
+            while (bit > remainder)
+            {
+                bit >>= 2;
+            }
+
+            while (bit != 0)
+            {
+                if (remainder >= result + bit)
+                {
+                    remainder -= result + bit;
+                    result = (result >> 1) + bit;
+                }
+                else
+                {
+                    result >>= 1;
+                }
+
+                bit >>= 2;
+            }
+
+            return new Fixed32((int)result);
         }
 
         public float ToFloat()

@@ -62,7 +62,7 @@ public class QuickMatchPanel : OnlineMenuPanel
     [SerializeField] private string findMatchText = "Find Match";
 
     [Tooltip("Shown on the button while no lobby size is picked.")]
-    [SerializeField] private string noSelectionText = "Pick a lobby size";
+    [SerializeField] private string noSelectionText = "Pick size";
 
     [Header("Status")]
     [Tooltip("Optional. Shows 'Finding 2 OR 4-player match...' while a search is in flight.")]

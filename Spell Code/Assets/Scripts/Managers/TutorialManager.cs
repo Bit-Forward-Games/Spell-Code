@@ -16,6 +16,7 @@ public class Tutorial : MonoBehaviour
 {
     public Exit_Door door;
     public GambaMachine machine;
+    public GambaMachine machine2;
     private GameManager gM;
 
     public SpriteRenderer gambaHitGif;
@@ -44,6 +45,8 @@ public class Tutorial : MonoBehaviour
         gM = GameManager.Instance;
         floppyPickupGif.enabled = false;
         floppyPickupText.enabled = false;
+
+        machine2 = GetComponent<GambaMachine>().machineID = 2;
 
         bigStox = "BigStox has Stock Stability<sprite name=\"StockStability\">";
         killeez = "Killeez has Reps<sprite name=\"Reps\">";

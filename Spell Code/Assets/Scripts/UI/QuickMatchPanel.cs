@@ -53,7 +53,7 @@ public class QuickMatchPanel : OnlineMenuPanel
     [Tooltip("Colour for an unselected lobby-size button.")]
     [SerializeField] private Color unselectedTint = new Color(1f, 1f, 1f, 0f);
 
-    [SerializeField] private Color selectedLabelTint = Color.white;
+    [SerializeField] private Color selectedLabelTint = new Color(1f, 1f, 1f, 1f);
     [SerializeField] private Color unselectedLabelTint = new Color(1f, 1f, 1f, 0f);
 
     [Header("Find Match")]
@@ -207,10 +207,17 @@ public class QuickMatchPanel : OnlineMenuPanel
                 toggle.tintTarget.color = selected ? selectedTint : unselectedTint;
             }
 
-            if (toggle.label != null)
+            if (toggle.button != null)
             {
-                toggle.label.color = selected ? selectedLabelTint : unselectedLabelTint;
+                ColorBlock colors = toggle.button.colors;
+                colors.normalColor = selected ? selectedTint : unselectedTint;
+                toggle.button.colors = colors;
             }
+
+            // if (toggle.label != null)
+            // {
+            //     toggle.label.color = selected ? selectedLabelTint : unselectedLabelTint;
+            // }
 
             SetActiveIfPresent(toggle.selectedState, selected);
         }

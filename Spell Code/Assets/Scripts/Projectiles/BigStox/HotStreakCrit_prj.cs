@@ -45,9 +45,9 @@ public class HotStreakCrit_prj : BaseProjectile
                     height = 32,
                     xKnockback = 3,
                     yKnockback = 5,
-                    damage = 20,
+                    damage = 10,
                     hitstun = 15,
-                    attackLvl = 2,
+                    attackLvl = 1,
                 }
             },
             hitbox2 = new List<HitboxData>(),

@@ -2439,7 +2439,7 @@ public class PlayerController : MonoBehaviour
         if (stageDataSO.platformCenter != null && stageDataSO.platformExtent != null)
         {
             //logic for checking plat drop
-            if (DoubleTapCheck(2))
+            if (DoubleTapCheck(2) && state != PlayerState.CodeWeave)
             {
                 platDropping = true;
             }

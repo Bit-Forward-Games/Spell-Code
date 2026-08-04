@@ -48,13 +48,13 @@ public class QuickMatchPanel : OnlineMenuPanel
     };
 
     [Tooltip("Colour for a selected lobby-size button.")]
-    [SerializeField] private Color selectedTint = new Color(1f, 0.78f, 0f, 1f);
+    [SerializeField] private Color selectedTint = new Color(1f, 1f, 1f, 1f);
 
     [Tooltip("Colour for an unselected lobby-size button.")]
-    [SerializeField] private Color unselectedTint = new Color(1f, 1f, 1f, 0.45f);
+    [SerializeField] private Color unselectedTint = new Color(1f, 1f, 1f, 0f);
 
     [SerializeField] private Color selectedLabelTint = Color.white;
-    [SerializeField] private Color unselectedLabelTint = new Color(1f, 1f, 1f, 0.6f);
+    [SerializeField] private Color unselectedLabelTint = new Color(1f, 1f, 1f, 0f);
 
     [Header("Find Match")]
     [SerializeField] private Button findMatchButton;
@@ -62,7 +62,7 @@ public class QuickMatchPanel : OnlineMenuPanel
     [SerializeField] private string findMatchText = "Find Match";
 
     [Tooltip("Shown on the button while no lobby size is picked.")]
-    [SerializeField] private string noSelectionText = "Pick a lobby size";
+    [SerializeField] private string noSelectionText = "Pick size";
 
     [Header("Status")]
     [Tooltip("Optional. Shows 'Finding 2 OR 4-player match...' while a search is in flight.")]

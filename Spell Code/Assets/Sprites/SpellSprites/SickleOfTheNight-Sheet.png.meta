@@ -1,0 +1,715 @@
+fileFormatVersion: 2
+guid: eac3492c70fb38c42ba428df0b9765fb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -60258542154016994
+    second: SickleOfTheNight-Sheet_0
+  - first:
+      213: -8827932625347521478
+    second: SickleOfTheNight-Sheet_1
+  - first:
+      213: -3724740474221444992
+    second: SickleOfTheNight-Sheet_2
+  - first:
+      213: -6258851190776918149
+    second: SickleOfTheNight-Sheet_3
+  - first:
+      213: -2508496240911492133
+    second: SickleOfTheNight-Sheet_4
+  - first:
+      213: 2984879914594033546
+    second: SickleOfTheNight-Sheet_5
+  - first:
+      213: -905647512555542469
+    second: SickleOfTheNight-Sheet_6
+  - first:
+      213: 3641117618993210624
+    second: SickleOfTheNight-Sheet_7
+  - first:
+      213: 5267360915567036015
+    second: SickleOfTheNight-Sheet_8
+  - first:
+      213: 7926200904189605806
+    second: SickleOfTheNight-Sheet_9
+  - first:
+      213: -7331564893652057385
+    second: SickleOfTheNight-Sheet_10
+  - first:
+      213: -1167004713928422754
+    second: SickleOfTheNight-Sheet_11
+  - first:
+      213: -7165150501426263636
+    second: SickleOfTheNight-Sheet_12
+  - first:
+      213: 6700197938854800119
+    second: SickleOfTheNight-Sheet_13
+  - first:
+      213: -7142439564902042981
+    second: SickleOfTheNight-Sheet_14
+  - first:
+      213: 5267377576274746157
+    second: SickleOfTheNight-Sheet_15
+  - first:
+      213: -3669894985404044520
+    second: SickleOfTheNight-Sheet_16
+  - first:
+      213: -2012254538563678775
+    second: SickleOfTheNight-Sheet_17
+  - first:
+      213: 4865866674325161618
+    second: SickleOfTheNight-Sheet_18
+  - first:
+      213: -401908616640001827
+    second: SickleOfTheNight-Sheet_19
+  - first:
+      213: -441196813781866085
+    second: SickleOfTheNight-Sheet_20
+  - first:
+      213: 4759614283994627502
+    second: SickleOfTheNight-Sheet_21
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 197
+        width: 38
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e171a38dc2be92ff0800000000000000
+      internalID: -60258542154016994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 210
+        width: 43
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a345415bc02ec7580800000000000000
+      internalID: -8827932625347521478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 213
+        width: 43
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 080c281f5401f4cc0800000000000000
+      internalID: -3724740474221444992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 648
+        y: 137
+        width: 110
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7f06b7b0081429a0800000000000000
+      internalID: -6258851190776918149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 852
+        y: 216
+        width: 34
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdb5110a5f7003dd0800000000000000
+      internalID: -2508496240911492133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 985
+        y: 228
+        width: 24
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8f539eb77c6c6920800000000000000
+      internalID: 2984879914594033546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 1006
+        y: 222
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b38296ab26e7e63f0800000000000000
+      internalID: -905647512555542469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 191
+        width: 38
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 005a189de29d78230800000000000000
+      internalID: 3641117618993210624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 191
+        width: 38
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f66462458dc691940800000000000000
+      internalID: 5267360915567036015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 772
+        y: 135
+        width: 103
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea7f9904ab58ffd60800000000000000
+      internalID: 7926200904189605806
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 874
+        y: 161
+        width: 14
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d20522d29c014a90800000000000000
+      internalID: -7331564893652057385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 162
+        width: 47
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9a071f4567fdcfe0800000000000000
+      internalID: -1167004713928422754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 1008
+        y: 186
+        width: 12
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca98640e495409c90800000000000000
+      internalID: -7165150501426263636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 178
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7faae36b682ebfc50800000000000000
+      internalID: 6700197938854800119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 166
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b927158de05f0ec90800000000000000
+      internalID: -7142439564902042981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 906
+        y: 137
+        width: 50
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2bd6b37ffb791940800000000000000
+      internalID: 5267377576274746157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 961
+        y: 133
+        width: 44
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81b210864f9e11dc0800000000000000
+      internalID: -3669894985404044520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 962
+        y: 155
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cd8e3798290314e0800000000000000
+      internalID: -2012254538563678775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 48
+        width: 29
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2960097b5f7078340800000000000000
+      internalID: 4865866674325161618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 52
+        width: 23
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd801091e322c6af0800000000000000
+      internalID: -401908616640001827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 57
+        width: 29
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b996f7ed5dd80e9f0800000000000000
+      internalID: -441196813781866085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SickleOfTheNight-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 47
+        width: 23
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eadff5949fb8d0240800000000000000
+      internalID: 4759614283994627502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SickleOfTheNight-Sheet_0: -60258542154016994
+      SickleOfTheNight-Sheet_1: -8827932625347521478
+      SickleOfTheNight-Sheet_10: -7331564893652057385
+      SickleOfTheNight-Sheet_11: -1167004713928422754
+      SickleOfTheNight-Sheet_12: -7165150501426263636
+      SickleOfTheNight-Sheet_13: 6700197938854800119
+      SickleOfTheNight-Sheet_14: -7142439564902042981
+      SickleOfTheNight-Sheet_15: 5267377576274746157
+      SickleOfTheNight-Sheet_16: -3669894985404044520
+      SickleOfTheNight-Sheet_17: -2012254538563678775
+      SickleOfTheNight-Sheet_18: 4865866674325161618
+      SickleOfTheNight-Sheet_19: -401908616640001827
+      SickleOfTheNight-Sheet_2: -3724740474221444992
+      SickleOfTheNight-Sheet_20: -441196813781866085
+      SickleOfTheNight-Sheet_21: 4759614283994627502
+      SickleOfTheNight-Sheet_3: -6258851190776918149
+      SickleOfTheNight-Sheet_4: -2508496240911492133
+      SickleOfTheNight-Sheet_5: 2984879914594033546
+      SickleOfTheNight-Sheet_6: -905647512555542469
+      SickleOfTheNight-Sheet_7: 3641117618993210624
+      SickleOfTheNight-Sheet_8: 5267360915567036015
+      SickleOfTheNight-Sheet_9: 7926200904189605806
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

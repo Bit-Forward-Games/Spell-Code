@@ -35,14 +35,11 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-23"; // scz-23: Dev-New merge. CheckAllSpellConditionsOfProcCon now
-                                                    // forwards the DEFENDER to SpellData.CheckCondition instead of the
-                                                    // acting player, changing what many spells receive on
-                                                    // hit/hurt/parry/block/kill; ProcCondition gained OnCrit/OnSweetSpot
-                                                    // (appended, so existing values are stable); new Combo Demon + Hot
-                                                    // Streak passives and projectiles; StockStability/Bailout/CashOut/
-                                                    // CoinToss/GetAJob/LoadedDice/QuarterReport/UseTheCard/LetItRide/
-                                                    // LuckyBreak all changed
+    private const string NetcodeVersion = "scz-24"; // scz-24: Double-tap no longer triggers during
+                                                    // CodeWeave; Might of Zeus got a 4th projectile, a new spellInput
+                                                    // bitmask and moved spawn offsets; Quiver of Artemis now requires
+                                                    // PlayerState.Slide; Back To Basics + Crossmap Clip flowStateIncrease
+                                                    // 240->300; Hot Streak damage 20->10 and attackLvl 2->1
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

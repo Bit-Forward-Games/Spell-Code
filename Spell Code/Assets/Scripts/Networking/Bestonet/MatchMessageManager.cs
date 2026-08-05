@@ -1091,11 +1091,12 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendRematchLobbyTransition(int transitionId)
+    public void SendRematchLobbyTransition(int transitionId, int rematchSeed)
     {
         if (!HasRemotePeers()
             || GameManager.Instance == null
-            || !GameManager.Instance.IsOnlineHostAuthority())
+            || !GameManager.Instance.IsOnlineHostAuthority()
+            || rematchSeed <= 0)
         {
             return;
         }
@@ -1108,6 +1109,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(PACKET_TYPE_REMATCH_LOBBY_TRANSITION);
                 writer.Write(transitionId);
                 writer.Write(GameManager.Instance.GetConnectedPlayerSlotMask());
+                writer.Write(rematchSeed);
                 lastRematchLobbyTransitionPacket = memoryStream.ToArray();
                 lastRematchLobbyTransitionId = transitionId;
                 SendPacketToAll(lastRematchLobbyTransitionPacket, P2PSend.Reliable);
@@ -1855,9 +1857,13 @@ public class MatchMessageManager : MonoBehaviour
 
                     int transitionId = reader.ReadInt32();
                     int connectedPlayerSlotMask = reader.ReadInt32();
+                    int rematchSeed = reader.BaseStream.Length - reader.BaseStream.Position >= sizeof(int)
+                        ? reader.ReadInt32()
+                        : 0;
                     GameManager.Instance?.HandleOnlineRematchLobbyTransition(
                         transitionId,
-                        connectedPlayerSlotMask);
+                        connectedPlayerSlotMask,
+                        rematchSeed);
                     return;
                 }
 

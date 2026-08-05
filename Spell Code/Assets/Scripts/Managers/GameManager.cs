@@ -302,6 +302,7 @@ public class GameManager : MonoBehaviour
     private int activeOnlineTransitionId = 0;
     private int lastAppliedGameplayStageTransitionId = 0;
     private int lastAppliedRematchLobbyTransitionId = 0;
+    private int lastAppliedRematchLobbySeed = 0;
     private int localGameplayReadyTransitionId = 0;
     private int remoteGameplayReadyTransitionId = 0;
     private int pendingRemoteGameplayReadyTransitionId = 0;
@@ -1736,6 +1737,7 @@ public class GameManager : MonoBehaviour
         activeOnlineTransitionId = 0;
         lastAppliedGameplayStageTransitionId = 0;
         lastAppliedRematchLobbyTransitionId = 0;
+        lastAppliedRematchLobbySeed = 0;
         localGameplayReadyTransitionId = 0;
         remoteGameplayReadyTransitionId = 0;
         pendingRemoteGameplayReadyTransitionId = 0;
@@ -2099,6 +2101,21 @@ public class GameManager : MonoBehaviour
             }
         }
         return mask;
+    }
+
+    /// <summary>
+    /// Drops every online slot that is NOT in the mask, outside the simulation. Used by the End
+    /// screen when only some players chose Rematch: the leavers are removed exactly like a clean
+    /// disconnect, so the survivors keep their existing P1-P4 slots and every downstream consumer
+    /// (GetConnectedPlayerSlotMask, ActivePlayerCount, the rematch transition) is already correct
+    /// without needing to know a vote happened.
+    ///
+    /// Call this only AFTER the leavers have acknowledged the result -- dropping their transport
+    /// first would strand them without ever hearing the outcome.
+    /// </summary>
+    public void DropOnlineSlotsOutsideMask(int survivingSlotMask)
+    {
+        ApplyOnlineConnectedPlayerSlotMask(survivingSlotMask);
     }
 
     private void ApplyOnlineConnectedPlayerSlotMask(int connectedSlotMask)
@@ -4700,24 +4717,44 @@ public class GameManager : MonoBehaviour
             || MatchMessageManager.Instance == null
             || ActivePlayerCount < 2
             || onlineEndEpoch <= 0
-            || onlineEndEpoch != OnlineEndOptionsEpoch
-            || !PrepareRematchFromEnd(onlineEndEpoch))
+            || onlineEndEpoch != OnlineEndOptionsEpoch)
         {
             return false;
         }
 
         int transitionId = onlineEndEpoch + 1;
+        // The result-delivery coroutine has one caller, but keep this idempotent across an
+        // accidental duplicate invocation while the asynchronous load still reports End.
+        if (lastAppliedRematchLobbyTransitionId == transitionId
+            && lastAppliedRematchLobbySeed > 0)
+        {
+            return true;
+        }
+
+        if (!PrepareRematchFromEnd(onlineEndEpoch))
+        {
+            return false;
+        }
+
+        int rematchSeed = GenerateFreshOnlineRematchSeed();
         isRunning = true;
-        BeginOnlineRematchLobbyTransition(transitionId, broadcastTransition: true);
+        BeginOnlineRematchLobbyTransition(
+            transitionId,
+            rematchSeed,
+            broadcastTransition: true);
         return true;
     }
 
-    public bool HandleOnlineRematchLobbyTransition(int transitionId, int connectedPlayerSlotMask)
+    public bool HandleOnlineRematchLobbyTransition(
+        int transitionId,
+        int connectedPlayerSlotMask,
+        int rematchSeed)
     {
         if (!isOnlineMatchActive
             || IsOnlineHostAuthority()
             || transitionId <= 0
             || connectedPlayerSlotMask < 0
+            || rematchSeed <= 0
             || localPlayerIndex < 0
             || (connectedPlayerSlotMask & (1 << localPlayerIndex)) == 0)
         {
@@ -4727,6 +4764,12 @@ public class GameManager : MonoBehaviour
         string activeSceneName = SceneManager.GetActiveScene().name;
         if (transitionId == lastAppliedRematchLobbyTransitionId)
         {
+            if (rematchSeed != lastAppliedRematchLobbySeed)
+            {
+                Debug.LogError($"[OnlineRematch] Ignoring transition {transitionId} with changed seed {rematchSeed}; already accepted {lastAppliedRematchLobbySeed}.");
+                return false;
+            }
+
             // The host keeps resending its cached commit until every survivor answers scene-ready.
             // A peer that already completed locally must answer duplicates as well, otherwise a
             // lost final ready packet could leave only the host waiting forever.
@@ -4754,13 +4797,24 @@ public class GameManager : MonoBehaviour
         }
 
         isRunning = true;
-        BeginOnlineRematchLobbyTransition(transitionId, broadcastTransition: false);
+        BeginOnlineRematchLobbyTransition(
+            transitionId,
+            rematchSeed,
+            broadcastTransition: false);
         return true;
     }
 
-    private void BeginOnlineRematchLobbyTransition(int transitionId, bool broadcastTransition)
+    private void BeginOnlineRematchLobbyTransition(
+        int transitionId,
+        int rematchSeed,
+        bool broadcastTransition)
     {
         lastAppliedRematchLobbyTransitionId = transitionId;
+        lastAppliedRematchLobbySeed = rematchSeed;
+        // The original online entry has its own seed handshake. A retained-session rematch skips
+        // that handshake, so the host-generated seed travels atomically with this cached scene
+        // transition and is applied before either peer can initialize or simulate the new lobby.
+        InitializeWithSeed(rematchSeed);
         isWaitingForOpponent = false;
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
@@ -4787,7 +4841,7 @@ public class GameManager : MonoBehaviour
 
         if (broadcastTransition)
         {
-            MatchMessageManager.Instance?.SendRematchLobbyTransition(transitionId);
+            MatchMessageManager.Instance?.SendRematchLobbyTransition(transitionId, rematchSeed);
         }
 
         sceneManager.LoadScene("MainMenu");
@@ -4940,7 +4994,20 @@ public class GameManager : MonoBehaviour
         randomCallCount = 0;
         rngState = (uint)seed;
         stageRngState = (uint)(seed ^ 0x9E3779B9);
+        hasPendingHostGameplayRngRestore = false;
+        pendingHostGameplayRngRestoreState = 0;
+        pendingHostGameplayRngRestoreCallCount = -1;
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
+    }
+
+    private int GenerateFreshOnlineRematchSeed()
+    {
+        int seed = UnityEngine.Random.Range(1, int.MaxValue);
+        if (seed == randomSeed)
+        {
+            seed = seed < int.MaxValue - 1 ? seed + 1 : 1;
+        }
+        return seed;
     }
 
     public int GetNextRandom(int minValue, int maxValue)

@@ -43,6 +43,9 @@ public class GameEndScreen : MonoBehaviour
     private bool referencesResolved;
     private int onlineVoteEpoch;
     private byte resolvedOption;
+    // Slots that chose Rematch, one bit per slot. 0 = nobody rematches. Broadcast as the end-option
+    // result byte so every peer derives its own outcome from its own bit.
+    private byte onlineRematchMask;
     private float nextStateResendTime;
     private float nextPeerLivenessCheckTime;
 
@@ -214,6 +217,23 @@ public class GameEndScreen : MonoBehaviour
             if (slot == GameManager.Instance.localPlayerIndex)
             {
                 BroadcastLocalOnlineState();
+
+                // Depart now; the others resolve among themselves.
+                // The short grace exists only so the confirmed state
+                // above actually reaches the host before this client tears its session down.
+                //
+                // The HOST is the exception: it still drives the rematch handshake for everyone
+                // else, so it has to stay until the result is delivered (see the host-chose-Main-Menu
+                // note in TryResolveSelections, which forces an all-Main-Menu outcome in that case).
+                if (selectedOptions[slot] == MainMenuOption
+                    && !GameManager.Instance.IsOnlineHostAuthority())
+                {
+                    resolutionTriggered = true;
+                    resolvedOption = MainMenuOption;
+                    SetButtonsInteractable(false);
+                    StartCoroutine(ReturnToSoloLobbyAfterDeliveryGrace());
+                    return;
+                }
             }
 
             if (GameManager.Instance.IsOnlineHostAuthority())
@@ -235,6 +255,8 @@ public class GameEndScreen : MonoBehaviour
 
         bool foundParticipant = false;
         bool unanimousRematch = true;
+        int rematchMask = 0;
+        int rematchCount = 0;
         for (int slot = 0; slot < MaxPlayerSlots; slot++)
         {
             if (!GameManager.Instance.IsPlayerSlotConnected(slot))
@@ -248,7 +270,15 @@ public class GameEndScreen : MonoBehaviour
                 return;
             }
 
-            unanimousRematch &= selectedOptions[slot] == RematchOption;
+            if (selectedOptions[slot] == RematchOption)
+            {
+                rematchMask |= 1 << slot;
+                rematchCount++;
+            }
+            else
+            {
+                unanimousRematch = false;
+            }
         }
 
         if (!foundParticipant)
@@ -256,14 +286,6 @@ public class GameEndScreen : MonoBehaviour
             return;
         }
 
-        // An online rematch needs at least two surviving peers. If a match ended by disconnect and
-        // only the winner remains, resolve to Solo Lobby instead of starting a one-player session.
-        if (useOnlineEndFlow && GameManager.Instance.ActivePlayerCount < 2)
-        {
-            unanimousRematch = false;
-        }
-
-        byte result = unanimousRematch ? RematchOption : MainMenuOption;
         if (useOnlineEndFlow)
         {
             if (!GameManager.Instance.IsOnlineHostAuthority())
@@ -271,9 +293,34 @@ public class GameEndScreen : MonoBehaviour
                 return;
             }
 
-            BeginHostOnlineResolution(result);
+            // Per-player outcome: whoever picked Rematch plays on together KEEPING their existing
+            // slot, and whoever picked Main Menu leaves. Below two rematchers there is no match to
+            // play, so a lone rematcher goes to Main Menu as well -- parking them in the lobby would
+            // be a dead end, since inviting anyone has to go through the Friends Lobby anyway.
+            if (rematchCount < 2)
+            {
+                rematchMask = 0;
+            }
+
+            // The rematch is driven entirely by host authority -- StartOnlineRematchFromEnd and
+            // SendRematchLobbyTransition both require IsOnlineHostAuthority(), and this codebase has
+            // no host migration (authority comes from activeOnlineRoster.HostSteamId). So if the
+            // host itself chose Main Menu there is nobody left to start the rematch, and the
+            // survivors would sit on the end screen forever. Send everyone to Main Menu instead.
+            int localHostSlot = GameManager.Instance.localPlayerIndex;
+            if (rematchMask != 0 && (rematchMask & (1 << localHostSlot)) == 0)
+            {
+                Debug.Log("[GameEndScreen] Host chose Main Menu; no host migration exists to drive a rematch, so all players return to Main Menu.");
+                rematchMask = 0;
+            }
+
+            BeginHostOnlineResolution((byte)rematchMask);
             return;
         }
+
+        // Offline keeps the original all-or-nothing rule: local players share one screen and one
+        // session, so there is no meaningful "some of you leave" outcome to split them into.
+        byte result = unanimousRematch ? RematchOption : MainMenuOption;
 
         resolutionTriggered = true;
         resolvedOption = result;
@@ -291,15 +338,31 @@ public class GameEndScreen : MonoBehaviour
         }
     }
 
-    private void BeginHostOnlineResolution(byte result)
+    private void BeginHostOnlineResolution(byte rematchMask)
     {
         resolutionTriggered = true;
-        resolvedOption = result;
+        onlineRematchMask = rematchMask;
+        resolvedOption = LocalOptionFromMask(rematchMask);
         resultAcknowledgedSlots.Clear();
         resultAcknowledgedSlots.Add(GameManager.Instance.localPlayerIndex);
         SetButtonsInteractable(false);
 
         StartCoroutine(DeliverHostOnlineResult());
+    }
+
+    /// <summary>
+    /// The end-option result byte carries a 4-bit mask of the slots that chose Rematch, so each peer
+    /// derives its OWN outcome from its own bit. A zero mask means nobody rematches.
+    /// </summary>
+    private byte LocalOptionFromMask(byte rematchMask)
+    {
+        int localSlot = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : -1;
+        if (localSlot < 0 || localSlot >= MaxPlayerSlots)
+        {
+            return MainMenuOption;
+        }
+
+        return (rematchMask & (1 << localSlot)) != 0 ? RematchOption : MainMenuOption;
     }
 
     private IEnumerator DeliverHostOnlineResult()
@@ -314,7 +377,7 @@ public class GameEndScreen : MonoBehaviour
         {
             if (Time.unscaledTime >= nextSendTime)
             {
-                MatchMessageManager.Instance?.SendEndOptionResult(onlineVoteEpoch, resolvedOption);
+                MatchMessageManager.Instance?.SendEndOptionResult(onlineVoteEpoch, onlineRematchMask);
                 nextSendTime = Time.unscaledTime + ResultResendInterval;
             }
 
@@ -329,8 +392,19 @@ public class GameEndScreen : MonoBehaviour
 
         if (resolvedOption == RematchOption)
         {
-            if (GameManager.Instance == null
-                || !GameManager.Instance.StartOnlineRematchFromEnd(onlineVoteEpoch))
+            // Every leaver has ACKed by now, so it is safe to drop them. Doing it BEFORE starting
+            // the rematch is what makes the rest of the pipeline correct for free: the transition
+            // packet's slot mask comes from GetConnectedPlayerSlotMask(), and ActivePlayerCount
+            // gates StartOnlineRematchFromEnd -- both read the post-drop roster.
+            if (GameManager.Instance == null)
+            {
+                ReturnToSoloLobby();
+                yield break;
+            }
+
+            GameManager.Instance.DropOnlineSlotsOutsideMask(onlineRematchMask);
+
+            if (!GameManager.Instance.StartOnlineRematchFromEnd(onlineVoteEpoch))
             {
                 ReturnToSoloLobby();
             }
@@ -350,11 +424,23 @@ public class GameEndScreen : MonoBehaviour
 
         for (int slot = 0; slot < MaxPlayerSlots; slot++)
         {
-            if (GameManager.Instance.IsPlayerSlotConnected(slot)
-                && !resultAcknowledgedSlots.Contains(slot))
+            if (!GameManager.Instance.IsPlayerSlotConnected(slot)
+                || resultAcknowledgedSlots.Contains(slot))
             {
-                return false;
+                continue;
             }
+
+            // A peer that confirmed Main Menu departs the moment it confirms, it never waits for
+            // the result and will never ACK it. Waiting on that ACK would stall the rematch for
+            // everyone else until the 10s liveness timeout fired. Only players who chose Rematch
+            // are still on the end screen awaiting the outcome (including the case where the
+            // rematch fell through and they need to be told to leave).
+            if (confirmedOptions[slot] && selectedOptions[slot] == MainMenuOption)
+            {
+                continue;
+            }
+
+            return false;
         }
 
         return true;
@@ -383,9 +469,12 @@ public class GameEndScreen : MonoBehaviour
 
     public void ReceiveOnlineOptionResult(int senderSlot, int epoch, byte result)
     {
+        // `result` is a 4-bit rematch mask, not an option enum -- so there is deliberately no
+        // "result > MainMenuOption" rejection here any more. Anything with bits above the slot range
+        // is malformed.
         if (!CanAcceptOnlinePacket(senderSlot, epoch)
             || !GameManager.Instance.IsOnlineHostSlot(senderSlot)
-            || result > MainMenuOption)
+            || (result & ~0x0F) != 0)
         {
             return;
         }
@@ -400,10 +489,11 @@ public class GameEndScreen : MonoBehaviour
         }
 
         resolutionTriggered = true;
-        resolvedOption = result;
+        onlineRematchMask = result;
+        resolvedOption = LocalOptionFromMask(result);
         SetButtonsInteractable(false);
 
-        if (result == RematchOption)
+        if (resolvedOption == RematchOption)
         {
             // The host sends a separate cached MainMenu transition after every connected player
             // ACKs this result. Keeping the result cosmetic prevents an early-loading client from

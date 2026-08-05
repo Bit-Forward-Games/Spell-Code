@@ -993,6 +993,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &299156559738632289
 GameObject:
   m_ObjectHideFlags: 0
@@ -1321,6 +1322,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &340386458340359203
 GameObject:
   m_ObjectHideFlags: 0
@@ -1683,6 +1685,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &480943064800343470
 GameObject:
   m_ObjectHideFlags: 0
@@ -1878,6 +1881,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &507567636162204752
 GameObject:
   m_ObjectHideFlags: 0
@@ -2239,6 +2243,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &642696759639954966
 GameObject:
   m_ObjectHideFlags: 0
@@ -3431,7 +3436,7 @@ GameObject:
   - component: {fileID: 3086497034842039233}
   - component: {fileID: 4009077068874957940}
   m_Layer: 0
-  m_Name: Digital_Toggle Code Input
+  m_Name: Digital_Describe_Toggle Code Input
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3533,6 +3538,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 2
 --- !u!1 &970162502460862111
 GameObject:
   m_ObjectHideFlags: 0
@@ -4051,7 +4057,7 @@ GameObject:
   - component: {fileID: 5009735458376350089}
   - component: {fileID: 3689938310459199762}
   m_Layer: 0
-  m_Name: Description Text
+  m_Name: Control Option Description Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4829,6 +4835,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &1363278054141371015
 GameObject:
   m_ObjectHideFlags: 0
@@ -4977,6 +4984,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &1401783134461111438
 GameObject:
   m_ObjectHideFlags: 0
@@ -6875,7 +6883,7 @@ GameObject:
   - component: {fileID: 2199169577928474163}
   - component: {fileID: 3688185853613036875}
   m_Layer: 0
-  m_Name: Digital_Tap to Jump
+  m_Name: Digital_Describe_Tap to Jump
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6977,6 +6985,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &2042626827981156826
 GameObject:
   m_ObjectHideFlags: 0
@@ -7278,6 +7287,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &2306155646959274576
 GameObject:
   m_ObjectHideFlags: 0
@@ -9518,6 +9528,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &3056215438456600667
 GameObject:
   m_ObjectHideFlags: 0
@@ -12693,6 +12704,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &4294417550025406814
 GameObject:
   m_ObjectHideFlags: 0
@@ -13614,6 +13626,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &4566250646201107090
 GameObject:
   m_ObjectHideFlags: 0
@@ -14310,6 +14323,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &4782581755280691309
 GameObject:
   m_ObjectHideFlags: 0
@@ -14642,6 +14656,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &4796808362396092210
 GameObject:
   m_ObjectHideFlags: 0
@@ -17438,6 +17453,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &5746065729341392909
 GameObject:
   m_ObjectHideFlags: 0
@@ -17847,6 +17863,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &5899252487920309793
 GameObject:
   m_ObjectHideFlags: 0
@@ -17997,6 +18014,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &5961213816069385429
 GameObject:
   m_ObjectHideFlags: 0
@@ -18359,7 +18377,7 @@ GameObject:
   - component: {fileID: 5473601996068909426}
   - component: {fileID: 5429918832792355991}
   m_Layer: 0
-  m_Name: Digital_Relative Input
+  m_Name: Digital_Describe_Relative Input
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18461,6 +18479,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 3
 --- !u!1 &6213027794297900228
 GameObject:
   m_ObjectHideFlags: 0
@@ -18685,7 +18704,7 @@ GameObject:
   - component: {fileID: 8014803607300280970}
   - component: {fileID: 8355080951003941107}
   m_Layer: 0
-  m_Name: Digital_Slide with Down Input
+  m_Name: Digital_Describe_Slide with Down Input
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18787,6 +18806,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 1
 --- !u!1 &6343289753307205471
 GameObject:
   m_ObjectHideFlags: 0
@@ -19239,6 +19259,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &6491884119326192866
 GameObject:
   m_ObjectHideFlags: 0
@@ -20106,6 +20127,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &6702145872797562063
 GameObject:
   m_ObjectHideFlags: 0
@@ -21070,6 +21092,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &7010804397874631427
 GameObject:
   m_ObjectHideFlags: 0
@@ -22980,6 +23003,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &7650994851339409717
 GameObject:
   m_ObjectHideFlags: 0
@@ -23704,6 +23728,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &8043908711674521641
 GameObject:
   m_ObjectHideFlags: 0
@@ -24603,6 +24628,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &8295352655270246484
 GameObject:
   m_ObjectHideFlags: 0
@@ -114867,6 +114893,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &5729467594161489233 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8784994727057056908, guid: af77727cc5deba04fb72c022a42d91f2, type: 3}
@@ -114887,6 +114914,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!114 &6197788528130343733 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6947732162322014952, guid: af77727cc5deba04fb72c022a42d91f2, type: 3}
@@ -114918,6 +114946,7 @@ MonoBehaviour:
   pause: {fileID: 0}
   codeModeSelected: 0
   codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!114 &8392675624429190314 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4760722899334045047, guid: af77727cc5deba04fb72c022a42d91f2, type: 3}

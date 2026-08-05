@@ -40,6 +40,7 @@ public class StockStability : SpellData
                 {
                     if(spell.brands[0] == Brand.BigStox)
                     {
+                        spell.LoadSpell();
                         owner.stockStability +=10;
                     }
                 }

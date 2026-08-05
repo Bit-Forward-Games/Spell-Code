@@ -1292,6 +1292,19 @@ public class Pause : MonoBehaviour
         colorLayer3.gameObject.GetComponent<RectTransform>().DOAnchorPos(new Vector2(colorLayer3Pos.x, colorLayer3Pos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
+    /// <summary>
+    /// True when the EventSystem's UI module has already fired its own Submit this frame, so the
+    /// selected object is about to receive (or has received) a submit event without our help.
+    /// Returns false when there is no module or its submit action is absent/disabled, which is
+    /// exactly the case the manual TriggerSelectedButton path was added to cover.
+    /// </summary>
+    private bool UiSubmitActionFiredThisFrame()
+    {
+        InputSystemUIInputModule module = GetUiInputModule();
+        InputAction submitAction = module != null ? module.submit?.action : null;
+        return submitAction != null && submitAction.enabled && submitAction.WasPressedThisFrame();
+    }
+
     public void TriggerSelectedButton()
     {
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
@@ -1304,7 +1317,18 @@ public class Pause : MonoBehaviour
             return;
         }
 
-        ExecuteEvents.Execute(selectedObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
+        // The manual submit exists because the UI module does not always deliver one (see the
+        // gamemode menus, which run with paused == false). But when it DOES deliver one -- the pause
+        // menu is driven by the player's Jump action, which is typically bound to UI Submit as well
+        // -- executing it again here fires the handler TWICE. That is invisible on navigation
+        // buttons (opening Options twice looks identical) and obvious on a toggle, which flips
+        // straight back. Only execute when the module has not already done it; the feedback below
+        // still runs either way so the press feels the same.
+        if (!UiSubmitActionFiredThisFrame())
+        {
+            ExecuteEvents.Execute(selectedObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
+        }
+
         StartCoroutine(SuppressSelectionForOneFrame());
         RevertTextColorToWhite();
 

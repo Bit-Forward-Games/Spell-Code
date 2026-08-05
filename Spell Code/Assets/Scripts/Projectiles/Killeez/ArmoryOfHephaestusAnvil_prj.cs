@@ -7,22 +7,27 @@ using UnityEngine.Windows;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class GiftOfPrometheus_prj : BaseProjectile
+public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
 {
 
     [NonSerialized] public bool isGrounded = false;
     //[NonSerialized] public ushort lifeTime = 0;
     private const float refGravity = .75f;
     private const ushort baseLifeTime = 60;
-    Fixed projectileWidth = Fixed.FromInt(8);
-    Fixed projectileHeight = Fixed.FromInt(8);
+    // Fixed projectileWidth = Fixed.FromInt(8);
+    // Fixed projectileHeight = Fixed.FromInt(8);
+    [NonSerialized] public HurtboxData hurtbox = new HurtboxData
+    {
+        xOffset = -16*2,
+        yOffset = 9*2,
+        width =32*2,
+        height = 18*2,
+    };
     protected override void InitializeDefaults()
     {
-        projName = "Gift Of Prometheus";
+        projName = "Armory Of Hephaestus Anvil";
         //ignoreBrand = true;
         lifeSpan = baseLifeTime;
-        multiHitCooldown = 15;
-        maxMultiHitCount = 100;
         fadeIn = true;
         fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6}, true);
@@ -49,14 +54,14 @@ public class GiftOfPrometheus_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -48,
-                    yOffset = 64,
-                    width =96,
-                    height = 64,
-                    xKnockback = 0,
-                    yKnockback = 0,
-                    damage = 1,
-                    hitstun = 0,
+                    xOffset = -16*2,
+                    yOffset = 9*2,
+                    width =32*2,
+                    height = 18*2,
+                    xKnockback = 1,
+                    yKnockback = 4,
+                    damage = 15,
+                    hitstun = 25,
                     attackLvl = 2,
                     ignoreEffectDamage = true
                 }
@@ -93,7 +98,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
         CheckStageDataSOCollision();
         if (!isGrounded)
         {
-            vSpeed -= Fixed.FromFloat(refGravity/10);
+            vSpeed -= Fixed.FromFloat(refGravity);
         }
 
         //if this is the start of the looping animation,...
@@ -121,16 +126,11 @@ public class GiftOfPrometheus_prj : BaseProjectile
             int solidCount = Mathf.Min(stageDataSO.solidCenter.Length, stageDataSO.solidExtent.Length);
             if (solidCount > 0)
             {
-                Fixed halfW = projectileWidth / Fixed.FromInt(2);
-                Fixed halfH = projectileHeight / Fixed.FromInt(2);
-
-                // projectile AABB for the *next* frame
-                // Calculate potential next position based on current position and velocity
-                //FixedVec2 nextPosition = position + new FixedVec2(hSpd, vSpd);
-                Fixed pMinX = position.X + hSpeed - halfW;
-                Fixed pMaxX = position.X + hSpeed + halfW;
-                Fixed pMinY = position.Y + vSpeed;
-                Fixed pMaxY = position.Y + vSpeed + projectileHeight;
+                // projectile AABB
+                Fixed pMinX = position.X + hSpeed + Fixed.FromInt(facingRight?hurtbox.xOffset:(-hurtbox.xOffset-hurtbox.width));
+                Fixed pMaxX = position.X + hSpeed + Fixed.FromInt(!facingRight?(-hurtbox.xOffset):(hurtbox.xOffset+hurtbox.width));
+                Fixed pMinY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset);
+                Fixed pMaxY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset - hurtbox.height);
 
                 for (int i = 0; i < solidCount; i++)
                 {
@@ -165,14 +165,14 @@ public class GiftOfPrometheus_prj : BaseProjectile
                         if (position.X < center.X)
                         {
                             // projectile is left of solid -> push left
-                            position = new FixedVec2(sMin.X - halfW, position.Y);
+                            position = new FixedVec2(sMin.X - Fixed.FromFloat(hurtbox.width+hurtbox.xOffset), position.Y);
                             hSpeed = Fixed.FromInt(0);
                             facingRight = false;
                         }
                         else
                         {
                             // projectile is right of solid -> push right
-                            position = new FixedVec2(sMax.X + halfW, position.Y);
+                            position = new FixedVec2(sMax.X + Fixed.FromFloat(hurtbox.width+hurtbox.xOffset), position.Y);
                             hSpeed = Fixed.FromInt(0);
                             facingRight = true;
                         }
@@ -183,13 +183,13 @@ public class GiftOfPrometheus_prj : BaseProjectile
                         if (position.Y < center.Y)
                         {
                             // projectile is below solid -> push down
-                            position = new FixedVec2(position.X, sMin.Y - halfH);
+                            position = new FixedVec2(position.X, sMin.Y - Fixed.FromInt(hurtbox.yOffset));
                             vSpeed = Fixed.FromInt(0);
                         }
                         else
                         {
                             // projectile is above solid -> land on top
-                            position = new FixedVec2(position.X, sMax.Y);
+                            position = new FixedVec2(position.X, sMax.Y + Fixed.FromInt(hurtbox.height - hurtbox.yOffset));
                             vSpeed = Fixed.FromInt(0);
                             isGrounded = true;
                         }
@@ -204,14 +204,11 @@ public class GiftOfPrometheus_prj : BaseProjectile
            int platformCount = Mathf.Min(stageDataSO.platformCenter.Length, stageDataSO.platformExtent.Length);
            if (platformCount == 0) return;
 
-           Fixed halfW = projectileWidth / Fixed.FromInt(2);
-           Fixed halfH = projectileHeight / Fixed.FromInt(2);
-
-           // projectile AABB
-           Fixed pMinX = position.X + hSpeed - halfW;
-           Fixed pMaxX = position.X + hSpeed + halfW;
-           Fixed pMinY = position.Y + vSpeed;
-           Fixed pMaxY = position.Y + vSpeed + projectileHeight;
+            // projectile AABB
+            Fixed pMinX = position.X + hSpeed + Fixed.FromInt(facingRight?hurtbox.xOffset:(-hurtbox.xOffset-hurtbox.width));
+            Fixed pMaxX = position.X + hSpeed + Fixed.FromInt(!facingRight?(-hurtbox.xOffset):(hurtbox.xOffset+hurtbox.width));
+            Fixed pMinY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset);
+            Fixed pMaxY = position.Y + vSpeed - Fixed.FromInt(hurtbox.yOffset - hurtbox.height);
 
            for (int i = 0; i < platformCount; i++)
            {
@@ -249,7 +246,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
                // This avoids blocking the projectile from jumping up through the platform.
                if (pMinY <= platformTop && position.Y >= platformTop && vSpeed <= Fixed.FromInt(0))
                {
-                    position = new FixedVec2(position.X, platformTop);
+                    position = new FixedVec2(position.X, platformTop + Fixed.FromInt(hurtbox.height - hurtbox.yOffset));
                     vSpeed = Fixed.FromInt(0);
                     isGrounded = true;
                }

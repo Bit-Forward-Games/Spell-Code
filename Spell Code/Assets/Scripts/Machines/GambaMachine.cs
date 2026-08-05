@@ -353,7 +353,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[9], "Armory Of Hephaestus");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Armory Of Hephaestus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Quiver Of Artemis");
                         break;

@@ -8,7 +8,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
 public class CoinTossLoaded_prj : BaseProjectile
 {
-    
+    private const float refGravity = .75f;
     protected override void InitializeDefaults()
     {
         projName = "Coin Toss Loaded";
@@ -95,7 +95,7 @@ public class CoinTossLoaded_prj : BaseProjectile
         }
         else if(logicFrame <= animFrames.frameLengths.Take(16).Sum())
         {
-            vSpeed -= owner.gravity; // Apply gravity to the vertical speed
+            vSpeed -= Fixed.FromFloat(refGravity);
         }
     }
 }

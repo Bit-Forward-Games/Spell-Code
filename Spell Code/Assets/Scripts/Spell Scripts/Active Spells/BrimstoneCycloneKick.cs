@@ -86,6 +86,21 @@ public class BrimestoneCycloneKick : SpellData
                 break;
         }
 
-        
+
+    }
+    public override void Serialize(System.IO.BinaryWriter bw)
+    {
+        base.Serialize(bw);
+        bw.Write(storedVspeed.RawValue);
+        bw.Write(vSpeedStored);
+        bw.Write(storedFacingRight);
+    }
+
+    public override void Deserialize(System.IO.BinaryReader br)
+    {
+        base.Deserialize(br);
+        storedVspeed = new Fixed(br.ReadInt32());
+        vSpeedStored = br.ReadBoolean();
+        storedFacingRight = br.ReadBoolean();
     }
 }

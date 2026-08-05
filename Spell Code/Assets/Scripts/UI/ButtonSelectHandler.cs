@@ -137,16 +137,16 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 switch (controlOptionDescriptionIndex)
                 {
                     case 0:
-                        describeText.text = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
+                        describeText.text = "Tap the up direction to jump";
                         break;
                     case 1:
-                        describeText.text = "Description for slide with down input.";
+                        describeText.text = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
                         break;
                     case 2:
-                        describeText.text = "Description for toggle code input.";
+                        describeText.text = "Tap the code button again instead of releasing the button to execute the stored code";
                         break;
                     case 3:
-                        describeText.text = "Description for relative input.";
+                        describeText.text = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
                         break;
                     default:
                         describeText.text = "";

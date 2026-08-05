@@ -14066,7 +14066,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Slide with down input
+  m_text: Diagonal Slide
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 96186dad5fe2549ff8ccd6427632b2f7, type: 2}
   m_sharedMaterial: {fileID: 2140032, guid: 96186dad5fe2549ff8ccd6427632b2f7, type: 2}

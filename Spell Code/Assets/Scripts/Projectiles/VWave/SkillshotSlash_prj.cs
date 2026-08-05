@@ -6,7 +6,7 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SkillshotSlash_Projectile : BaseProjectile
+public class SkillshotSlash_prj : BaseProjectile
 {
 
     protected override void InitializeDefaults()
@@ -34,21 +34,6 @@ public class SkillshotSlash_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -5*2,
-                    yOffset = 12*2,
-                    width = 65*2,
-                    height = 27*2,
-                    xKnockback = 4,
-                    yKnockback = 3,
-                    damage = 15,
-                    hitstun = 15,
-                    attackLvl = 2,
-                }
-            },
-            hitbox2 = new List<HitboxData>
-            {
-                new HitboxData
-                {
                     xOffset = 60*2,
                     yOffset = 12*2,
                     width = 14*2,
@@ -59,6 +44,21 @@ public class SkillshotSlash_Projectile : BaseProjectile
                     hitstun = 30,
                     attackLvl = 3,
                     sweetSpot = true
+                }
+            },
+            hitbox2 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -5*2,
+                    yOffset = 12*2,
+                    width = 65*2,
+                    height = 27*2,
+                    xKnockback = 4,
+                    yKnockback = 3,
+                    damage = 15,
+                    hitstun = 15,
+                    attackLvl = 2,
                 }
             },
             hitbox3 = new List<HitboxData>(),

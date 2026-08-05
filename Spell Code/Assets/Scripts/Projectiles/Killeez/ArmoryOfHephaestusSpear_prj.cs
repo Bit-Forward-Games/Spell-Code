@@ -16,6 +16,8 @@ public class ArmoryOfHephaestusSpear_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 0;
         meleeProjectile = true;
+        fadeIn = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() {  3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

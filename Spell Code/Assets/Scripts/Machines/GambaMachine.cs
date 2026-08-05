@@ -369,7 +369,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;

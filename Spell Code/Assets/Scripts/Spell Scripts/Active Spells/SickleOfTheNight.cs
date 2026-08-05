@@ -16,9 +16,8 @@ public class SickleOfTheNight : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[4];
-        description = "Long-range Crescent slash.\n On hit, enhance next basic attack to break armor and consume all Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
-        spawnOffsetX = 25;
-        spawnOffsetY = 40;
+        description = "Long-range Crescent slash.\n On hit, enhance next basic attack home in on the hit opponent, refreshing the enhancement on hit.\n Spawns more enhanced basic attacks when in Flow State<sprite name=\"FlowState\">.";
+        
 
     }
 
@@ -40,8 +39,8 @@ public class SickleOfTheNight : SpellData
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                     if(owner.flowState > 0)
                     {
-                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX-16), Fixed.FromInt(spawnOffsetY + 16)));
-                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX-16), Fixed.FromInt(spawnOffsetY - 16)));
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[2].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX-64), Fixed.FromInt(spawnOffsetY + 64)));
+                        ProjectileManager.Instance.SpawnProjectile(projectileInstances[3].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX-64), Fixed.FromInt(spawnOffsetY - 64)));
                     }
                 }
             break;

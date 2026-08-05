@@ -11,13 +11,13 @@ public class ArmoryOfHephaestus : SpellData
     {
         spellName = "Armory Of Hephaestus";
         brands = new Brand[]{ Brand.Killeez };
-        cooldown = 180;
+        cooldown = 120;
         spellInput = 0b_0000_0000_0000_0000_0011_0011_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic, ProcCondition.ActiveOnHit};
         projectilePrefabs = new GameObject[3];
 
-        description = "Enhance basic attack to be 1 of 3 weapons, cycling between an Anvil, a Spear, and a Hammer.";
+        description = "Enhance basic attack to be 1 of 3 weapons, cycling between a Spear, a Hammer, and an Anvil.";
 
         
     }
@@ -30,8 +30,6 @@ public class ArmoryOfHephaestus : SpellData
     {
         if (projectileInstances.Count < 1) return;
 
-
-
         if (cooldownCounter > 0)
         {
             cooldownCounter--;
@@ -39,18 +37,10 @@ public class ArmoryOfHephaestus : SpellData
         }
         if (activateFlag)
         {
-            owner.basicSpawnOverride = spellName;
-            // Reset the activate flag
             activateFlag = false;
-            
-
-            
+            owner.basicSpawnOverride = spellName;
             cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
-            //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
-            //vibeCasted = false;
         }
-
-
     }
 
     public override void CheckCondition(PlayerController defender, ProcCondition targetProcCon)
@@ -58,6 +48,7 @@ public class ArmoryOfHephaestus : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
+                weaponIndex = (byte)((weaponIndex + 1) % 3);
                 switch (weaponIndex)
                 {
                     case 0://anvil
@@ -69,6 +60,7 @@ public class ArmoryOfHephaestus : SpellData
                     case 2://hammer
                         owner.SpawnToast("HAMMER", GameManager.colors["yellow"]);
                         break;
+                        
                 }
                 break;
             case ProcCondition.OnCastBasic:
@@ -76,7 +68,7 @@ public class ArmoryOfHephaestus : SpellData
             if (owner.basicSpawnOverride == spellName)
                 {
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[weaponIndex].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
-                    weaponIndex = (byte)((weaponIndex + 1) % 3);
+                    
                 }
                 break;
             default:

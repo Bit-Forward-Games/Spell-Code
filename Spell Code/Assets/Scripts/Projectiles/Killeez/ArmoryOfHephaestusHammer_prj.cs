@@ -14,6 +14,8 @@ public class ArmoryOfHephaestusHammer_prj : BaseProjectile
         projName = "Armory Of Hephaestus Hammer";
         lifeSpan = 0;
         meleeProjectile = true;
+        fadeIn = true;
+        fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created

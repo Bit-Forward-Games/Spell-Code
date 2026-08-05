@@ -37,9 +37,8 @@ public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         isGrounded = false;
-        lifeSpan = (ushort)( baseLifeTime + owner.reps * 15 );
+        
         activeHitboxGroupIndex = 0;
-        frameData.endFrames[0] = lifeSpan;
         //hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
         //vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
     }
@@ -85,7 +84,7 @@ public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
             },
             endFrames = new List<int>
             {
-                lifeSpan
+                lifeSpan-10
             }
         };
         base.LoadProjectile();
@@ -99,6 +98,10 @@ public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
         if (!isGrounded)
         {
             vSpeed -= Fixed.FromFloat(refGravity);
+        }
+        else if (logicFrame < lifeSpan-12)
+        {
+            logicFrame = lifeSpan-12;
         }
 
         //if this is the start of the looping animation,...

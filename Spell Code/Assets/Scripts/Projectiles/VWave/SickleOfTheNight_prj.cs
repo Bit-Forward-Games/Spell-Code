@@ -15,8 +15,10 @@ public class SickleOfTheNight_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0;
+        fadeIn = true;
+        fadeOut = true;
         meleeProjectile = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3, 4, 4, 4, 4}, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 

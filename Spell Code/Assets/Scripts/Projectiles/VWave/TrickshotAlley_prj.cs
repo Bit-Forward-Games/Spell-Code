@@ -15,7 +15,7 @@ public class TrickshotAlley_prj : BaseProjectile
 
     public const int highBounce = 6;
     //public const int lowBounce = 2;
-
+    private const float refGravity = .75f;
     //public byte bounceCount = 0;
     
     public HurtboxData hurtbox = new HurtboxData
@@ -132,7 +132,7 @@ public class TrickshotAlley_prj : BaseProjectile
 
         //activeHitboxGroupIndex = (byte)(logicFrame > animFrames.frameLengths.Take(16).Sum()? 1:0);
         
-        vSpeed -= owner.gravity/Fixed.FromFloat(4f); // Apply gravity to the vertical speed
+        vSpeed -= Fixed.FromFloat(refGravity/4f); // Apply gravity to the vertical speed
     }
 
     public void ProcessTrickshotCollisisons()

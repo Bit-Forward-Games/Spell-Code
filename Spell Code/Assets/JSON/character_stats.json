@@ -9,7 +9,7 @@
       "runSpeed": 30,
       "slideSpeed": 40,
       "slideFriction": 12,
-      "jumpForce": 13,
+      "jumpForce": 10,
       "jumpCount": 2,
       "playerHealth": 100,
       "playerWidth": 24,

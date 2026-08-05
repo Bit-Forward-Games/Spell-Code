@@ -10,7 +10,7 @@ public class LoadedDice_prj : BaseProjectile
 {
     
     public bool isGrounded = false;
-    
+    private const float refGravity = .75f;
     Fixed projectileWidth = Fixed.FromInt(44);
     Fixed projectileHeight = Fixed.FromInt(44);
     
@@ -103,7 +103,7 @@ public class LoadedDice_prj : BaseProjectile
         {
             if (!isGrounded)
             {
-                vSpeed -= owner.gravity; // Apply gravity to the vertical speed
+                vSpeed -= Fixed.FromFloat(refGravity);
             }
             else
             {

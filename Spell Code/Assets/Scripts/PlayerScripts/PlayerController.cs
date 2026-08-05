@@ -140,7 +140,9 @@ public class PlayerController : MonoBehaviour
 
     //Character Data
     public CharacterData charData { get; private set; }
-    public Fixed gravity = Fixed.FromFloat(0.75f);
+    [NonSerialized] public const float baseGravity = .45f;
+    [NonSerialized] public const float fastfallGravityMod = .3f;
+    [NonSerialized] public Fixed gravity = Fixed.FromFloat(baseGravity);
     public const int TerminalVelocity = -20;
     [HideInInspector]
     public Fixed jumpForce = Fixed.FromInt(10);
@@ -516,7 +518,7 @@ public class PlayerController : MonoBehaviour
         position = spawnPos;
         hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
-        gravity = Fixed.FromFloat(0.75f);
+        gravity = Fixed.FromFloat(baseGravity);
         facingRight = spawnPos.X.RawValue <= 0;
         isGrounded = false;
         onPlatform = false;
@@ -1415,6 +1417,12 @@ public class PlayerController : MonoBehaviour
                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
 
                     break;
+                }
+                if (vSpd < Fixed.FromInt(0) && input.Direction <= 3)
+                {
+                    //reapply gravity more strongly to create a variable jump height
+                    vSpd -= Fixed.FromFloat(fastfallGravityMod);
+                    
                 }
                 if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None && (tapJump?input.Direction <=6:true))
                 {
@@ -2965,7 +2973,7 @@ public class PlayerController : MonoBehaviour
 
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
-
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCodeweaveEnter);
                 if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
@@ -2999,10 +3007,11 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Jump:
                 //playerHeight = charData.playerHeight;
+                gravity = Fixed.FromFloat(baseGravity);
                 break;
             case PlayerState.CodeWeave:
                 superArmor = false;
-                gravity = Fixed.FromFloat(.75f);
+                gravity = Fixed.FromFloat(baseGravity);
                 break;
             case PlayerState.CodeRelease:
                 //stop continuously playing the code weave sound

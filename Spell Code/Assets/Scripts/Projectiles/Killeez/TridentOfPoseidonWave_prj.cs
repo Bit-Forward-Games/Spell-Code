@@ -11,6 +11,7 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
 
     public bool isGrounded = false;
     public ushort lifeTime = 0;
+    private const float refGravity = .75f;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
@@ -67,7 +68,7 @@ public class TridentOfPoseidonWave_prj : BaseProjectile
         CheckStageDataSOCollision();
         if (!isGrounded)
         {
-            vSpeed -= owner.gravity/Fixed.FromFloat(2f); // Apply gravity to the vertical speed
+            vSpeed -= Fixed.FromFloat(refGravity/2);
         }
         if (logicFrame == animFrames.frameLengths.Take(4).Sum())
         {

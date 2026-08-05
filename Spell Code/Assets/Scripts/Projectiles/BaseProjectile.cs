@@ -17,13 +17,12 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized]  public HitboxGroup[] projectileHitboxes;
     public Sprite[] sprites;
     [NonSerialized]  public byte activeHitboxGroupIndex = 0;
-    public Fixed hSpeed;
-    public Fixed vSpeed;
-    public FixedVec2 position;
-    [NonSerialized]
-    public bool facingRight;
-    public int logicFrame;
-    public ushort animationFrame; //which frame of animation the projectile is on
+    [NonSerialized] public Fixed hSpeed;
+    [NonSerialized] public Fixed vSpeed;
+    [NonSerialized] public FixedVec2 position;
+    [NonSerialized] public bool facingRight;
+    [NonSerialized] public int logicFrame;
+    [NonSerialized] public ushort animationFrame; //which frame of animation the projectile is on
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
     [NonSerialized] public bool fadeOut = false;
     

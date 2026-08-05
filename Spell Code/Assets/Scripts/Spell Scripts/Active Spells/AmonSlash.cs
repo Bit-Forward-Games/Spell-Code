@@ -3,9 +3,9 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class AmonSlash : SpellData
+public class BrimstoneCycloneKick : SpellData
 {
-    public AmonSlash()
+    public BrimstoneCycloneKick()
     {
         spellName = "Amon Slash";
         brands = new Brand[]{ Brand.DemonX };

@@ -50,6 +50,7 @@ public enum ProcCondition
     OnDodged,
     OnBlock,
     OnParry,
+    OnCodeweaveEnter,
     OnCast,
     OnCastBasic,
     OnCastSpell,

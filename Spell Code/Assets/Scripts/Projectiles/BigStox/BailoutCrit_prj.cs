@@ -14,7 +14,7 @@ public class BailoutCrit_prj : BaseProjectile
 
     public const int arcHeight = 4;
     public bool collidedWithStage = false;
-    
+    private const float refGravity = .75f;
     public HurtboxData hurtbox = new HurtboxData
     {
         xOffset = -16,
@@ -88,7 +88,7 @@ public class BailoutCrit_prj : BaseProjectile
             return;
         }
         
-        vSpeed -= owner.gravity/Fixed.FromFloat(4f); // Apply gravity to the vertical speed
+        vSpeed -= Fixed.FromFloat(refGravity/4f); // Apply gravity to the vertical speed
     }
 
    

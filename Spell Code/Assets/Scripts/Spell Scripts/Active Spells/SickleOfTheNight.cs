@@ -17,7 +17,7 @@ public class SickleOfTheNight : SpellData
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[4];
         description = "Long-range Crescent slash.\n On hit, enhance next basic attack home in on the hit opponent, refreshing the enhancement on hit.\n Spawns more enhanced basic attacks when in Flow State<sprite name=\"FlowState\">.";
-        
+        spawnOffsetY = 32;
 
     }
 

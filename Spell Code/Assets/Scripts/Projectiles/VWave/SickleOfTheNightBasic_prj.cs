@@ -88,7 +88,17 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
             hitbox4 = new List<HitboxData>()
         };
         
-        
+        frameData = new FrameData
+        {
+            startFrames = new List<int>
+            {
+                4
+            },
+            endFrames = new List<int>
+            {
+                lifeSpan
+            }
+        };
         base.LoadProjectile();
     }
 

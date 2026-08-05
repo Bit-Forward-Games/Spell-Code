@@ -397,12 +397,20 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: projectileList.Array.size
-      value: 61
+      value: 63
       objectReference: {fileID: 0}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'projectileList.Array.data[60]'
       value: 
       objectReference: {fileID: -2463429675514960912, guid: c3dcdb33b3d3a9744968a45cdc72841a, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[61]'
+      value: 
+      objectReference: {fileID: -1492908497788956567, guid: 27f0d1cb82188e64484a038367d922cb, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[62]'
+      value: 
+      objectReference: {fileID: -1782452179866101107, guid: b569ae67db112fe4186415f5441ab62e, type: 3}
     - target: {fileID: 521498579923650145, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -553,7 +561,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
-      value: 49
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[11]'
@@ -606,105 +614,109 @@ PrefabInstance:
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[23]'
       value: 
-      objectReference: {fileID: -4505625144646423502, guid: d6bea4b6433c99247a2b15dc4770ff05, type: 3}
+      objectReference: {fileID: 709521390083344232, guid: e6f1b3d5807713b48949943356c99186, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[24]'
       value: 
-      objectReference: {fileID: -4971000813473237039, guid: ecb07621054a9534b8f6ab9879d6eb85, type: 3}
+      objectReference: {fileID: -4505625144646423502, guid: d6bea4b6433c99247a2b15dc4770ff05, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[25]'
       value: 
-      objectReference: {fileID: 6002143326250124551, guid: 475317eca76be7042a86390a5da8e40d, type: 3}
+      objectReference: {fileID: -4971000813473237039, guid: ecb07621054a9534b8f6ab9879d6eb85, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[26]'
       value: 
-      objectReference: {fileID: 1301395552978440749, guid: d140d0045cd41d349a443403953afacd, type: 3}
+      objectReference: {fileID: 6002143326250124551, guid: 475317eca76be7042a86390a5da8e40d, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[27]'
       value: 
-      objectReference: {fileID: -6130499417200948843, guid: a6e6d6fbd777fff41a13b08a0af6ab6a, type: 3}
+      objectReference: {fileID: 1301395552978440749, guid: d140d0045cd41d349a443403953afacd, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[28]'
       value: 
-      objectReference: {fileID: 4086900605317289789, guid: e20692c84a0616b4e852994d0fd9dff3, type: 3}
+      objectReference: {fileID: -6130499417200948843, guid: a6e6d6fbd777fff41a13b08a0af6ab6a, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[29]'
       value: 
-      objectReference: {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
+      objectReference: {fileID: 4086900605317289789, guid: e20692c84a0616b4e852994d0fd9dff3, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[30]'
       value: 
-      objectReference: {fileID: 1029980139648314942, guid: 9d2d9534aa316704bb7e17eb4c5d2558, type: 3}
+      objectReference: {fileID: 140728963025960245, guid: 19602a6e29e75d74585f638cb0187527, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[31]'
       value: 
-      objectReference: {fileID: 8780890658155075051, guid: fba61a31bfc27ae47b3df029e360c726, type: 3}
+      objectReference: {fileID: 1029980139648314942, guid: 9d2d9534aa316704bb7e17eb4c5d2558, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[32]'
       value: 
-      objectReference: {fileID: 5781851532061472233, guid: 20079c747609a664f87edea84104aba5, type: 3}
+      objectReference: {fileID: 8780890658155075051, guid: fba61a31bfc27ae47b3df029e360c726, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[33]'
       value: 
-      objectReference: {fileID: 7691123304163195163, guid: 225c9026a108d514a831609e63ed5978, type: 3}
+      objectReference: {fileID: 5781851532061472233, guid: 20079c747609a664f87edea84104aba5, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[34]'
       value: 
-      objectReference: {fileID: 3228513247226345638, guid: fc3b2debc8d4a174d8974734fc504041, type: 3}
+      objectReference: {fileID: 7691123304163195163, guid: 225c9026a108d514a831609e63ed5978, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[35]'
       value: 
-      objectReference: {fileID: 5563068128995029098, guid: cb2eff8e4e8b8ff40a4400428f820dbd, type: 3}
+      objectReference: {fileID: 3228513247226345638, guid: fc3b2debc8d4a174d8974734fc504041, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[36]'
       value: 
-      objectReference: {fileID: -6491923949975825936, guid: 3a5f1a94f71f1724aaf4c090e685a3d4, type: 3}
+      objectReference: {fileID: 5563068128995029098, guid: cb2eff8e4e8b8ff40a4400428f820dbd, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[37]'
       value: 
-      objectReference: {fileID: -4944875159492096932, guid: 7634198032a7f3f4b911ab25d9a39a79, type: 3}
+      objectReference: {fileID: -6491923949975825936, guid: 3a5f1a94f71f1724aaf4c090e685a3d4, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[38]'
       value: 
-      objectReference: {fileID: 6018045562301869049, guid: 4d04079dedaa5194a941eefff3452143, type: 3}
+      objectReference: {fileID: -4944875159492096932, guid: 7634198032a7f3f4b911ab25d9a39a79, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[39]'
       value: 
-      objectReference: {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
+      objectReference: {fileID: 6018045562301869049, guid: 4d04079dedaa5194a941eefff3452143, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[40]'
       value: 
-      objectReference: {fileID: -4807453519986841140, guid: 2a95c3d546893f5439c5eccd1bff9339, type: 3}
+      objectReference: {fileID: 3932680449162567156, guid: c3643fdcfebf87849b747fb53d05e9fa, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[41]'
       value: 
-      objectReference: {fileID: -983938460387295349, guid: 4640ba4b36aff1842b79ea7964b681d3, type: 3}
+      objectReference: {fileID: -4807453519986841140, guid: 2a95c3d546893f5439c5eccd1bff9339, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[42]'
       value: 
-      objectReference: {fileID: 6210405161301799042, guid: 874747d367b4b694dbbfda3d6763342a, type: 3}
+      objectReference: {fileID: -983938460387295349, guid: 4640ba4b36aff1842b79ea7964b681d3, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[43]'
       value: 
-      objectReference: {fileID: -7546833322337360268, guid: d418afee276f18d47a9e9697b583ddbb, type: 3}
+      objectReference: {fileID: 6210405161301799042, guid: 874747d367b4b694dbbfda3d6763342a, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[44]'
       value: 
-      objectReference: {fileID: 7508518421450052930, guid: fe880983231c0034292037d9b44e09c3, type: 3}
+      objectReference: {fileID: -7546833322337360268, guid: d418afee276f18d47a9e9697b583ddbb, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[45]'
       value: 
-      objectReference: {fileID: 8791147183177087036, guid: e1333e686a899b14f8f7389907262737, type: 3}
+      objectReference: {fileID: 7508518421450052930, guid: fe880983231c0034292037d9b44e09c3, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[46]'
       value: 
-      objectReference: {fileID: -4764670587118944097, guid: b3a2bcd249cbd2442a3f9261bf7801ec, type: 3}
+      objectReference: {fileID: 8791147183177087036, guid: e1333e686a899b14f8f7389907262737, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[47]'
       value: 
-      objectReference: {fileID: -2298806147320862211, guid: b3a312f86b4c31c449fc914668680937, type: 3}
+      objectReference: {fileID: -4764670587118944097, guid: b3a2bcd249cbd2442a3f9261bf7801ec, type: 3}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[48]'
+      value: 
+      objectReference: {fileID: -2298806147320862211, guid: b3a312f86b4c31c449fc914668680937, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[49]'
       value: 
       objectReference: {fileID: -2832453206304962427, guid: 8ee447aafc547c0458a94f52b86e854a, type: 3}
     - target: {fileID: 7466210831210709130, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}

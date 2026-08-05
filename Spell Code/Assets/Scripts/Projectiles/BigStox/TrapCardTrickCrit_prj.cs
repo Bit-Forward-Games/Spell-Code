@@ -1,67 +1,93 @@
-using BestoNet.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Windows;
+using BestoNet.Types;
+
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class GiftOfPrometheus_prj : BaseProjectile
-{
-
+public class TrapCardTrickCrit_prj : BaseProjectile
+{   
     [NonSerialized] public bool isGrounded = false;
     //[NonSerialized] public ushort lifeTime = 0;
     private const float refGravity = .75f;
     private const ushort baseLifeTime = 60;
-    Fixed projectileWidth = Fixed.FromInt(8);
+    Fixed projectileWidth = Fixed.FromInt(48);
     Fixed projectileHeight = Fixed.FromInt(8);
     protected override void InitializeDefaults()
     {
-        projName = "Gift Of Prometheus";
-        //ignoreBrand = true;
-        lifeSpan = baseLifeTime;
-        multiHitCooldown = 15;
-        maxMultiHitCount = 100;
-        fadeIn = true;
+        projName = "Trap Card Trick Crit";
+        lifeSpan = 0;
+        deleteOnHurt = true;
         fadeOut = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 6, 6, 6, 6, 6, 6, 6, 6}, true);
+        fadeIn = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 300, 4, 4, 4, 6}, false);
     }
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        isGrounded = false;
-        lifeSpan = (ushort)( baseLifeTime + owner.reps * 15 );
         activeHitboxGroupIndex = 0;
-        frameData.endFrames[0] = lifeSpan;
-        //hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
-        //vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
     }
+
     public override void LoadProjectile()
     {
-
-        projectileHitboxes = new HitboxGroup[2];
-
+        projectileHitboxes = new HitboxGroup[3];
         projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
                 new HitboxData
                 {
-                    xOffset = -48,
-                    yOffset = 64,
-                    width =96,
-                    height = 64,
+                    xOffset = -28*2,
+                    yOffset = 13*2,
+                    width = 54*2,
+                    height = 13*2,
                     xKnockback = 0,
                     yKnockback = 0,
-                    damage = 1,
+                    damage = 0,
                     hitstun = 0,
                     attackLvl = 2,
-                    ignoreEffectDamage = true
                 }
             },
             hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[2] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -18*2,
+                    yOffset = 45*2,
+                    width = 36*2,
+                    height = 45*2,
+                    xKnockback = 0,
+                    yKnockback = 6,
+                    damage = 15,
+                    hitstun = 20,
+                    attackLvl = 2,
+                }
+            },
+            hitbox2 = new List<HitboxData>
+            {
+                new HitboxData
+                {
+                    xOffset = -28*2,
+                    yOffset = 13*2,
+                    width = 54*2,
+                    height = 13*2,
+                    xKnockback = 0,
+                    yKnockback = 6,
+                    damage = 15,
+                    hitstun = 20,
+                    attackLvl = 2,
+                }
+            },
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
@@ -76,11 +102,13 @@ public class GiftOfPrometheus_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                animFrames.frameLengths.Take(2).Sum()+1
+                0,
+                animFrames.frameLengths.Take(3).Sum()+1
             },
             endFrames = new List<int>
             {
-                lifeSpan
+                animFrames.frameLengths.Take(1).Sum(),
+                animFrames.frameLengths.Take(4).Sum()
             }
         };
         base.LoadProjectile();
@@ -89,22 +117,29 @@ public class GiftOfPrometheus_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-
         CheckStageDataSOCollision();
         if (!isGrounded)
         {
-            vSpeed -= Fixed.FromFloat(refGravity/10);
+            vSpeed -= Fixed.FromFloat(refGravity/5);
         }
 
-        //if this is the start of the looping animation,...
-        if (logicFrame == animFrames.frameLengths.Take(5).Sum() + 1)
+        //okay so this logic is a bit wonky to understand but basically if the ball hits something,
+        //it switches to the non-hitting hitbox group, sets its horizontal speed to 0,
+        //and then waits until the animation is done to delete itself.
+        if (logicFrame == animFrames.frameLengths.Take(1).Sum())
         {
-            //Replay the GoP looping SFX
-            SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus", 1.0f, 1.0f);
+            ProjectileManager.Instance.DeleteProjectile(this);
+        }
+        //this basically checks if the projectile hit something
+        if (playerHitArr.Any(ignore => ignore) && activeHitboxGroupIndex == 1)
+        {
+            logicFrame = animFrames.frameLengths.Take(1).Sum() + 1; //set the logic frame to the start of the end animation
+            
+            activeHitboxGroupIndex = 2;
+            Array.Fill(playerHitArr, false);
         }
 
     }
-
 
     public void CheckStageDataSOCollision()
     {
@@ -258,7 +293,6 @@ public class GiftOfPrometheus_prj : BaseProjectile
         }
         #endregion
     }
-
     public override void ResetValues()
     {
         base.ResetValues();

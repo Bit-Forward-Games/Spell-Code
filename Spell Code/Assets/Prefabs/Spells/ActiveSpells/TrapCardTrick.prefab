@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3884774707739521384
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7745486899729457613}
+  - component: {fileID: 709521390083344232}
+  m_Layer: 0
+  m_Name: TrapCardTrick
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7745486899729457613
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &709521390083344232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46f0162adcf58c74a86eba4b727a1e67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapCardTrick
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: 27f0d1cb82188e64484a038367d922cb, type: 3}
+  - {fileID: 3459829395073810853, guid: b569ae67db112fe4186415f5441ab62e, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: -1240519226902968637, guid: 1de7eea9bc258324094241d4bd76d0d1, type: 3}
+  notReadyIcon: {fileID: 5353615451679491749, guid: 41cdfaa6fca8c474695a11eb5591d032, type: 3}
+  SpellVideo: {fileID: 32900000, guid: cdf4dfd549615c14cbd0646c9cea0ed5, type: 3}
+  doesCrit: 0

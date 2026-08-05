@@ -20,7 +20,7 @@ public class BrimestoneCycloneKick : SpellData
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;
         spawnOffsetY = 0;
-        description = "Lunging Cyclone kick.\nUsing this Spellcode while rising or falling will cause the lunge to follow that angle.";
+        description = "Lunging Cyclone kick.\nThis Spellcode follows your rising or falling momentum.";
 
     }
 

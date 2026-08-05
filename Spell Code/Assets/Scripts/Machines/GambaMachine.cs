@@ -337,7 +337,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Loaded Dice");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[8], "Brimstone Cyclone Kick");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Trap Card Trick");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Hot Streak");
                         break;
@@ -353,7 +353,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[8], "Brimstone Cyclone Kick");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[9], "Armory Of Hephaestus");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Quiver Of Artemis");
                         break;
@@ -369,7 +369,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[8], "Brimstone Cyclone Kick");
+                        //SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;

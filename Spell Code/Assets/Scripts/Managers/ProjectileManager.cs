@@ -88,6 +88,12 @@ public class ProjectileManager : MonoBehaviour
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
                 RegisterActiveProjectile(projectilePrefabs[i]);
+                if (projectilePrefabs[i].hitstop > 0)
+                {
+                    projectilePrefabs[i].hitstop--;
+                    continue;
+                }
+
                 //dont update the projectile if the projectile is a melee projectile and its owner is in hitstop
                 if(!(projectilePrefabs[i].meleeProjectile && projectilePrefabs[i].owner.hitstopActive))
                 {

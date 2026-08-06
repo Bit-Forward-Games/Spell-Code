@@ -168,6 +168,7 @@ public class HitboxManager : MonoBehaviour
                                     if(hitbox.hitstun > 0)
                                     {
                                         defendingPlayer.facingRight = !projectile.facingRight;
+                                        projectile.hitstop = hitstopVal;
                                         if (projectile.meleeProjectile)
                                         {
                                             projectile.owner.hitstop = hitstopVal;

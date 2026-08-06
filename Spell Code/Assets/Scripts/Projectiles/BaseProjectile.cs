@@ -154,14 +154,25 @@ public abstract class BaseProjectile : MonoBehaviour
 
         if (meleeProjectile)
         {
-            
-            Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
-            Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
-            Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
-            Fixed newX = owner.position.X + (xOffset * direction);
-            Fixed newY = owner.position.Y + yOffset;
+            // A melee projectile is pinned to its owner every frame using the spell's spawn offsets,
+            // and BOTH links can go missing: ownerSpell is a serialized index and a reflect
+            // reassigns the owner, while owner itself can be cleared on a disconnect.
+            // Throwing here is the worst possible outcome -- it
+            // aborts the frame from inside RunFrame, and a frame that never completes can never be
+            // confirmed, so an online match WEDGES rather than desyncing.
+            // Fall back to a zero offset when only the spell is gone (still pinned to the owner),
+            // and leave the projectile where it is when the owner is gone. Determinism-safe: owner
+            // and ownerSpell are both sim state, so every peer takes the same branch.
+            if (owner != null)
+            {
+                Fixed xOffset = Fixed.FromInt(ownerSpell != null ? ownerSpell.spawnOffsetX : 0);
+                Fixed yOffset = Fixed.FromInt(ownerSpell != null ? ownerSpell.spawnOffsetY : 0);
+                Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
+                Fixed newX = owner.position.X + (xOffset * direction);
+                Fixed newY = owner.position.Y + yOffset;
 
-            position = new FixedVec2(newX, newY);
+                position = new FixedVec2(newX, newY);
+            }
         }
         else
         {

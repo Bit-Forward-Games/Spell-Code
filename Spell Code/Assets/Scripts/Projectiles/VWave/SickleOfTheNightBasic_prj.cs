@@ -29,11 +29,27 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
         hSpeed = Fixed.FromInt(0); 
         vSpeed = Fixed.FromInt(0); 
-        targetPID = ownerSpell.gameObject.GetComponent<SickleOfTheNight>().targetPID;
+        // ownerSpell is serialized as an index into its holder's spellList, and a reflect REASSIGNS
+        // a projectile's owner -- which is exactly how ownerSpell came back null and threw inside a
+        // rollback resim, hard-freezing the match rather than merely desyncing it (a frame that
+        // throws can never be confirmed). GetComponent can also come back null if the reassigned
+        // owner's spell is not a Sickle of the Night at all.
+        //
+        // Degrading to the un-homed straight shot is determinism-safe: ownerSpell, the spell list and
+        // the roster are all sim state, so every peer takes the same branch on the same frame.
+        SickleOfTheNight sourceSpell = ownerSpell != null
+            ? ownerSpell.gameObject.GetComponent<SickleOfTheNight>()
+            : null;
+        targetPID = sourceSpell != null ? sourceSpell.targetPID : (short)-1;
 
-        if (targetPID >= 0)
+        // A recorded target can also be gone by now (killed, disconnected), so resolving the player
+        // has to be allowed to fail too.
+        PlayerController cachedTargetPlayer = targetPID >= 0 && GameManager.Instance != null
+            ? GameManager.Instance.GetPlayerByPID(targetPID)
+            : null;
+
+        if (cachedTargetPlayer != null)
         {
-            PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
             FixedVec2 directionVector = GetDirectionTo(cachedTargetPlayer.position);
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);

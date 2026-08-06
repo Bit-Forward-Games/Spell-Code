@@ -35,15 +35,13 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-26"; // scz-26: Jump physics + a new spell.
-                                                    // SAVESTATE FORMAT CHANGED: Brimstone Cyclone Kick now serializes its
-                                                    // storedVspeed/vSpeedStored/storedFacingRight (they write owner.vSpd
-                                                    // and owner.hSpd every frame, so a rollback without them desyncs).
-                                                    // Also: player baseGravity 0.75 -> 0.45 plus a new variable-jump
-                                                    // fastfall (vSpd -= 0.3 while rising and holding down), projectiles now
-                                                    // use a constant refGravity/4 instead of the owner's mutable gravity,
-                                                    // ProcCondition gained OnCodeweaveEnter (appended), and the new spell
-                                                    // shifts SpellDictionary ids
+    private const string NetcodeVersion = "scz-27"; // scz-27: Three new spells (Armory of
+                                                    // Hephaestus, Sickle of the Night, Trap Card Trick) and their
+                                                    // projectiles. SAVESTATE FORMAT CHANGED: each adds bytes via its own
+                                                    // Serialize override (weaponIndex / targetPID / doesCrit), and the new
+                                                    // spells shift SpellDictionary ids. Homing math also changed --
+                                                    // HotStreak/SickleOfTheNightBasic now pre-scale by max(|dx|,|dy|)
+                                                    // before Normalized() so Fixed32 cannot overflow past ~181 units
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

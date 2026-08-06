@@ -17,7 +17,7 @@ public class CashOut : SpellData
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic, ProcCondition.ActiveOnHit};
         projectilePrefabs = new GameObject[10];
 
-        description = "Enhance basic spell into short-ranged burst shot.\nOn \"Crit\"<sprite name=\"StockStability\">, The enhanced basic spell becomes larger and breaks armor.";
+        description = "Enhance basic attack into short-ranged burst shot.\nOn \"Crit\"<sprite name=\"StockStability\">, The enhanced basic attack becomes larger and breaks armor.";
 
         spawnOffsetX = 15;
         //spawnOffsetY = 0;

@@ -21,6 +21,8 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     int lastCodeModeDirection;
     const int PUNK_CODE_MODE_INDEX = 1;
 
+    public int controlOptionDescriptionIndex;
+
     public void ResetCodeModePromptPresentation()
     {
         wasCodeModeMenuOpen = false;
@@ -127,6 +129,29 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetTarget(findMatchSelector)
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
+            }
+
+            if (name.Contains("Describe"))
+            {
+                TextMeshProUGUI describeText = GameObject.Find("Control Option Description Text").GetComponent<TextMeshProUGUI>();
+                switch (controlOptionDescriptionIndex)
+                {
+                    case 0:
+                        describeText.text = "Tap the up direction to jump";
+                        break;
+                    case 1:
+                        describeText.text = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
+                        break;
+                    case 2:
+                        describeText.text = "Tap the code button again instead of releasing the button to execute the stored code";
+                        break;
+                    case 3:
+                        describeText.text = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
+                        break;
+                    default:
+                        describeText.text = "";
+                        break;
+                }
             }
         }
     }

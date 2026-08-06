@@ -1957,7 +1957,7 @@ public class Pause : MonoBehaviour
     {
         PlayerController player = GetPausePlayer();
         if (player == null) return false;
-        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.downJumpSlide : player.downJumpSlide;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.diagonalSlide : player.diagonalSlide;
     }
 
     private void SetPauseControlOptions(bool relativeInputs, bool toggleCodeInput, bool tapJump, bool vibeCoding, bool downJumpSlide)
@@ -1984,7 +1984,7 @@ public class Pause : MonoBehaviour
         player.toggleCodeInput = toggleCodeInput;
         player.tapJump = tapJump;
         //player.vibeCoding = vibeCoding;
-        player.downJumpSlide = downJumpSlide;
+        player.diagonalSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
     }
 

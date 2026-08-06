@@ -12,6 +12,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
 
     [NonSerialized] public bool isGrounded = false;
     //[NonSerialized] public ushort lifeTime = 0;
+    private const float refGravity = .75f;
     private const ushort baseLifeTime = 60;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
@@ -92,7 +93,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
         CheckStageDataSOCollision();
         if (!isGrounded)
         {
-            vSpeed -= owner.gravity/Fixed.FromFloat(10f); // Apply gravity to the vertical speed
+            vSpeed -= Fixed.FromFloat(refGravity/10);
         }
         // if (logicFrame == animFrames.frameLengths.Take(12).Sum())
         // {

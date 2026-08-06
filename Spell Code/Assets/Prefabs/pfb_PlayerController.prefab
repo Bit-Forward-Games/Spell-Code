@@ -743,7 +743,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 3
+  m_SortingLayer: 14
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
@@ -924,7 +924,7 @@ MeshRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1090599107
-  m_SortingLayer: 3
+  m_SortingLayer: 14
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
@@ -1412,7 +1412,6 @@ MonoBehaviour:
   spellsFired: 0
   basicsFired: 0
   spellsHit: 0
-  basicSpawnOverride: 0
   roundsWon: 0
   chosenSpell: 0
   chosenStartingSpell: 0
@@ -1471,8 +1470,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -1090599107
-  m_SortingLayer: 3
+  m_SortingLayerID: 444178335
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -4612928554177587671, guid: 20b167deda1c54440a1b95744ec22015, type: 3}

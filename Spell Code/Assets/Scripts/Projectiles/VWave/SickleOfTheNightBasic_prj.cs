@@ -64,8 +64,8 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
     public override void LoadProjectile()
     {
 
-        projectileHitboxes = new HitboxGroup[1];
-        projectileHitboxes[0] = new HitboxGroup
+        projectileHitboxes = new HitboxGroup[2];
+        projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
@@ -83,6 +83,13 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
                     basicAttackHitbox = true
                 }
             },
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
             hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()

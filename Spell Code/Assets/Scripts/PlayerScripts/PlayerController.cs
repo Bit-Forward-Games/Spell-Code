@@ -120,7 +120,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public bool toggleCodeInput = false;
     [NonSerialized] public bool tapJump = false;
     [NonSerialized] private bool tapJumpPrimed = true;
-    [NonSerialized] public bool downJumpSlide = false; 
+    [NonSerialized] public bool diagonalSlide = false; 
 
     private const int OnlineControlOptionsShift = 16;
     private const ulong OnlineControlOptionsValidMask = 1UL << 63;
@@ -993,7 +993,7 @@ public class PlayerController : MonoBehaviour
         bool toggleCodeInput = player != null && player.toggleCodeInput;
         bool tapJump = player != null && player.tapJump;
         bool vibeCoding = player != null && player.vibeCoding;
-        bool downJumpSlide = player != null && player.downJumpSlide;
+        bool diagonalSlide = player != null && player.diagonalSlide;
 
         if (player != null
             && SettingsManager.Instance != null
@@ -1003,10 +1003,10 @@ public class PlayerController : MonoBehaviour
             toggleCodeInput = options.toggleCodeInput;
             tapJump = options.tapJump;
             vibeCoding = options.vibeCoding;
-            downJumpSlide = options.downJumpSlide;
+            diagonalSlide = options.diagonalSlide;
         }
 
-        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, downJumpSlide);
+        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, diagonalSlide);
     }
 
     public static ulong ReplaceGameplayInputPreservingOnlineControlOptions(ulong existingInput, ulong gameplayInput)
@@ -1052,7 +1052,7 @@ public class PlayerController : MonoBehaviour
         toggleCodeInput = (flags & (1UL << 1)) != 0;
         tapJump = (flags & (1UL << 2)) != 0;
         vibeCoding = (flags & (1UL << 3)) != 0;
-        downJumpSlide = (flags & (1UL << 4)) != 0;
+        diagonalSlide = (flags & (1UL << 4)) != 0;
     }
 
     public bool IsLocalOnlinePauseMenuOpen()
@@ -1310,7 +1310,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2 && (onPlatform|| !downJumpSlide))
+                    if(input.Direction == 2 && (onPlatform|| diagonalSlide))
                     {
                         break;
                     }
@@ -1362,7 +1362,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (!diagonalSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1444,7 +1444,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(downJumpSlide? false : input.Direction == 2)break;
+                    if(!diagonalSlide? false : input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -3647,7 +3647,7 @@ public class PlayerController : MonoBehaviour
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
-               $"vibe={vibeCoding} djs={downJumpSlide} " +
+               $"vibe={vibeCoding} djs={diagonalSlide} " +
                $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
     }
 
@@ -3735,7 +3735,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
                                    // or it drifts under rollback (sibling relativeInputs is already serialized)
         bw.Write(vibeCoding);
-        bw.Write(downJumpSlide);
+        bw.Write(diagonalSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3834,7 +3834,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
-        bw.Write(downJumpSlide);
+        bw.Write(diagonalSlide);
         bw.Write(platDropping);
     }
 
@@ -4061,7 +4061,7 @@ public class PlayerController : MonoBehaviour
         tapJumpPrimed = br.ReadBoolean();
         toggleCodeInput = br.ReadBoolean();
         vibeCoding = br.ReadBoolean();
-        downJumpSlide = br.ReadBoolean();
+        diagonalSlide = br.ReadBoolean();
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();

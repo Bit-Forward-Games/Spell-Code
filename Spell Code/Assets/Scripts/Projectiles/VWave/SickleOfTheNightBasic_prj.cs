@@ -64,8 +64,21 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
     public override void LoadProjectile()
     {
 
-        projectileHitboxes = new HitboxGroup[1];
+        // Group 0 is the INACTIVE group and groups 1..N map to frameData's windows, because
+        // BaseProjectile.ProjectileUpdate sets activeHitboxGroupIndex = (byte)(i + 1) for the
+        // matching window and 0 when none match. With one startFrame the index reaches 1, so the
+        // array must hold two entries -- sizing it to 1 and putting the hitbox at [0] meant
+        // HitboxManager indexed [1] on the first active frame and threw IndexOutOfRangeException
+        // inside RunFrame
+        projectileHitboxes = new HitboxGroup[2];
         projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
             {
@@ -87,7 +100,7 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
-        
+
         frameData = new FrameData
         {
             startFrames = new List<int>

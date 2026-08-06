@@ -1,6 +1,7 @@
 using UnityEngine;
 using BestoNet.Types;
 
+using System.Collections.Generic;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -16,7 +17,7 @@ public class ArmoryOfHephaestus : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.OnCastBasic, ProcCondition.ActiveOnHit};
         projectilePrefabs = new GameObject[3];
-
+        codeReleaseFrameLengthsOverride = new List<int>(){1, 1, 1, 1, 1, 1};
         description = "Enhance basic attack to be 1 of 3 weapons, cycling between a Spear, a Hammer, and an Anvil.";
 
         

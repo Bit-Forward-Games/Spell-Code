@@ -36,7 +36,7 @@ public class JigokuFlashStep : SpellData
         {
             case ProcCondition.ActiveOnHit:
                 markedOpponentPID = defender.pID;
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, GameManager.Instance.GetPlayerByPID(markedOpponentPID).position);
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, GameManager.Instance.GetPlayerByPID(markedOpponentPID).position, true);
                 break;
             case ProcCondition.OnCast:
                 if(markedOpponentPID >= 0)

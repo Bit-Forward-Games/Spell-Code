@@ -67,7 +67,7 @@ public class BrimstoneCycloneKick_prj : BaseProjectile
             hitbox3 = new List<HitboxData>{
                 new HitboxData
                 {
-                    xOffset = 12,
+                    xOffset = -12,
                     yOffset = -1*2,
                     width = 12*2,
                     height = 6*2,

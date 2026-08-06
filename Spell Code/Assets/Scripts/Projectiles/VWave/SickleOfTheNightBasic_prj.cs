@@ -29,27 +29,11 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
         hSpeed = Fixed.FromInt(0); 
         vSpeed = Fixed.FromInt(0); 
-        // ownerSpell is serialized as an index into its holder's spellList, and a reflect REASSIGNS
-        // a projectile's owner -- which is exactly how ownerSpell came back null and threw inside a
-        // rollback resim, hard-freezing the match rather than merely desyncing it (a frame that
-        // throws can never be confirmed). GetComponent can also come back null if the reassigned
-        // owner's spell is not a Sickle of the Night at all.
-        //
-        // Degrading to the un-homed straight shot is determinism-safe: ownerSpell, the spell list and
-        // the roster are all sim state, so every peer takes the same branch on the same frame.
-        SickleOfTheNight sourceSpell = ownerSpell != null
-            ? ownerSpell.gameObject.GetComponent<SickleOfTheNight>()
-            : null;
-        targetPID = sourceSpell != null ? sourceSpell.targetPID : (short)-1;
+        targetPID = ownerSpell.gameObject.GetComponent<SickleOfTheNight>().targetPID;
 
-        // A recorded target can also be gone by now (killed, disconnected), so resolving the player
-        // has to be allowed to fail too.
-        PlayerController cachedTargetPlayer = targetPID >= 0 && GameManager.Instance != null
-            ? GameManager.Instance.GetPlayerByPID(targetPID)
-            : null;
-
-        if (cachedTargetPlayer != null)
+        if (targetPID >= 0)
         {
+            PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
             FixedVec2 directionVector = GetDirectionTo(cachedTargetPlayer.position);
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);
@@ -80,20 +64,7 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
     public override void LoadProjectile()
     {
 
-        // Group 0 is the INACTIVE group and groups 1..N map to frameData's windows, because
-        // BaseProjectile.ProjectileUpdate sets activeHitboxGroupIndex = (byte)(i + 1) for the
-        // matching window and 0 when none match. With one startFrame the index reaches 1, so the
-        // array must hold two entries -- sizing it to 1 and putting the hitbox at [0] meant
-        // HitboxManager indexed [1] on the first active frame and threw IndexOutOfRangeException
-        // inside RunFrame
         projectileHitboxes = new HitboxGroup[2];
-        projectileHitboxes[0] = new HitboxGroup
-        {
-            hitbox1 = new List<HitboxData>(),
-            hitbox2 = new List<HitboxData>(),
-            hitbox3 = new List<HitboxData>(),
-            hitbox4 = new List<HitboxData>()
-        };
         projectileHitboxes[1] = new HitboxGroup
         {
             hitbox1 = new List<HitboxData>
@@ -116,7 +87,14 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
-
+        projectileHitboxes[0] = new HitboxGroup
+        {
+            hitbox1 = new List<HitboxData>(),
+            hitbox2 = new List<HitboxData>(),
+            hitbox3 = new List<HitboxData>(),
+            hitbox4 = new List<HitboxData>()
+        };
+        
         frameData = new FrameData
         {
             startFrames = new List<int>

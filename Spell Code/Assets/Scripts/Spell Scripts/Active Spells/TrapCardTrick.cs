@@ -14,7 +14,7 @@ public class TrapCardTrick : SpellData
         spellInput = 0b_0000_0000_0000_0000_0011_0110_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
-        description = "Place down a trap.\nThis Spellcode Deals damage when an opponent steps on it.\nA larger trap is layed on \"Crit\"<sprite name=\"StockStability\">.";
+        description = "Place down a trap.\nThis Spellcode deals damage when an opponent steps on it.\nA larger trap is laid on \"Crit\"<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 0;
         spawnOffsetY = 0;

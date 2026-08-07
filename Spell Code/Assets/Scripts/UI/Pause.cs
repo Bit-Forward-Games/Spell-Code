@@ -1014,7 +1014,12 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
         SetControlGlyphSelectorPID();
- 
+
+        // Deactivating the menu does not reliably deselect whatever was highlighted, so the label
+        // can still be holding the last visit's text. Start blank and let SelectFirst's button
+        // fill it in if it happens to be one of the described options.
+        ButtonSelectHandler.SetControlOptionDescription("");
+
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();

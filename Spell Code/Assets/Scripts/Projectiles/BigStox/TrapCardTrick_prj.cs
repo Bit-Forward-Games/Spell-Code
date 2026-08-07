@@ -134,7 +134,10 @@ public class TrapCardTrick_prj : BaseProjectile
         if (playerHitArr.Any(ignore => ignore) && activeHitboxGroupIndex == 1)
         {
             logicFrame = animFrames.frameLengths.Take(1).Sum() + 1; //set the logic frame to the start of the end animation
-            
+
+            //Play the the Trap Card Trick Explosion SFX
+            SFX_Manager.Instance.PlaySpellcodeSound("Trap Card Trick Explosion");
+
             activeHitboxGroupIndex = 2;
             Array.Fill(playerHitArr, false);
             

@@ -3940,6 +3940,11 @@ public class GameManager : MonoBehaviour
                 players[i].ProcEffectUpdate();
             }
         }
+
+        // Training room resource overrides are pinned last, after ProcEffectUpdate, so the per-frame
+        // decay inside the universal passives (demon aura falloff especially) can't undo them.
+        // No-ops outside the training scene and during online matches.
+        TrainingOptionsMachine.ApplyAllOverrides();
     }
 
     /// <summary>

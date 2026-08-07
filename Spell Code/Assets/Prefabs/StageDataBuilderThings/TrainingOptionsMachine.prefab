@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 9219122460068982419}
   - component: {fileID: 7510304649615563718}
   - component: {fileID: 7204817123587966426}
+  - component: {fileID: 4616573969609772673}
   m_Layer: 0
   m_Name: TrainingOptionsMachine
   m_TagString: Untagged
@@ -114,3 +115,32 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4616573969609772673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4696288545901627070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1a4f2b8d3e4a5c9b0f16d2e8a37c41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  machineAnimator: {fileID: 7204817123587966426}
+  isActive: 1
+  facingRight: 0
+  ownerPID: 1
+  ownerPlayer: {fileID: 0}
+  colliderRadius: 16
+  reactivateDelay: 60
+  ui: {fileID: 0}
+  uiPrefab: {fileID: 1122334455667788990, guid: c1f7d93681bb38d47b88646b5e87778c, type: 3}
+  uiParent: {fileID: 0}
+  aiMachine: {fileID: 0}
+  targetNPC: {fileID: 0}
+  npcBehaviors:
+  - {fileID: -2287336887461954819, guid: ee87d8f659399c64181a32f1b798195e, type: 3}
+  - {fileID: -8990131785682627797, guid: afdc3acf657e03c419dda74ba7b5ab5d, type: 3}
+  - {fileID: -3863859316146140785, guid: 1f9b7d6656c63b547aded2fa26e79d30, type: 3}
+  maxReps: 20

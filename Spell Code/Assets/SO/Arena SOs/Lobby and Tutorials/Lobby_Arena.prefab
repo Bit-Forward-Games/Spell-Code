@@ -3485,6 +3485,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 26.978836
       objectReference: {fileID: 0}
+    - target: {fileID: 4462975009120495066, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_SpriteTilingProperty.pivot.y
+      value: 0.1666667
+      objectReference: {fileID: 0}
     - target: {fileID: 5208314495567820811, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: cooldown
       value: 1
@@ -3493,6 +3497,10 @@ PrefabInstance:
       propertyPath: ownerPID
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7196744804614173402, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 8643811440172958346, guid: 5fd63249e37acfc46b911182b75d2696, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3563,6 +3571,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 26.978836
       objectReference: {fileID: 0}
+    - target: {fileID: 4462975009120495066, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_SpriteTilingProperty.pivot.y
+      value: 0.1666667
+      objectReference: {fileID: 0}
     - target: {fileID: 5208314495567820811, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: cooldown
       value: 1
@@ -3582,7 +3594,7 @@ PrefabInstance:
     - target: {fileID: 7196744804614173402, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -5842385986929589724, guid: 94ffd715a7f6af7488179b361cabb83a, type: 3}
+      objectReference: {fileID: -4947477623218435879, guid: 5fd63249e37acfc46b911182b75d2696, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3927,6 +3939,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 26.978836
       objectReference: {fileID: 0}
+    - target: {fileID: 4462975009120495066, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_SpriteTilingProperty.pivot.y
+      value: 0.1666667
+      objectReference: {fileID: 0}
     - target: {fileID: 5208314495567820811, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: cooldown
       value: 1
@@ -3935,6 +3951,10 @@ PrefabInstance:
       propertyPath: ownerPID
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 7196744804614173402, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 8643811440172958346, guid: 5fd63249e37acfc46b911182b75d2696, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17861,6 +17881,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 26.978836
       objectReference: {fileID: 0}
+    - target: {fileID: 4462975009120495066, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
+      propertyPath: m_SpriteTilingProperty.pivot.y
+      value: 0.1666667
+      objectReference: {fileID: 0}
     - target: {fileID: 5208314495567820811, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: cooldown
       value: 1
@@ -17880,7 +17904,7 @@ PrefabInstance:
     - target: {fileID: 7196744804614173402, guid: 7a287acd92fc27d4b9d5fb91b144c2b8, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -5842385986929589724, guid: 94ffd715a7f6af7488179b361cabb83a, type: 3}
+      objectReference: {fileID: -4947477623218435879, guid: 5fd63249e37acfc46b911182b75d2696, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

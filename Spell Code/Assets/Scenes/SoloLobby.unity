@@ -447,6 +447,14 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 976433578952918775, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: Coming Soon!
+      objectReference: {fileID: 0}
+    - target: {fileID: 976433578952918775, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1076777430033293607, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -494,6 +502,12 @@ PrefabInstance:
     - target: {fileID: 2780825350125084883, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2886079734824076768, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: 'Battle against your friends with no cooldowns on spells!
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 3137364577890229042, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -834,6 +848,14 @@ PrefabInstance:
     - target: {fileID: 7984052264553113015, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8049193289905210083, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: Coming Soon!
+      objectReference: {fileID: 0}
+    - target: {fileID: 8049193289905210083, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8273283041631975811, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

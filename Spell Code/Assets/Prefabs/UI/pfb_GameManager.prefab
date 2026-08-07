@@ -132109,7 +132109,7 @@ PrefabInstance:
     - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
       propertyPath: selectedGameModeLabel
       value: 
-      objectReference: {fileID: 1752916501532176286}
+      objectReference: {fileID: 6085008397688242420}
     - target: {fileID: 3166096831775313156, guid: 40f1807c733e72643ab295b6b091cfab, type: 3}
       propertyPath: gameModePanelFirstSelected
       value: 
@@ -132826,17 +132826,6 @@ MonoBehaviour:
 --- !u!114 &1707260068017431841 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5777058447593597897, guid: 8af38054bffbefe4fa1f245a8b03c0b6, type: 3}
-  m_PrefabInstance: {fileID: 5160381835496066792}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!114 &1752916501532176286 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6903674859287601526, guid: 8af38054bffbefe4fa1f245a8b03c0b6, type: 3}
   m_PrefabInstance: {fileID: 5160381835496066792}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}

@@ -446,6 +446,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
         Image codeModeImage = GetComponent<Image>();
         Transform textImageTransform = transform.Find("Text Image");
+        GameObject descriptionText = transform.Find("Code Mode Description").gameObject;
 
         // Kill any tween still in flight on these targets so a stale OnComplete
         // can't deactivate us after a newer tween already changed our state.
@@ -471,6 +472,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 rt.localScale = new Vector3(0f, rt.localScale.y, rt.localScale.z);
                 rt.DOScaleX(1f, 0.35f).SetEase(Ease.OutQuad).SetUpdate(true);
             }
+
+            //display the code mode description for the currently selected code mode
+            if(descriptionText != null)
+            {
+                descriptionText.SetActive(true);
+            }
         }
         else
         {
@@ -487,6 +494,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetEase(Ease.InQuad)
                     .SetUpdate(true)
                     .OnComplete(() => textImageTransform.gameObject.SetActive(false));
+            }
+
+            //stop displaying the code mode description
+            if (descriptionText != null)
+            {
+                descriptionText.SetActive(false);
             }
         }
     }

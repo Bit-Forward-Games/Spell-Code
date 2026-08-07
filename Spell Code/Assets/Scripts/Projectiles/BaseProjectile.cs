@@ -23,6 +23,7 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public bool facingRight;
     [NonSerialized] public int logicFrame;
     [NonSerialized] public ushort animationFrame; //which frame of animation the projectile is on
+    [NonSerialized] public byte hitstop;
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
     [NonSerialized] public bool fadeOut = false;
     
@@ -99,6 +100,7 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+        hitstop = 0;
         animationFrame = 0;
         //hSpeed = Fixed.FromInt(0); 
         //vSpeed = Fixed.FromInt(0);
@@ -154,14 +156,25 @@ public abstract class BaseProjectile : MonoBehaviour
 
         if (meleeProjectile)
         {
-            
-            Fixed xOffset = Fixed.FromInt(ownerSpell.spawnOffsetX);
-            Fixed yOffset = Fixed.FromInt(ownerSpell.spawnOffsetY);
-            Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
-            Fixed newX = owner.position.X + (xOffset * direction);
-            Fixed newY = owner.position.Y + yOffset;
+            // A melee projectile is pinned to its owner every frame using the spell's spawn offsets,
+            // and BOTH links can go missing: ownerSpell is a serialized index and a reflect
+            // reassigns the owner, while owner itself can be cleared on a disconnect.
+            // Throwing here is the worst possible outcome -- it
+            // aborts the frame from inside RunFrame, and a frame that never completes can never be
+            // confirmed, so an online match WEDGES rather than desyncing.
+            // Fall back to a zero offset when only the spell is gone (still pinned to the owner),
+            // and leave the projectile where it is when the owner is gone. Determinism-safe: owner
+            // and ownerSpell are both sim state, so every peer takes the same branch.
+            if (owner != null)
+            {
+                Fixed xOffset = Fixed.FromInt(ownerSpell != null ? ownerSpell.spawnOffsetX : 0);
+                Fixed yOffset = Fixed.FromInt(ownerSpell != null ? ownerSpell.spawnOffsetY : 0);
+                Fixed direction = Fixed.FromInt(owner.facingRight ? 1 : -1);
+                Fixed newX = owner.position.X + (xOffset * direction);
+                Fixed newY = owner.position.Y + yOffset;
 
-            position = new FixedVec2(newX, newY);
+                position = new FixedVec2(newX, newY);
+            }
         }
         else
         {
@@ -344,6 +357,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(logicFrame);
         bw.Write(animationFrame); // Save animation frame directly
+        bw.Write(hitstop);
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
@@ -441,6 +455,7 @@ public abstract class BaseProjectile : MonoBehaviour
         facingRight = br.ReadBoolean();
         logicFrame = br.ReadInt32();
         animationFrame = br.ReadUInt16(); // Read animation frame
+        hitstop = br.ReadByte();
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();

@@ -35,15 +35,12 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-26"; // scz-26: Jump physics + a new spell.
-                                                    // SAVESTATE FORMAT CHANGED: Brimstone Cyclone Kick now serializes its
-                                                    // storedVspeed/vSpeedStored/storedFacingRight (they write owner.vSpd
-                                                    // and owner.hSpd every frame, so a rollback without them desyncs).
-                                                    // Also: player baseGravity 0.75 -> 0.45 plus a new variable-jump
-                                                    // fastfall (vSpd -= 0.3 while rising and holding down), projectiles now
-                                                    // use a constant refGravity/4 instead of the owner's mutable gravity,
-                                                    // ProcCondition gained OnCodeweaveEnter (appended), and the new spell
-                                                    // shifts SpellDictionary ids
+    private const string NetcodeVersion = "scz-29"; // scz-29: savestate layout changed (BaseProjectile.hitstop byte, PlayerController code-release frame-length list, AbaddonUppercut dropped doubleHitReady)
+                                                    // changed MEANING. It used to carry downJumpSlide ("disable diagonal
+                                                    // slide"); it now carries diagonalSlide ("allow it"), and the three
+                                                    // PlayerController conditions were inverted to match. The bit position
+                                                    // is unchanged, so an scz-27 peer reads it with the opposite sense and
+                                                    // slides differently -- a silent divergence, not a rejected packet.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

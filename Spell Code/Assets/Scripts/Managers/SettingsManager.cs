@@ -279,7 +279,7 @@ public class SettingsManager : MonoBehaviour
             player.toggleCodeInput,
             player.tapJump,
             player.vibeCoding,
-            player.downJumpSlide);
+            player.diagonalSlide);
     }
 
     public void SaveControlOptionsForPlayer(
@@ -306,7 +306,7 @@ public class SettingsManager : MonoBehaviour
         options.toggleCodeInput = toggleCodeInput;
         options.tapJump = tapJump;
         options.vibeCoding = vibeCoding;
-        options.downJumpSlide = downJumpSlide;
+        options.diagonalSlide = downJumpSlide;
         SaveInputBindingOverrides(player, options);
 
         SaveControlOptions();
@@ -459,7 +459,7 @@ public class SettingsManager : MonoBehaviour
         player.toggleCodeInput = options.toggleCodeInput;
         player.tapJump = options.tapJump;
         player.vibeCoding = options.vibeCoding;
-        player.downJumpSlide = options.downJumpSlide;
+        player.diagonalSlide = options.diagonalSlide;
         ApplyInputBindingOverrides(player, options);
         return true;
     }
@@ -630,7 +630,7 @@ public class SettingsManager : MonoBehaviour
         options.toggleCodeInput = false;
         options.tapJump = false;
         options.vibeCoding = false;
-        options.downJumpSlide = false;
+        options.diagonalSlide = false;
         SaveInputBindingOverrides(player, options);
     }
 
@@ -1070,7 +1070,7 @@ public class PlayerControlOptionsData
     public bool toggleCodeInput = false;
     public bool tapJump = false;
     public bool vibeCoding = false;
-    public bool downJumpSlide = false;
+    public bool diagonalSlide = false;
     public bool inputBindingsSaved = false;
     public string inputBindingOverridesJson = string.Empty;
 }

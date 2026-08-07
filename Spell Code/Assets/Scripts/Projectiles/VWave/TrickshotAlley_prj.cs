@@ -149,7 +149,9 @@ public class TrickshotAlley_prj : BaseProjectile
                 vSpeed = Fixed.FromInt(hitbox.yKnockback); 
                 proj.playerHitArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(16).Sum()+1;
-                ownerSpell.cooldownCounter-= 60;
+                // Reflection-adjacent, so ownerSpell can be invalidated by an owner reassignment.
+                // Skip the cooldown refund instead of throwing inside the sim.
+                if (ownerSpell != null) ownerSpell.cooldownCounter -= 60;
 
                 //Play the Trickshot Alley Hit SFX
                 SFX_Manager.Instance.PlaySpellcodeSound("Trickshot Alley Hit");

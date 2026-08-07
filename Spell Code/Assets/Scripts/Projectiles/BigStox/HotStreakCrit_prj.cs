@@ -65,7 +65,7 @@ public class HotStreakCrit_prj : BaseProjectile
         if (targetPID >= 0)
         {
             PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
-            FixedVec2 directionVector = new FixedVec2(cachedTargetPlayer.position.X - position.X, cachedTargetPlayer.position.Y - position.Y).Normalized();
+            FixedVec2 directionVector = GetDirectionTo(cachedTargetPlayer.position);
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);
         }
@@ -73,6 +73,22 @@ public class HotStreakCrit_prj : BaseProjectile
         {
             ProjectileManager.Instance.DeleteProjectile(this);
         }
+    }
+
+    private FixedVec2 GetDirectionTo(FixedVec2 targetPosition)
+    {
+        Fixed deltaX = targetPosition.X - position.X;
+        Fixed deltaY = targetPosition.Y - position.Y;
+        Fixed scale = Fixed.Max(Fixed.Abs(deltaX), Fixed.Abs(deltaY));
+
+        // Fixed32 cannot hold deltaX^2 + deltaY^2 for distances above roughly
+        // 181 units. Scale first so Normalized() only squares values in [-1, 1].
+        if (scale == Fixed.FromInt(0))
+        {
+            return FixedVec2.Zero;
+        }
+
+        return new FixedVec2(deltaX / scale, deltaY / scale).Normalized();
     }
 
     public override void ResetValues()

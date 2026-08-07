@@ -15,8 +15,10 @@ public class AbaddonUppercut_prj : BaseProjectile
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0;
+        fadeIn = true;
+        fadeOut = true;
         meleeProjectile = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 3, 2 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -38,8 +40,8 @@ public class AbaddonUppercut_prj : BaseProjectile
                     yOffset = 42,
                     width = 35*2,
                     height = 42*2,
-                    xKnockback = 1,
-                    yKnockback = 10,
+                    xKnockback = 2,
+                    yKnockback = 13,
                     damage = 15,
                     hitstun = 30,
                     attackLvl = 2,
@@ -64,7 +66,7 @@ public class AbaddonUppercut_prj : BaseProjectile
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(4).Sum()
+                animFrames.frameLengths.Take(5).Sum()
             }
         };
         base.LoadProjectile();

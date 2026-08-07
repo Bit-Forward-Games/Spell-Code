@@ -29,6 +29,27 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
         lastCodeModeDirection = 5;
     }
     
+    /// <summary>
+    /// Writes the controls panel's description label, or does nothing if it is not in the scene.
+    /// GameObject.Find only sees ACTIVE objects, so the lookup returns null whenever the label (or
+    /// any ancestor) is disabled -- including mid-teardown. Dereferencing it there throws out of a
+    /// selection handler, and an exception on that path is what strands the screen cover and
+    /// black-screens a transition (same failure mode as the old TextSetter.SetText crash). Fail
+    /// quietly instead.
+    /// </summary>
+    public static void SetControlOptionDescription(string description)
+    {
+        GameObject describeObject = GameObject.Find("Control Option Description Text");
+        TextMeshProUGUI describeText = describeObject != null
+            ? describeObject.GetComponent<TextMeshProUGUI>()
+            : null;
+
+        if (describeText != null)
+        {
+            describeText.text = description;
+        }
+    }
+
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
     {
@@ -133,38 +154,27 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
             if (name.Contains("Describe"))
             {
-                // GameObject.Find only sees ACTIVE objects, so this returns null whenever the label
-                // (or any ancestor) is disabled -- including mid-teardown. Dereferencing it there
-                // throws out of a selection handler, and an exception on that path is what strands
-                // the screen cover and black-screens a transition (same failure mode as the old
-                // TextSetter.SetText crash). Fail quietly instead.
-                GameObject describeObject = GameObject.Find("Control Option Description Text");
-                TextMeshProUGUI describeText = describeObject != null
-                    ? describeObject.GetComponent<TextMeshProUGUI>()
-                    : null;
-                if (describeText == null)
-                {
-                    return;
-                }
-
+                string description;
                 switch (controlOptionDescriptionIndex)
                 {
                     case 0:
-                        describeText.text = "Tap the up direction to jump";
+                        description = "Tap the up direction to jump";
                         break;
                     case 1:
-                        describeText.text = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
+                        description = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
                         break;
                     case 2:
-                        describeText.text = "Tap the code button again instead of releasing the button to execute the stored code";
+                        description = "Tap the code button again instead of releasing the button to execute the stored code";
                         break;
                     case 3:
-                        describeText.text = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
+                        description = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
                         break;
                     default:
-                        describeText.text = "";
+                        description = "";
                         break;
                 }
+
+                SetControlOptionDescription(description);
             }
         }
     }
@@ -174,6 +184,16 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     {
         if (name.Contains("_"))
         {
+            // The buttons that have no description of their own (key rebinds, Back, Reset) never
+            // run the OnSelect block above, so the panel would keep displaying whichever option was
+            // highlighted last. Blank it on the way out instead: the EventSystem always deselects
+            // the old object before selecting the new one, so a described option still overwrites
+            // this with its own text, and everything else correctly leaves the label empty.
+            if (name.Contains("Describe"))
+            {
+                SetControlOptionDescription("");
+            }
+
             Transform childTransform = transform.Find("digitalText");
             if (childTransform != null) 
             {

@@ -103,14 +103,6 @@ public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
         {
             logicFrame = lifeSpan-12;
         }
-
-        //if this is the start of the looping animation,...
-        if (logicFrame == animFrames.frameLengths.Take(5).Sum() + 1)
-        {
-            //Replay the GoP looping SFX
-            SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus", 1.0f, 1.0f);
-        }
-
     }
 
 

@@ -14,8 +14,8 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 /// The machine also owns the option state and re-applies it every simulated frame, so a resource the
 /// player dialled in holds instead of being decayed or recomputed back out from under them by the
 /// universal passives (demon aura falls off, stock stability is rebuilt OnStart, reps clear on
-/// respawn). Every option has an "Off" step that means "don't touch it", which leaves normal
-/// gameplay behaviour intact for practicing the resource itself.
+/// respawn). Every value option starts on a "Normal" step that means "don't touch it", so the
+/// training room plays exactly like a real match until something is deliberately dialled in.
 ///
 /// Training is an offline scene, so none of this runs during an online match.
 /// </summary>
@@ -47,6 +47,9 @@ public class TrainingOptionsMachine : MonoBehaviour
     private static readonly string[] DemonAuraGrades = { "D", "C", "B", "A", "S", "X" };
     private const int StockStabilityStep = 10;
     private const int StockStabilityStepCount = 11; // 0% through 100%
+
+    // Step 0 of every value option: leave the resource alone and let the match play out normally.
+    private const string NormalLabel = "Normal";
 
     // Mirrors the code weave loop PlayerController starts on entering CodeWeave. It stops that loop
     // on exiting CodeRelease, which a player frozen by this panel never reaches.
@@ -408,10 +411,28 @@ public class TrainingOptionsMachine : MonoBehaviour
             ownerPlayer.reps = (ushort)(repsIndex - 1);
         }
 
-        // Stock stability has no "Off" step, the row always holds the crit chance it shows.
-        ushort stockStability = (ushort)(stockStabilityIndex * StockStabilityStep);
-        ownerPlayer.stockStability = stockStability;
-        ownerPlayer.stockStabilityModified = stockStability;
+        if (stockStabilityIndex > 0)
+        {
+            ushort stockStability = (ushort)((stockStabilityIndex - 1) * StockStabilityStep);
+            ownerPlayer.stockStability = stockStability;
+            ownerPlayer.stockStabilityModified = stockStability;
+        }
+    }
+
+    /// <summary>
+    /// Stock stability is only ever recalculated by StockStability's OnStart proc, which fires on
+    /// spawn and on every spell pickup. Dropping the override would otherwise leave the last pinned
+    /// value stuck until one of those happened, so re-fire the proc to put the real value back now.
+    /// StockStability is the only spell that procs OnStart, so nothing else is disturbed.
+    /// </summary>
+    private void RestoreNaturalStockStability()
+    {
+        if (ownerPlayer == null)
+        {
+            return;
+        }
+
+        ownerPlayer.CheckAllSpellConditionsOfProcCon(ownerPlayer, ProcCondition.OnStart);
     }
 
     private static void ClearCooldowns(List<SpellData> spells)
@@ -667,9 +688,13 @@ public class TrainingOptionsMachine : MonoBehaviour
 
             case Option.StockStability:
             {
-                int next = Mathf.Clamp(stockStabilityIndex + delta, 0, StockStabilityStepCount - 1);
+                int next = Mathf.Clamp(stockStabilityIndex + delta, 0, StockStabilityStepCount);
                 changed = next != stockStabilityIndex;
                 stockStabilityIndex = next;
+                if (changed && stockStabilityIndex == 0)
+                {
+                    RestoreNaturalStockStability();
+                }
                 break;
             }
 
@@ -754,9 +779,10 @@ public class TrainingOptionsMachine : MonoBehaviour
         ui.SetRowToggle((int)Option.Cooldowns, !cooldownsEnabled);
         ui.SetRowToggle((int)Option.FlowState, flowStateForced);
 
-        ui.SetRowValue((int)Option.DemonAura, demonAuraIndex == 0 ? "Off" : DemonAuraGrades[demonAuraIndex - 1]);
-        ui.SetRowValue((int)Option.Reps, repsIndex == 0 ? "Off" : (repsIndex - 1).ToString());
-        ui.SetRowValue((int)Option.StockStability, (stockStabilityIndex * StockStabilityStep) + "%");
+        ui.SetRowValue((int)Option.DemonAura, demonAuraIndex == 0 ? NormalLabel : DemonAuraGrades[demonAuraIndex - 1]);
+        ui.SetRowValue((int)Option.Reps, repsIndex == 0 ? NormalLabel : (repsIndex - 1).ToString());
+        ui.SetRowValue((int)Option.StockStability,
+            stockStabilityIndex == 0 ? NormalLabel : ((stockStabilityIndex - 1) * StockStabilityStep) + "%");
         ui.SetRowValue((int)Option.AiBehavior, GetAiBehaviorName());
 
         for (int i = 0; i < OptionCount; i++)

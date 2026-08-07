@@ -14,9 +14,9 @@ public class SickleOfTheNight : SpellData
         cooldown = 240;
         spellInput = 0b_0000_0000_0000_0000_0001_1110_0000_0100; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
-        projectilePrefabs = new GameObject[4];
-        description = "Long-range Crescent slash.\n On hit, enhance next basic attack home in on the hit opponent, refreshing the enhancement on hit.\n Spawns more enhanced basic attacks when in Flow State<sprite name=\"FlowState\">.";
+        procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate };
+        projectilePrefabs = new GameObject[5];
+        description = "Long-range Crescent slash.\n On hit, enhance next basic attack home in on the marked opponent.\n Spawns more enhanced basic attacks when in Flow State<sprite name=\"FlowState\">.";
         spawnOffsetY = 32;
 
     }
@@ -28,9 +28,18 @@ public class SickleOfTheNight : SpellData
     {
         switch (targetProcCon)
         {
+            case ProcCondition.ActiveOnCast:
+                owner.vSpd = Fixed.FromInt(3);
+                break;
             case ProcCondition.ActiveOnHit:
-                targetPID = defender.pID;
-                owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
+                if (!defender.hitboxData.basicAttackHitbox)
+                {
+                    owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
+                    targetPID = defender.pID;
+                    PlayerController cachedPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), cachedPlayer.facingRight, cachedPlayer.position, true);
+
+                }
                 break;
             case ProcCondition.OnCastBasic:
                 
@@ -44,6 +53,28 @@ public class SickleOfTheNight : SpellData
                     }
                 }
             break;
+            case ProcCondition.OnUpdate:
+                if (projectileInstances[4].activeSelf)
+                {
+                    // Guard EVERY deref, the marked player can be gone entirely (disconnect in a 3/4P
+                    // match -> GetPlayerByPID returns null; stale -1 pID would even index players[-2])
+                    // an unguarded deref crashes the sim on every client.
+                    PlayerController marked = targetPID >= 0 ? GameManager.Instance.GetPlayerByPID(targetPID) : null;
+                    if (marked != null && marked.isAlive)
+                    {
+                        projectileInstances[4].GetComponent<BaseProjectile>().position = marked.position;
+                        projectileInstances[4].GetComponent<BaseProjectile>().facingRight = marked.facingRight;
+                    }
+                    else
+                    {
+                        targetPID = -1;
+                    }
+                }
+                if(owner.basicSpawnOverride != spellName)
+                {
+                    targetPID = -1;
+                }
+                break;
             default:
                 break;
         }

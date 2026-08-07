@@ -5,6 +5,7 @@ using System.Linq;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using Steamworks.ServerList;
+using System.Collections.Generic;
 
 public class TeleFragPrism : SpellData
 {
@@ -20,6 +21,7 @@ public class TeleFragPrism : SpellData
         spawnOffsetX = 0;
         spawnOffsetY = 0;
         description = "Place down a refracting prism.\nYour next Basic Attack teleports you across the prism, dealing damage at your new location.";
+        codeReleaseFrameLengthsOverride = new List<int>(){1, 1, 1, 1, 1, 1};
     }
 
 

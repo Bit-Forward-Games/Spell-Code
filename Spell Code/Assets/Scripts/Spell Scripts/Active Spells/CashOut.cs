@@ -1,5 +1,6 @@
 using UnityEngine;
 using BestoNet.Types;
+using System.Collections.Generic;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
@@ -18,7 +19,7 @@ public class CashOut : SpellData
         projectilePrefabs = new GameObject[10];
 
         description = "Enhance basic attack into short-ranged burst shot.\nOn \"Crit\"<sprite name=\"StockStability\">, The enhanced basic attack becomes larger and breaks armor.";
-
+        codeReleaseFrameLengthsOverride = new List<int>(){1, 1, 1, 1, 1, 1};
         spawnOffsetX = 15;
         //spawnOffsetY = 0;
     }

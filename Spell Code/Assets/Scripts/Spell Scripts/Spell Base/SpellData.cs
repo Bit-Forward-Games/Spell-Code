@@ -2,21 +2,11 @@ using UnityEngine;
 using System.Collections.Generic;
 using BestoNet.Types;
 using System.IO;
-
-
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 using System;
 using UnityEngine.Video;
 
-/*public enum SpellDirection 
-{ 
-    None, 
-    Up, 
-    Down, 
-    Left, 
-    Right 
-}*/
 
 public enum SpellType
 {
@@ -84,7 +74,7 @@ public abstract class SpellData : MonoBehaviour
 
     [NonSerialized]
     public byte priorityOverride = 0;   //This Variable when non-zero allows for "high priority" spellcodes to resolve their effects first if necessary, e.g., blue chip trader should always resolve before Let It Ride.
-
+    [NonSerialized] public List<int> codeReleaseFrameLengthsOverride = null; // note that these are the default framelengths: 2,3,5,6,8,8
     //[Header("Casting Requirements")]
     //public SpellDirection[] inputSequence;
     [NonSerialized]

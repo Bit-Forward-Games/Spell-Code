@@ -23,6 +23,7 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public bool facingRight;
     [NonSerialized] public int logicFrame;
     [NonSerialized] public ushort animationFrame; //which frame of animation the projectile is on
+    [NonSerialized] public byte hitstop;
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
     [NonSerialized] public bool fadeOut = false;
     
@@ -99,6 +100,7 @@ public abstract class BaseProjectile : MonoBehaviour
     {
         activeHitboxGroupIndex = 0;
         logicFrame = 0;
+        hitstop = 0;
         animationFrame = 0;
         //hSpeed = Fixed.FromInt(0); 
         //vSpeed = Fixed.FromInt(0);
@@ -344,6 +346,7 @@ public abstract class BaseProjectile : MonoBehaviour
         bw.Write(facingRight);
         bw.Write(logicFrame);
         bw.Write(animationFrame); // Save animation frame directly
+        bw.Write(hitstop);
         bw.Write(activeHitboxGroupIndex);
         bw.Write(lifeSpan); // Save lifespan in case it changes dynamically? (If static, no need)
         bw.Write(deleteOnHit);
@@ -441,6 +444,7 @@ public abstract class BaseProjectile : MonoBehaviour
         facingRight = br.ReadBoolean();
         logicFrame = br.ReadInt32();
         animationFrame = br.ReadUInt16(); // Read animation frame
+        hitstop = br.ReadByte();
         activeHitboxGroupIndex = br.ReadByte();
         lifeSpan = br.ReadUInt16(); // Read lifespan
         deleteOnHit = br.ReadBoolean();

@@ -1,37 +1,36 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using BestoNet.Types;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class HellWaveFistEnhanced_prj : BaseProjectile
+public class AbaddonUppercutEnhanced_prj : BaseProjectile
 {
-    private const int speed = 6;
+
     protected override void InitializeDefaults()
     {
-        projName = "Hell Wave Fist Enhanced";
+        projName = "Abaddon Uppercut Enhanced";
         //hSpeed = 3f;
         //vSpeed = 0f;
-        lifeSpan = 45;
-        maxMultiHitCount = 3;
+        lifeSpan = 0;
+        maxMultiHitCount = 2;
         multiHitCooldown = 5;
-        deleteOnHit = true;
         fadeIn = true;
         fadeOut = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4}, true);
+        meleeProjectile = true;
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 3, 2 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
-        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * speed); // Set horizontal speed based on facing direction
+        base.SpawnProjectile(facingRight, spawnOffset, "Abaddon Uppercut Enhanced");
     }
 
     public override void LoadProjectile()
     {
-        deleteOnHit = true;
         projectileHitboxes = new HitboxGroup[2];
         projectileHitboxes[1] = new HitboxGroup
         {
@@ -39,14 +38,14 @@ public class HellWaveFistEnhanced_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -20,
-                    yOffset = 20,
-                    width = 40,
-                    height = 40,
-                    xKnockback = 3,
-                    yKnockback = 5,
-                    damage = 8,
-                    hitstun = 25,
+                    xOffset = -30,
+                    yOffset = 42,
+                    width = 35*2,
+                    height = 42*2,
+                    xKnockback = 2,
+                    yKnockback = 13,
+                    damage = 10,
+                    hitstun = 30,
                     attackLvl = 2,
                 }
             },
@@ -65,13 +64,15 @@ public class HellWaveFistEnhanced_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                8
+                animFrames.frameLengths.Take(2).Sum()+1
             },
             endFrames = new List<int>
             {
-                lifeSpan
+                animFrames.frameLengths.Take(5).Sum()
             }
         };
         base.LoadProjectile();
     }
+
+    
 }

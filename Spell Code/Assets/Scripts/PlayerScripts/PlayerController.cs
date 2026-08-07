@@ -137,7 +137,7 @@ public class PlayerController : MonoBehaviour
     public PlayerState prevState;
     public SpriteRenderer spriteRenderer;
     public SpriteMask spriteMask;
-
+    [NonSerialized] public List<int> codeReleaseFrameLengthsOverride = null;
     //Character Data
     public CharacterData charData { get; private set; }
     [NonSerialized] public const float baseGravity = .45f;
@@ -1757,7 +1757,7 @@ public class PlayerController : MonoBehaviour
                 
 
 
-                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
+                if (logicFrame == AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Take(3).Sum())
                 {
                     //uint testCode = stateSpecificArg & ~(1u << 4);
                     stateSpecificArg &= ~(1u << 4);
@@ -1954,7 +1954,7 @@ public class PlayerController : MonoBehaviour
                     }
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
+                if (logicFrame >= AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Sum())
                 {
                     if (input.ButtonStates[0] == ButtonState.Held)
                     {
@@ -3009,6 +3009,17 @@ public class PlayerController : MonoBehaviour
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
 
+                codeReleaseFrameLengthsOverride = null;
+                for (int i = 0; i < spellList.Count; i++)
+                {
+                    SpellData spell = spellList[i];
+                    if (spell.codeReleaseFrameLengthsOverride != null && CheckSpellCodeInput(i))
+                    {
+                        codeReleaseFrameLengthsOverride = spell.codeReleaseFrameLengthsOverride;
+                        break;
+                    }
+                }
+
                 //reset stored code after using it
                 storedCode = 0;
                 storedCodeDuration = 0;
@@ -3044,6 +3055,7 @@ public class PlayerController : MonoBehaviour
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 armor = false;
                 superArmor = false;
+                codeReleaseFrameLengthsOverride = null;
                 CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnCastEnd);
                 ClearInputDisplay();
                 break;
@@ -3713,6 +3725,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
+        SerializeIntList(bw, codeReleaseFrameLengthsOverride);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -3924,6 +3937,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
+        SerializeIntList(bw, codeReleaseFrameLengthsOverride);
         bw.Write(tapJump);
         bw.Write(toggleCodeInput); // hashed for divergence detection
         bw.Write(vibeCoding);
@@ -4003,6 +4017,43 @@ public class PlayerController : MonoBehaviour
         return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : string.Empty;
     }
 
+    private static void SerializeIntList(BinaryWriter bw, List<int> values)
+    {
+        bw.Write(values?.Count ?? -1);
+        if (values == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < values.Count; i++)
+        {
+            bw.Write(values[i]);
+        }
+    }
+
+    private static List<int> DeserializeIntList(BinaryReader br, List<int> values)
+    {
+        int count = br.ReadInt32();
+        if (count < 0)
+        {
+            return null;
+        }
+
+        values ??= new List<int>(count);
+        values.Clear();
+        if (values.Capacity < count)
+        {
+            values.Capacity = count;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            values.Add(br.ReadInt32());
+        }
+
+        return values;
+    }
+
     public void Deserialize(BinaryReader br)
     {
         position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
@@ -4039,6 +4090,7 @@ public class PlayerController : MonoBehaviour
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
+        codeReleaseFrameLengthsOverride = DeserializeIntList(br, codeReleaseFrameLengthsOverride);
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isConnected = br.ReadBoolean();

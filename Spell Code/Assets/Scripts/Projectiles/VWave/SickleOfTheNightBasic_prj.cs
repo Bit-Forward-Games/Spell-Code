@@ -19,7 +19,7 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
         vSpeed = Fixed.FromInt(0);
         fadeIn = true;
         fadeOut = true;
-        lifeSpan = 90;
+        lifeSpan = 120;
         deleteOnHit = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3}, true);
     }
@@ -100,15 +100,15 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -16,
-                    yOffset = 16,
-                    width = 32,
-                    height = 32,
+                    xOffset = -20,
+                    yOffset = 20,
+                    width = 40,
+                    height = 40,
                     xKnockback = 3,
                     yKnockback = 5,
                     damage = 15,
                     hitstun = 15,
-                    attackLvl = 1,
+                    attackLvl = 2,
                     basicAttackHitbox = true
                 }
             },
@@ -121,7 +121,7 @@ public class SickleOfTheNightBasic_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                4
+                8
             },
             endFrames = new List<int>
             {

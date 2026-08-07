@@ -19,6 +19,7 @@ public class BrimstoneCycloneKick_prj : BaseProjectile
         lifeSpan = 30;
         fadeIn = true;
         fadeOut = true;
+        deleteOnHurt = true;
         meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3 }, true);
     }

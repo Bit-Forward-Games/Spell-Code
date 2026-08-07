@@ -54,12 +54,24 @@ public class ArmoryOfHephaestus : SpellData
                 {
                     case 0://anvil
                         owner.SpawnToast("ANVIL", GameManager.colors["yellow"]);
+
+                        //play the anvil display sound
+                        SFX_Manager.Instance.PlaySpellcodeSound("Armory Of Hephaestus Anvil Display");
+                        
                         break;
                     case 1://spear
                         owner.SpawnToast("SPEAR", GameManager.colors["yellow"]);
+
+                        //play the anvil display sound
+                        SFX_Manager.Instance.PlaySpellcodeSound("Armory Of Hephaestus Spear Display");
+
                         break;
                     case 2://hammer
                         owner.SpawnToast("HAMMER", GameManager.colors["yellow"]);
+
+                        //play the anvil display sound
+                        SFX_Manager.Instance.PlaySpellcodeSound("Armory Of Hephaestus Hammer Display");
+
                         break;
                         
                 }

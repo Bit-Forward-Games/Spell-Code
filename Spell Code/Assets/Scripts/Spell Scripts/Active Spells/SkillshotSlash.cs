@@ -11,7 +11,7 @@ public class SkillshotSlash : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[1];
-        description = "Medium-range slash.\nHitting this partially refunds cooldown when in Flow State <sprite name=\"FlowState\">.";
+        description = "Medium-range slash.\nHitting this partially refunds cooldown when in Flow State<sprite name=\"FlowState\">.";
 
     }
 

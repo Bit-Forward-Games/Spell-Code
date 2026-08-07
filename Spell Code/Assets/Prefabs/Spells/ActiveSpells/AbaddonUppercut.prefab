@@ -46,9 +46,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projectilePrefabs:
   - {fileID: 3459829395073810853, guid: 0af6c90e365ba644887a8f26ae5b81af, type: 3}
+  - {fileID: 3459829395073810853, guid: b70e658e686f97845807d44c81c2730d, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
   readyIcon: {fileID: 21300000, guid: 5e1574ef9a0feb942a2db3aac9231a68, type: 3}
   notReadyIcon: {fileID: 21300000, guid: 4d278ef567b0e664d822f4919b5f9ead, type: 3}
   SpellVideo: {fileID: 32900000, guid: 298afc5861e374f4991e864f23a93672, type: 3}
-  doubleHitReady: 0

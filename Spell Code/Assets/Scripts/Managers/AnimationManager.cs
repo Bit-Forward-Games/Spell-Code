@@ -123,6 +123,12 @@ public class AnimationManager : MonoBehaviour
     public List<int> GetFrameLengthsForCurrentState(PlayerController player)
     {
         fighters = GetFighters();
+
+        if (player.state == PlayerState.CodeRelease && player.codeReleaseFrameLengthsOverride != null)
+        {
+            return player.codeReleaseFrameLengthsOverride;
+        }
+
         List<int> frameLengthsData = CharacterDataDictionary.GetAnimFrames(player.characterName, player.state)
                 .frameLengths;
 

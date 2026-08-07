@@ -10,39 +10,43 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23d61d99ec0214a1ebac53fb2eb500cf, type: 3}
-  m_Name: duel_NoFloor_Arena StageDataSO
+  m_Name: BigNoFloor_Arena StageDataSO
   m_EditorClassIdentifier: Assembly-CSharp::StageDataSO
   platformCenter:
-  - {x: -64, y: 126}
-  - {x: 64, y: 46}
-  - {x: -64, y: -34}
+  - {x: 144, y: -146}
+  - {x: -144, y: -146}
+  - {x: 0, y: -50}
+  - {x: 88, y: 46}
+  - {x: -88, y: 46}
   platformExtent:
-  - {x: 32, y: 2}
-  - {x: 32, y: 2}
-  - {x: 32, y: 2}
+  - {x: 16, y: 2}
+  - {x: 16, y: 2}
+  - {x: 48, y: 2}
+  - {x: 40, y: 2}
+  - {x: 40, y: 2}
   solidCenter:
-  - {x: 0, y: -128}
-  - {x: 272, y: 0}
-  - {x: -272, y: 0}
+  - {x: 0, y: -160}
+  - {x: 296, y: 0}
+  - {x: -296, y: 0}
   solidExtent:
-  - {x: 96, y: 16}
-  - {x: 112, y: 224}
-  - {x: 112, y: 224}
+  - {x: 128, y: 16}
+  - {x: 56, y: 288}
+  - {x: 56, y: 288}
   playerSpawnTransform:
-  - {x: -64, y: -112}
-  - {x: 64, y: -112}
-  - {x: -64, y: -112}
-  - {x: 64, y: -112}
+  - {x: -88, y: 49}
+  - {x: 88, y: 49}
+  - {x: -87, y: -143}
+  - {x: 88, y: -143}
   npcSpawnTransform: []
   activatableSolidCenter: []
   activatableSolidExtent: []
   portalAs: []
   portalBs: []
-  borderMin: {x: -240, y: -200, z: 0}
-  borderMax: {x: 240, y: 200, z: 0}
-  camBorderMin: {x: -300, y: -130, z: 0}
-  camBorderMax: {x: 300, y: 130, z: 0}
+  borderMin: {x: -288, y: -264, z: 0}
+  borderMax: {x: 288, y: 264, z: 0}
+  camBorderMin: {x: 0, y: 0, z: 0}
+  camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 1
-  stageType: 1
+  stageType: 2
   dynamicCamera: 0
-  stageName: 
+  stageName: No Floor

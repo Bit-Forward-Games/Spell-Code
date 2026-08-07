@@ -17,7 +17,9 @@ public class BrimstoneCycloneKick_prj : BaseProjectile
         multiHitCooldown = 8;
         maxMultiHitCount = 3;
         lifeSpan = 30;
+        fadeIn = true;
         fadeOut = true;
+        deleteOnHurt = true;
         meleeProjectile = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 3, 3, 3, 3 }, true);
     }
@@ -66,7 +68,7 @@ public class BrimstoneCycloneKick_prj : BaseProjectile
             hitbox3 = new List<HitboxData>{
                 new HitboxData
                 {
-                    xOffset = 12,
+                    xOffset = -12,
                     yOffset = -1*2,
                     width = 12*2,
                     height = 6*2,

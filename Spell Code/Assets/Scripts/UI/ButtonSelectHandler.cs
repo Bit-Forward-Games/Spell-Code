@@ -21,6 +21,8 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     int lastCodeModeDirection;
     const int PUNK_CODE_MODE_INDEX = 1;
 
+    public int controlOptionDescriptionIndex;
+
     public void ResetCodeModePromptPresentation()
     {
         wasCodeModeMenuOpen = false;
@@ -127,6 +129,42 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetTarget(findMatchSelector)
                     .SetEase(Ease.OutQuad)
                     .SetUpdate(true);
+            }
+
+            if (name.Contains("Describe"))
+            {
+                // GameObject.Find only sees ACTIVE objects, so this returns null whenever the label
+                // (or any ancestor) is disabled -- including mid-teardown. Dereferencing it there
+                // throws out of a selection handler, and an exception on that path is what strands
+                // the screen cover and black-screens a transition (same failure mode as the old
+                // TextSetter.SetText crash). Fail quietly instead.
+                GameObject describeObject = GameObject.Find("Control Option Description Text");
+                TextMeshProUGUI describeText = describeObject != null
+                    ? describeObject.GetComponent<TextMeshProUGUI>()
+                    : null;
+                if (describeText == null)
+                {
+                    return;
+                }
+
+                switch (controlOptionDescriptionIndex)
+                {
+                    case 0:
+                        describeText.text = "Tap the up direction to jump";
+                        break;
+                    case 1:
+                        describeText.text = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
+                        break;
+                    case 2:
+                        describeText.text = "Tap the code button again instead of releasing the button to execute the stored code";
+                        break;
+                    case 3:
+                        describeText.text = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
+                        break;
+                    default:
+                        describeText.text = "";
+                        break;
+                }
             }
         }
     }

@@ -6,23 +6,27 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SkillshotSlash_Projectile : BaseProjectile
+public class AbaddonUppercutEnhanced_prj : BaseProjectile
 {
 
     protected override void InitializeDefaults()
     {
-        projName = "Skillshot Slash";
+        projName = "Abaddon Uppercut Enhanced";
         //hSpeed = 3f;
         //vSpeed = 0f;
         lifeSpan = 0;
+        maxMultiHitCount = 2;
+        multiHitCooldown = 5;
+        fadeIn = true;
+        fadeOut = true;
         meleeProjectile = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 3, 3, 3, 3, 3 }, false);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 2, 2, 4, 4, 3, 2 }, false);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "Abaddon Uppercut Enhanced");
     }
 
     public override void LoadProjectile()
@@ -34,33 +38,18 @@ public class SkillshotSlash_Projectile : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -5*2,
-                    yOffset = 12*2,
-                    width = 65*2,
-                    height = 27*2,
-                    xKnockback = 4,
-                    yKnockback = 3,
-                    damage = 15,
-                    hitstun = 15,
+                    xOffset = -30,
+                    yOffset = 42,
+                    width = 35*2,
+                    height = 42*2,
+                    xKnockback = 2,
+                    yKnockback = 13,
+                    damage = 10,
+                    hitstun = 30,
                     attackLvl = 2,
                 }
             },
-            hitbox2 = new List<HitboxData>
-            {
-                new HitboxData
-                {
-                    xOffset = 60*2,
-                    yOffset = 12*2,
-                    width = 14*2,
-                    height = 19*2,
-                    xKnockback = 1,
-                    yKnockback = 5,
-                    damage = 20,
-                    hitstun = 30,
-                    attackLvl = 3,
-                    sweetSpot = true
-                }
-            },
+            hitbox2 = new List<HitboxData>(),
             hitbox3 = new List<HitboxData>(),
             hitbox4 = new List<HitboxData>()
         };
@@ -79,7 +68,7 @@ public class SkillshotSlash_Projectile : BaseProjectile
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(3).Sum()
+                animFrames.frameLengths.Take(5).Sum()
             }
         };
         base.LoadProjectile();

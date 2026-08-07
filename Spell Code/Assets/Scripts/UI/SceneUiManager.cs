@@ -195,6 +195,13 @@ public class SceneUiManager : MonoBehaviour
 
     public void QuitGame()
     {
+        // clear any menu freeze, and stop play mode in the Editor where
+        // Application.Quit() does nothing.
+        Time.timeScale = 1f;
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 }

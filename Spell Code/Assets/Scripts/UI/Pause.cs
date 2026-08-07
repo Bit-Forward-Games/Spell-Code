@@ -1370,13 +1370,34 @@ public class Pause : MonoBehaviour
     {
         // DataManager can be legitimately absent (fresh SoloLobby boot has none; ExecuteOrder66
         // destroys the persistent one). An unguarded SaveToFile threw here and aborted the quit
-        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit always.
-        if (DataManager.Instance != null)
+        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit ALWAYS:
+        // the null check alone is not enough, because anything thrown INSIDE SaveToFile aborts the
+        // quit exactly the same way and strands the player behind a timeScale-0 pause menu.
+        try
         {
-            DataManager.Instance.SaveToFile();
+            if (DataManager.Instance != null)
+            {
+                DataManager.Instance.SaveToFile();
+            }
         }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Save on quit failed, quitting anyway: {e}");
+        }
+
         Debug.Log("Quitting Spell Code SlingerZ");
+
+        // Nothing past this point may throw or the player is trapped. Release the pause freeze
+        // first so a quit that somehow does not take still leaves a responsive game rather than a
+        // frozen one.
+        Time.timeScale = 1f;
+#if UNITY_EDITOR
+        // Application.Quit() is a no-op in the Editor: the pause menu just sits there at
+        // timeScale 0
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 
     public void MasterVolume()

@@ -49,11 +49,21 @@ public class AsuranBlades_Projectile : BaseProjectile
             this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * fixedSpeed);
         }
         
-        if(spawnOffset.X.ToFloat() - ownerSpell.spawnOffsetX > 1)
+        // ownerSpell can be null after a reflect reassigns the owner; treat a missing spell as a zero
+        // spawn offset rather than throwing inside the sim. Same value on every peer, so the branch
+        // taken below stays identical across machines.
+        int ownerSpawnOffsetX = ownerSpell != null ? ownerSpell.spawnOffsetX : 0;
+
+        // Compared entirely in Fixed rather than via ToFloat(). This branch picks the blade's vertical
+        // angle, so it feeds the simulation and ToFloat() puts IEEE rounding on the deciding value,
+        // which is the class of thing that diverges across platforms. Fixed32 is bit-exact everywhere.
+        Fixed spawnOffsetDelta = spawnOffset.X - Fixed.FromInt(ownerSpawnOffsetX);
+
+        if(spawnOffsetDelta > Fixed.FromInt(1))
         {
             this.vSpeed = Fixed.FromInt(-fixedSpeed/2);
         }
-        else if(spawnOffset.X.ToFloat() - ownerSpell.spawnOffsetX > 0)
+        else if(spawnOffsetDelta > Fixed.FromInt(0))
         {
             this.vSpeed = Fixed.FromInt(0);
         }

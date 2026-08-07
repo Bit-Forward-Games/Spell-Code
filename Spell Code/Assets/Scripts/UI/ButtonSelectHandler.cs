@@ -133,7 +133,20 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
             if (name.Contains("Describe"))
             {
-                TextMeshProUGUI describeText = GameObject.Find("Control Option Description Text").GetComponent<TextMeshProUGUI>();
+                // GameObject.Find only sees ACTIVE objects, so this returns null whenever the label
+                // (or any ancestor) is disabled -- including mid-teardown. Dereferencing it there
+                // throws out of a selection handler, and an exception on that path is what strands
+                // the screen cover and black-screens a transition (same failure mode as the old
+                // TextSetter.SetText crash). Fail quietly instead.
+                GameObject describeObject = GameObject.Find("Control Option Description Text");
+                TextMeshProUGUI describeText = describeObject != null
+                    ? describeObject.GetComponent<TextMeshProUGUI>()
+                    : null;
+                if (describeText == null)
+                {
+                    return;
+                }
+
                 switch (controlOptionDescriptionIndex)
                 {
                     case 0:

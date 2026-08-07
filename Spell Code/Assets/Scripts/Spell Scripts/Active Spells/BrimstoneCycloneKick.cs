@@ -57,20 +57,22 @@ public class BrimestoneCycloneKick : SpellData
             default:
                 break;
         }
+
+
     }
     public override void Serialize(System.IO.BinaryWriter bw)
     {
         base.Serialize(bw);
+        bw.Write(storedVspeed.RawValue);
         bw.Write(vSpeedStored);
         bw.Write(storedFacingRight);
-        bw.Write(storedVspeed.RawValue);
     }
 
     public override void Deserialize(System.IO.BinaryReader br)
     {
         base.Deserialize(br);
+        storedVspeed = new Fixed(br.ReadInt32());
         vSpeedStored = br.ReadBoolean();
         storedFacingRight = br.ReadBoolean();
-        storedVspeed = new Fixed(br.ReadInt32());
     }
 }

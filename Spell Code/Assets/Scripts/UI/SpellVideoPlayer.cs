@@ -20,6 +20,7 @@ public sealed class SpellVideoPlayer : MonoBehaviour
     private bool playWhenPrepared;
     private bool hasBeenDisabled;
     private bool resumeAfterEnable;
+    private bool resourcesReleased;
 
     public bool IsPrepared =>
         videoPlayer != null
@@ -74,13 +75,94 @@ public sealed class SpellVideoPlayer : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (videoPlayer == null || !eventsRegistered)
+        TryReleaseResources();
+    }
+
+    private void OnApplicationQuit()
+    {
+        TryReleaseResources();
+    }
+
+    /// <summary>
+    /// Stops every loaded spell preview before Unity begins destroying native player objects.
+    /// FindObjectsInactive is intentional: a hidden preview can still own a prepared decoder even
+    /// after its GameObject was disabled.
+    /// </summary>
+    public static void ReleaseAllForShutdown()
+    {
+        SpellVideoPlayer[] players = Object.FindObjectsByType<SpellVideoPlayer>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] != null)
+            {
+                players[i].TryReleaseResources();
+            }
+        }
+
+        if (players.Length > 0)
+        {
+            Debug.Log($"Released {players.Length} spell video player(s) before shutdown.");
+        }
+    }
+
+    private void TryReleaseResources()
+    {
+        try
+        {
+            ReleaseResources();
+        }
+        catch (System.Exception exception)
+        {
+            // Cleanup must never prevent Application.Quit from being reached. Unity will still do
+            // its normal component teardown if an individual preview cannot be released early.
+            Debug.LogWarning($"Could not release spell video resources cleanly: {exception.Message}", this);
+        }
+    }
+
+    /// <summary>
+    /// Pause deliberately keeps a VideoPlayer prepared for fast UI reopening. Destruction and app
+    /// shutdown are different: Stop releases the decoder's native textures and buffered content so
+    /// Unity does not have to tear down active MP4 workers while the process is exiting.
+    /// </summary>
+    private void ReleaseResources()
+    {
+        if (resourcesReleased)
         {
             return;
         }
 
-        videoPlayer.prepareCompleted -= HandlePrepared;
-        videoPlayer.errorReceived -= HandleError;
+        resourcesReleased = true;
+        isPreparing = false;
+        playWhenPrepared = false;
+        resumeAfterEnable = false;
+
+        if (videoPlayer != null && eventsRegistered)
+        {
+            videoPlayer.prepareCompleted -= HandlePrepared;
+            videoPlayer.errorReceived -= HandleError;
+        }
+        eventsRegistered = false;
+
+        ApplyOutputTexture(null);
+
+        if (videoPlayer == null)
+        {
+            return;
+        }
+
+        videoPlayer.Stop();
+        videoPlayer.clip = null;
+        videoPlayer.targetTexture = null;
+
+        if (videoPlayer.renderMode == VideoRenderMode.MaterialOverride)
+        {
+            videoPlayer.targetMaterialRenderer = null;
+        }
+
+        videoPlayer.enabled = false;
     }
 
     public void SetVideo(VideoClip clip)

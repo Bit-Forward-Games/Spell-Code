@@ -138,6 +138,9 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public SpriteMask spriteMask;
     [NonSerialized] public List<int> codeReleaseFrameLengthsOverride = null;
+    //codeReleaseFrameLengthsOverride aliases the casting spell's own list, so deserializing in place
+    //would rewrite that spell's template. Restore into a buffer this player owns instead.
+    [NonSerialized] private List<int> codeReleaseOverrideBuffer = null;
     //Character Data
     public CharacterData charData { get; private set; }
     [NonSerialized] public const float baseGravity = .45f;
@@ -892,6 +895,27 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void ResetPlayer()
     {
+        ResetPlayerForNewMatch(includeStartingSpell: true);
+    }
+
+    /// <summary>
+    /// Resets this player for the MainMenu match lobby while deliberately leaving the spell list
+    /// empty. The retained player can then choose a new starting spell before the next match.
+    /// </summary>
+    public void ResetPlayerForStartingSpellSelection()
+    {
+        ResetPlayerForNewMatch(includeStartingSpell: false);
+        chosenSpell = false;
+        chosenStartingSpell = false;
+        startingSpellAdded = false;
+        storedKillBonus = 0;
+        roundRam = 0;
+        ramBounty = 0;
+        hasHighestBounty = false;
+    }
+
+    private void ResetPlayerForNewMatch(bool includeStartingSpell)
+    {
         ClearToasts();
         ClearSpellList();
 
@@ -907,7 +931,10 @@ public class PlayerController : MonoBehaviour
         // AddSpellToSpellList(charData.startingInventory[i]);
         //}
 
-        AddSpellToSpellList(startingSpell);
+        if (includeStartingSpell)
+        {
+            AddSpellToSpellList(startingSpell);
+        }
 
         roundsWon = 0;
 
@@ -1128,7 +1155,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1227,6 +1254,14 @@ public class PlayerController : MonoBehaviour
             {
                 return;
             }
+        }
+
+        // Training room options panel. It navigates off this same input snapshot, so freeze the
+        // player for as long as it is up (including the frame it closes, so the back press can't
+        // also be read as a code input)
+        if (TrainingOptionsMachine.HandleMenuInput(this))
+        {
+            return;
         }
         
 
@@ -4066,7 +4101,12 @@ public class PlayerController : MonoBehaviour
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
-        codeReleaseFrameLengthsOverride = DeserializeIntList(br, codeReleaseFrameLengthsOverride);
+        List<int> restoredCodeReleaseFrameLengths = DeserializeIntList(br, codeReleaseOverrideBuffer);
+        if (restoredCodeReleaseFrameLengths != null)
+        {
+            codeReleaseOverrideBuffer = restoredCodeReleaseFrameLengths;
+        }
+        codeReleaseFrameLengthsOverride = restoredCodeReleaseFrameLengths;
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isConnected = br.ReadBoolean();

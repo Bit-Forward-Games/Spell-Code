@@ -95,8 +95,7 @@ public class HitboxManager : MonoBehaviour
 
         foreach (BaseProjectile projectile in projectileList)
         {
-            if (projectile.projectileHitboxes.Length == 0) continue;
-            HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
+            if (!TryGetActiveHitboxGroup(projectile, out HitboxGroup activeGroup)) continue;
             // Combine all hitbox lists into one sequence
             var activeProjHit = activeGroup.hitbox1
                 .Concat(activeGroup.hitbox2)
@@ -213,11 +212,54 @@ public class HitboxManager : MonoBehaviour
         return ProcessSingleProjectileCollisison(projectile, hurtboxData, defenderPos, out _, defenderFacingRight);
     }
 
+    // Logged at most once per session: the condition persists for a projectile's whole life, so
+    // logging per occurrence would flood the player.log.
+    private static bool hasLoggedHitboxGroupIndexOverflow;
+
+    /// <summary>
+    /// Bounds-checked read of a projectile's active hitbox group.
+    ///
+    /// BaseProjectile sets activeHitboxGroupIndex to (frameData window index + 1), so a projectile
+    /// whose projectileHitboxes array is sized without the +1 slot for group 0 indexes past the end
+    /// — which threw IndexOutOfRangeException from inside RunFrame and, online, wedges the match
+    /// permanently rather than merely desyncing it (a frame that throws can never be confirmed).
+    /// Skipping the projectile instead is safe for determinism: both the index and the array length
+    /// are identical on every peer, so every machine skips the same projectile on the same frame.
+    /// </summary>
+    private static bool TryGetActiveHitboxGroup(BaseProjectile projectile, out HitboxGroup activeGroup)
+    {
+        activeGroup = null;
+
+        HitboxGroup[] groups = projectile != null ? projectile.projectileHitboxes : null;
+        if (groups == null || groups.Length == 0)
+        {
+            return false;
+        }
+
+        // activeHitboxGroupIndex is a byte, so it can only ever overflow upward.
+        int index = projectile.activeHitboxGroupIndex;
+        if (index >= groups.Length)
+        {
+            if (!hasLoggedHitboxGroupIndexOverflow)
+            {
+                hasLoggedHitboxGroupIndexOverflow = true;
+                Debug.LogError(
+                    $"[HitboxManager] '{projectile.name}' has activeHitboxGroupIndex={index} but only " +
+                    $"{groups.Length} hitbox group(s). projectileHitboxes must hold one entry per " +
+                    "frameData window PLUS index 0 for the inactive group. Skipping its collisions.");
+            }
+
+            return false;
+        }
+
+        activeGroup = groups[index];
+        return activeGroup != null;
+    }
+
     public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, out HitboxData collidedHitbox, bool defenderFacingRight = true)
     {
         collidedHitbox = null;
-        if (projectile.projectileHitboxes.Length == 0) return false;
-        HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
+        if (!TryGetActiveHitboxGroup(projectile, out HitboxGroup activeGroup)) return false;
         // Combine all hitbox lists into one sequence
         var activeProjHit = activeGroup.hitbox1
             .Concat(activeGroup.hitbox2)
@@ -474,7 +516,8 @@ public class HitboxManager : MonoBehaviour
         var activeProjectiles = ProjectileManager.Instance.activeProjectiles;
         foreach (var projectile in activeProjectiles)
         {
-            HitboxGroup activeGroup = projectile.projectileHitboxes[projectile.activeHitboxGroupIndex];
+            // This box-drawing path had no guard at all, not even the empty-array one.
+            if (!TryGetActiveHitboxGroup(projectile, out HitboxGroup activeGroup)) continue;
             // Combine all hitbox lists into one sequence
             var activeProjHit = activeGroup.hitbox1
                 .Concat(activeGroup.hitbox2)

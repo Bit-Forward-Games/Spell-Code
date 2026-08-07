@@ -70,6 +70,10 @@ public class GameManager : MonoBehaviour
     public int endWinnerPid = -1;
     [NonSerialized]
     public Texture2D endWinnerPalette = null;
+    public int OnlineEndOptionsEpoch { get; private set; }
+    private int preparedOnlineRematchEpoch = -1;
+    private bool rematchPreparationStarted;
+    private readonly Dictionary<Renderer, bool> endScreenRendererVisibility = new Dictionary<Renderer, bool>();
 
     [NonSerialized]
     /// <summary>
@@ -203,6 +207,9 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<int, GameplayReadyContext> pendingGameplayReadyBySlot = new Dictionary<int, GameplayReadyContext>();
     private readonly Dictionary<int, int> pendingGameplayReadyTransitionBySlot = new Dictionary<int, int>();
     private readonly Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)> pendingSceneReadyBySlot = new Dictionary<int, (int transitionId, byte sceneType, int sceneSignature)>();
+    private readonly Dictionary<int, float> completedSceneReadyResponseTimeBySlot = new Dictionary<int, float>();
+    private readonly Dictionary<int, int> pendingPeerDropFrames = new Dictionary<int, int>();
+    private readonly Dictionary<int, HashSet<int>> peerDropAcknowledgedSlots = new Dictionary<int, HashSet<int>>();
 
     // StartOnlineMatch assigns the roster before creating/initializing its player objects, then
     // raises isOnlineMatchActive after that bootstrap is complete. UI code uses this narrow state
@@ -294,6 +301,8 @@ public class GameManager : MonoBehaviour
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
     private int lastAppliedGameplayStageTransitionId = 0;
+    private int lastAppliedRematchLobbyTransitionId = 0;
+    private int lastAppliedRematchLobbySeed = 0;
     private int localGameplayReadyTransitionId = 0;
     private int remoteGameplayReadyTransitionId = 0;
     private int pendingRemoteGameplayReadyTransitionId = 0;
@@ -1727,6 +1736,8 @@ public class GameManager : MonoBehaviour
         onlineTransitionSequence = 0;
         activeOnlineTransitionId = 0;
         lastAppliedGameplayStageTransitionId = 0;
+        lastAppliedRematchLobbyTransitionId = 0;
+        lastAppliedRematchLobbySeed = 0;
         localGameplayReadyTransitionId = 0;
         remoteGameplayReadyTransitionId = 0;
         pendingRemoteGameplayReadyTransitionId = 0;
@@ -1734,6 +1745,11 @@ public class GameManager : MonoBehaviour
         pendingRemoteSceneReadyTransitionId = 0;
         pendingOpponentShopTransitionId = 0;
         pendingStageSelectTotalRoundsPlayed = -1;
+        pendingPeerDropFrames.Clear();
+        peerDropAcknowledgedSlots.Clear();
+        completedSceneReadyResponseTimeBySlot.Clear();
+        onlineTransitionLivenessGraceArmed = false;
+        onlineTransitionLivenessGraceDeadline = 0f;
     }
 
     private void BeginTrackedOnlineTransition(int transitionId)
@@ -1744,15 +1760,23 @@ public class GameManager : MonoBehaviour
         remoteSceneTransitionReady = false;
         sceneReadyPeerSlots.Clear();
         pendingSceneReadyBySlot.Clear();
+        completedSceneReadyResponseTimeBySlot.Clear();
         hasPendingRemoteSceneReady = false;
         pendingRemoteSceneReadyTransitionId = 0;
         pendingRemoteSceneReadyType = 0;
         pendingRemoteSceneReadySignature = 0;
+        nextOnlineTransitionWatchdogTime = 0f;
+        onlineTransitionLivenessGraceArmed = false;
+        onlineTransitionLivenessGraceDeadline = 0f;
         RefreshNetworkActivityGrace();
     }
 
     private void CompleteTrackedOnlineTransition()
     {
+        bool completedRematchLobbyTransition = activeOnlineTransitionId > 0
+            && activeOnlineTransitionId == lastAppliedRematchLobbyTransitionId
+            && SceneManager.GetActiveScene().name == "MainMenu";
+
         if (activeOnlineTransitionId > 0)
         {
             onlineTransitionSequence = Mathf.Max(onlineTransitionSequence, activeOnlineTransitionId);
@@ -1782,7 +1806,19 @@ public class GameManager : MonoBehaviour
         pendingGameplayReadyBySlot.Clear();
         pendingGameplayReadyTransitionBySlot.Clear();
         pendingSceneReadyBySlot.Clear();
+        onlineTransitionLivenessGraceArmed = false;
+        onlineTransitionLivenessGraceDeadline = 0f;
         RefreshNetworkActivityGrace();
+
+        if (completedRematchLobbyTransition && tempUI != null)
+        {
+            tempUI.gameObject.SetActive(true);
+            if (roundEndedText != null)
+            {
+                roundEndedText.enabled = true;
+            }
+            SetNetworkInfoVisible(true);
+        }
     }
 
     /// <summary>
@@ -1807,6 +1843,150 @@ public class GameManager : MonoBehaviour
             int pID = p != null ? p.pID : slot + 1;
             Debug.LogWarning($"[GameManager] Player {pID} (slot {slot}) disconnected at frame {frame}; eliminated from match.");
         }
+    }
+
+    /// <summary>
+    /// Host-side End-screen timeout handling. The gameplay simulation is already stopped here, so
+    /// remove the stale slot directly rather than trying to rollback/resimulate the completed match.
+    /// </summary>
+    public bool DropUnresponsiveEndScreenPeer(int slot)
+    {
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || SceneManager.GetActiveScene().name != "End"
+            || slot < 0
+            || slot >= players.Length
+            || slot == localPlayerIndex
+            || IsOnlineHostSlot(slot)
+            || !IsPlayerSlotConnected(slot))
+        {
+            return false;
+        }
+
+        return DropUnresponsivePeerOutsideSimulation(slot, "End screen rematch vote");
+    }
+
+    /// <summary>
+    /// Host-side timeout handling while gameplay is paused for an online scene transition.
+    /// Removing the peer directly lets the remaining scene-ready quorum complete without
+    /// attempting to rollback a simulation that is not currently running.
+    /// </summary>
+    public bool DropUnresponsiveOnlineTransitionPeer(int slot)
+    {
+        if (!isOnlineMatchActive
+            || !isTransitioning
+            || !IsOnlineHostAuthority()
+            || slot < 0
+            || slot >= players.Length
+            || slot == localPlayerIndex
+            || IsOnlineHostSlot(slot)
+            || !IsPlayerSlotConnected(slot))
+        {
+            return false;
+        }
+
+        bool dropped = DropUnresponsivePeerOutsideSimulation(slot, "scene transition");
+        if (dropped && CountConnectedPlayers() < 2)
+        {
+            ResetToMainMenuAfterHostDisconnect("Every other player disconnected during scene transition");
+        }
+        return dropped;
+    }
+
+    private bool DropUnresponsivePeerOutsideSimulation(int slot, string context)
+    {
+        int dropFrame = frameNumber;
+        pendingPeerDropFrames[slot] = dropFrame;
+        peerDropAcknowledgedSlots[slot] = new HashSet<int> { localPlayerIndex };
+        StartCoroutine(BroadcastPeerDropOutsideSimulationUntilAcknowledged(slot, dropFrame));
+        ApplyPeerDropOutsideSimulation(slot, dropFrame);
+        Debug.LogWarning($"[OnlineMatch] Timed out P{slot + 1} during {context}; removed from the connected-player quorum.");
+        return true;
+    }
+
+    public void ApplyEndScreenPeerDrop(int slot, int dropFrame)
+    {
+        ApplyPeerDropOutsideSimulation(slot, dropFrame);
+    }
+
+    public void ApplyPeerDropOutsideSimulation(int slot, int dropFrame)
+    {
+        if (!isOnlineMatchActive
+            || (SceneManager.GetActiveScene().name != "End" && !isTransitioning)
+            || slot < 0
+            || slot >= players.Length
+            || slot == localPlayerIndex)
+        {
+            return;
+        }
+
+        if (RollbackManager.Instance == null
+            || !RollbackManager.Instance.DropRemoteSlotOutsideSimulation(slot, dropFrame))
+        {
+            MarkPlayerDisconnected(slot, dropFrame);
+            MatchMessageManager.Instance?.DropPeerTransport(slot);
+        }
+
+        readyPeerSlots.Remove(slot);
+        gameplayReadyPeerSlots.Remove(slot);
+        sceneReadyPeerSlots.Remove(slot);
+        pendingGameplayReadyBySlot.Remove(slot);
+        pendingGameplayReadyTransitionBySlot.Remove(slot);
+        pendingSceneReadyBySlot.Remove(slot);
+
+        if (isTransitioning)
+        {
+            CheckSceneTransitionReady();
+        }
+    }
+
+    public void OnPeerDropAcknowledged(int senderSlot, int droppedSlot, int dropFrame)
+    {
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || !IsPlayerSlotConnected(senderSlot)
+            || !pendingPeerDropFrames.TryGetValue(droppedSlot, out int expectedDropFrame)
+            || expectedDropFrame != dropFrame
+            || !peerDropAcknowledgedSlots.TryGetValue(droppedSlot, out HashSet<int> acknowledgedSlots))
+        {
+            return;
+        }
+
+        acknowledgedSlots.Add(senderSlot);
+    }
+
+    private IEnumerator BroadcastPeerDropOutsideSimulationUntilAcknowledged(int slot, int dropFrame)
+    {
+        while (isOnlineMatchActive && !HaveAllSurvivingPeerDropAcknowledgements(slot, dropFrame))
+        {
+            MatchMessageManager.Instance?.SendPeerDrop(slot, dropFrame);
+            yield return new WaitForSecondsRealtime(0.25f);
+        }
+
+        pendingPeerDropFrames.Remove(slot);
+        peerDropAcknowledgedSlots.Remove(slot);
+    }
+
+    private bool HaveAllSurvivingPeerDropAcknowledgements(int droppedSlot, int dropFrame)
+    {
+        if (!pendingPeerDropFrames.TryGetValue(droppedSlot, out int expectedDropFrame)
+            || expectedDropFrame != dropFrame
+            || !peerDropAcknowledgedSlots.TryGetValue(droppedSlot, out HashSet<int> acknowledgedSlots))
+        {
+            return true;
+        }
+
+        for (int slot = 0; slot < players.Length; slot++)
+        {
+            if (slot != droppedSlot
+                && IsPlayerSlotConnected(slot)
+                && !acknowledgedSlots.Contains(slot))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void ApplyDisconnectedPlayerSlots(bool cleanupProjectiles)
@@ -1909,6 +2089,59 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public int ActivePlayerCount =>
         activeOnlineRoster != null ? CountConnectedPlayers() : playerCount;
+
+    public int GetConnectedPlayerSlotMask()
+    {
+        int mask = 0;
+        for (int slot = 0; slot < players.Length; slot++)
+        {
+            if (IsPlayerSlotConnected(slot))
+            {
+                mask |= 1 << slot;
+            }
+        }
+        return mask;
+    }
+
+    /// <summary>
+    /// Drops every online slot that is NOT in the mask, outside the simulation. Used by the End
+    /// screen when only some players chose Rematch: the leavers are removed exactly like a clean
+    /// disconnect, so the survivors keep their existing P1-P4 slots and every downstream consumer
+    /// (GetConnectedPlayerSlotMask, ActivePlayerCount, the rematch transition) is already correct
+    /// without needing to know a vote happened.
+    ///
+    /// Call this only AFTER the leavers have acknowledged the result -- dropping their transport
+    /// first would strand them without ever hearing the outcome.
+    /// </summary>
+    public void DropOnlineSlotsOutsideMask(int survivingSlotMask)
+    {
+        ApplyOnlineConnectedPlayerSlotMask(survivingSlotMask);
+    }
+
+    private void ApplyOnlineConnectedPlayerSlotMask(int connectedSlotMask)
+    {
+        if (activeOnlineRoster == null || connectedSlotMask < 0)
+        {
+            return;
+        }
+
+        for (int slot = 0; slot < playerCount; slot++)
+        {
+            if (!activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _)
+                || (connectedSlotMask & (1 << slot)) != 0)
+            {
+                continue;
+            }
+
+            if (RollbackManager.Instance == null
+                || !RollbackManager.Instance.DropRemoteSlotOutsideSimulation(slot, frameNumber))
+            {
+                onlineDisconnectedSlots.Add(slot);
+                ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: false);
+                MatchMessageManager.Instance?.DropPeerTransport(slot);
+            }
+        }
+    }
 
     private int CountConnectedPlayers()
     {
@@ -2078,10 +2311,15 @@ public class GameManager : MonoBehaviour
 
     public void OnOpponentSceneTransitionReady(int transitionId, byte sceneType, int sceneSignature)
     {
-        OnPeerSceneTransitionReady(remotePlayerIndex, transitionId, sceneType, sceneSignature);
+        OnPeerSceneTransitionReady(remotePlayerIndex, transitionId, sceneType, sceneSignature, false);
     }
 
-    public void OnPeerSceneTransitionReady(int playerSlot, int transitionId, byte sceneType, int sceneSignature)
+    public void OnPeerSceneTransitionReady(
+        int playerSlot,
+        int transitionId,
+        byte sceneType,
+        int sceneSignature,
+        bool isRecoveryResponse = false)
     {
         // Scene-ready signals are sent ONCE per peer (Reliable, but one-shot at the application
         // level). Discarding one here used to be unrecoverable — the waiter's FixedUpdate
@@ -2100,6 +2338,28 @@ public class GameManager : MonoBehaviour
 
         if (!isTransitioning)
         {
+            // A peer can complete locally while another survivor is still missing its ready
+            // packet. The waiter keeps broadcasting its own ready once per second, so answer it
+            // with this completed id. Recovery responses are explicitly tagged and never answered,
+            // which prevents completed peers from bouncing ready packets back and forth forever.
+            if (transitionId == onlineTransitionSequence
+                && sceneType == GetNetworkSceneTypeCode()
+                && sceneSignature == GetNetworkSceneSignature()
+                && !isRecoveryResponse
+                && MatchMessageManager.Instance != null)
+            {
+                float now = Time.unscaledTime;
+                if (!completedSceneReadyResponseTimeBySlot.TryGetValue(playerSlot, out float lastResponseTime)
+                    || now - lastResponseTime >= 0.5f)
+                {
+                    completedSceneReadyResponseTimeBySlot[playerSlot] = now;
+                    MatchMessageManager.Instance.SendSceneTransitionReadySignal(
+                        transitionId,
+                        isRecoveryResponse: true);
+                }
+                return;
+            }
+
             // A peer can finish loading before we begin (or after we completed) our own
             // transition. A stale id can never match a future activeOnlineTransitionId (ids
             // strictly increase), so stashing is safe and a discarded-early ready is not.
@@ -2218,6 +2478,8 @@ public class GameManager : MonoBehaviour
     // Runs from Update on unscaled time: re-send the ready, re-evaluate stashed
     // peer readies, and log the wait state so any residual stall names its blocking gate.
     private float nextOnlineTransitionWatchdogTime;
+    private bool onlineTransitionLivenessGraceArmed;
+    private float onlineTransitionLivenessGraceDeadline;
 
     private void UpdateOnlineTransitionWatchdog()
     {
@@ -2237,12 +2499,94 @@ public class GameManager : MonoBehaviour
             MatchMessageManager.Instance.SendSceneTransitionReadySignal(activeOnlineTransitionId);
         }
 
+        if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
+        {
+            // A peer that missed the one authoritative stage packet never reaches Gameplay and
+            // therefore can never answer scene-ready. Re-send the exact cached packet while this
+            // transition is pending; receivers treat same-id duplicates as idempotent below.
+            MatchMessageManager.Instance.ResendLastStageSelect(activeOnlineTransitionId);
+            MatchMessageManager.Instance.ResendLastRematchLobbyTransition(activeOnlineTransitionId);
+        }
+
         ApplyPendingSceneTransitionReadyIfAvailable();
         CheckSceneTransitionReady();
 
         if (isTransitioning)
         {
-            Debug.LogWarning($"[OnlineTransition] Waiting on scene-ready handshake. id={activeOnlineTransitionId} localReady={localSceneTransitionReady} readySlots=[{string.Join(",", sceneReadyPeerSlots)}] connected={CountConnectedPlayers()} pendingBySlot={pendingSceneReadyBySlot.Count} scene={SceneManager.GetActiveScene().name} sig={GetNetworkSceneSignature()}");
+            UpdateOnlineTransitionPeerLiveness();
+        }
+
+        if (!isOnlineMatchActive || !isTransitioning)
+        {
+            return;
+        }
+
+        Debug.LogWarning($"[OnlineTransition] Waiting on scene-ready handshake. id={activeOnlineTransitionId} localReady={localSceneTransitionReady} readySlots=[{string.Join(",", sceneReadyPeerSlots)}] connected={CountConnectedPlayers()} pendingBySlot={pendingSceneReadyBySlot.Count} scene={SceneManager.GetActiveScene().name} sig={GetNetworkSceneSignature()}");
+    }
+
+    private void UpdateOnlineTransitionPeerLiveness()
+    {
+        // Do not time out a legitimate slow loader. Start a full grace window only after this
+        // machine has finished loading and can once again pump/receive network packets.
+        if (!localSceneTransitionReady)
+        {
+            return;
+        }
+
+        if (!onlineTransitionLivenessGraceArmed)
+        {
+            onlineTransitionLivenessGraceArmed = true;
+            onlineTransitionLivenessGraceDeadline = Time.unscaledTime + TRANSITION_NETWORK_GRACE_SECONDS;
+            return;
+        }
+
+        if (Time.unscaledTime < onlineTransitionLivenessGraceDeadline)
+        {
+            return;
+        }
+
+        MatchMessageManager messageManager = MatchMessageManager.Instance;
+        if (messageManager == null)
+        {
+            ResetToMainMenuAfterHostDisconnect("Network transport disappeared during scene transition");
+            return;
+        }
+
+        if (IsOnlineHostAuthority())
+        {
+            for (int slot = 0; slot < players.Length; slot++)
+            {
+                if (slot == localPlayerIndex
+                    || !IsPlayerSlotConnected(slot)
+                    || messageManager.IsPeerResponsive(slot, TRANSITION_NETWORK_GRACE_SECONDS))
+                {
+                    continue;
+                }
+
+                DropUnresponsiveOnlineTransitionPeer(slot);
+                if (!isOnlineMatchActive)
+                {
+                    return;
+                }
+            }
+            return;
+        }
+
+        int hostSlot = -1;
+        for (int slot = 0; slot < players.Length; slot++)
+        {
+            if (IsOnlineHostSlot(slot))
+            {
+                hostSlot = slot;
+                break;
+            }
+        }
+
+        if (hostSlot < 0
+            || !IsPlayerSlotConnected(hostSlot)
+            || !messageManager.IsPeerResponsive(hostSlot, TRANSITION_NETWORK_GRACE_SECONDS))
+        {
+            ResetToMainMenuAfterHostDisconnect("Host stopped responding during scene transition");
         }
     }
 
@@ -2363,10 +2707,14 @@ public class GameManager : MonoBehaviour
         CheckBothPlayersReadyForGameplay();
     }
 
-    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState, int hostTotalRoundsPlayed = -1, uint hostGameplayRngState = 0, int hostRandomCallCount = -1)
+    public bool HandleOnlineStageSelect(int transitionId, byte packetSceneType, int packetSceneSignature, int stageIndex, uint hostStageRngState, int hostTotalRoundsPlayed = -1, uint hostGameplayRngState = 0, int hostRandomCallCount = -1, int connectedPlayerSlotMask = -1)
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         byte currentSceneType = GetNetworkSceneTypeCode();
+        bool isEndToGameplayRematch = packetSceneType == 1
+            && currentSceneType == 4
+            && SceneManager.GetActiveScene().name == "End"
+            && transitionId == OnlineEndOptionsEpoch + 1;
         bool isGameplayStageCorrection = packetSceneType == 1
             && currentSceneType == 1
             && stageIndex >= 0
@@ -2381,12 +2729,29 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        bool isDuplicateActiveGameplayStage = packetSceneType == 1
+            && transitionId > 0
+            && transitionId == activeOnlineTransitionId
+            && transitionId == lastAppliedGameplayStageTransitionId
+            && stageIndex == currentStageIndex;
+        if (isDuplicateActiveGameplayStage)
+        {
+            if (localSceneTransitionReady && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal(transitionId);
+            }
+            return true;
+        }
+
         if (transitionId < expectedTransitionId && !isGameplayStageCorrection)
         {
             return false;
         }
 
-        if (activeOnlineTransitionId > 0 && transitionId != activeOnlineTransitionId && !isGameplayStageCorrection)
+        if (activeOnlineTransitionId > 0
+            && transitionId != activeOnlineTransitionId
+            && !isGameplayStageCorrection
+            && !isEndToGameplayRematch)
         {
             if (transitionId > activeOnlineTransitionId)
             {
@@ -2410,7 +2775,19 @@ public class GameManager : MonoBehaviour
             && stageIndex >= 0
             && stageIndex < stages.Count)
         {
-            if (activeOnlineTransitionId == 0)
+            ApplyOnlineConnectedPlayerSlotMask(connectedPlayerSlotMask);
+
+            if (isEndToGameplayRematch)
+            {
+                if (!PrepareRematchFromEnd(OnlineEndOptionsEpoch))
+                {
+                    return false;
+                }
+
+                isRunning = true;
+                BeginTrackedOnlineTransition(transitionId);
+            }
+            else if (activeOnlineTransitionId == 0)
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
@@ -2628,6 +3005,10 @@ public class GameManager : MonoBehaviour
         //Debug.Log($"Stopping Match: {reason}");
 
         isRunning = false;
+        OnlineEndOptionsEpoch = 0;
+        preparedOnlineRematchEpoch = -1;
+        rematchPreparationStarted = false;
+        endScreenRendererVisibility.Clear();
 
         if (isOnlineMatchActive)
         {
@@ -2715,7 +3096,7 @@ public class GameManager : MonoBehaviour
 
     public void ResetToMainMenuAfterHostDisconnect(string reason = "Host disconnected")
     {
-        Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to MainMenu.");
+        Debug.LogWarning($"[OnlineMatch] {reason}. Returning surviving players to SoloLobby.");
         StopMatch(reason);
         ExecuteOrder66("SoloLobby");
     }
@@ -3376,25 +3757,8 @@ public class GameManager : MonoBehaviour
             inputs[i] = players[i].GetInputs();
         }
 
-        if (activeScene.name == "End")
-        {
-            if (tempUI != null)
-            {
-                tempUI.gameObject.SetActive(false);
-            }
-            for (int i = 0; i < inputs.Length; ++i)
-            {
-                InputSnapshot inputSnap = InputConverter.ConvertFromLong(inputs[i]);
-                if (endInputEnabled && (inputSnap.ButtonStates[1] is ButtonState.Pressed or ButtonState.Held))
-                {
-                    // Latch first: this accepts Held, so without it every frame of a held jump
-                    // queues another screen-cover tween and another ExecuteOrder66 scene load.
-                    endInputEnabled = false;
-                    sceneManager.SoloLobby();
-                    return;
-                }
-            }
-        }
+        // GameEndScreen owns End-scene navigation. Keeping the old jump shortcut here would make
+        // the first player's confirmation bypass the new Rematch/Main Menu group selection.
         ///shop specific update
         if (activeScene.name == "Shop")
         {
@@ -3576,6 +3940,11 @@ public class GameManager : MonoBehaviour
                 players[i].ProcEffectUpdate();
             }
         }
+
+        // Training room resource overrides are pinned last, after ProcEffectUpdate, so the per-frame
+        // decay inside the universal passives (demon aura falloff especially) can't undo them.
+        // No-ops outside the training scene and during online matches.
+        TrainingOptionsMachine.ApplyAllOverrides();
     }
 
     /// <summary>
@@ -4178,6 +4547,311 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ResetPlayersForStartingSpellSelection()
+    {
+        if (activeOnlineRoster == null)
+        {
+            onlineDisconnectedSlots.Clear();
+        }
+        else
+        {
+            // Keep sparse roster gaps and peers that left the completed match inert. A rematch
+            // lobby preserves the surviving roster; it must not silently resurrect a departed
+            // player just because the match counters are being reset.
+            for (int slot = 0; slot < playerCount; slot++)
+            {
+                if (!activeOnlineRoster.TryGetSteamIdForSlot(slot, out Steamworks.SteamId _))
+                {
+                    onlineDisconnectedSlots.Add(slot);
+                }
+            }
+        }
+
+        for (int slot = 0; slot < players.Length; slot++)
+        {
+            PlayerController player = players[slot];
+            if (player == null)
+            {
+                continue;
+            }
+
+            if (onlineDisconnectedSlots.Contains(slot))
+            {
+                ApplyDisconnectedPlayerSlot(slot, cleanupProjectiles: false);
+                continue;
+            }
+
+            player.isConnected = true;
+            player.ResetPlayerForStartingSpellSelection();
+        }
+    }
+
+    /// <summary>
+    /// Resets a completed match while preserving the currently joined local players or online
+    /// roster, leaving every surviving player's spell list empty for a new MainMenu starter
+    /// selection. This is deliberately separate from SceneUiManager.Restart, whose direct scene
+    /// load is not safe for retained players or non-host online peers.
+    /// </summary>
+    public bool PrepareRematchFromEnd(int onlineEndEpoch = 0)
+    {
+        if (SceneManager.GetActiveScene().name != "End")
+        {
+            return false;
+        }
+
+        if (isOnlineMatchActive)
+        {
+            if (onlineEndEpoch <= 0)
+            {
+                onlineEndEpoch = OnlineEndOptionsEpoch;
+            }
+
+            if (onlineEndEpoch <= 0 || onlineEndEpoch != OnlineEndOptionsEpoch)
+            {
+                return false;
+            }
+
+            if (preparedOnlineRematchEpoch == onlineEndEpoch)
+            {
+                return true;
+            }
+        }
+        else if (rematchPreparationStarted)
+        {
+            return true;
+        }
+
+        rematchPreparationStarted = true;
+        if (isOnlineMatchActive)
+        {
+            preparedOnlineRematchEpoch = onlineEndEpoch;
+        }
+
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+        dataManager?.ResetData();
+        if (dataManager != null)
+        {
+            dataManager.roundTimer = 0;
+        }
+
+        endInputEnabled = false;
+        endWinnerPid = -1;
+        endWinnerPalette = null;
+        bigWinner = null;
+        gameOver = false;
+        roundOver = false;
+        roundEndFrameCounter = 0;
+        roundEndTimer = 0f;
+        roundTransitionPending = false;
+        roundEndUIShown = false;
+        lastRoundWinnerPID = -1;
+        pendingOpponentShopTransition = false;
+        pendingOpponentShopTransitionId = 0;
+        onlineRoundAdvanceApplied = false;
+        playersChosenSpell = false;
+        isSaved = false;
+        damageMatrix = new byte[4, 4];
+
+        // Undo only the blanket End-screen hiding first. The MainMenu scene arrival then respawns
+        // every retained player with fresh-match visibility at the lobby spawn points.
+        RestorePlayerRenderersAfterEnd();
+        ResetPlayersForStartingSpellSelection();
+
+        // A rematch is a new match, so begin a fresh filtered stage cycle instead of carrying the
+        // exhausted/non-repeating stage pool from the completed game.
+        FillGameStages();
+        GameEndScreen.ActiveInstance?.RestoreHiddenMatchUiForRematch();
+
+        if (tempUI != null)
+        {
+            tempUI.gameObject.SetActive(true);
+        }
+        if (playerWinText != null)
+        {
+            playerWinText.enabled = false;
+        }
+        if (roundEndedText != null)
+        {
+            roundEndedText.enabled = false;
+        }
+
+        Time.timeScale = 1f;
+        if (isOnlineMatchActive)
+        {
+            RefreshNetworkActivityGrace();
+        }
+        else
+        {
+            // Keep the retained players paused while the screen cover loads MainMenu. The
+            // MainMenu arrival block resumes the offline simulation after their lobby state and
+            // persistent machines have been reset.
+            isRunning = false;
+        }
+
+        return true;
+    }
+
+    public bool StartOfflineRematchLobbyFromEnd()
+    {
+        if (isOnlineMatchActive || !PrepareRematchFromEnd())
+        {
+            return false;
+        }
+
+        SetStage(-1);
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        sceneManager.LoadScene("MainMenu");
+        return true;
+    }
+
+    /// <summary>
+    /// Returns a completed online match to the retained-player MainMenu lobby through a
+    /// host-authoritative transition. The existing lobby-ready/stage-select flow starts Gameplay
+    /// only after everyone has chosen a starter and entered the door again.
+    /// </summary>
+    public bool StartOnlineRematchFromEnd(int onlineEndEpoch)
+    {
+        if (!isOnlineMatchActive
+            || !IsOnlineHostAuthority()
+            || MatchMessageManager.Instance == null
+            || ActivePlayerCount < 2
+            || onlineEndEpoch <= 0
+            || onlineEndEpoch != OnlineEndOptionsEpoch)
+        {
+            return false;
+        }
+
+        int transitionId = onlineEndEpoch + 1;
+        // The result-delivery coroutine has one caller, but keep this idempotent across an
+        // accidental duplicate invocation while the asynchronous load still reports End.
+        if (lastAppliedRematchLobbyTransitionId == transitionId
+            && lastAppliedRematchLobbySeed > 0)
+        {
+            return true;
+        }
+
+        if (!PrepareRematchFromEnd(onlineEndEpoch))
+        {
+            return false;
+        }
+
+        int rematchSeed = GenerateFreshOnlineRematchSeed();
+        isRunning = true;
+        BeginOnlineRematchLobbyTransition(
+            transitionId,
+            rematchSeed,
+            broadcastTransition: true);
+        return true;
+    }
+
+    public bool HandleOnlineRematchLobbyTransition(
+        int transitionId,
+        int connectedPlayerSlotMask,
+        int rematchSeed)
+    {
+        if (!isOnlineMatchActive
+            || IsOnlineHostAuthority()
+            || transitionId <= 0
+            || connectedPlayerSlotMask < 0
+            || rematchSeed <= 0
+            || localPlayerIndex < 0
+            || (connectedPlayerSlotMask & (1 << localPlayerIndex)) == 0)
+        {
+            return false;
+        }
+
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        if (transitionId == lastAppliedRematchLobbyTransitionId)
+        {
+            if (rematchSeed != lastAppliedRematchLobbySeed)
+            {
+                Debug.LogError($"[OnlineRematch] Ignoring transition {transitionId} with changed seed {rematchSeed}; already accepted {lastAppliedRematchLobbySeed}.");
+                return false;
+            }
+
+            // The host keeps resending its cached commit until every survivor answers scene-ready.
+            // A peer that already completed locally must answer duplicates as well, otherwise a
+            // lost final ready packet could leave only the host waiting forever.
+            if (activeSceneName == "MainMenu"
+                && (!isTransitioning || localSceneTransitionReady)
+                && MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.SendSceneTransitionReadySignal(transitionId);
+            }
+            return activeSceneName == "MainMenu" || isTransitioning;
+        }
+
+        if (transitionId < lastAppliedRematchLobbyTransitionId
+            || activeSceneName != "End"
+            || OnlineEndOptionsEpoch <= 0
+            || transitionId != OnlineEndOptionsEpoch + 1)
+        {
+            return false;
+        }
+
+        ApplyOnlineConnectedPlayerSlotMask(connectedPlayerSlotMask);
+        if (ActivePlayerCount < 2 || !PrepareRematchFromEnd(OnlineEndOptionsEpoch))
+        {
+            return false;
+        }
+
+        isRunning = true;
+        BeginOnlineRematchLobbyTransition(
+            transitionId,
+            rematchSeed,
+            broadcastTransition: false);
+        return true;
+    }
+
+    private void BeginOnlineRematchLobbyTransition(
+        int transitionId,
+        int rematchSeed,
+        bool broadcastTransition)
+    {
+        lastAppliedRematchLobbyTransitionId = transitionId;
+        lastAppliedRematchLobbySeed = rematchSeed;
+        // The original online entry has its own seed handshake. A retained-session rematch skips
+        // that handshake, so the host-generated seed travels atomically with this cached scene
+        // transition and is applied before either peer can initialize or simulate the new lobby.
+        InitializeWithSeed(rematchSeed);
+        isWaitingForOpponent = false;
+        localPlayerReadyForGameplay = false;
+        remotePlayerReadyForGameplay = false;
+        gameplayReadyPeerSlots.Clear();
+        pendingGameplayReadyBySlot.Clear();
+        pendingGameplayReadyTransitionBySlot.Clear();
+        localGameplayReadyContext = GameplayReadyContext.None;
+        remoteGameplayReadyContext = GameplayReadyContext.None;
+        pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+        localGameplayReadyTransitionId = 0;
+        remoteGameplayReadyTransitionId = 0;
+        pendingRemoteGameplayReadyTransitionId = 0;
+        pendingOpponentShopTransition = false;
+        pendingOpponentShopTransitionId = 0;
+        ClearPendingStageSelect();
+
+        BeginTrackedOnlineTransition(transitionId);
+        SetStage(-1);
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        SetNetworkInfoVisible(true);
+
+        if (broadcastTransition)
+        {
+            MatchMessageManager.Instance?.SendRematchLobbyTransition(transitionId, rematchSeed);
+        }
+
+        sceneManager.LoadScene("MainMenu");
+    }
+
     /// <summary>
     /// Restarts the game from the lobby, not just a rematch
     /// </summary>
@@ -4325,7 +4999,20 @@ public class GameManager : MonoBehaviour
         randomCallCount = 0;
         rngState = (uint)seed;
         stageRngState = (uint)(seed ^ 0x9E3779B9);
+        hasPendingHostGameplayRngRestore = false;
+        pendingHostGameplayRngRestoreState = 0;
+        pendingHostGameplayRngRestoreCallCount = -1;
         Debug.Log($"[SEED] Initialized RNG with seed: {seed}");
+    }
+
+    private int GenerateFreshOnlineRematchSeed()
+    {
+        int seed = UnityEngine.Random.Range(1, int.MaxValue);
+        if (seed == randomSeed)
+        {
+            seed = seed < int.MaxValue - 1 ? seed + 1 : 1;
+        }
+        return seed;
     }
 
     public int GetNextRandom(int minValue, int maxValue)
@@ -4580,6 +5267,10 @@ public class GameManager : MonoBehaviour
 
     private void BeginOnlineEndTransition(int transitionId, int winnerPid)
     {
+        OnlineEndOptionsEpoch = transitionId;
+        preparedOnlineRematchEpoch = -1;
+        rematchPreparationStarted = false;
+
         if (isTransitioning && SceneManager.GetActiveScene().name == "End")
         {
             ApplyOnlineEndWinner(winnerPid);
@@ -4648,13 +5339,37 @@ public class GameManager : MonoBehaviour
     // and their child renderers ride into the End scene; the winner is shown via GameEndScreen's
     // separate winnerImage sprite, so the real characters (winner AND losers) should be invisible --
     // a carried-over loser was still partly on-camera. Disable the RENDERERS (not the GameObjects) so
-    // each player's PlayerInput stays alive for GameEndScreen's restart-on-jump. Fresh players are
+    // each player's PlayerInput stays alive for GameEndScreen's per-player option navigation. Fresh players are
     // rebuilt on the way to MainMenu (ExecuteOrder66), so this leaves no lingering hidden state.
     private void HideAllPlayerCharacters()
     {
         if (players == null)
         {
             return;
+        }
+
+        // On a rematch these same DontDestroyOnLoad player objects are reused. Remember the exact
+        // visibility state so child masks/effects that were enabled before End can be restored,
+        // without blindly enabling renderers that were intentionally off.
+        if (endScreenRendererVisibility.Count == 0)
+        {
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (players[i] == null)
+                {
+                    continue;
+                }
+
+                Renderer[] playerRenderers = players[i].GetComponentsInChildren<Renderer>(true);
+                for (int r = 0; r < playerRenderers.Length; r++)
+                {
+                    Renderer playerRenderer = playerRenderers[r];
+                    if (playerRenderer != null)
+                    {
+                        endScreenRendererVisibility[playerRenderer] = playerRenderer.enabled;
+                    }
+                }
+            }
         }
 
         for (int i = 0; i < players.Length; i++)
@@ -4673,6 +5388,19 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void RestorePlayerRenderersAfterEnd()
+    {
+        foreach (KeyValuePair<Renderer, bool> rendererState in endScreenRendererVisibility)
+        {
+            if (rendererState.Key != null)
+            {
+                rendererState.Key.enabled = rendererState.Value;
+            }
+        }
+
+        endScreenRendererVisibility.Clear();
     }
 
     public void OnPeerEndTransition(int playerSlot, int transitionId, byte sceneType, int sceneSignature, int winnerPid)
@@ -4826,6 +5554,14 @@ public class GameManager : MonoBehaviour
 
     public void LoadRandomGameplayStage()
     {
+        // MainMenu is the first-stage lobby for a new match. Rebuild here (not only when End is
+        // reset) so local joins or online peer drops that happened while choosing starters use the
+        // correct Duel/General pool at the exact moment the roster commits to Gameplay.
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            FillGameStages();
+        }
+
         if (isOnlineMatchActive)
         {
             if (IsOnlineHostAuthority())
@@ -4936,6 +5672,11 @@ public class GameManager : MonoBehaviour
 
     private void ApplyOnlineStageSelectionState(int stageIndex, uint? syncedStageRngState = null)
     {
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            FillGameStages();
+        }
+
         if (syncedStageRngState.HasValue)
         {
             stageRngState = syncedStageRngState.Value;
@@ -5072,6 +5813,12 @@ public class GameManager : MonoBehaviour
         if (scene.name == "End")
         {
             endInputEnabled = false;
+            rematchPreparationStarted = false;
+            preparedOnlineRematchEpoch = -1;
+            if (!isOnlineMatchActive)
+            {
+                OnlineEndOptionsEpoch = 0;
+            }
 
             // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
             ClearStages();
@@ -5156,6 +5903,89 @@ public class GameManager : MonoBehaviour
 
             ResetPlayers();
             FindAllFloppyDisks();
+        }
+
+        // For an OFFLINE rematch lobby. The lobby map and machines live under the persistent game
+        // manager, so loading MainMenu does not recreate them; explicitly reopen the starter
+        // machines and onboarding state for the retained local players.
+        if (!isOnlineMatchActive && scene.name == "MainMenu" && rematchPreparationStarted)
+        {
+            SetStage(-1);
+            InitializeRematchLobbySceneState();
+            FindAllFloppyDisks();
+            if (MainMenuScreen != null)
+            {
+                MainMenuScreen.SetActive(false);
+            }
+            if (playerWinText != null)
+            {
+                playerWinText.enabled = false;
+            }
+            if (roundEndedText != null)
+            {
+                roundEndedText.enabled = true;
+            }
+            isRunning = true;
+            rematchPreparationStarted = false;
+        }
+
+        // For an ONLINE rematch lobby. This is a warm return: the player objects, sparse roster,
+        // Steam session, and input ownership survive, while the deterministic match baseline and
+        // starter-selection machines are rebuilt before the normal lobby simulation resumes.
+        if (isOnlineMatchActive && scene.name == "MainMenu" && isTransitioning)
+        {
+            SetStage(-1);
+            roundOver = false;
+            gameOver = false;
+            roundEndFrameCounter = 0;
+            roundEndTimer = 0f;
+            roundTransitionPending = false;
+            roundEndUIShown = false;
+            lastRoundWinnerPID = -1;
+            pendingOpponentShopTransition = false;
+            pendingOpponentShopTransitionId = 0;
+            onlineRoundAdvanceApplied = false;
+            playersChosenSpell = false;
+            localPlayerReadyForGameplay = false;
+            remotePlayerReadyForGameplay = false;
+            gameplayReadyPeerSlots.Clear();
+            pendingGameplayReadyBySlot.Clear();
+            pendingGameplayReadyTransitionBySlot.Clear();
+            localGameplayReadyContext = GameplayReadyContext.None;
+            remoteGameplayReadyContext = GameplayReadyContext.None;
+            pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
+            localGameplayReadyTransitionId = 0;
+            remoteGameplayReadyTransitionId = 0;
+            pendingRemoteGameplayReadyTransitionId = 0;
+            ClearPendingStageSelect();
+            localSceneTransitionReady = false;
+            frameNumber = 0;
+            localPlayerInput = 5;
+            syncedInput = new ulong[Mathf.Max(2, IsRosterBasedOnlineMatch() ? playerCount : 2)];
+            for (int i = 0; i < syncedInput.Length; i++)
+            {
+                syncedInput[i] = 5UL;
+            }
+            timeoutFrames = 0;
+            isWaitingForOpponent = false;
+
+            tempUI?.CloseAllCodeModePrompts();
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(false);
+            }
+            if (MatchMessageManager.Instance != null)
+            {
+                MatchMessageManager.Instance.ResetFrameSyncForSceneTransition();
+            }
+
+            if (RollbackManager.Instance != null)
+            {
+                RollbackManager.Instance.ClearVars();
+                RollbackManager.Instance.MarkAllRemoteSlotsPendingUntilInput();
+            }
+
+            StartCoroutine(FinalizeOnlineRematchLobbyArrival(activeOnlineTransitionId));
         }
 
         // For ONLINE gameplay
@@ -5322,6 +6152,107 @@ public class GameManager : MonoBehaviour
             {
                 players[i].chosenSpell = false;
             }
+        }
+    }
+
+    private IEnumerator FinalizeOnlineRematchLobbyArrival(int transitionId)
+    {
+        // sceneLoaded runs before Start on objects created with MainMenu. Wait one frame so the
+        // new OnboardManager/GambaMachine Start methods finish, then reapply the same lobby reset
+        // used by initial online setup and save that final state as rollback frame zero.
+        yield return null;
+
+        if (!isOnlineMatchActive
+            || !isTransitioning
+            || activeOnlineTransitionId != transitionId
+            || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            yield break;
+        }
+
+        InitializeRematchLobbySceneState();
+        FindAllFloppyDisks();
+        ProjectileManager.Instance.InitializeAllProjectiles();
+        if (RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.SaveState();
+        }
+
+        if (MainMenuScreen != null)
+        {
+            MainMenuScreen.SetActive(false);
+        }
+        if (playerWinText != null)
+        {
+            playerWinText.enabled = false;
+        }
+        if (roundEndedText != null)
+        {
+            roundEndedText.enabled = true;
+        }
+        SetNetworkInfoVisible(true);
+        isRunning = true;
+        localSceneTransitionReady = true;
+        sceneReadyPeerSlots.Add(localPlayerIndex);
+
+        // Announce before applying a peer-ready packet that may already be pending. Applying the
+        // pending packet can complete this transition and clear activeOnlineTransitionId.
+        MatchMessageManager.Instance?.SendSceneTransitionReadySignal(transitionId);
+        ApplyPendingSceneTransitionReadyIfAvailable();
+        CheckSceneTransitionReady();
+    }
+
+    private void InitializeRematchLobbySceneState()
+    {
+        onboardManager = FindFirstObjectByType<OnboardManager>();
+        if (onboardManager != null)
+        {
+            onboardManager.ResetOnboarding();
+        }
+
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            if (gambaGO == null)
+            {
+                continue;
+            }
+
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba == null)
+            {
+                continue;
+            }
+
+            int ownerSlot = gamba.ownerPID - 1;
+            bool hasActiveOwner = ownerSlot >= 0
+                && ownerSlot < playerCount
+                && players[ownerSlot] != null
+                && IsPlayerSlotConnected(ownerSlot);
+            gamba.ownerPlayer = hasActiveOwner ? players[ownerSlot] : null;
+            gamba.ResetLobbyState();
+            if (!hasActiveOwner)
+            {
+                gamba.activatedCount = 3;
+                gamba.isActive = false;
+                gamba.ApplyVisualState();
+            }
+        }
+
+        foreach (SpellCode_Gate gate in gates)
+        {
+            if (gate == null)
+            {
+                continue;
+            }
+
+            gate.isOpen = false;
+            gate.SetOpen(false);
+        }
+
+        if (goDoorPrefab != null)
+        {
+            goDoorPrefab.isPrimed = true;
+            goDoorPrefab.CheckOpenDoor();
         }
     }
 
@@ -6202,7 +7133,7 @@ public class GameManager : MonoBehaviour
         // must use the actual number of peers rather than accidentally treating an empty slot as a
         // third fighter.
         int participantCount = activeOnlineRoster != null
-            ? activeOnlineRoster.PlayerCount
+            ? CountConnectedPlayers()
             : playerCount;
         switch (participantCount)
         {

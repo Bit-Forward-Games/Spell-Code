@@ -56,9 +56,15 @@ public class SaveDataLFS : SaveData
             Directory.CreateDirectory(path);
         }
 
+        // MaxDepth matters here because ArenaData holds Unity structs (Vector2), whose computed
+        // properties hand back fresh structs rather than the same reference — ReferenceLoopHandling
+        // is reference-based, so it cannot see that kind of runaway nesting. Unbounded, that walks
+        // until the stack blows, which hangs the process instead of throwing something catchable.
+        // This payload is ~5 levels deep, so 64 only ever trips on the pathological case.
         string output = JsonConvert.SerializeObject(data, Formatting.Indented, new JsonSerializerSettings
         {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            MaxDepth = 64
         });
 
         //write the data to the directory

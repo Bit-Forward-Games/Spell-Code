@@ -138,6 +138,9 @@ public class PlayerController : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public SpriteMask spriteMask;
     [NonSerialized] public List<int> codeReleaseFrameLengthsOverride = null;
+    //codeReleaseFrameLengthsOverride aliases the casting spell's own list, so deserializing in place
+    //would rewrite that spell's template. Restore into a buffer this player owns instead.
+    [NonSerialized] private List<int> codeReleaseOverrideBuffer = null;
     //Character Data
     public CharacterData charData { get; private set; }
     [NonSerialized] public const float baseGravity = .45f;
@@ -4098,7 +4101,12 @@ public class PlayerController : MonoBehaviour
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
-        codeReleaseFrameLengthsOverride = DeserializeIntList(br, codeReleaseFrameLengthsOverride);
+        List<int> restoredCodeReleaseFrameLengths = DeserializeIntList(br, codeReleaseOverrideBuffer);
+        if (restoredCodeReleaseFrameLengths != null)
+        {
+            codeReleaseOverrideBuffer = restoredCodeReleaseFrameLengths;
+        }
+        codeReleaseFrameLengthsOverride = restoredCodeReleaseFrameLengths;
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isConnected = br.ReadBoolean();

@@ -41,7 +41,12 @@ public class SickleOfTheNightMark_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        if(ownerSpell.gameObject.GetComponent<SickleOfTheNight>().targetPID == -1 && logicFrame < lifeSpan-11)
+        //ownerSpell can be null (reflect reassigns the owner, so the serialized spell index resolves
+        //to -1). An unguarded deref here NREs inside the resim and hard-freezes the sim; with no
+        //owning spell left to delete this mark, expire it the same way a cleared target does.
+        SickleOfTheNight sourceSpell = ownerSpell != null
+            ? ownerSpell.gameObject.GetComponent<SickleOfTheNight>() : null;
+        if((sourceSpell == null || sourceSpell.targetPID == -1) && logicFrame < lifeSpan-11)
         {
             logicFrame = lifeSpan - 10;
         }

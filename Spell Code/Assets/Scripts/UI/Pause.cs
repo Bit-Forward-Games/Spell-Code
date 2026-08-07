@@ -1391,6 +1391,12 @@ public class Pause : MonoBehaviour
         // first so a quit that somehow does not take still leaves a responsive game rather than a
         // frozen one.
         Time.timeScale = 1f;
+
+        // Tutorial starts several MP4 previews, and the training floppy display deliberately keeps
+        // its preview decoder warm after an interaction. Pausing those players leaves their native
+        // resources alive for Unity's application teardown; stop and detach every loaded preview
+        // before requesting the quit so teardown cannot stall on an active decoder.
+        SpellVideoPlayer.ReleaseAllForShutdown();
 #if UNITY_EDITOR
         // Application.Quit() is a no-op in the Editor: the pause menu just sits there at
         // timeScale 0

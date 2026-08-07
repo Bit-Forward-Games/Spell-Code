@@ -15,7 +15,7 @@ public class HellWaveFistEnhanced_prj : BaseProjectile
         //vSpeed = 0f;
         lifeSpan = 45;
         maxMultiHitCount = 3;
-        multiHitCooldown = 5;
+        multiHitCooldown = 8;
         deleteOnHit = true;
         fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4}, true);

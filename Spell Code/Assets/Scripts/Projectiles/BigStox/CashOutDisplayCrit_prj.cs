@@ -22,7 +22,7 @@ public class CashOutDisplayCrit_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset, "Cash Out Display");
         activeHitboxGroupIndex = 0;
-        vSpeed = Fixed.FromInt(8); // No vertical speed
+        vSpeed = Fixed.FromInt(4); // No vertical speed
     }
     public override void LoadProjectile()
     {

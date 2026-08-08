@@ -555,6 +555,16 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 8fd2741f5f3ac304c84a7800cf8f4e22, type: 3}
   - {fileID: 8300000, guid: 4a3dacc5671970e499e529b79329729b, type: 3}
   - {fileID: 8300000, guid: f6e436a5f3a57b046a206d942984d449, type: 3}
+  - {fileID: 8300000, guid: df0449b339a77d64ca2b3f3ab72ff7ee, type: 3}
+  - {fileID: 8300000, guid: b85a9303e336dd04f8d0252e2e706ea8, type: 3}
+  - {fileID: 8300000, guid: b4a2c0b1f4adc6241bc7ace9b3640736, type: 3}
+  - {fileID: 8300000, guid: 8932d65ce3d343e4f9e733e527bc085c, type: 3}
+  - {fileID: 8300000, guid: 53cf29699b9eae749a83473850105654, type: 3}
+  - {fileID: 8300000, guid: 3787b2dcd873ffb468e72fa3d31c78b3, type: 3}
+  - {fileID: 8300000, guid: 01b0d68befafbe74cba0340af63240a5, type: 3}
+  - {fileID: 8300000, guid: c06926e259f2bc54ca12d61c1ac13d5d, type: 3}
+  - {fileID: 8300000, guid: 7de18e49b983a5a4ea69cf8ea19f370d, type: 3}
+  - {fileID: 8300000, guid: 177cf6b925feaef4783799e8dca12a9e, type: 3}
   menuAudioClips:
   - {fileID: 8300000, guid: b800095153aedac4f80b5be7e465a5e0, type: 3}
   - {fileID: 8300000, guid: 1176057e31493644ba8aa253359aa2de, type: 3}

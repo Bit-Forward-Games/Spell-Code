@@ -1359,7 +1359,7 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
+    m_SelectOnUp: {fileID: 864876085737798571}
     m_SelectOnDown: {fileID: 2929814773966663330}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 784624475315211408}
@@ -1484,7 +1484,7 @@ MonoBehaviour:
     m_Mode: 4
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 784624475315211408}
-    m_SelectOnDown: {fileID: 864876085737798571}
+    m_SelectOnDown: {fileID: 5684589733500706242}
     m_SelectOnLeft: {fileID: 2929814773966663330}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1

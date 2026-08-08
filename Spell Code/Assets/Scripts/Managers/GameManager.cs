@@ -2903,7 +2903,11 @@ public class GameManager : MonoBehaviour
         }
 
         dataManager.totalRoundsPlayed = Mathf.Max(0, totalRoundsPlayed);
-        ramNeededToWinRound = (ushort)(300 + 100 * dataManager.totalRoundsPlayed);
+        // Must use the SAME base as the OnSceneLoaded computation. This hardcoded 300 against
+        // that path's baseRamNeeddedtowin (400) put the two machines a permanent 100 apart for the
+        // same round count, and ramNeededToWinRound is part of SerializeSharedGameplayHashState
+        // so the shared hash diverged on frame one and never reconverged.
+        ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + 100 * dataManager.totalRoundsPlayed);
         onlineRoundAdvanceApplied = true;
     }
 
@@ -5865,6 +5869,7 @@ public class GameManager : MonoBehaviour
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
 
         int roundsPlayed = 0;
+        bool haveRoundCount = true;
         if (dataManager == null)
         {
             dataManager = DataManager.Instance;
@@ -5872,14 +5877,22 @@ public class GameManager : MonoBehaviour
         if (dataManager != null)
         {
             roundsPlayed = dataManager.totalRoundsPlayed;
-            
+
+        }
+        else if (isOnlineMatchActive)
+        {
+            // ExecuteOrder66 destroys DataManager, so it is legitimately absent on some transitions.
+            haveRoundCount = false;
         }
         else
         {
             roundsPlayed = 1;
         }
 
-        ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + 100 * roundsPlayed);
+        if (haveRoundCount)
+        {
+            ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + 100 * roundsPlayed);
+        }
 
         if (scene.name != "MainMenu")
         {

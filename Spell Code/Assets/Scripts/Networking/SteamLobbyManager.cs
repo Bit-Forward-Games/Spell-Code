@@ -35,7 +35,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-29"; // scz-29: savestate layout changed (BaseProjectile.hitstop byte, PlayerController code-release frame-length list, AbaddonUppercut dropped doubleHitReady)
+    private const string NetcodeVersion = "scz-30"; // scz-30: ramNeededToWinRound now uses baseRamNeeddedtowin on BOTH paths (the online sync path hardcoded 300 vs 400), so its value -- and the shared gameplay hash -- changes
                                                     // changed MEANING. It used to carry downJumpSlide ("disable diagonal
                                                     // slide"); it now carries diagonalSlide ("allow it"), and the three
                                                     // PlayerController conditions were inverted to match. The bit position

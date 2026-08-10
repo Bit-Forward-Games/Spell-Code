@@ -122,8 +122,10 @@ public static class SteamAchievements
             SteamUserStats.ResetAll(true);
             SteamUserStats.StoreStats();
 
+            // Returning to the menu is enough to re-run the first-launch unlock: ExecuteOrder66
+            // destroys SteamManager and the MainMenu/SoloLobby copy re-inits Steam on arrival.
             Debug.Log("[Achievements] Reset every achievement and stat on this account for app "
-                + $"{SteamClient.AppId}. Relaunch the build to run the first-launch path cold.");
+                + $"{SteamClient.AppId}. Return to the main menu to re-run the first-launch path.");
         }
         catch (Exception e)
         {

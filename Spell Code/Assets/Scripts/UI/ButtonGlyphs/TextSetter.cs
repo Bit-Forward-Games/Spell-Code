@@ -12,6 +12,7 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] public InputActionReference defaultAction;
+    [SerializeField] private bool keyboardUnPressedOverride;
     public int selectorPID = 0;
 
     private TMP_Text _textBox;

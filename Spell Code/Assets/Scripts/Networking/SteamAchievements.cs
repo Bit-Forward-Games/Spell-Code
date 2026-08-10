@@ -61,8 +61,8 @@ public static class SteamAchievements
     /// Request an achievement unlock. Never throws, never blocks, and is cheap to call
     /// repeatedly, an achievement the account already owns is a no-op.
     ///
-    /// Do NOT call this from inside rollback resimulation; guard gameplay call sites with
-    /// `RollbackManager.Instance.isRollbackFrame` the way SFX/VFX do.
+    /// Do NOT call this from inside rollback resimulation. Gameplay call sites want either
+    /// UnlockForPlayer below, or a SimGuards.IsLocalRealFrame check of their own.
     /// </summary>
     public static void Unlock(string apiName)
     {
@@ -83,26 +83,14 @@ public static class SteamAchievements
     /// for every player on every peer's machine, so a bare Unlock() there would fire
     /// repeatedly and credit you for other people's play. Drops the request unless this is a
     /// real frame and the slot belongs to the player at this keyboard.
+    ///
+    /// Use this for feats that fire straight off a gameplay event. Anything with a save
+    /// behind it should gate the save and the unlock together with one SimGuards call, and
+    /// then use plain Unlock() here.
     /// </summary>
     public static void UnlockForPlayer(int playerSlot, string apiName)
     {
-        RollbackManager rollback = RollbackManager.Instance;
-
-        // Rollback replays already-simulated frames; only the real pass may have side
-        // effects. No manager means nothing is resimulating, so the frame is real.
-        if (rollback != null && rollback.isRollbackFrame)
-        {
-            return;
-        }
-
-        GameManager manager = GameManager.Instance;
-
-        // Online, the sim runs every player on every machine, so credit the local slot only.
-        // Offline, every pad shares one Steam account and localPlayerIndex just sits at its
-        // default of 0, so filtering by it there would deny P2 through P4.
-        if (manager != null
-            && manager.isOnlineMatchActive
-            && playerSlot != manager.localPlayerIndex)
+        if (!SimGuards.IsLocalRealFrame(playerSlot))
         {
             return;
         }

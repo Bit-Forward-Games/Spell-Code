@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -120}
+  m_AnchoredPosition: {x: 50, y: -150}
   m_SizeDelta: {x: 400, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7700043350745194862
@@ -1111,7 +1111,7 @@ MonoBehaviour:
   m_StartCorner: 0
   m_StartAxis: 0
   m_CellSize: {x: 400, y: 100}
-  m_Spacing: {x: 0, y: -30}
+  m_Spacing: {x: 0, y: 0}
   m_Constraint: 0
   m_ConstraintCount: 2
 --- !u!1 &4107705675119223651
@@ -1359,7 +1359,7 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
+    m_SelectOnUp: {fileID: 864876085737798571}
     m_SelectOnDown: {fileID: 2929814773966663330}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 784624475315211408}
@@ -1484,7 +1484,7 @@ MonoBehaviour:
     m_Mode: 4
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 784624475315211408}
-    m_SelectOnDown: {fileID: 864876085737798571}
+    m_SelectOnDown: {fileID: 5684589733500706242}
     m_SelectOnLeft: {fileID: 2929814773966663330}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
@@ -2217,9 +2217,9 @@ MonoBehaviour:
   m_Navigation:
     m_Mode: 4
     m_WrapAround: 0
-    m_SelectOnUp: {fileID: 4419042073039511525}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 5684589733500706242}
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 6969332342653038478}
+    m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:

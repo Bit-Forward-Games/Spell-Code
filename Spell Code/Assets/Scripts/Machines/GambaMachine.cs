@@ -21,6 +21,10 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class GambaMachine : MonoBehaviour
 {
     public Animator gambaAnimator;
+
+    [SerializeField]
+    private TMP_Text rollsText;
+
     public bool isActive;
     //Bounds diskBounds;
     public PlayerController ownerPlayer = null;
@@ -44,6 +48,11 @@ public class GambaMachine : MonoBehaviour
 
     public byte resetTimer = 0;
     public int activatedCount = 0;
+
+    //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all.
+    //built from the codepoint so the infinity glyph can't be mangled by a source re-encode
+    private const int maxShopRolls = 3;
+    private static readonly string infiniteRollsLabel = char.ConvertFromUtf32(0x221E);
 
     public GameObject floppy;
     public Vector2[] diskLocations;
@@ -635,6 +644,8 @@ public class GambaMachine : MonoBehaviour
 
     public void ApplyVisualState()
     {
+        UpdateRollsText();
+
         if (gambaAnimator == null)
         {
             gambaAnimator = GetComponent<Animator>();
@@ -647,6 +658,26 @@ public class GambaMachine : MonoBehaviour
 
         gambaAnimator.SetBool("facingLeft", !facingRight);
         gambaAnimator.SetBool("isActive", isActive);
+    }
+
+    /// <summary>
+    /// Refresh the "Rolls:" label above the machine
+    /// </summary>
+    private void UpdateRollsText()
+    {
+        if (rollsText == null) { return; }
+
+        //every scene locks a machine out by pinning activatedCount at maxShopRolls (the owner
+        //already picked, or the slot has nobody in it), so that always reads as zero rolls left
+        int rollsLeft = Mathf.Max(0, maxShopRolls - activatedCount);
+        bool isShop = SceneManager.GetActiveScene().name == "Shop";
+
+        //only the shop counts down, everywhere else players reroll as much as they want
+        string rolls = !isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString();
+        string label = "Rolls: " + rolls;
+
+        //setting the text rebuilds the mesh, and this runs a few times per frame per machine
+        if (rollsText.text != label) { rollsText.text = label; }
     }
 
     public bool CheckHitboxCollision()

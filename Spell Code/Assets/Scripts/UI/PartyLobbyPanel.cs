@@ -783,7 +783,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         else if (canStart)
         {
             startMatchLabel.text = startMatchText;
-            startMatchLabel.text.fontSize = 60; // Restore the default font size in case it was shrunk for the waiting-for-players state.
+            startMatchLabel.fontSize = 60; // Restore the default font size in case it was shrunk for the waiting-for-players state.
         }
         else if (lobby != null
             && (lobby.IsPartyMatchStartRequested || !lobby.IsPartyLobbyWaitingForHostStart))
@@ -794,7 +794,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         {
             // Host is alone: an online match still needs a second machine in it.
             startMatchLabel.text = waitingForPlayersText;
-            startMatchLabel.text.fontSize = 35; // Shrink to fit the longer string. The other three states are short enough to use the default font size.
+            startMatchLabel.fontSize = 35; // Shrink to fit the longer string. The other three states are short enough to use the default font size.
         }
     }
 

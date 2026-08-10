@@ -1014,7 +1014,12 @@ public class Pause : MonoBehaviour
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(true);
         SetControlGlyphSelectorPID();
- 
+
+        // Deactivating the menu does not reliably deselect whatever was highlighted, so the label
+        // can still be holding the last visit's text. Start blank and let SelectFirst's button
+        // fill it in if it happens to be one of the described options.
+        ButtonSelectHandler.SetControlOptionDescription("");
+
         StartCoroutine(SelectFirst(_controlsMenuFirst));
  
         SetMenuTimeScale();
@@ -1292,6 +1297,19 @@ public class Pause : MonoBehaviour
         colorLayer3.gameObject.GetComponent<RectTransform>().DOAnchorPos(new Vector2(colorLayer3Pos.x, colorLayer3Pos.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
+    /// <summary>
+    /// True when the EventSystem's UI module has already fired its own Submit this frame, so the
+    /// selected object is about to receive (or has received) a submit event without our help.
+    /// Returns false when there is no module or its submit action is absent/disabled, which is
+    /// exactly the case the manual TriggerSelectedButton path was added to cover.
+    /// </summary>
+    private bool UiSubmitActionFiredThisFrame()
+    {
+        InputSystemUIInputModule module = GetUiInputModule();
+        InputAction submitAction = module != null ? module.submit?.action : null;
+        return submitAction != null && submitAction.enabled && submitAction.WasPressedThisFrame();
+    }
+
     public void TriggerSelectedButton()
     {
         GameObject selectedObject = EventSystem.current?.currentSelectedGameObject;
@@ -1304,7 +1322,18 @@ public class Pause : MonoBehaviour
             return;
         }
 
-        ExecuteEvents.Execute(selectedObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
+        // The manual submit exists because the UI module does not always deliver one (see the
+        // gamemode menus, which run with paused == false). But when it DOES deliver one -- the pause
+        // menu is driven by the player's Jump action, which is typically bound to UI Submit as well
+        // -- executing it again here fires the handler TWICE. That is invisible on navigation
+        // buttons (opening Options twice looks identical) and obvious on a toggle, which flips
+        // straight back. Only execute when the module has not already done it; the feedback below
+        // still runs either way so the press feels the same.
+        if (!UiSubmitActionFiredThisFrame())
+        {
+            ExecuteEvents.Execute(selectedObject, new BaseEventData(EventSystem.current), ExecuteEvents.submitHandler);
+        }
+
         StartCoroutine(SuppressSelectionForOneFrame());
         RevertTextColorToWhite();
 
@@ -1346,13 +1375,40 @@ public class Pause : MonoBehaviour
     {
         // DataManager can be legitimately absent (fresh SoloLobby boot has none; ExecuteOrder66
         // destroys the persistent one). An unguarded SaveToFile threw here and aborted the quit
-        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit always.
-        if (DataManager.Instance != null)
+        // BEFORE Application.Quit — trapping the player in the game. Save if possible, quit ALWAYS:
+        // the null check alone is not enough, because anything thrown INSIDE SaveToFile aborts the
+        // quit exactly the same way and strands the player behind a timeScale-0 pause menu.
+        try
         {
-            DataManager.Instance.SaveToFile();
+            if (DataManager.Instance != null)
+            {
+                DataManager.Instance.SaveToFile();
+            }
         }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Save on quit failed, quitting anyway: {e}");
+        }
+
         Debug.Log("Quitting Spell Code SlingerZ");
+
+        // Nothing past this point may throw or the player is trapped. Release the pause freeze
+        // first so a quit that somehow does not take still leaves a responsive game rather than a
+        // frozen one.
+        Time.timeScale = 1f;
+
+        // Tutorial starts several MP4 previews, and the training floppy display deliberately keeps
+        // its preview decoder warm after an interaction. Pausing those players leaves their native
+        // resources alive for Unity's application teardown; stop and detach every loaded preview
+        // before requesting the quit so teardown cannot stall on an active decoder.
+        SpellVideoPlayer.ReleaseAllForShutdown();
+#if UNITY_EDITOR
+        // Application.Quit() is a no-op in the Editor: the pause menu just sits there at
+        // timeScale 0
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 
     public void MasterVolume()
@@ -1933,7 +1989,7 @@ public class Pause : MonoBehaviour
     {
         PlayerController player = GetPausePlayer();
         if (player == null) return false;
-        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.downJumpSlide : player.downJumpSlide;
+        return TryGetOnlineControlOptions(player, out PlayerControlOptionsData options) ? options.diagonalSlide : player.diagonalSlide;
     }
 
     private void SetPauseControlOptions(bool relativeInputs, bool toggleCodeInput, bool tapJump, bool vibeCoding, bool downJumpSlide)
@@ -1960,7 +2016,7 @@ public class Pause : MonoBehaviour
         player.toggleCodeInput = toggleCodeInput;
         player.tapJump = tapJump;
         //player.vibeCoding = vibeCoding;
-        player.downJumpSlide = downJumpSlide;
+        player.diagonalSlide = downJumpSlide;
         SettingsManager.Instance?.SaveControlOptionsForPlayer(player);
     }
 

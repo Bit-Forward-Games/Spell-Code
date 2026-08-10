@@ -143,7 +143,10 @@ public class ShotReflector_prj : BaseProjectile
                 
                 proj.playerHitArr[owner.pID-1] = true;
                 logicFrame = animFrames.frameLengths.Take(24).Sum()+1;
-                ownerSpell.cooldownCounter-= 120;
+                // This is a REFLECTOR, so it is the most likely projectile of all to have had its
+                // owner reassigned and its ownerSpell index invalidated. Skip the cooldown refund
+                // rather than throwing inside the sim; deterministic, since ownerSpell is sim state.
+                if (ownerSpell != null) ownerSpell.cooldownCounter -= 120;
 
                 //Play the Shot Reflector Break SFX
                 SFX_Manager.Instance.PlaySpellcodeSound("Shot Reflector Break");

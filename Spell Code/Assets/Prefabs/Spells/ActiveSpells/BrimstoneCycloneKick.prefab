@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3884774707739521384
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7745486899729457613}
+  - component: {fileID: 4428439795583715423}
+  m_Layer: 0
+  m_Name: BrimstoneCycloneKick
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7745486899729457613
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4428439795583715423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3884774707739521384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 809a08f7bb8d0f74c81e528c523cb2c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BrimestoneCycloneKick
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: c3dcdb33b3d3a9744968a45cdc72841a, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: 89455e7426fbdf540bdb025544b07027, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: b3853df0d8f6e104e81236406a6aea4c, type: 3}
+  SpellVideo: {fileID: 32900000, guid: d0b9fde068d23df479af882884e84125, type: 3}

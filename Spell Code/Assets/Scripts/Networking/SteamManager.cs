@@ -61,8 +61,11 @@ public class SteamManager : MonoBehaviour
         // --- Initialize Steamworks ---
         try
         {
-            // Try initializing using the App ID
-            SteamClient.Init(SteamAppId, true); // true for async callbacks
+            // Pump callbacks explicitly from Update so every Steam event is handled on Unity's
+            // main thread. Facepunch's async callback worker must not run at the same time as our
+            // manual RunCallbacks call: once networking/relay callbacks become active the two
+            // pumps can race SteamClient.Shutdown and leave a standalone build hung while quitting.
+            SteamClient.Init(SteamAppId, false);
 
             SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -168,6 +171,7 @@ public class SteamManager : MonoBehaviour
         {
             Debug.Log("Shutting down Steamworks...");
             SteamClient.Shutdown();
+            Debug.Log("Steamworks shutdown complete.");
         }
     }
 }

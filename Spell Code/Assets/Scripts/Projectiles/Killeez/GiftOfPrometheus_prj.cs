@@ -12,6 +12,7 @@ public class GiftOfPrometheus_prj : BaseProjectile
 
     [NonSerialized] public bool isGrounded = false;
     //[NonSerialized] public ushort lifeTime = 0;
+    private const float refGravity = .75f;
     private const ushort baseLifeTime = 60;
     Fixed projectileWidth = Fixed.FromInt(8);
     Fixed projectileHeight = Fixed.FromInt(8);
@@ -92,12 +93,8 @@ public class GiftOfPrometheus_prj : BaseProjectile
         CheckStageDataSOCollision();
         if (!isGrounded)
         {
-            vSpeed -= owner.gravity/Fixed.FromFloat(10f); // Apply gravity to the vertical speed
+            vSpeed -= Fixed.FromFloat(refGravity/10);
         }
-        // if (logicFrame == animFrames.frameLengths.Take(12).Sum())
-        // {
-        //     logicFrame = animFrames.frameLengths.Take(4).Sum() + 1; //manually loop the animation which we can do bcs this projectile's life is based on the owner's reps
-        // }
 
         //if this is the start of the looping animation,...
         if (logicFrame == animFrames.frameLengths.Take(5).Sum() + 1)
@@ -106,12 +103,6 @@ public class GiftOfPrometheus_prj : BaseProjectile
             SFX_Manager.Instance.PlaySpellcodeSound("Gift Of Prometheus", 1.0f, 1.0f);
         }
 
-        // if (lifeTime == owner.reps*15 + animFrames.frameLengths.Take(4).Sum() + baseLifeTime || multiHitCount.Any(count => count <= 0))
-        // {
-        //     logicFrame = animFrames.frameLengths.Take(12).Sum() + 1;
-        //     Array.Fill(multiHitCount, maxMultiHitCount);
-        // }
-        // lifeTime ++;
     }
 
 
@@ -175,14 +166,14 @@ public class GiftOfPrometheus_prj : BaseProjectile
                         {
                             // projectile is left of solid -> push left
                             position = new FixedVec2(sMin.X - halfW, position.Y);
-                            hSpeed = Fixed.FromInt(-3);
+                            hSpeed = Fixed.FromInt(0);
                             facingRight = false;
                         }
                         else
                         {
                             // projectile is right of solid -> push right
                             position = new FixedVec2(sMax.X + halfW, position.Y);
-                            hSpeed = Fixed.FromInt(3);
+                            hSpeed = Fixed.FromInt(0);
                             facingRight = true;
                         }
                     }

@@ -21,12 +21,35 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     int lastCodeModeDirection;
     const int PUNK_CODE_MODE_INDEX = 1;
 
+    public int controlOptionDescriptionIndex;
+
     public void ResetCodeModePromptPresentation()
     {
         wasCodeModeMenuOpen = false;
         lastCodeModeDirection = 5;
     }
     
+    /// <summary>
+    /// Writes the controls panel's description label, or does nothing if it is not in the scene.
+    /// GameObject.Find only sees ACTIVE objects, so the lookup returns null whenever the label (or
+    /// any ancestor) is disabled -- including mid-teardown. Dereferencing it there throws out of a
+    /// selection handler, and an exception on that path is what strands the screen cover and
+    /// black-screens a transition (same failure mode as the old TextSetter.SetText crash). Fail
+    /// quietly instead.
+    /// </summary>
+    public static void SetControlOptionDescription(string description)
+    {
+        GameObject describeObject = GameObject.Find("Control Option Description Text");
+        TextMeshProUGUI describeText = describeObject != null
+            ? describeObject.GetComponent<TextMeshProUGUI>()
+            : null;
+
+        if (describeText != null)
+        {
+            describeText.text = description;
+        }
+    }
+
     // Triggers automatically when the Event System shifts focus to this button
     public void OnSelect(BaseEventData eventData)
     {
@@ -102,6 +125,57 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 pauseSelectorTransform.DORotate(new Vector3(0, 0, 11f), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
                 transform.parent.gameObject.GetComponent<Image>().enabled = false;
             }
+
+            if (name.Contains("Lobby"))
+            {
+                Transform lobbyChildTransform = transform.Find("LobbySelector");
+                if (lobbyChildTransform != null)
+                {
+                    Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
+                    lobbyChildTransform.gameObject.SetActive(true);
+                    lobbySelector.fillAmount = 0f;
+                    DOTween.To(() => (float)lobbySelector.fillAmount, x => lobbySelector.fillAmount = (float)x, 1f, 0.35f)
+                        .SetTarget(lobbySelector)
+                        .SetEase(Ease.OutQuad)
+                        .SetUpdate(true);
+                }
+            }
+            
+            if (name.Contains("FindMatch"))
+            {
+                Image findMatchSelector = GetComponent<Image>();
+                findMatchSelector.gameObject.SetActive(true);
+                findMatchSelector.fillAmount = 0f;
+                DOTween.To(() => (float)findMatchSelector.fillAmount, x => findMatchSelector.fillAmount = (float)x, 1f, 0.5f)
+                    .SetTarget(findMatchSelector)
+                    .SetEase(Ease.OutQuad)
+                    .SetUpdate(true);
+            }
+
+            if (name.Contains("Describe"))
+            {
+                string description;
+                switch (controlOptionDescriptionIndex)
+                {
+                    case 0:
+                        description = "Tap the up direction to jump";
+                        break;
+                    case 1:
+                        description = "Disable the abillity to slide using down and jump. Used to help consistently dropping through platforms";
+                        break;
+                    case 2:
+                        description = "Tap the code button again instead of releasing the button to execute the stored code";
+                        break;
+                    case 3:
+                        description = "Left and right button inputs are based on the player's facing direction ( e.g. right is forward )";
+                        break;
+                    default:
+                        description = "";
+                        break;
+                }
+
+                SetControlOptionDescription(description);
+            }
         }
     }
 
@@ -110,6 +184,16 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
     {
         if (name.Contains("_"))
         {
+            // The buttons that have no description of their own (key rebinds, Back, Reset) never
+            // run the OnSelect block above, so the panel would keep displaying whichever option was
+            // highlighted last. Blank it on the way out instead: the EventSystem always deselects
+            // the old object before selecting the new one, so a described option still overwrites
+            // this with its own text, and everything else correctly leaves the label empty.
+            if (name.Contains("Describe"))
+            {
+                SetControlOptionDescription("");
+            }
+
             Transform childTransform = transform.Find("digitalText");
             if (childTransform != null) 
             {
@@ -181,6 +265,23 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     textImageTransform.gameObject.SetActive(false);
                 }
             } 
+
+            if (name.Contains("Lobby"))
+            {
+                Transform lobbyChildTransform = transform.Find("LobbySelector");
+                if (lobbyChildTransform != null)
+                {
+                    Image lobbySelector = lobbyChildTransform.gameObject.GetComponent<Image>();
+                    lobbyChildTransform.gameObject.SetActive(false);
+                    lobbySelector.fillAmount = 0f;
+                }
+            }
+
+            if (name.Contains("FindMatch"))
+            {
+                Image findMatchSelector = GetComponent<Image>();
+                findMatchSelector.fillAmount = 0f;
+            }
         }
     }
 
@@ -365,6 +466,7 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
         Image codeModeImage = GetComponent<Image>();
         Transform textImageTransform = transform.Find("Text Image");
+        GameObject descriptionText = transform.Find("Code Mode Description").gameObject;
 
         // Kill any tween still in flight on these targets so a stale OnComplete
         // can't deactivate us after a newer tween already changed our state.
@@ -390,6 +492,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                 rt.localScale = new Vector3(0f, rt.localScale.y, rt.localScale.z);
                 rt.DOScaleX(1f, 0.35f).SetEase(Ease.OutQuad).SetUpdate(true);
             }
+
+            //display the code mode description for the currently selected code mode
+            if(descriptionText != null)
+            {
+                descriptionText.SetActive(true);
+            }
         }
         else
         {
@@ -406,6 +514,12 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
                     .SetEase(Ease.InQuad)
                     .SetUpdate(true)
                     .OnComplete(() => textImageTransform.gameObject.SetActive(false));
+            }
+
+            //stop displaying the code mode description
+            if (descriptionText != null)
+            {
+                descriptionText.SetActive(false);
             }
         }
     }

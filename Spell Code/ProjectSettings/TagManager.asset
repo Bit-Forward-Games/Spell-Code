@@ -20,6 +20,7 @@ TagManager:
   - Pause
   - PortalA
   - PortalB
+  - Portal
   layers:
   - Default
   - TransparentFX
@@ -63,8 +64,8 @@ TagManager:
   - name: Tileset
     uniqueID: 654771783
     locked: 0
-  - name: GameplayEffects
-    uniqueID: 3204368189
+  - name: Players
+    uniqueID: 444178335
     locked: 0
   - name: NPC Back
     uniqueID: 342844471
@@ -95,6 +96,9 @@ TagManager:
     locked: 0
   - name: Player 4 Front
     uniqueID: 3342369721
+    locked: 0
+  - name: GameplayEffects
+    uniqueID: 3204368189
     locked: 0
   - name: UI
     uniqueID: 1388315005

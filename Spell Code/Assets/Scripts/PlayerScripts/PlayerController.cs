@@ -120,7 +120,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public bool toggleCodeInput = false;
     [NonSerialized] public bool tapJump = false;
     [NonSerialized] private bool tapJumpPrimed = true;
-    [NonSerialized] public bool downJumpSlide = false; 
+    [NonSerialized] public bool diagonalSlide = false; 
 
     private const int OnlineControlOptionsShift = 16;
     private const ulong OnlineControlOptionsValidMask = 1UL << 63;
@@ -137,10 +137,15 @@ public class PlayerController : MonoBehaviour
     public PlayerState prevState;
     public SpriteRenderer spriteRenderer;
     public SpriteMask spriteMask;
-
+    [NonSerialized] public List<int> codeReleaseFrameLengthsOverride = null;
+    //codeReleaseFrameLengthsOverride aliases the casting spell's own list, so deserializing in place
+    //would rewrite that spell's template. Restore into a buffer this player owns instead.
+    [NonSerialized] private List<int> codeReleaseOverrideBuffer = null;
     //Character Data
     public CharacterData charData { get; private set; }
-    public Fixed gravity = Fixed.FromFloat(0.75f);
+    [NonSerialized] public const float baseGravity = .45f;
+    [NonSerialized] public const float fastfallGravityMod = .3f;
+    [NonSerialized] public Fixed gravity = Fixed.FromFloat(baseGravity);
     public const int TerminalVelocity = -20;
     [HideInInspector]
     public Fixed jumpForce = Fixed.FromInt(10);
@@ -516,7 +521,7 @@ public class PlayerController : MonoBehaviour
         position = spawnPos;
         hSpd = Fixed.FromInt(0);
         vSpd = Fixed.FromInt(0);
-        gravity = Fixed.FromFloat(0.75f);
+        gravity = Fixed.FromFloat(baseGravity);
         facingRight = spawnPos.X.RawValue <= 0;
         isGrounded = false;
         onPlatform = false;
@@ -890,6 +895,27 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void ResetPlayer()
     {
+        ResetPlayerForNewMatch(includeStartingSpell: true);
+    }
+
+    /// <summary>
+    /// Resets this player for the MainMenu match lobby while deliberately leaving the spell list
+    /// empty. The retained player can then choose a new starting spell before the next match.
+    /// </summary>
+    public void ResetPlayerForStartingSpellSelection()
+    {
+        ResetPlayerForNewMatch(includeStartingSpell: false);
+        chosenSpell = false;
+        chosenStartingSpell = false;
+        startingSpellAdded = false;
+        storedKillBonus = 0;
+        roundRam = 0;
+        ramBounty = 0;
+        hasHighestBounty = false;
+    }
+
+    private void ResetPlayerForNewMatch(bool includeStartingSpell)
+    {
         ClearToasts();
         ClearSpellList();
 
@@ -905,7 +931,10 @@ public class PlayerController : MonoBehaviour
         // AddSpellToSpellList(charData.startingInventory[i]);
         //}
 
-        AddSpellToSpellList(startingSpell);
+        if (includeStartingSpell)
+        {
+            AddSpellToSpellList(startingSpell);
+        }
 
         roundsWon = 0;
 
@@ -991,7 +1020,7 @@ public class PlayerController : MonoBehaviour
         bool toggleCodeInput = player != null && player.toggleCodeInput;
         bool tapJump = player != null && player.tapJump;
         bool vibeCoding = player != null && player.vibeCoding;
-        bool downJumpSlide = player != null && player.downJumpSlide;
+        bool diagonalSlide = player != null && player.diagonalSlide;
 
         if (player != null
             && SettingsManager.Instance != null
@@ -1001,10 +1030,10 @@ public class PlayerController : MonoBehaviour
             toggleCodeInput = options.toggleCodeInput;
             tapJump = options.tapJump;
             vibeCoding = options.vibeCoding;
-            downJumpSlide = options.downJumpSlide;
+            diagonalSlide = options.diagonalSlide;
         }
 
-        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, downJumpSlide);
+        return PackOnlineControlOptions(rawInput, relativeInputs, toggleCodeInput, tapJump, vibeCoding, diagonalSlide);
     }
 
     public static ulong ReplaceGameplayInputPreservingOnlineControlOptions(ulong existingInput, ulong gameplayInput)
@@ -1050,7 +1079,7 @@ public class PlayerController : MonoBehaviour
         toggleCodeInput = (flags & (1UL << 1)) != 0;
         tapJump = (flags & (1UL << 2)) != 0;
         vibeCoding = (flags & (1UL << 3)) != 0;
-        downJumpSlide = (flags & (1UL << 4)) != 0;
+        diagonalSlide = (flags & (1UL << 4)) != 0;
     }
 
     public bool IsLocalOnlinePauseMenuOpen()
@@ -1126,7 +1155,7 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)])
+            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)
@@ -1226,6 +1255,14 @@ public class PlayerController : MonoBehaviour
                 return;
             }
         }
+
+        // Training room options panel. It navigates off this same input snapshot, so freeze the
+        // player for as long as it is up (including the frame it closes, so the back press can't
+        // also be read as a code input)
+        if (TrainingOptionsMachine.HandleMenuInput(this))
+        {
+            return;
+        }
         
 
         //If the player is in hitstop, effectively skip the player's logic, but update the buffer input for when you leave hitstop
@@ -1308,7 +1345,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(input.Direction == 2 && (onPlatform|| !downJumpSlide))
+                    if(input.Direction == 2 && (onPlatform|| diagonalSlide))
                     {
                         break;
                     }
@@ -1360,7 +1397,7 @@ public class PlayerController : MonoBehaviour
                 }
 
                 //check for slide input:
-                if (input.Direction < 4 && (downJumpSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
+                if (input.Direction < 4 && (!diagonalSlide? true : input.Direction != 2 ) && input.ButtonStates[1] == ButtonState.Pressed)
                 {
                     SetState(PlayerState.Slide);
                     break;
@@ -1416,6 +1453,12 @@ public class PlayerController : MonoBehaviour
 
                     break;
                 }
+                if (vSpd < Fixed.FromInt(0) && input.Direction <= 3)
+                {
+                    //reapply gravity more strongly to create a variable jump height
+                    vSpd -= Fixed.FromFloat(fastfallGravityMod);
+                    
+                }
                 if (vSpd > Fixed.FromInt(0) && input.ButtonStates[1] is ButtonState.Released or ButtonState.None && (tapJump?input.Direction <=6:true))
                 {
                     //reapply gravity more strongly to create a variable jump height
@@ -1436,7 +1479,7 @@ public class PlayerController : MonoBehaviour
                 //check for slide input:
                 if (input.Direction < 4 && input.ButtonStates[1] == ButtonState.Pressed)
                 {
-                    if(downJumpSlide? false : input.Direction == 2)break;
+                    if(!diagonalSlide? false : input.Direction == 2)break;
                     SetState(PlayerState.Slide);
                     break;
                 }
@@ -1725,7 +1768,7 @@ public class PlayerController : MonoBehaviour
                 
 
 
-                if (logicFrame == charData.animFrames.codeReleaseAnimFrames.frameLengths.Take(3).Sum())
+                if (logicFrame == AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Take(3).Sum())
                 {
                     //uint testCode = stateSpecificArg & ~(1u << 4);
                     stateSpecificArg &= ~(1u << 4);
@@ -1922,7 +1965,7 @@ public class PlayerController : MonoBehaviour
                     }
                 }
 
-                if (logicFrame >= CharacterDataDictionary.GetTotalAnimationFrames(characterName, PlayerState.CodeRelease))
+                if (logicFrame >= AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Sum())
                 {
                     if (input.ButtonStates[0] == ButtonState.Held)
                     {
@@ -2965,7 +3008,7 @@ public class PlayerController : MonoBehaviour
 
                 //begin to continuously play the code weave sound
                 SFX_Manager.Instance.StartRepeatingSound(Sounds.CONTINUOUS_CODE_WEAVE, 0.42f, Array.IndexOf(GameManager.Instance.players, this), 0.8f, 1.2f);
-
+                CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnCodeweaveEnter);
                 if (!isGrounded)
                 {
                     vSpd = Fixed.FromInt(0);
@@ -2976,6 +3019,17 @@ public class PlayerController : MonoBehaviour
             case PlayerState.CodeRelease:
 
                 stateSpecificArg = storedCode != 0 ? storedCode : inputSpellArg;
+
+                codeReleaseFrameLengthsOverride = null;
+                for (int i = 0; i < spellList.Count; i++)
+                {
+                    SpellData spell = spellList[i];
+                    if (spell.codeReleaseFrameLengthsOverride != null && CheckSpellCodeInput(i))
+                    {
+                        codeReleaseFrameLengthsOverride = spell.codeReleaseFrameLengthsOverride;
+                        break;
+                    }
+                }
 
                 //reset stored code after using it
                 storedCode = 0;
@@ -2999,10 +3053,11 @@ public class PlayerController : MonoBehaviour
         {
             case PlayerState.Jump:
                 //playerHeight = charData.playerHeight;
+                gravity = Fixed.FromFloat(baseGravity);
                 break;
             case PlayerState.CodeWeave:
                 superArmor = false;
-                gravity = Fixed.FromFloat(.75f);
+                gravity = Fixed.FromFloat(baseGravity);
                 break;
             case PlayerState.CodeRelease:
                 //stop continuously playing the code weave sound
@@ -3011,6 +3066,7 @@ public class PlayerController : MonoBehaviour
                 //turn off hitstun override when exiting code release in case we exited code release while still having hitstun override on from casting a spell
                 armor = false;
                 superArmor = false;
+                codeReleaseFrameLengthsOverride = null;
                 CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnCastEnd);
                 ClearInputDisplay();
                 break;
@@ -3638,7 +3694,7 @@ public class PlayerController : MonoBehaviour
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
-               $"vibe={vibeCoding} djs={downJumpSlide} " +
+               $"vibe={vibeCoding} djs={diagonalSlide} " +
                $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
     }
 
@@ -3680,6 +3736,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
+        SerializeIntList(bw, codeReleaseFrameLengthsOverride);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -3726,7 +3783,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(toggleCodeInput); // rollback-critical for the same reason: toggled in-sim by the 12-ups code; must restore on LoadState
                                    // or it drifts under rollback (sibling relativeInputs is already serialized)
         bw.Write(vibeCoding);
-        bw.Write(downJumpSlide);
+        bw.Write(diagonalSlide);
         bw.Write(prevDoubleTapDirection);
         bw.Write(doubleTapPrimed);
         bw.Write(doubleTapCounter);
@@ -3825,7 +3882,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(jumpCount);
         bw.Write(maxJumpCount);
         bw.Write(tapJumpPrimed); // hashed so a tap-jump-prime divergence is caught directly, not just via downstream state
-        bw.Write(downJumpSlide);
+        bw.Write(diagonalSlide);
         bw.Write(platDropping);
     }
 
@@ -3891,6 +3948,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
+        SerializeIntList(bw, codeReleaseFrameLengthsOverride);
         bw.Write(tapJump);
         bw.Write(toggleCodeInput); // hashed for divergence detection
         bw.Write(vibeCoding);
@@ -3970,6 +4028,43 @@ public class PlayerController : MonoBehaviour
         return SpellDictionary.Instance != null ? SpellDictionary.Instance.GetSpellName(spellId) : string.Empty;
     }
 
+    private static void SerializeIntList(BinaryWriter bw, List<int> values)
+    {
+        bw.Write(values?.Count ?? -1);
+        if (values == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < values.Count; i++)
+        {
+            bw.Write(values[i]);
+        }
+    }
+
+    private static List<int> DeserializeIntList(BinaryReader br, List<int> values)
+    {
+        int count = br.ReadInt32();
+        if (count < 0)
+        {
+            return null;
+        }
+
+        values ??= new List<int>(count);
+        values.Clear();
+        if (values.Capacity < count)
+        {
+            values.Capacity = count;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            values.Add(br.ReadInt32());
+        }
+
+        return values;
+    }
+
     public void Deserialize(BinaryReader br)
     {
         position = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
@@ -4006,6 +4101,12 @@ public class PlayerController : MonoBehaviour
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
+        List<int> restoredCodeReleaseFrameLengths = DeserializeIntList(br, codeReleaseOverrideBuffer);
+        if (restoredCodeReleaseFrameLengths != null)
+        {
+            codeReleaseOverrideBuffer = restoredCodeReleaseFrameLengths;
+        }
+        codeReleaseFrameLengthsOverride = restoredCodeReleaseFrameLengths;
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isConnected = br.ReadBoolean();
@@ -4052,7 +4153,7 @@ public class PlayerController : MonoBehaviour
         tapJumpPrimed = br.ReadBoolean();
         toggleCodeInput = br.ReadBoolean();
         vibeCoding = br.ReadBoolean();
-        downJumpSlide = br.ReadBoolean();
+        diagonalSlide = br.ReadBoolean();
         prevDoubleTapDirection = br.ReadUInt16();
         doubleTapPrimed = br.ReadBoolean();
         doubleTapCounter = br.ReadUInt16();

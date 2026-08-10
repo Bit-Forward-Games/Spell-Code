@@ -74,5 +74,5 @@ MonoBehaviour:
   camBorderMax: {x: 0, y: 0, z: 0}
   borderType: 0
   stageType: 2
-  dynamicCamera: 1
+  dynamicCamera: 0
   stageName: Crazy Portals

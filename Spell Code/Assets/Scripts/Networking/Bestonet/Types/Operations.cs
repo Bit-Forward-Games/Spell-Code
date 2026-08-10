@@ -95,7 +95,9 @@ namespace BestoNet.Types
         public static T Sqrt(T a)
         {
             if (typeof(T) == typeof(Fixed16)) return (T)(object)Fixed16.FromFloat(MathF.Sqrt(((Fixed16)(object)a).ToFloat()));
-            if (typeof(T) == typeof(Fixed32)) return (T)(object)Fixed32.FromFloat(MathF.Sqrt(((Fixed32)(object)a).ToFloat()));
+            // Fixed32 uses the bit-exact integer implementation. Fixed16/Fixed64 still round-trip
+            // through float below -- they have no integer Sqrt yet, so keep them out of sim code.
+            if (typeof(T) == typeof(Fixed32)) return (T)(object)Fixed32.Sqrt((Fixed32)(object)a);
             if (typeof(T) == typeof(Fixed64)) return (T)(object)Fixed64.FromFloat(MathF.Sqrt(((Fixed64)(object)a).ToFloat()));
             throw new NotSupportedException($"Type {typeof(T)} is not supported");
         }

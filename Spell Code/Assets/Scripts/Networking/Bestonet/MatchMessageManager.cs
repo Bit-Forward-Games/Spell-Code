@@ -105,6 +105,10 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_SHOP_TRANSITION = 13;
     private const byte PACKET_TYPE_SHOP_READY = 14;
     private const byte PACKET_TYPE_END_TRANSITION = 15;
+    private const byte PACKET_TYPE_END_OPTION_STATE = 16;
+    private const byte PACKET_TYPE_END_OPTION_RESULT = 17;
+    private const byte PACKET_TYPE_END_OPTION_RESULT_ACK = 18;
+    private const byte PACKET_TYPE_REMATCH_LOBBY_TRANSITION = 19;
     private const byte PACKET_TYPE_STATE_HASH = 20;
     private const byte PACKET_TYPE_STAGE_SELECT = 30;
     private const byte PACKET_TYPE_SETTINGS = 40;
@@ -112,6 +116,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK = 42;
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
     private const byte PACKET_TYPE_PEER_DROP = 50;
+    private const byte PACKET_TYPE_PEER_DROP_ACK = 51;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
     private const float READY_SIGNAL_RESEND_SECONDS = 0.75f;
     // Connection-establishment grace. A P2P failure that lands before the match simulation has
@@ -144,6 +149,10 @@ public class MatchMessageManager : MonoBehaviour
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
     private readonly HashSet<SteamId> handshakeSeenFromPeers = new HashSet<SteamId>();
     private readonly HashSet<int> locallyRemovedPeerSlots = new HashSet<int>();
+    private byte[] lastStageSelectPacket;
+    private int lastStageSelectTransitionId;
+    private byte[] lastRematchLobbyTransitionPacket;
+    private int lastRematchLobbyTransitionId;
 
     private struct PrematchConnectRetry
     {
@@ -254,6 +263,50 @@ public class MatchMessageManager : MonoBehaviour
             && GameManager.Instance != null
             && GameManager.Instance.isOnlineMatchActive)
         {
+            if (GameManager.Instance.isTransitioning)
+            {
+                if (GameManager.Instance.IsOnlineHostSlot(slot))
+                {
+                    GameManager.Instance.ResetToMainMenuAfterHostDisconnect($"Host connection failed during scene transition: {error}");
+                }
+                else if (GameManager.Instance.IsOnlineHostAuthority())
+                {
+                    GameManager.Instance.DropUnresponsiveOnlineTransitionPeer(slot);
+                }
+                else
+                {
+                    Debug.LogWarning($"[OnlineTransition] P{slot + 1} connection failed; waiting for the host's authoritative removal.");
+                }
+                return;
+            }
+
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "End")
+            {
+                if (GameManager.Instance.IsOnlineHostSlot(slot))
+                {
+                    if (GameEndScreen.ActiveInstance != null)
+                    {
+                        GameEndScreen.ActiveInstance.HandleOnlineHostLost();
+                    }
+                    else
+                    {
+                        GameManager.Instance.StopMatch($"Host connection failed on End screen: {error}");
+                        GameManager.Instance?.sceneManager?.SoloLobby();
+                    }
+                    return;
+                }
+
+                if (GameManager.Instance.IsOnlineHostAuthority())
+                {
+                    GameManager.Instance.DropUnresponsiveEndScreenPeer(slot);
+                }
+                else
+                {
+                    Debug.LogWarning($"[EndOptions] P{slot + 1} connection failed; waiting for host removal.");
+                }
+                return;
+            }
+
             // Still waiting for everyone to be ready, so the simulation hasn't started: treat this
             // as a slow cold join rather than a disconnect and keep trying to reach the peer.
             if (TryPrematchConnectGrace(steamId, error, slot))
@@ -630,6 +683,10 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
         prematchConnectRetries.Clear();
+        lastStageSelectPacket = null;
+        lastStageSelectTransitionId = 0;
+        lastRematchLobbyTransitionPacket = null;
+        lastRematchLobbyTransitionId = 0;
         ResetReadyFlags();
         SteamNetworking.AllowP2PPacketRelay(true);
 
@@ -839,6 +896,10 @@ public class MatchMessageManager : MonoBehaviour
         sceneMismatchedInputByPeer.Clear();
         sceneMismatchedInputAgeByPeer.Clear();
         lastLoggedMismatchSignatureByPeer.Clear();
+        lastStageSelectPacket = null;
+        lastStageSelectTransitionId = 0;
+        lastRematchLobbyTransitionPacket = null;
+        lastRematchLobbyTransitionId = 0;
     }
 
     public void ResetReadyFlags()
@@ -953,7 +1014,7 @@ public class MatchMessageManager : MonoBehaviour
         SendTransitionPacket(PACKET_TYPE_SHOP_READY, transitionId);
     }
 
-    public void SendSceneTransitionReadySignal(int transitionId)
+    public void SendSceneTransitionReadySignal(int transitionId, bool isRecoveryResponse = false)
     {
         if (!HasRemotePeers())
         {
@@ -969,6 +1030,7 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(transitionId);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneTypeCode() : (byte)0);
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(isRecoveryResponse);
                 SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1026,6 +1088,112 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending end transition signal: {e}");
+        }
+    }
+
+    public void SendRematchLobbyTransition(int transitionId, int rematchSeed)
+    {
+        if (!HasRemotePeers()
+            || GameManager.Instance == null
+            || !GameManager.Instance.IsOnlineHostAuthority()
+            || rematchSeed <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_REMATCH_LOBBY_TRANSITION);
+                writer.Write(transitionId);
+                writer.Write(GameManager.Instance.GetConnectedPlayerSlotMask());
+                writer.Write(rematchSeed);
+                lastRematchLobbyTransitionPacket = memoryStream.ToArray();
+                lastRematchLobbyTransitionId = transitionId;
+                SendPacketToAll(lastRematchLobbyTransitionPacket, P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending rematch lobby transition: {e}");
+        }
+    }
+
+    public void SendEndOptionState(int epoch, byte option, bool confirmed, uint revision)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_END_OPTION_STATE);
+                writer.Write(epoch);
+                writer.Write(option);
+                writer.Write(confirmed);
+                writer.Write(revision);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending end-option state: {e}");
+        }
+    }
+
+    public void SendEndOptionResult(int epoch, byte result)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_END_OPTION_RESULT);
+                writer.Write(epoch);
+                writer.Write(result);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending end-option result: {e}");
+        }
+    }
+
+    public void SendEndOptionResultAcknowledgement(int epoch)
+    {
+        if (!HasRemotePeers()
+            || activeRoster == null
+            || !activeRoster.HostSteamId.IsValid
+            || SameSteamId(activeRoster.HostSteamId, SteamClient.SteamId))
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_END_OPTION_RESULT_ACK);
+                writer.Write(epoch);
+                SendPacket(activeRoster.HostSteamId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error acknowledging end-option result: {e}");
         }
     }
 
@@ -1224,7 +1392,10 @@ public class MatchMessageManager : MonoBehaviour
                 writer.Write(GameManager.Instance != null ? GameManager.Instance.CurrentTotalRoundsPlayed : -1);
                 writer.Write(gameplayRngState);
                 writer.Write(gameplayRandomCallCount);
-                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetConnectedPlayerSlotMask() : 0);
+                lastStageSelectPacket = memoryStream.ToArray();
+                lastStageSelectTransitionId = transitionId;
+                SendPacketToAll(lastStageSelectPacket, P2PSend.Reliable);
             }
 
             // Every peer will adopt EXACTLY the rng state written above. The host must land on the
@@ -1237,6 +1408,57 @@ public class MatchMessageManager : MonoBehaviour
         {
             Debug.LogError($"Error sending stage select: {e}");
         }
+    }
+
+    public void SendPeerDropAcknowledgement(int droppedSlot, int dropFrame)
+    {
+        if (!HasRemotePeers()
+            || activeRoster == null
+            || !activeRoster.HostSteamId.IsValid
+            || SameSteamId(activeRoster.HostSteamId, SteamClient.SteamId))
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_PEER_DROP_ACK);
+                writer.Write(droppedSlot);
+                writer.Write(dropFrame);
+                SendPacket(activeRoster.HostSteamId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error acknowledging peer drop: {e}");
+        }
+    }
+
+    public void ResendLastStageSelect(int transitionId)
+    {
+        if (!HasRemotePeers()
+            || lastStageSelectPacket == null
+            || lastStageSelectTransitionId != transitionId)
+        {
+            return;
+        }
+
+        SendPacketToAll(lastStageSelectPacket, P2PSend.Reliable);
+    }
+
+    public void ResendLastRematchLobbyTransition(int transitionId)
+    {
+        if (!HasRemotePeers()
+            || lastRematchLobbyTransitionPacket == null
+            || lastRematchLobbyTransitionId != transitionId)
+        {
+            return;
+        }
+
+        SendPacketToAll(lastRematchLobbyTransitionPacket, P2PSend.Reliable);
     }
 
     public void SendLobbyRosterSnapshot(SteamId peerId, OnlineMatchRoster roster, int frame, byte[] stateData, bool forceApply = false)
@@ -1539,6 +1761,14 @@ public class MatchMessageManager : MonoBehaviour
 
                 if (packetType == PACKET_TYPE_STAGE_SELECT)
                 {
+                    // Stage selection (including an End -> Gameplay rematch) is host-authoritative.
+                    if (activeRoster != null
+                        && activeRoster.HostSteamId.IsValid
+                        && !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    {
+                        return;
+                    }
+
                     int transitionId = reader.ReadInt32();
                     byte packetSceneType = reader.ReadByte();
                     int packetSceneSignature = reader.ReadInt32();
@@ -1547,7 +1777,8 @@ public class MatchMessageManager : MonoBehaviour
                     int totalRoundsPlayed = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
                     uint gameplayRngState = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadUInt32() : 0u;
                     int randomCallCount = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
-                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState, totalRoundsPlayed, gameplayRngState, randomCallCount);
+                    int connectedPlayerSlotMask = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : -1;
+                    GameManager.Instance?.HandleOnlineStageSelect(transitionId, packetSceneType, packetSceneSignature, stageIndex, stageRngState, totalRoundsPlayed, gameplayRngState, randomCallCount, connectedPlayerSlotMask);
                     return;
                 }
 
@@ -1576,9 +1807,16 @@ public class MatchMessageManager : MonoBehaviour
                     int transitionId = reader.ReadInt32();
                     byte sceneType = reader.ReadByte();
                     int sceneSignature = reader.ReadInt32();
+                    bool isRecoveryResponse = reader.BaseStream.Position < reader.BaseStream.Length
+                        && reader.ReadBoolean();
                     if (senderSlot >= 0)
                     {
-                        GameManager.Instance?.OnPeerSceneTransitionReady(senderSlot, transitionId, sceneType, sceneSignature);
+                        GameManager.Instance?.OnPeerSceneTransitionReady(
+                            senderSlot,
+                            transitionId,
+                            sceneType,
+                            sceneSignature,
+                            isRecoveryResponse);
                     }
                     return;
                 }
@@ -1608,6 +1846,70 @@ public class MatchMessageManager : MonoBehaviour
                     return;
                 }
 
+                if (packetType == PACKET_TYPE_REMATCH_LOBBY_TRANSITION)
+                {
+                    if (activeRoster == null
+                        || !activeRoster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    {
+                        return;
+                    }
+
+                    int transitionId = reader.ReadInt32();
+                    int connectedPlayerSlotMask = reader.ReadInt32();
+                    int rematchSeed = reader.BaseStream.Length - reader.BaseStream.Position >= sizeof(int)
+                        ? reader.ReadInt32()
+                        : 0;
+                    GameManager.Instance?.HandleOnlineRematchLobbyTransition(
+                        transitionId,
+                        connectedPlayerSlotMask,
+                        rematchSeed);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_END_OPTION_STATE)
+                {
+                    int epoch = reader.ReadInt32();
+                    byte option = reader.ReadByte();
+                    bool confirmed = reader.ReadBoolean();
+                    uint revision = reader.ReadUInt32();
+                    if (senderSlot >= 0)
+                    {
+                        GameEndScreen.ActiveInstance?.ReceiveOnlineOptionState(
+                            senderSlot,
+                            epoch,
+                            option,
+                            confirmed,
+                            revision);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_END_OPTION_RESULT)
+                {
+                    int epoch = reader.ReadInt32();
+                    byte result = reader.ReadByte();
+                    if (senderSlot >= 0
+                        && GameManager.Instance != null
+                        && GameManager.Instance.IsOnlineHostSlot(senderSlot))
+                    {
+                        GameEndScreen.ActiveInstance?.ReceiveOnlineOptionResult(senderSlot, epoch, result);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_END_OPTION_RESULT_ACK)
+                {
+                    int epoch = reader.ReadInt32();
+                    if (senderSlot >= 0
+                        && GameManager.Instance != null
+                        && GameManager.Instance.IsOnlineHostAuthority())
+                    {
+                        GameEndScreen.ActiveInstance?.ReceiveOnlineOptionResultAcknowledgement(senderSlot, epoch);
+                    }
+                    return;
+                }
+
                 if (packetType == PACKET_TYPE_PEER_DROP)
                 {
                     int droppedSlot = reader.ReadInt32();
@@ -1619,7 +1921,30 @@ public class MatchMessageManager : MonoBehaviour
                         return;
                     }
 
-                    RollbackManager.Instance.DropRemoteSlot(droppedSlot, dropFrame);
+                    if (GameManager.Instance != null
+                        && (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "End"
+                            || GameManager.Instance.isTransitioning))
+                    {
+                        GameManager.Instance.ApplyPeerDropOutsideSimulation(droppedSlot, dropFrame);
+                    }
+                    else
+                    {
+                        RollbackManager.Instance.DropRemoteSlot(droppedSlot, dropFrame);
+                    }
+                    SendPeerDropAcknowledgement(droppedSlot, dropFrame);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_PEER_DROP_ACK)
+                {
+                    int droppedSlot = reader.ReadInt32();
+                    int dropFrame = reader.ReadInt32();
+                    if (senderSlot >= 0
+                        && GameManager.Instance != null
+                        && GameManager.Instance.IsOnlineHostAuthority())
+                    {
+                        GameManager.Instance.OnPeerDropAcknowledged(senderSlot, droppedSlot, dropFrame);
+                    }
                     return;
                 }
 

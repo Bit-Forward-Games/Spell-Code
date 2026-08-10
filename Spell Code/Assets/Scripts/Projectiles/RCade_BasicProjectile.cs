@@ -23,7 +23,7 @@ public class RCade_BasicProjectile : BaseProjectile
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
         base.SpawnProjectile(facingRight, spawnOffset);
-        this.hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 6); // Set horizontal speed based on facing direction
+        hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 6); // Set horizontal speed based on facing direction
     }
 
     public override void LoadProjectile()

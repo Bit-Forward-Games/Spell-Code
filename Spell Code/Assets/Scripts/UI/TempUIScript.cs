@@ -287,6 +287,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             {
                 promptCanvasGroup = codeModePromptMenu[playerIndex].AddComponent<CanvasGroup>();
             }
+
             // Passive remote panels should look identical, but must not accept local pointer focus.
             promptCanvasGroup.interactable = true;
             promptCanvasGroup.blocksRaycasts = interactive;

@@ -67,7 +67,7 @@ public class TextSetter : MonoBehaviour
 
         if (useModifiedString)
         {
-            Debug.Log("waow");
+            //Debug.Log("waow");
         }
         string inputMessage = useModifiedString?_textBox.text:referenceString;
         InputBinding targetBinding;

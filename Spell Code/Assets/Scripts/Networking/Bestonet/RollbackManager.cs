@@ -3262,6 +3262,36 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         /// <summary>
+        /// Removes a peer while the deterministic simulation is stopped for a scene transition
+        /// (currently the End screen). No rollback/resimulation is appropriate there, but the
+        /// remote-slot tracking still must be pruned before a rematch or it will wait forever for
+        /// inputs from the removed player.
+        /// </summary>
+        public bool DropRemoteSlotOutsideSimulation(int slot, int dropFrame)
+        {
+            if (!usePeerRoster || GameManager.Instance == null)
+            {
+                return false;
+            }
+
+            if (activeRoster != null && slot == activeRoster.LocalPlayerSlot)
+            {
+                return false;
+            }
+
+            peerDroppedThisMatch = true;
+            remotePlayerSlots.Remove(slot);
+            pendingRemoteInputSlots.Remove(slot);
+            PruneRemoteSlotTracking(new HashSet<int>(remotePlayerSlots));
+            matchManager?.DropPeerTransport(slot);
+            GameManager.Instance.MarkPlayerDisconnected(slot, dropFrame);
+            remoteFrameStallTicks = 0;
+            lastRemoteFrameForTimeout = GetEffectiveRemoteFrame(localFrame);
+            ResetTimeoutGrace(PeerDropTimeoutGraceSeconds);
+            return true;
+        }
+
+        /// <summary>
         /// Permanently removes a disconnected peer from an online match and keeps the
         /// remaining players in sync. The elimination is baked into the saved state at
         /// <paramref name="dropFrame"/> and the simulation is replayed forward, so every

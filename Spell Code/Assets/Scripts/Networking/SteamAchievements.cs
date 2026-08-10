@@ -78,6 +78,39 @@ public static class SteamAchievements
     }
 
     /// <summary>
+    /// Unlock on behalf of the player in the specific player slot, for call sites that
+    /// live inside the deterministic sim. That code runs again on every resim pass, and runs
+    /// for every player on every peer's machine, so a bare Unlock() there would fire
+    /// repeatedly and credit you for other people's play. Drops the request unless this is a
+    /// real frame and the slot belongs to the player at this keyboard.
+    /// </summary>
+    public static void UnlockForPlayer(int playerSlot, string apiName)
+    {
+        RollbackManager rollback = RollbackManager.Instance;
+
+        // Rollback replays already-simulated frames; only the real pass may have side
+        // effects. No manager means nothing is resimulating, so the frame is real.
+        if (rollback != null && rollback.isRollbackFrame)
+        {
+            return;
+        }
+
+        GameManager manager = GameManager.Instance;
+
+        // Online, the sim runs every player on every machine, so credit the local slot only.
+        // Offline, every pad shares one Steam account and localPlayerIndex just sits at its
+        // default of 0, so filtering by it there would deny P2 through P4.
+        if (manager != null
+            && manager.isOnlineMatchActive
+            && playerSlot != manager.localPlayerIndex)
+        {
+            return;
+        }
+
+        Unlock(apiName);
+    }
+
+    /// <summary>
     /// Drives the retry queue. Called every frame from SteamManager.Update.
     /// </summary>
     public static void Pump()

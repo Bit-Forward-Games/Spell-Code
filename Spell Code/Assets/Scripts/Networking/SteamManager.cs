@@ -114,6 +114,14 @@ public class SteamManager : MonoBehaviour
 
                 Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}.");
                 //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
+
+                // Fired on every boot rather than off SettingsManager.IsFirstLaunch(): anyone
+                // who played before achievements shipped already has firstLaunchComplete set
+                // and would never earn this, and a wiped settings.json shouldn't re-arm it.
+                // Steam no-ops an achievement the account already owns, so an existing player
+                // is backfilled the next time they launch. The settings flag stays what it is
+                // today -- the gate for the first-boot tutorial prompt.
+                SteamAchievements.Unlock(SteamAchievements.FirstLaunch);
             }
 
         }
@@ -134,6 +142,10 @@ public class SteamManager : MonoBehaviour
         {
             SteamClient.RunCallbacks();
         }
+
+        // Retries any unlock that was requested before Steam (or the user's stats) was
+        // ready. Self-guarding and a single lookup when nothing is queued.
+        SteamAchievements.Pump();
     }
 
     void OnApplicationQuit()

@@ -19,6 +19,11 @@ public class SteamManager : MonoBehaviour
 
     private static SteamManager instance;
     private bool hasShutDownSteam;
+
+    // Long enough for the startup display mode switch to finish and the menu to come up.
+    private const float FirstLaunchUnlockDelaySeconds = 5f;
+    // Unscaled: menus run at timeScale 0. Negative means nothing is scheduled.
+    private float firstLaunchUnlockAt = -1f;
 #if !UNITY_EDITOR
     private static bool debugToolsEnabled;
 #endif
@@ -115,13 +120,14 @@ public class SteamManager : MonoBehaviour
                 Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}.");
                 //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
 
-                // Fired on every boot rather than off SettingsManager.IsFirstLaunch(): anyone
-                // who played before achievements shipped already has firstLaunchComplete set
-                // and would never earn this, and a wiped settings.json shouldn't re-arm it.
-                // Steam no-ops an achievement the account already owns, so an existing player
-                // is backfilled the next time they launch. The settings flag stays what it is
-                // today -- the gate for the first-boot tutorial prompt.
-                SteamAchievements.Unlock(SteamAchievements.FirstLaunch);
+                // Deliberately delayed rather than unlocked here. SettingsManager.Awake runs in
+                // this same scene load and switches the window out of the mode the player
+                // booted in (ProjectSettings starts borderless, settings.json is usually
+                // exclusive fullscreen), and a Steam overlay toast landing during that display
+                // mode transition minimizes the game. A few seconds in, the mode has settled
+                // and the overlay draws over us normally, which is what the in-match invite
+                // dialog already demonstrates.
+                firstLaunchUnlockAt = Time.unscaledTime + FirstLaunchUnlockDelaySeconds;
             }
 
         }
@@ -141,6 +147,17 @@ public class SteamManager : MonoBehaviour
         if (SteamClient.IsValid)
         {
             SteamClient.RunCallbacks();
+        }
+
+        // Fired on every boot rather than off SettingsManager.IsFirstLaunch(): anyone who
+        // played before achievements shipped already has firstLaunchComplete set and would
+        // never earn this, and a wiped settings.json shouldn't re-arm it. Steam no-ops an
+        // achievement the account already owns, so an existing player is backfilled on their
+        // next launch. The settings flag stays what it is today, the first-boot tutorial gate.
+        if (firstLaunchUnlockAt >= 0f && Time.unscaledTime >= firstLaunchUnlockAt)
+        {
+            firstLaunchUnlockAt = -1f;
+            SteamAchievements.Unlock(SteamAchievements.FirstLaunch);
         }
 
         // Retries any unlock that was requested before Steam (or the user's stats) was

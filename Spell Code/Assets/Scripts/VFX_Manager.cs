@@ -45,7 +45,7 @@ public class VFX_Manager : MonoBehaviour
         public VisualEffects visualEffectName; //name of the visual effect
         public GameObject particleSystemPrefab; //prefab of the particle system for this visual effect
 
-        [Range(1, 12)]
+        [Range(1, 24)]
         public uint numParticleSystemsPerPlayer = 1; //number of particle systems to spawn on Awake. By default, this number is set to 1
 
         [HideInInspector] public List<ParticleSystem>[] particleSystems; //Array of Lists of particle systems that each play the visual effect. Each list of particle systems in the array is associated with a unique player as well as a non player specific particle system list
@@ -121,21 +121,23 @@ public class VFX_Manager : MonoBehaviour
         return true;
     }
 
-    private ParticleSystem GetFirstValidParticleSystem(List<ParticleSystem> particleSystems)
+    private ParticleSystem GetFirstValidParticleSystem(List<ParticleSystem> _particleSystems)
     {
-        if (particleSystems == null)
+        if (_particleSystems == null)
         {
+            Debug.Log("VFX_Manager | List of particle systems does not exist");
             return null;
         }
 
-        foreach (ParticleSystem particleSystem in particleSystems)
+        foreach (ParticleSystem _particleSystem in _particleSystems)
         {
-            if (particleSystem != null)
+            if (_particleSystem != null)
             {
-                return particleSystem;
+                return _particleSystem;
             }
         }
 
+        Debug.Log("VFX_Manager | Couldn't find a valid particle system");
         return null;
     }
 

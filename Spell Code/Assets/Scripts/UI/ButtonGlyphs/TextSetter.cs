@@ -12,7 +12,7 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] public InputActionReference defaultAction;
-    [SerializeField] public bool keyboardPressedOverride = false;
+    [SerializeField] public bool pressedOverride = false;
     public int selectorPID = 0;
 
     private TMP_Text _textBox;
@@ -66,10 +66,7 @@ public class TextSetter : MonoBehaviour
             return;
         }
 
-        if (useModifiedString)
-        {
-            //Debug.Log("waow");
-        }
+        
         string inputMessage = useModifiedString?_textBox.text:referenceString;
         InputBinding targetBinding;
         PlayerController selectedPlayer = GetSelectedPlayer();
@@ -105,7 +102,7 @@ public class TextSetter : MonoBehaviour
             stringToReplace,
             targetBinding,
             spriteAssets.spriteAssets[spriteAssetIndex],
-            keyboardPressedOverride);
+            pressedOverride);
     }
 
     private bool EnsureTextBoxInitialized()

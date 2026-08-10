@@ -499,7 +499,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 83
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_83
+    m_Name: Keyboard_escapePressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 84
@@ -509,7 +509,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 85
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_85
+    m_Name: Keyboard_enterPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 86
@@ -519,7 +519,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 87
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_87
+    m_Name: Keyboard_[Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 88
@@ -529,7 +529,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 89
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_89
+    m_Name: Keyboard_]Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 90
@@ -539,7 +539,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 91
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_91
+    m_Name: Keyboard_.Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 92
@@ -549,7 +549,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 93
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_93
+    m_Name: Keyboard_,Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 94
@@ -559,7 +559,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 95
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_95
+    m_Name: Keyboard_/Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 96
@@ -569,7 +569,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 97
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_97
+    m_Name: Keyboard_\Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 98
@@ -579,7 +579,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 99
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_99
+    m_Name: Keyboard_shiftPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 100
@@ -589,7 +589,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 101
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_101
+    m_Name: Keyboard_`Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 102
@@ -599,7 +599,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 103
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_103
+    m_Name: Keyboard_tabPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 104
@@ -609,7 +609,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 105
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_105
+    m_Name: Keyboard_-Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 106
@@ -619,7 +619,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 107
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_107
+    m_Name: Keyboard_=Pressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 108
@@ -629,7 +629,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 109
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_109
+    m_Name: Keyboard_backspacePressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 110
@@ -639,17 +639,17 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 111
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_111
+    m_Name: Keyboard_tabImgPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 112
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_112
+    m_Name: Keyboard_caps
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 113
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_113
+    m_Name: Keyboard_capsPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 114
@@ -659,7 +659,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 115
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_115
+    m_Name: Keyboard_controlPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 116
@@ -669,7 +669,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 117
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_117
+    m_Name: Keyboard_altPressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 118
@@ -679,7 +679,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 119
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_119
+    m_Name: Keyboard_deletePressed
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 120
@@ -689,7 +689,7 @@ MonoBehaviour:
     m_Unicode: 65534
     m_GlyphIndex: 121
     m_Scale: 1
-    m_Name: KeyboardGlyphs-Sheet_121
+    m_Name: Keyboard_insertPressed
   m_GlyphTable:
   - m_Index: 0
     m_Metrics:

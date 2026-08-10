@@ -919,6 +919,10 @@ PrefabInstance:
       propertyPath: 'spellList.Array.data[52]'
       value: 
       objectReference: {fileID: -2832453206304962427, guid: 8ee447aafc547c0458a94f52b86e854a, type: 3}
+    - target: {fileID: 7098188792181620007, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: keyboardPressedOverride
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7466210831210709130, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 

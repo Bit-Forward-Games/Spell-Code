@@ -651,6 +651,15 @@ public class GameManager : MonoBehaviour
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
+
+        // Shift + \ wipes this account's Steam achievements so the unlock paths can be tested
+        // again. A combo rather than a single key like the rest of these: it's the only one
+        // here that destroys progress, and \ is otherwise unused.
+        if (UnityEngine.Input.GetKey(KeyCode.LeftShift)
+            && UnityEngine.Input.GetKeyDown(KeyCode.Backslash))
+        {
+            SteamAchievements.ResetAllForTesting();
+        }
     }
     public void loadMainMenu()
     {

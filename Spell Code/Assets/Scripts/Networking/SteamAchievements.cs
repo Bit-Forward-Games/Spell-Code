@@ -99,6 +99,39 @@ public static class SteamAchievements
     }
 
     /// <summary>
+    /// Wipes every achievement and stat this account holds for the current App ID, so the
+    /// unlock paths can be exercised again from cold. Debug branches only: the call site is
+    /// behind SteamManager.DebugToolsEnabled, which is never true on the public branch.
+    /// </summary>
+    public static void ResetAllForTesting()
+    {
+        if (!SteamClient.IsValid)
+        {
+            Debug.LogWarning("[Achievements] Reset skipped, Steam is not running.");
+            return;
+        }
+
+        try
+        {
+            // Drop the queue too, or a name still waiting to retry would re-trigger moments
+            // after the wipe and undo half of it.
+            pending.Clear();
+
+            // ResetAll only clears Steam's local copy; StoreStats commits it to the server,
+            // exactly as it does for an unlock.
+            SteamUserStats.ResetAll(true);
+            SteamUserStats.StoreStats();
+
+            Debug.Log("[Achievements] Reset every achievement and stat on this account for app "
+                + $"{SteamClient.AppId}. Relaunch the build to run the first-launch path cold.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Achievements] Reset failed: {e.Message}");
+        }
+    }
+
+    /// <summary>
     /// Drives the retry queue. Called every frame from SteamManager.Update.
     /// </summary>
     public static void Pump()

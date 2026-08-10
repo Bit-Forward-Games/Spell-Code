@@ -53,6 +53,9 @@ public static class SteamAchievements
     // an enumerator mid-iteration.
     private static readonly List<string> retryScratch = new List<string>();
 
+    // Names already reported as owned, so a per-frame call site can't flood the log with it.
+    private static readonly HashSet<string> ownedReported = new HashSet<string>();
+
     // Compared against unscaled time: menus and pauses set Time.timeScale to 0, and a
     // queued unlock must not stall for as long as the player sits in one.
     private static float nextRetryTime;
@@ -116,6 +119,9 @@ public static class SteamAchievements
             // Drop the queue too, or a name still waiting to retry would re-trigger moments
             // after the wipe and undo half of it.
             pending.Clear();
+
+            // Nothing is owned any more, so let the next already-owned report through.
+            ownedReported.Clear();
 
             // ResetAll only clears Steam's local copy; StoreStats commits it to the server,
             // exactly as it does for an unlock.
@@ -193,9 +199,17 @@ public static class SteamAchievements
         {
             Achievement achievement = new Achievement(apiName);
 
-            // Already on the account, possibly from an earlier session.
+            // Already on the account, possibly from an earlier session. Say so: Steam only
+            // shows a toast on the locked-to-unlocked transition, so a silent success here
+            // is indistinguishable in the log from the unlock never having run at all.
             if (achievement.State)
             {
+                if (ownedReported.Add(apiName))
+                {
+                    Debug.Log($"[Achievements] '{apiName}' is already unlocked on this account, "
+                        + "nothing to do. Steam only pops a toast when it first unlocks.");
+                }
+
                 return true;
             }
 

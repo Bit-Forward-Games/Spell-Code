@@ -4,18 +4,18 @@ using TMPro;
 
 public static class ButtonPromptCompleter
 {
-    public static string ReadAndReplaceBinding(string textToDisplay, string stringToReplace, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset, bool keyboardPressedOverride)
+    public static string ReadAndReplaceBinding(string textToDisplay, string stringToReplace, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset, bool pressedOverride)
     {
         if (string.IsNullOrEmpty(textToDisplay) || string.IsNullOrEmpty(stringToReplace) || spriteAsset == null)
         {
             return textToDisplay ?? string.Empty;
         }
 
-        string stringButtonName = GetInputString(actionNeeded, keyboardPressedOverride);
+        string stringButtonName = GetInputString(actionNeeded, pressedOverride);
         return textToDisplay.Replace(stringToReplace, $"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
     }
 
-    private static string GetInputString(InputBinding actionNeeded, bool keyboardPressedOverride)
+    private static string GetInputString(InputBinding actionNeeded, bool pressedOverride)
     {
         string starterString = actionNeeded.ToString();
         starterString = starterString.Replace($"[{actionNeeded.groups}]", String.Empty);
@@ -27,9 +27,23 @@ public static class ButtonPromptCompleter
         starterString = starterString.Replace("Right Stick/", "rs_");
         starterString = starterString.Replace("<Gamepad>/", "Gamepad_");
         //this is if we want the key to be pressed
-        if (starterString.Contains("Keyboard_") && keyboardPressedOverride)
+        if (pressedOverride)
         {
-            starterString = starterString + "Pressed";
+            if (starterString.Contains("Keyboard_"))
+            {
+                starterString = starterString + "Pressed";
+            }
+            else if (starterString.Contains("Gamepad_"))
+            {
+                if (starterString.Contains("dpad_"))
+                {
+                    starterString = "Gamepad_dpad_null";
+                }
+                else
+                {
+                    starterString = "Gamepad_buttonNull";
+                }
+            }
         }
 
         return starterString;

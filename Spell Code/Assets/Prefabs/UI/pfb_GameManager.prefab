@@ -797,6 +797,7 @@ MonoBehaviour:
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: -5566551362042807740, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+  nullInput: 0
   pressedOverride: 0
   selectorPID: 0
 --- !u!1 &206928576912842508
@@ -3059,6 +3060,7 @@ MonoBehaviour:
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: -1316265661799312600, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+  nullInput: 0
   pressedOverride: 0
   selectorPID: 0
 --- !u!1 &818749799286091961
@@ -10034,6 +10036,7 @@ MonoBehaviour:
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: 3028665023054335899, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+  nullInput: 0
   pressedOverride: 0
   selectorPID: 0
 --- !u!1 &3208947120240478398
@@ -12863,6 +12866,7 @@ MonoBehaviour:
   spriteAssets: {fileID: 11400000, guid: ada7e2317789fb441ab774ade959ee1e, type: 2}
   deviceType: 0
   defaultAction: {fileID: 706493246547299061, guid: 0cec1f0f344336c4f9a76be485d0cf10, type: 3}
+  nullInput: 0
   pressedOverride: 0
   selectorPID: 0
 --- !u!1 &4311865066099184945
@@ -26624,7 +26628,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7069254b36b4b8e4a84e534c552078bc, type: 2}
   - {fileID: 11400000, guid: afe5b42b65555a346b362689a6821990, type: 2}
   - {fileID: 11400000, guid: 80c9f80984c62e049b38ed369a49a22a, type: 2}
-  - {fileID: 11400000, guid: ad83d74df92a9e348a01b006e0e63842, type: 2}
+  - {fileID: 11400000, guid: 45662821b6bff1b47989a3c382080f72, type: 2}
   - {fileID: 11400000, guid: 9a295276d99bb9846af3deade113e347, type: 2}
   - {fileID: 11400000, guid: dca240df139b88b4f96b2712155e3bfa, type: 2}
   - {fileID: 11400000, guid: 1a19c66acfc64144696a114fa061ea97, type: 2}

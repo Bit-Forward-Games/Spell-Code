@@ -779,6 +779,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (!isHost)
         {
             startMatchLabel.text = waitingForHostText;
+            startMatchLabel.fontSize = 35;
         }
         else if (canStart)
         {

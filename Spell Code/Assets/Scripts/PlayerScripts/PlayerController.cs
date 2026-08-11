@@ -173,7 +173,7 @@ public class PlayerController : MonoBehaviour
         reps = 0;
     }
 
-
+    public bool tutorialSpellStored;
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[4];
@@ -1716,6 +1716,8 @@ public class PlayerController : MonoBehaviour
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", GameManager.colors["white"]);
                             //break;
+
+                            if (SceneManager.GetActiveScene().name == "Tutorial") { tutorialSpellStored = true; Debug.Log("TUTORIAL SPELL STORED"); }
                             
                         }
                         break;

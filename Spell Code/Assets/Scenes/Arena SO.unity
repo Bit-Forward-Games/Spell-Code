@@ -230,7 +230,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 107.5
+  orthographic size: 126.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -363,19 +363,6 @@ PrefabInstance:
     - target: {fileID: 660610975967777689, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_Name
       value: Tutorial
-      objectReference: {fileID: 0}
-    - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_Tiles.Array.data[20143].second.m_TileIndex
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 777959468039293643, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_Tiles.Array.data[12681].second.m_TileObjectToInstantiateIndex
-      value: 65535
-      objectReference: {fileID: 0}
-    - target: {fileID: 4202372651526213820, guid: cf9ff075889653145904aa04bae7428c, type: 3}
-      propertyPath: m_text
-      value: Holding BUTTONPROMPT puts you in an armored state. Basic Attacks cannot
-        pierce armor. Try one on the armored bot.
       objectReference: {fileID: 0}
     - target: {fileID: 7350075412557514443, guid: cf9ff075889653145904aa04bae7428c, type: 3}
       propertyPath: m_LocalPosition.x

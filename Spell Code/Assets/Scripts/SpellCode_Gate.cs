@@ -14,6 +14,7 @@ public class SpellCode_Gate : MonoBehaviour
     public bool isOpen = false;
     public Animator gateAnimator;
     public int ownerPID;
+    public int gateID;
     Bounds gateBounds;
     public GambaMachine gamba;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -72,38 +73,79 @@ public class SpellCode_Gate : MonoBehaviour
 
                 if (projectile.owner.pID != ownerPID) continue;
 
-                if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
+                switch (gateID)
                 {
-                    if (projectile.ownerSpell == null || gamba != null && gamba.isActive)
-                    {
-                        // Play the armor-hit SFX only on real frames; rollback resim revisits this
-                        // collision and would otherwise replay the sound every resim
-                        if (!isRollback && SFX_Manager.Instance != null)
+                    case 0:
+                        if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                         {
-                            //play the armor hit sfx
-                            SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                            if (projectile.ownerSpell == null || gamba != null && gamba.isActive)
+                            {
+                                // Play the armor-hit SFX only on real frames; rollback resim revisits this
+                                // collision and would otherwise replay the sound every resim
+                                if (!isRollback && SFX_Manager.Instance != null)
+                                {
+                                    //play the armor hit sfx
+                                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                                }
+                                ProjectileManager.Instance.DeleteProjectile(projectile);
+                                return;//maybe this should be break? idk this def works tho
+                            }
+
+                            isOpen = true;
+
+                            if (!isRollback && SFX_Manager.Instance && VFX_Manager.Instance != null)
+                            {
+                                //play the armor break sfx
+                                SFX_Manager.Instance.PlaySound(Sounds.ARMOR_BREAK, 1.0f, 1.0f);
+
+                                // Play the break effect only on real frames; rollback resim may revisit this event.
+                                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                            }
+
+                            if (!isRollback)
+                            {
+                                GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"gate break P{ownerPID}");
+                            }
+
+                            return;
                         }
-                        ProjectileManager.Instance.DeleteProjectile(projectile);
-                        return;//maybe this should be break? idk this def works tho
-                    }
+                        break;
 
-                    isOpen = true;
-
-                        if (!isRollback && SFX_Manager.Instance && VFX_Manager.Instance != null)
+                    case 1:
+                        if (HitboxManager.Instance.ProcessSingleProjectileCollisison(projectile, gateHurtbox, gateHurtboxPos, true))
                         {
-                            //play the armor break sfx
-                            SFX_Manager.Instance.PlaySound(Sounds.ARMOR_BREAK, 1.0f, 1.0f);
+                            if (projectile.ownerSpell == null || gamba != null && gamba.isActive || !projectile.owner.tutorialSpellStored)
+                            {
+                                // Play the armor-hit SFX only on real frames; rollback resim revisits this
+                                // collision and would otherwise replay the sound every resim
+                                if (!isRollback && SFX_Manager.Instance != null)
+                                {
+                                    //play the armor hit sfx
+                                    SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
+                                }
+                                ProjectileManager.Instance.DeleteProjectile(projectile);
+                                return;//maybe this should be break? idk this def works tho
+                            }
 
-                            // Play the break effect only on real frames; rollback resim may revisit this event.
-                            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                            isOpen = true;
+
+                            if (!isRollback && SFX_Manager.Instance && VFX_Manager.Instance != null)
+                            {
+                                //play the armor break sfx
+                                SFX_Manager.Instance.PlaySound(Sounds.ARMOR_BREAK, 1.0f, 1.0f);
+
+                                // Play the break effect only on real frames; rollback resim may revisit this event.
+                                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.GLASS_BREAK, FixedVec2.FromFloat(gameObject.transform.position.x, gameObject.transform.position.y), ownerPID, projectile.facingRight);
+                            }
+
+                            if (!isRollback)
+                            {
+                                GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"gate break P{ownerPID}");
+                            }
+
+                            return;
                         }
-
-                        if (!isRollback)
-                        {
-                            GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"gate break P{ownerPID}");
-                        }
-
-                        return;
+                        break;
                 }
 
             }

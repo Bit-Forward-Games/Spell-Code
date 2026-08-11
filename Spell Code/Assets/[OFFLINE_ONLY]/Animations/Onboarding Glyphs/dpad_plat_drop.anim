@@ -24,10 +24,6 @@ AnimationClip:
       value: {fileID: -873001264871272472, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - time: 0.25
       value: {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
-    - time: 0.5
-      value: {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
-    - time: 0.75
-      value: {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - time: 1
       value: {fileID: -873001264871272472, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - time: 1.5
@@ -56,8 +52,6 @@ AnimationClip:
     pptrCurveMapping:
     - {fileID: -873001264871272472, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
-    - {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
-    - {fileID: 7755385607711013842, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - {fileID: -873001264871272472, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
     - {fileID: -873001264871272472, guid: 3fd398aec445cd04b932dce26686d203, type: 3}
   m_AnimationClipSettings:
@@ -84,4 +78,25 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0
+    functionName: SetTextAndUpdateAllGlyphs
+    data: '[NULL]'
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.25
+    functionName: SetTextAndUpdateAllGlyphs
+    data: '[DOWN]'
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 1
+    functionName: SetTextAndUpdateAllGlyphs
+    data: '[NULL]'
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0

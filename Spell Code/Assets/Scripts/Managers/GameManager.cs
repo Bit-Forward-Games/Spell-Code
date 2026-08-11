@@ -699,6 +699,9 @@ public class GameManager : MonoBehaviour
 
     public void loadSoloLobby()
     {
+        // Warm transitions (kicks/debug paths) bypass SceneUiManager.SoloLobby, so they need the same
+        // unconditional online-entry cancellation as the normal cold return path.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
         sceneManager.LoadScene("SoloLobby");
         SetStage(-4);
         //ResetPlayers();

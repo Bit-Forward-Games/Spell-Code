@@ -830,6 +830,9 @@ public class GameEndScreen : MonoBehaviour
             return;
         }
 
+        // The normal SceneUiManager path performs this cancellation. Keep the manager-missing
+        // fallback equivalent so a static invite/status latch cannot survive the direct scene load.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
         SceneManager.LoadScene("SoloLobby");
     }
 

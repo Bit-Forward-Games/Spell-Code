@@ -538,6 +538,17 @@ public class GameManager : MonoBehaviour
         // exactly the state this watchdog un-sticks.
         UpdateOnlineTransitionWatchdog();
 
+        // A controller connected mid-match only becomes usable once it is paired to the local
+        // player's InputUser. Runs from Update so a pause (timeScale 0) still picks it up.
+        if (onlineInputDevicesDirty)
+        {
+            onlineInputDevicesDirty = false;
+            if (isOnlineMatchActive)
+            {
+                EnsureOnlineLocalPlayerInputActive();
+            }
+        }
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -875,6 +886,9 @@ public class GameManager : MonoBehaviour
 
         return players.FirstOrDefault(player => player != null);
     }
+
+    // Set by OnInputDeviceChanged, consumed in Update.
+    private bool onlineInputDevicesDirty;
 
     private void EnsureOnlineLocalPlayerInputActive()
     {
@@ -5806,8 +5820,49 @@ public class GameManager : MonoBehaviour
         pendingStageSelectRandomCallCount = -1;
     }
 
-    private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
-    private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        InputSystem.onDeviceChange += OnInputDeviceChanged;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        // InputSystem.onDeviceChange is static, so a missed unsubscribe keeps calling into a
+        // GameManager that ExecuteOrder66 already destroyed.
+        InputSystem.onDeviceChange -= OnInputDeviceChanged;
+    }
+
+    /// <summary>
+    /// Online pairs EVERY connected device to the one local player (ConfigureOnlineLocalPlayerInput),
+    /// but that is a snapshot taken when the match starts -- a controller plugged in afterwards was
+    /// never paired, so only the keyboard kept working. Re-pair whenever a usable device appears.
+    /// Deferred to Update rather than done here because this fires from inside the input system's
+    /// own update, and re-pairing devices mid-callback would mutate the user's device list while it
+    /// is being enumerated.
+    /// </summary>
+    private void OnInputDeviceChanged(InputDevice device, InputDeviceChange change)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        if (change != InputDeviceChange.Added
+            && change != InputDeviceChange.Reconnected
+            && change != InputDeviceChange.Enabled)
+        {
+            return;
+        }
+
+        if (!InputDeviceManager.IsValidInput(device))
+        {
+            return;
+        }
+
+        onlineInputDevicesDirty = true;
+    }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {

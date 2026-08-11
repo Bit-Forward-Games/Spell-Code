@@ -719,6 +719,7 @@ public class GameManager : MonoBehaviour
 
         if (isTransitioning)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             LogSimSkip("isTransitioning");
             return;
         }
@@ -727,6 +728,7 @@ public class GameManager : MonoBehaviour
         // ONLINE LOBBY WAIT STATE
         if (isOnlineMatchActive && isWaitingForOpponent)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             // Check for lobby timeout
             float waitTime = UnityEngine.Time.unscaledTime - lobbyWaitStartTime;
             if (waitTime > LOBBY_TIMEOUT)
@@ -742,6 +744,7 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive && !IsOnlineSimulationScene(activeScene))
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             LogSimSkip($"wrong scene '{activeScene.name}'");
             return;
         }
@@ -778,14 +781,16 @@ public class GameManager : MonoBehaviour
         return scene.name == "MainMenu" || scene.name == "Gameplay" || scene.name == "Shop";
     }
 
-    private ulong GatherInputForOnline()
+    private ulong GatherInputForOnline(out InputPlayerBindings pendingInputCapture)
     {
+        pendingInputCapture = null;
         PlayerController localPlayer = localPlayerIndex >= 0 && localPlayerIndex < players.Length
             ? players[localPlayerIndex]
             : null;
 
         if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
         {
+            localPlayer?.inputs.SetOnlineInputCaptureSuppressed(true);
             ulong stressInput = StressTestController.Instance.GetDeterministicInput(frameNumber);
             return PlayerController.PackOnlineControlOptions(stressInput, localPlayer);
         }
@@ -794,6 +799,7 @@ public class GameManager : MonoBehaviour
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
+                localPlayer.inputs.SetOnlineInputCaptureSuppressed(true);
                 // Only NEW frames (current + InputDelay onward) go neutral while paused. The
                 // already-buffered frames were sent to peers and must play out unchanged —
                 // rewriting them (the old NeutralizePendingLocalInputs) desyncs at high ping
@@ -801,11 +807,39 @@ public class GameManager : MonoBehaviour
                 return PlayerController.PackOnlineControlOptions(5UL, localPlayer);
             }
 
-            ulong input = (ulong)localPlayer.inputs.UpdateInputs();
+            localPlayer.inputs.SetOnlineInputCaptureSuppressed(false);
+            ulong input = (ulong)localPlayer.inputs.PeekOnlineInputs();
+            pendingInputCapture = localPlayer.inputs;
             return PlayerController.PackOnlineControlOptions(input, localPlayer);
         }
         return PlayerController.PackOnlineControlOptions(5UL, localPlayer); // neutral
         //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
+    }
+
+    public void ResetLocalOnlineInputCaptureForNewTimeline()
+    {
+        if (players == null
+            || localPlayerIndex < 0
+            || localPlayerIndex >= players.Length
+            || players[localPlayerIndex] == null)
+        {
+            return;
+        }
+
+        players[localPlayerIndex].inputs.ResetOnlineInputCapture();
+    }
+
+    public void SetLocalOnlineInputCaptureSuppressed(bool suppressed)
+    {
+        if (players == null
+            || localPlayerIndex < 0
+            || localPlayerIndex >= players.Length
+            || players[localPlayerIndex] == null)
+        {
+            return;
+        }
+
+        players[localPlayerIndex].inputs.SetOnlineInputCaptureSuppressed(suppressed);
     }
 
     private InputDevice[] GetOnlineSharedInputDevices()
@@ -907,11 +941,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // Re-pairing and binding refreshes can synchronously fire canceled/started callbacks.
+        // Baseline around the operation so hot-plugging cannot create a phantom gameplay edge.
+        localPlayer.inputs.SetOnlineInputCaptureSuppressed(true);
         PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
         localPlayer.inputs.AssignInputDevice(null);
         ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
         SettingsManager.Instance?.TryApplyControlOptionsForPlayer(localPlayer);
         localPlayer.CheckForInputs(true, false);
+        bool keepSuppressed = isTransitioning
+            || isWaitingForOpponent
+            || !IsOnlineSimulationScene(SceneManager.GetActiveScene())
+            || localPlayer.IsLocalOnlinePauseMenuOpen();
+        localPlayer.inputs.SetOnlineInputCaptureSuppressed(keepSuppressed);
     }
 
     //private ulong GatherRawInput()
@@ -1254,6 +1296,7 @@ public class GameManager : MonoBehaviour
 
         isOnlineMatchActive = true;
         isWaitingForOpponent = true;
+        SetLocalOnlineInputCaptureSuppressed(true);
         SetNetworkInfoVisible(true);
         ProjectileManager.Instance.InitializeAllProjectiles();
         SetStage(-1);
@@ -1481,6 +1524,9 @@ public class GameManager : MonoBehaviour
         DeserializeManagedState(stateData);
         ForceSetFrame(snapshotFrame);
         isWaitingForOpponent = false;
+        // Waiting-screen input is local UI input, not deterministic lobby gameplay input. Keep it
+        // suppressed until GatherInputForOnline opens capture and baselines on the first real tick.
+        SetLocalOnlineInputCaptureSuppressed(true);
         isRunning = true;
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
@@ -1739,6 +1785,9 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
 
         isWaitingForOpponent = false;
+        // Waiting-screen input is local UI input, not deterministic lobby gameplay input. Keep it
+        // suppressed until GatherInputForOnline opens capture and baselines on the first real tick.
+        SetLocalOnlineInputCaptureSuppressed(true);
 
         // Send match start confirmation
         if (MatchMessageManager.Instance != null)
@@ -3284,6 +3333,7 @@ public class GameManager : MonoBehaviour
             && activeOnlineRoster != null
             && CountRegisteredOnlineRosterPlayers() < activeOnlineRoster.PlayerCount)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             Debug.Log($"[OnlineState] Holding round start: {CountRegisteredOnlineRosterPlayers()}/{activeOnlineRoster.PlayerCount} players registered.");
             return;
         }
@@ -3304,8 +3354,12 @@ public class GameManager : MonoBehaviour
         rbManager.DiagBeginTick();
         rbManager.RollbackEvent();
 
-        localPlayerInput = GatherInputForOnline();
-        rbManager.SendLocalInput(localPlayerInput);
+        localPlayerInput = GatherInputForOnline(out InputPlayerBindings pendingInputCapture);
+        bool acceptedLocalInput = rbManager.SendLocalInput(localPlayerInput);
+        if (acceptedLocalInput && pendingInputCapture != null)
+        {
+            pendingInputCapture.CommitPeekedOnlineInputs();
+        }
 
         if (!rbManager.AllowUpdate())
         {
@@ -5897,6 +5951,14 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Hardware capture is wall-clock state, not rollback state. Scene/timeline changes start
+        // a fresh input epoch, so no menu/transition edge may spill into the destination scene.
+        ResetLocalOnlineInputCaptureForNewTimeline();
+        if (isOnlineMatchActive)
+        {
+            SetLocalOnlineInputCaptureSuppressed(true);
+        }
+
         bool isEndScene = scene.name == "End";
         if (isEndScene)
         {

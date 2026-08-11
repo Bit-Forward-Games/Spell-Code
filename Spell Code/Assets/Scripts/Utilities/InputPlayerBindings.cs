@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -96,6 +97,163 @@ public class InputBuffer : ISerialize
     }
 }
 
+/// <summary>
+/// Raw, device-level gameplay state captured between deterministic simulation ticks.
+/// This state is local-only and must never be serialized as rollback state.
+/// </summary>
+public struct OnlineRawInputState : IEquatable<OnlineRawInputState>
+{
+    public bool Up;
+    public bool Down;
+    public bool Left;
+    public bool Right;
+    public bool Code;
+    public bool Jump;
+    public bool Slide;
+
+    public bool Equals(OnlineRawInputState other)
+    {
+        return Up == other.Up
+            && Down == other.Down
+            && Left == other.Left
+            && Right == other.Right
+            && Code == other.Code
+            && Jump == other.Jump
+            && Slide == other.Slide;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is OnlineRawInputState other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        int hash = 17;
+        hash = hash * 31 + (Up ? 1 : 0);
+        hash = hash * 31 + (Down ? 1 : 0);
+        hash = hash * 31 + (Left ? 1 : 0);
+        hash = hash * 31 + (Right ? 1 : 0);
+        hash = hash * 31 + (Code ? 1 : 0);
+        hash = hash * 31 + (Jump ? 1 : 0);
+        hash = hash * 31 + (Slide ? 1 : 0);
+        return hash;
+    }
+}
+
+/// <summary>
+/// Buffers physical input transitions until a new online input frame accepts them. Peek is
+/// deliberately non-destructive so held network ticks cannot consume a Pressed/Released edge.
+/// </summary>
+public sealed class OnlineInputCaptureBuffer
+{
+    private const int MaxPendingStates = 32;
+
+    private readonly Queue<OnlineRawInputState> pendingStates = new Queue<OnlineRawInputState>();
+    private OnlineRawInputState lastCapturedState;
+    private OnlineRawInputState committedState;
+    private OnlineRawInputState peekedState;
+    private bool initialized;
+    private bool hasPeekedState;
+    private bool peekedFromQueue;
+
+    public int PendingCount => pendingStates.Count;
+    public OnlineRawInputState CommittedState => committedState;
+
+    public void Reset(OnlineRawInputState baseline)
+    {
+        pendingStates.Clear();
+        lastCapturedState = baseline;
+        committedState = baseline;
+        peekedState = baseline;
+        initialized = true;
+        hasPeekedState = false;
+        peekedFromQueue = false;
+    }
+
+    public void Clear()
+    {
+        pendingStates.Clear();
+        lastCapturedState = default;
+        committedState = default;
+        peekedState = default;
+        initialized = false;
+        hasPeekedState = false;
+        peekedFromQueue = false;
+    }
+
+    public void Capture(OnlineRawInputState state)
+    {
+        if (!initialized)
+        {
+            Reset(state);
+            return;
+        }
+
+        if (state.Equals(lastCapturedState))
+        {
+            return;
+        }
+
+        lastCapturedState = state;
+        if (pendingStates.Count >= MaxPendingStates)
+        {
+            if (!hasPeekedState || !peekedFromQueue)
+            {
+                pendingStates.Dequeue();
+            }
+            else
+            {
+                // Preserve the candidate awaiting scheduler acknowledgement. The newest physical
+                // state remains in lastCapturedState and is emitted after the bounded queue drains.
+                return;
+            }
+        }
+
+        pendingStates.Enqueue(state);
+    }
+
+    public OnlineRawInputState Peek()
+    {
+        if (!initialized)
+        {
+            throw new InvalidOperationException("Online input capture must be reset before it is read.");
+        }
+
+        if (!hasPeekedState)
+        {
+            peekedFromQueue = pendingStates.Count > 0;
+            peekedState = peekedFromQueue ? pendingStates.Peek() : lastCapturedState;
+            hasPeekedState = true;
+        }
+
+        return peekedState;
+    }
+
+    public bool CommitPeeked()
+    {
+        if (!hasPeekedState)
+        {
+            return false;
+        }
+
+        if (peekedFromQueue)
+        {
+            if (pendingStates.Count == 0 || !pendingStates.Peek().Equals(peekedState))
+            {
+                throw new InvalidOperationException("The pending online input candidate changed before commit.");
+            }
+
+            pendingStates.Dequeue();
+        }
+
+        committedState = peekedState;
+        hasPeekedState = false;
+        peekedFromQueue = false;
+        return true;
+    }
+}
+
 public class InputPlayerBindings : MonoBehaviour
 {
     // ===== | Variables | =====
@@ -121,6 +279,19 @@ public class InputPlayerBindings : MonoBehaviour
 
     private bool[] pauseButton = new bool[2];
     private ButtonState[] buttons = new ButtonState[3];
+
+    // Online rollback can inspect the same simulation frame more than once while pacing holds it.
+    // Keep physical transitions separate from the legacy FixedUpdate sampler so a rejected duplicate
+    // target cannot consume a one-frame Pressed/Released edge. Offline input remains unchanged.
+    private readonly OnlineInputCaptureBuffer onlineInputCapture = new OnlineInputCaptureBuffer();
+    private InputAction[] subscribedOnlineActions = Array.Empty<InputAction>();
+    private readonly bool[] onlineDirections = new bool[4];
+    private readonly ButtonState[] onlineButtons = new ButtonState[3];
+    private bool onlineCaptureEnabled;
+    private bool onlineCaptureSuppressed;
+    private bool ignoreOnlineActionCallbacks;
+    private bool hasPeekedOnlineInput;
+    private long peekedOnlineInput;
 
     InputBuffer inputBuffer = new InputBuffer();
 
@@ -183,6 +354,12 @@ public class InputPlayerBindings : MonoBehaviour
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
+        RefreshOnlineInputSubscriptions();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeOnlineInputActions();
     }
 
     //private void OnDisable()
@@ -338,7 +515,208 @@ public class InputPlayerBindings : MonoBehaviour
             // Refresh Slide with the rest or joining clients keep reading the prefab map.
             slideMacroAction = playerActionMap.FindAction("Slide");
             IsActive = true;
+            RefreshOnlineInputSubscriptions();
         }
+    }
+
+    private void RefreshOnlineInputSubscriptions()
+    {
+        InputAction[] desiredActions = new[]
+        {
+            upAction,
+            downAction,
+            leftAction,
+            rightAction,
+            codeAction,
+            jumpAction,
+            slideMacroAction
+        }
+        .Where(action => action != null)
+        .Distinct()
+        .ToArray();
+
+        bool actionsChanged = desiredActions.Length != subscribedOnlineActions.Length;
+        if (!actionsChanged)
+        {
+            for (int i = 0; i < desiredActions.Length; i++)
+            {
+                if (!ReferenceEquals(desiredActions[i], subscribedOnlineActions[i]))
+                {
+                    actionsChanged = true;
+                    break;
+                }
+            }
+        }
+
+        if (!actionsChanged)
+        {
+            return;
+        }
+
+        UnsubscribeOnlineInputActions();
+        subscribedOnlineActions = desiredActions;
+        for (int i = 0; i < subscribedOnlineActions.Length; i++)
+        {
+            subscribedOnlineActions[i].started += HandleOnlineActionChanged;
+            subscribedOnlineActions[i].performed += HandleOnlineActionChanged;
+            subscribedOnlineActions[i].canceled += HandleOnlineActionChanged;
+        }
+
+        if (onlineCaptureEnabled)
+        {
+            ResetOnlineInputCapture();
+        }
+    }
+
+    private void UnsubscribeOnlineInputActions()
+    {
+        for (int i = 0; i < subscribedOnlineActions.Length; i++)
+        {
+            InputAction action = subscribedOnlineActions[i];
+            if (action == null)
+            {
+                continue;
+            }
+
+            action.started -= HandleOnlineActionChanged;
+            action.performed -= HandleOnlineActionChanged;
+            action.canceled -= HandleOnlineActionChanged;
+        }
+
+        subscribedOnlineActions = Array.Empty<InputAction>();
+    }
+
+    private void HandleOnlineActionChanged(InputAction.CallbackContext context)
+    {
+        if (!onlineCaptureEnabled
+            || onlineCaptureSuppressed
+            || ignoreOnlineActionCallbacks
+            || !IsActive)
+        {
+            return;
+        }
+
+        if (context.control?.device != null)
+        {
+            lastUsedDevice = context.control.device;
+        }
+
+        CaptureCurrentOnlineInputState();
+    }
+
+    private OnlineRawInputState ReadCurrentOnlineInputState()
+    {
+        return new OnlineRawInputState
+        {
+            Up = upAction != null && upAction.ReadValue<float>() > 0.33f,
+            Down = downAction != null && downAction.ReadValue<float>() > 0.33f,
+            Left = leftAction != null && leftAction.ReadValue<float>() > 0.33f,
+            Right = rightAction != null && rightAction.ReadValue<float>() > 0.33f,
+            Code = codeAction != null && codeAction.inProgress,
+            Jump = jumpAction != null && jumpAction.inProgress,
+            Slide = slideMacroAction != null && slideMacroAction.inProgress
+        };
+    }
+
+    private void CaptureCurrentOnlineInputState()
+    {
+        if (!onlineCaptureEnabled || onlineCaptureSuppressed || ignoreOnlineActionCallbacks)
+        {
+            return;
+        }
+
+        onlineInputCapture.Capture(ReadCurrentOnlineInputState());
+    }
+
+    public void EnableOnlineInputCapture()
+    {
+        RefreshOnlineInputSubscriptions();
+        if (onlineCaptureEnabled)
+        {
+            return;
+        }
+
+        onlineCaptureEnabled = true;
+        onlineCaptureSuppressed = false;
+        ResetOnlineInputCapture();
+    }
+
+    public void DisableOnlineInputCapture()
+    {
+        onlineCaptureEnabled = false;
+        onlineCaptureSuppressed = false;
+        hasPeekedOnlineInput = false;
+        onlineInputCapture.Clear();
+    }
+
+    public void SetOnlineInputCaptureSuppressed(bool suppressed)
+    {
+        if (!onlineCaptureEnabled)
+        {
+            if (!suppressed)
+            {
+                EnableOnlineInputCapture();
+            }
+            return;
+        }
+
+        if (onlineCaptureSuppressed == suppressed)
+        {
+            return;
+        }
+
+        onlineCaptureSuppressed = suppressed;
+        // Inputs used to navigate pause/rebind UI must never burst into gameplay on resume.
+        ResetOnlineInputCapture();
+    }
+
+    public void ResetOnlineInputCapture()
+    {
+        hasPeekedOnlineInput = false;
+        onlineInputCapture.Reset(ReadCurrentOnlineInputState());
+    }
+
+    /// <summary>
+    /// Returns the next online input candidate without consuming it. The candidate remains stable
+    /// across pacing-held ticks until CommitPeekedOnlineInputs confirms a fresh target accepted it.
+    /// </summary>
+    public long PeekOnlineInputs()
+    {
+        EnableOnlineInputCapture();
+        CaptureCurrentOnlineInputState();
+
+        OnlineRawInputState previous = onlineInputCapture.CommittedState;
+        OnlineRawInputState candidate = onlineInputCapture.Peek();
+
+        onlineDirections[0] = candidate.Up;
+        onlineDirections[1] = candidate.Down || candidate.Slide;
+        onlineDirections[2] = candidate.Left;
+        onlineDirections[3] = candidate.Right;
+
+        onlineButtons[0] = GetCurrentState(previous.Code, candidate.Code);
+        bool previousJumpOrSlide = previous.Jump || previous.Slide;
+        bool currentJumpOrSlide = candidate.Jump || candidate.Slide;
+        onlineButtons[1] = GetCurrentState(previousJumpOrSlide, currentJumpOrSlide);
+        // Online pause is handled locally, outside deterministic simulation.
+        onlineButtons[2] = ButtonState.None;
+
+        peekedOnlineInput = InputConverter.ConvertToLong(onlineButtons, onlineDirections);
+        hasPeekedOnlineInput = true;
+        return peekedOnlineInput;
+    }
+
+    public bool CommitPeekedOnlineInputs()
+    {
+        if (!hasPeekedOnlineInput || !onlineInputCapture.CommitPeeked())
+        {
+            return false;
+        }
+
+        short packedInput = unchecked((short)peekedOnlineInput);
+        inputBuffer.Push(packedInput);
+        CurrentSnapshot = InputConverter.ConvertFromShort(packedInput);
+        hasPeekedOnlineInput = false;
+        return true;
     }
 
 
@@ -464,6 +842,15 @@ public class InputPlayerBindings : MonoBehaviour
             pauseAction?.Enable();
             slideMacroAction?.Enable();
 
+            if (assignKeyboardOnly)
+            {
+                DisableOnlineInputCapture();
+            }
+            else
+            {
+                EnableOnlineInputCapture();
+            }
+
             Debug.Log($"[CheckForInputs] Enabled - Actions enabled: " +
                      $"Up={upAction?.enabled}, Down={downAction?.enabled}, " +
                      $"Left={leftAction?.enabled}, Right={rightAction?.enabled}, " +
@@ -471,6 +858,8 @@ public class InputPlayerBindings : MonoBehaviour
         }
         else
         {
+            ignoreOnlineActionCallbacks = true;
+            DisableOnlineInputCapture();
             upAction?.Disable();
             downAction?.Disable();
             leftAction?.Disable();
@@ -479,6 +868,7 @@ public class InputPlayerBindings : MonoBehaviour
             jumpAction?.Disable();
             pauseAction?.Disable();
             slideMacroAction?.Disable();
+            ignoreOnlineActionCallbacks = false;
 
             Debug.Log($"[CheckForInputs] Disabled");
         }
@@ -487,6 +877,10 @@ public class InputPlayerBindings : MonoBehaviour
     public void SetActiveWithoutChangingActions(bool enable)
     {
         IsActive = enable;
+        if (!enable)
+        {
+            DisableOnlineInputCapture();
+        }
     }
 
     public void ConfigureInputDevices(params InputDevice[] devices)

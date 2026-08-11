@@ -300,6 +300,7 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
+    private int requestedOnlineEndLoadTransitionId = 0;
     private int lastAppliedGameplayStageTransitionId = 0;
     private int lastAppliedRematchLobbyTransitionId = 0;
     private int lastAppliedRematchLobbySeed = 0;
@@ -1761,6 +1762,7 @@ public class GameManager : MonoBehaviour
     {
         onlineTransitionSequence = 0;
         activeOnlineTransitionId = 0;
+        requestedOnlineEndLoadTransitionId = 0;
         lastAppliedGameplayStageTransitionId = 0;
         lastAppliedRematchLobbyTransitionId = 0;
         lastAppliedRematchLobbySeed = 0;
@@ -2737,15 +2739,20 @@ public class GameManager : MonoBehaviour
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         byte currentSceneType = GetNetworkSceneTypeCode();
-        bool isEndToGameplayRematch = packetSceneType == 1
-            && currentSceneType == 4
-            && SceneManager.GetActiveScene().name == "End"
-            && transitionId == OnlineEndOptionsEpoch + 1;
         bool isGameplayStageCorrection = packetSceneType == 1
             && currentSceneType == 1
             && stageIndex >= 0
             && stageIndex < stages.Count
             && stageIndex != currentStageIndex;
+
+        // Rematches now transition End -> MainMenu through REMATCH_LOBBY_TRANSITION. A delayed or
+        // cached gameplay STAGE_SELECT must never bring persistent stage geometry back over End (or
+        // skip the starter lobby by loading Gameplay directly).
+        if (packetSceneType == 1 && currentSceneType == 4)
+        {
+            Debug.LogWarning($"Ignoring gameplay stage select while the End scene is active. Transition={transitionId}, StageIndex={stageIndex}");
+            return false;
+        }
 
         if (packetSceneType == 1
             && transitionId > 0
@@ -2776,8 +2783,7 @@ public class GameManager : MonoBehaviour
 
         if (activeOnlineTransitionId > 0
             && transitionId != activeOnlineTransitionId
-            && !isGameplayStageCorrection
-            && !isEndToGameplayRematch)
+            && !isGameplayStageCorrection)
         {
             if (transitionId > activeOnlineTransitionId)
             {
@@ -2803,17 +2809,7 @@ public class GameManager : MonoBehaviour
         {
             ApplyOnlineConnectedPlayerSlotMask(connectedPlayerSlotMask);
 
-            if (isEndToGameplayRematch)
-            {
-                if (!PrepareRematchFromEnd(OnlineEndOptionsEpoch))
-                {
-                    return false;
-                }
-
-                isRunning = true;
-                BeginTrackedOnlineTransition(transitionId);
-            }
-            else if (activeOnlineTransitionId == 0)
+            if (activeOnlineTransitionId == 0)
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
@@ -2885,7 +2881,10 @@ public class GameManager : MonoBehaviour
 
     public void HandleInputSceneSignatureMismatch(int senderSlot, int packetSceneSignature)
     {
-        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || MatchMessageManager.Instance == null)
+        if (!isOnlineMatchActive
+            || isTransitioning
+            || !IsOnlineHostAuthority()
+            || MatchMessageManager.Instance == null)
         {
             return;
         }
@@ -4434,6 +4433,14 @@ public class GameManager : MonoBehaviour
     //reset players after each round
     public void ResetPlayers()
     {
+        // The real fighters are DontDestroyOnLoad and the End scene presents its winner through a
+        // separate authored sprite. Respawning here would re-enable the carried character renderers
+        // (and fire spawn side effects) after the match has already finished.
+        if (SceneManager.GetActiveScene().name == "End")
+        {
+            return;
+        }
+
         FixedVec2[] spawnPos = GetSpawnPositions()
             .Select(v => FixedVec2.FromFloat(v.x, v.y))
             .ToArray();
@@ -4685,9 +4692,8 @@ public class GameManager : MonoBehaviour
         isSaved = false;
         damageMatrix = new byte[4, 4];
 
-        // Undo only the blanket End-screen hiding first. The MainMenu scene arrival then respawns
-        // every retained player with fresh-match visibility at the lobby spawn points.
-        RestorePlayerRenderersAfterEnd();
+        // Keep the real fighters hidden while the active scene is still End. Their exact renderer
+        // states are restored by OnSceneLoaded only after the rematch destination has arrived.
         ResetPlayersForStartingSpellSelection();
 
         // A rematch is a new match, so begin a fresh filtered stage cycle instead of carrying the
@@ -4695,10 +4701,6 @@ public class GameManager : MonoBehaviour
         FillGameStages();
         GameEndScreen.ActiveInstance?.RestoreHiddenMatchUiForRematch();
 
-        if (tempUI != null)
-        {
-            tempUI.gameObject.SetActive(true);
-        }
         if (playerWinText != null)
         {
             playerWinText.enabled = false;
@@ -4732,6 +4734,9 @@ public class GameManager : MonoBehaviour
         }
 
         SetStage(-1);
+        // SetStage establishes the lobby index now so OnSceneLoaded respawns at lobby positions,
+        // but its persistent geometry must remain hidden behind the End -> MainMenu screen wipe.
+        ClearStages();
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(false);
@@ -4868,6 +4873,9 @@ public class GameManager : MonoBehaviour
 
         BeginTrackedOnlineTransition(transitionId);
         SetStage(-1);
+        // Preserve the lobby index/signature for the transition without displaying its persistent
+        // geometry in End during the half-second screen-cover animation.
+        ClearStages();
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(false);
@@ -5289,6 +5297,7 @@ public class GameManager : MonoBehaviour
             isRunning = false;
         }
         StopAllPlayerAuras();
+        HidePersistentMatchWorldForEndScene();
         sceneManager.LoadScene("End");
 
         //play a new end song
@@ -5301,7 +5310,10 @@ public class GameManager : MonoBehaviour
         preparedOnlineRematchEpoch = -1;
         rematchPreparationStarted = false;
 
-        if (isTransitioning && SceneManager.GetActiveScene().name == "End")
+        // Reliable End packets can be duplicated while the screen-cover tween still leaves the
+        // active scene reported as Gameplay. Track this target explicitly: a different scene
+        // transition can legitimately own the same active id when a disconnect decides the match.
+        if (requestedOnlineEndLoadTransitionId == transitionId)
         {
             ApplyOnlineEndWinner(winnerPid);
             return;
@@ -5337,6 +5349,8 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
         StopAllPlayerAuras();
+        HidePersistentMatchWorldForEndScene();
+        requestedOnlineEndLoadTransitionId = transitionId;
         sceneManager.LoadScene("End");
     }
 
@@ -5369,54 +5383,68 @@ public class GameManager : MonoBehaviour
     // and their child renderers ride into the End scene; the winner is shown via GameEndScreen's
     // separate winnerImage sprite, so the real characters (winner AND losers) should be invisible --
     // a carried-over loser was still partly on-camera. Disable the RENDERERS (not the GameObjects) so
-    // each player's PlayerInput stays alive for GameEndScreen's per-player option navigation. Fresh players are
-    // rebuilt on the way to MainMenu (ExecuteOrder66), so this leaves no lingering hidden state.
+    // each player's PlayerInput stays alive for GameEndScreen's per-player option navigation. A
+    // retained rematch restores these exact states only after its destination scene has loaded.
     private void HideAllPlayerCharacters()
     {
-        if (players == null)
+        // Include NPCs and any still-loaded controller that has not made it into players[] (for
+        // example a late-created online object). The End scene's winner art has no PlayerController,
+        // so this cannot hide the authored winner presentation.
+        PlayerController[] loadedPlayers = FindObjectsByType<PlayerController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+        for (int i = 0; i < loadedPlayers.Length; i++)
         {
-            return;
-        }
-
-        // On a rematch these same DontDestroyOnLoad player objects are reused. Remember the exact
-        // visibility state so child masks/effects that were enabled before End can be restored,
-        // without blindly enabling renderers that were intentionally off.
-        if (endScreenRendererVisibility.Count == 0)
-        {
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i] == null)
-                {
-                    continue;
-                }
-
-                Renderer[] playerRenderers = players[i].GetComponentsInChildren<Renderer>(true);
-                for (int r = 0; r < playerRenderers.Length; r++)
-                {
-                    Renderer playerRenderer = playerRenderers[r];
-                    if (playerRenderer != null)
-                    {
-                        endScreenRendererVisibility[playerRenderer] = playerRenderer.enabled;
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < players.Length; i++)
-        {
-            if (players[i] == null)
+            PlayerController player = loadedPlayers[i];
+            if (player == null)
             {
                 continue;
             }
 
-            Renderer[] renderers = players[i].GetComponentsInChildren<Renderer>(true);
+            Renderer[] renderers = player.GetComponentsInChildren<Renderer>(true);
             for (int r = 0; r < renderers.Length; r++)
             {
-                if (renderers[r] != null)
+                Renderer playerRenderer = renderers[r];
+                if (playerRenderer != null)
                 {
-                    renderers[r].enabled = false;
+                    if (!endScreenRendererVisibility.ContainsKey(playerRenderer))
+                    {
+                        endScreenRendererVisibility[playerRenderer] = playerRenderer.enabled;
+                    }
+                    playerRenderer.enabled = false;
                 }
             }
+        }
+    }
+
+    private void HidePersistentMatchWorldForEndScene()
+    {
+        ClearStages();
+        HideAllPlayerCharacters();
+    }
+
+    /// <summary>
+    /// Reasserts the End scene's presentation without touching player input objects. Kept
+    /// idempotent so both the persistent manager's scene callback and GameEndScreen.Start can call
+    /// it regardless of Unity callback ordering.
+    /// </summary>
+    public void EnforceEndScenePresentation()
+    {
+        if (SceneManager.GetActiveScene().name != "End")
+        {
+            return;
+        }
+
+        isRunning = false;
+        HidePersistentMatchWorldForEndScene();
+        try
+        {
+            HidePersistentUiForEndScene();
+        }
+        catch (Exception exception)
+        {
+            // UI teardown must not abort the online End ready handshake or the authored winner UI.
+            Debug.LogException(exception);
         }
     }
 
@@ -5869,7 +5897,25 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        ResetPlayers();
+        bool isEndScene = scene.name == "End";
+        if (isEndScene)
+        {
+            // Do this before camera/reference/projectile setup: the real players and stage roots are
+            // persistent, and any exception in generic arrival work must not leave them on End.
+            EnforceEndScenePresentation();
+        }
+        else
+        {
+            if (rematchPreparationStarted)
+            {
+                // There is no rendered frame inside this sceneLoaded callback, so restoration here
+                // cannot flash the losing characters over the End screen. Restore before respawn so
+                // SpawnPlayer can correctly make every surviving fighter's root sprite visible even
+                // if that fighter was dead (and therefore hidden) when the match ended.
+                RestorePlayerRenderersAfterEnd();
+            }
+            ResetPlayers();
+        }
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's
@@ -5881,7 +5927,7 @@ public class GameManager : MonoBehaviour
         HitboxManager.Instance.GetActiveCamera();
         ProjectileManager.Instance.DeleteAllProjectiles();
 
-        if (scene.name == "End")
+        if (isEndScene)
         {
             endInputEnabled = false;
             rematchPreparationStarted = false;
@@ -5890,11 +5936,6 @@ public class GameManager : MonoBehaviour
             {
                 OnlineEndOptionsEpoch = 0;
             }
-
-            // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
-            ClearStages();
-            HidePersistentUiForEndScene();
-            HideAllPlayerCharacters();
 
             if (isOnlineMatchActive)
             {
@@ -5993,6 +6034,10 @@ public class GameManager : MonoBehaviour
             SetStage(-1);
             InitializeRematchLobbySceneState();
             FindAllFloppyDisks();
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
             if (MainMenuScreen != null)
             {
                 MainMenuScreen.SetActive(false);
@@ -6340,12 +6385,15 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
-            tempMapGOs[i].SetActive(false);
+            if (tempMapGOs[i] != null)
+            {
+                tempMapGOs[i].SetActive(false);
+            }
         }
-        lobbyMapGO.SetActive(false);
-        tutorialMapGO.SetActive(false);
-        trainingGroundsGO.SetActive(false);
-        soloLobbyGO.SetActive(false);
+        if (lobbyMapGO != null) lobbyMapGO.SetActive(false);
+        if (tutorialMapGO != null) tutorialMapGO.SetActive(false);
+        if (trainingGroundsGO != null) trainingGroundsGO.SetActive(false);
+        if (soloLobbyGO != null) soloLobbyGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()
@@ -7016,7 +7064,7 @@ public class GameManager : MonoBehaviour
                 gameOver = br.ReadBoolean();
                 roundEndFrameCounter = br.ReadInt32();
                 int savedStageIndex = br.ReadInt32();
-                if (savedStageIndex != currentStageIndex)
+                if (SceneManager.GetActiveScene().name != "End" && savedStageIndex != currentStageIndex)
                 {
                     SetStage(savedStageIndex);
                 }

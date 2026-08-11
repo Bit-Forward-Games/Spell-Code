@@ -65,6 +65,11 @@ public class GameEndScreen : MonoBehaviour
 
     private void Start()
     {
+        // GameManager is persistent while this component belongs to the newly loaded End scene.
+        // Reassert the world cleanup here as a second lifecycle boundary in case another scene-load
+        // callback ran after GameManager's callback or generic arrival setup failed early.
+        GameManager.Instance?.EnforceEndScenePresentation();
+
         useOnlineEndFlow = GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive;
         optionsVisible = false;
         resolutionTriggered = false;

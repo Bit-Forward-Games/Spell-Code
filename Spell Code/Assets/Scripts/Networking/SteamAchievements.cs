@@ -30,8 +30,16 @@ public static class SteamAchievements
 
     public const string FirstLaunch = "ACH_First_Launch";
 
+    // Squad Goals. Finishing an online match formed through the VS Friends party lobby,
+    // awarded to everyone who saw it through to the end. The legacy host+invite lobby does
+    // not count.
+    public const string FirstFriendsMatch = "ACH_First_FriendsMatch";
+
+    // Global Slinger. The same, for a match formed through Quick Match.
+    public const string FirstMatchmakingMatch = "ACH_First_Matchmaking";
+
     // One per unlockable spell, add as the spells land:
-    
+
 
     // Retry policy
 

@@ -17,6 +17,22 @@ public class SteamLobbyManager : MonoBehaviour
         Invalid
     }
 
+    /// <summary>How the running (or most recently run) online match was formed.</summary>
+    public enum OnlineMatchOrigin
+    {
+        None,
+        Friends,
+        Matchmaking
+    }
+
+    /// <summary>
+    /// Latched the moment a match arms rather than read back when it ends. Reading lobbyMode
+    /// out of Steam is an async round-trip that can return empty (the same reason
+    /// hostCreatedPartyLobby exists), and by match end the lobby may be gone entirely.
+    /// Static so it survives the ExecuteOrder66 teardown that destroys this manager.
+    /// </summary>
+    public static OnlineMatchOrigin ActiveMatchOrigin { get; private set; }
+
     private const int TargetOnlineLobbySize = 4;
     private const int MinimumOnlineLobbyStartSize = 2;
     private const string MatchReadyKey = "matchReady";
@@ -3430,6 +3446,24 @@ public class SteamLobbyManager : MonoBehaviour
             ? lobby.GetData(GameModeNameKey)
             : null;
         GameManager.Instance.ApplyOnlineGameMode(committedGameModeId, committedGameModeName);
+
+        // Record what kind of match this is for the end-of-match achievements. Everything not
+        // named below latches None and awards nothing: Legacy is the old auto-starting
+        // host+invite lobby rather than the Friends lobby the achievement is about, and a
+        // flavour that hasn't resolved yet is not evidence of either mode.
+        switch (GetLobbyFlavor(lobby))
+        {
+            case LobbyFlavor.Party:
+                ActiveMatchOrigin = OnlineMatchOrigin.Friends;
+                break;
+            case LobbyFlavor.QuickMatch:
+                ActiveMatchOrigin = OnlineMatchOrigin.Matchmaking;
+                break;
+            default:
+                ActiveMatchOrigin = OnlineMatchOrigin.None;
+                break;
+        }
+
         GameManager.Instance.StartOnlineMatch(roster);
 
         // StartOnlineMatch can legitimately defer when scene-owned networking objects (notably the

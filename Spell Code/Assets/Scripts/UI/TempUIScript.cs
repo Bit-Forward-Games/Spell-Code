@@ -136,6 +136,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public ArenaNameDisplayHandler arenaNameDisplayHandler;
 
+    [Header("Round End UI")] // Round End UI
+    public GameObject roundEndUI;
+    public RectTransform winnerPanel;
+
     public void OnSelect(BaseEventData eventData)
     {
         RectTransform myRect = (RectTransform)transform;

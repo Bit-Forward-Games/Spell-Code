@@ -181,6 +181,36 @@ public static class InputConverter
         return snapshot;
     }
 
+    /// <summary>
+    /// Converts edge-bearing input into the stable level that should fill an intentionally added
+    /// delay frame. Pressed continues as Held, Released settles to None, and every non-gameplay bit
+    /// (including synchronized online control options) is preserved unchanged.
+    /// </summary>
+    public static ulong ConvertToSteadyState(ulong inputs)
+    {
+        const int buttonByteShift = 8;
+        byte buttonByte = (byte)((inputs >> buttonByteShift) & 0xFFUL);
+
+        for (int buttonIndex = 0; buttonIndex < 3; buttonIndex++)
+        {
+            int stateShift = buttonIndex * 2;
+            ButtonState state = (ButtonState)((buttonByte >> stateShift) & 0b11);
+            ButtonState steadyState = state switch
+            {
+                ButtonState.Pressed => ButtonState.Held,
+                ButtonState.Held => ButtonState.Held,
+                ButtonState.Released => ButtonState.None,
+                _ => ButtonState.None
+            };
+
+            buttonByte = (byte)(buttonByte & ~(0b11 << stateShift));
+            buttonByte = (byte)(buttonByte | ((byte)steadyState << stateShift));
+        }
+
+        const ulong buttonByteMask = 0xFFUL << buttonByteShift;
+        return (inputs & ~buttonByteMask) | ((ulong)buttonByte << buttonByteShift);
+    }
+
     private static byte ConstructDirectionByte(bool[] directions)
     {
         bool up = directions[0];

@@ -8,6 +8,15 @@ using Steamworks.Data;
 
 public class SteamLobbyManager : MonoBehaviour
 {
+    private enum LobbyFlavor
+    {
+        Unknown,
+        Legacy,
+        Party,
+        QuickMatch,
+        Invalid
+    }
+
     private const int TargetOnlineLobbySize = 4;
     private const int MinimumOnlineLobbyStartSize = 2;
     private const string MatchReadyKey = "matchReady";
@@ -35,7 +44,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-30"; // scz-30: ramNeededToWinRound now uses baseRamNeeddedtowin on BOTH paths (the online sync path hardcoded 300 vs 400), so its value -- and the shared gameplay hash -- changes
+    private const string NetcodeVersion = "scz-31"; // scz-31: input packets carry immutable batch bounds so chunked resend windows align consistently after lobby snapshot rebases
                                                     // changed MEANING. It used to carry downJumpSlide ("disable diagonal
                                                     // slide"); it now carries diagonalSlide ("allow it"), and the three
                                                     // PlayerController conditions were inverted to match. The bit position
@@ -47,12 +56,20 @@ public class SteamLobbyManager : MonoBehaviour
     private const string SizeKey = "size";
 
     // Online lobby flavour, published by whoever creates the lobby and read by every member.
-    // Absent  -> legacy host+invite lobby: auto-starts as soon as a second member arrives.
-    // "party" -> VS Friends: fills up to 4 slots and waits for the host to press Start Match.
-    // "quick" -> VS the World: auto-starts, and the accepted-size keys below apply.
+    // Missing data is deliberately UNKNOWN rather than legacy: Steam lobby data can arrive after
+    // the join callback, and treating that propagation window as a real mode strands party guests
+    // in the MainMenu lobby with no Friends Lobby panel.
+    // "legacy" -> old host+invite flow: auto-starts as soon as a second member arrives.
+    // "party"  -> VS Friends: fills up to 4 slots and waits for the host to press Start Match.
+    // "quick"  -> VS the World: auto-starts, and the accepted-size keys below apply.
     private const string LobbyModeKey = "lobbyMode";
+    private const string LobbyModeLegacyValue = "legacy";
     private const string LobbyModePartyValue = "party";
     private const string LobbyModeQuickMatchValue = "quick";
+
+    private const float InviteJoinTimeoutSeconds = 20f;
+    private const float DeferredInviteJoinTimeoutSeconds = 20f;
+    private const float InviteLobbyMetadataTimeoutSeconds = 10f;
 
     // Host's chosen game mode (authored in the scene as OnlineGameModeOption components). Every peer
     // applies the values it reads here, so the choice is identical across the match without adding
@@ -114,12 +131,27 @@ public class SteamLobbyManager : MonoBehaviour
     // survive it; the rebuilt SteamLobbyManager consumes them in TryResumePendingOnlineJoin.
     private static SteamId? pendingJoinLobbyId;
     private static SteamId? pendingJoinInviterId;
+    // JoinLobbyAsync has no cancellation token. A generation makes every completion/callback prove
+    // that it still belongs to the invite the player most recently accepted before it can mutate
+    // currentLobby. Timed-out/cancelled lobby ids are retained so a late native callback is left.
+    private static uint inviteJoinGeneration;
+    private static float deferredInviteJoinDeadline;
+    private static readonly HashSet<ulong> abandonedLobbyJoinIds = new HashSet<ulong>();
+    private static SteamId? pendingMatchmakingJoinLobbyId;
     // True from the moment the player accepts a Steam lobby invite until GameManager has actually
     // started that online match. Static so the status survives a deferred MainMenu rebuild.
     private static bool joiningMatchRequested;
     private static float joiningMatchStatusVisibleUntil;
     private static int joiningMatchStatusVisibleThroughFrame = -1;
     private static bool launchConnectChecked;
+
+    private bool inviteJoinAttemptInFlight;
+    private SteamId? inviteJoinAttemptLobbyId;
+    private uint inviteJoinAttemptGeneration;
+    private float inviteJoinAttemptDeadline;
+    private bool inviteJoinMetadataPending;
+    private float inviteJoinMetadataDeadline;
+    private SteamId? loggedInviteJoinLobbyId;
 
     // A host+invite requested outside MainMenu (e.g. the solo lobby's online door) is deferred
     // the same way: transition to MainMenu first, then host and open the overlay there, so the
@@ -256,7 +288,10 @@ public class SteamLobbyManager : MonoBehaviour
     // ------------------------------------------------------------------------------------------
 
     /// <summary>True while this client is in a lobby created by the VS Friends flow.</summary>
-    public bool IsInPartyLobby => currentLobby.HasValue && IsPartyLobby(currentLobby.Value);
+    public bool IsInPartyLobby =>
+        currentLobby.HasValue
+        && !inviteJoinMetadataPending
+        && IsPartyLobby(currentLobby.Value);
 
     /// <summary>True when this client owns the party lobby (i.e. occupies slot 1 and may press Start).</summary>
     public bool IsPartyHost =>
@@ -617,13 +652,9 @@ public class SteamLobbyManager : MonoBehaviour
     /// <summary>Back/leave button for the VS Friends panel.</summary>
     public void LeaveParty()
     {
-        if (!IsInPartyLobby)
-        {
-            return;
-        }
-
-        ClearJoiningMatchStatus();
-        LeaveLobbyInternal();
+        // Deliberately unconditional: a party whose lobbyMode has not resolved yet is exactly the
+        // case where IsInPartyLobby is false and the old early return leaked JOINING MATCH forever.
+        CancelOnlineEntryAndLeaveLobby();
     }
 
     /// <summary>
@@ -770,6 +801,244 @@ public class SteamLobbyManager : MonoBehaviour
         joiningMatchStatusVisibleThroughFrame = -1;
     }
 
+    private void QueueInviteJoin(SteamId lobbyId, SteamId inviterId)
+    {
+        if (pendingMatchmakingJoinLobbyId.HasValue)
+        {
+            abandonedLobbyJoinIds.Add(pendingMatchmakingJoinLobbyId.Value.Value);
+            pendingMatchmakingJoinLobbyId = null;
+        }
+
+        if (IsPendingInviteLobby(lobbyId)
+            && (inviteJoinAttemptInFlight || inviteJoinMetadataPending))
+        {
+            if (inviterId.IsValid)
+            {
+                pendingJoinInviterId = inviterId;
+            }
+            BeginJoiningMatchStatus();
+            return;
+        }
+
+        if (pendingJoinLobbyId.HasValue && pendingJoinLobbyId.Value != lobbyId)
+        {
+            abandonedLobbyJoinIds.Add(pendingJoinLobbyId.Value.Value);
+        }
+
+        inviteJoinGeneration++;
+        pendingJoinLobbyId = lobbyId;
+        pendingJoinInviterId = inviterId.IsValid ? inviterId : (SteamId?)null;
+        deferredInviteJoinDeadline = Time.unscaledTime + DeferredInviteJoinTimeoutSeconds;
+        abandonedLobbyJoinIds.Remove(lobbyId.Value);
+
+        inviteJoinAttemptInFlight = false;
+        inviteJoinAttemptLobbyId = null;
+        inviteJoinAttemptGeneration = 0;
+        inviteJoinAttemptDeadline = 0f;
+        inviteJoinMetadataPending = false;
+        inviteJoinMetadataDeadline = 0f;
+        loggedInviteJoinLobbyId = null;
+        BeginJoiningMatchStatus();
+    }
+
+    private static bool IsPendingInviteLobby(SteamId lobbyId)
+    {
+        return pendingJoinLobbyId.HasValue && pendingJoinLobbyId.Value == lobbyId;
+    }
+
+    private static bool IsCurrentInviteRequest(uint generation, SteamId lobbyId)
+    {
+        return generation == inviteJoinGeneration && IsPendingInviteLobby(lobbyId);
+    }
+
+    /// <summary>
+    /// Cancels every deferred online-entry intent and leaves the current Steam lobby. This is the
+    /// deliberate "go back to SoloLobby" cleanup; it must not live in generic Shutdown/OnDestroy,
+    /// because those methods also run during valid deferred transitions into MainMenu.
+    /// </summary>
+    public static void CancelOnlineEntryAndLeaveLobby()
+    {
+        SteamLobbyManager manager = Instance;
+        if (pendingJoinLobbyId.HasValue)
+        {
+            abandonedLobbyJoinIds.Add(pendingJoinLobbyId.Value.Value);
+        }
+        if (pendingMatchmakingJoinLobbyId.HasValue)
+        {
+            abandonedLobbyJoinIds.Add(pendingMatchmakingJoinLobbyId.Value.Value);
+        }
+        if (manager != null && manager.inviteJoinAttemptLobbyId.HasValue)
+        {
+            abandonedLobbyJoinIds.Add(manager.inviteJoinAttemptLobbyId.Value.Value);
+        }
+        inviteJoinGeneration++;
+        pendingJoinLobbyId = null;
+        pendingJoinInviterId = null;
+        pendingMatchmakingJoinLobbyId = null;
+        deferredInviteJoinDeadline = 0f;
+        pendingHostInviteRequested = false;
+        pendingPartyHostRequested = false;
+        pendingMatchmakingRequested = false;
+        pendingMatchmakingSizes.Clear();
+        ClearJoiningMatchStatus();
+
+        if (manager == null)
+        {
+            return;
+        }
+
+        manager.inviteJoinAttemptInFlight = false;
+        manager.inviteJoinAttemptLobbyId = null;
+        manager.inviteJoinAttemptGeneration = 0;
+        manager.inviteJoinAttemptDeadline = 0f;
+        manager.inviteJoinMetadataPending = false;
+        manager.inviteJoinMetadataDeadline = 0f;
+        manager.loggedInviteJoinLobbyId = null;
+        manager.onlineEntryTransitionInProgress = false;
+
+        manager.hostFlowVersion++;
+        manager.isMatchmaking = false;
+        manager.LeaveLobbyInternal();
+    }
+
+    private void UpdateInviteJoinLifecycle()
+    {
+        if (pendingJoinLobbyId.HasValue
+            && !inviteJoinAttemptInFlight
+            && !inviteJoinMetadataPending
+            && deferredInviteJoinDeadline > 0f
+            && Time.unscaledTime >= deferredInviteJoinDeadline)
+        {
+            FailInviteJoinAndReturnToSoloLobby(
+                $"Lobby {pendingJoinLobbyId.Value.Value} could not begin joining within " +
+                $"{DeferredInviteJoinTimeoutSeconds:0} seconds.");
+            return;
+        }
+
+        if (inviteJoinMetadataPending)
+        {
+            if (TryResolveInviteLobbyMetadata())
+            {
+                return;
+            }
+
+            if (inviteJoinMetadataPending && Time.unscaledTime >= inviteJoinMetadataDeadline)
+            {
+                string mode = currentLobby.HasValue
+                    ? currentLobby.Value.GetData(LobbyModeKey)
+                    : string.Empty;
+                string version = currentLobby.HasValue
+                    ? currentLobby.Value.GetData(VersionKey)
+                    : string.Empty;
+                FailInviteJoinAndReturnToSoloLobby(
+                    $"Lobby metadata did not become ready within {InviteLobbyMetadataTimeoutSeconds:0} seconds " +
+                    $"(lobbyMode='{mode}', ver='{version}').");
+            }
+            return;
+        }
+
+        if (!inviteJoinAttemptInFlight || Time.unscaledTime < inviteJoinAttemptDeadline)
+        {
+            return;
+        }
+
+        if (!inviteJoinAttemptLobbyId.HasValue
+            || !IsCurrentInviteRequest(inviteJoinAttemptGeneration, inviteJoinAttemptLobbyId.Value))
+        {
+            inviteJoinAttemptInFlight = false;
+            inviteJoinAttemptLobbyId = null;
+            return;
+        }
+
+        FailInviteJoinAndReturnToSoloLobby(
+            $"Steam did not finish joining lobby {inviteJoinAttemptLobbyId.Value.Value} within " +
+            $"{InviteJoinTimeoutSeconds:0} seconds.");
+    }
+
+    private bool TryResolveInviteLobbyMetadata()
+    {
+        if (!inviteJoinMetadataPending
+            || !pendingJoinLobbyId.HasValue
+            || !currentLobby.HasValue
+            || currentLobby.Value.Id != pendingJoinLobbyId.Value)
+        {
+            return false;
+        }
+
+        Lobby lobby = currentLobby.Value;
+        LobbyFlavor flavor = GetLobbyFlavor(lobby);
+        string version = lobby.GetData(VersionKey);
+
+        if (!string.IsNullOrEmpty(version) && version != NetcodeVersion)
+        {
+            FailInviteJoinAndReturnToSoloLobby(
+                $"Lobby {lobby.Id.Value} uses incompatible netcode version '{version}' " +
+                $"(this build is '{NetcodeVersion}').");
+            return true;
+        }
+
+        if (flavor == LobbyFlavor.Invalid)
+        {
+            FailInviteJoinAndReturnToSoloLobby(
+                $"Lobby {lobby.Id.Value} published unsupported lobbyMode='{lobby.GetData(LobbyModeKey)}'.");
+            return true;
+        }
+
+        // Lobby data updates are asynchronous. Keep waiting until both identity fields exist; the
+        // metadata watchdog above converts a permanently incomplete lobby into a clean failure.
+        if (flavor == LobbyFlavor.Unknown || string.IsNullOrEmpty(version))
+        {
+            return false;
+        }
+
+        inviteJoinMetadataPending = false;
+        inviteJoinMetadataDeadline = 0f;
+        inviteJoinAttemptInFlight = false;
+        inviteJoinAttemptLobbyId = null;
+        pendingJoinLobbyId = null;
+        pendingJoinInviterId = null;
+        deferredInviteJoinDeadline = 0f;
+        onlineEntryTransitionInProgress = false;
+        abandonedLobbyJoinIds.Remove(lobby.Id.Value);
+
+        // Sitting in a gathering party is not "joining a match". Clear the status as soon as the
+        // lobby is positively identified so PartyLobbyPanel can become the only presentation.
+        if (flavor == LobbyFlavor.Party && lobby.GetData(MatchReadyKey) != "1")
+        {
+            ClearJoiningMatchStatus();
+        }
+        else if (flavor == LobbyFlavor.QuickMatch)
+        {
+            // HandleLobbyEntered deliberately routes invite joins through the metadata gate, so its
+            // normal Quick Match member-data publication is bypassed for this path.
+            PublishLocalQuickMatchPreferences(lobby);
+        }
+
+        if (debugLogs)
+        {
+            Debug.Log(
+                $"[SteamLobbyManager] Invite lobby metadata resolved. LobbyId={lobby.Id.Value} " +
+                $"Mode={flavor} Version={version}.");
+        }
+
+        TryStartOnlineMatchFromLobby(lobby);
+        return true;
+    }
+
+    private void FailInviteJoinAndReturnToSoloLobby(string reason)
+    {
+        Debug.LogWarning($"[SteamLobbyManager] Invite join cancelled: {reason}");
+        CancelOnlineEntryAndLeaveLobby();
+
+        GameManager manager = GameManager.Instance;
+        if (SceneManager.GetActiveScene().name != "SoloLobby"
+            && manager != null
+            && manager.sceneManager != null)
+        {
+            manager.sceneManager.SoloLobby();
+        }
+    }
+
     public bool OpenInviteOverlayOrHost()
     {
         if (isShuttingDown || !SteamClient.IsValid)
@@ -889,6 +1158,7 @@ public class SteamLobbyManager : MonoBehaviour
         SteamMatchmaking.OnLobbyMemberLeave += HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyMemberDisconnected += HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyCreated += HandleLobbyCreated;
+        SteamMatchmaking.OnLobbyDataChanged += HandleLobbyDataChanged;
         SteamMatchmaking.OnChatMessage += HandleLobbyChatMessage;
         SteamFriends.OnGameLobbyJoinRequested += HandleGameLobbyJoinRequested;
     }
@@ -900,6 +1170,7 @@ public class SteamLobbyManager : MonoBehaviour
         SteamMatchmaking.OnLobbyMemberLeave -= HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyMemberDisconnected -= HandleLobbyMemberLeft;
         SteamMatchmaking.OnLobbyCreated -= HandleLobbyCreated;
+        SteamMatchmaking.OnLobbyDataChanged -= HandleLobbyDataChanged;
         SteamMatchmaking.OnChatMessage -= HandleLobbyChatMessage;
         SteamFriends.OnGameLobbyJoinRequested -= HandleGameLobbyJoinRequested;
     }
@@ -911,12 +1182,21 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        UpdateInviteJoinLifecycle();
         TryResumePendingOnlineJoin();
         TryResumePendingHostInvite();
         TryResumePendingPartyHost();
         TryResumePendingMatchmaking();
 
         if (!currentLobby.HasValue)
+        {
+            return;
+        }
+
+        // Do not run the legacy/quick auto-start logic until the joined lobby has published an
+        // explicit mode and compatible protocol version. Empty metadata means "not here yet", not
+        // "this is a legacy lobby".
+        if (inviteJoinMetadataPending)
         {
             return;
         }
@@ -950,13 +1230,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     public async void HostAndInvite()
     {
-        // This creates a lobby with NO lobbyMode, which means it AUTO-STARTS as soon as a second
-        // member joins. That is correct for the legacy host+invite flow but catastrophic if it runs
-        // during VS Friends -- the party lobby would be bypassed entirely. Loud on purpose: if this
-        // appears in a VS Friends test, something is still routing through the old entry point.
+        // This is the legacy auto-starting host+invite flow. It now publishes an explicit mode so a
+        // guest can distinguish it from lobby metadata that simply has not propagated yet.
         if (SteamManager.DebugToolsEnabled)
         {
-            Debug.LogWarning("[SteamLobbyManager] HostAndInvite() -- creating a LEGACY auto-starting lobby (no lobbyMode). This is NOT the VS Friends party lobby.");
+            Debug.LogWarning("[SteamLobbyManager] HostAndInvite() -- creating a LEGACY auto-starting lobby. This is NOT the VS Friends party lobby.");
         }
 
         if (isShuttingDown || !SteamClient.IsValid)
@@ -1020,14 +1298,29 @@ public class SteamLobbyManager : MonoBehaviour
             startingHostedMatch = false;
             startingMatchStatusVisibleUntil = 0f;
             startingMatchStatusVisibleThroughFrame = -1;
-            currentLobby.Value.SetFriendsOnly();
-            currentLobby.Value.SetJoinable(true);
-            currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
-            currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
-            currentLobby.Value.SetData(MatchReadyKey, "0");
+            bool lobbyPublished = currentLobby.Value.SetJoinable(false);
+            lobbyPublished &= currentLobby.Value.SetData(LobbyModeKey, LobbyModeLegacyValue);
+            lobbyPublished &= currentLobby.Value.SetData(VersionKey, NetcodeVersion);
+            lobbyPublished &= currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            lobbyPublished &= currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
+            lobbyPublished &= currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
             currentLobby.Value.SetData(MatchRunningKey, string.Empty);
-            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            lobbyPublished &= currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetFriendsOnly();
+            }
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetJoinable(true);
+            }
+            if (!lobbyPublished)
+            {
+                Debug.LogError("[SteamLobbyManager] Legacy lobby identity could not be published; closing the malformed lobby.");
+                LeaveLobbyInternal();
+                return;
+            }
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
 
@@ -1179,6 +1472,12 @@ public class SteamLobbyManager : MonoBehaviour
     // Cancel an in-progress search / leave the matchmaking lobby. Wire this to a "Cancel" button.
     public void CancelMatchmaking()
     {
+        if (pendingMatchmakingJoinLobbyId.HasValue)
+        {
+            abandonedLobbyJoinIds.Add(pendingMatchmakingJoinLobbyId.Value.Value);
+            pendingMatchmakingJoinLobbyId = null;
+        }
+        hostFlowVersion++;
         isMatchmaking = false;
         pendingMatchmakingRequested = false;
         pendingMatchmakingSizes.Clear();
@@ -1294,24 +1593,38 @@ public class SteamLobbyManager : MonoBehaviour
             startingHostedMatch = false;
             startingMatchStatusVisibleUntil = 0f;
             startingMatchStatusVisibleThroughFrame = -1;
-            currentLobby.Value.SetPublic();        // searchable by other matchmakers (vs SetFriendsOnly)
-            currentLobby.Value.SetJoinable(true);
-            currentLobby.Value.SetData(MatchmakingKey, "1");
-            currentLobby.Value.SetData(VersionKey, NetcodeVersion);
-            currentLobby.Value.SetData(LobbyModeKey, LobbyModeQuickMatchValue);
-            currentLobby.Value.SetData(GameModeKey, OnlineGameModeSelection.DefaultId);
-            currentLobby.Value.SetData(GameModeNameKey, OnlineGameModeSelection.DefaultDisplayName);
-            currentLobby.Value.SetData(SizeKey, maxSize.ToString());
+            bool lobbyPublished = currentLobby.Value.SetJoinable(false);
+            lobbyPublished &= currentLobby.Value.SetData(MatchmakingKey, "1");
+            lobbyPublished &= currentLobby.Value.SetData(VersionKey, NetcodeVersion);
+            lobbyPublished &= currentLobby.Value.SetData(LobbyModeKey, LobbyModeQuickMatchValue);
+            lobbyPublished &= currentLobby.Value.SetData(GameModeKey, OnlineGameModeSelection.DefaultId);
+            lobbyPublished &= currentLobby.Value.SetData(GameModeNameKey, OnlineGameModeSelection.DefaultDisplayName);
+            lobbyPublished &= currentLobby.Value.SetData(SizeKey, maxSize.ToString());
             for (int i = 0; i < sizes.Count; i++)
             {
-                currentLobby.Value.SetData(GetSizeFlagKey(sizes[i]), "1");
+                lobbyPublished &= currentLobby.Value.SetData(GetSizeFlagKey(sizes[i]), "1");
             }
-            currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
-            currentLobby.Value.SetData("targetSize", maxSize.ToString());
-            currentLobby.Value.SetData(MatchReadyKey, "0");
+            lobbyPublished &= currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            lobbyPublished &= currentLobby.Value.SetData("targetSize", maxSize.ToString());
+            lobbyPublished &= currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
             currentLobby.Value.SetData(MatchRunningKey, string.Empty);
-            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            lobbyPublished &= currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetPublic(); // searchable by other matchmakers
+            }
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetJoinable(true);
+            }
+            if (!lobbyPublished)
+            {
+                Debug.LogError("[SteamLobbyManager] Quick Match lobby identity could not be published; closing the malformed lobby.");
+                isMatchmaking = false;
+                LeaveLobbyInternal();
+                return;
+            }
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
             resolvedQuickMatchBucket = maxSize;
@@ -1365,7 +1678,6 @@ public class SteamLobbyManager : MonoBehaviour
             startingMatchStatusVisibleUntil = 0f;
             startingMatchStatusVisibleThroughFrame = -1;
             partyStartRequested = false;
-            hostCreatedPartyLobby = true;
 
             // The host is not joining anything -- it is hosting. joiningMatchRequested is static and
             // survives scene rebuilds, so any stale "JOINING MATCH..." left over from an earlier
@@ -1377,18 +1689,35 @@ public class SteamLobbyManager : MonoBehaviour
             // built-in default when no modes have been authored yet.
             localPartyGameMode = OnlineGameModeRegistry.FirstOrDefault();
 
-            currentLobby.Value.SetFriendsOnly();
-            currentLobby.Value.SetJoinable(true);
-            currentLobby.Value.SetData(LobbyModeKey, LobbyModePartyValue);
-            currentLobby.Value.SetData(VersionKey, NetcodeVersion);
-            currentLobby.Value.SetData(GameModeKey, localPartyGameMode.Id);
-            currentLobby.Value.SetData(GameModeNameKey, localPartyGameMode.DisplayName);
-            currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
-            currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
-            currentLobby.Value.SetData(MatchReadyKey, "0");
+            bool lobbyPublished = currentLobby.Value.SetJoinable(false);
+            lobbyPublished &= currentLobby.Value.SetData(LobbyModeKey, LobbyModePartyValue);
+            lobbyPublished &= currentLobby.Value.SetData(VersionKey, NetcodeVersion);
+            lobbyPublished &= currentLobby.Value.SetData(GameModeKey, localPartyGameMode.Id);
+            lobbyPublished &= currentLobby.Value.SetData(GameModeNameKey, localPartyGameMode.DisplayName);
+            lobbyPublished &= currentLobby.Value.SetData("hostId", SteamClient.SteamId.Value.ToString());
+            lobbyPublished &= currentLobby.Value.SetData("targetSize", TargetOnlineLobbySize.ToString());
+            lobbyPublished &= currentLobby.Value.SetData(MatchReadyKey, "0");
             currentLobby.Value.SetData(MatchStartTokenKey, string.Empty);
             currentLobby.Value.SetData(MatchRunningKey, string.Empty);
-            currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            lobbyPublished &= currentLobby.Value.SetData(GetSlotKey(SteamClient.SteamId), "0");
+            // Publish the complete lobby identity before making it visible/joinable, so a fast invite
+            // acceptance cannot enter an untyped lobby during the metadata propagation window.
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetFriendsOnly();
+            }
+            if (lobbyPublished)
+            {
+                lobbyPublished = currentLobby.Value.SetJoinable(true);
+            }
+            if (!lobbyPublished)
+            {
+                Debug.LogError("[SteamLobbyManager] Party lobby identity could not be published; closing the malformed lobby.");
+                LeaveLobbyInternal();
+                return;
+            }
+
+            hostCreatedPartyLobby = true;
             startedCurrentLobbyMatch = false;
             currentMatchStartToken = string.Empty;
             partySlotCacheFrame = -1;
@@ -1404,8 +1733,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     public void LeaveLobby()
     {
-        ClearJoiningMatchStatus();
-        LeaveLobbyInternal();
+        CancelOnlineEntryAndLeaveLobby();
     }
 
     public void Shutdown()
@@ -1455,7 +1783,7 @@ public class SteamLobbyManager : MonoBehaviour
     // launches the executable with "+connect_lobby <lobbyId>" appended to the command line. We read
     // it once at startup and queue the join through the same deferred path used for in-game invites,
     // so TryResumePendingOnlineJoin finishes it once MainMenu is loaded and Steam is initialized.
-    private static void CheckLaunchConnectLobby()
+    private void CheckLaunchConnectLobby()
     {
         if (launchConnectChecked)
         {
@@ -1472,9 +1800,7 @@ public class SteamLobbyManager : MonoBehaviour
                     && ulong.TryParse(args[i + 1], out ulong lobbyRaw)
                     && lobbyRaw != 0)
                 {
-                    pendingJoinLobbyId = new SteamId { Value = lobbyRaw };
-                    pendingJoinInviterId = null;
-                    BeginJoiningMatchStatus();
+                    QueueInviteJoin(new SteamId { Value = lobbyRaw }, default);
                     Debug.Log($"[SteamLobbyManager] Launched from a Steam invite (+connect_lobby {lobbyRaw}). Queued join for when MainMenu and Steam are ready.");
                     return;
                 }
@@ -1493,7 +1819,7 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
-        BeginJoiningMatchStatus();
+        QueueInviteJoin(lobby.Id, friendId);
         // Cancel any lobby creation/query that was already in flight before this invite arrived.
         // Its completion checks hostFlowVersion/isMatchmaking and must not overwrite the joined lobby.
         hostFlowVersion++;
@@ -1517,8 +1843,6 @@ public class SteamLobbyManager : MonoBehaviour
         // else (training room, tutorial, a leftover match scene), joining in place fails
         if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            pendingJoinLobbyId = lobby.Id;
-            pendingJoinInviterId = friendId;
             Debug.Log($"[SteamLobbyManager] Invite accepted outside MainMenu (scene='{SceneManager.GetActiveScene().name}'). Returning to the lobby scene before joining lobby {lobby.Id.Value}.");
             TransitionToMainMenuForOnlineEntry();
             return;
@@ -1540,10 +1864,39 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        // A fresh deliberate join supersedes any old cancellation marker for this lobby. This also
+        // lets normal Quick Match rejoin a lobby that was previously abandoned through an invite.
+        abandonedLobbyJoinIds.Remove(lobbyId.Value);
+        if (!showJoiningStatus)
+        {
+            pendingMatchmakingJoinLobbyId = lobbyId;
+        }
+
+        uint capturedInviteGeneration = inviteJoinGeneration;
         if (showJoiningStatus)
         {
+            // Direct invite callbacks queue the request before calling this method. Keep the helper
+            // usable by any future caller without allowing an untracked async completion.
+            if (!IsPendingInviteLobby(lobbyId))
+            {
+                QueueInviteJoin(lobbyId, inviterId);
+                capturedInviteGeneration = inviteJoinGeneration;
+            }
+
+            if (inviteJoinAttemptInFlight
+                && inviteJoinAttemptLobbyId.HasValue
+                && inviteJoinAttemptLobbyId.Value == lobbyId
+                && inviteJoinAttemptGeneration == capturedInviteGeneration)
+            {
+                return;
+            }
+
             BeginJoiningMatchStatus();
             isMatchmaking = false;
+            inviteJoinAttemptInFlight = true;
+            inviteJoinAttemptLobbyId = lobbyId;
+            inviteJoinAttemptGeneration = capturedInviteGeneration;
+            inviteJoinAttemptDeadline = Time.unscaledTime + InviteJoinTimeoutSeconds;
         }
 
         // Accepting an invite supersedes any queued host+invite, party host or matchmaking intent;
@@ -1554,6 +1907,14 @@ public class SteamLobbyManager : MonoBehaviour
 
         try
         {
+            if (showJoiningStatus
+                && currentLobby.HasValue
+                && currentLobby.Value.Id == lobbyId)
+            {
+                TryAcceptInviteLobby(currentLobby.Value, capturedInviteGeneration);
+                return;
+            }
+
             if (currentLobby.HasValue && currentLobby.Value.Id != lobbyId)
             {
                 hostFlowVersion++;
@@ -1565,9 +1926,64 @@ public class SteamLobbyManager : MonoBehaviour
                 Debug.Log($"[SteamLobbyManager] Joining requested lobby. LobbyId={lobbyId.Value} Inviter={inviterId.Value}");
             }
 
+            uint capturedLobbyJoinFlowVersion = hostFlowVersion;
             Lobby? joined = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
+            if (isShuttingDown || Instance != this)
+            {
+                if (joined.HasValue)
+                {
+                    SteamLobbyManager liveManager = Instance;
+                    bool liveManagerUsesLobby = liveManager != null
+                        && (IsPendingInviteLobby(joined.Value.Id)
+                            || (liveManager.currentLobby.HasValue
+                                && liveManager.currentLobby.Value.Id == joined.Value.Id));
+                    if (!liveManagerUsesLobby)
+                    {
+                        joined.Value.Leave();
+                    }
+                }
+                return;
+            }
+
+            if (!showJoiningStatus
+                && (capturedLobbyJoinFlowVersion != hostFlowVersion || !isMatchmaking))
+            {
+                if (joined.HasValue
+                    && (!currentLobby.HasValue || currentLobby.Value.Id != joined.Value.Id))
+                {
+                    joined.Value.Leave();
+                }
+                if (pendingMatchmakingJoinLobbyId.HasValue
+                    && pendingMatchmakingJoinLobbyId.Value == lobbyId)
+                {
+                    pendingMatchmakingJoinLobbyId = null;
+                }
+                return;
+            }
+
+            if (showJoiningStatus && !IsCurrentInviteRequest(capturedInviteGeneration, lobbyId))
+            {
+                // JoinLobbyAsync cannot be cancelled. If this is a late completion from a request
+                // the player abandoned, leave it unless a newer request/current lobby deliberately
+                // targets the same id.
+                if (joined.HasValue
+                    && !IsPendingInviteLobby(joined.Value.Id)
+                    && (!currentLobby.HasValue || currentLobby.Value.Id != joined.Value.Id))
+                {
+                    joined.Value.Leave();
+                }
+                return;
+            }
+
             if (joined.HasValue)
             {
+                if (showJoiningStatus)
+                {
+                    TryAcceptInviteLobby(joined.Value, capturedInviteGeneration);
+                    return;
+                }
+
+                pendingMatchmakingJoinLobbyId = null;
                 currentLobby = joined.Value;
                 startedCurrentLobbyMatch = false;
                 currentMatchStartToken = string.Empty;
@@ -1581,15 +1997,40 @@ public class SteamLobbyManager : MonoBehaviour
             }
             else if (showJoiningStatus)
             {
-                ClearJoiningMatchStatus();
+                // OnLobbyEntered can settle before the Task continuation. A null Task result must
+                // not tear down a lobby that the callback already accepted.
+                if (!currentLobby.HasValue || currentLobby.Value.Id != lobbyId)
+                {
+                    FailInviteJoinAndReturnToSoloLobby($"Steam rejected lobby {lobbyId.Value}.");
+                }
+            }
+            else
+            {
+                pendingMatchmakingJoinLobbyId = null;
+                isMatchmaking = false;
+                Debug.LogWarning($"[SteamLobbyManager] Quick Match lobby {lobbyId.Value} rejected the join.");
             }
         }
         catch (Exception e)
         {
+            if (isShuttingDown || Instance != this)
+            {
+                return;
+            }
+
             Debug.LogError($"Failed to join lobby: {e.Message}");
             if (showJoiningStatus)
             {
-                ClearJoiningMatchStatus();
+                if (IsCurrentInviteRequest(capturedInviteGeneration, lobbyId)
+                    && (!currentLobby.HasValue || currentLobby.Value.Id != lobbyId))
+                {
+                    FailInviteJoinAndReturnToSoloLobby($"Steam join failed for lobby {lobbyId.Value}: {e.Message}");
+                }
+            }
+            else
+            {
+                pendingMatchmakingJoinLobbyId = null;
+                isMatchmaking = false;
             }
         }
     }
@@ -1619,10 +2060,13 @@ public class SteamLobbyManager : MonoBehaviour
             return;
         }
 
+        if (inviteJoinAttemptInFlight || inviteJoinMetadataPending)
+        {
+            return;
+        }
+
         SteamId lobbyId = pendingJoinLobbyId.Value;
         SteamId inviterId = pendingJoinInviterId ?? default;
-        pendingJoinLobbyId = null;
-        pendingJoinInviterId = null;
         onlineEntryTransitionInProgress = false;
 
         Debug.Log($"[SteamLobbyManager] Resuming deferred lobby join in MainMenu. LobbyId={lobbyId.Value}.");
@@ -1765,9 +2209,31 @@ public class SteamLobbyManager : MonoBehaviour
     // Lobby flavour helpers
     // ------------------------------------------------------------------------------------------
 
+    private static LobbyFlavor GetLobbyFlavor(Lobby lobby)
+    {
+        string mode = lobby.GetData(LobbyModeKey);
+        if (string.IsNullOrEmpty(mode))
+        {
+            return LobbyFlavor.Unknown;
+        }
+        if (mode == LobbyModeLegacyValue)
+        {
+            return LobbyFlavor.Legacy;
+        }
+        if (mode == LobbyModePartyValue)
+        {
+            return LobbyFlavor.Party;
+        }
+        if (mode == LobbyModeQuickMatchValue)
+        {
+            return LobbyFlavor.QuickMatch;
+        }
+        return LobbyFlavor.Invalid;
+    }
+
     private static bool IsPartyLobby(Lobby lobby)
     {
-        return lobby.GetData(LobbyModeKey) == LobbyModePartyValue;
+        return GetLobbyFlavor(lobby) == LobbyFlavor.Party;
     }
 
     private void UpdateLobbyOwnerState(Lobby lobby)
@@ -1911,6 +2377,8 @@ public class SteamLobbyManager : MonoBehaviour
 
         // Only the newly promoted owner may repair shared lobby metadata.
         bool sharedStateRepaired = lobby.SetFriendsOnly();
+        sharedStateRepaired &= lobby.SetData(LobbyModeKey, LobbyModePartyValue);
+        sharedStateRepaired &= lobby.SetData(VersionKey, NetcodeVersion);
         sharedStateRepaired &= lobby.SetData("hostId", SteamClient.SteamId.Value.ToString());
         sharedStateRepaired &= lobby.SetData("targetSize", TargetOnlineLobbySize.ToString());
         sharedStateRepaired &= lobby.SetData(MatchReadyKey, "0");
@@ -1979,7 +2447,7 @@ public class SteamLobbyManager : MonoBehaviour
 
     private static bool IsQuickMatchLobby(Lobby lobby)
     {
-        return lobby.GetData(LobbyModeKey) == LobbyModeQuickMatchValue
+        return GetLobbyFlavor(lobby) == LobbyFlavor.QuickMatch
             || lobby.GetData(MatchmakingKey) == "1";
     }
 
@@ -2201,12 +2669,85 @@ public class SteamLobbyManager : MonoBehaviour
         };
     }
 
+    private bool TryAcceptInviteLobby(Lobby lobby, uint generation)
+    {
+        if (!IsCurrentInviteRequest(generation, lobby.Id))
+        {
+            return false;
+        }
+
+        bool alreadyResolvingThisLobby = inviteJoinMetadataPending
+            && currentLobby.HasValue
+            && currentLobby.Value.Id == lobby.Id;
+
+        currentLobby = lobby;
+        startedCurrentLobbyMatch = false;
+        currentMatchStartToken = string.Empty;
+        partySlotCacheFrame = -1;
+        inviteJoinAttemptInFlight = false;
+        inviteJoinAttemptLobbyId = null;
+
+        if (!alreadyResolvingThisLobby)
+        {
+            inviteJoinMetadataPending = true;
+            inviteJoinMetadataDeadline = Time.unscaledTime + InviteLobbyMetadataTimeoutSeconds;
+        }
+
+        if (!loggedInviteJoinLobbyId.HasValue || loggedInviteJoinLobbyId.Value != lobby.Id)
+        {
+            loggedInviteJoinLobbyId = lobby.Id;
+            Debug.Log(
+                $"[SteamLobbyManager] Joined lobby transport. LobbyId={lobby.Id.Value} " +
+                $"Owner={lobby.Owner.Id.Value}; waiting for lobby identity metadata.");
+        }
+
+        TryResolveInviteLobbyMetadata();
+        return true;
+    }
+
     private void HandleLobbyEntered(Lobby lobby)
     {
         if (isShuttingDown)
         {
             lobby.Leave();
             return;
+        }
+
+        bool isExpectedInviteLobby = IsPendingInviteLobby(lobby.Id);
+        if (abandonedLobbyJoinIds.Contains(lobby.Id.Value) && !isExpectedInviteLobby)
+        {
+            Debug.LogWarning($"[SteamLobbyManager] Leaving late callback for cancelled invite lobby {lobby.Id.Value}.");
+            lobby.Leave();
+            return;
+        }
+
+        if (pendingJoinLobbyId.HasValue)
+        {
+            if (!isExpectedInviteLobby)
+            {
+                Debug.LogWarning(
+                    $"[SteamLobbyManager] Ignoring stale lobby-enter callback for {lobby.Id.Value}; " +
+                    $"the active invite targets {pendingJoinLobbyId.Value.Value}.");
+                lobby.Leave();
+                return;
+            }
+
+            TryAcceptInviteLobby(lobby, inviteJoinGeneration);
+            return;
+        }
+
+        if (pendingMatchmakingJoinLobbyId.HasValue)
+        {
+            if (pendingMatchmakingJoinLobbyId.Value != lobby.Id)
+            {
+                Debug.LogWarning(
+                    $"[SteamLobbyManager] Ignoring stale matchmaking lobby-enter callback for {lobby.Id.Value}; " +
+                    $"the active search targets {pendingMatchmakingJoinLobbyId.Value.Value}.");
+                lobby.Leave();
+                return;
+            }
+
+            pendingMatchmakingJoinLobbyId = null;
         }
 
         currentLobby = lobby;
@@ -2221,6 +2762,23 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         TryStartOnlineMatchFromLobby(lobby);
+    }
+
+    private void HandleLobbyDataChanged(Lobby lobby)
+    {
+        if (isShuttingDown
+            || !currentLobby.HasValue
+            || currentLobby.Value.Id != lobby.Id)
+        {
+            return;
+        }
+
+        currentLobby = lobby;
+        partySlotCacheFrame = -1;
+        if (inviteJoinMetadataPending)
+        {
+            TryResolveInviteLobbyMetadata();
+        }
     }
 
     private void HandleLobbyMemberJoined(Lobby lobby, Friend friend)
@@ -3533,9 +4091,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        // Static join presentation survives scene rebuilds, but must not leak into the next Editor
-        // play session when domain reload is disabled.
-        ClearJoiningMatchStatus();
+        // Static invite state survives intentional scene rebuilds, but must not leak into the next
+        // Editor play session when domain reload is disabled.
+        CancelOnlineEntryAndLeaveLobby();
+        abandonedLobbyJoinIds.Clear();
+        launchConnectChecked = false;
         Shutdown();
     }
 

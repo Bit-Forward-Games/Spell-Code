@@ -165,6 +165,11 @@ public class SceneUiManager : MonoBehaviour
 
     public void SoloLobby()
     {
+        // Returning to the solo hub is an explicit cancellation point. Clear any deferred/in-flight
+        // Steam invite before the screen-cover delay and persistent-manager teardown, otherwise the
+        // static JOINING MATCH latch survives into the rebuilt SoloLobby UI.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
+
 #if !UNITY_EDITOR
         if (DataManager.Instance != null)
         {

@@ -98,10 +98,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
-    m_PressedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
-    m_SelectedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
+    m_NormalColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -619,8 +619,9 @@ GameObject:
   - component: {fileID: 4351439544186612314}
   - component: {fileID: 4364130640056966391}
   - component: {fileID: 5684589733500706242}
+  - component: {fileID: 2170054610400222340}
   m_Layer: 5
-  m_Name: Start Match Button
+  m_Name: FindMatch_Start Match Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -643,8 +644,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 97.008026, y: -86.04709}
-  m_SizeDelta: {x: 779.2671, y: 440.2645}
+  m_AnchoredPosition: {x: 102.8105, y: -93.01009}
+  m_SizeDelta: {x: 790.8721, y: 447.2275}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &4351439544186612314
 CanvasRenderer:
@@ -728,6 +729,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2170054610400222340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2579318673619941706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da1ad6107290d4098b4a7848385f0396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSelectHandler
+  pause: {fileID: 0}
+  codeModeSelected: 0
+  codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &2669446087133210374
 GameObject:
   m_ObjectHideFlags: 0
@@ -949,8 +966,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 8.1}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 211.69476, y: -181.13484}
-  m_SizeDelta: {x: -913.0726, y: -648.7866}
+  m_AnchoredPosition: {x: 160, y: -186}
+  m_SizeDelta: {x: -913.0726, y: -508.3148}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7775943108071816661
 CanvasRenderer:
@@ -980,7 +997,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: fight!
+  m_text: Fight!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: deb5a8bb6fa8049c8a7826ac50a3d34a, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: deb5a8bb6fa8049c8a7826ac50a3d34a, type: 2}
@@ -1007,8 +1024,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 59.5
-  m_fontSizeBase: 59.5
+  m_fontSize: 60
+  m_fontSizeBase: 60
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2137,8 +2154,9 @@ GameObject:
   - component: {fileID: 3867450579460576922}
   - component: {fileID: 903093946749491368}
   - component: {fileID: 864876085737798571}
+  - component: {fileID: 3529168790701304856}
   m_Layer: 5
-  m_Name: GameModes Button
+  m_Name: FindMatch_GameModes Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2162,7 +2180,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 112.5827, y: 19.7707}
-  m_SizeDelta: {x: 405.2098, y: 334.4488}
+  m_SizeDelta: {x: 419.6374, y: 339.0048}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &3867450579460576922
 CanvasRenderer:
@@ -2246,6 +2264,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3529168790701304856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6361175063757060312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da1ad6107290d4098b4a7848385f0396, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSelectHandler
+  pause: {fileID: 0}
+  codeModeSelected: 0
+  codeModeIndex: 0
+  controlOptionDescriptionIndex: 0
 --- !u!1 &6636527771049851314
 GameObject:
   m_ObjectHideFlags: 0
@@ -2548,7 +2582,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4423912137261033708
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3008,10 +3042,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
-    m_PressedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
-    m_SelectedColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
+    m_NormalColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_PressedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -3202,7 +3236,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 8.25}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -58.449, y: 119.3798}
+  m_AnchoredPosition: {x: -72.1, y: 125.5}
   m_SizeDelta: {x: -121.74, y: -388.768}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6380988202832019882
@@ -3260,8 +3294,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 45.2
-  m_fontSizeBase: 45.2
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

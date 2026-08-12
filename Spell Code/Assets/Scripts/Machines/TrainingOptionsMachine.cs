@@ -29,10 +29,11 @@ public class TrainingOptionsMachine : MonoBehaviour
         DemonAura,
         Reps,
         StockStability,
-        AiBehavior
+        AiBehavior,
+        Hitboxes
     }
 
-    private const int OptionCount = 6;
+    private const int OptionCount = 7;
     private const int NeutralDirection = 5;
     private const int UpDirection = 8;
     private const int DownDirection = 2;
@@ -541,6 +542,14 @@ public class TrainingOptionsMachine : MonoBehaviour
             return;
         }
 
+        // The ` key toggles hitboxes too and keeps working while the panel is up, so re-read that
+        // one row every frame instead of only on menu events. Just the check box, refreshing the
+        // whole panel per frame would rebuild the value strings for nothing.
+        if (ui != null)
+        {
+            ui.SetRowToggle((int)Option.Hitboxes, BoxRenderer.RenderBoxes);
+        }
+
         InputSnapshot input = ownerPlayer.input;
         ButtonState[] buttons = input.ButtonStates;
 
@@ -651,6 +660,13 @@ public class TrainingOptionsMachine : MonoBehaviour
                 {
                     ownerPlayer.flowState = 0;
                 }
+                PlayMenuSound("Positive Select");
+                break;
+
+            case Option.Hitboxes:
+                // No stored copy of this one: the ` key flips the same flag, so the row reads and
+                // writes it directly rather than keeping a second source of truth that can drift.
+                BoxRenderer.RenderBoxes = !BoxRenderer.RenderBoxes;
                 PlayMenuSound("Positive Select");
                 break;
 
@@ -778,6 +794,7 @@ public class TrainingOptionsMachine : MonoBehaviour
         // reads straight.
         ui.SetRowToggle((int)Option.Cooldowns, !cooldownsEnabled);
         ui.SetRowToggle((int)Option.FlowState, flowStateForced);
+        ui.SetRowToggle((int)Option.Hitboxes, BoxRenderer.RenderBoxes);
 
         ui.SetRowValue((int)Option.DemonAura, demonAuraIndex == 0 ? NormalLabel : DemonAuraGrades[demonAuraIndex - 1]);
         ui.SetRowValue((int)Option.Reps, repsIndex == 0 ? NormalLabel : (repsIndex - 1).ToString());

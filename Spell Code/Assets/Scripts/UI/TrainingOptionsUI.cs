@@ -31,7 +31,8 @@ public class TrainingOptionsUI : MonoBehaviour
         "Demon Aura",
         "Reps",
         "Stock Stability",
-        "AI Behavior"
+        "AI Behavior",
+        "Hitboxes"
     };
 
     [Tooltip("Object the option rows live under. Leave empty to search the whole panel.")]

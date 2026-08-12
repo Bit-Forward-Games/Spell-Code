@@ -33,7 +33,8 @@ public class GameManager : MonoBehaviour
         { "pink", HexToColor("#ec8cff") },
         { "gold", HexToColor("#dd8c00") },
         { "grey", HexToColor("#998d86") },
-        { "black", HexToColor("#000000") }
+        { "black", HexToColor("#000000") },
+        { "evil color", HexToColor("#140e1e") }
     };
 
     public enum Gamemode

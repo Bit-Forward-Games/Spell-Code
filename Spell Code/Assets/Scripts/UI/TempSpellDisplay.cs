@@ -247,7 +247,7 @@ public class TempSpellDisplay : MonoBehaviour
                         player.relativeInputs ? 
                         player.facingRight : 
                         true);
-                        spellSlots[i].fontSize =14;
+                        //spellSlots[i].fontSize =14;
                     }
                     else
                     {
@@ -256,14 +256,14 @@ public class TempSpellDisplay : MonoBehaviour
                         player.relativeInputs ? 
                         player.facingRight : 
                         true);
-                        spellSlots[i].fontSize =14;
+                        //spellSlots[i].fontSize =14;
                     }
                     
                 }
                 else
                 {
                     spellSlots[i].text = playerSpells[i].spellName;
-                    spellSlots[i].fontSize = 7;
+                    //spellSlots[i].fontSize = 7;
                 }
             }
             else

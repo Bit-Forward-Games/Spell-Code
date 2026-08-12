@@ -127,6 +127,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int AdaptiveInputDelayMaxFrames = 6;   // Ceiling (~+50ms local input lag at most)
         [SerializeField] public int AdaptiveInputDelayPingStepMs = 80; // +1 delay frame per this much worst-peer ping (ms)
         private int lastAdaptiveInputDelayEvalFrame = -1;
+        private int latestScheduledLocalInputFrame = -1;
+        public int LatestScheduledLocalInputFrame => latestScheduledLocalInputFrame;
         private const int AdaptiveInputDelayReevalTicks = 180; // re-evaluate at most ~once per 3s between resets
 
         [Header("Packet Loss Smoothing")]
@@ -661,20 +663,22 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 states[i] = new GameState() { frame = -1, state = null, hash = 0 }; // Use null instead of empty array
             }
 
-            // Pre-fill input buffers for the input delay period with neutral input
-            for (int i = 0; i <= InputDelay; i++)
+            // Frames before the first delayed sample are neutral. Leave frame InputDelay writable:
+            // local simulation frame 0 is scheduled there and must not be rejected as pre-filled.
+            for (int i = 0; i < InputDelay; i++)
             {
                 var neutralFrame = new FrameMetadata() { frame = i, input = 5 };
                 clientInputs.Insert(i, neutralFrame);
                 opponentInputs.Insert(i, neutralFrame);
                 receivedInputs.Insert(i, neutralFrame); // Can also be empty, prediction handles missing keys
             }
+            latestScheduledLocalInputFrame = InputDelay - 1;
 
             EnsureRemoteCollectionsInitialized();
             foreach (int slot in remotePlayerSlots)
             {
                 FrameMetadata neutralFrame = new FrameMetadata() { frame = 0, input = 5 };
-                for (int i = 0; i <= InputDelay; i++)
+                for (int i = 0; i < InputDelay; i++)
                 {
                     neutralFrame.frame = i;
                     receivedInputsBySlot[slot].Insert(i, neutralFrame);
@@ -700,6 +704,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             isRollbackFrame = false; // Ensure rollback status is reset
+            GameManager.Instance?.ResetLocalOnlineInputCaptureForNewTimeline();
             //Debug.Log("Rollback variables cleared.");
         }
 
@@ -1297,11 +1302,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             // Store the input locally for the frame it corresponds to (current frame + delay)
             int targetFrame = localFrame + InputDelay;
-            SetClientInput(targetFrame, input);
+            bool accepted = SetClientInput(targetFrame, input);
 
-            // Send input packet via MatchMessageManager
-            matchManager.SendInputs(); // Send target frame and input
-            return true;
+            // Even if this frame was already sealed (pacing hold or delay decrease), resend the
+            // immutable window so packet loss recovery continues without consuming a new edge.
+            matchManager.SendInputs();
+            return accepted;
     }
 
         /// <summary>
@@ -1309,9 +1315,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// measured peer ping, so our inputs land before peers need them and their prediction/
         /// rollback of us stays shallow at high ping. Self-throttled (re-evaluates at round resets
         /// and at most ~once per 3s otherwise), so it is safe to call every frame. Determinism:
-        /// InputDelay is a purely local scheduling choice; the brief gap a change creates is
-        /// neutral (5) in both SynchronizeInput and SendInputs, identical on the wire and in the
-        /// sim, so no desync and no cross-client agreement is required.
+        /// InputDelay is a purely local scheduling choice. Increasing it seals any added frames
+        /// with a stable continuation of the last input; decreasing it cannot overwrite already
+        /// scheduled frames, so pending hardware edges wait for the next writable target.
         /// </summary>
         public void MaybeApplyAdaptiveInputDelay()
         {
@@ -2791,20 +2797,60 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         /// Concretely: a TimeSync hold re-ticks the same localFrame, so the same targetFrame was
         /// sampled twice. An adaptive InputDelay decrease regressing targetFrame
         ///  onto already-sent slots is the same hazard.
-        /// frame 0 is exempt only because a cleared ring buffer's default entries alias frame 0
-        /// (FrameMetadata.frame defaults to 0), which would otherwise block the first real write.
         /// </remarks>
-        public void SetClientInput(int frame, ulong input)
+        public bool SetClientInput(int frame, ulong input)
         {
-            if (frame > 0 && clientInputs.ContainsKey(frame))
+            if (frame <= latestScheduledLocalInputFrame || clientInputs.ContainsKey(frame))
             {
-                return;
+                return false;
             }
+
+            // Raising the adaptive delay can skip one or more target frames. Seal those frames
+            // before they can appear on the wire, continuing held levels without repeating an edge.
+            ulong continuationInput = 5UL;
+            if (latestScheduledLocalInputFrame >= 0
+                && clientInputs.ContainsKey(latestScheduledLocalInputFrame))
+            {
+                continuationInput = InputConverter.ConvertToSteadyState(
+                    clientInputs.GetInput(latestScheduledLocalInputFrame));
+            }
+
+            // A state-baseline jump can move the simulation far forward. Only the most recent ring
+            // capacity can still be relevant; the resend window is smaller than InputArraySize.
+            int firstGapFrame = Mathf.Max(
+                latestScheduledLocalInputFrame + 1,
+                frame - InputArraySize + 1);
+            for (int gapFrame = firstGapFrame; gapFrame < frame; gapFrame++)
+            {
+                clientInputs.Insert(
+                    gapFrame,
+                    new FrameMetadata { frame = gapFrame, input = continuationInput });
+            }
+
             clientInputs.Insert(frame, new FrameMetadata() { frame = frame, input = input });
+            latestScheduledLocalInputFrame = frame;
+            return true;
+        }
+
+        /// <summary>
+        /// Returns a scheduled local input and seals any unexpected recent hole before transmission.
+        /// SendInputs must never put a fallback value on the wire that can later change locally.
+        /// </summary>
+        public ulong GetOrSealScheduledLocalInput(int frame)
+        {
+            if (clientInputs.ContainsKey(frame))
+            {
+                return clientInputs.GetInput(frame);
+            }
+
+            Debug.LogError($"[Rollback] Missing sealed local input at frame {frame} (latest={latestScheduledLocalInputFrame}). Sending immutable neutral input.");
+            const ulong neutralInput = 5UL;
+            clientInputs.Insert(frame, new FrameMetadata { frame = frame, input = neutralInput });
+            return neutralInput;
         }
 
         /// <summary> Stores received remote input for the correct frame. Called by MatchMessageManager. </summary>
-        public void SetOpponentInput(int frame, ulong input)
+        public void SetOpponentInput(int frame, ulong input, bool suppressLossScoring = false)
         {
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive && frame <= syncFrame)
             {
@@ -2820,6 +2866,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
             if (EnablePacketLossSmoothing && isNewFrame)
             {
+                if (suppressLossScoring)
+                {
+                    // Intentional resend chunks may arrive out of order. Advance the observation
+                    // high-water without treating their backfill ordering as packet loss.
+                    highestRemoteInputFrameSeen = Mathf.Max(highestRemoteInputFrameSeen, frame);
+                    return;
+                }
+
                 // The Bestonet input transport (UnreliableNoDelay + resend window) means a frame
                 // arriving "fresh" after a higher one has already arrived is a recovered loss,
                 // and a brand-new highest frame that skips frames over the previous high-water
@@ -2850,10 +2904,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         public void SetRemoteInput(int slot, int frame, ulong input)
         {
-            SetRemoteInput(slot, frame, input, frame);
+            SetRemoteInput(slot, frame, input, frame, false);
         }
 
-        public void SetRemoteInput(int slot, int frame, ulong input, int alignmentFrame)
+        public void SetRemoteInput(
+            int slot,
+            int frame,
+            ulong input,
+            int alignmentFrame,
+            bool suppressLossScoring = false)
         {
             // Ignore stray/late packets from a slot that has been dropped from the match;
             // re-adding its tracking would corrupt the effective-remote-frame calculation.
@@ -2895,6 +2954,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (EnablePacketLossSmoothing && isNewFrame)
             {
                 int highestSeen = highestRemoteInputFrameSeenBySlot.TryGetValue(slot, out int seen) ? seen : -1;
+                if (suppressLossScoring)
+                {
+                    highestRemoteInputFrameSeenBySlot[slot] = Mathf.Max(highestSeen, adjustedFrame);
+                    return;
+                }
+
                 if (highestSeen < 0)
                 {
                     highestRemoteInputFrameSeenBySlot[slot] = adjustedFrame;

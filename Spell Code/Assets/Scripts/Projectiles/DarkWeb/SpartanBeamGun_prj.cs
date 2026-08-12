@@ -15,7 +15,7 @@ public class SpartanBeamGun_prj : BaseProjectile
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames
         //deleteOnHit = true;
-        meleeProjectile = true;
+        //meleeProjectile = true;
         fadeIn = true;
         fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, true);
@@ -24,7 +24,7 @@ public class SpartanBeamGun_prj : BaseProjectile
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
         hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
     }
 

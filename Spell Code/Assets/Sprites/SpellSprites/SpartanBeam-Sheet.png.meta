@@ -1,0 +1,775 @@
+fileFormatVersion: 2
+guid: 295ccb97332e4cb4188ac435cbed6eb5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6988132742318990672
+    second: SpartanBeam-Sheet_0
+  - first:
+      213: -1514902392934555021
+    second: SpartanBeam-Sheet_1
+  - first:
+      213: -2866006847033797008
+    second: SpartanBeam-Sheet_2
+  - first:
+      213: 8096322269347757566
+    second: SpartanBeam-Sheet_3
+  - first:
+      213: -1209238525803358703
+    second: SpartanBeam-Sheet_4
+  - first:
+      213: 3829424048836946631
+    second: SpartanBeam-Sheet_5
+  - first:
+      213: 2162213976417324703
+    second: SpartanBeam-Sheet_6
+  - first:
+      213: 9112311775368103181
+    second: SpartanBeam-Sheet_7
+  - first:
+      213: -3201059852294269193
+    second: SpartanBeam-Sheet_8
+  - first:
+      213: 8402178580868938293
+    second: SpartanBeam-Sheet_9
+  - first:
+      213: 3715717725203605417
+    second: SpartanBeam-Sheet_10
+  - first:
+      213: -4505118098143365826
+    second: SpartanBeam-Sheet_11
+  - first:
+      213: 1455185845013324047
+    second: SpartanBeam-Sheet_12
+  - first:
+      213: -6020635226063646640
+    second: SpartanBeam-Sheet_13
+  - first:
+      213: -4427348956215042751
+    second: SpartanBeam-Sheet_14
+  - first:
+      213: 6055034049247859108
+    second: SpartanBeam-Sheet_15
+  - first:
+      213: -8756382486858022358
+    second: SpartanBeam-Sheet_16
+  - first:
+      213: -5808923997630541676
+    second: SpartanBeam-Sheet_17
+  - first:
+      213: 1548966317312161483
+    second: SpartanBeam-Sheet_18
+  - first:
+      213: 2976131838329380903
+    second: SpartanBeam-Sheet_19
+  - first:
+      213: 8056664530999670443
+    second: SpartanBeam-Sheet_20
+  - first:
+      213: 3583582286134996169
+    second: SpartanBeam-Sheet_21
+  - first:
+      213: 296743451770438156
+    second: SpartanBeam-Sheet_22
+  - first:
+      213: -2734345113565008732
+    second: SpartanBeam-Sheet_23
+  - first:
+      213: 5494998099167186753
+    second: SpartanBeam-Sheet_24
+  - first:
+      213: 4522082409570027734
+    second: SpartanBeam-Sheet_25
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba679b474b50fcf60800000000000000
+      internalID: 8056664530999670443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 536655236e4b2c549bdec986bf4078f7
+      internalID: -6988132742318990672
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6056ef1f10f260041bcd84da6c9cfc48
+      internalID: -1514902392934555021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 051065558bc5dcd4d828644e00a5446e
+      internalID: -2866006847033797008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a146099d0e5093d42a254a3de8647261
+      internalID: 8096322269347757566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: add8d928e627c474bb2f7cf92ec5918d
+      internalID: -1209238525803358703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 750
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86b91769aaa8e7e479bcda6b59c97f41
+      internalID: 3829424048836946631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9864f70a60884924190b6d0a620a1253
+      internalID: 2162213976417324703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 1050
+        y: 264
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 468e029aa3c907341b4a265ce5b38286
+      internalID: 9112311775368103181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2a7fecf5f42cbf4c8a9259cedc498a8
+      internalID: -3201059852294269193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a3cfe62c198354b459e8e4a3f67fad50
+      internalID: 8402178580868938293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 170e3e2721d421449b867ac744164806
+      internalID: 3715717725203605417
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 442228d2c84d54941b377eae08545930
+      internalID: -4505118098143365826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 207e4989473b6bc4386cacf857d02344
+      internalID: 1455185845013324047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 750
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8dd893052981c734389e60258a8f1129
+      internalID: -6020635226063646640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 05b775c5eba3ad445a4fa4895be12099
+      internalID: -4427348956215042751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 1050
+        y: 176
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cea5e1e88924d6f46917aaed97d4c408
+      internalID: 6055034049247859108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 88
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbfa30811348ed74e8816be2e4f86b64
+      internalID: -8756382486858022358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 88
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c41127a248b7c384eb09744cdaa69c88
+      internalID: -5808923997630541676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 88
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8d63c6aa18c610a45862148487656262
+      internalID: 1548966317312161483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 88
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f4993b93709fa4469430e7cde52a7aa
+      internalID: 2976131838329380903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 0
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9d3e8a56925ab8b418ea83b3d629ab7d
+      internalID: 3583582286134996169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 0
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e08226523b5419f4884854dbbe379c14
+      internalID: 296743451770438156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpartanBeam-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 0
+        width: 150
+        height: 88
+      alignment: 9
+      pivot: {x: 0.27333334, y: 0.48863637}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4dbc3c325a1d12449beb071cfa209aba
+      internalID: -2734345113565008732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: f5e826dcd84d2314fa483582ed13385b
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":8.0,"y":4.0},"gridSpriteSize":{"x":150.0,"y":88.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.273333340883255,"y":0.4886363744735718},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":1,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      SpartanBeam-Sheet_0: -6988132742318990672
+      SpartanBeam-Sheet_1: -1514902392934555021
+      SpartanBeam-Sheet_10: 3715717725203605417
+      SpartanBeam-Sheet_11: -4505118098143365826
+      SpartanBeam-Sheet_12: 1455185845013324047
+      SpartanBeam-Sheet_13: -6020635226063646640
+      SpartanBeam-Sheet_14: -4427348956215042751
+      SpartanBeam-Sheet_15: 6055034049247859108
+      SpartanBeam-Sheet_16: -8756382486858022358
+      SpartanBeam-Sheet_17: -5808923997630541676
+      SpartanBeam-Sheet_18: 1548966317312161483
+      SpartanBeam-Sheet_19: 2976131838329380903
+      SpartanBeam-Sheet_2: -2866006847033797008
+      SpartanBeam-Sheet_20: 8056664530999670443
+      SpartanBeam-Sheet_21: 3583582286134996169
+      SpartanBeam-Sheet_22: 296743451770438156
+      SpartanBeam-Sheet_23: -2734345113565008732
+      SpartanBeam-Sheet_3: 8096322269347757566
+      SpartanBeam-Sheet_4: -1209238525803358703
+      SpartanBeam-Sheet_5: 3829424048836946631
+      SpartanBeam-Sheet_6: 2162213976417324703
+      SpartanBeam-Sheet_7: 9112311775368103181
+      SpartanBeam-Sheet_8: -3201059852294269193
+      SpartanBeam-Sheet_9: 8402178580868938293
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

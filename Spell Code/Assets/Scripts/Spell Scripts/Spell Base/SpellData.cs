@@ -21,7 +21,8 @@ public enum Brand
     VWave,
     DemonX,
     Killeez,
-    BigStox
+    BigStox,
+    DarkWeb
 }
 
 public enum ProcCondition

@@ -4,18 +4,18 @@ using TMPro;
 
 public static class ButtonPromptCompleter
 {
-    public static string ReadAndReplaceBinding(string textToDisplay, string stringToReplace, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset, bool pressedOverride)
+    public static string ReadAndReplaceBinding(string textToDisplay, string stringToReplace, InputBinding actionNeeded, TMP_SpriteAsset spriteAsset, bool pressedOverride, bool nullInput)
     {
         if (string.IsNullOrEmpty(textToDisplay) || string.IsNullOrEmpty(stringToReplace) || spriteAsset == null)
         {
             return textToDisplay ?? string.Empty;
         }
 
-        string stringButtonName = GetInputString(actionNeeded, pressedOverride);
+        string stringButtonName = GetInputString(actionNeeded, pressedOverride, nullInput);
         return textToDisplay.Replace(stringToReplace, $"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
     }
 
-    private static string GetInputString(InputBinding actionNeeded, bool pressedOverride)
+    private static string GetInputString(InputBinding actionNeeded, bool pressedOverride, bool nullInput)
     {
         string starterString = actionNeeded.ToString();
         starterString = starterString.Replace($"[{actionNeeded.groups}]", String.Empty);
@@ -33,7 +33,10 @@ public static class ButtonPromptCompleter
             {
                 starterString = starterString + "Pressed";
             }
-            else if (starterString.Contains("Gamepad_"))
+        }
+        if (nullInput)
+        {
+            if (starterString.Contains("Gamepad_"))
             {
                 if (starterString.Contains("dpad_"))
                 {
@@ -43,6 +46,10 @@ public static class ButtonPromptCompleter
                 {
                     starterString = "Gamepad_buttonNull";
                 }
+            }
+            else
+            {
+                starterString = "Keyboard_null";
             }
         }
 

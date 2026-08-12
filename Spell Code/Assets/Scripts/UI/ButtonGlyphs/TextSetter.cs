@@ -12,6 +12,7 @@ public class TextSetter : MonoBehaviour
     [SerializeField] private SpriteAssetList spriteAssets;
     [SerializeField] private DeviceType deviceType;
     [SerializeField] public InputActionReference defaultAction;
+    public bool nullInput = false;
     [SerializeField] public bool pressedOverride = false;
     public int selectorPID = 0;
 
@@ -102,7 +103,8 @@ public class TextSetter : MonoBehaviour
             stringToReplace,
             targetBinding,
             spriteAssets.spriteAssets[spriteAssetIndex],
-            pressedOverride);
+            pressedOverride,
+            nullInput);
     }
 
     private bool EnsureTextBoxInitialized()

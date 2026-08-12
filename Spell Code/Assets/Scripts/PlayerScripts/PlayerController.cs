@@ -173,7 +173,7 @@ public class PlayerController : MonoBehaviour
         reps = 0;
     }
 
-
+    public bool tutorialSpellStored;
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[4];
@@ -325,8 +325,9 @@ public class PlayerController : MonoBehaviour
     //will only show up if the boolean is true
     public bool vWave = false;
     public bool killeez = false;
-    public bool DemonX = false;
+    public bool demonX = false;
     public bool bigStox = false;
+    public bool darkWeb = false;
 
     public int _playerPauseIndex;
 
@@ -752,9 +753,9 @@ public class PlayerController : MonoBehaviour
                 killeez = true;
                 Debug.Log("Player has unlocked Killeez passives");
             }
-            if (targetSpell.brands[i] == Brand.DemonX && DemonX == false)
+            if (targetSpell.brands[i] == Brand.DemonX && demonX == false)
             {
-                DemonX = true;
+                demonX = true;
                 Debug.Log("Player has unlocked DemonX passives");
             }
             if (targetSpell.brands[i] == Brand.BigStox && bigStox == false)
@@ -762,6 +763,11 @@ public class PlayerController : MonoBehaviour
                 bigStox = true;
                 Debug.Log("Player has unlocked BigStox passives");
             }
+            // if (targetSpell.brands[i] == Brand.DarkWeb && darkWeb == false)
+            // {
+            //     darkWeb = true;
+            //     Debug.Log("Player has unlocked BigStox passives");
+            // }
         }
 
         return true;
@@ -954,7 +960,7 @@ public class PlayerController : MonoBehaviour
 
         vWave = false;
         killeez = false;
-        DemonX = false;
+        demonX = false;
         bigStox = false;
 
         currentPlayerHealth = 100;
@@ -1716,6 +1722,8 @@ public class PlayerController : MonoBehaviour
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", GameManager.colors["white"]);
                             //break;
+
+                            if (SceneManager.GetActiveScene().name == "Tutorial") { tutorialSpellStored = true; Debug.Log("TUTORIAL SPELL STORED"); }
                             
                         }
                         break;
@@ -1892,6 +1900,17 @@ public class PlayerController : MonoBehaviour
                                     else
                                     {
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
+                                case Brand.DarkWeb:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
                                     }
                                     break;
                                 default:
@@ -3807,7 +3826,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(startingSpellAdded);
         bw.Write(vWave);
         bw.Write(killeez);
-        bw.Write(DemonX);
+        bw.Write(demonX);
         bw.Write(bigStox);
         bw.Write(unchecked((int)0xAABBCCDD));
 
@@ -4170,7 +4189,7 @@ public class PlayerController : MonoBehaviour
         bool savedStartingSpellAdded = br.ReadBoolean();
         vWave = br.ReadBoolean();
         killeez = br.ReadBoolean();
-        DemonX = br.ReadBoolean();
+        demonX = br.ReadBoolean();
         bigStox = br.ReadBoolean();
         int markerC = br.ReadInt32();
         if (markerC != unchecked((int)0xAABBCCDD)) Debug.LogError($"MISALIGN at C: {markerC:X8}");
@@ -4459,8 +4478,9 @@ public class PlayerController : MonoBehaviour
         // Recompute brand flags from rebuilt list
         vWave = false;
         killeez = false;
-        DemonX = false;
+        demonX = false;
         bigStox = false;
+        darkWeb = false;
         for (int i = 0; i < spellList.Count; i++)
         {
             SpellData spell = spellList[i];
@@ -4469,8 +4489,9 @@ public class PlayerController : MonoBehaviour
             {
                 if (spell.brands[b] == Brand.VWave) vWave = true;
                 if (spell.brands[b] == Brand.Killeez) killeez = true;
-                if (spell.brands[b] == Brand.DemonX) DemonX = true;
+                if (spell.brands[b] == Brand.DemonX) demonX = true;
                 if (spell.brands[b] == Brand.BigStox) bigStox = true;
+                if (spell.brands[b] == Brand.DarkWeb) darkWeb = true;
             }
         }
 

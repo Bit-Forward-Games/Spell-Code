@@ -27,7 +27,8 @@ public enum VisualEffects
     GRAFFITI_SPAWN,
     VWAVE_FLOPPY_ARC, KILLEEZ_FLOPPY_ARC, DEMONX_FLOPPY_ARC, BIGSTOX_FLOPPY_ARC,
     VWAVE_FLOPPY_PICKUP, KILLEEZ_FLOPPY_PICKUP, DEMONX_FLOPPY_PICKUP, BIGSTOX_FLOPPY_PICKUP,
-    TELEPORT_DUST, GRAFFITI_DRIP
+    TELEPORT_DUST, GRAFFITI_DRIP,
+    DARKWEB_FLOPPY_SPAWN, DARKWEB_CAST, DARKWEB_FLOPPY_ARC, DARKWEB_FLOPPY_PICKUP
 }
 public class VFX_Manager : MonoBehaviour
 {
@@ -723,6 +724,9 @@ public class VFX_Manager : MonoBehaviour
                 break;
             case Brand.BigStox:
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
+            case Brand.DarkWeb:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
                 break;
             default:
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);

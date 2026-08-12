@@ -13,7 +13,7 @@ public class SpellFloppyDisplay : MonoBehaviour
     public TextMeshProUGUI spellCooldown;
     public TextMeshProUGUI spellInput;
 
-    public Sprite[] backgroundImageReference = new Sprite[4];
+    public Sprite[] backgroundImageReference = new Sprite[5];
     public Image spellIcon;
     public Image Background;
     public Image selectFill;
@@ -67,6 +67,9 @@ public class SpellFloppyDisplay : MonoBehaviour
                 break;
             case Brand.BigStox:
                 Background.sprite = backgroundImageReference[3];
+                break;
+            case Brand.DarkWeb:
+                Background.sprite = backgroundImageReference[4];
                 break;
 
         }

@@ -487,7 +487,7 @@ PrefabInstance:
       objectReference: {fileID: -3726426867185143702, guid: 007bc22b2e7afd743a7ee260155b0e63, type: 3}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: projectileList.Array.size
-      value: 70
+      value: 73
       objectReference: {fileID: 0}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'projectileList.Array.data[60]'
@@ -529,6 +529,18 @@ PrefabInstance:
       propertyPath: 'projectileList.Array.data[69]'
       value: 
       objectReference: {fileID: 6472513319819783470, guid: b70e658e686f97845807d44c81c2730d, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[70]'
+      value: 
+      objectReference: {fileID: 2549291108972649659, guid: 96a0287c29259e64aafd5d834da1090f, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[71]'
+      value: 
+      objectReference: {fileID: 538832168892879793, guid: cd3b102c85ab0f9458b546326c2c2f40, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[72]'
+      value: 
+      objectReference: {fileID: -3076088849355080443, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
     - target: {fileID: 521498579923650145, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -881,7 +893,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
-      value: 52
+      value: 53
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[11]'
@@ -1050,7 +1062,7 @@ PrefabInstance:
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[52]'
       value: 
-      objectReference: {fileID: -2832453206304962427, guid: 8ee447aafc547c0458a94f52b86e854a, type: 3}
+      objectReference: {fileID: 7312057472009595077, guid: b55d44d094ff5d84cb451b507e0c3fc5, type: 3}
     - target: {fileID: 7377337833048685195, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_HorizontalAlignment
       value: 1

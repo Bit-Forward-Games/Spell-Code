@@ -26642,7 +26642,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 05ef36c35556862438d2a742e8aa8539, type: 2}
   gameStages: []
   lobbySO: {fileID: 11400000, guid: 1e7bef424544b394faf070ddd46bb9b3, type: 2}
-  TutorialSO: {fileID: 11400000, guid: 940ec63e8ad3fce47b5180cbf389c0bd, type: 2}
+  TutorialSO: {fileID: 11400000, guid: 38971f2fbd95393458d46922d55cf6b9, type: 2}
   trainingGroundsSO: {fileID: 11400000, guid: 1e6f83f5d2f66714ebf5e54387ef49a4, type: 2}
   soloLobbySO: {fileID: 11400000, guid: 53c9f336c4e06c2438b3e9f0685c649f, type: 2}
   currentStageIndex: -4

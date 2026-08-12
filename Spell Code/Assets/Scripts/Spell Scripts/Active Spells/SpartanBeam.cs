@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Linq;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
@@ -10,7 +10,7 @@ public class SpartanBeam : SpellData
     private const int _beamEndIndex = 1;
     private const int _firstBeamSegmentProjectileIndex = 2;
     private const int _firstBeamSegmentOffset = 150;
-    private const int _beamEndBaseOffset = _firstBeamSegmentOffset + 58;
+    private const int _beamEndBaseOffset = _firstBeamSegmentOffset/* + 58*/;
     public SpartanBeam()
     {
         spellName = "Spartan Beam";
@@ -45,12 +45,17 @@ public class SpartanBeam : SpellData
                     Debug.LogError("Spartan Beam missing its End or Gun projectile");
                     break;
                 }
-
-                if( projectileInstances[0].activeSelf && gun.logicFrame == gun.frameData.startFrames[0]-1)
+                
+                if( projectileInstances[0].activeSelf )
                 {
                     owner.hSpd = Fixed.FromInt(0);
                     owner.vSpd = Fixed.FromInt(0);
-                    ProjectileManager.Instance.SpawnProjectile(beamEnd, gun.facingRight, new FixedVec2(gun.position.X + Fixed.FromInt((_beamEndBaseOffset + owner.reps*20)* owner.flowState>0?2:1), gun.position.Y), true);
+                    if(gun.logicFrame == gun.animFrames.frameLengths.Take(10).Sum())
+                    {
+                        int direction = gun.facingRight? 1:-1;
+                        ProjectileManager.Instance.SpawnProjectile(beamEnd, gun.facingRight, new FixedVec2(gun.position.X + Fixed.FromInt((_beamEndBaseOffset + owner.reps*10 * (owner.flowState>0?2:1)) * direction), gun.position.Y), true);
+
+                    }
                 }
 
                 UpdateBeamSegments(beamEnd);

@@ -43,7 +43,7 @@ public class DemonAura : SpellData
 
 
                 //increase demon aura by 20 if its a Demon-X spellcode
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.DemonX && !defender.hitboxData.parentProjectile.ignoreBrand)
+                if(defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.DemonX) && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
                     if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))

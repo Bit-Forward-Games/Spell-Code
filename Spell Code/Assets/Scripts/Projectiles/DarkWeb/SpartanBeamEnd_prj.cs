@@ -23,7 +23,7 @@ public class SpartanBeamEnd_prj : BaseProjectile
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
         hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
     }
 
@@ -36,7 +36,7 @@ public class SpartanBeamEnd_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = -2*2,
+                    xOffset = 25*2,
                     yOffset = 15*2,
                     width = 4*2,
                     height = 29*2,

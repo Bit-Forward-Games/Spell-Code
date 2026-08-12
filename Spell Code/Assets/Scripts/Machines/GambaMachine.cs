@@ -314,7 +314,7 @@ public class GambaMachine : MonoBehaviour
 
                 //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave
                 counter++;
-                if (counter > 4) { counter = 1; }
+                if (counter > 5) { counter = 1; }
 
                 switch (counter)
                 {
@@ -381,6 +381,22 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+                        break;
+                    //Dark Web
+                    case 5:
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Spartan Beam");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[1], "Reload Shot");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
+
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;
                 }
 
@@ -800,7 +816,7 @@ public class GambaMachine : MonoBehaviour
             return true;
         }
 
-        if (!player.DemonX && primaryBrand == Brand.DemonX)
+        if (!player.demonX && primaryBrand == Brand.DemonX)
         {
             Debug.Log("DemonX passive: " + spellName + " has been removed");
             return true;
@@ -809,6 +825,12 @@ public class GambaMachine : MonoBehaviour
         if (!player.bigStox && primaryBrand == Brand.BigStox)
         {
             Debug.Log("BigStox passive: " + spellName + " has been removed");
+            return true;
+        }
+
+        if (!player.bigStox && primaryBrand == Brand.DarkWeb)
+        {
+            Debug.Log("DarKWeb passive: " + spellName + " has been removed");
             return true;
         }
 
@@ -883,6 +905,10 @@ public class GambaMachine : MonoBehaviour
                     case Brand.BigStox:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
+                    //@MAXWHITE
+                    // case Brand.DarkWeb:
+                    //     VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
+                    //     break;
                     default:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
@@ -948,6 +974,10 @@ public class GambaMachine : MonoBehaviour
                     case Brand.BigStox:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
+                    //@Max White
+                    // case Brand.DarkWeb:
+                    //     VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
+                    //     break;
                     default:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;

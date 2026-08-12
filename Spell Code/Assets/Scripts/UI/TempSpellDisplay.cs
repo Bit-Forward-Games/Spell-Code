@@ -213,32 +213,24 @@ public class TempSpellDisplay : MonoBehaviour
                 switch (playerSpells[i].brands[0])
                 {
                     case Brand.VWave:
-                        cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                        // if (i < uiScript.flowStateVals.Length && uiScript.flowStateVals[i] != null)
-                        //     uiScript.flowStateVals[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["green"];
+                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["green"]);
                         break;
                     case Brand.BigStox:
-                        cooldownFills[i].color = new Color32(67, 122, 252, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
-                        // if (i < uiScript.stockStabilityVals.Length && uiScript.stockStabilityVals[i] != null)
-                        //     uiScript.stockStabilityVals[i].enabled = true;
-                        // if (i < uiScript.stockStabilityIcons.Length && uiScript.stockStabilityIcons[i] != null)
-                        //     uiScript.stockStabilityIcons[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["blue"];
+                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["blue"]);
                         break;
                     case Brand.DemonX:
-                        cooldownFills[i].color = new Color32(255, 62, 117, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                        // if (i < uiScript.demonAuraVals.Length && uiScript.demonAuraVals[i] != null)
-                        //     uiScript.demonAuraVals[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["red"];
+                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["red"]);
                         break;
                     case Brand.Killeez:
-                        cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                        // if (i < uiScript.repsVals.Length && uiScript.repsVals[i] != null)
-                        //     uiScript.repsVals[i].enabled = true;
-                        // if (i < uiScript.repsIcons.Length && uiScript.repsIcons[i] != null)
-                        //     uiScript.repsIcons[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["yellow"];
+                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["yellow"]);
+                        break;
+                    case Brand.DarkWeb:
+                        cooldownFills[i].color = GameManager.colors["evil color"];
+                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["evil color"]);
                         break;
                 }
 

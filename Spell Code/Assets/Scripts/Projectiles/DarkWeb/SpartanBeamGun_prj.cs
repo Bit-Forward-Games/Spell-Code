@@ -15,7 +15,7 @@ public class SpartanBeamGun_prj : BaseProjectile
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames
         //deleteOnHit = true;
-        //meleeProjectile = true;
+        meleeProjectile = true;
         fadeIn = true;
         fadeOut = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, true);

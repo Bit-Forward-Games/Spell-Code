@@ -91,6 +91,7 @@ public class ProjectileManager : MonoBehaviour
                 if (projectilePrefabs[i].hitstop > 0)
                 {
                     projectilePrefabs[i].hitstop--;
+                    
                     continue;
                 }
 

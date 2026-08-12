@@ -974,10 +974,9 @@ public class GambaMachine : MonoBehaviour
                     case Brand.BigStox:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
-                    //@Max White
-                    // case Brand.DarkWeb:
-                    //     VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
-                    //     break;
+                    case Brand.DarkWeb:
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
+                        break;
                     default:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;

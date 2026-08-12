@@ -1900,18 +1900,17 @@ public class PlayerController : MonoBehaviour
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
                                     }
                                     break;
-                                //@Max White
-                                // case Brand.DarkWeb:
-                                //     //Play the cast visual effect depending on the direction the player is facing
-                                //     if (facingRight)
-                                //     {
-                                //         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
-                                //     }
-                                //     else
-                                //     {
-                                //         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
-                                //     }
-                                //     break;
+                                case Brand.DarkWeb:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
                                 default:
                                     break;
                             }

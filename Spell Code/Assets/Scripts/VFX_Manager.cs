@@ -725,10 +725,9 @@ public class VFX_Manager : MonoBehaviour
             case Brand.BigStox:
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
                 break;
-            //TODO: make a dark web vfx @ Max White
-            // case Brand.DarkWeb:
-            //     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
-            //     break;
+            case Brand.DarkWeb:
+                VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
+                break;
             default:
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_SPAWN, FixedVec2.FromFloat(_floppySpawnLocation.x, _floppySpawnLocation.y) + FixedVec2.FromFloat(0f, 11.5f), _playerNum);
                 break;

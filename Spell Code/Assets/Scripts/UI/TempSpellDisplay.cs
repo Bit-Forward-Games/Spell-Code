@@ -12,6 +12,8 @@ public class TempSpellDisplay : MonoBehaviour
     public bool invertAlign = false;
     //private bool spellListUpdated = false;
     private bool roundWinCounterUpdated = false;
+    // roundsWon last painted onto the icons. -1 forces a draw on the first pass.
+    private int lastDrawnRoundWins = -1;
 
     // Pulsing alpha (PingPong)
     [Header("Flash Alpha Pulse (PingPong)")]
@@ -90,6 +92,26 @@ public class TempSpellDisplay : MonoBehaviour
             roundWinCounterUpdated = false;
         }
 
+        // Outside the End screen the counter is only redrawn on the roundOver edge, and Start() runs
+        // once for a UI that survives on the persistent TempUI -- so a rematch kept the previous
+        // match's icons on screen until the first round finished. Redraw whenever this player's
+        // total changes, which catches the reset back to 0 as well as a win being scored. Skipped
+        // during rollback resim so a momentarily rolled-back total cannot flicker the icons; the
+        // next confirmed frame still sees the difference and draws it.
+        if (!IsRollbackFrame)
+        {
+            PlayerController[] roster = GameManager.Instance.players;
+            if (roster != null && spellDisplayIndex >= 0 && spellDisplayIndex < roster.Length)
+            {
+                PlayerController displayPlayer = roster[spellDisplayIndex];
+                int wins = displayPlayer != null ? displayPlayer.roundsWon : 0;
+                if (wins != lastDrawnRoundWins)
+                {
+                    UpdateRoundWinCounter();
+                }
+            }
+        }
+
         // PINGA PONGA instead of coroutine for flash alpha pulse 
         float t = Mathf.PingPong(Time.time * flashPulseSpeed, 1f);
         uiScript.flashAlpha = Mathf.Lerp(flashAlphaMax, flashAlphaMin, t);
@@ -118,6 +140,10 @@ public class TempSpellDisplay : MonoBehaviour
         {
             return;
         }
+
+        // Only record once a draw is actually going ahead, so an early return above cannot mark a
+        // total as drawn that never reached the icons.
+        lastDrawnRoundWins = player.roundsWon;
 
         for (int j = 0; j < roundWinsIcons.Count; j++)
         {
@@ -247,7 +273,7 @@ public class TempSpellDisplay : MonoBehaviour
                         player.relativeInputs ? 
                         player.facingRight : 
                         true);
-                        spellSlots[i].fontSize =14;
+                        //spellSlots[i].fontSize =14;
                     }
                     else
                     {
@@ -256,14 +282,14 @@ public class TempSpellDisplay : MonoBehaviour
                         player.relativeInputs ? 
                         player.facingRight : 
                         true);
-                        spellSlots[i].fontSize =14;
+                        //spellSlots[i].fontSize =14;
                     }
                     
                 }
                 else
                 {
                     spellSlots[i].text = playerSpells[i].spellName;
-                    spellSlots[i].fontSize = 7;
+                    //spellSlots[i].fontSize = 7;
                 }
             }
             else

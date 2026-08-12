@@ -42,24 +42,48 @@ public class FloppyPickup : MonoBehaviour
         GameManager.Instance.FindAllFloppyDisks();
         diskDisplay.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay(diskName);
         sprite = GetComponent<SpriteRenderer>();
-        for (int i = 0; i < SpellDictionary.Instance.spellDict[diskName].brands.Length; i++)
+        // for (int i = 0; i < SpellDictionary.Instance.spellDict[diskName].brands.Length; i++)
+        // {
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
+        //     {
+        //         diskAnimator.Play("FloppySpin");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
+        //     {
+        //         diskAnimator.Play("FloppySpinKilleez");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
+        //     {
+        //         diskAnimator.Play("FloppySpinDemonX");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
+        //     {
+        //         diskAnimator.Play("FloppySpinBigStox");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DarkWeb)
+        //     {
+        //         diskAnimator.Play("FloppySpinDarkWeb");
+        //     }
+        // }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.VWave)
         {
-            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
-            {
-                diskAnimator.Play("FloppySpin");
-            }
-            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
-            {
-                diskAnimator.Play("FloppySpinKilleez");
-            }
-            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
-            {
-                diskAnimator.Play("FloppySpinDemonX");
-            }
-            if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
-            {
-                diskAnimator.Play("FloppySpinBigStox");
-            }
+            diskAnimator.Play("FloppySpin");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.Killeez)
+        {
+            diskAnimator.Play("FloppySpinKilleez");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DemonX)
+        {
+            diskAnimator.Play("FloppySpinDemonX");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.BigStox)
+        {
+            diskAnimator.Play("FloppySpinBigStox");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DarkWeb)
+        {
+            diskAnimator.Play("FloppySpinDarkWeb");
         }
     }
 
@@ -119,6 +143,10 @@ public class FloppyPickup : MonoBehaviour
                                 case Brand.BigStox:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
                                     break;
+                                //TODO: make a dark web vfx @ Max White
+                                // case Brand.DarkWeb:
+                                //     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
+                                //     break;
                                 default:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                     break;
@@ -232,6 +260,10 @@ public class FloppyPickup : MonoBehaviour
                                     case Brand.BigStox:
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                         break;
+                                    //TODO: make a dark web vfx @ Max White
+                                    // case Brand.DarkWeb:
+                                    //     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
+                                    //     break;
                                     default:
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                         break;

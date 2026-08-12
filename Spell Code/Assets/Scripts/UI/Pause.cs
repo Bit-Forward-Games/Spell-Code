@@ -732,6 +732,13 @@ public class Pause : MonoBehaviour
                             colorLayer3.color = GameManager.colors["yellow"];
                             colorLayer4.color = GameManager.colors["yellow"];
                             break;
+                        case Brand.DarkWeb:
+                            spellSelectedBorder.color = GameManager.colors["evil color"];
+                            colorLayer.color = GameManager.colors["evil color"];
+                            colorLayer2.color = GameManager.colors["evil color"];
+                            colorLayer3.color = GameManager.colors["evil color"];
+                            colorLayer4.color = GameManager.colors["evil color"];
+                            break;
                     }
                 }
             }
@@ -1057,7 +1064,7 @@ public class Pause : MonoBehaviour
  
         tab = 0;
  
-        Brand[] brandPerColumn = { Brand.None, Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave };
+        Brand[] brandPerColumn = { Brand.None, Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave, Brand.DarkWeb };
  
         for (int i = 0; i < 6; i++)
         {
@@ -1215,6 +1222,7 @@ public class Pause : MonoBehaviour
                     case Brand.BigStox: panelColor.color = GameManager.colors["blue"];   break;
                     case Brand.DemonX:  panelColor.color = GameManager.colors["red"];    break;
                     case Brand.Killeez: panelColor.color = GameManager.colors["yellow"]; break;
+                    case Brand.DarkWeb: panelColor.color = GameManager.colors["evil color"]; break;
                     default:            panelColor.color = GameManager.colors["grey"];   break;
                 }
             }

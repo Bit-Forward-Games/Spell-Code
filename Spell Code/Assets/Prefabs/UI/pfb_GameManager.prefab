@@ -177306,6 +177306,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5450474550699227584}
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: spellDisplays.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: tutorialPromptButtonText
       value: 
       objectReference: {fileID: 8957065247064372048}
@@ -177313,6 +177317,22 @@ PrefabInstance:
       propertyPath: tutorialPromptButtonText2
       value: 
       objectReference: {fileID: 3468566156241854032}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'spellDisplays.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2545017982263752911}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'spellDisplays.Array.data[1]'
+      value: 
+      objectReference: {fileID: 444426409525330650}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'spellDisplays.Array.data[2]'
+      value: 
+      objectReference: {fileID: 6535457250148425162}
+    - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: 'spellDisplays.Array.data[3]'
+      value: 
+      objectReference: {fileID: 4561071593633359099}
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: _codeModeMenuFirst.Array.size
       value: 4

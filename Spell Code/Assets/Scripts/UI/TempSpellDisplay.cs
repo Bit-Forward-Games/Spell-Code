@@ -11,7 +11,7 @@ public class TempSpellDisplay : MonoBehaviour
     public List<TextMeshProUGUI> spellSlots = new List<TextMeshProUGUI>();
     public bool invertAlign = false;
     //private bool spellListUpdated = false;
-    private bool roundWinCounterUpdated = false;
+    public bool roundWinCounterUpdated = false;
 
     // Pulsing alpha (PingPong)
     [Header("Flash Alpha Pulse (PingPong)")]
@@ -60,7 +60,7 @@ public class TempSpellDisplay : MonoBehaviour
 
         // Cache the parent gameobjects once 
         CacheCooldownParents();
-        UpdateRoundWinCounter();
+        UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
     }
 
     private void CacheCooldownParents()
@@ -82,7 +82,7 @@ public class TempSpellDisplay : MonoBehaviour
         if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
             uiScript.transitionScreenDisplayed = false;
-            UpdateRoundWinCounter();
+            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
             roundWinCounterUpdated = true;
         }
         else if (!GameManager.Instance.roundOver)
@@ -97,7 +97,7 @@ public class TempSpellDisplay : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.name == "End")
         {
-            UpdateRoundWinCounter();
+            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
         }
 
         /*
@@ -106,9 +106,9 @@ public class TempSpellDisplay : MonoBehaviour
         */
     }
 
-    public void UpdateRoundWinCounter()
+    public void UpdateRoundWinCounter(List<Image> roundWinsIcons, Sprite[] roundWinIcon, int spellDisplayIndex)
     {
-        if (uiScript == null || uiScript.roundWinIcon == null || uiScript.roundWinIcon.Length < 2)
+        if (uiScript == null || roundWinIcon == null || roundWinIcon.Length < 2)
         {
             return;
         }
@@ -122,7 +122,7 @@ public class TempSpellDisplay : MonoBehaviour
         for (int j = 0; j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 60);
-            roundWinsIcons[j].sprite = uiScript.roundWinIcon[0];
+            roundWinsIcons[j].sprite = roundWinIcon[0];
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
@@ -131,7 +131,7 @@ public class TempSpellDisplay : MonoBehaviour
             for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
             {
                 roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-                roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
+                roundWinsIcons[j].sprite = roundWinIcon[1];
             }
             return; // Leave all icons in the reset state on the End screen
         }
@@ -140,7 +140,7 @@ public class TempSpellDisplay : MonoBehaviour
         for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-            roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
+            roundWinsIcons[j].sprite = roundWinIcon[1];
         }
 
     }

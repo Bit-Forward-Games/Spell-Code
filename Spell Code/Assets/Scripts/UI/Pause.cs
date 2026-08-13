@@ -912,7 +912,8 @@ public class Pause : MonoBehaviour
         RevertTextColorToWhite();
 
         //mute all gameplay sfx but not menu sfx
-        SFX_Manager.Instance.MuteGamePlaySFX();
+        // Instance is absent after ExecuteOrder66 and on a fresh boot, and a throw on the pause path strands the menu it was opening.
+        if (SFX_Manager.Instance != null) SFX_Manager.Instance.MuteGamePlaySFX();
         LoadSettings();
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);

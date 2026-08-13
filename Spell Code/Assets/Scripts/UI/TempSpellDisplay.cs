@@ -180,7 +180,7 @@ public class TempSpellDisplay : MonoBehaviour
 
             if (i < playerSpells.Count)
             {
-                var main = spellReadyEffect[i].main;
+                var spellReadyParticles = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
 
                 //handle cooldown fill color and particle effect color based on spell brand
@@ -188,23 +188,23 @@ public class TempSpellDisplay : MonoBehaviour
                 {
                     case Brand.VWave:
                         cooldownFills[i].color = GameManager.colors["green"];
-                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["green"]);
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["green"]);
                         break;
                     case Brand.BigStox:
                         cooldownFills[i].color = GameManager.colors["blue"];
-                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["blue"]);
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["blue"]);
                         break;
                     case Brand.DemonX:
                         cooldownFills[i].color = GameManager.colors["red"];
-                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["red"]);
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["red"]);
                         break;
                     case Brand.Killeez:
                         cooldownFills[i].color = GameManager.colors["yellow"];
-                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["yellow"]);
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["yellow"]);
                         break;
                     case Brand.DarkWeb:
-                        cooldownFills[i].color = GameManager.colors["evil color"];
-                        main.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["evil color"]);
+                        cooldownFills[i].color = GameManager.colors["white"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["evil color"]);
                         break;
                 }
 

@@ -58,6 +58,7 @@ public class SpellFloppyDisplay : MonoBehaviour
         {
             case Brand.Killeez:
                 Background.sprite = backgroundImageReference[0];
+                
                 break;
             case Brand.VWave:
                 Background.sprite = backgroundImageReference[1];
@@ -117,7 +118,7 @@ public class SpellFloppyDisplay : MonoBehaviour
                 {
                     if (spellDesc != null)
                     {
-                        spellDesc.DOColor(Color.black, .25f).SetLink(spellDesc.gameObject);
+                        spellDesc.DOColor(spellData.brands[0] == Brand.DarkWeb? GameManager.colors["white"]: Color.black, .25f).SetLink(spellDesc.gameObject);
                     }
                 });
             }

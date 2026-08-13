@@ -2221,10 +2221,10 @@ public class GameManager : MonoBehaviour
         endWinnerPid = winnerPid;
         bigWinner = winnerPid > 0 && winnerPid <= playerCount ? players[winnerPid - 1] : null;
         endWinnerPalette = bigWinner != null
-            && bigWinner.matchPalette != null
+            && bigWinner.matchPalettes != null
             && winnerPid - 1 >= 0
-            && winnerPid - 1 < bigWinner.matchPalette.Length
-                ? bigWinner.matchPalette[winnerPid - 1]
+            && winnerPid - 1 < bigWinner.matchPalettes.Length
+                ? bigWinner.matchPalettes[winnerPid - 1]
                 : null;
     }
 
@@ -4383,10 +4383,10 @@ public class GameManager : MonoBehaviour
                                 gameOver = true;
                                 bigWinner = winner;
                                 endWinnerPid = winner.pID;
-                                endWinnerPalette = winner.matchPalette != null
+                                endWinnerPalette = winner.matchPalettes != null
                                     && winner.pID - 1 >= 0
-                                    && winner.pID - 1 < winner.matchPalette.Length
-                                    ? winner.matchPalette[winner.pID - 1]
+                                    && winner.pID - 1 < winner.matchPalettes.Length
+                                    ? winner.matchPalettes[winner.pID - 1]
                                     : null;
                             }
 

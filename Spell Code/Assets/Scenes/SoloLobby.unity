@@ -487,7 +487,7 @@ PrefabInstance:
       objectReference: {fileID: -3726426867185143702, guid: 007bc22b2e7afd743a7ee260155b0e63, type: 3}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: projectileList.Array.size
-      value: 73
+      value: 74
       objectReference: {fileID: 0}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'projectileList.Array.data[60]'
@@ -541,6 +541,10 @@ PrefabInstance:
       propertyPath: 'projectileList.Array.data[72]'
       value: 
       objectReference: {fileID: -3076088849355080443, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[73]'
+      value: 
+      objectReference: {fileID: -9130318996285375262, guid: 177f2bd29774d92409eb110f96c7809b, type: 3}
     - target: {fileID: 521498579923650145, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -929,7 +933,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
-      value: 53
+      value: 54
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[11]'
@@ -1099,6 +1103,10 @@ PrefabInstance:
       propertyPath: 'spellList.Array.data[52]'
       value: 
       objectReference: {fileID: 7312057472009595077, guid: b55d44d094ff5d84cb451b507e0c3fc5, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[53]'
+      value: 
+      objectReference: {fileID: -2505092554615451090, guid: 0a286da2e2be6d340b6cafae8bd35435, type: 3}
     - target: {fileID: 7377337833048685195, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_HorizontalAlignment
       value: 1
@@ -1222,13 +1230,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7944560873887603960, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       insertIndex: -1
       addedObject: {fileID: 870952417}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 620922808215192121, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
-    - targetCorrespondingSourceObject: {fileID: 863563012080769469, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
 --- !u!4 &1269099312 stripped
 Transform:

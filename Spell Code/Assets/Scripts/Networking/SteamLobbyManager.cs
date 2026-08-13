@@ -60,12 +60,11 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-31"; // scz-31: input packets carry immutable batch bounds so chunked resend windows align consistently after lobby snapshot rebases
+    private const string NetcodeVersion = "scz-32"; // scz-32: sim rules -- storedCodeDuration clamps to a 1s minimum (was 0), universal passives grant on brands.Contains instead of brands[0],
+                                                    // projectiles share hitstop via projIDsToShareHitstop, SpartanBeam reach fixed (the old ternary bound to the multiply, not flowState)
                                                     // changed MEANING. It used to carry downJumpSlide ("disable diagonal
                                                     // slide"); it now carries diagonalSlide ("allow it"), and the three
-                                                    // PlayerController conditions were inverted to match. The bit position
-                                                    // is unchanged, so an scz-27 peer reads it with the opposite sense and
-                                                    // slides differently -- a silent divergence, not a rejected packet.
+                                                    // PlayerController conditions were inverted to match
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

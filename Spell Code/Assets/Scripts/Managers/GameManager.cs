@@ -4547,6 +4547,12 @@ public class GameManager : MonoBehaviour
         player.spellsFired = 0;
         player.spellsHit = 0;
         player.roundsWon = 0;
+        // SpellCode_Gate.CheckGateBroken reads this to decide whether the gate opens or the
+        // projectile is deleted, and the gate lives in Lobby_Arena as well as Tutorial. It is
+        // [NonSerialized] and only ever SET (in the Tutorial scene), so without this a player who
+        // ran the tutorial and then entered an online match carried true while their peer had
+        // false, and the two simulated that gate differently.
+        player.tutorialSpellStored = false;
         player.storedKillBonus = 0;
         player.roundRam = 0;
         player.ramBounty = 0;

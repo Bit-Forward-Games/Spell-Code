@@ -188,7 +188,25 @@ public class HitboxManager : MonoBehaviour
 
                                             for (int j = 0; j < sharedProjectileIDs.Length; j++)
                                             {
-                                                ownerSpell.projectileInstances[sharedProjectileIDs[j]].GetComponent<BaseProjectile>().hitstop = hitstopVal;//was shared hitstop instead of hitstopVal
+                                                // The IDs are authored per spell while the instance
+                                                // list is built at runtime, so an out-of-range entry
+                                                // (or a spell whose instances are not all spawned
+                                                // yet) would throw INSIDE the resim and hard-freeze
+                                                // the sim rather than desync it.
+                                                ushort sharedId = sharedProjectileIDs[j];
+                                                if (ownerSpell.projectileInstances == null
+                                                    || sharedId >= ownerSpell.projectileInstances.Count
+                                                    || ownerSpell.projectileInstances[sharedId] == null)
+                                                {
+                                                    continue;
+                                                }
+
+                                                BaseProjectile sharedProjectile =
+                                                    ownerSpell.projectileInstances[sharedId].GetComponent<BaseProjectile>();
+                                                if (sharedProjectile != null)
+                                                {
+                                                    sharedProjectile.hitstop = hitstopVal;//was shared hitstop instead of hitstopVal
+                                                }
                                             }
                                         }
                                         

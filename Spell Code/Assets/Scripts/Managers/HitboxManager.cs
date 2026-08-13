@@ -168,6 +168,31 @@ public class HitboxManager : MonoBehaviour
                                     {
                                         defendingPlayer.facingRight = !projectile.facingRight;
                                         projectile.hitstop = hitstopVal;
+
+                                        //share hitstop among projectiles
+                                        
+                                        if(projectile.ownerSpell != null && projectile.ownerSpell.projIDsToShareHitstop != null)
+                                        {
+                                            SpellData ownerSpell = projectile.ownerSpell;
+                                            ushort[] sharedProjectileIDs = ownerSpell.projIDsToShareHitstop;
+                                            // byte sharedHitstop = projectile.hitstop;
+
+                                            // for (int j = 0; j < sharedProjectileIDs.Length; j++)
+                                            // {
+                                            //     byte projectileHitstop = ownerSpell.projectileInstances[sharedProjectileIDs[j]].GetComponent<BaseProjectile>().hitstop;
+                                            //     if (projectileHitstop > sharedHitstop)
+                                            //     {
+                                            //         sharedHitstop = projectileHitstop;
+                                            //     }
+                                            // }
+
+                                            for (int j = 0; j < sharedProjectileIDs.Length; j++)
+                                            {
+                                                ownerSpell.projectileInstances[sharedProjectileIDs[j]].GetComponent<BaseProjectile>().hitstop = hitstopVal;//was shared hitstop instead of hitstopVal
+                                            }
+                                        }
+                                        
+
                                         if (projectile.meleeProjectile)
                                         {
                                             projectile.owner.hitstop = hitstopVal;

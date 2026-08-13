@@ -24,7 +24,7 @@ public class SpartanBeamGun_prj : BaseProjectile
 
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset);
+        base.SpawnProjectile(facingRight, spawnOffset, "", useAbsolutePosition);
         hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
     }
 

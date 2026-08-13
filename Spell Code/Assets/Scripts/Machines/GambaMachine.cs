@@ -290,6 +290,28 @@ public class GambaMachine : MonoBehaviour
 
                 SpawnFloppyDisk(ownerPID, tutorialLocs[0], "Amon Slash");
             }
+
+            if (isActive && CheckHitboxCollision() && machineID == 2)
+            {
+                ownerPlayer.vibeCoding = true;
+
+                Debug.Log("Hitbox collision detected!");
+                Debug.Log("TUTORIAL GAMBA");
+
+                //play the gamba hit sfx
+                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                //play the floppy arc sfx
+                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                //play the floppy spawn sfx after a 0.5 second delay
+                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                isActive = false;
+                resetTimer = 0;
+
+                SpawnFloppyDisk(ownerPID, tutorialLocs[1], "Amon Slash");
+            }
         }
 
         else if (activeScene.name == "TrainingGrounds")
@@ -974,10 +996,9 @@ public class GambaMachine : MonoBehaviour
                     case Brand.BigStox:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;
-                    //@Max White
-                    // case Brand.DarkWeb:
-                    //     VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
-                    //     break;
+                    case Brand.DarkWeb:
+                        VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
+                        break;
                     default:
                         VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[info.diskName].brands[0]);
                         break;

@@ -143,10 +143,9 @@ public class FloppyPickup : MonoBehaviour
                                 case Brand.BigStox:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
                                     break;
-                                //TODO: make a dark web vfx @ Max White
-                                // case Brand.DarkWeb:
-                                //     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
-                                //     break;
+                                case Brand.DarkWeb:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
                                 default:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                     break;
@@ -260,10 +259,9 @@ public class FloppyPickup : MonoBehaviour
                                     case Brand.BigStox:
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                         break;
-                                    //TODO: make a dark web vfx @ Max White
-                                    // case Brand.DarkWeb:
-                                    //     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
-                                    //     break;
+                                    case Brand.DarkWeb:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
                                     default:
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                         break;

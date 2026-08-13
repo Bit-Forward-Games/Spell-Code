@@ -173,7 +173,7 @@ public class PlayerController : MonoBehaviour
         reps = 0;
     }
 
-
+    public bool tutorialSpellStored;
 
     //MATCH STATS
     public Texture2D[] matchPalette = new Texture2D[4];
@@ -1718,10 +1718,12 @@ public class PlayerController : MonoBehaviour
                             storedCode = stateSpecificArg;
 
                             uint spellCodeLength = storedCode & 0xFu;
-                            storedCodeDuration = Math.Clamp(6 - spellCodeLength, 0, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
+                            storedCodeDuration = Math.Clamp(6 - spellCodeLength, 1, 6) * 60; //stored code lasts for 6 seconds (360 logic frames) minus 1 second (60 logic frames) per input in the code
                             SetState(isGrounded ? PlayerState.Idle : PlayerState.Jump);
                             SpawnToast("STORED!", GameManager.colors["white"]);
                             //break;
+
+                            if (SceneManager.GetActiveScene().name == "Tutorial") { tutorialSpellStored = true; Debug.Log("TUTORIAL SPELL STORED"); }
                             
                         }
                         break;
@@ -1900,18 +1902,17 @@ public class PlayerController : MonoBehaviour
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
                                     }
                                     break;
-                                //@Max White
-                                // case Brand.DarkWeb:
-                                //     //Play the cast visual effect depending on the direction the player is facing
-                                //     if (facingRight)
-                                //     {
-                                //         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
-                                //     }
-                                //     else
-                                //     {
-                                //         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
-                                //     }
-                                //     break;
+                                case Brand.DarkWeb:
+                                    //Play the cast visual effect depending on the direction the player is facing
+                                    if (facingRight)
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    else
+                                    {
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_CAST, position + FixedVec2.FromFloat(-24.5f, 45.5f), pID, facingRight);
+                                    }
+                                    break;
                                 default:
                                     break;
                             }

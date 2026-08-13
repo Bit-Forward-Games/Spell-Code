@@ -63,11 +63,11 @@ public class TouchOfMidas_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                animFrames.frameLengths.Take(2).Sum()+1
+                animFrames.frameLengths.Take(1).Sum()+1
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(3).Sum()
+                animFrames.frameLengths.Take(4).Sum()
             }
         };
         base.LoadProjectile();

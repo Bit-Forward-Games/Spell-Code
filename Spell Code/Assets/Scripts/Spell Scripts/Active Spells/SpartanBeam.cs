@@ -15,7 +15,7 @@ public class SpartanBeam : SpellData
     {
         spellName = "Spartan Beam";
         brands = new Brand[]{ Brand.DarkWeb, Brand.VWave, Brand.Killeez };
-        cooldown = 600;
+        cooldown = 540;
         spellInput = 0b_0000_0000_0000_1001_0101_0010_0000_0110; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate };
@@ -54,7 +54,7 @@ public class SpartanBeam : SpellData
                     if(gun.logicFrame == gun.animFrames.frameLengths.Take(10).Sum())
                     {
                         int direction = gun.facingRight? 1:-1;
-                        ProjectileManager.Instance.SpawnProjectile(beamEnd, gun.facingRight, new FixedVec2(gun.position.X + Fixed.FromInt((_beamEndBaseOffset + owner.reps*10 * (owner.flowState>0?2:1)) * direction), gun.position.Y), true);
+                        ProjectileManager.Instance.SpawnProjectile(beamEnd, gun.facingRight, new FixedVec2(gun.position.X + Fixed.FromInt((_beamEndBaseOffset + owner.reps*15 * (owner.flowState>0?2:1)) * direction), gun.position.Y), true);
 
                     }
                     // for(int i = 1; i < projectileInstances.Count; i++)

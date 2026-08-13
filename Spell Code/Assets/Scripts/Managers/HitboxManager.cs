@@ -170,7 +170,8 @@ public class HitboxManager : MonoBehaviour
                                         projectile.hitstop = hitstopVal;
 
                                         //share hitstop among projectiles
-                                        if(projectile.ownerSpell.projIDsToShareHitstop != null)
+                                        
+                                        if(projectile.ownerSpell != null && projectile.ownerSpell.projIDsToShareHitstop != null)
                                         {
                                             SpellData ownerSpell = projectile.ownerSpell;
                                             ushort[] sharedProjectileIDs = ownerSpell.projIDsToShareHitstop;

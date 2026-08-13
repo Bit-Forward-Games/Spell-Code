@@ -18,10 +18,10 @@ public class SpartanBeam : SpellData
         cooldown = 540;
         spellInput = 0b_0000_0000_0000_1001_0101_0010_0000_0110; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.OnUpdate };
+        procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnSweetSpot };
         projectilePrefabs = new GameObject[10];
         projIDsToShareHitstop = new ushort[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        description = "Charge up a massive beam. The range of this beam is determined by your Reps<sprite name=\"Reps\">, doubled when in Flow State<sprite name=\"FlowState\">.";
+        description = "Charge up a massive beam. The range of this beam is determined by your Reps<sprite name=\"Reps\">, doubled when in Flow State<sprite name=\"FlowState\">. Hitting Sweet-Spots<sprite name=\"FlowState\"> grant 1 rep<sprite name=\"Reps\">";
         
 
     }
@@ -57,34 +57,22 @@ public class SpartanBeam : SpellData
                         ProjectileManager.Instance.SpawnProjectile(beamEnd, gun.facingRight, new FixedVec2(gun.position.X + Fixed.FromInt((_beamEndBaseOffset + owner.reps*15 * (owner.flowState>0?2:1)) * direction), gun.position.Y), true);
 
                     }
-                    // for(int i = 1; i < projectileInstances.Count; i++)
-                    // {
-                    //     projectileInstances[i].GetComponent<BaseProjectile>().logicFrame = gun.logicFrame - gun.animFrames.frameLengths.Take(10).Sum();
-                    // }
-
-                    // byte sharedHitstop = gun.hitstop;
-                    // for (int i = 1; i < projectileInstances.Count; i++)
-                    // {
-                    //     BaseProjectile projectile = projectileInstances[i].GetComponent<BaseProjectile>();
-                    //     if (projectile.hitstop > sharedHitstop)
-                    //     {
-                    //         sharedHitstop = projectile.hitstop;
-                    //     }
-                    // }
-
-                    // if (sharedHitstop > 0)
-                    // {
-                    //     gun.hitstop = sharedHitstop;
-                    //     for (int i = 1; i < projectileInstances.Count; i++)
-                    //     {
-                    //         projectileInstances[i].GetComponent<BaseProjectile>().hitstop = sharedHitstop;
-                    //     }
-                    // }
 
                 }
 
                 UpdateBeamSegments(beamEnd);
 
+                break;
+            case ProcCondition.OnSweetSpot:
+                //only grant resource on the first hit of a multihit per player
+                if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile)|| defender.hitboxData.parentProjectile.ownerSpell == this)
+                {
+                    break;
+                }
+
+                //grant the resource
+                owner.reps++;
+                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

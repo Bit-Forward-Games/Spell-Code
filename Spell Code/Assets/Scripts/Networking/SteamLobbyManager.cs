@@ -60,11 +60,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-32"; // scz-32: sim rules -- storedCodeDuration clamps to a 1s minimum (was 0), universal passives grant on brands.Contains instead of brands[0],
-                                                    // projectiles share hitstop via projIDsToShareHitstop, SpartanBeam reach fixed (the old ternary bound to the multiply, not flowState)
-                                                    // changed MEANING. It used to carry downJumpSlide ("disable diagonal
-                                                    // slide"); it now carries diagonalSlide ("allow it"), and the three
-                                                    // PlayerController conditions were inverted to match
+    private const string NetcodeVersion = "scz-33"; // scz-33: new spell Touch Of Midas (appended as spell 53 / projectile 73; its markedPID + midasEffectCounter now serialize, growing the savestate, and the counter no longer underflows while idle),
+                                                    // FlowState broadcasts OnSweetSpot so SpartanBeam grants reps, StockStability counts brands.Contains, SpartanBeam cooldown 600->540 and reach reps*10->reps*15.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

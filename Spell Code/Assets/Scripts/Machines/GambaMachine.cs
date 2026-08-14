@@ -977,6 +977,28 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
+        //all darkweb Spellcodes
+        if (primaryBrand == Brand.DarkWeb)
+        {
+            if (spellData.spellName == "Beam Of Sparta" && (!player.killeez && !player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+                return true;
+            }
+            
+            if (spellData.spellName == "Touch Of Midas" && (!player.killeez && !player.bigStox))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+                return true;
+            }
+
+            if (spellData.spellName == "Chains Of Thanatos" && (!player.killeez && !player.demonX))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+                return true;
+            }
+        }
+
         if (player.HasReachedSpellCopyLimit(spellName))
         {
             Debug.Log("Copy cap reached: " + spellName + " has been removed");
@@ -1015,12 +1037,6 @@ public class GambaMachine : MonoBehaviour
         if (!player.bigStox && primaryBrand == Brand.BigStox)
         {
             Debug.Log("BigStox passive: " + spellName + " has been removed");
-            return true;
-        }
-
-        if (!player.bigStox && primaryBrand == Brand.DarkWeb)
-        {
-            Debug.Log("DarKWeb passive: " + spellName + " has been removed");
             return true;
         }
 

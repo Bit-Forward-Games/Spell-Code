@@ -4490,6 +4490,11 @@ public class GameManager : MonoBehaviour
         player.times = new List<Fixed>();
         player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
 
+        player.demonX = false;
+        player.bigStox = false;
+        player.killeez = false;
+        player.vWave = false;
+
         if (player.inputDisplay != null) player.inputDisplay.enabled = true;
         if (player.playerNum != null) player.playerNum.enabled = true;
 

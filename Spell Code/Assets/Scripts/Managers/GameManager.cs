@@ -5324,6 +5324,41 @@ public class GameManager : MonoBehaviour
     /// Keeps the "finish a match" achievements off that path: a peer quitting shouldn't satisfy
     /// "play a full match", and it would otherwise be farmable with a friend who joins and leaves.
     /// </param>
+    /// <summary>
+    /// Awards the "finished an online match" achievements, from EITHER end-of-match path.
+    /// GameEnd only runs on a client whose own sim plays the game-over transition out, which in
+    /// practice is the host: a guest is driven straight to the End screen by the host's
+    /// authoritative End packet (BeginOnlineEndTransition -> ApplyOnlineEndWinner) and never calls
+    /// GameEnd at all. Awarding only there is why guests never earned Squad Goals
+    /// </summary>
+    private void TryAwardOnlineMatchCompletionAchievement(bool endedByDisconnect, string source)
+    {
+        // Every input to the decision, because a missed unlock otherwise leaves NO trace:
+        // SteamAchievements.TryTrigger returns silently when Steam has not handed over the user's
+        // stats yet, so an absent "[Achievements] ..." line cannot distinguish "never asked" from
+        // "asked and it was refused". This says which, and which path asked.
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[Achievements] Match-end check from {source}. origin={SteamLobbyManager.ActiveMatchOrigin} "
+                + $"online={isOnlineMatchActive} endedByDisconnect={endedByDisconnect} realFrame={SimGuards.IsRealFrame()}.");
+        }
+
+        if (!isOnlineMatchActive || endedByDisconnect || !SimGuards.IsRealFrame())
+        {
+            return;
+        }
+
+        switch (SteamLobbyManager.ActiveMatchOrigin)
+        {
+            case SteamLobbyManager.OnlineMatchOrigin.Friends:
+                SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
+                break;
+            case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
+                SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
+                break;
+        }
+    }
+
     public void GameEnd(bool endedByDisconnect = false)
     {
         if (!isSaved)
@@ -5334,28 +5369,7 @@ public class GameManager : MonoBehaviour
 
         // Awarded per machine, not per slot: every player who saw the match through earns it
         // on their own account, which is what "play a full match with friends" describes.
-        // Every input to the decision, because a missed unlock leaves NO trace otherwise:
-        // SteamAchievements.TryTrigger returns silently when Steam has not handed over the user's
-        // stats yet, so an absent "[Achievements] ..." line cannot distinguish "never asked" from
-        // "asked and it was refused". This says which.
-        if (SteamManager.DebugToolsEnabled)
-        {
-            Debug.Log($"[Achievements] Match-end check. origin={SteamLobbyManager.ActiveMatchOrigin} "
-                + $"online={isOnlineMatchActive} endedByDisconnect={endedByDisconnect} realFrame={SimGuards.IsRealFrame()}.");
-        }
-
-        if (isOnlineMatchActive && !endedByDisconnect && SimGuards.IsRealFrame())
-        {
-            switch (SteamLobbyManager.ActiveMatchOrigin)
-            {
-                case SteamLobbyManager.OnlineMatchOrigin.Friends:
-                    SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
-                    break;
-                case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
-                    SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
-                    break;
-            }
-        }
+        TryAwardOnlineMatchCompletionAchievement(endedByDisconnect, "GameEnd");
 
         endInputEnabled = false;
 
@@ -5411,6 +5425,12 @@ public class GameManager : MonoBehaviour
         }
 
         ApplyOnlineEndWinner(winnerPid);
+
+        // This is a guest being told the match was played out to a result, which is the only
+        // end-of-match signal it gets it never runs GameEnd. A disconnect-decided match does not
+        // arrive here: that is adjudicated locally and calls GameEnd(endedByDisconnect: true).
+        TryAwardOnlineMatchCompletionAchievement(false, "OnlineEndTransition");
+
         BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;

@@ -107,7 +107,7 @@ public class TempSpellDisplay : MonoBehaviour
                 int wins = displayPlayer != null ? displayPlayer.roundsWon : 0;
                 if (wins != lastDrawnRoundWins)
                 {
-                    UpdateRoundWinCounter();
+                    UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
                 }
             }
         }

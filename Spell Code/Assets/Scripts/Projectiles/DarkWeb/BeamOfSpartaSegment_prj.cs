@@ -6,11 +6,11 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SpartanBeamSegment_prj : BaseProjectile
+public class BeamOfSpartaSegment_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "Spartan Beam Segment";
+        projName = "Beam Of Sparta Segment";
         //hSpeed = 3f;
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames

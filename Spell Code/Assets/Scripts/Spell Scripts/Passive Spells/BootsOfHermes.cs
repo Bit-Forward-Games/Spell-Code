@@ -36,7 +36,7 @@ public class BootsOfHermes : SpellData
                 owner.maxJumpCount = (byte)(owner.charData.jumpCount + Mathf.FloorToInt(owner.reps / 3));
                 break;
             case ProcCondition.OnJump:
-                if(owner.jumpCount < owner.maxJumpCount - 2)
+                if(owner.jumpCount < owner.maxJumpCount - 1)
                 {
                     if(cooldownCounter <= 0)
                     {

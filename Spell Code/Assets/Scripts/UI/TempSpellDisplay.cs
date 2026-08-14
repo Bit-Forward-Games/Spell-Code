@@ -25,6 +25,7 @@ public class TempSpellDisplay : MonoBehaviour
     public List<Image> spellRechargingIcons = new List<Image>();
     public List<Image> spellReadyIcons = new List<Image>();
     public List<Image> roundWinsIcons = new List<Image>();
+    public TextMeshProUGUI roundWinTextImage;
     public List<ParticleSystem> spellReadyEffect = new List<ParticleSystem>();
     public List<GameObject> cooldownBars = new List<GameObject>();
     public int spellDisplayIndex;
@@ -108,41 +109,41 @@ public class TempSpellDisplay : MonoBehaviour
 
     public void UpdateRoundWinCounter(List<Image> roundWinsIcons, Sprite[] roundWinIcon, int spellDisplayIndex)
     {
-        if (uiScript == null || roundWinIcon == null || roundWinIcon.Length < 2)
+        if (uiScript == null || roundWinTextImage == null)
         {
             return;
         }
-
+ 
         var player = GameManager.Instance.players[spellDisplayIndex];
         if (player == null)
         {
             return;
         }
-
-        for (int j = 0; j < roundWinsIcons.Count; j++)
+ 
+        // Builds the 3-pip round win indicator out of WinCounterTextImage sprites:
+        // the first wonCount pips are the "won" icon, the rest stay "not won".
+        void BuildWinCounterText(int wonCount)
         {
-            roundWinsIcons[j].color = new Color32(255, 255, 255, 60);
-            roundWinsIcons[j].sprite = roundWinIcon[0];
+            roundWinTextImage.text = "";
+            for (int j = 0; j < 3; j++)
+            {
+                string iconName = j < wonCount ? "RoundWonIcon" : "RoundNotWonIcon";
+                roundWinTextImage.text += "<sprite=\"WinCounterTextImage\" name=\"" + iconName + "\">";
+            }
         }
-
+ 
+        // Reset to the "not won" state first
+        BuildWinCounterText(0);
+ 
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.name == "End")
         {
-            for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
-            {
-                roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-                roundWinsIcons[j].sprite = roundWinIcon[1];
-            }
+            BuildWinCounterText(player.roundsWon);
             return; // Leave all icons in the reset state on the End screen
         }
-
+ 
         // Fill in won rounds
-        for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
-        {
-            roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-            roundWinsIcons[j].sprite = roundWinIcon[1];
-        }
-
+        BuildWinCounterText(player.roundsWon);
     }
 
     public void UpdateSpellDisplay(int playerIndex)

@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 707809646392089453}
-  - component: {fileID: 7312057472009595077}
+  - component: {fileID: -2505092554615451090}
   m_Layer: 0
-  m_Name: SpartanBeam
+  m_Name: TouchOfMidas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7312057472009595077
+--- !u!114 &-2505092554615451090
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,22 +41,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 5196561346552398132}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd635515fa1e9da4c96d4ab574a4e894, type: 3}
+  m_Script: {fileID: 11500000, guid: cad6d0b2f8347ee44b63960c7c9c0a92, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpartanBeam
+  m_EditorClassIdentifier: Assembly-CSharp::TouchOfMidas
   projectilePrefabs:
-  - {fileID: 3459829395073810853, guid: cd3b102c85ab0f9458b546326c2c2f40, type: 3}
-  - {fileID: 3459829395073810853, guid: 96a0287c29259e64aafd5d834da1090f, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
-  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 177f2bd29774d92409eb110f96c7809b, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: af34e9257c3b8974abce66d93c30bf7b, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: e8828250d6740784da33d0f3f1ae5dfc, type: 3}
+  readyIcon: {fileID: 21300000, guid: 59ecded001c9d4443997bf828a666a61, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 738265588d35c694b95b366c00bfdc50, type: 3}
   SpellVideo: {fileID: 32900000, guid: 0520b12686ecac245ace6c9b76dad74b, type: 3}
+  midasPalette: {fileID: 2800000, guid: 6e1353e1e9570a242b36d496d519c0e1, type: 3}

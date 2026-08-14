@@ -407,7 +407,7 @@ public class GambaMachine : MonoBehaviour
                     //Dark Web
                     case 5:
                         SpawnFloppyDisk(ownerPID, trainingLocs[0], "Spartan Beam");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[1], "Reload Shot");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");

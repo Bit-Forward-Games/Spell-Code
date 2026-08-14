@@ -292,6 +292,9 @@ public class Pause : MonoBehaviour
                 case Brand.Killeez:
                     panelColor.color = GameManager.colors["yellow"];
                     break;
+                case Brand.DarkWeb:
+                    panelColor.color = GameManager.colors["evil color"];
+                    break;
                 default:
                     panelColor.color = GameManager.colors["grey"];
                     break;

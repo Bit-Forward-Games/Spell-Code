@@ -16,7 +16,7 @@ public class BeamOfSparta : SpellData
         spellName = "Beam Of Sparta";
         brands = new Brand[]{ Brand.DarkWeb, Brand.VWave, Brand.Killeez };
         cooldown = 540;
-        spellInput = 0b_0000_0000_0000_1001_0101_0010_0000_0110; // Example input sequence
+        spellInput = 0b_0000_0000_0000_1001_0101_1110_0000_0110; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnSweetSpot };
         projectilePrefabs = new GameObject[10];

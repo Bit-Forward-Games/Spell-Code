@@ -12,7 +12,7 @@ public class TouchOfMidas : SpellData
         spellName = "Touch Of Midas";
         brands = new Brand[]{ Brand.DarkWeb, Brand.BigStox, Brand.Killeez };
         cooldown = 540;
-        spellInput = 0b_0000_0000_0000_0101_0101_0110_0000_0110; // Example input sequence
+        spellInput = 0b_0000_0000_0000_0101_0101_0010_0000_0110; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnHit, ProcCondition.OnUpdate, ProcCondition.OnCrit};
         projectilePrefabs = new GameObject[1];

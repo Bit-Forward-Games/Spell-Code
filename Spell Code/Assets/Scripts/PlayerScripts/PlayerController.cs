@@ -238,6 +238,8 @@ public class PlayerController : MonoBehaviour
 
     public ushort iframes = 0;
     public bool armor = false;
+
+    public bool silenced = false;
     public const int parryThreshold = 10;
 
     [NonSerialized]
@@ -539,6 +541,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
+        silenced = false;
         basicSpawnOverride = string.Empty;
         isHit = false;
         damageBarHitCount = 0;
@@ -3097,7 +3100,16 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
     }
 
+    public void UnSilence()
+    {   
+        silenced = false;
+        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
 
+        for (int i = 0; i < sortedSpellList.Count; i++)
+        {
+            sortedSpellList[i].cooldownCounter = 0;
+        }
+    }
     /// <summary>
     /// Updates spell resource values each frame
     /// </summary>
@@ -3106,6 +3118,26 @@ public class PlayerController : MonoBehaviour
         if (portalCooldown > 0)
         {
             portalCooldown--;
+        }
+
+        if (silenced)
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                sortedSpellList[i].cooldownCounter = 65535;
+            }
+        }
+        else
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                if(sortedSpellList[i].cooldownCounter >= 65000)
+                    sortedSpellList[i].cooldownCounter = 0;
+            }
         }
 
         //update flow state
@@ -3522,6 +3554,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon, PlayerController defender = null)
     {
+        if(silenced && targetPlayer == this) return;
         BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
@@ -3753,6 +3786,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -3915,6 +3949,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -4118,6 +4153,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
+        silenced = br.ReadBoolean();
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();

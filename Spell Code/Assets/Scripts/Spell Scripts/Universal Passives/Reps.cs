@@ -39,12 +39,15 @@ public class Reps : SpellData
                     {
                         break;
                     }
-
-                    //grant the resource
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
+                    
                 }
                 
+                break;
+            case ProcCondition.OnRepGain:
+                //grant the resource
+                owner.reps++;
+                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

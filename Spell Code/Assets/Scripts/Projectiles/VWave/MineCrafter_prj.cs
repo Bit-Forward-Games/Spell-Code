@@ -88,6 +88,7 @@ public class MineCrafter_prj : BaseProjectile
             hSpeed = Fixed.FromInt(0);
 
             playerHitArr = new bool[4] { false, false, false, false };
+            activeHitboxGroupIndex = 0;
             logicFrame = animFrames.frameLengths.Take(36).Sum() + 1; //set the logic frame to the start of the end animation
         }
 

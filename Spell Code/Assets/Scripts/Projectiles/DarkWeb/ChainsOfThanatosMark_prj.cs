@@ -13,15 +13,16 @@ public class ChainsOfThanatosMark_prj : BaseProjectile
     {
         projName = "Chains Of Thanatos Mark";
         deleteOnHit = false;
-        lifeSpan = 600;
+        lifeSpan = 65535;
         fadeOut = true;
+        fadeIn = true;
         deleteOnHurt = true;
         animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4}, true);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset, "Jigoku Flash Step Mark");
+        base.SpawnProjectile(facingRight, spawnOffset, "Chains Of Thanatos Mark");
         activeHitboxGroupIndex = 0;
     }
     public override void LoadProjectile()

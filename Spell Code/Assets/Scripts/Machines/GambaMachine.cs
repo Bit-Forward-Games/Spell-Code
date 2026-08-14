@@ -408,7 +408,7 @@ public class GambaMachine : MonoBehaviour
                     case 5:
                         SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta");
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
-                        //SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");

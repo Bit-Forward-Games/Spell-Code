@@ -66,9 +66,7 @@ public class TouchOfMidas : SpellData
                     break;
                 }
 
-                //grant the resource
-                owner.reps++;
-                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 break;
             default:
                 break;

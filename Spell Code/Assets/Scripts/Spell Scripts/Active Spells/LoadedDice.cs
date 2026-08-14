@@ -84,8 +84,7 @@ public class LoadedDice : SpellData
                 }
                 else if(projectileInstances[2].activeSelf)
                 {
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 }
                 //Mini BCC proc
                 else if(projectileInstances[3].activeSelf || projectileInstances[6].activeSelf)

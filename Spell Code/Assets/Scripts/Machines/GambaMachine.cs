@@ -932,11 +932,17 @@ public class GambaMachine : MonoBehaviour
         if (gameManager.gamemode == GameManager.Gamemode.Chaos)
         {
             List<GameObject> floppyList = GetFloppyListForPID(player.pID);
-            if (floppyList.Count < 4 && spellData.spellType == SpellType.Passive)
+
+            //actives
+            if (floppyList.Count < 4)
             {
-                Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
-                return true;
+                if (spellData.spellType == SpellType.Passive)
+                {
+                    Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    return true;
+                }               
             }
+            //passives
             if (floppyList.Count >= 4)
             {
                 if (spellData.spellType == SpellType.Active)

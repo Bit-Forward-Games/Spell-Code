@@ -5334,6 +5334,16 @@ public class GameManager : MonoBehaviour
 
         // Awarded per machine, not per slot: every player who saw the match through earns it
         // on their own account, which is what "play a full match with friends" describes.
+        // Every input to the decision, because a missed unlock leaves NO trace otherwise:
+        // SteamAchievements.TryTrigger returns silently when Steam has not handed over the user's
+        // stats yet, so an absent "[Achievements] ..." line cannot distinguish "never asked" from
+        // "asked and it was refused". This says which.
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[Achievements] Match-end check. origin={SteamLobbyManager.ActiveMatchOrigin} "
+                + $"online={isOnlineMatchActive} endedByDisconnect={endedByDisconnect} realFrame={SimGuards.IsRealFrame()}.");
+        }
+
         if (isOnlineMatchActive && !endedByDisconnect && SimGuards.IsRealFrame())
         {
             switch (SteamLobbyManager.ActiveMatchOrigin)

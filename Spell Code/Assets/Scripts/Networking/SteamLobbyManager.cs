@@ -3447,7 +3447,21 @@ public class SteamLobbyManager : MonoBehaviour
         // named below latches None and awards nothing: Legacy is the old auto-starting
         // host+invite lobby rather than the Friends lobby the achievement is about, and a
         // flavour that hasn't resolved yet is not evidence of either mode.
-        switch (GetLobbyFlavor(lobby))
+        LobbyFlavor flavor = GetLobbyFlavor(lobby);
+
+        // Unknown means the lobbyMode key has not resolved on this client yet. The HOST always
+        // reads it back (it wrote it locally), but a guest depends on Steam propagating the lobby
+        // data, so only the guest can arrive here blind and latch None -- losing the achievement
+        // for the one player who did nothing wrong. Having accepted a party-start commit for this
+        // exact lobby is independent proof it was a Friends match, so trust that instead.
+        if (flavor == LobbyFlavor.Unknown
+            && partyStartCommitLobbyId.HasValue
+            && partyStartCommitLobbyId.Value == lobby.Id)
+        {
+            flavor = LobbyFlavor.Party;
+        }
+
+        switch (flavor)
         {
             case LobbyFlavor.Party:
                 ActiveMatchOrigin = OnlineMatchOrigin.Friends;
@@ -3458,6 +3472,12 @@ public class SteamLobbyManager : MonoBehaviour
             default:
                 ActiveMatchOrigin = OnlineMatchOrigin.None;
                 break;
+        }
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[SteamLobbyManager] Match origin latched. flavor={flavor} origin={ActiveMatchOrigin} "
+                + $"lobbyMode='{lobby.GetData(LobbyModeKey)}' isOwner={SameSteamId(lobby.Owner.Id, SteamClient.SteamId)}.");
         }
 
         GameManager.Instance.StartOnlineMatch(roster);

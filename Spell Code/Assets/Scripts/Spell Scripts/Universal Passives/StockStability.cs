@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 using Fixed = BestoNet.Types.Fixed32;
@@ -38,7 +39,7 @@ public class StockStability : SpellData
                 owner.stockStability = 0;
                 foreach(SpellData spell in owner.spellList)
                 {
-                    if(spell.brands[0] == Brand.BigStox)
+                    if(spell.brands.Contains(Brand.BigStox))
                     {
                         spell.LoadSpell();
                         owner.stockStability +=10;

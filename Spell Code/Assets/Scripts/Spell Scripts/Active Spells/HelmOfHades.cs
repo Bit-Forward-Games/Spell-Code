@@ -51,8 +51,7 @@ public class HelmOfHades : SpellData
                 //grant the resource
                 if(projectileInstances[0].activeSelf)
                 {
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 }
                 
                 break;

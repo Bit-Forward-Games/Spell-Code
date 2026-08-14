@@ -176,7 +176,8 @@ public class PlayerController : MonoBehaviour
     public bool tutorialSpellStored;
 
     //MATCH STATS
-    public Texture2D[] matchPalette = new Texture2D[4];
+    public Texture2D[] matchPalettes = new Texture2D[4];
+    public Texture2D npcPalette;
     public Texture2D secretEpicPalette;
     private bool secretEpicPaletteActive = false;
     public Texture2D secretNormalPalette;
@@ -237,6 +238,8 @@ public class PlayerController : MonoBehaviour
 
     public ushort iframes = 0;
     public bool armor = false;
+
+    public bool silenced = false;
     public const int parryThreshold = 10;
 
     [NonSerialized]
@@ -439,7 +442,7 @@ public class PlayerController : MonoBehaviour
         switch (Array.IndexOf(GameManager.Instance.players, this))
         {
             case 0:
-                InitializePalette(matchPalette[0]);
+                InitializePalette(matchPalettes[0]);
                 //playerNum.text = "P1";
                 pID = 1;
                 playerIndexImages[0].enabled = true;
@@ -451,7 +454,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case 1:
-                InitializePalette(matchPalette[1]);
+                InitializePalette(matchPalettes[1]);
                 //playerNum.text = "P2";
                 pID = 2;
                 playerIndexImages[1].enabled = true;
@@ -463,7 +466,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case 2:
-                InitializePalette(matchPalette[2]);
+                InitializePalette(matchPalettes[2]);
                 //playerNum.text = "P3";
                 pID = 3;
                 playerIndexImages[2].enabled = true;
@@ -475,7 +478,7 @@ public class PlayerController : MonoBehaviour
 
                 break;
             case 3:
-                InitializePalette(matchPalette[3]);
+                InitializePalette(matchPalettes[3]);
                 //playerNum.text = "P4";
                 pID = 4;
                 playerIndexImages[3].enabled = true;
@@ -538,6 +541,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
+        silenced = false;
         basicSpawnOverride = string.Empty;
         isHit = false;
         damageBarHitCount = 0;
@@ -1792,7 +1796,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else
                         {
-                            InitializePalette(matchPalette[pID - 1]);
+                            InitializePalette(pID == 0? npcPalette : matchPalettes[pID - 1]);
                             secretEpicPaletteActive = false;
                         }
                     }
@@ -1807,7 +1811,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else
                         {
-                            InitializePalette(matchPalette[pID - 1]);
+                            InitializePalette(pID == 0? npcPalette : matchPalettes[pID - 1]);
                             secretNormalPaletteActive = false;
                         }
                     }
@@ -3096,7 +3100,16 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
     }
 
+    public void UnSilence()
+    {   
+        silenced = false;
+        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
 
+        for (int i = 0; i < sortedSpellList.Count; i++)
+        {
+            sortedSpellList[i].cooldownCounter = 0;
+        }
+    }
     /// <summary>
     /// Updates spell resource values each frame
     /// </summary>
@@ -3105,6 +3118,26 @@ public class PlayerController : MonoBehaviour
         if (portalCooldown > 0)
         {
             portalCooldown--;
+        }
+
+        if (silenced)
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                sortedSpellList[i].cooldownCounter = 65535;
+            }
+        }
+        else
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                if(sortedSpellList[i].cooldownCounter >= 65000)
+                    sortedSpellList[i].cooldownCounter = 0;
+            }
         }
 
         //update flow state
@@ -3521,6 +3554,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon, PlayerController defender = null)
     {
+        if(silenced && targetPlayer == this) return;
         BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
@@ -3752,6 +3786,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -3914,6 +3949,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -4117,6 +4153,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
+        silenced = br.ReadBoolean();
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();

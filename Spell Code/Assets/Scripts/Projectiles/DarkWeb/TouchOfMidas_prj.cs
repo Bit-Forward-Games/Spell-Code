@@ -6,18 +6,19 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SpartanBeamEnd_prj : BaseProjectile
+public class TouchOfMidas_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "Spartan Beam End";
+        projName = "TouchOfMidas";
         //hSpeed = 3f;
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames
         //deleteOnHit = true;
-        //fadeIn = true;
+        meleeProjectile = true;
+        fadeIn = true;
         fadeOut = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4}, true);
+        animFrames = new AnimFrames(new List<int>(), new List<int>() { 4, 4, 4, 4, 4, 4}, true);
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -36,15 +37,15 @@ public class SpartanBeamEnd_prj : BaseProjectile
             {
                 new HitboxData
                 {
-                    xOffset = 25*2,
-                    yOffset = 15*2,
-                    width = 4*2,
-                    height = 29*2,
-                    xKnockback = 10,
-                    yKnockback = 10,
-                    damage = 20,
+                    xOffset = -12*2,
+                    yOffset = 8*2,
+                    width = 24*2,
+                    height = 16*2,
+                    xKnockback = 1,
+                    yKnockback = 1,
+                    damage = 15,
                     hitstun = 30,
-                    attackLvl = 4,
+                    attackLvl = 2,
                 }
             },
             hitbox2 = new List<HitboxData>(),
@@ -62,11 +63,11 @@ public class SpartanBeamEnd_prj : BaseProjectile
         {
             startFrames = new List<int>
             {
-                animFrames.frameLengths.Take(2).Sum()+1
+                animFrames.frameLengths.Take(1).Sum()+1
             },
             endFrames = new List<int>
             {
-                animFrames.frameLengths.Take(3).Sum()
+                animFrames.frameLengths.Take(4).Sum()
             }
         };
         base.LoadProjectile();

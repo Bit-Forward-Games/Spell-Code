@@ -52,7 +52,11 @@ public enum ProcCondition
     OnStart,
     OnUpdate,
     OnCrit,
-    OnSweetSpot
+    OnSweetSpot,
+
+    OnRankUp,
+    
+    OnRepGain
     
 }
 

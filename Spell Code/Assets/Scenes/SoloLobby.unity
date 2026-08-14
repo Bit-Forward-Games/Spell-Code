@@ -579,7 +579,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 976433578952918775, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_text
-      value: Coming Soon!
+      value: Recieve a random set of Spellcodes each round!
       objectReference: {fileID: 0}
     - target: {fileID: 976433578952918775, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_HorizontalAlignment
@@ -593,9 +593,17 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1373685511330067868, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Fighting Game Mode Option
+      objectReference: {fileID: 0}
     - target: {fileID: 1543310459374702453, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1575185965359535343, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Fighting Game Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 1670324031221498034, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -659,6 +667,10 @@ PrefabInstance:
 
 '
       objectReference: {fileID: 0}
+    - target: {fileID: 3103174204633081096, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3137364577890229042, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -690,6 +702,12 @@ PrefabInstance:
     - target: {fileID: 4252875764471127962, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4289775435615021566, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: 'Fighting Game
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 4630212402422396056, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -774,6 +792,14 @@ PrefabInstance:
     - target: {fileID: 4857638114445122018, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5271524882101690652, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_TargetGraphic
+      value: 
+      objectReference: {fileID: 1873141537}
+    - target: {fileID: 5271524882101690652, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5448779164427400515, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -886,6 +912,10 @@ PrefabInstance:
     - target: {fileID: 6243808981350453762, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -600
+      objectReference: {fileID: 0}
+    - target: {fileID: 6462911257514421738, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_text
+      value: Chaos Mode
       objectReference: {fileID: 0}
     - target: {fileID: 6844216020657661611, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -1113,11 +1143,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8049193289905210083, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_text
-      value: Coming Soon!
+      value: Select a set of Spellcode and play a classic fighter!
       objectReference: {fileID: 0}
     - target: {fileID: 8049193289905210083, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_HorizontalAlignment
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8153987293949948296, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Chaos Mode Option
       objectReference: {fileID: 0}
     - target: {fileID: 8273283041631975811, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -1138,6 +1172,10 @@ PrefabInstance:
     - target: {fileID: 8580017817177031714, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8639215553718587643, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: m_Name
+      value: Chaos Mode Option Select
       objectReference: {fileID: 0}
     - target: {fileID: 8849235350243610893, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -1517,6 +1555,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d19779b7af744e444876a5eb792544ce, type: 3}
+--- !u!114 &1873141537 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2541193518026610213, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+  m_PrefabInstance: {fileID: 1269099311}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3149903017911321216
 PrefabInstance:
   m_ObjectHideFlags: 0

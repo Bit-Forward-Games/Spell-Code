@@ -14,7 +14,7 @@ public class BifronsBlade : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnCastBasic, ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range slash.\nEnhance next basic attack to break armor and consume all Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
+        description = "Medium-range slash. Enhance next basic attack to break armor and consume all Demon Aura<sprite name=\"DemonAura\"> for extra damage.";
         spawnOffsetX = 25;
         spawnOffsetY = 40;
 

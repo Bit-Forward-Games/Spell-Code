@@ -42,7 +42,8 @@ public class GameManager : MonoBehaviour
         Normal,
         Turbo,
         Elimination,
-        Fighter
+        Fighter,
+        Chaos
     }
 
     public Gamemode gamemode;
@@ -602,6 +603,10 @@ public class GameManager : MonoBehaviour
                 break;
 
             case Gamemode.Fighter: //3
+                loadMainMenu();
+                break;
+
+            case Gamemode.Chaos: //4
                 loadMainMenu();
                 break;
         }
@@ -3873,6 +3878,25 @@ public class GameManager : MonoBehaviour
                         GameEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
+                    }
+                    else if (gamemode == Gamemode.Chaos)
+                    {
+                        // Reset round RAM HERE, not only once the Shop scene loads
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].storedKillBonus = 0;
+                            players[i].ClearSpellList();
+                        }
+                        playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
+                        RoundEnd();
+                        ResetPlayers();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                        roundOver = false;
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }

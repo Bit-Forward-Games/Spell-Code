@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5196561346552398132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 707809646392089453}
+  - component: {fileID: 7312057472009595077}
+  m_Layer: 0
+  m_Name: BeamOfSparta
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &707809646392089453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5196561346552398132}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7312057472009595077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5196561346552398132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd635515fa1e9da4c96d4ab574a4e894, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpartanBeam
+  projectilePrefabs:
+  - {fileID: 3459829395073810853, guid: cd3b102c85ab0f9458b546326c2c2f40, type: 3}
+  - {fileID: 3459829395073810853, guid: 96a0287c29259e64aafd5d834da1090f, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  - {fileID: 3459829395073810853, guid: 719ba7aa129427947a922f72d6962b04, type: 3}
+  projectileInstances: []
+  floppyDisplayInstance: {fileID: 0}
+  readyIcon: {fileID: 21300000, guid: af34e9257c3b8974abce66d93c30bf7b, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: e8828250d6740784da33d0f3f1ae5dfc, type: 3}
+  SpellVideo: {fileID: 32900000, guid: 0520b12686ecac245ace6c9b76dad74b, type: 3}

@@ -82,7 +82,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -96,7 +96,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 0.5
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -120,7 +120,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -174,12 +174,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_0
       rect:
         serializedVersion: 2
-        x: 11
-        y: 97
-        width: 41
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -196,12 +196,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_1
       rect:
         serializedVersion: 2
-        x: 91
-        y: 97
-        width: 41
-        height: 29
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 80
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -218,12 +218,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_2
       rect:
         serializedVersion: 2
-        x: 171
-        y: 98
-        width: 41
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 160
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -240,12 +240,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_3
       rect:
         serializedVersion: 2
-        x: 251
-        y: 97
-        width: 41
-        height: 29
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 240
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -262,12 +262,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_4
       rect:
         serializedVersion: 2
-        x: 331
-        y: 97
-        width: 41
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 320
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -284,12 +284,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_5
       rect:
         serializedVersion: 2
-        x: 411
-        y: 97
-        width: 41
-        height: 29
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 400
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -306,12 +306,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_6
       rect:
         serializedVersion: 2
-        x: 491
-        y: 98
-        width: 41
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 480
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -328,12 +328,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_7
       rect:
         serializedVersion: 2
-        x: 571
-        y: 97
-        width: 41
-        height: 29
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 560
+        y: 64
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -350,12 +350,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_8
       rect:
         serializedVersion: 2
-        x: 2
-        y: 19
-        width: 40
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -372,12 +372,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_9
       rect:
         serializedVersion: 2
-        x: 82
-        y: 16
-        width: 41
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 80
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -394,12 +394,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_10
       rect:
         serializedVersion: 2
-        x: 164
-        y: 11
-        width: 41
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 160
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -416,12 +416,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_11
       rect:
         serializedVersion: 2
-        x: 248
-        y: 11
-        width: 68
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 240
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -438,12 +438,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_12
       rect:
         serializedVersion: 2
-        x: 348
-        y: 16
-        width: 43
-        height: 30
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 320
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -460,12 +460,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_13
       rect:
         serializedVersion: 2
-        x: 427
-        y: 22
-        width: 37
-        height: 19
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 400
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -482,12 +482,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_14
       rect:
         serializedVersion: 2
-        x: 505
-        y: 23
-        width: 34
-        height: 18
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 480
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -504,12 +504,12 @@ TextureImporter:
       name: ChainsOfThanatos-Sheet_15
       rect:
         serializedVersion: 2
-        x: 584
-        y: 23
-        width: 33
-        height: 18
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 560
+        y: 0
+        width: 80
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -526,7 +526,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: b30929d9075394e49841ab7484de9b06
     internalID: 0
     vertices: []
     indices: 
@@ -534,7 +534,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":8.0,"y":2.0},"gridSpriteSize":{"x":80.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.4000000059604645,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":1,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       ChainsOfThanatos-Sheet_0: 2031266495301134860
       ChainsOfThanatos-Sheet_1: 8147777826721638810

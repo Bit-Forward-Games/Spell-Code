@@ -15,7 +15,7 @@ public class Reps : SpellData
         priorityOverride = 3;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[1] { ProcCondition.OnHitSpell};
-        description = $"Hit Killeez Spellcodes to Gain Reps<sprite name=\"Reps\">.\nOn Respawn, lose all Reps<sprite name=\"Reps\">.\nSpellcodes deal increased damage based on Reps<sprite name=\"Reps\">.";
+        description = $"Hit Killeez Spellcodes to Gain Reps<sprite name=\"Reps\">. On Respawn, lose all Reps<sprite name=\"Reps\">. Spellcodes deal increased damage based on Reps<sprite name=\"Reps\">.";
     }
 
 

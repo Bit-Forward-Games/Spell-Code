@@ -15,7 +15,7 @@ public class UseTheCredit : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_0001_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit};
-        description = "Short-range credit swipe.\nHits twice on \"Crit\"<sprite name=\"StockStability\">.";
+        description = "Short-range credit swipe. Hits twice on Crit<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[2];
     }
 

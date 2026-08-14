@@ -16,7 +16,7 @@ public class MightOfZeus : SpellData
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[4];
 
-        description = "Summon tall, medium-range lightning.\nThis spell gains stun based on Reps<sprite name=\"Reps\">.";
+        description = "Summon tall, medium-range lightning. This spell gains stun based on Reps<sprite name=\"Reps\">.";
 
         spawnOffsetX = 25;
         spawnOffsetY = 0;

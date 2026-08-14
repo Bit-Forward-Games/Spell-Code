@@ -10,7 +10,7 @@ public class SunOfApollo : SpellData
         spellInput = 0b_0000_0000_0000_0000_0010_1101_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        description = "Delayed massive explosion.\nDeals Massively increased damage based on Reps<sprite name=\"Reps\">.";
+        description = "Delayed massive explosion. Deals Massively increased damage based on Reps<sprite name=\"Reps\">.";
 
         projectilePrefabs = new GameObject[1];
     }

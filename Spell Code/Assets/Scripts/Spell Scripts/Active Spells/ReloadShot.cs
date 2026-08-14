@@ -10,7 +10,7 @@ public class ReloadShot : SpellData
         spellInput = 0b_0000_0000_0000_0000_1101_0010_0000_0100; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit };
-        description = "Long Range Shot.\nHit this: Reset all other cooldowns.\nConsume all Flow State<sprite name=\"FlowState\"> to reduce this cooldown.";
+        description = "Long Range Shot. Hit this: Reset all other cooldowns. Consume all Flow State<sprite name=\"FlowState\"> to reduce this cooldown.";
         projectilePrefabs = new GameObject[1];
     }
 

@@ -11,7 +11,7 @@ public class BladeOfAres : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range slash.\nThis Spell has armor.";
+        description = "Short-range slash. This Spell has armor.";
 
     }
 

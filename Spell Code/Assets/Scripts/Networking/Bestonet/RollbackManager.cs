@@ -2499,6 +2499,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int ownerPid = projectile.owner != null ? projectile.owner.pID : -1;
             string ignoreText = projectile.playerHitArr != null ? string.Join(",", projectile.playerHitArr) : "null";
             diag += $"\n   {projectile.projName}: pos=({projectile.position.X.RawValue},{projectile.position.Y.RawValue}) frame={projectile.logicFrame} owner={ownerPid} ignore=[{ignoreText}]";
+
+            // The projectile hash runs BaseProjectile.Serialize, so a divergence can sit in any of
+            // these while pos/frame/owner/ignore above look identical on both machines -- which is
+            // exactly what the 2026-08-12 logs showed. Dump the rest of the hashed set so the next
+            // report names the field instead of only proving that something differs. idx is the
+            // prefabPrefabs index the hash writes per projectile, so a list-ordering difference
+            // shows up here too.
+            int prefabIndex = ProjectileManager.Instance.projectilePrefabs.IndexOf(projectile);
+            string multiHitText = projectile.multiHitCount != null
+                ? string.Join(",", projectile.multiHitCount) : "null";
+            string ignoreFlagsText = projectile.playerIgnoreArr != null
+                ? string.Join(",", projectile.playerIgnoreArr) : "null";
+            diag += $"\n     idx={prefabIndex} hSpd={projectile.hSpeed.RawValue} vSpd={projectile.vSpeed.RawValue}"
+                 + $" facing={projectile.facingRight} animF={projectile.animationFrame} hitstop={projectile.hitstop}"
+                 + $" hbGroup={projectile.activeHitboxGroupIndex} life={projectile.lifeSpan}"
+                 + $" delHit={projectile.deleteOnHit} delHurt={projectile.deleteOnHurt}"
+                 + $" allIgn={projectile.allHitPlayersAreIgnored} multiHit=[{multiHitText}]"
+                 + $" ignFlags=[{ignoreFlagsText}]";
         }
 
         return diag;

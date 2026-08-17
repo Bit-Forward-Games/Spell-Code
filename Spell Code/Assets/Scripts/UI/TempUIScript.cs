@@ -183,6 +183,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        // Mirrors OnEnable's input.Enable(). Without this the Player/UI maps stay enabled when the
+        // asset is finalized, which is what raises "InputSystem_Actions.Player.Disable() has not
+        // been called" (Pause does the same pairing for its own copy).
+        input.Disable();
         pause?.RestoreScopedUiInputDevices();
         StopDamageBarCoroutines();
 

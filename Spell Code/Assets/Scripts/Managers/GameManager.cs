@@ -2289,7 +2289,7 @@ public class GameManager : MonoBehaviour
         bigWinner = players[winnerSlot];
         gameOver = true;
         Debug.LogWarning($"[GameManager] Last player standing: P{endWinnerPid} wins the match by disconnect.");
-        GameEnd();
+        GameEnd(endedByDisconnect: true);
     }
 
     private void ApplyOnlineEndWinner(int winnerPid)
@@ -5312,12 +5312,32 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// called when a game ends (game is a series of matches/rounds)
     /// </summary>
-    public void GameEnd()
+    /// <param name="endedByDisconnect">
+    /// True when the match was decided by everyone else dropping rather than being played out.
+    /// Keeps the "finish a match" achievements off that path: a peer quitting shouldn't satisfy
+    /// "play a full match", and it would otherwise be farmable with a friend who joins and leaves.
+    /// </param>
+    public void GameEnd(bool endedByDisconnect = false)
     {
         if (!isSaved)
         {
             dataManager.SaveMatch();
             isSaved = true;
+        }
+
+        // Awarded per machine, not per slot: every player who saw the match through earns it
+        // on their own account, which is what "play a full match with friends" describes.
+        if (isOnlineMatchActive && !endedByDisconnect && SimGuards.IsRealFrame())
+        {
+            switch (SteamLobbyManager.ActiveMatchOrigin)
+            {
+                case SteamLobbyManager.OnlineMatchOrigin.Friends:
+                    SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
+                    break;
+                case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
+                    SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
+                    break;
+            }
         }
 
         endInputEnabled = false;

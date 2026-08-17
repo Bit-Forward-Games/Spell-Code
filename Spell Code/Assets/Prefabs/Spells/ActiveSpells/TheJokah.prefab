@@ -49,8 +49,9 @@ MonoBehaviour:
   - {fileID: 3459829395073810853, guid: c55ae19b41e728f4eb2ccfe00f478fa6, type: 3}
   projectileInstances: []
   floppyDisplayInstance: {fileID: 0}
-  readyIcon: {fileID: 21300000, guid: c6641c63fbaf118419c18210182e58bf, type: 3}
-  notReadyIcon: {fileID: 21300000, guid: 80850399e57dd2a46908a6fde50aa7d8, type: 3}
-  SpellVideo: {fileID: 32900000, guid: 21c0241ceed88df4da5f07d2260a5110, type: 3}
+  readyIcon: {fileID: 21300000, guid: 378357cf5c1fc1c4dbe8e40a8b6841ff, type: 3}
+  notReadyIcon: {fileID: 21300000, guid: 663bb395442ced04cb96630e3c9c37db, type: 3}
+  SpellVideo: {fileID: 32900000, guid: ca40e2a6919178c4d9b356e3ffb92106, type: 3}
   JokahVWaveSpells: []
   JokahBigStoxSpells: []
+  isVWave: 0

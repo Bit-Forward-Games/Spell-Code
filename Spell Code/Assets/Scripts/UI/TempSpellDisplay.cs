@@ -141,7 +141,13 @@ public class TempSpellDisplay : MonoBehaviour
         {
             return;
         }
- 
+
+        // Only record once a draw is actually going ahead, so an early return above cannot mark a
+        // total as drawn that never reached the pips. Without this the change detector in Update
+        // never advances past -1, so it matches every frame and rebuilds the sprite string
+        // continuously for every player.
+        lastDrawnRoundWins = player.roundsWon;
+
         // Builds the 3-pip round win indicator out of WinCounterTextImage sprites:
         // the first wonCount pips are the "won" icon, the rest stay "not won".
         void BuildWinCounterText(int wonCount)

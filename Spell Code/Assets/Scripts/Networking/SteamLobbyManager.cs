@@ -60,8 +60,9 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-33"; // scz-33: new spell Touch Of Midas (appended as spell 53 / projectile 73; its markedPID + midasEffectCounter now serialize, growing the savestate, and the counter no longer underflows while idle),
-                                                    // FlowState broadcasts OnSweetSpot so SpartanBeam grants reps, StockStability counts brands.Contains, SpartanBeam cooldown 600->540 and reach reps*10->reps*15.
+    private const string NetcodeVersion = "scz-34"; // scz-34: new spell Chains Of Thanatos and PlayerController.silenced joins the savestate + combat hash; ProcCondition gained OnRankUp/OnRepGain (appended)
+                                                    // and the DemonAura/FlowState/Reps grants now broadcast through them; Gamemode gained Chaos (appended) with its own round-end branch; Spartan Beam renamed to "Beam Of Sparta";
+                                                    // Mine Crafter retires its hitbox on the frame the hit is noticed, so a mine lands ONE hit instead of two (it cleared playerHitArr while the live hitbox group was still set)
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

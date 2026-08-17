@@ -3,9 +3,11 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class GetAJob : SpellData
+public class GetAJob : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
+    bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
     public GetAJob()
     {
         spellName = "Get A Job";
@@ -70,7 +72,7 @@ public class GetAJob : SpellData
         {
             
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified;
+                this.ResolveCrit(owner);
                 owner.superArmor = doesCrit;
                 owner.armor = !doesCrit;
                 break;

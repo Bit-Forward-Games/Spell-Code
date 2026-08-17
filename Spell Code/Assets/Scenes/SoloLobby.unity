@@ -518,6 +518,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fighting Game Mode Option
       objectReference: {fileID: 0}
+    - target: {fileID: 1407857980670715718, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: modeId
+      value: fighter
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407857980670715718, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: displayName
+      value: Fighting Game
+      objectReference: {fileID: 0}
     - target: {fileID: 1543310459374702453, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -721,6 +729,14 @@ PrefabInstance:
     - target: {fileID: 5271524882101690652, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5287044578905879503, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: modeId
+      value: chaos
+      objectReference: {fileID: 0}
+    - target: {fileID: 5287044578905879503, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: displayName
+      value: Chaos
       objectReference: {fileID: 0}
     - target: {fileID: 5331417111923557939, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: fellas.Array.size

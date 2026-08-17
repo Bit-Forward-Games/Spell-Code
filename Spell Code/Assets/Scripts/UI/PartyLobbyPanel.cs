@@ -969,6 +969,28 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (authoredOption != null)
         {
             mode = authoredOption.Selection;
+
+            // The component wins over the name map, so if the two disagree the button silently
+            // publishes a different mode than its name (and its art) says -- which is exactly how
+            // "pick Chaos, get Fighting Game" shipped. Neither source can be trusted over the
+            // other automatically, so say so loudly instead of guessing.
+            Transform namedRoot = button.transform;
+            while (namedRoot.parent != null && namedRoot.parent != gameModePanel.transform)
+            {
+                namedRoot = namedRoot.parent;
+            }
+
+            if (PartyModesByOptionRoot.TryGetValue(namedRoot.name, out OnlineGameModeSelection namedMode)
+                && !string.Equals(namedMode.Id, mode.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError(
+                    $"[PartyLobbyPanel] Game mode option '{namedRoot.name}' carries an OnlineGameModeOption "
+                    + $"with modeId '{mode.Id}' ({mode.DisplayName}), but its name maps to '{namedMode.Id}' "
+                    + $"({namedMode.DisplayName}). The component wins, so this button publishes "
+                    + $"'{mode.Id}'. Fix whichever is wrong in the Inspector.",
+                    button);
+            }
+
             return true;
         }
 

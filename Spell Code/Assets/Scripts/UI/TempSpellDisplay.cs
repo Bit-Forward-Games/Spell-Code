@@ -11,7 +11,7 @@ public class TempSpellDisplay : MonoBehaviour
     public List<TextMeshProUGUI> spellSlots = new List<TextMeshProUGUI>();
     public bool invertAlign = false;
     //private bool spellListUpdated = false;
-    private bool roundWinCounterUpdated = false;
+    public bool roundWinCounterUpdated = false;
     // roundsWon last painted onto the icons. -1 forces a draw on the first pass.
     private int lastDrawnRoundWins = -1;
 
@@ -62,7 +62,7 @@ public class TempSpellDisplay : MonoBehaviour
 
         // Cache the parent gameobjects once 
         CacheCooldownParents();
-        UpdateRoundWinCounter();
+        UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
     }
 
     private void CacheCooldownParents()
@@ -84,7 +84,7 @@ public class TempSpellDisplay : MonoBehaviour
         if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
             uiScript.transitionScreenDisplayed = false;
-            UpdateRoundWinCounter();
+            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
             roundWinCounterUpdated = true;
         }
         else if (!GameManager.Instance.roundOver)
@@ -107,7 +107,7 @@ public class TempSpellDisplay : MonoBehaviour
                 int wins = displayPlayer != null ? displayPlayer.roundsWon : 0;
                 if (wins != lastDrawnRoundWins)
                 {
-                    UpdateRoundWinCounter();
+                    UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
                 }
             }
         }
@@ -119,7 +119,7 @@ public class TempSpellDisplay : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.name == "End")
         {
-            UpdateRoundWinCounter();
+            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
         }
 
         /*
@@ -128,9 +128,9 @@ public class TempSpellDisplay : MonoBehaviour
         */
     }
 
-    public void UpdateRoundWinCounter()
+    public void UpdateRoundWinCounter(List<Image> roundWinsIcons, Sprite[] roundWinIcon, int spellDisplayIndex)
     {
-        if (uiScript == null || uiScript.roundWinIcon == null || uiScript.roundWinIcon.Length < 2)
+        if (uiScript == null || roundWinIcon == null || roundWinIcon.Length < 2)
         {
             return;
         }
@@ -148,7 +148,7 @@ public class TempSpellDisplay : MonoBehaviour
         for (int j = 0; j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 60);
-            roundWinsIcons[j].sprite = uiScript.roundWinIcon[0];
+            roundWinsIcons[j].sprite = roundWinIcon[0];
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
@@ -157,7 +157,7 @@ public class TempSpellDisplay : MonoBehaviour
             for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
             {
                 roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-                roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
+                roundWinsIcons[j].sprite = roundWinIcon[1];
             }
             return; // Leave all icons in the reset state on the End screen
         }
@@ -166,7 +166,7 @@ public class TempSpellDisplay : MonoBehaviour
         for (int j = 0; j < player.roundsWon && j < roundWinsIcons.Count; j++)
         {
             roundWinsIcons[j].color = new Color32(255, 255, 255, 255);
-            roundWinsIcons[j].sprite = uiScript.roundWinIcon[1];
+            roundWinsIcons[j].sprite = roundWinIcon[1];
         }
 
     }
@@ -206,39 +206,31 @@ public class TempSpellDisplay : MonoBehaviour
 
             if (i < playerSpells.Count)
             {
-                var main = spellReadyEffect[i].main;
+                var spellReadyParticles = spellReadyEffect[i].main;
                 parent.gameObject.SetActive(true);
 
                 //handle cooldown fill color and particle effect color based on spell brand
                 switch (playerSpells[i].brands[0])
                 {
                     case Brand.VWave:
-                        cooldownFills[i].color = new Color32(107, 255, 116, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(107, 255, 116, 255));
-                        // if (i < uiScript.flowStateVals.Length && uiScript.flowStateVals[i] != null)
-                        //     uiScript.flowStateVals[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["green"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["green"]);
                         break;
                     case Brand.BigStox:
-                        cooldownFills[i].color = new Color32(67, 122, 252, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(67, 122, 252, 255));
-                        // if (i < uiScript.stockStabilityVals.Length && uiScript.stockStabilityVals[i] != null)
-                        //     uiScript.stockStabilityVals[i].enabled = true;
-                        // if (i < uiScript.stockStabilityIcons.Length && uiScript.stockStabilityIcons[i] != null)
-                        //     uiScript.stockStabilityIcons[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["blue"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["blue"]);
                         break;
                     case Brand.DemonX:
-                        cooldownFills[i].color = new Color32(255, 62, 117, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 62, 117, 255));
-                        // if (i < uiScript.demonAuraVals.Length && uiScript.demonAuraVals[i] != null)
-                        //     uiScript.demonAuraVals[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["red"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["red"]);
                         break;
                     case Brand.Killeez:
-                        cooldownFills[i].color = new Color32(255, 207, 0, 255);
-                        main.startColor = new ParticleSystem.MinMaxGradient(new Color32(255, 207, 0, 255));
-                        // if (i < uiScript.repsVals.Length && uiScript.repsVals[i] != null)
-                        //     uiScript.repsVals[i].enabled = true;
-                        // if (i < uiScript.repsIcons.Length && uiScript.repsIcons[i] != null)
-                        //     uiScript.repsIcons[i].enabled = true;
+                        cooldownFills[i].color = GameManager.colors["yellow"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["yellow"]);
+                        break;
+                    case Brand.DarkWeb:
+                        cooldownFills[i].color = GameManager.colors["white"];
+                        spellReadyParticles.startColor = new ParticleSystem.MinMaxGradient(GameManager.colors["evil color"]);
                         break;
                 }
 

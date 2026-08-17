@@ -854,10 +854,10 @@ public class GameEndScreen : MonoBehaviour
         Texture2D paletteTexture = onlineEndFlow
             ? GameManager.Instance.endWinnerPalette
             : (GameManager.Instance.bigWinner != null
-                && GameManager.Instance.bigWinner.matchPalette != null
+                && GameManager.Instance.bigWinner.matchPalettes != null
                 && GameManager.Instance.bigWinner.pID - 1 >= 0
-                && GameManager.Instance.bigWinner.pID - 1 < GameManager.Instance.bigWinner.matchPalette.Length
-                    ? GameManager.Instance.bigWinner.matchPalette[GameManager.Instance.bigWinner.pID - 1]
+                && GameManager.Instance.bigWinner.pID - 1 < GameManager.Instance.bigWinner.matchPalettes.Length
+                    ? GameManager.Instance.bigWinner.matchPalettes[GameManager.Instance.bigWinner.pID - 1]
                     : null);
 
         if (winnerText != null && winnerPid > 0)

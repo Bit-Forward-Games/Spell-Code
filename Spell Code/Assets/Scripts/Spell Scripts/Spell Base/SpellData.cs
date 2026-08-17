@@ -21,7 +21,8 @@ public enum Brand
     VWave,
     DemonX,
     Killeez,
-    BigStox
+    BigStox,
+    DarkWeb
 }
 
 public enum ProcCondition
@@ -71,6 +72,7 @@ public abstract class SpellData : MonoBehaviour
 
     [NonSerialized]
     public string description;
+    [NonSerialized] public ushort[] projIDsToShareHitstop = null;
 
     [NonSerialized]
     public byte priorityOverride = 0;   //This Variable when non-zero allows for "high priority" spellcodes to resolve their effects first if necessary, e.g., blue chip trader should always resolve before Let It Ride.

@@ -60,12 +60,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-31"; // scz-31: input packets carry immutable batch bounds so chunked resend windows align consistently after lobby snapshot rebases
-                                                    // changed MEANING. It used to carry downJumpSlide ("disable diagonal
-                                                    // slide"); it now carries diagonalSlide ("allow it"), and the three
-                                                    // PlayerController conditions were inverted to match. The bit position
-                                                    // is unchanged, so an scz-27 peer reads it with the opposite sense and
-                                                    // slides differently -- a silent divergence, not a rejected packet.
+    private const string NetcodeVersion = "scz-33"; // scz-33: new spell Touch Of Midas (appended as spell 53 / projectile 73; its markedPID + midasEffectCounter now serialize, growing the savestate, and the counter no longer underflows while idle),
+                                                    // FlowState broadcasts OnSweetSpot so SpartanBeam grants reps, StockStability counts brands.Contains, SpartanBeam cooldown 600->540 and reach reps*10->reps*15.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -3451,7 +3447,21 @@ public class SteamLobbyManager : MonoBehaviour
         // named below latches None and awards nothing: Legacy is the old auto-starting
         // host+invite lobby rather than the Friends lobby the achievement is about, and a
         // flavour that hasn't resolved yet is not evidence of either mode.
-        switch (GetLobbyFlavor(lobby))
+        LobbyFlavor flavor = GetLobbyFlavor(lobby);
+
+        // Unknown means the lobbyMode key has not resolved on this client yet. The HOST always
+        // reads it back (it wrote it locally), but a guest depends on Steam propagating the lobby
+        // data, so only the guest can arrive here blind and latch None -- losing the achievement
+        // for the one player who did nothing wrong. Having accepted a party-start commit for this
+        // exact lobby is independent proof it was a Friends match, so trust that instead.
+        if (flavor == LobbyFlavor.Unknown
+            && partyStartCommitLobbyId.HasValue
+            && partyStartCommitLobbyId.Value == lobby.Id)
+        {
+            flavor = LobbyFlavor.Party;
+        }
+
+        switch (flavor)
         {
             case LobbyFlavor.Party:
                 ActiveMatchOrigin = OnlineMatchOrigin.Friends;
@@ -3462,6 +3472,12 @@ public class SteamLobbyManager : MonoBehaviour
             default:
                 ActiveMatchOrigin = OnlineMatchOrigin.None;
                 break;
+        }
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[SteamLobbyManager] Match origin latched. flavor={flavor} origin={ActiveMatchOrigin} "
+                + $"lobbyMode='{lobby.GetData(LobbyModeKey)}' isOwner={SameSteamId(lobby.Owner.Id, SteamClient.SteamId)}.");
         }
 
         GameManager.Instance.StartOnlineMatch(roster);

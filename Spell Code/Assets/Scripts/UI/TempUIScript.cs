@@ -136,6 +136,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public ArenaNameDisplayHandler arenaNameDisplayHandler;
 
+    [Header("Round End UI")] // Round End UI
+    public GameObject roundEndUI;
+    public RectTransform winnerPanel;
+    public TempSpellDisplay[] spellDisplays;
+
     public void OnSelect(BaseEventData eventData)
     {
         RectTransform myRect = (RectTransform)transform;
@@ -674,9 +679,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             Time.timeScale = 1f;
             EventSystem.current.SetSelectedGameObject(null);
+            }
+
         }
 
-    }
+        if (GameManager.Instance.roundOver && !spellDisplays[0].roundWinCounterUpdated)
+        {
+            transitionScreenDisplayed = false;
+            // RoundEndUI();
+            
+            spellDisplays[0].roundWinCounterUpdated = true;
+        }
+        else if (!GameManager.Instance.roundOver)
+        {
+            spellDisplays[0].roundWinCounterUpdated = false;
+        }
 
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
@@ -690,6 +707,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //{
         //    OpenCodeModeMenuPrompt(true);
         //}
+    }
+
+    public void RoundEndUI()
+    {
+        spellDisplays[0].UpdateRoundWinCounter(spellDisplays[0].roundWinsIcons, roundWinIcon, 0);
     }
 
     public void QueueKickedMessageForSoloLobby()

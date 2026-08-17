@@ -983,26 +983,141 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        //all darkweb Spellcodes
+        //all darkweb Spellcodes @patrick
         if (primaryBrand == Brand.DarkWeb)
         {
-            if (spellData.spellName == "Beam Of Sparta" && (!player.killeez && !player.vWave))
+            //Collabs
+            if (spellData.spellName == "Beam Of Sparta" && (player.killeez && player.vWave))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
             
-            if (spellData.spellName == "Touch Of Midas" && (!player.killeez && !player.bigStox))
+            if (spellData.spellName == "Touch Of Midas" && (player.killeez && player.bigStox))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
 
-            if (spellData.spellName == "Chains Of Thanatos" && (!player.killeez && !player.demonX))
+            if (spellData.spellName == "Chains Of Thanatos" && (player.killeez && player.demonX))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
+
+            if (spellData.spellName == "" && (player.demonX && player.bigStox))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "" && (player.demonX && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "" && (player.bigStox && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            //Combos
+            if (spellData.spellName == "")
+            {
+                bool AU = false;
+                bool HWF = false;
+                bool BCK = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Abbadon Uppercut") { AU = true; }
+                    if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
+                    if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
+                }
+
+                if (AU && HWF && BCK)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool BO = false;
+                bool CO = false;
+                bool CT = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Bailout") { BO = true; }
+                    if (player.spellList[i].spellName == "Cash Out") { CO = true; }
+                    if (player.spellList[i].spellName == "Coin Toss") { CT = true; }
+                }
+
+                if (BO && CO && CT)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool MoZ = false;
+                bool ToP = false;
+                bool HoH = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Might Of Zeus") { MoZ = true; }
+                    if (player.spellList[i].spellName == "Trident Of Poseidon") { ToP = true; }
+                    if (player.spellList[i].spellName == "Helm Of Hades") { HoH = true; }
+                }
+
+                if (MoZ && ToP && HoH)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool TSA = false;
+                bool PS = false;
+                bool SOTN = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Trickshot Alley") { TSA = true; }
+                    if (player.spellList[i].spellName == "Pong Shot") { PS = true; }
+                    if (player.spellList[i].spellName == "Sickle Of The Night") { SOTN = true; }
+                }
+
+                if (TSA && PS && SOTN)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            //Uniques
+            if (spellData.spellName == "" && (player.demonX && player.bigStox && player.killeez && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "" && player.spellList.Count == 1)
+            {
+                if (dataManager.totalRoundsPlayed >= gameManager.playerCount)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+            return true;
         }
 
         if (player.HasReachedSpellCopyLimit(spellName))

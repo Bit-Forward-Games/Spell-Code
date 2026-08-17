@@ -60,9 +60,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-34"; // scz-34: new spell Chains Of Thanatos and PlayerController.silenced joins the savestate + combat hash; ProcCondition gained OnRankUp/OnRepGain (appended)
-                                                    // and the DemonAura/FlowState/Reps grants now broadcast through them; Gamemode gained Chaos (appended) with its own round-end branch; Spartan Beam renamed to "Beam Of Sparta";
-                                                    // Mine Crafter retires its hitbox on the frame the hit is noticed, so a mine lands ONE hit instead of two (it cleared playerHitArr while the live hitbox group was still set)
+    private const string NetcodeVersion = "scz-35"; // scz-35: the "chaos" lobby mode id now resolves to Gamemode.Chaos instead of falling back to Normal, so an online party that picks Chaos actually plays it (spell lists clear each round)
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

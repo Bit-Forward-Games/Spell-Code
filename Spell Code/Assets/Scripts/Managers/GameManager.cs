@@ -1145,7 +1145,14 @@ public class GameManager : MonoBehaviour
             return Gamemode.Fighter;
         }
 
-        // Normal, empty, Chaos (until it has rules), and unknown ids all use the safe baseline.
+        if (string.Equals(gameModeId, "chaos", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Chaos;
+        }
+
+        // Normal, empty, and unknown ids all use the safe baseline. Unknown matters for forward
+        // compatibility: a peer on an older build that has never heard of a mode still resolves to
+        // something both machines agree on rather than splitting the rules.
         return Gamemode.Normal;
     }
 

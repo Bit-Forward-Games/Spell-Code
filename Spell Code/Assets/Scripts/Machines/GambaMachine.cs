@@ -189,8 +189,8 @@ public class GambaMachine : MonoBehaviour
                 {
                     if (isActive && CheckHitboxCollision())
                     {
-                        Debug.Log("Hitbox collision detected!");
-                        Debug.Log("SHOP GAMBA");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
 
                         //play the gamba hit sfx
                         SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
@@ -345,8 +345,8 @@ public class GambaMachine : MonoBehaviour
                 {
                     if (isActive && CheckHitboxCollision())
                     {
-                        Debug.Log("Hitbox collision detected!");
-                        Debug.Log("SHOP GAMBA");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
 
                         //play the gamba hit sfx
                         SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
@@ -938,16 +938,16 @@ public class GambaMachine : MonoBehaviour
             {
                 if (spellData.spellType == SpellType.Passive)
                 {
-                    Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
                     return true;
-                }               
+                }
             }
             //passives
             if (floppyList.Count >= 4)
             {
                 if (spellData.spellType == SpellType.Active)
                 {
-                    Debug.Log("Chaos mode is on, active: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, active: " + spellName + " has been removed");
                     return true;
                 }
                 if (spellData.spellType == SpellType.Passive)
@@ -957,12 +957,12 @@ public class GambaMachine : MonoBehaviour
                         FloppyPickup diskInfo = floppyList[i].GetComponent<FloppyPickup>();
                         if (SpellDictionary.Instance.spellDict[spellName].brands[0] == SpellDictionary.Instance.spellDict[diskInfo.diskName].brands[0])
                         {
-                            Debug.Log("Chaos mode is on, passive: " + spellName + " has been accepted");
+                            if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been accepted");
                             return false;
                         }
                     }
 
-                    Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
                     return true;
                 }
             }

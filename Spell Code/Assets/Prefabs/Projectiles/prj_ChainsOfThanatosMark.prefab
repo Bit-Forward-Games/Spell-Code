@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2816024633464485900}
   - component: {fileID: 7265437768916896761}
-  - component: {fileID: -3076088849355080443}
+  - component: {fileID: 802827224599128789}
   m_Layer: 0
-  m_Name: prj_SpartanBeamSegment
+  m_Name: prj_ChainsOfThanatosMark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 14
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1548966317312161483, guid: 295ccb97332e4cb4188ac435cbed6eb5, type: 3}
+  m_Sprite: {fileID: 9216946022921031021, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &-3076088849355080443
+--- !u!114 &802827224599128789
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,11 +101,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 3459829395073810853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9189a1812eb069546964701f9f116d05, type: 3}
+  m_Script: {fileID: 11500000, guid: e271416a7e2de7143808a7492e59b43c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpartanBeamSegment_prj
+  m_EditorClassIdentifier: Assembly-CSharp::ChainsOfThanatosMark_prj
   sprites:
-  - {fileID: -8756382486858022358, guid: 295ccb97332e4cb4188ac435cbed6eb5, type: 3}
-  - {fileID: -5808923997630541676, guid: 295ccb97332e4cb4188ac435cbed6eb5, type: 3}
-  - {fileID: 1548966317312161483, guid: 295ccb97332e4cb4188ac435cbed6eb5, type: 3}
-  - {fileID: 2976131838329380903, guid: 295ccb97332e4cb4188ac435cbed6eb5, type: 3}
+  - {fileID: 2031266495301134860, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: 8147777826721638810, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: 3172226846183790510, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: -2762488603795717034, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: 9216946022921031021, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: -3052627607974872754, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: 6175573469644826058, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}
+  - {fileID: -6950020912825628990, guid: 68df0e2e45d04a541a7f0ab93e9ab83b, type: 3}

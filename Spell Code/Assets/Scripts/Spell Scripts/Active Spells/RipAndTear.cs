@@ -14,7 +14,7 @@ public class RipAndTear : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[1];
-        description = "Encircling blade wheel.\nTravel along surfaces, traveling farther based on Demon Aura<sprite name=\"Demon Aura\">.";
+        description = "Encircling blade wheel. Travel along surfaces, traveling farther based on Demon Aura<sprite name=\"Demon Aura\">.";
         spawnOffsetX = 0;
 
     }

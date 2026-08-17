@@ -14,8 +14,8 @@ public class DemonAura : SpellData
         cooldown = 1;
         priorityOverride = 3;
         spellType = SpellType.Universal;
-        procConditions = new ProcCondition[3] { ProcCondition.OnHitSpell, ProcCondition.OnHit, ProcCondition.OnUpdate };
-        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\"> from ranks D to X.\nAfter {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">.\nSpellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
+        procConditions = new ProcCondition[] { ProcCondition.OnHitSpell, ProcCondition.OnHit, ProcCondition.OnUpdate, ProcCondition.OnRankUp };
+        description = $"Hit Demon-X Spellcodes to increase Demon Aura<sprite name=\"DemonAura\"> from ranks D to X. After {DemonAuraResetTime/60f} seconds of not dealing damage, lose Demon Aura<sprite name=\"DemonAura\">. Spellcodes deal increased damage based on your Demon Aura<sprite name=\"DemonAura\">.";
 
     }
 
@@ -55,10 +55,7 @@ public class DemonAura : SpellData
                         break;
                     }
 
-                    //grant the resource
-                    owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
-                    owner.demonAuraLifeSpanTimer = DemonAuraResetTime;
-                    owner.SpawnToast("RANK UP!", GameManager.colors["red"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRankUp, defender);
                 }
                 
                 break;
@@ -76,6 +73,12 @@ public class DemonAura : SpellData
                     owner.demonAuraLifeSpanTimer = 0;
                 }
             }
+                break;
+            case ProcCondition.OnRankUp:
+                //grant the resource
+                owner.demonAura = (ushort)Mathf.Clamp(owner.demonAura + 20, 0, PlayerController.maxDemonAura);
+                owner.demonAuraLifeSpanTimer = DemonAuraResetTime;
+                owner.SpawnToast("RANK UP!", GameManager.colors["red"]);
                 break;
             default:
                 break;

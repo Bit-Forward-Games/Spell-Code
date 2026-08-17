@@ -3,7 +3,7 @@ using System.Linq;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class SpartanBeam : SpellData
+public class BeamOfSparta : SpellData
 {
     //private const int _horzLaunchSpeed = 16;
     //private const int _vertLaunchSpeed = 6;
@@ -11,12 +11,12 @@ public class SpartanBeam : SpellData
     private const int _firstBeamSegmentProjectileIndex = 2;
     private const int _firstBeamSegmentOffset = 150;
     private const int _beamEndBaseOffset = _firstBeamSegmentOffset/* + 58*/;
-    public SpartanBeam()
+    public BeamOfSparta()
     {
-        spellName = "Spartan Beam";
+        spellName = "Beam Of Sparta";
         brands = new Brand[]{ Brand.DarkWeb, Brand.VWave, Brand.Killeez };
         cooldown = 540;
-        spellInput = 0b_0000_0000_0000_1001_0101_0010_0000_0110; // Example input sequence
+        spellInput = 0b_0000_0000_0000_1001_0101_1110_0000_0110; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnSweetSpot };
         projectilePrefabs = new GameObject[10];
@@ -39,11 +39,11 @@ public class SpartanBeam : SpellData
                     break;
                 }
 
-                SpartanBeamEnd_prj beamEnd = projectileInstances[_beamEndIndex].GetComponent<SpartanBeamEnd_prj>();
-                SpartanBeamGun_prj gun = projectileInstances[0].GetComponent<SpartanBeamGun_prj>();
+                BeamOfSpartaEnd_prj beamEnd = projectileInstances[_beamEndIndex].GetComponent<BeamOfSpartaEnd_prj>();
+                BeamOfSpartaGun_prj gun = projectileInstances[0].GetComponent<BeamOfSpartaGun_prj>();
                 if (beamEnd == null || gun == null)
                 {
-                    Debug.LogError("Spartan Beam missing its End or Gun projectile");
+                    Debug.LogError("Beam Of Sparta missing its End or Gun projectile");
                     break;
                 }
                 
@@ -70,16 +70,14 @@ public class SpartanBeam : SpellData
                     break;
                 }
 
-                //grant the resource
-                owner.reps++;
-                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 break;
             default:
                 break;
         }
     }
 
-    private void UpdateBeamSegments(SpartanBeamEnd_prj beamEnd)
+    private void UpdateBeamSegments(BeamOfSpartaEnd_prj beamEnd)
     {
         int beamSegmentCount = projectileInstances.Count - _firstBeamSegmentProjectileIndex;
         if (beamSegmentCount <= 0)
@@ -91,7 +89,7 @@ public class SpartanBeam : SpellData
         {
             for (int i = _firstBeamSegmentProjectileIndex; i < projectileInstances.Count; i++)
             {
-                BaseProjectile beamSegment = projectileInstances[i].GetComponent<SpartanBeamSegment_prj>();
+                BaseProjectile beamSegment = projectileInstances[i].GetComponent<BeamOfSpartaSegment_prj>();
                 if (beamSegment != null && beamSegment.gameObject.activeSelf)
                 {
                     ProjectileManager.Instance.DeleteProjectile(beamSegment);
@@ -109,7 +107,7 @@ public class SpartanBeam : SpellData
 
         for (int i = 0; i < beamSegmentCount; i++)
         {
-            BaseProjectile beamSegment = projectileInstances[i + _firstBeamSegmentProjectileIndex].GetComponent<SpartanBeamSegment_prj>();
+            BaseProjectile beamSegment = projectileInstances[i + _firstBeamSegmentProjectileIndex].GetComponent<BeamOfSpartaSegment_prj>();
             if (beamSegment == null)
             {
                 continue;

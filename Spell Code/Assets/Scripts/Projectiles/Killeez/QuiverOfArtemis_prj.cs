@@ -8,7 +8,7 @@ using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 public class QuiverOfArtemis_prj : BaseProjectile
 {
     private const int speed = 4;
-    private const int baseLifeSpan = 30;
+    private const int baseLifeSpan = 10;
     protected override void InitializeDefaults()
     {
         projName = "Quiver Of Artemis";
@@ -27,7 +27,7 @@ public class QuiverOfArtemis_prj : BaseProjectile
         base.SpawnProjectile(facingRight, spawnOffset);
         hSpeed = Fixed.FromInt((facingRight ? 1 : -1) * 4);
         vSpeed = Fixed.FromInt(-4);
-        lifeSpan = (ushort)(baseLifeSpan + 2 * owner.reps);
+        lifeSpan = (ushort)(baseLifeSpan + 5 * owner.reps);
     }
 
     public override void LoadProjectile()

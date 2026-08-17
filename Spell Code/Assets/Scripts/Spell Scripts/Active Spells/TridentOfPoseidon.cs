@@ -14,7 +14,7 @@ public class TridentOfPoseidon : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[3];
-        description = "Lunge Downward with Trident.\nUpon landing, send forth waves which travel farther based on Reps<sprite name=\"Reps\">.";
+        description = "Lunge Downward with Trident. Upon landing, send forth waves which travel farther based on Reps<sprite name=\"Reps\">.";
 
     }
 

@@ -15,7 +15,7 @@ public class GetAJob : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit };
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range lunging job application.\nThis spell has armor.\nGains super armor, extra range, and stun on \"Crit\"<sprite name=\"StockStability\">.";
+        description = "Medium-range lunging job application. This spell has armor. Gains super armor, extra range, and stun on Crit<sprite name=\"StockStability\">.";
         spawnOffsetX = 36;
         spawnOffsetY = 36;
     }

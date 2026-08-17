@@ -42,7 +42,8 @@ public class GameManager : MonoBehaviour
         Normal,
         Turbo,
         Elimination,
-        Fighter
+        Fighter,
+        Chaos
     }
 
     public Gamemode gamemode;
@@ -614,6 +615,10 @@ public class GameManager : MonoBehaviour
                 break;
 
             case Gamemode.Fighter: //3
+                loadMainMenu();
+                break;
+
+            case Gamemode.Chaos: //4
                 loadMainMenu();
                 break;
         }
@@ -3955,6 +3960,25 @@ public class GameManager : MonoBehaviour
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
+                    else if (gamemode == Gamemode.Chaos)
+                    {
+                        // Reset round RAM HERE, not only once the Shop scene loads
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].storedKillBonus = 0;
+                            players[i].ClearSpellList();
+                        }
+                        playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
+                        RoundEnd();
+                        ResetPlayers();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                        roundOver = false;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
+                    }
                     else if (AllActivePlayersHaveMaxSpells())
                     {
                         for (int i = 0; i < playerCount; i++)
@@ -4558,6 +4582,11 @@ public class GameManager : MonoBehaviour
         player.ramBounty = 0;
         player.times = new List<Fixed>();
         player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
+
+        player.demonX = false;
+        player.bigStox = false;
+        player.killeez = false;
+        player.vWave = false;
 
         if (player.inputDisplay != null) player.inputDisplay.enabled = true;
         if (player.playerNum != null) player.playerNum.enabled = true;

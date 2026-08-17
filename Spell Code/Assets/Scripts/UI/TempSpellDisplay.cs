@@ -61,7 +61,7 @@ public class TempSpellDisplay : MonoBehaviour
 
         // Cache the parent gameobjects once 
         CacheCooldownParents();
-        UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
+        UpdateRoundWinCounter(roundWinTextImage, spellDisplayIndex);
     }
 
     private void CacheCooldownParents()
@@ -83,7 +83,7 @@ public class TempSpellDisplay : MonoBehaviour
         if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
             uiScript.transitionScreenDisplayed = false;
-            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
+            UpdateRoundWinCounter(roundWinTextImage, spellDisplayIndex);
             roundWinCounterUpdated = true;
         }
         else if (!GameManager.Instance.roundOver)
@@ -98,7 +98,7 @@ public class TempSpellDisplay : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.name == "End")
         {
-            UpdateRoundWinCounter(roundWinsIcons, uiScript.roundWinIcon, spellDisplayIndex);
+            UpdateRoundWinCounter(roundWinTextImage, spellDisplayIndex);
         }
 
         /*
@@ -107,7 +107,7 @@ public class TempSpellDisplay : MonoBehaviour
         */
     }
 
-    public void UpdateRoundWinCounter(List<Image> roundWinsIcons, Sprite[] roundWinIcon, int spellDisplayIndex)
+    public void UpdateRoundWinCounter(TextMeshProUGUI roundWinTextImage, int spellDisplayIndex)
     {
         if (uiScript == null || roundWinTextImage == null)
         {

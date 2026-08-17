@@ -19,4 +19,10 @@ public static class BigStoxActiveSpellExtensions
         spell.AlwaysCrit = true;
         spell.DoesCrit = true;
     }
+
+    public static void DisableForcedCrit(this IBigStoxActiveSpell spell)
+    {
+        spell.AlwaysCrit = false;
+        spell.DoesCrit = false;
+    }
 }

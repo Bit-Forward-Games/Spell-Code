@@ -397,7 +397,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: projectileList.Array.size
-      value: 78
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'projectileList.Array.data[62]'
@@ -459,6 +459,14 @@ PrefabInstance:
       propertyPath: 'projectileList.Array.data[77]'
       value: 
       objectReference: {fileID: -8996032971334623325, guid: 9ec53649558bbc64cbff848f538b0fef, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[78]'
+      value: 
+      objectReference: {fileID: 7900424124755008410, guid: eaeb578642141cb4b982f9d5cc2f6b6b, type: 3}
+    - target: {fileID: 495033162692388922, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'projectileList.Array.data[79]'
+      value: 
+      objectReference: {fileID: -5032011617151241053, guid: 73b396ed98ff0484092a4f83b01cfab3, type: 3}
     - target: {fileID: 521498579923650145, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -849,7 +857,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
-      value: 56
+      value: 57
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'spellList.Array.data[12]'
@@ -1023,6 +1031,10 @@ PrefabInstance:
       propertyPath: 'spellList.Array.data[55]'
       value: 
       objectReference: {fileID: 792749544776990933, guid: 6fe45474a4b8c4342b38826f5a830f22, type: 3}
+    - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: 'spellList.Array.data[56]'
+      value: 
+      objectReference: {fileID: 3669606329493505751, guid: 23a8931d3fe1bdd40905397381723431, type: 3}
     - target: {fileID: 7377337833048685195, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_HorizontalAlignment
       value: 1

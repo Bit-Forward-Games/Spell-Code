@@ -701,7 +701,70 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (SpellDictionary.Instance != null
+            && SpellDictionary.Instance.spellDict != null
+            && SpellDictionary.Instance.spellDict.TryGetValue(spellToAdd, out SpellData targetSpell)
+            && targetSpell != null
+            && !HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            return false;
+        }
+
         return !HasReachedSpellCopyLimit(spellToAdd);
+    }
+
+    private int CountSpellsOfType(SpellType spellType)
+    {
+        int count = 0;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == spellType)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private bool HasAvailablePunkSpellSlot(SpellType spellType)
+    {
+        if (!vibeCoding)
+        {
+            return true;
+        }
+
+        if (spellType == SpellType.Active)
+        {
+            return CountSpellsOfType(SpellType.Active) < 4;
+        }
+
+        if (spellType == SpellType.Passive)
+        {
+            return CountSpellsOfType(SpellType.Passive) < 2;
+        }
+
+        return true;
+    }
+
+    private int GetPunkSpellInsertionIndex(SpellType spellType)
+    {
+        if (!vibeCoding || spellType != SpellType.Active)
+        {
+            return spellList.Count;
+        }
+
+        // Punk's directional shortcuts address list indices 0-3. Insert every active before the
+        // first passive so stacked or otherwise out-of-order pickups cannot strand an active in
+        // one of the two passive-only slots. Relative order within each type remains unchanged.
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == SpellType.Passive)
+            {
+                return i;
+            }
+        }
+
+        return spellList.Count;
     }
 
     public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
@@ -727,8 +790,14 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (!HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            Debug.LogWarning($"No Punk Mode {targetSpell.spellType} slot remains for {spellToAdd}.");
+            return false;
+        }
+
         SpellData spellInstance = Instantiate(targetSpell);
-        spellList.Add(spellInstance);
+        spellList.Insert(GetPunkSpellInsertionIndex(targetSpell.spellType), spellInstance);
         spellInstance.owner = this;
         if (!string.IsNullOrEmpty(startingSpell) && spellToAdd == startingSpell)
         {

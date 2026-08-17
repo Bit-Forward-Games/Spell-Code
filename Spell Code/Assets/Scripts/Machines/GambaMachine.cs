@@ -846,8 +846,15 @@ public class GambaMachine : MonoBehaviour
         int rollsLeft = Mathf.Max(0, maxShopRolls - activatedCount);
         bool isShop = SceneManager.GetActiveScene().name == "Shop";
 
-        //only the shop counts down, everywhere else players reroll as much as they want
-        string rolls = !isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString();
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        bool isChaosMode = manager != null && manager.gamemode == GameManager.Gamemode.Chaos;
+
+        // Chaos has one activation in both the lobby and Shop. Keep activatedCount's existing 0/3
+        // deterministic state (it participates in snapshots and choice keys) and translate only
+        // the presentation to 1/0. Other modes retain their infinite lobby rolls and 3-roll Shop.
+        string rolls = isChaosMode
+            ? (isActive && rollsLeft > 0 ? "1" : "0")
+            : (!isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString());
         string label = "Rolls: " + rolls;
 
         //setting the text rebuilds the mesh, and this runs a few times per frame per machine
@@ -995,14 +1002,22 @@ public class GambaMachine : MonoBehaviour
         //vibecoding case
         if (player.vibeCoding)
         {
-            if (player.spellList.Count < 4 && spellData.spellType == SpellType.Passive)
+            int activeSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Active);
+            int passiveSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Passive);
+
+            if (activeSpellCount < 4 && spellData.spellType == SpellType.Passive)
             {
                 Debug.Log("Vibe Coding is on, passive: " + spellName + " has been removed");
                 return true;
             }
-            if (player.spellList.Count >= 4 && spellData.spellType == SpellType.Active)
+            if (activeSpellCount >= 4 && spellData.spellType == SpellType.Active)
             {
                 Debug.Log("Vibe Coding is on, active: " + spellName + " has been removed");
+                return true;
+            }
+            if (passiveSpellCount >= 2 && spellData.spellType == SpellType.Passive)
+            {
+                Debug.Log("Vibe Coding passive slots are full: " + spellName + " has been removed");
                 return true;
             }
         }

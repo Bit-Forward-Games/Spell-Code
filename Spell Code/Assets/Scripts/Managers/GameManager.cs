@@ -6904,6 +6904,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
                 bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
+                bw.Write(onlineRoundAdvanceApplied);
 
                 bool includeLobbyShopState = ShouldIncludeLobbyShopState();
                 bw.Write(includeLobbyShopState);
@@ -7031,6 +7032,8 @@ public class GameManager : MonoBehaviour
             bw.Write(ramNeededToWinRound);
             bw.Write(roundEndUIShown);
             bw.Write(lastRoundWinnerPID);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
 
             List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
                 .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
@@ -7069,6 +7072,8 @@ public class GameManager : MonoBehaviour
 
             bw.Write(rngState);
             bw.Write(ramNeededToWinRound);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
 
             SerializeLobbyShopHashState(bw);
 
@@ -7376,6 +7381,7 @@ public class GameManager : MonoBehaviour
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
                 int savedTotalRoundsPlayed = br.ReadInt32();
+                onlineRoundAdvanceApplied = br.ReadBoolean();
                 if (dataManager == null)
                 {
                     dataManager = DataManager.Instance;

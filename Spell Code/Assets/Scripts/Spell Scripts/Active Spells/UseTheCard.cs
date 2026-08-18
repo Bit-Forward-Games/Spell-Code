@@ -4,9 +4,11 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class UseTheCredit : SpellData
+public class UseTheCredit : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
+    bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
     public UseTheCredit()
     {
         spellName = "Use The Card";
@@ -67,7 +69,7 @@ public class UseTheCredit : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                doesCrit = GameManager.Instance.GetNextRandom(0, 100) < owner.stockStabilityModified;
+                this.ResolveCrit(owner);
                 break;
             case ProcCondition.ActiveOnHit:
                 if (doesCrit && !defender.hitboxData.ignoreEffectDamage && IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))

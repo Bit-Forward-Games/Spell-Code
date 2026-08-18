@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class CashOut : SpellData
+public class CashOut : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
+    bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
     public CashOut()
     {
         spellName = "Cash Out";
@@ -42,6 +44,7 @@ public class CashOut : SpellData
         if (activateFlag)
         {
             owner.basicSpawnOverride = spellName;
+            owner.basicSpawnOverrideVariant = (byte)(doesCrit?1:0);
             // Reset the activate flag
             activateFlag = false;
             
@@ -60,9 +63,7 @@ public class CashOut : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                int roll = GameManager.Instance.GetNextRandom(0, 100);
-                //Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
-                doesCrit = roll < owner.stockStabilityModified;
+                this.ResolveCrit(owner);
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[doesCrit?9:8].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(0), Fixed.FromInt(spawnOffsetY)));
                 string critText = doesCrit?"CRIT":"NON-CRIT";
                 owner.SpawnToast($"{critText} LOADED", doesCrit?Color.cyan:GameManager.colors["grey"]);
@@ -71,6 +72,7 @@ public class CashOut : SpellData
             
             if (owner.basicSpawnOverride == spellName)
                 {
+                    doesCrit = owner.basicSpawnOverrideVariant == 1;
                     owner.vSpd = Fixed.FromInt(3); // Launch the player upwards slightly
                     owner.hSpd = owner.facingRight ? Fixed.FromInt(-4) : Fixed.FromInt(4); // Propel the player backwatds slightly
                     if (doesCrit)

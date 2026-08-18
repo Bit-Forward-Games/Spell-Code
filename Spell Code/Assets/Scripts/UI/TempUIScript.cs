@@ -138,8 +138,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     [Header("Round End UI")] // Round End UI
     public GameObject roundEndUI;
-    public RectTransform winnerPanel;
+    public GameObject[] offlinePlayer;
+    public RectTransform[] winnerPanel;
     public TempSpellDisplay[] spellDisplays;
+    public TextMeshProUGUI[] roundWinTextImage;
 
     public void OnSelect(BaseEventData eventData)
     {
@@ -683,16 +685,20 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
         }
 
-        if (GameManager.Instance.roundOver && !spellDisplays[0].roundWinCounterUpdated)
+        if (GameManager.Instance.roundOver && !roundWinCounterUpdated)
         {
             transitionScreenDisplayed = false;
-            // RoundEndUI();
-            
-            spellDisplays[0].roundWinCounterUpdated = true;
+            RoundEndUI();
+            roundWinCounterUpdated = true;
         }
         else if (!GameManager.Instance.roundOver)
         {
-            spellDisplays[0].roundWinCounterUpdated = false;
+            roundWinCounterUpdated = false;
+            roundEndUI.SetActive(false);
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                winnerPanel[i].gameObject.SetActive(false);
+            }
         }
 
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -709,9 +715,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         //}
     }
 
+    public bool roundWinCounterUpdated;
+
     public void RoundEndUI()
     {
-        spellDisplays[0].UpdateRoundWinCounter(spellDisplays[0].roundWinsIcons, roundWinIcon, 0);
+        roundEndUI.SetActive(true);
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);
+            offlinePlayer[i].SetActive(false);
+
+            if (GameManager.Instance.players[i].roundRam >= GameManager.Instance.ramNeededToWinRound)
+            {
+                winnerPanel[i].gameObject.SetActive(true);
+            }
+        }
     }
 
     public void QueueKickedMessageForSoloLobby()

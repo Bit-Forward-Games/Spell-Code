@@ -60,7 +60,8 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-37"; // scz-37: Punk keeps active/passive slot order deterministic, and Chaos snapshots preserve the round-advance latch used by its seeded Shop choices
+    private const string NetcodeVersion = "scz-40"; // scz-40: online Chaos grants each rolled spell straight into spellList at the gamba hit (matching offline) instead of waiting for the floppy to be collected, so spellList fills a frame after the roll rather than on pickup.
+
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

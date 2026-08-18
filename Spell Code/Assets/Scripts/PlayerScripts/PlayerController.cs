@@ -307,6 +307,7 @@ public class PlayerController : MonoBehaviour
     public int basicsFired = 0;
     public int spellsHit = 0;
     [NonSerialized] public string basicSpawnOverride = string.Empty; //this is to prevent the basic projectile from spawning during certain spells that override the basic attack, like Amon Slash. It should be set to true during the spell's animation and set back to false at the end of the spell's animation.
+    [NonSerialized] public byte basicSpawnOverrideVariant = 0;
     public Fixed timer = Fixed.FromInt(0);
     //public bool timerRunning = false;
     public List<Fixed> times = new List<Fixed>();
@@ -543,6 +544,7 @@ public class PlayerController : MonoBehaviour
         armor = false;
         silenced = false;
         basicSpawnOverride = string.Empty;
+        basicSpawnOverrideVariant = 0;
         isHit = false;
         damageBarHitCount = 0;
         hitboxData = null;
@@ -807,8 +809,8 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
-        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
         ProjectileManager.Instance.InitializeAllProjectiles();
+        CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
@@ -2029,6 +2031,7 @@ public class PlayerController : MonoBehaviour
                     {
                         basicSpawnOverride = string.Empty;
                     }
+                    basicSpawnOverrideVariant = 0;
 
                     //basic spell is fired
                     basicsFired++;
@@ -3817,7 +3820,7 @@ public class PlayerController : MonoBehaviour
                $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
                $"vibe={vibeCoding} djs={diagonalSlide} " +
-               $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride} chSpell={chosenSpell} in=[{inStr}]";
+               $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride}:{basicSpawnOverrideVariant} chSpell={chosenSpell} in=[{inStr}]";
     }
 
     public void Serialize(BinaryWriter bw)
@@ -3857,6 +3860,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(armor);
         bw.Write(silenced);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
+        bw.Write(basicSpawnOverrideVariant);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         SerializeIntList(bw, codeReleaseFrameLengthsOverride);
@@ -4070,6 +4074,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(choosingCodeMode);
         bw.Write(stateSpecificArg);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
+        bw.Write(basicSpawnOverrideVariant);
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
         SerializeIntList(bw, codeReleaseFrameLengthsOverride);
@@ -4224,6 +4229,7 @@ public class PlayerController : MonoBehaviour
         armor = br.ReadBoolean();
         silenced = br.ReadBoolean();
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
+        basicSpawnOverrideVariant = br.ReadByte();
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();
         List<int> restoredCodeReleaseFrameLengths = DeserializeIntList(br, codeReleaseOverrideBuffer);

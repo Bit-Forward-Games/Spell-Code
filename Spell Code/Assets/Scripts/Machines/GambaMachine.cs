@@ -214,6 +214,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                                gameManager.players[0].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 2)
@@ -223,6 +224,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -232,6 +234,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -241,6 +244,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -370,6 +374,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                                gameManager.players[0].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 2)
@@ -379,6 +384,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -388,6 +394,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -397,6 +404,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -544,8 +552,8 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta");
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
 
                         // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
@@ -1022,26 +1030,141 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        //all darkweb Spellcodes
+        //all darkweb Spellcodes @patrick
         if (primaryBrand == Brand.DarkWeb)
         {
-            if (spellData.spellName == "Beam Of Sparta" && (!player.killeez && !player.vWave))
+            //Collabs
+            if (spellData.spellName == "Beam Of Sparta" && (player.killeez && player.vWave))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
             
-            if (spellData.spellName == "Touch Of Midas" && (!player.killeez && !player.bigStox))
+            if (spellData.spellName == "Touch Of Midas" && (player.killeez && player.bigStox))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
 
-            if (spellData.spellName == "Chains Of Thanatos" && (!player.killeez && !player.demonX))
+            if (spellData.spellName == "Chains Of Thanatos" && (player.killeez && player.demonX))
             {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-                return true;
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
             }
+
+            if (spellData.spellName == "Wolf Of Wallstreet" && (player.demonX && player.bigStox))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "" && (player.demonX && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "The Jokah" && (player.bigStox && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            //Combos
+            if (spellData.spellName == "")
+            {
+                bool AU = false;
+                bool HWF = false;
+                bool BCK = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Abbadon Uppercut") { AU = true; }
+                    if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
+                    if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
+                }
+
+                if (AU && HWF && BCK)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool BO = false;
+                bool CO = false;
+                bool CT = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Bailout") { BO = true; }
+                    if (player.spellList[i].spellName == "Cash Out") { CO = true; }
+                    if (player.spellList[i].spellName == "Coin Toss") { CT = true; }
+                }
+
+                if (BO && CO && CT)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool MoZ = false;
+                bool ToP = false;
+                bool HoH = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Might Of Zeus") { MoZ = true; }
+                    if (player.spellList[i].spellName == "Trident Of Poseidon") { ToP = true; }
+                    if (player.spellList[i].spellName == "Helm Of Hades") { HoH = true; }
+                }
+
+                if (MoZ && ToP && HoH)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            if (spellData.spellName == "")
+            {
+                bool TSA = false;
+                bool PS = false;
+                bool SOTN = false;
+                for (int i = 0; i < player.spellList.Count; i++)
+                {
+                    if (player.spellList[i].spellName == "Trickshot Alley") { TSA = true; }
+                    if (player.spellList[i].spellName == "Pong Shot") { PS = true; }
+                    if (player.spellList[i].spellName == "Sickle Of The Night") { SOTN = true; }
+                }
+
+                if (TSA && PS && SOTN)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            //Uniques
+            if (spellData.spellName == "" && (player.demonX && player.bigStox && player.killeez && player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                return false;
+            }
+
+            if (spellData.spellName == "" && player.spellList.Count == 1)
+            {
+                if (dataManager.totalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
+                {
+                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+                    return false;
+                }
+            }
+
+            Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+            return true;
         }
 
         if (player.HasReachedSpellCopyLimit(spellName))
@@ -1136,6 +1259,38 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // The disk still goes into the per-player list before being hidden: both
+            // RemoveAlreadySpawnedChoicesFromPool and the Chaos branch of ShouldRemoveSpellFromPool
+            // count list entries rather than active objects, so duplicate-avoidance still works.
+            // Offline the grant happens in FixedUpdate; online it happens in SpawnChaosFloppysOnline.
+            if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+            {
+                if (ownerPID == 1)
+                {
+                    p1_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+
+                if (ownerPID == 2)
+                {
+                    p2_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 3)
+                {
+                    p3_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 4)
+                {
+                    p4_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                disk.SetActive(false);
+                return disk;
+            }
+
             //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
             ToggleFloppyAfterDelay(disk, 0.5f);
 
@@ -1203,6 +1358,37 @@ public class GambaMachine : MonoBehaviour
             if (floppys.Count > 1)
             {
                 Destroy(disk);
+            }
+
+            //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // Same early-out as the random-name branch above. This branch is the one the ONLINE
+            // path uses (SpawnChaosFloppysOnline always passes an explicit spell name), so without
+            // it online kept playing the floppy arc VFX and toggling the disk back on -- advertising
+            // a pickup that Chaos had already granted.
+            if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+            {
+                if (ownerPID == 1)
+                {
+                    p1_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 2)
+                {
+                    p2_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 3)
+                {
+                    p3_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 4)
+                {
+                    p4_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                disk.SetActive(false);
+                return disk;
             }
 
             //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
@@ -1372,6 +1558,20 @@ public class GambaMachine : MonoBehaviour
                 spells.Count);
             string spellToAdd = spells[randomIndex];
             SpawnFloppyDisk(pid, location, spellToAdd, !isRollback, !isRollback);
+
+            // Chaos grants the roll immediately instead of making the player walk onto the floppy
+            // Done INSIDE the loop, after the spawn, so the pool rebuilt for the next choice already sees this spell in spellList
+            // Determinism: the pick above is seeded through GetOnlineShopChoiceRandom and
+            // AddSpellToSpellList consumes no RNG, so every peer adds the same spells in the same
+            // order. spellList is serialized, so a rollback restores it and the resim re-adds.
+            PlayerController[] roster = GameManager.Instance.players;
+            PlayerController target = roster != null && pid >= 1 && pid <= roster.Length
+                ? roster[pid - 1]
+                : null;
+            if (target != null)
+            {
+                target.AddSpellToSpellList(spellToAdd);
+            }
         }
     }
 }

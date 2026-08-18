@@ -35,6 +35,10 @@ public class ChainsOfThanatos : SpellData
         {
             case ProcCondition.ActiveOnHit:
                 markedOpponentPID = defender.pID;
+                defender.SpawnToast("Spellcodes Disabled", GameManager.colors["purple"]);
+                // The marked player can be gone entirely (disconnect in a 3/4P match ->
+                // GetPlayerByPID returns null); an unguarded deref throws inside the resim, which
+                // hard-freezes the sim rather than desyncing it.
                 PlayerController newlyMarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
                 if (newlyMarked != null)
                 {
@@ -53,6 +57,7 @@ public class ChainsOfThanatos : SpellData
                     {
                         marked.silenced = true;
                     }
+
 
                     if (marked != null && marked.isAlive && owner.demonAura > 0)
                     {

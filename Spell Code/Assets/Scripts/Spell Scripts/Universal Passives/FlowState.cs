@@ -15,8 +15,8 @@ public class FlowState : SpellData
         cooldown = 1;
         priorityOverride = 3;
         spellType = SpellType.Universal;
-        procConditions = new ProcCondition[1] { ProcCondition.OnHitSpell};
-        description = $"Hit the Sweet-Spot<sprite name=\"FlowState\"> of VWave Spellcodes, denoted by red, to enter Flow State<sprite name=\"FlowState\"> for {maxFlowState/60} seconds.\nSpellcodes deal increased damage while in Flow State<sprite name=\"FlowState\">.";
+        procConditions = new ProcCondition[] { ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
+        description = $"Hit the Sweet-Spot<sprite name=\"FlowState\"> of VWave Spellcodes, denoted by red, to enter Flow State<sprite name=\"FlowState\"> for {maxFlowState/60} seconds. Spellcodes deal increased damage while in Flow State<sprite name=\"FlowState\">.";
 
     }
 
@@ -46,14 +46,16 @@ public class FlowState : SpellData
                         break;
                     }
                     
-                    owner.flowState = maxFlowState;
-                    owner.SpawnToast("FLOW STATE", GameManager.colors["green"]);
                     owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnSweetSpot, defender);
-
-                    //Play the Sweet Spot SFX
-                    SFX_Manager.Instance.PlaySound(Sounds.SWEET_SPOT_HIT);
                 }
                 
+                break;
+            case ProcCondition.OnSweetSpot:
+                owner.flowState = maxFlowState;
+                owner.SpawnToast("FLOW STATE", GameManager.colors["green"]);
+
+                //Play the Sweet Spot SFX
+                SFX_Manager.Instance.PlaySound(Sounds.SWEET_SPOT_HIT);
                 break;
             default:
                 break;

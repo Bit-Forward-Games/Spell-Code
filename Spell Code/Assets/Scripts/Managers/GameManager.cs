@@ -42,7 +42,8 @@ public class GameManager : MonoBehaviour
         Normal,
         Turbo,
         Elimination,
-        Fighter
+        Fighter,
+        Chaos
     }
 
     public Gamemode gamemode;
@@ -148,6 +149,8 @@ public class GameManager : MonoBehaviour
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
     public GameObject[] floppyObjects;
+    private bool pendingOnlineFloppySnapshot;
+    private string pendingOnlineFloppySnapshotReason;
 
     [SerializeField]
     private List<string> p1_choices;
@@ -614,6 +617,10 @@ public class GameManager : MonoBehaviour
                 break;
 
             case Gamemode.Fighter: //3
+                loadMainMenu();
+                break;
+
+            case Gamemode.Chaos: //4
                 loadMainMenu();
                 break;
         }
@@ -1140,8 +1147,32 @@ public class GameManager : MonoBehaviour
             return Gamemode.Fighter;
         }
 
-        // Normal, empty, Chaos (until it has rules), and unknown ids all use the safe baseline.
+        if (string.Equals(gameModeId, "chaos", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Chaos;
+        }
+
+        // Normal, empty, and unknown ids all use the safe baseline. Unknown matters for forward
+        // compatibility: a peer on an older build that has never heard of a mode still resolves to
+        // something both machines agree on rather than splitting the rules.
         return Gamemode.Normal;
+    }
+
+    private static string GetOnlineGameModeId(Gamemode mode)
+    {
+        switch (mode)
+        {
+            case Gamemode.Turbo:
+                return "turbo";
+            case Gamemode.Elimination:
+                return "elimination";
+            case Gamemode.Fighter:
+                return "fighting-game";
+            case Gamemode.Chaos:
+                return "chaos";
+            default:
+                return OnlineGameModeSelection.DefaultId;
+        }
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)
@@ -1369,6 +1400,30 @@ public class GameManager : MonoBehaviour
             playerCount,
             preserveExistingDisconnects: true,
             newlyOccupiedSlots: newlyOccupiedSlots);
+
+        // A disconnected slot's machine is permanently closed by SimulateOnline so it cannot
+        // generate choices for an inert placeholder. Re-open only the machines whose slots were
+        // filled by this roster expansion, and bind them to the newly-created player object before
+        // the authoritative lobby snapshot is saved/sent. This is required for sparse P3/P4
+        // drop-ins in both Normal and Chaos modes.
+        if (newlyOccupiedSlots.Count > 0)
+        {
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+            {
+                GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+                int ownerSlot = gamba != null ? gamba.ownerPID - 1 : -1;
+                if (ownerSlot < 0
+                    || ownerSlot >= playerCount
+                    || !newlyOccupiedSlots.Contains(ownerSlot)
+                    || players[ownerSlot] == null)
+                {
+                    continue;
+                }
+
+                gamba.ownerPlayer = players[ownerSlot];
+                gamba.ResetLobbyState();
+            }
+        }
         EnsureOnlineLocalPlayerInputActive();
 
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
@@ -3309,9 +3364,13 @@ public class GameManager : MonoBehaviour
         }
         if (floppyObjects == null) return;
 
-        for (int i = 0; i < floppyObjects.Length; i++)
+        // Keep this simulation pass stable even if a future callback refreshes floppyObjects.
+        // Snapshot publication is deferred below, but the local copy also makes the iteration
+        // resilient to other scene/state refreshes introduced later.
+        GameObject[] floppiesToSimulate = floppyObjects;
+        for (int i = 0; i < floppiesToSimulate.Length; i++)
         {
-            GameObject floppy = floppyObjects[i];
+            GameObject floppy = floppiesToSimulate[i];
             if (floppy == null) continue;
             FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
             if (disk != null)
@@ -3319,6 +3378,29 @@ public class GameManager : MonoBehaviour
                 disk.SimulateOnline(inputs, isRealFrame);
             }
         }
+
+        if (isRealFrame && pendingOnlineFloppySnapshot)
+        {
+            string reason = pendingOnlineFloppySnapshotReason;
+            pendingOnlineFloppySnapshot = false;
+            pendingOnlineFloppySnapshotReason = null;
+            BroadcastAuthoritativeOnlineStateSnapshot(reason);
+        }
+    }
+
+    public void RequestAuthoritativeOnlineFloppySnapshot(string reason)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        // FloppyPickup runs while SimulateOnlineFloppies is iterating floppyObjects. The host's
+        // authoritative snapshot self-apply refreshes that array, so broadcasting inline can skip
+        // later disks (especially Chaos's six stacked pickups). Coalesce every pickup completed in
+        // this simulation pass and publish the final state after the loop instead.
+        pendingOnlineFloppySnapshot = true;
+        pendingOnlineFloppySnapshotReason = reason;
     }
 
     /// <summary>
@@ -3705,7 +3787,9 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         AdvanceRoundCountOnce();
 
-        bool hasMaxSpells = AllActivePlayersHaveMaxSpells();
+        // Chaos always replaces the complete loadout between rounds. A full six-spell inventory
+        // therefore enters the Shop instead of taking Normal's direct next-round shortcut.
+        bool hasMaxSpells = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
 
         if (hasMaxSpells)
         {
@@ -3776,7 +3860,8 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
+            bool skipsShop = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
+            string nextPhase = skipsShop ? "Beginning Next Round..." : "Beginning Shop Phase...";
             message = "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase;
 
             // Online scene transitions wait for BOTH clients to reach the destination scene
@@ -3952,6 +4037,25 @@ public class GameManager : MonoBehaviour
                         GameEnd();
                         Debug.Log(roundEndTimer);
                         roundEndTimer = 0;
+                        roundEndUIShown = false;
+                        lastRoundWinnerPID = -1;
+                    }
+                    else if (gamemode == Gamemode.Chaos)
+                    {
+                        // Reset round RAM HERE, not only once the Shop scene loads
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            players[i].roundRam = 0;
+                            players[i].storedKillBonus = 0;
+                            players[i].ClearSpellList();
+                        }
+                        playerWinText.enabled = false;
+                        dataManager.totalRoundsPlayed += 1;
+                        RoundEnd();
+                        ResetPlayers();
+                        Debug.Log(roundEndTimer);
+                        roundEndTimer = 0;
+                        roundOver = false;
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
@@ -4558,6 +4662,11 @@ public class GameManager : MonoBehaviour
         player.ramBounty = 0;
         player.times = new List<Fixed>();
         player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
+
+        player.demonX = false;
+        player.bigStox = false;
+        player.killeez = false;
+        player.vWave = false;
 
         if (player.inputDisplay != null) player.inputDisplay.enabled = true;
         if (player.playerNum != null) player.playerNum.enabled = true;
@@ -5181,6 +5290,10 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
+            // The host clears before broadcasting the authoritative pre-transition snapshot. Guests
+            // also run the same idempotent reset in BeginOnlineShopTransition below, so packet order
+            // cannot leave one peer carrying the completed round's Chaos loadout into the Shop.
+            PrepareOnlineChaosShopState();
             int transitionId = GetExpectedOnlineTransitionId();
             if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
             {
@@ -5207,6 +5320,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        PrepareOnlineChaosShopState();
         BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
@@ -6399,6 +6513,34 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void PrepareOnlineChaosShopState()
+    {
+        if (!isOnlineMatchActive || gamemode != Gamemode.Chaos)
+        {
+            return;
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null)
+            {
+                continue;
+            }
+
+            player.roundRam = 0;
+            player.storedKillBonus = 0;
+            player.chosenSpell = false;
+
+            // This method can run once from the host's RoundEnd and again while entering the scene.
+            // Avoid repeated projectile-pool/UI rebuilds while keeping the reset idempotent.
+            if (player.spellList != null && player.spellList.Count > 0)
+            {
+                player.ClearSpellList();
+            }
+        }
+    }
+
     private IEnumerator FinalizeOnlineRematchLobbyArrival(int transitionId)
     {
         // sceneLoaded runs before Start on objects created with MainMenu. Wait one frame so the
@@ -6643,7 +6785,7 @@ public class GameManager : MonoBehaviour
             {
                 FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
                 return disk != null ? disk.diskName : string.Empty;
-            })
+            }, StringComparer.Ordinal)
             .ToArray();
     }
 
@@ -6720,6 +6862,10 @@ public class GameManager : MonoBehaviour
 
                 // Player State
                 bw.Write(playerCount); // Save number of active players
+                // Mode changes deterministic Gamba, pickup, and round-transition rules. Keep it in
+                // every managed snapshot so a late joiner cannot deserialize Chaos state while
+                // still executing stale Normal rules.
+                bw.Write((byte)gamemode);
                 for (int i = 0; i < playerCount; i++)
                 {
                     if (players[i] != null)
@@ -6758,6 +6904,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
                 bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
+                bw.Write(onlineRoundAdvanceApplied);
 
                 bool includeLobbyShopState = ShouldIncludeLobbyShopState();
                 bw.Write(includeLobbyShopState);
@@ -6856,6 +7003,7 @@ public class GameManager : MonoBehaviour
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
             bw.Write(playerCount);
+            bw.Write((byte)gamemode);
             for (int i = 0; i < playerCount; i++)
             {
                 if (players[i] != null)
@@ -6884,6 +7032,8 @@ public class GameManager : MonoBehaviour
             bw.Write(ramNeededToWinRound);
             bw.Write(roundEndUIShown);
             bw.Write(lastRoundWinnerPID);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
 
             List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
                 .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
@@ -6907,6 +7057,7 @@ public class GameManager : MonoBehaviour
         using (MemoryStream memoryStream = new MemoryStream())
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
+            bw.Write((byte)gamemode);
             bw.Write(roundOver);
             bw.Write(gameOver);
             bw.Write(currentStageIndex);
@@ -6921,6 +7072,8 @@ public class GameManager : MonoBehaviour
 
             bw.Write(rngState);
             bw.Write(ramNeededToWinRound);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
 
             SerializeLobbyShopHashState(bw);
 
@@ -7061,6 +7214,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        bw.Write(playerCount);
+        for (int i = 0; i < playerCount; i++)
+        {
+            bw.Write(players[i] != null && players[i].chosenSpell);
+        }
+
         bw.Write(gates.Length);
         foreach (SpellCode_Gate gate in gates)
         {
@@ -7160,6 +7319,20 @@ public class GameManager : MonoBehaviour
                     //Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
                 }
 
+                byte savedGamemodeValue = br.ReadByte();
+                if (!Enum.IsDefined(typeof(Gamemode), (int)savedGamemodeValue))
+                {
+                    throw new InvalidDataException($"Snapshot contains unknown game mode value {savedGamemodeValue}.");
+                }
+
+                Gamemode savedGamemode = (Gamemode)savedGamemodeValue;
+                string savedGameModeId = GetOnlineGameModeId(savedGamemode);
+                if (gamemode != savedGamemode
+                    || !string.Equals(ActiveOnlineGameMode.Id, savedGameModeId, StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplyOnlineGameMode(savedGameModeId);
+                }
+
                 int playersToRead = Mathf.Clamp(savedPlayerCount, 0, players.Length);
                 for (int i = 0; i < playersToRead; i++)
                 {
@@ -7208,6 +7381,7 @@ public class GameManager : MonoBehaviour
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
                 int savedTotalRoundsPlayed = br.ReadInt32();
+                onlineRoundAdvanceApplied = br.ReadBoolean();
                 if (dataManager == null)
                 {
                     dataManager = DataManager.Instance;

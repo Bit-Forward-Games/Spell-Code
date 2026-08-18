@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 707809646392089453}
   - component: {fileID: 7312057472009595077}
   m_Layer: 0
-  m_Name: SpartanBeam
+  m_Name: BeamOfSparta
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

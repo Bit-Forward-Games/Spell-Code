@@ -238,6 +238,8 @@ public class PlayerController : MonoBehaviour
 
     public ushort iframes = 0;
     public bool armor = false;
+
+    public bool silenced = false;
     public const int parryThreshold = 10;
 
     [NonSerialized]
@@ -539,6 +541,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = 0;
         comboResetTimer = 0;
         armor = false;
+        silenced = false;
         basicSpawnOverride = string.Empty;
         isHit = false;
         damageBarHitCount = 0;
@@ -698,7 +701,70 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (SpellDictionary.Instance != null
+            && SpellDictionary.Instance.spellDict != null
+            && SpellDictionary.Instance.spellDict.TryGetValue(spellToAdd, out SpellData targetSpell)
+            && targetSpell != null
+            && !HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            return false;
+        }
+
         return !HasReachedSpellCopyLimit(spellToAdd);
+    }
+
+    private int CountSpellsOfType(SpellType spellType)
+    {
+        int count = 0;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == spellType)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private bool HasAvailablePunkSpellSlot(SpellType spellType)
+    {
+        if (!vibeCoding)
+        {
+            return true;
+        }
+
+        if (spellType == SpellType.Active)
+        {
+            return CountSpellsOfType(SpellType.Active) < 4;
+        }
+
+        if (spellType == SpellType.Passive)
+        {
+            return CountSpellsOfType(SpellType.Passive) < 2;
+        }
+
+        return true;
+    }
+
+    private int GetPunkSpellInsertionIndex(SpellType spellType)
+    {
+        if (!vibeCoding || spellType != SpellType.Active)
+        {
+            return spellList.Count;
+        }
+
+        // Punk's directional shortcuts address list indices 0-3. Insert every active before the
+        // first passive so stacked or otherwise out-of-order pickups cannot strand an active in
+        // one of the two passive-only slots. Relative order within each type remains unchanged.
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == SpellType.Passive)
+            {
+                return i;
+            }
+        }
+
+        return spellList.Count;
     }
 
     public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
@@ -724,8 +790,14 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (!HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            Debug.LogWarning($"No Punk Mode {targetSpell.spellType} slot remains for {spellToAdd}.");
+            return false;
+        }
+
         SpellData spellInstance = Instantiate(targetSpell);
-        spellList.Add(spellInstance);
+        spellList.Insert(GetPunkSpellInsertionIndex(targetSpell.spellType), spellInstance);
         spellInstance.owner = this;
         if (!string.IsNullOrEmpty(startingSpell) && spellToAdd == startingSpell)
         {
@@ -3097,7 +3169,16 @@ public class PlayerController : MonoBehaviour
         stateSpecificArg = 0;
     }
 
+    public void UnSilence()
+    {   
+        silenced = false;
+        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
 
+        for (int i = 0; i < sortedSpellList.Count; i++)
+        {
+            sortedSpellList[i].cooldownCounter = 0;
+        }
+    }
     /// <summary>
     /// Updates spell resource values each frame
     /// </summary>
@@ -3106,6 +3187,26 @@ public class PlayerController : MonoBehaviour
         if (portalCooldown > 0)
         {
             portalCooldown--;
+        }
+
+        if (silenced)
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                sortedSpellList[i].cooldownCounter = 65535;
+            }
+        }
+        else
+        {
+            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+
+            for (int i = 0; i < sortedSpellList.Count; i++)
+            {
+                if(sortedSpellList[i].cooldownCounter >= 65000)
+                    sortedSpellList[i].cooldownCounter = 0;
+            }
         }
 
         //update flow state
@@ -3522,6 +3623,7 @@ public class PlayerController : MonoBehaviour
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon, PlayerController defender = null)
     {
+        if(silenced && targetPlayer == this) return;
         BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
@@ -3753,6 +3855,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(GetSpellSerializationId(basicSpawnOverride));
         bw.Write(storedCode);
         bw.Write(storedCodeDuration);
@@ -3915,6 +4018,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
+        bw.Write(silenced);
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
@@ -4118,6 +4222,7 @@ public class PlayerController : MonoBehaviour
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
+        silenced = br.ReadBoolean();
         basicSpawnOverride = GetSpellNameFromSerializationId(br.ReadInt32());
         storedCode = br.ReadUInt32();
         storedCodeDuration = br.ReadUInt32();

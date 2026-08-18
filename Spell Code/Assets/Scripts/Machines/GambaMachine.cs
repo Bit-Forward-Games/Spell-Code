@@ -39,8 +39,11 @@ public class GambaMachine : MonoBehaviour
 
     [SerializeField]
     private List<GameObject> p1_floppys = new List<GameObject>();
+    [SerializeField]
     private List<GameObject> p2_floppys = new List<GameObject>();
+    [SerializeField]
     private List<GameObject> p3_floppys = new List<GameObject>();
+    [SerializeField]
     private List<GameObject> p4_floppys = new List<GameObject>();
 
     public HurtboxData hurtbox = new HurtboxData();
@@ -52,6 +55,7 @@ public class GambaMachine : MonoBehaviour
     //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all.
     //built from the codepoint so the infinity glyph can't be mangled by a source re-encode
     private const int maxShopRolls = 3;
+    private const int chaosSpellChoiceCount = 6;
     private static readonly string infiniteRollsLabel = char.ConvertFromUtf32(0x221E);
 
     public GameObject floppy;
@@ -95,85 +99,151 @@ public class GambaMachine : MonoBehaviour
         {
             if (ownerPlayer != null)
             {
-                //delete other options after selecting one
-                if (ownerPlayer.spellList.Count > 0)
+                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo || gameManager.gamemode == GameManager.Gamemode.Elimination)
                 {
-                    isActive = false;
-
-                    if (ownerPID == 1)
+                    //delete other options after selecting one
+                    if (ownerPlayer.spellList.Count > 0)
                     {
-                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                        p1_floppys.Clear();
-                        activatedCount = 3;
+                        isActive = false;
+
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                            activatedCount = 3;
+                        }
                     }
 
-                    if (ownerPID == 2)
+                    if (isActive && CheckHitboxCollision())
                     {
-                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                        p2_floppys.Clear();
-                        activatedCount = 3;
-                    }
+                        Debug.Log("Hitbox collision detected!");
+                        Debug.Log("LOBBY GAMBA");
 
-                    if (ownerPID == 3)
+                        //play the gamba hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                        //play the floppy arc sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                        //play the floppy spawn sfx after a 0.5 second delay
+                        SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                        isActive = false;
+                        resetTimer = 0;
+
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
+                        }
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
+                        }
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
+                        }
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
+                        }
+
+                        startingSpellPos++;
+                        if (startingSpellPos > 3)
+                        {
+                            startingSpellPos = 0;
+                        }
+                    }
+                }
+
+                //Chaos functionality
+                if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+                {
+                    if (isActive && CheckHitboxCollision())
                     {
-                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
-                        p3_floppys.Clear();
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
+
+                        //play the gamba hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                        //play the floppy arc sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                        //play the floppy spawn sfx after a 0.5 second delay
+                        SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                        isActive = false;
+                        resetTimer = 0;
                         activatedCount = 3;
+
+                        //Clear inventory, then spawn 6 random floppys, passive rules still apply
+                        if (ownerPID == 1)
+                        {
+                            p1_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                            }
+                        }
+                        if (ownerPID == 2)
+                        {
+                            p2_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                            }
+                        }
+                        if (ownerPID == 3)
+                        {
+                            p3_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                            }
+                        }
+                        if (ownerPID == 4)
+                        {
+                            p4_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                            }
+                        }
                     }
-
-                    if (ownerPID == 4)
-                    {
-                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
-                        p4_floppys.Clear();
-                        activatedCount = 3;
-                    }
-                }
-            }
-            if (isActive && CheckHitboxCollision())
-            {
-                Debug.Log("Hitbox collision detected!");
-                Debug.Log("LOBBY GAMBA");
-
-                //play the gamba hit sfx
-                SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
-
-                //play the floppy arc sfx
-                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
-
-                //play the floppy spawn sfx after a 0.5 second delay
-                SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
-
-                isActive = false;
-                resetTimer = 0;
-
-                if (ownerPID == 1) {
-                    foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                    p1_floppys.Clear();
-                    SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos]); //real starter
-                }
-                if (ownerPID == 2) 
-                {
-                    foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                    p2_floppys.Clear();
-                    SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos]); //real starter
-                }
-                if (ownerPID == 3) 
-                {
-                    foreach (GameObject flop in p3_floppys) { Destroy(flop); }
-                    p3_floppys.Clear();
-                    SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos]); //real starter
-                }
-                if (ownerPID == 4) 
-                {
-                    foreach (GameObject flop in p4_floppys) { Destroy(flop); }
-                    p4_floppys.Clear();
-                    SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos]); //real starter
-                }
-
-                startingSpellPos++;
-                if (startingSpellPos > 3)
-                {
-                    startingSpellPos = 0;
                 }
             }
         }
@@ -182,88 +252,153 @@ public class GambaMachine : MonoBehaviour
         {
             if (ownerPlayer != null)
             {
-                //delete other options after selecting one
-                if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
+                //default gamba functionality
+                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo || gameManager.gamemode == GameManager.Gamemode.Elimination)
                 {
-                    activatedCount = 3;
-                    isActive = false;
-
-
-                    if (ownerPID == 1)
+                    //delete other options after selecting one
+                    if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)
                     {
-                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                        p1_floppys.Clear();
+                        activatedCount = 3;
+                        isActive = false;
+
+
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                        }
+
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                        }
+
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                        }
+
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                        }
                     }
-    
-                    if (ownerPID == 2)
-                    {
-                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                        p2_floppys.Clear();
-                    }
 
-                    if (ownerPID == 3)
+                    //clear player choice lists and spawn 3 new floppys
+                    if (isActive && CheckHitboxCollision())
                     {
-                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
-                        p3_floppys.Clear();
-                    }
+                        Debug.Log("Hitbox collision detected!");
+                        Debug.Log("SHOP GAMBA");
 
-                    if (ownerPID == 4)
-                    {
-                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
-                        p4_floppys.Clear();
+                        //play the gamba hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                        //play the floppy arc sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                        //play the floppy spawn sfx after a 0.5 second delay
+                        SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                        isActive = false;
+                        resetTimer = 0;
+                        activatedCount++;
+
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[0]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[2]);
+                        }
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[3]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[5]);
+                        }
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[6]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[8]);
+                        }
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                            SpawnFloppyDisk(ownerPID, diskLocations[9]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                            SpawnFloppyDisk(ownerPID, diskLocations[11]);
+                        }
                     }
                 }
 
-                //clear player choice lists and spawn 3 new floppys
-                if (isActive && CheckHitboxCollision())
+                //Chaos functionality
+                if (gameManager.gamemode == GameManager.Gamemode.Chaos)
                 {
-                    Debug.Log("Hitbox collision detected!");
-                    Debug.Log("SHOP GAMBA");
-
-                    //play the gamba hit sfx
-                    SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
-
-                    //play the floppy arc sfx
-                    SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
-
-                    //play the floppy spawn sfx after a 0.5 second delay
-                    SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
-
-                    isActive = false;
-                    resetTimer = 0;
-                    activatedCount++;
-
-                    if (ownerPID == 1)
+                    if (isActive && CheckHitboxCollision())
                     {
-                        foreach (GameObject flop in p1_floppys) { Destroy(flop); }
-                        p1_floppys.Clear();
-                        SpawnFloppyDisk(ownerPID, diskLocations[0]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[1]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[2]);
-                    }
-                    if (ownerPID == 2)
-                    {
-                        foreach (GameObject flop in p2_floppys) { Destroy(flop); }
-                        p2_floppys.Clear();
-                        SpawnFloppyDisk(ownerPID, diskLocations[3]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[5]);
-                    }
-                    if (ownerPID == 3)
-                    {
-                        foreach (GameObject flop in p3_floppys) { Destroy(flop); }
-                        p3_floppys.Clear();
-                        SpawnFloppyDisk(ownerPID, diskLocations[6]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[8]);
-                    }
-                    if (ownerPID == 4)
-                    {
-                        foreach (GameObject flop in p4_floppys) { Destroy(flop); }
-                        p4_floppys.Clear();
-                        SpawnFloppyDisk(ownerPID, diskLocations[9]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                        SpawnFloppyDisk(ownerPID, diskLocations[11]);
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
+
+                        //play the gamba hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                        //play the floppy arc sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                        //play the floppy spawn sfx after a 0.5 second delay
+                        SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                        isActive = false;
+                        resetTimer = 0;
+                        activatedCount = 3;
+
+                        //Clear inventory, then spawn 6 random floppys, passive rules still apply
+                        if (ownerPID == 1)
+                        {
+                            p1_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                            }
+                        }
+                        if (ownerPID == 2)
+                        {
+                            p2_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                            }
+                        }
+                        if (ownerPID == 3)
+                        {
+                            p3_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                            }
+                        }
+                        if (ownerPID == 4)
+                        {
+                            p4_floppys.Clear();
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                            }
+                        }
                     }
                 }
             }
@@ -406,9 +541,9 @@ public class GambaMachine : MonoBehaviour
                         break;
                     //Dark Web
                     case 5:
-                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Spartan Beam");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta");
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[2], "Pong Shot");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[3], "Trickshot Alley");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
@@ -462,7 +597,12 @@ public class GambaMachine : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
-            if (ownerPlayer.spellList.Count > 0)
+            bool isChaosMode = gameManager.gamemode == GameManager.Gamemode.Chaos;
+            bool ownerFinishedLobbySelection = isChaosMode
+                ? ownerPlayer.spellList.Count >= chaosSpellChoiceCount
+                : ownerPlayer.spellList.Count > 0;
+
+            if (ownerFinishedLobbySelection)
             {
                 isActive = false;
                 activatedCount = 3;
@@ -510,7 +650,11 @@ public class GambaMachine : MonoBehaviour
     {
         if (ownerPlayer == null) return;
 
-        if (ownerPlayer.chosenSpell || ownerPlayer.spellList.Count >= 6)
+        bool isChaosMode = gameManager.gamemode == GameManager.Gamemode.Chaos;
+        bool ownerFinishedShopSelection = ownerPlayer.spellList.Count >= chaosSpellChoiceCount
+            || (!isChaosMode && ownerPlayer.chosenSpell);
+
+        if (ownerFinishedShopSelection)
         {
             activatedCount = 3;
             isActive = false;
@@ -522,14 +666,21 @@ public class GambaMachine : MonoBehaviour
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
             resetTimer = 0;
-            activatedCount++;
+            activatedCount = isChaosMode ? maxShopRolls : activatedCount + 1;
 
             ClearFloppysForPID(ownerPID);
 
-            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
-            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
-            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
-            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            if (isChaosMode)
+            {
+                SpawnChaosFloppysOnline(ownerPID, GetChaosFloppyLocation(ownerPID), isRollback);
+            }
+            else
+            {
+                if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
+                if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
+                if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
+                if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            }
             if (!isRollback)
             {
                 // Play the gamba hit sfx on real frames only (rollback resim revisits this hit and
@@ -592,24 +743,31 @@ public class GambaMachine : MonoBehaviour
         bool playVfx = !isRollback;
         bool logChoice = !isRollback;
 
+        ClearFloppysForPID(ownerPID);
+
+        if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+        {
+            // Chaos is a single six-spell loadout roll rather than the normal, infinitely
+            // rerollable starter. Keeping the machine at its cap also mirrors the offline rule.
+            activatedCount = maxShopRolls;
+            SpawnChaosFloppysOnline(ownerPID, GetChaosFloppyLocation(ownerPID), isRollback);
+            return;
+        }
+
         if (ownerPID == 1)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 2)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 3)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 4)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         // No RNG consumed in this path (named spell), so no rollback RNG needed
@@ -688,8 +846,15 @@ public class GambaMachine : MonoBehaviour
         int rollsLeft = Mathf.Max(0, maxShopRolls - activatedCount);
         bool isShop = SceneManager.GetActiveScene().name == "Shop";
 
-        //only the shop counts down, everywhere else players reroll as much as they want
-        string rolls = !isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString();
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        bool isChaosMode = manager != null && manager.gamemode == GameManager.Gamemode.Chaos;
+
+        // Chaos has one activation in both the lobby and Shop. Keep activatedCount's existing 0/3
+        // deterministic state (it participates in snapshots and choice keys) and translate only
+        // the presentation to 1/0. Other modes retain their infinite lobby rolls and 3-roll Shop.
+        string rolls = isChaosMode
+            ? (isActive && rollsLeft > 0 ? "1" : "0")
+            : (!isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString());
         string label = "Rolls: " + rolls;
 
         //setting the text rebuilds the mesh, and this runs a few times per frame per machine
@@ -790,17 +955,91 @@ public class GambaMachine : MonoBehaviour
             return false;
         }
 
+        Brand primaryBrand = spellData.brands != null && spellData.brands.Length > 0
+            ? spellData.brands[0]
+            : Brand.None;
+
+        //Chaos gamemode
+        if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+        {
+            List<GameObject> floppyList = GetFloppyListForPID(player.pID);
+
+            //actives
+            if (floppyList.Count < 4)
+            {
+                if (spellData.spellType == SpellType.Passive)
+                {
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    return true;
+                }
+            }
+            //passives
+            if (floppyList.Count >= 4)
+            {
+                if (spellData.spellType == SpellType.Active)
+                {
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, active: " + spellName + " has been removed");
+                    return true;
+                }
+                if (spellData.spellType == SpellType.Passive)
+                {
+                    for (int i = 0; i < floppyList.Count; i++)
+                    {
+                        FloppyPickup diskInfo = floppyList[i].GetComponent<FloppyPickup>();
+                        if (SpellDictionary.Instance.spellDict[spellName].brands[0] == SpellDictionary.Instance.spellDict[diskInfo.diskName].brands[0])
+                        {
+                            if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been accepted");
+                            return false;
+                        }
+                    }
+
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    return true;
+                }
+            }
+        }
+
         //vibecoding case
         if (player.vibeCoding)
         {
-            if (player.spellList.Count < 4 && spellData.spellType == SpellType.Passive)
+            int activeSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Active);
+            int passiveSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Passive);
+
+            if (activeSpellCount < 4 && spellData.spellType == SpellType.Passive)
             {
                 Debug.Log("Vibe Coding is on, passive: " + spellName + " has been removed");
                 return true;
             }
-            if (player.spellList.Count >= 4 && spellData.spellType == SpellType.Active)
+            if (activeSpellCount >= 4 && spellData.spellType == SpellType.Active)
             {
                 Debug.Log("Vibe Coding is on, active: " + spellName + " has been removed");
+                return true;
+            }
+            if (passiveSpellCount >= 2 && spellData.spellType == SpellType.Passive)
+            {
+                Debug.Log("Vibe Coding passive slots are full: " + spellName + " has been removed");
+                return true;
+            }
+        }
+
+        //all darkweb Spellcodes
+        if (primaryBrand == Brand.DarkWeb)
+        {
+            if (spellData.spellName == "Beam Of Sparta" && (!player.killeez && !player.vWave))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+                return true;
+            }
+            
+            if (spellData.spellName == "Touch Of Midas" && (!player.killeez && !player.bigStox))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+                return true;
+            }
+
+            if (spellData.spellName == "Chains Of Thanatos" && (!player.killeez && !player.demonX))
+            {
+                Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
                 return true;
             }
         }
@@ -821,10 +1060,6 @@ public class GambaMachine : MonoBehaviour
         {
             return false;
         }
-
-        Brand primaryBrand = spellData.brands != null && spellData.brands.Length > 0
-            ? spellData.brands[0]
-            : Brand.None;
 
         if (!player.vWave && primaryBrand == Brand.VWave)
         {
@@ -847,12 +1082,6 @@ public class GambaMachine : MonoBehaviour
         if (!player.bigStox && primaryBrand == Brand.BigStox)
         {
             Debug.Log("BigStox passive: " + spellName + " has been removed");
-            return true;
-        }
-
-        if (!player.bigStox && primaryBrand == Brand.DarkWeb)
-        {
-            Debug.Log("DarKWeb passive: " + spellName + " has been removed");
             return true;
         }
 
@@ -1101,6 +1330,48 @@ public class GambaMachine : MonoBehaviour
             chosen.Add(spellToAdd);
 
             SpawnFloppyDisk(pid, locations[i], spellToAdd, !isRollback, !isRollback); // use the named overload, no RNG
+        }
+    }
+
+    private Vector2 GetChaosFloppyLocation(int pid)
+    {
+        int locationIndex = ((Mathf.Clamp(pid, 1, 4) - 1) * 3) + 1;
+        if (diskLocations != null && locationIndex >= 0 && locationIndex < diskLocations.Length)
+        {
+            return diskLocations[locationIndex];
+        }
+
+        // All authored lobby/shop machines have twelve locations. This fallback keeps a malformed
+        // prefab deterministic and usable instead of throwing in the rollback simulation.
+        return transform.position;
+    }
+
+    private void SpawnChaosFloppysOnline(int pid, Vector2 location, bool isRollback = false)
+    {
+        // Rebuild after every choice. ShouldRemoveSpellFromPool uses the number and brands of the
+        // already-spawned disks to enforce Chaos's authored rule: four unique active spells,
+        // followed by two unique compatible passives. The shared seed + stable sorted pool makes
+        // these choices identical for 2-4 players and during rollback resimulation.
+        for (int choiceIndex = 0; choiceIndex < chaosSpellChoiceCount; choiceIndex++)
+        {
+            BuildAvailableSpellPool(pid);
+            RemoveAlreadySpawnedChoicesFromPool(pid);
+            if (spells.Count == 0)
+            {
+                if (!isRollback)
+                {
+                    Debug.LogWarning($"[Chaos] No valid spell remained for P{pid} choice {choiceIndex + 1}.");
+                }
+                break;
+            }
+
+            int randomIndex = GameManager.Instance.GetOnlineShopChoiceRandom(
+                pid,
+                activatedCount,
+                choiceIndex,
+                spells.Count);
+            string spellToAdd = spells[randomIndex];
+            SpawnFloppyDisk(pid, location, spellToAdd, !isRollback, !isRollback);
         }
     }
 }

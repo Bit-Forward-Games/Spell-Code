@@ -229,9 +229,15 @@ public class FloppyPickup : MonoBehaviour
 
                     if (overlappingPlayer.AddSpellToSpellList(diskName))
                     {
+                        bool isChaosMode = GameManager.Instance != null
+                            && GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
                         if (SceneManager.GetActiveScene().name == "Shop")
                         {
-                            overlappingPlayer.chosenSpell = true;
+                            // Normal online shops lock after one choice. Chaos grants the whole
+                            // six-spell loadout, so only mark the player complete after all six
+                            // stacked choices have been acquired.
+                            overlappingPlayer.chosenSpell = !isChaosMode
+                                || overlappingPlayer.spellList.Count >= 6;
                         }
 
                         if (isRealFrame)
@@ -269,9 +275,14 @@ public class FloppyPickup : MonoBehaviour
                             }
                         }
                         gameObject.SetActive(false);
-                        if (isRealFrame)
+                        // The six Chaos disks are stacked and resolve during one simulation pass.
+                        // Broadcasting after every disk makes the host refresh floppyObjects while
+                        // that array is being iterated, which can skip choices and split the peers.
+                        // Publish the completed loadout atomically after the sixth pickup instead.
+                        if (isRealFrame
+                            && (!isChaosMode || overlappingPlayer.spellList.Count >= 6))
                         {
-                            GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"floppy pickup P{ownerPID} {diskName}");
+                            GameManager.Instance?.RequestAuthoritativeOnlineFloppySnapshot($"floppy pickup P{ownerPID} {diskName}");
                         }
                         Destroy(gameObject);
                     }
@@ -308,14 +319,18 @@ public class FloppyPickup : MonoBehaviour
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
+        bool isChaosMode = GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
         if (activeScene.name == "MainMenu")
         {
-            return overlappingPlayer.spellList.Count > 0;
+            return isChaosMode
+                ? overlappingPlayer.spellList.Count >= 6
+                : overlappingPlayer.spellList.Count > 0;
         }
 
         if (activeScene.name == "Shop")
         {
-            return overlappingPlayer.chosenSpell || overlappingPlayer.spellList.Count >= 6;
+            return overlappingPlayer.spellList.Count >= 6
+                || (!isChaosMode && overlappingPlayer.chosenSpell);
         }
 
         return false;

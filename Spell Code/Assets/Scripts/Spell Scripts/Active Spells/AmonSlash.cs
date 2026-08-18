@@ -14,7 +14,7 @@ public class BrimstoneCycloneKick : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[1];
-        description = "Short-range lunging slash.\nThis Spellcode has Armor.";
+        description = "Short-range lunging slash. This Spellcode has Armor.";
 
     }
 

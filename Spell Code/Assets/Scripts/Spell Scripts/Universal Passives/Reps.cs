@@ -14,8 +14,8 @@ public class Reps : SpellData
         cooldown = 1;
         priorityOverride = 3;
         spellType = SpellType.Universal;
-        procConditions = new ProcCondition[1] { ProcCondition.OnHitSpell};
-        description = $"Hit Killeez Spellcodes to Gain Reps<sprite name=\"Reps\">.\nOn Respawn, lose all Reps<sprite name=\"Reps\">.\nSpellcodes deal increased damage based on Reps<sprite name=\"Reps\">.";
+        procConditions = new ProcCondition[] { ProcCondition.OnHitSpell, ProcCondition.OnRepGain};
+        description = $"Hit Killeez Spellcodes to Gain Reps<sprite name=\"Reps\">. On Respawn, lose all Reps<sprite name=\"Reps\">. Spellcodes deal increased damage based on Reps<sprite name=\"Reps\">.";
     }
 
 
@@ -43,12 +43,15 @@ public class Reps : SpellData
                     {
                         break;
                     }
-
-                    //grant the resource
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
+                    
                 }
                 
+                break;
+            case ProcCondition.OnRepGain:
+                //grant the resource
+                owner.reps++;
+                owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
                 break;
             default:
                 break;

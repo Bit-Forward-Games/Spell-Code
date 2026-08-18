@@ -60,8 +60,7 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-33"; // scz-33: new spell Touch Of Midas (appended as spell 53 / projectile 73; its markedPID + midasEffectCounter now serialize, growing the savestate, and the counter no longer underflows while idle),
-                                                    // FlowState broadcasts OnSweetSpot so SpartanBeam grants reps, StockStability counts brands.Contains, SpartanBeam cooldown 600->540 and reach reps*10->reps*15.
+    private const string NetcodeVersion = "scz-37"; // scz-37: Punk keeps active/passive slot order deterministic, and Chaos snapshots preserve the round-advance latch used by its seeded Shop choices
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -3426,6 +3425,16 @@ public class SteamLobbyManager : MonoBehaviour
         bool joiningAlreadyRunningMatch = !string.IsNullOrEmpty(runningMatchToken)
             && runningMatchToken != matchStartToken;
 
+        // The mode id is part of the immutable start token. Latch it before a drop-in guest waits
+        // for the host snapshot so that any snapshot arriving on the same update is interpreted
+        // with the committed deterministic rules. The snapshot also carries the mode as a
+        // fail-safe, but applying it here keeps the public mode state correct throughout bootstrap.
+        string committedGameModeId = GetGameModeIdFromMatchStartToken(lobby, matchStartToken);
+        string committedGameModeName = lobby.GetData(GameModeKey) == committedGameModeId
+            ? lobby.GetData(GameModeNameKey)
+            : null;
+        GameManager.Instance.ApplyOnlineGameMode(committedGameModeId, committedGameModeName);
+
         if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && joiningAlreadyRunningMatch)
         {
             if (debugLogs)
@@ -3434,14 +3443,6 @@ public class SteamLobbyManager : MonoBehaviour
             }
             return;
         }
-
-        // The mode id is part of the immutable start token. Use that committed value rather than a
-        // separately propagated lobby field so the fallback path cannot start on stale rules.
-        string committedGameModeId = GetGameModeIdFromMatchStartToken(lobby, matchStartToken);
-        string committedGameModeName = lobby.GetData(GameModeKey) == committedGameModeId
-            ? lobby.GetData(GameModeNameKey)
-            : null;
-        GameManager.Instance.ApplyOnlineGameMode(committedGameModeId, committedGameModeName);
 
         // Record what kind of match this is for the end-of-match achievements. Everything not
         // named below latches None and awards nothing: Legacy is the old auto-starting

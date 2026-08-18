@@ -15,7 +15,7 @@ public class AbaddonUppercut : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast };
         projectilePrefabs = new GameObject[2];
-        description = $"Short-range rising Uppercut.\nThis spell double-hits if over {demonAuraThreshold}% Demon Aura<sprite name=\"DemonAura\">.\nThis spell has Super Armor.";
+        description = $"Short-range rising Uppercut.This spell double-hits if over {demonAuraThreshold}% Demon Aura<sprite name=\"DemonAura\">. This spell has Super Armor.";
 
     }
 

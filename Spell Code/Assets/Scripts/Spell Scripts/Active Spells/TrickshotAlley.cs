@@ -11,7 +11,7 @@ public class TrickshotAlley : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[1];
-        description = "Lobbing Grenade.\nHit the grenade to launch it, partially refunding this spell's cooldown.";
+        description = "Lobbing Grenade. Hit the grenade to launch it, partially refunding this spell's cooldown.";
 
     }
 

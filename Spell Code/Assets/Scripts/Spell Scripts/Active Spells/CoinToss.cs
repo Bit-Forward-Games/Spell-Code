@@ -15,7 +15,7 @@ public class CoinToss : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1101_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit};
-        description = "Long-range arching coin.\n50% chance of dealing increased damage, even when missing a \"Crit\"<sprite name=\"StockStability\">.";
+        description = "Long-range arching coin. 50% chance of dealing increased damage, even when missing a Crit<sprite name=\"StockStability\">.";
         projectilePrefabs = new GameObject[3];
     }
 

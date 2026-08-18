@@ -11,7 +11,7 @@ public class ShotReflector : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[1];
-        description = "Stationary Shield.\nAbsorbs opponent projectiles, launching a counter-projectile and partially refunding this spell's cooldown.";
+        description = "Stationary Shield. Absorbs opponent projectiles, launching a counter-projectile and partially refunding this spell's cooldown.";
 
     }
 

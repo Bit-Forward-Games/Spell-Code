@@ -1,24 +1,26 @@
 using UnityEngine;
+using System.Linq;
 
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class GetAJob : SpellData, IBigStoxActiveSpell
+public class WolfOfWallstreet : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    public const int demonAuraThreshold = 80;
     bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
     bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
-    public GetAJob()
+    public WolfOfWallstreet()
     {
-        spellName = "Get A Job";
-        brands = new Brand[]{ Brand.BigStox };
-        cooldown = 240;
-        spellInput = 0b_0000_0000_0000_0000_0011_0100_0000_0011; // Example input sequence
+        spellName = "Wolf Of Wallstreet";
+        brands = new Brand[]{ Brand.DarkWeb, Brand.DemonX, Brand.BigStox };
+        cooldown = 360;
+        spellInput = 0b_0000_0000_0000_0111_1001_0010_0000_0110; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit };
+        procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit, ProcCondition.OnHitSpell};
         projectilePrefabs = new GameObject[2];
         description = "Medium-range lunging job application. This Spellcode has armor. Gains super armor, extra range, and stun on Crit<sprite name=\"StockStability\">.";
-        spawnOffsetX = 36;
+        //spawnOffsetX = 36;
         spawnOffsetY = 36;
     }
     public override void LoadSpell()
@@ -29,6 +31,18 @@ public class GetAJob : SpellData, IBigStoxActiveSpell
     public override void SpellUpdate()
     {
         if (projectileInstances.Count < 1) return;
+        int speedBoost = doesCrit ? 10 : 8; // Example: If it's a critical hit, increase speed boost
+
+        BaseProjectile baseProj = projectileInstances[0].GetComponent<BaseProjectile>();
+        BaseProjectile critProj = projectileInstances[1].GetComponent<BaseProjectile>();
+        if (baseProj.logicFrame == baseProj.frameData.startFrames[0] || 
+            baseProj.logicFrame == baseProj.frameData.startFrames[1] ||
+            critProj.logicFrame == critProj.frameData.startFrames[0] ||
+            critProj.logicFrame == critProj.frameData.startFrames[1])
+        {
+            owner.vSpd = Fixed.FromInt(4); // Launch the player upwards slightly
+            owner.hSpd = owner.facingRight ? Fixed.FromInt(speedBoost) : Fixed.FromInt(-speedBoost); // Propel the player forward
+        }
         if (cooldownCounter > 0)
         {
             cooldownCounter--;
@@ -36,11 +50,10 @@ public class GetAJob : SpellData, IBigStoxActiveSpell
         }
         if (activateFlag)
         {
-            int speedBoost = doesCrit ? 12 : 8; // Example: If it's a critical hit, increase speed boost
+            
             // Reset the activate flag
             activateFlag = false;
-            owner.vSpd = Fixed.FromInt(4); // Launch the player upwards slightly
-            owner.hSpd = owner.facingRight ? Fixed.FromInt(speedBoost) : Fixed.FromInt(-speedBoost); // Propel the player forward
+            
 
             // Instantiate the projectile prefab at the player's position
             // Assuming you have a reference to the player GameObject
@@ -72,12 +85,41 @@ public class GetAJob : SpellData, IBigStoxActiveSpell
         {
             
             case ProcCondition.ActiveOnCast:
+                if(owner.demonAura >= demonAuraThreshold)
+                {
+                    this.EnableForcedCrit();
+                }
+                else
+                {
+                    this.DisableForcedCrit();
+                }
                 this.ResolveCrit(owner);
                 owner.superArmor = doesCrit;
                 owner.armor = !doesCrit;
                 break;
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)
+                {
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
+                }
+                
+                if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
+                {
+                    break;
+                }
+                foreach(SpellData spell in defender.spellList)
+                {
+                    if (spell.cooldownCounter > 1)
+                    {
+                        
+                        //stolenEnergy ++;
+                        owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRankUp, defender);
+                        spell.cooldownCounter = spell.cooldown;
+                    }
+                }
+                break;
+            case ProcCondition.OnHitSpell:
+                if(owner.demonAura >= demonAuraThreshold && this != defender.hitboxData.parentProjectile.ownerSpell)
                 {
                     owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnCrit, defender);
                 }

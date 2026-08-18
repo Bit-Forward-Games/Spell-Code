@@ -544,7 +544,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
 
                         // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
@@ -1005,7 +1005,7 @@ public class GambaMachine : MonoBehaviour
                 return false;
             }
 
-            if (spellData.spellName == "" && (player.demonX && player.bigStox))
+            if (spellData.spellName == "Wolf Of Wallstreet" && (player.demonX && player.bigStox))
             {
                 Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                 return false;
@@ -1017,7 +1017,7 @@ public class GambaMachine : MonoBehaviour
                 return false;
             }
 
-            if (spellData.spellName == "" && (player.bigStox && player.vWave))
+            if (spellData.spellName == "The Jokah" && (player.bigStox && player.vWave))
             {
                 Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                 return false;

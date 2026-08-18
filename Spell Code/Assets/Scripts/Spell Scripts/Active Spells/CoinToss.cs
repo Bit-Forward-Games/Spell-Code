@@ -4,9 +4,11 @@ using UnityEngine;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class CoinToss : SpellData
+public class CoinToss : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
+    bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
     public CoinToss()
     {
         spellName = "Coin Toss";
@@ -67,9 +69,7 @@ public class CoinToss : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                int roll = GameManager.Instance.GetNextRandom(0, 100);
-                //Debug.Log($"[COINTOSS SYNC] Frame={GameManager.Instance.frameNumber} roll={roll} randomCallCount={GameManager.Instance.randomCallCount}");
-                doesCrit = roll < owner.stockStabilityModified;
+                this.ResolveCrit(owner);
                 break;
             case ProcCondition.ActiveOnHit:
                 if (doesCrit)

@@ -35,11 +35,8 @@ public class ChainsOfThanatos : SpellData
         {
             case ProcCondition.ActiveOnHit:
                 markedOpponentPID = defender.pID;
-                PlayerController newlyMarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
-                if (newlyMarked != null)
-                {
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, newlyMarked.position, true);
-                }
+                defender.SpawnToast("Spellcodes Disabled", GameManager.colors["purple"]);
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, GameManager.Instance.GetPlayerByPID(markedOpponentPID).position, true);
                 break;
             case ProcCondition.OnUpdate:
                 //handle the marked vfx
@@ -49,11 +46,8 @@ public class ChainsOfThanatos : SpellData
                     // match -> GetPlayerByPID returns null; stale -1 pID would even index players[-2])
                     // an unguarded deref crashes the sim on every client.
                     PlayerController marked = markedOpponentPID >= 0 ? GameManager.Instance.GetPlayerByPID(markedOpponentPID) : null;
-                    if (marked != null)
-                    {
-                        marked.silenced = true;
-                    }
-
+                    marked.silenced = true;
+                    
                     if (marked != null && marked.isAlive && owner.demonAura > 0)
                     {
                         projectileInstances[1].GetComponent<BaseProjectile>().position = marked.position;

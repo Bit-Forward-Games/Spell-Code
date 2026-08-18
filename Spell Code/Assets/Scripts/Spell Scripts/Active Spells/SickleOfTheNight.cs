@@ -35,15 +35,22 @@ public class SickleOfTheNight : SpellData
                 if (!defender.hitboxData.basicAttackHitbox)
                 {
                     owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
+                    int extraSpellIndex = owner.extraSpells != null ? owner.extraSpells.IndexOf(this) : -1;
+                    owner.basicSpawnOverrideVariant = extraSpellIndex >= 0 && extraSpellIndex < byte.MaxValue
+                        ? (byte)(extraSpellIndex + 1)
+                        : (byte)0;
                     targetPID = defender.pID;
-                    PlayerController cachedPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), cachedPlayer.facingRight, cachedPlayer.position, true);
+                    // `defender` is the authoritative object that was just hit. Resolving it again by
+                    // PID can legitimately return null if a sparse online slot disconnects during the
+                    // hit, so use the known object for the initial world-space mark position. The mark
+                    // projectile validates the live roster and fades itself on its next update.
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), defender.facingRight, defender.position, true);
 
                 }
                 break;
             case ProcCondition.OnCastBasic:
                 
-                if (owner.basicSpawnOverride == spellName)
+                if (OwnsPendingBasicOverride())
                 {
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                     if(owner.flowState > 0)
@@ -70,7 +77,7 @@ public class SickleOfTheNight : SpellData
                         targetPID = -1;
                     }
                 }
-                if(owner.basicSpawnOverride != spellName)
+                if(!OwnsPendingBasicOverride())
                 {
                     targetPID = -1;
                 }
@@ -79,6 +86,31 @@ public class SickleOfTheNight : SpellData
                 break;
         }
     }
+
+    /// <summary>
+    /// Identifies which Sickle instance armed the shared basic override. Variant zero is the normal
+    /// inventory spell; Jokah copies use their stable extraSpells index plus one. The variant is
+    /// already serialized and hashed with PlayerController, so rollback restores this ownership.
+    /// </summary>
+    public bool OwnsPendingBasicOverride()
+    {
+        if (owner == null || owner.basicSpawnOverride != spellName)
+        {
+            return false;
+        }
+
+        int extraSpellIndex = owner.extraSpells != null ? owner.extraSpells.IndexOf(this) : -1;
+        if (extraSpellIndex >= 0)
+        {
+            return extraSpellIndex < byte.MaxValue
+                && owner.basicSpawnOverrideVariant == (byte)(extraSpellIndex + 1);
+        }
+
+        return owner.spellList != null
+            && owner.spellList.Contains(this)
+            && owner.basicSpawnOverrideVariant == 0;
+    }
+
     public override void Serialize(System.IO.BinaryWriter bw)
     {
         base.Serialize(bw);

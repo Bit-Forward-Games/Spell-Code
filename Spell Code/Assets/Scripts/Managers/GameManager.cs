@@ -6403,8 +6403,10 @@ public class GameManager : MonoBehaviour
                 SelectFallbackOnlineGameplayStage();
             }
 
-            ResetPlayers();
             ProjectileManager.Instance.InitializeAllProjectiles();
+            // SpawnPlayer's OnStart pass rebuilds The Jokah's derived spell/projectile copies.
+            // Initialize the inventory pool first so it cannot immediately destroy those copies.
+            ResetPlayers();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();
@@ -6469,8 +6471,9 @@ public class GameManager : MonoBehaviour
             }
 
             InitializeOnlineShopSceneState();
-            ResetPlayers();
             ProjectileManager.Instance.InitializeAllProjectiles();
+            // Keep the final pool topology (including Jokah copies) in the frame-zero snapshot.
+            ResetPlayers();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();

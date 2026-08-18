@@ -17,7 +17,7 @@ public class TheJokah : SpellData
         cooldown = 360;
         spellInput = 0b_0000_0000_0000_0111_1001_1110_0000_0110; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate, ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
+        procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate, ProcCondition.OnCastBasic, ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
         projectilePrefabs = new GameObject[2];
         description = "Casts and enhanced version of one of your VWave<sprite name=\"FlowState\"> or BigStox<sprite name=\"StockStability\"> Spellcodes at random. Hitting Sweet-Spots<sprite name=\"FlowState\"> of other Spellcodes now Crit<sprite name=\"StockStability\">.";
         spawnOffsetX = 0;
@@ -68,6 +68,7 @@ public class TheJokah : SpellData
                 // stayed registered in ProjectileManager.projectilePrefabs -- which UpdateProjectiles
                 // walks every frame -- until The Jokah itself was destroyed. Tear the old set down
                 // before rebuilding.
+                ClearPendingCopiedSickleOverride();
                 DestroyCreatedSpells(JokahVWaveSpells);
                 DestroyCreatedSpells(JokahBigStoxSpells);
 
@@ -160,6 +161,9 @@ public class TheJokah : SpellData
                     }
                 }
                 break;
+            case ProcCondition.OnCastBasic:
+                ForwardPendingSickleBasic(defender);
+                break;
             case ProcCondition.OnHitSpell:
                 if (JokahVWaveSpells.Contains(defender.hitboxData.parentProjectile.ownerSpell))
                 {
@@ -188,8 +192,61 @@ public class TheJokah : SpellData
         isVWave = br.ReadBoolean();
     }
 
+    private void ForwardPendingSickleBasic(PlayerController defender)
+    {
+        if (owner == null || owner.extraSpells == null || owner.basicSpawnOverrideVariant == 0)
+        {
+            return;
+        }
+
+        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
+        if (extraSpellIndex < 0 || extraSpellIndex >= owner.extraSpells.Count)
+        {
+            return;
+        }
+
+        SpellData candidate = owner.extraSpells[extraSpellIndex];
+        SickleOfTheNight enhancedSickle = candidate as SickleOfTheNight;
+        if (enhancedSickle == null
+            || JokahVWaveSpells == null
+            || !JokahVWaveSpells.Contains(candidate)
+            || !enhancedSickle.OwnsPendingBasicOverride())
+        {
+            return;
+        }
+
+        // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell would
+        // let both the inventory spell and its Jokah copy react to the same shared override.
+        enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
+    }
+
+    private void ClearPendingCopiedSickleOverride()
+    {
+        if (owner == null
+            || owner.extraSpells == null
+            || owner.basicSpawnOverride != "Sickle Of The Night"
+            || owner.basicSpawnOverrideVariant == 0)
+        {
+            return;
+        }
+
+        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
+        if (extraSpellIndex >= 0
+            && extraSpellIndex < owner.extraSpells.Count
+            && owner.extraSpells[extraSpellIndex] is SickleOfTheNight pendingSickle)
+        {
+            pendingSickle.targetPID = -1;
+        }
+
+        // Every Jokah copy is rebuilt during this OnStart pass. Clear even if a damaged/stale index
+        // could not be resolved, rather than let it point at an unrelated copy after list removals.
+        owner.basicSpawnOverride = string.Empty;
+        owner.basicSpawnOverrideVariant = 0;
+    }
+
     private void OnDestroy()
     {
+        ClearPendingCopiedSickleOverride();
         DestroyCreatedSpells(JokahVWaveSpells);
         DestroyCreatedSpells(JokahBigStoxSpells);
     }

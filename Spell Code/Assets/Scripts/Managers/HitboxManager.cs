@@ -168,6 +168,49 @@ public class HitboxManager : MonoBehaviour
                                     {
                                         defendingPlayer.facingRight = !projectile.facingRight;
                                         projectile.hitstop = hitstopVal;
+
+                                        //share hitstop among projectiles
+                                        
+                                        if(projectile.ownerSpell != null && projectile.ownerSpell.projIDsToShareHitstop != null)
+                                        {
+                                            SpellData ownerSpell = projectile.ownerSpell;
+                                            ushort[] sharedProjectileIDs = ownerSpell.projIDsToShareHitstop;
+                                            // byte sharedHitstop = projectile.hitstop;
+
+                                            // for (int j = 0; j < sharedProjectileIDs.Length; j++)
+                                            // {
+                                            //     byte projectileHitstop = ownerSpell.projectileInstances[sharedProjectileIDs[j]].GetComponent<BaseProjectile>().hitstop;
+                                            //     if (projectileHitstop > sharedHitstop)
+                                            //     {
+                                            //         sharedHitstop = projectileHitstop;
+                                            //     }
+                                            // }
+
+                                            for (int j = 0; j < sharedProjectileIDs.Length; j++)
+                                            {
+                                                // The IDs are authored per spell while the instance
+                                                // list is built at runtime, so an out-of-range entry
+                                                // (or a spell whose instances are not all spawned
+                                                // yet) would throw INSIDE the resim and hard-freeze
+                                                // the sim rather than desync it.
+                                                ushort sharedId = sharedProjectileIDs[j];
+                                                if (ownerSpell.projectileInstances == null
+                                                    || sharedId >= ownerSpell.projectileInstances.Count
+                                                    || ownerSpell.projectileInstances[sharedId] == null)
+                                                {
+                                                    continue;
+                                                }
+
+                                                BaseProjectile sharedProjectile =
+                                                    ownerSpell.projectileInstances[sharedId].GetComponent<BaseProjectile>();
+                                                if (sharedProjectile != null)
+                                                {
+                                                    sharedProjectile.hitstop = hitstopVal;//was shared hitstop instead of hitstopVal
+                                                }
+                                            }
+                                        }
+                                        
+
                                         if (projectile.meleeProjectile)
                                         {
                                             projectile.owner.hitstop = hitstopVal;

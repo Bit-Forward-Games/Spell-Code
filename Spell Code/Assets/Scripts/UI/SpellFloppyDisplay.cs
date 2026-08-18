@@ -13,7 +13,7 @@ public class SpellFloppyDisplay : MonoBehaviour
     public TextMeshProUGUI spellCooldown;
     public TextMeshProUGUI spellInput;
 
-    public Sprite[] backgroundImageReference = new Sprite[4];
+    public Sprite[] backgroundImageReference = new Sprite[5];
     public Image spellIcon;
     public Image Background;
     public Image selectFill;
@@ -58,6 +58,7 @@ public class SpellFloppyDisplay : MonoBehaviour
         {
             case Brand.Killeez:
                 Background.sprite = backgroundImageReference[0];
+                
                 break;
             case Brand.VWave:
                 Background.sprite = backgroundImageReference[1];
@@ -67,6 +68,9 @@ public class SpellFloppyDisplay : MonoBehaviour
                 break;
             case Brand.BigStox:
                 Background.sprite = backgroundImageReference[3];
+                break;
+            case Brand.DarkWeb:
+                Background.sprite = backgroundImageReference[4];
                 break;
 
         }
@@ -114,7 +118,7 @@ public class SpellFloppyDisplay : MonoBehaviour
                 {
                     if (spellDesc != null)
                     {
-                        spellDesc.DOColor(Color.black, .25f).SetLink(spellDesc.gameObject);
+                        spellDesc.DOColor(spellData.brands[0] == Brand.DarkWeb? GameManager.colors["white"]: Color.black, .25f).SetLink(spellDesc.gameObject);
                     }
                 });
             }

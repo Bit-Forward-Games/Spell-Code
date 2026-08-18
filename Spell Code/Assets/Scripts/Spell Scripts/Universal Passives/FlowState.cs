@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 using Fixed = BestoNet.Types.Fixed32;
@@ -15,7 +16,7 @@ public class FlowState : SpellData
         priorityOverride = 3;
         spellType = SpellType.Universal;
         procConditions = new ProcCondition[1] { ProcCondition.OnHitSpell};
-        description = $"Hit the Red part of VWave Spellcodes to enter Flow State<sprite name=\"FlowState\"> for {maxFlowState/60} seconds.\nSpellcodes deal increased damage while in Flow State<sprite name=\"FlowState\">.";
+        description = $"Hit the Sweet-Spot<sprite name=\"FlowState\"> of VWave Spellcodes, denoted by red, to enter Flow State<sprite name=\"FlowState\"> for {maxFlowState/60} seconds.\nSpellcodes deal increased damage while in Flow State<sprite name=\"FlowState\">.";
 
     }
 
@@ -37,7 +38,7 @@ public class FlowState : SpellData
                 // ownerSpell null-guard: an Aegis-reflected projectile restored from a rollback has
                 // ownerSpell == null (the reflector's spellList doesn't contain the original spell,
                 // so it serializes as -1) a bare deref here crashed the sim on that hit.
-                if(defender.hitboxData.parentProjectile.ownerSpell != null && defender.hitboxData.parentProjectile.ownerSpell.brands[0] == Brand.VWave && defender.hitboxData.sweetSpot && !defender.hitboxData.parentProjectile.ignoreBrand)
+                if(defender.hitboxData.parentProjectile.ownerSpell != null && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.VWave) && defender.hitboxData.sweetSpot && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
                     if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))
@@ -47,6 +48,7 @@ public class FlowState : SpellData
                     
                     owner.flowState = maxFlowState;
                     owner.SpawnToast("FLOW STATE", GameManager.colors["green"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnSweetSpot, defender);
 
                     //Play the Sweet Spot SFX
                     SFX_Manager.Instance.PlaySound(Sounds.SWEET_SPOT_HIT);

@@ -33,7 +33,8 @@ public class GameManager : MonoBehaviour
         { "pink", HexToColor("#ec8cff") },
         { "gold", HexToColor("#dd8c00") },
         { "grey", HexToColor("#998d86") },
-        { "black", HexToColor("#000000") }
+        { "black", HexToColor("#000000") },
+        { "evil color", HexToColor("#140e1e") }
     };
 
     public enum Gamemode
@@ -2297,10 +2298,10 @@ public class GameManager : MonoBehaviour
         endWinnerPid = winnerPid;
         bigWinner = winnerPid > 0 && winnerPid <= playerCount ? players[winnerPid - 1] : null;
         endWinnerPalette = bigWinner != null
-            && bigWinner.matchPalette != null
+            && bigWinner.matchPalettes != null
             && winnerPid - 1 >= 0
-            && winnerPid - 1 < bigWinner.matchPalette.Length
-                ? bigWinner.matchPalette[winnerPid - 1]
+            && winnerPid - 1 < bigWinner.matchPalettes.Length
+                ? bigWinner.matchPalettes[winnerPid - 1]
                 : null;
     }
 
@@ -4461,10 +4462,10 @@ public class GameManager : MonoBehaviour
                                 gameOver = true;
                                 bigWinner = winner;
                                 endWinnerPid = winner.pID;
-                                endWinnerPalette = winner.matchPalette != null
+                                endWinnerPalette = winner.matchPalettes != null
                                     && winner.pID - 1 >= 0
-                                    && winner.pID - 1 < winner.matchPalette.Length
-                                    ? winner.matchPalette[winner.pID - 1]
+                                    && winner.pID - 1 < winner.matchPalettes.Length
+                                    ? winner.matchPalettes[winner.pID - 1]
                                     : null;
                             }
 
@@ -4546,6 +4547,12 @@ public class GameManager : MonoBehaviour
         player.spellsFired = 0;
         player.spellsHit = 0;
         player.roundsWon = 0;
+        // SpellCode_Gate.CheckGateBroken reads this to decide whether the gate opens or the
+        // projectile is deleted, and the gate lives in Lobby_Arena as well as Tutorial. It is
+        // [NonSerialized] and only ever SET (in the Tutorial scene), so without this a player who
+        // ran the tutorial and then entered an online match carried true while their peer had
+        // false, and the two simulated that gate differently.
+        player.tutorialSpellStored = false;
         player.storedKillBonus = 0;
         player.roundRam = 0;
         player.ramBounty = 0;
@@ -5317,6 +5324,41 @@ public class GameManager : MonoBehaviour
     /// Keeps the "finish a match" achievements off that path: a peer quitting shouldn't satisfy
     /// "play a full match", and it would otherwise be farmable with a friend who joins and leaves.
     /// </param>
+    /// <summary>
+    /// Awards the "finished an online match" achievements, from EITHER end-of-match path.
+    /// GameEnd only runs on a client whose own sim plays the game-over transition out, which in
+    /// practice is the host: a guest is driven straight to the End screen by the host's
+    /// authoritative End packet (BeginOnlineEndTransition -> ApplyOnlineEndWinner) and never calls
+    /// GameEnd at all. Awarding only there is why guests never earned Squad Goals
+    /// </summary>
+    private void TryAwardOnlineMatchCompletionAchievement(bool endedByDisconnect, string source)
+    {
+        // Every input to the decision, because a missed unlock otherwise leaves NO trace:
+        // SteamAchievements.TryTrigger returns silently when Steam has not handed over the user's
+        // stats yet, so an absent "[Achievements] ..." line cannot distinguish "never asked" from
+        // "asked and it was refused". This says which, and which path asked.
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[Achievements] Match-end check from {source}. origin={SteamLobbyManager.ActiveMatchOrigin} "
+                + $"online={isOnlineMatchActive} endedByDisconnect={endedByDisconnect} realFrame={SimGuards.IsRealFrame()}.");
+        }
+
+        if (!isOnlineMatchActive || endedByDisconnect || !SimGuards.IsRealFrame())
+        {
+            return;
+        }
+
+        switch (SteamLobbyManager.ActiveMatchOrigin)
+        {
+            case SteamLobbyManager.OnlineMatchOrigin.Friends:
+                SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
+                break;
+            case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
+                SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
+                break;
+        }
+    }
+
     public void GameEnd(bool endedByDisconnect = false)
     {
         if (!isSaved)
@@ -5327,18 +5369,7 @@ public class GameManager : MonoBehaviour
 
         // Awarded per machine, not per slot: every player who saw the match through earns it
         // on their own account, which is what "play a full match with friends" describes.
-        if (isOnlineMatchActive && !endedByDisconnect && SimGuards.IsRealFrame())
-        {
-            switch (SteamLobbyManager.ActiveMatchOrigin)
-            {
-                case SteamLobbyManager.OnlineMatchOrigin.Friends:
-                    SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
-                    break;
-                case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
-                    SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
-                    break;
-            }
-        }
+        TryAwardOnlineMatchCompletionAchievement(endedByDisconnect, "GameEnd");
 
         endInputEnabled = false;
 
@@ -5394,6 +5425,12 @@ public class GameManager : MonoBehaviour
         }
 
         ApplyOnlineEndWinner(winnerPid);
+
+        // This is a guest being told the match was played out to a result, which is the only
+        // end-of-match signal it gets it never runs GameEnd. A disconnect-decided match does not
+        // arrive here: that is adjudicated locally and calls GameEnd(endedByDisconnect: true).
+        TryAwardOnlineMatchCompletionAchievement(false, "OnlineEndTransition");
+
         BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;

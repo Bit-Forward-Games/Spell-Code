@@ -1,25 +1,10 @@
 fileFormatVersion: 2
-guid: 74a46dfe2ff668a4f8bb2bddb05f2134
+guid: 7798d6f755f9a5f4ca2e2782faa60515
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6162587749282746840
-    second: SpellCodeSlingerZ_Block_v2-Sheet_0
-  - first:
-      213: 9094035612799438076
-    second: SpellCodeSlingerZ_Block_v2-Sheet_1
-  - first:
-      213: -1410287477395381371
-    second: SpellCodeSlingerZ_Block_v2-Sheet_2
-  - first:
-      213: -7846098617525907306
-    second: SpellCodeSlingerZ_Block_v2-Sheet_3
-  - first:
-      213: -3983373713875948149
-    second: SpellCodeSlingerZ_Block_v2-Sheet_4
-  - first:
-      213: -6013006228868995846
-    second: SpellCodeSlingerZ_Block_v2-Sheet_5
+      213: -4256500431344372193
+    second: SpellCodeSlingerZ_Super Armor_v2-Sheet_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -66,7 +51,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 360
+  spritePixelsToUnits: 200
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -111,189 +96,137 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WindowsStoreApps
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_0
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 82ee3d2c7171a7aa0800000000000000
-      internalID: -6162587749282746840
+      spriteID: f16fb6bd86fdde4c0800000000000000
+      internalID: -4256500431344372193
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_1
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_1
       rect:
         serializedVersion: 2
-        x: 1080
+        x: 1280
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: cfc89a32531843e70800000000000000
-      internalID: 9094035612799438076
+      spriteID: ffd45ecb929a0404db11a45cd86dadc9
+      internalID: 1296519022
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_2
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_2
       rect:
         serializedVersion: 2
-        x: 2160
+        x: 2560
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 583aaa6e207ad6ce0800000000000000
-      internalID: -1410287477395381371
+      spriteID: fb9f36d0feb80e145b212ac6a8588fc5
+      internalID: 942452687
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_3
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_3
       rect:
         serializedVersion: 2
-        x: 3240
+        x: 3840
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 6905fa5b0ee0d1390800000000000000
-      internalID: -7846098617525907306
+      spriteID: d14de4472ecd85849be01b5b0ad16da7
+      internalID: 1591447694
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_4
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_4
       rect:
         serializedVersion: 2
-        x: 4320
+        x: 5120
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b8dabc846b638b8c0800000000000000
-      internalID: -3983373713875948149
+      spriteID: a1995e4ca390cf34abad7e0f776970f3
+      internalID: 1321208893
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SpellCodeSlingerZ_Block_v2-Sheet_5
+      name: SpellCodeSlingerZ_Super Armor_v2-Sheet_5
       rect:
         serializedVersion: 2
-        x: 5400
+        x: 6400
         y: 0
-        width: 1080
+        width: 1280
         height: 1280
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+      alignment: 9
+      pivot: {x: 0.5, y: 0.25}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: af46d0071b28d8ca0800000000000000
-      internalID: -6013006228868995846
+      spriteID: d04e6e7e197aab343bb25554605e0195
+      internalID: 74538601
       vertices: []
       indices: 
       edges: []
@@ -302,7 +235,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 25a5514ac004e74498daae6c6ddbc924
+    spriteID: 267925c40ac37424d92ba1837d708379
     internalID: 0
     vertices: []
     indices: 
@@ -310,14 +243,16 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":6.0,"y":1.0},"gridSpriteSize":{"x":1280.0,"y":1280.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      SpellCodeSlingerZ_Block_v2-Sheet_0: -6162587749282746840
-      SpellCodeSlingerZ_Block_v2-Sheet_1: 9094035612799438076
-      SpellCodeSlingerZ_Block_v2-Sheet_2: -1410287477395381371
-      SpellCodeSlingerZ_Block_v2-Sheet_3: -7846098617525907306
-      SpellCodeSlingerZ_Block_v2-Sheet_4: -3983373713875948149
-      SpellCodeSlingerZ_Block_v2-Sheet_5: -6013006228868995846
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_0: -4256500431344372193
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_1: 1296519022
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_2: 942452687
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_3: 1591447694
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_4: 1321208893
+      SpellCodeSlingerZ_Super Armor_v2-Sheet_5: 74538601
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1360,6 +1360,37 @@ public class GambaMachine : MonoBehaviour
                 Destroy(disk);
             }
 
+            //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // Same early-out as the random-name branch above. This branch is the one the ONLINE
+            // path uses (SpawnChaosFloppysOnline always passes an explicit spell name), so without
+            // it online kept playing the floppy arc VFX and toggling the disk back on -- advertising
+            // a pickup that Chaos had already granted.
+            if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+            {
+                if (ownerPID == 1)
+                {
+                    p1_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 2)
+                {
+                    p2_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 3)
+                {
+                    p3_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 4)
+                {
+                    p4_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                disk.SetActive(false);
+                return disk;
+            }
+
             //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
             ToggleFloppyAfterDelay(disk, 0.5f);
 

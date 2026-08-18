@@ -60,7 +60,9 @@ public class SteamLobbyManager : MonoBehaviour
     // BUMP NetcodeVersion whenever the wire/serialize/state-hash format changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-37"; // scz-37: Punk keeps active/passive slot order deterministic, and Chaos snapshots preserve the round-advance latch used by its seeded Shop choices
+    private const string NetcodeVersion = "scz-38"; // scz-38: new spells The Jokah and Wolf Of Wallstreet (appended as spells 55-56 / projectiles 76-79), each adding a bool to the spell savestate;
+                                                    // the BigStox actives now route their crit roll through IBigStoxActiveSpell.ResolveCrit
+
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

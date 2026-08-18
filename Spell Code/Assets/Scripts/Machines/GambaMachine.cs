@@ -224,7 +224,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -234,7 +234,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -244,7 +244,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -384,7 +384,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -394,7 +394,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -404,7 +404,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -1260,6 +1260,10 @@ public class GambaMachine : MonoBehaviour
             }
 
             //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // The disk still goes into the per-player list before being hidden: both
+            // RemoveAlreadySpawnedChoicesFromPool and the Chaos branch of ShouldRemoveSpellFromPool
+            // count list entries rather than active objects, so duplicate-avoidance still works.
+            // Offline the grant happens in FixedUpdate; online it happens in SpawnChaosFloppysOnline.
             if (gameManager.gamemode == GameManager.Gamemode.Chaos)
             {
                 if (ownerPID == 1)
@@ -1523,6 +1527,20 @@ public class GambaMachine : MonoBehaviour
                 spells.Count);
             string spellToAdd = spells[randomIndex];
             SpawnFloppyDisk(pid, location, spellToAdd, !isRollback, !isRollback);
+
+            // Chaos grants the roll immediately instead of making the player walk onto the floppy
+            // Done INSIDE the loop, after the spawn, so the pool rebuilt for the next choice already sees this spell in spellList
+            // Determinism: the pick above is seeded through GetOnlineShopChoiceRandom and
+            // AddSpellToSpellList consumes no RNG, so every peer adds the same spells in the same
+            // order. spellList is serialized, so a rollback restores it and the resim re-adds.
+            PlayerController[] roster = GameManager.Instance.players;
+            PlayerController target = roster != null && pid >= 1 && pid <= roster.Length
+                ? roster[pid - 1]
+                : null;
+            if (target != null)
+            {
+                target.AddSpellToSpellList(spellToAdd);
+            }
         }
     }
 }

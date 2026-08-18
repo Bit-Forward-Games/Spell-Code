@@ -16,7 +16,7 @@ public class HellWaveFist : SpellData
         procConditions = new ProcCondition[] {};
         projectilePrefabs = new GameObject[2];
 
-        description = "Long-range energy blast.\nWhen Demon Aura<sprite name=\"DemonAura\"> is B rank or higher, This Spellcode is enhanced.";
+        description = "Long-range energy blast. When Demon Aura<sprite name=\"DemonAura\"> is B rank or higher, This Spellcode is enhanced.";
 
     }
 

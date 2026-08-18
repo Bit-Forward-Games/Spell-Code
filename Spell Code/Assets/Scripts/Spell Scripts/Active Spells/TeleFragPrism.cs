@@ -20,7 +20,7 @@ public class TeleFragPrism : SpellData
         projectilePrefabs = new GameObject[3];
         spawnOffsetX = 0;
         spawnOffsetY = 0;
-        description = "Place down a refracting prism.\nYour next Basic Attack teleports you across the prism, dealing damage at your new location.";
+        description = "Place down a refracting prism. Your next Basic Attack teleports you across the prism, dealing damage at your new location.";
         codeReleaseFrameLengthsOverride = new List<int>(){1, 1, 1, 1, 1, 1};
     }
 

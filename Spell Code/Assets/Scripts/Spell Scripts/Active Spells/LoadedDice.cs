@@ -17,7 +17,7 @@ public class LoadedDice : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_0010_0000_0010; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit, ProcCondition.OnCastSpell};
-        description = "Short range lingering dice roll.\nUnique effects on each number.\nOn Crit<sprite name=\"StockStability\">, throw a loaded die which only results in high values.";
+        description = "Short range lingering dice roll. Unique effects on each number. On Crit<sprite name=\"StockStability\">, throw a loaded die which only results in high values.";
         projectilePrefabs = new GameObject[9];
     }
 
@@ -84,8 +84,7 @@ public class LoadedDice : SpellData
                 }
                 else if(projectileInstances[2].activeSelf)
                 {
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 }
                 //Mini BCC proc
                 else if(projectileInstances[3].activeSelf || projectileInstances[6].activeSelf)

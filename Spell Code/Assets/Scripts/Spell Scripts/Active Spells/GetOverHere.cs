@@ -18,7 +18,7 @@ public class GetOverHere : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate };
         projectilePrefabs = new GameObject[7];
-        description = "Long-range Rope Dart which pulls in opponents.\nHitting the stage with this Spellcode will launch you forward.";
+        description = "Long-range Rope Dart which pulls in opponents. Hitting the stage with this Spellcode will launch you forward.";
         
 
     }

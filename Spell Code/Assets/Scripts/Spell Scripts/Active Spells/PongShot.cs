@@ -10,7 +10,7 @@ public class PongShot : SpellData
         spellInput = 0b_0000_0000_0000_0000_0000_1011_0000_0011; // Example input sequence
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {};
-        description = "Diagonal downward shot.\nThis spell ricochets off surfaces, resetting its lifespan.\nWhile in Flow State<sprite name=\"FlowState\"> this spell has a longer lifespan.";
+        description = "Diagonal downward shot. This spell ricochets off surfaces, resetting its lifespan. While in Flow State<sprite name=\"FlowState\"> this spell has a longer lifespan.";
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 20;
         spawnOffsetY = 45;

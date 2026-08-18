@@ -15,7 +15,7 @@ public class BootsOfHermes : SpellData
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnJump };
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[1];
-        description = "Gain 1 Jump for every 3 Reps<sprite name=\"Reps\"> you have.\nArial jumps now explode";
+        description = "Gain 1 Jump for every 3 Reps<sprite name=\"Reps\"> you have. Arial jumps now explode";
     }
     public override void SpellUpdate()
     {
@@ -36,7 +36,7 @@ public class BootsOfHermes : SpellData
                 owner.maxJumpCount = (byte)(owner.charData.jumpCount + Mathf.FloorToInt(owner.reps / 3));
                 break;
             case ProcCondition.OnJump:
-                if(owner.jumpCount < owner.maxJumpCount - 2)
+                if(owner.jumpCount < owner.maxJumpCount - 1)
                 {
                     if(cooldownCounter <= 0)
                     {

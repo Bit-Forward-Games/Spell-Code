@@ -15,7 +15,7 @@ public class QuiverOfArtemis : SpellData
         procConditions = new ProcCondition[] { ProcCondition.OnSlide};
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[3];
-        description = $"Your slide fires a volley of arrows.\nThe arrows gain duration based on Reps<sprite name=\"Reps\">.";
+        description = $"Your slide fires a volley of arrows. The arrows gain duration based on Reps<sprite name=\"Reps\">.";
         spawnOffsetX = 15;
         spawnOffsetY = 0;
     }

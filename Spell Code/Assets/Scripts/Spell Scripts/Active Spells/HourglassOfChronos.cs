@@ -20,7 +20,7 @@ public class HourglassOfChronos : SpellData
         projectilePrefabs = new GameObject[2];
         spawnOffsetX = 0;
         spawnOffsetY = 0;
-        description = "Place down an hourglass.\nUpon re-casting, or after the hourglass runs out, go back to your previous position and health, dealing damage at your new location when you arrive.";
+        description = "Place down an hourglass. Upon re-casting, or after the hourglass runs out, go back to your previous position and health, dealing damage at your new location when you arrive.";
     }
 
     public override void SpellUpdate()

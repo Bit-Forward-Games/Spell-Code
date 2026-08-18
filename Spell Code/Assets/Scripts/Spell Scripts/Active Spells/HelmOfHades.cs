@@ -22,7 +22,7 @@ public class HelmOfHades : SpellData
         brands = new Brand[1] { Brand.Killeez };
         projectilePrefabs = new GameObject[1];
         spawnOffsetX = 0;
-        description = "Place down a helmet shrouded in darkness.\nWhile inside the shroud, dodge all attacks from opponents outside the shroud.\nGain 1 Rep<sprite name=\"Reps\"> when you dodge a projectile.";
+        description = "Place down a helmet shrouded in darkness. While inside the shroud, dodge all attacks from opponents outside the shroud. Gain 1 Rep<sprite name=\"Reps\"> when you dodge a projectile.";
     }
 
     
@@ -51,8 +51,7 @@ public class HelmOfHades : SpellData
                 //grant the resource
                 if(projectileInstances[0].activeSelf)
                 {
-                    owner.reps++;
-                    owner.SpawnToast("+1 Rep", GameManager.colors["yellow"]);
+                    owner.CheckAllSpellConditionsOfProcCon(owner, ProcCondition.OnRepGain, defender);
                 }
                 
                 break;

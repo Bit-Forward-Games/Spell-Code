@@ -16,7 +16,7 @@ public class AsuranBlades : SpellData
         procConditions = new ProcCondition[] { };
         projectilePrefabs = new GameObject[4];
 
-        description = "Throw 3 shurikens downward.\nWhen Demon Aura<sprite name=\"DemonAura\"> is A rank or higher, throw more shurikens.";
+        description = "Throw 3 shurikens downward. When Demon Aura<sprite name=\"DemonAura\"> is A rank or higher, throw more shurikens.";
 
         spawnOffsetX = 15;
         spawnOffsetY = 0;

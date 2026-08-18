@@ -34,7 +34,25 @@ public class RoundEndCameraFollow : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        Vector3 playerPosition = GameManager.Instance.players[cameraIndex].transform.position;
+        // One follower is authored per player SLOT, but a match can have fewer players than slots,
+        // so players[cameraIndex] is legitimately null in a 2P or 3P game -- and the round-end UI is
+        // exactly when this runs. GameManager itself is also gone during a teardown. Hold position
+        // rather than throwing: this fires every LateUpdate, so the console filled with one NRE per
+        // frame per empty slot.
+        GameManager manager = GameManager.Instance;
+        PlayerController[] roster = manager != null ? manager.players : null;
+        if (roster == null || cameraIndex < 0 || cameraIndex >= roster.Length)
+        {
+            return;
+        }
+
+        PlayerController player = roster[cameraIndex];
+        if (player == null)
+        {
+            return;
+        }
+
+        Vector3 playerPosition = player.transform.position;
         Vector3 cameraPosition = playerPosition + offset;
         transform.position = Vector3.SmoothDamp(transform.position, cameraPosition, ref velocity, damping);
     }

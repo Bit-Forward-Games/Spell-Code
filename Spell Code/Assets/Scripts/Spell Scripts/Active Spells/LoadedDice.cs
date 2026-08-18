@@ -142,6 +142,10 @@ public class LoadedDice : SpellData, IBigStoxActiveSpell
     {
         base.Serialize(bw);
         bw.Write(doesCrit);
+        // AlwaysCrit is an auto-property from IBigStoxActiveSpell, so its backing field was never
+        // serialized. EnableForcedCrit/DisableForcedCrit make it real sim state and ResolveCrit reads
+        // it, so a rollback that did not restore it could flip a crit outcome.
+        bw.Write(((IBigStoxActiveSpell)this).AlwaysCrit);
         bw.Write(storedStockStability);
     }
 
@@ -149,6 +153,7 @@ public class LoadedDice : SpellData, IBigStoxActiveSpell
     {
         base.Deserialize(br);
         doesCrit = br.ReadBoolean();
+        ((IBigStoxActiveSpell)this).AlwaysCrit = br.ReadBoolean();
         storedStockStability = br.ReadUInt16();
     }
 

@@ -258,6 +258,16 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
+
+    /// <summary>
+    /// Spells that SIMULATE for this player but are not in their inventory -- currently The Jokah's
+    /// enhanced copies. They need a home the savestate can reach: a spell that lives only in a
+    /// private field is never serialized, so a rollback leaves its cooldown/crit state stale, and
+    /// BaseProjectile encodes ownerSpell as an index into a player's list, so projectiles owned by
+    /// an unlisted spell resolve to null after any rollback. Order is deterministic (built by
+    /// walking spellList), which is what lets the index be the wire value.
+    /// </summary>
+    [NonSerialized] public List<SpellData> extraSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     [NonSerialized] public bool collidingWithFloppy = false;
     private int _pendingHitboxProjectileIndex = -1;
@@ -864,6 +874,14 @@ public class PlayerController : MonoBehaviour
 
         // Remove all references from the list
         spellList.Clear();
+
+        // Simulated extras only exist as derivatives of spellList entries (The Jokah's copies), so
+        // an empty inventory means no extras. Dropping the references here keeps the serialized count
+        // deterministic: the copies' own teardown happens in the owning spell's OnDestroy, which is
+        // deferred and skips its extraSpells.Remove when owner is already null -- that would
+        // otherwise leave a dangling entry that this player still counts and its peer might not.
+        extraSpells.Clear();
+
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -3958,6 +3976,14 @@ public class PlayerController : MonoBehaviour
             SerializeSpellStateInline(bw, universalSpells[i]);
         }
 
+        // Simulated extras (The Jokah's enhanced copies). Same length-prefixed shape as the two
+        // lists above so a count mismatch can be skipped cleanly rather than shifting the stream.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -3975,6 +4001,12 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < universalSpells.Count; i++)
         {
             SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+        // Simulated extras too, or a divergence in a Jokah copy's cooldown/crit stays invisible.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
         }
     }
 
@@ -4102,6 +4134,12 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < universalSpells.Count; i++)
         {
             SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+        // Simulated extras too, so a Jokah copy diverging shows up in pXspell rather than silently.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
         }
     }
 
@@ -4410,6 +4448,23 @@ public class PlayerController : MonoBehaviour
                 universalSpells[i].Deserialize(br);
             }
             br.BaseStream.Position = uDataStart + uDataLength;
+        }
+
+        // Simulated extras (The Jokah's copies). Restored by index like the universal set. The local
+        // list is rebuilt deterministically by the owning spell's OnStart, but a rollback can land
+        // either side of that rebuild, so entries beyond the local count are skipped by their length
+        // rather than assumed present -- the stream stays aligned either way.
+        int extraCount = br.ReadInt32();
+        for (int i = 0; i < extraCount; i++)
+        {
+            br.ReadInt32(); // spell id, written for symmetry
+            int eDataLength = br.ReadInt32();
+            long eDataStart = br.BaseStream.Position;
+            if (i < extraSpells.Count && extraSpells[i] != null)
+            {
+                extraSpells[i].Deserialize(br);
+            }
+            br.BaseStream.Position = eDataStart + eDataLength;
         }
     }
 

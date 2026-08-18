@@ -62,6 +62,15 @@ public class TheJokah : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnStart:
+                // OnStart is NOT once per match: PlayerController fires it from AddSpellToSpellList
+                // (every pickup) and from SpawnPlayer (every round reset). Reassigning the lists
+                // without this dropped the previous generation of copies while their projectiles
+                // stayed registered in ProjectileManager.projectilePrefabs -- which UpdateProjectiles
+                // walks every frame -- until The Jokah itself was destroyed. Tear the old set down
+                // before rebuilding.
+                DestroyCreatedSpells(JokahVWaveSpells);
+                DestroyCreatedSpells(JokahBigStoxSpells);
+
                 JokahVWaveSpells = new List<SpellData>();
                 JokahBigStoxSpells = new List<SpellData>();
 
@@ -112,6 +121,15 @@ public class TheJokah : SpellData
                             }
 
                             targetList.Add(spellCopy);
+
+                            // Register with the owner so the savestate reaches this copy: its
+                            // cooldown/crit state gets serialized and hashed, and its projectiles
+                            // can encode ownerSpell as an index into extraSpells instead of writing
+                            // -1 and coming back null on the first rollback.
+                            if (owner != null && !owner.extraSpells.Contains(spellCopy))
+                            {
+                                owner.extraSpells.Add(spellCopy);
+                            }
                         }
                     }
                 }
@@ -176,7 +194,10 @@ public class TheJokah : SpellData
         DestroyCreatedSpells(JokahBigStoxSpells);
     }
 
-    private static void DestroyCreatedSpells(List<SpellData> spells)
+    // Instance method now: tearing a copy down also has to unregister it from owner.extraSpells,
+    // or the savestate keeps serializing a destroyed spell and the indices its projectiles were
+    // written against stop lining up.
+    private void DestroyCreatedSpells(List<SpellData> spells)
     {
         if (spells == null)
         {
@@ -189,6 +210,11 @@ public class TheJokah : SpellData
             if (spell == null)
             {
                 continue;
+            }
+
+            if (owner != null && owner.extraSpells != null)
+            {
+                owner.extraSpells.Remove(spell);
             }
 
             for (int j = 0; j < spell.projectileInstances.Count; j++)

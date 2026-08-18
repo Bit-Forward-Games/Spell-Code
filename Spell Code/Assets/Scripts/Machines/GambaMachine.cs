@@ -214,6 +214,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                                gameManager.players[0].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 2)
@@ -223,6 +224,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -232,6 +234,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -241,6 +244,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -370,6 +374,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[1]);
+                                gameManager.players[0].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 2)
@@ -379,6 +384,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
+                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -388,6 +394,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
+                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -397,6 +404,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
+                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -1148,7 +1156,7 @@ public class GambaMachine : MonoBehaviour
 
             if (spellData.spellName == "" && player.spellList.Count == 1)
             {
-                if (dataManager.totalRoundsPlayed >= gameManager.playerCount)
+                if (dataManager.totalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
                 {
                     Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                     return false;
@@ -1249,6 +1257,34 @@ public class GambaMachine : MonoBehaviour
             if (floppys.Count > 1)
             {
                 Destroy(disk);
+            }
+
+            //chaos gamemode, disabled the pickup and adds straight to player inventory
+            if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+            {
+                if (ownerPID == 1)
+                {
+                    p1_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+
+                if (ownerPID == 2)
+                {
+                    p2_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 3)
+                {
+                    p3_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 4)
+                {
+                    p4_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                disk.SetActive(false);
+                return disk;
             }
 
             //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends

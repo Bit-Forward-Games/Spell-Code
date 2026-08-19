@@ -1148,8 +1148,27 @@ public class PlayerController : MonoBehaviour
         return false; 
     }
 
+    private static int GetCodeWeaveDirection(int currentDirection, int previousDirection)
+    {
+        // When a cardinal is rolled into an adjacent diagonal, record the diagonal's other
+        // cardinal component. For example, down (2) -> down-right (3) records right (6).
+        return (currentDirection, previousDirection) switch
+        {
+            (1, 2) => 4,
+            (1, 4) => 2,
+            (3, 2) => 6,
+            (3, 6) => 2,
+            (7, 4) => 8,
+            (7, 8) => 4,
+            (9, 6) => 8,
+            (9, 8) => 6,
+            _ => currentDirection
+        };
+    }
+
     public void PlayerUpdate(ulong rawInput)
     {
+        int previousInputDirection = input.Direction;
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
         if(pID != 0)
         {
@@ -1563,8 +1582,17 @@ public class PlayerController : MonoBehaviour
                 {
                     gravity = Fixed.Clamp(gravity + Fixed.FromFloat(0.002f), Fixed.FromInt(0), Fixed.FromInt(1));
                 }
+                int codeDirection = GetCodeWeaveDirection(input.Direction, previousInputDirection);
+                bool validCodeDirection = codeDirection is 2 or 4 or 6 or 8;
+                bool isDiagonalDirection = input.Direction is 1 or 3 or 7 or 9;
+                bool inferredCodeDirection = codeDirection != input.Direction;
+                bool repeatedDiagonal = isDiagonalDirection
+                    && input.Direction == previousInputDirection
+                    && stateSpecificArg != 0;
 
-                if (input.Direction is 5 or 7 or 1 or 3 or 9)
+                // Keep a held diagonal from priming the inferred direction again. This makes
+                // down -> down-right -> right encode as down, right instead of down, right, right.
+                if (input.Direction == 5 || (isDiagonalDirection && !inferredCodeDirection && !repeatedDiagonal))
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if ((stateSpecificArg & (1u << 4)) == 0)
@@ -1578,7 +1606,7 @@ public class PlayerController : MonoBehaviour
                 }
                 byte currentInput = 0b00;
 
-                switch (input.Direction)
+                switch (codeDirection)
                 {
                     case 2:
                         currentInput = 0b00;
@@ -1614,18 +1642,14 @@ public class PlayerController : MonoBehaviour
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
 
-                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if (validCodeDirection && codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     byte tempInput;
-                    bool validCodeDirection = input.Direction is 2 or 4 or 6 or 8;
                     byte codeWriteIndex = (byte)(vibeCoding ? 0 : codeCount);
                     int codeWriteShift = 8 + (codeWriteIndex * 2);
-                    if (validCodeDirection)
-                    {
-                        stateSpecificArg &= ~(0b11u << codeWriteShift);
-                    }
+                    stateSpecificArg &= ~(0b11u << codeWriteShift);
 
-                    switch (input.Direction)
+                    switch (codeDirection)
                     {
                         case 2:
                             // Set the 2 highest significant bits minus 2 bits per codeCount to 00

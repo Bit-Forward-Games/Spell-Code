@@ -590,6 +590,13 @@ public class GameManager : MonoBehaviour
             {
                 players[0].winConPoints = 600;
             }
+            if (winCon == WinCon.Elimination && UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+            {
+                for(int i = 1; i < playerCount ; i++)
+                {
+                    players[i].winConPoints = 0;
+                }
+            }
 
             PrivateBetaDebugHotkeys();
         }
@@ -2934,7 +2941,7 @@ public class GameManager : MonoBehaviour
         {
             ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * dataManager.totalRoundsPlayed);
         }
-        if (winCon == WinCon.RAMRush)
+        if (winCon == WinCon.Elimination)
         {
             roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
         }

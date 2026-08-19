@@ -177,55 +177,33 @@ public class TheJokah : SpellData
 
     private void ForwardPendingSickleBasic(PlayerController defender)
     {
-        if (owner == null || owner.extraSpells == null || owner.basicSpawnOverrideVariant == 0)
+        if (owner == null || JokahVWaveSpells == null)
         {
             return;
         }
 
-        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
-        if (extraSpellIndex < 0 || extraSpellIndex >= owner.extraSpells.Count)
+        // Ask the copies which one is armed rather than looking one up by index. This used to read
+        // PlayerController.basicSpawnOverrideVariant as an extraSpells index, but SetBasicEnhancement
+        // replaced that write and CashOut now stores its crit flag in the same field so the index
+        // was either 0 (never forwarded) or 1 from a CashOut cast, which would have forwarded to
+        // whatever happened to sit at extraSpells[0]. basicEnhanceActive is per-instance and
+        // serialized, so ownership survives rollback.
+        for (int i = 0; i < JokahVWaveSpells.Count; i++)
         {
-            return;
+            if (JokahVWaveSpells[i] is SickleOfTheNight enhancedSickle
+                && enhancedSickle.OwnsPendingBasicOverride())
+            {
+                // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell
+                // would let both the inventory spell and its Jokah copy react to the same override.
+                enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
+                return;
+            }
         }
-
-        SpellData candidate = owner.extraSpells[extraSpellIndex];
-        SickleOfTheNight enhancedSickle = candidate as SickleOfTheNight;
-        if (enhancedSickle == null
-            || JokahVWaveSpells == null
-            || !JokahVWaveSpells.Contains(candidate)
-            || !enhancedSickle.OwnsPendingBasicOverride())
-        {
-            return;
-        }
-
-        // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell would
-        // let both the inventory spell and its Jokah copy react to the same shared override.
-        enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
     }
 
-    private void ClearPendingCopiedSickleOverride()
-    {
-        if (owner == null
-            || owner.extraSpells == null
-            || owner.basicSpawnOverride != "Sickle Of The Night"
-            || owner.basicSpawnOverrideVariant == 0)
-        {
-            return;
-        }
-
-        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
-        if (extraSpellIndex >= 0
-            && extraSpellIndex < owner.extraSpells.Count
-            && owner.extraSpells[extraSpellIndex] is SickleOfTheNight pendingSickle)
-        {
-            pendingSickle.targetPID = -1;
-        }
-
-        // Every Jokah copy is rebuilt during this OnStart pass. Clear even if a damaged/stale index
-        // could not be resolved, rather than let it point at an unrelated copy after list removals.
-        owner.basicSpawnOverride = string.Empty;
-        owner.basicSpawnOverrideVariant = 0;
-    }
+    // ClearPendingCopiedSickleOverride was removed here
+    // ClearCreatedSpells now owns teardown, and a lingering basicSpawnOverride string is
+    // inert on its own because every consumer also requires that spell's basicEnhanceActive.
 
     private void OnDestroy()
     {
@@ -268,11 +246,9 @@ public class TheJokah : SpellData
                 continue;
             }
 
-            if (owner != null && owner.extraSpells != null)
-            {
-                owner.extraSpells.Remove(spell);
-            }
-
+            // Unregistering from owner.extraSpells belongs to RemoveCreatedSpellsFromOwner, which
+            // ClearCreatedSpells always runs first this method is static and has no owner. The
+            // merge spliced a second copy of that removal in here, which is what broke the build.
             for (int j = 0; j < spell.projectileInstances.Count; j++)
             {
                 GameObject projectileObject = spell.projectileInstances[j];

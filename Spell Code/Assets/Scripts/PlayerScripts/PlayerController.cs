@@ -244,8 +244,6 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
-    [NonSerialized]
-    public List<SpellData> extraSpells = new List<SpellData>();
 
     // Per-player pool of spell instances keyed by serialization id
     // RebuildSpellListFromSaved can REUSE instances instead of Destroy()/Instantiate() on every

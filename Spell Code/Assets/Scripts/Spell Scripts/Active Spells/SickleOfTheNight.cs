@@ -87,27 +87,19 @@ public class SickleOfTheNight : SpellData
     }
 
     /// <summary>
-    /// Identifies which Sickle instance armed the shared basic override. Variant zero is the normal
-    /// inventory spell; Jokah copies use their stable extraSpells index plus one. The variant is
-    /// already serialized and hashed with PlayerController, so rollback restores this ownership.
+    /// Identifies which Sickle instance armed the shared basic override, matching the check the
+    /// ActiveOnHit/OnCastBasic paths do inline. basicEnhanceActive is per-instance and serialized by
+    /// SpellData, so a Jokah copy in extraSpells carries its own ownership and rollback restores it.
+    /// This used to key off PlayerController.basicSpawnOverrideVariant, but SetBasicEnhancement
+    /// replaced the write side, leaving the read stranded: a Jokah copy could never match (nothing
+    /// set the index any more) and the base spell only matched while no other spell had written the
+    /// variant for its own purposes CashOut still uses it to carry a crit flag.
     /// </summary>
     public bool OwnsPendingBasicOverride()
     {
-        if (owner == null || owner.basicSpawnOverride != spellName)
-        {
-            return false;
-        }
-
-        int extraSpellIndex = owner.extraSpells != null ? owner.extraSpells.IndexOf(this) : -1;
-        if (extraSpellIndex >= 0)
-        {
-            return extraSpellIndex < byte.MaxValue
-                && owner.basicSpawnOverrideVariant == (byte)(extraSpellIndex + 1);
-        }
-
-        return owner.spellList != null
-            && owner.spellList.Contains(this)
-            && owner.basicSpawnOverrideVariant == 0;
+        return owner != null
+            && owner.basicSpawnOverride == spellName
+            && basicEnhanceActive;
     }
 
     public override void Serialize(System.IO.BinaryWriter bw)

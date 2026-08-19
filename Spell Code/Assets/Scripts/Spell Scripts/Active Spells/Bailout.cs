@@ -5,9 +5,11 @@ using System.Linq;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class Bailout : SpellData
+public class Bailout : SpellData, IBigStoxActiveSpell
 {
     public bool doesCrit = false;
+    bool IBigStoxActiveSpell.DoesCrit { get => doesCrit; set => doesCrit = value; }
+    bool IBigStoxActiveSpell.AlwaysCrit { get; set; }
     public FixedVec2 oldPos = FixedVec2.Zero;
     
     public FixedVec2 newPos = FixedVec2.Zero;
@@ -82,8 +84,7 @@ public class Bailout : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.ActiveOnCast:
-                int roll = GameManager.Instance.GetNextRandom(0, 100);
-                doesCrit = roll < owner.stockStabilityModified;
+                this.ResolveCrit(owner);
                 break;
             case ProcCondition.ActiveOnHit:
                 if(defender.hitboxData.parentProjectile.name == projectileInstances[0].name|| defender.hitboxData.parentProjectile.name == projectileInstances[1].name)

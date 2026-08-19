@@ -62,6 +62,7 @@ public class TheJokah : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnStart:
+                ClearCreatedSpells();
                 JokahVWaveSpells = new List<SpellData>();
                 JokahBigStoxSpells = new List<SpellData>();
 
@@ -112,6 +113,7 @@ public class TheJokah : SpellData
                             }
 
                             targetList.Add(spellCopy);
+                            owner.extraSpells.Add(spellCopy);
                         }
                     }
                 }
@@ -172,8 +174,28 @@ public class TheJokah : SpellData
 
     private void OnDestroy()
     {
+        ClearCreatedSpells();
+    }
+
+    private void ClearCreatedSpells()
+    {
+        RemoveCreatedSpellsFromOwner(JokahVWaveSpells);
+        RemoveCreatedSpellsFromOwner(JokahBigStoxSpells);
         DestroyCreatedSpells(JokahVWaveSpells);
         DestroyCreatedSpells(JokahBigStoxSpells);
+    }
+
+    private void RemoveCreatedSpellsFromOwner(List<SpellData> spells)
+    {
+        if (owner == null || owner.extraSpells == null || spells == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < spells.Count; i++)
+        {
+            owner.extraSpells.Remove(spells[i]);
+        }
     }
 
     private static void DestroyCreatedSpells(List<SpellData> spells)

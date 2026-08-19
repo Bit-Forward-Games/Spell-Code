@@ -229,7 +229,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -239,7 +239,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -249,7 +249,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }
@@ -389,7 +389,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[4]);
-                                gameManager.players[1].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[1].AddSpellToSpellList(p2_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 3)
@@ -399,7 +399,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[7]);
-                                gameManager.players[2].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[2].AddSpellToSpellList(p3_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                         if (ownerPID == 4)
@@ -409,7 +409,7 @@ public class GambaMachine : MonoBehaviour
                             for (int i = 0; i < 6; i++)
                             {
                                 SpawnFloppyDisk(ownerPID, diskLocations[10]);
-                                gameManager.players[3].AddSpellToSpellList(p1_floppys[i].GetComponent<FloppyPickup>().diskName);
+                                gameManager.players[3].AddSpellToSpellList(p4_floppys[i].GetComponent<FloppyPickup>().diskName);
                             }
                         }
                     }

@@ -402,11 +402,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2469654211573369, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSize
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 2469654211573369, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSizeBase
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 14716227331865895, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -422,11 +422,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 180816606581568097, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -27.200022
+      value: -13.799992
       objectReference: {fileID: 0}
     - target: {fileID: 180816606581568097, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -164.19998
+      value: -171.19998
       objectReference: {fileID: 0}
     - target: {fileID: 483123854154260234, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
@@ -668,11 +668,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3370911019722091573, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 299.19998
+      value: 312.6
       objectReference: {fileID: 0}
     - target: {fileID: 3370911019722091573, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -138
+      value: -145
       objectReference: {fileID: 0}
     - target: {fileID: 3370911019722091573, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -822,11 +822,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4898092427641726734, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -51
+      value: -34.3
       objectReference: {fileID: 0}
     - target: {fileID: 4898092427641726734, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 22
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 5271524882101690652, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_TargetGraphic
@@ -994,11 +994,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6609354503386547092, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSize
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 6609354503386547092, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSizeBase
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 6632069919739151689, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_SizeDelta.x
@@ -1022,11 +1022,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6632069919739151689, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 274.4
+      value: 287.80002
       objectReference: {fileID: 0}
     - target: {fileID: 6632069919739151689, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 42.200005
+      value: 35.200012
       objectReference: {fileID: 0}
     - target: {fileID: 6632069919739151689, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1038,7 +1038,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6892766176976283329, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7022982774474964000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: spellList.Array.size
@@ -1314,19 +1314,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8702021197737601005, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSize
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 8702021197737601005, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSizeBase
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 8777350583588257617, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSize
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 8777350583588257617, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_fontSizeBase
-      value: 48
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 8849235350243610893, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size

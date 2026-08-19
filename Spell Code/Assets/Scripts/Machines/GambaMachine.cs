@@ -1088,7 +1088,7 @@ public class GambaMachine : MonoBehaviour
                 bool BCK = false;
                 for (int i = 0; i < player.spellList.Count; i++)
                 {
-                    if (player.spellList[i].spellName == "Abbadon Uppercut") { AU = true; }
+                    if (player.spellList[i].spellName == "Abaddon Uppercut") { AU = true; }
                     if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
                     if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
                 }
@@ -1166,7 +1166,13 @@ public class GambaMachine : MonoBehaviour
 
             if (spellData.spellName == "" && player.spellList.Count == 1)
             {
-                if (dataManager.totalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
+                // Read through the accessor, not the cached field. GambaMachine only refreshes
+                // dataManager inside FixedUpdate, which early-returns during an online match so a
+                // machine whose Start ran while DataManager was absent (ExecuteOrder66 destroys it)
+                // keeps a null here forever and NREs inside the online sim, which wedges the match
+                // rather than desyncing it. CurrentTotalRoundsPlayed re-resolves and falls back to 0,
+                // and the count itself is host-synced through ApplyOnlineTotalRoundsPlayed.
+                if (gameManager.CurrentTotalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
                 {
                     Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                     return false;

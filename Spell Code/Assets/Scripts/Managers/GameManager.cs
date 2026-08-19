@@ -4562,6 +4562,11 @@ public class GameManager : MonoBehaviour
                 players[i].SpawnPlayer(spawnPos[spawnIndex]);
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
+
+                players[i].demonX = false;
+                players[i].bigStox = false;
+                players[i].killeez = false;
+                players[i].vWave = false;
             }
         }
 

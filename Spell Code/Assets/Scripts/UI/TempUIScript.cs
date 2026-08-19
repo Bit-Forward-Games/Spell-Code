@@ -139,7 +139,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     [Header("Round End UI")] // Round End UI
     public GameObject roundEndUI;
     public GameObject[] offlinePlayer;
-    public RectTransform winnerPanel;
+    public RectTransform[] winnerPanel;
     public TempSpellDisplay[] spellDisplays;
     public TextMeshProUGUI[] roundWinTextImage;
 
@@ -691,6 +691,10 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             roundWinCounterUpdated = false;
             roundEndUI.SetActive(false);
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                winnerPanel[i].gameObject.SetActive(false);
+            }
         }
 
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -716,6 +720,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);
             offlinePlayer[i].SetActive(false);
+
+            if (GameManager.Instance.players[i].roundRam >= GameManager.Instance.ramNeededToWinRound)
+            {
+                winnerPanel[i].gameObject.SetActive(true);
+            }
         }
     }
 

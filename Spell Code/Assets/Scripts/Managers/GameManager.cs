@@ -5413,7 +5413,7 @@ public class GameManager : MonoBehaviour
         StopAllPlayerAuras();
         sceneManager.LoadScene("End");
 
-        //play the game end stinger
+        //play the game end stinger 
         SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
@@ -5460,6 +5460,9 @@ public class GameManager : MonoBehaviour
         isRunning = false;
         StopAllPlayerAuras();
         sceneManager.LoadScene("End");
+
+        //play the game end stinger 
+        SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
     private void StopAllPlayerAuras()

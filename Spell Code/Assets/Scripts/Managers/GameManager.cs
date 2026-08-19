@@ -1188,8 +1188,8 @@ public class GameManager : MonoBehaviour
         {
             case Gamemode.Turbo:
                 return "turbo";
-            case Gamemode.Elimination:
-                return "elimination";
+            //case Gamemode.Elimination:
+            //    return "elimination";
             case Gamemode.Fighter:
                 return "fighting-game";
             case Gamemode.Chaos:

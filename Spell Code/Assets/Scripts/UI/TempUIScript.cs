@@ -78,7 +78,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     private const float TransitionBannerExitPlaybackSpeed = 0.6f;
     private int i = 0;
 
-    private int[] previousRamVals = new int[4];
+    private int[] previousWinConPointVals = new int[4];
     private int activeTransitionRequestId = 0;
     private Coroutine activeTypeCoroutine;
     private Coroutine activeReverseTypeCoroutine;
@@ -173,9 +173,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         damageBarDisplayFill = new float[] { 1f, 1f, 1f, 1f };
         gameManager = GameManager.Instance;
 
-        previousRamVals = new int[4];
+        previousWinConPointVals = new int[4];
         for (int i = 0; i < gameManager.playerCount; i++)
-            previousRamVals[i] = gameManager.players[i]?.roundRam ?? 0;
+            previousWinConPointVals[i] = gameManager.players[i]?.winConPoints ?? 0;
 
         InitFindingMatchText();
         InitJoiningMatchText();
@@ -721,7 +721,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);
             offlinePlayer[i].SetActive(false);
 
-            if (GameManager.Instance.players[i].roundRam >= GameManager.Instance.ramNeededToWinRound)
+            if (GameManager.Instance.IsRoundWinner(GameManager.Instance.players[i]))
             {
                 winnerPanel[i].gameObject.SetActive(true);
             }
@@ -1268,19 +1268,19 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             float smoothedScale = Mathf.Lerp(currentScale.x, targetScale, Time.deltaTime * 10f);
             SpellInputBorder[i].localScale = new Vector3(smoothedScale, 0.025f, 1f);
 
-            int _ramIncrease = GameManager.Instance.players[i].roundRam;
+            int winConPoints = GameManager.Instance.players[i].winConPoints;
 
             // Initialize tracking for newly joined players
-            if (previousRamVals[i] == 0 && _ramIncrease != 0)
-                previousRamVals[i] = _ramIncrease;
+            if (previousWinConPointVals[i] == 0 && winConPoints != 0)
+                previousWinConPointVals[i] = winConPoints;
 
-            if (_ramIncrease != previousRamVals[i])
+            if (winConPoints != previousWinConPointVals[i])
             {
                 Image glowImage = ramIncreaseGlow[i].GetComponent<Image>();
                 Sequence fadeSequence = DOTween.Sequence();
                 fadeSequence.Append(glowImage.DOFade(1f, 0.2f));
                 fadeSequence.Append(glowImage.DOFade(0f, 0.3f));
-                previousRamVals[i] = _ramIncrease;
+                previousWinConPointVals[i] = winConPoints;
             }
 
             // Fire the damage bar coroutine only on the rising edge of damageBarHitCount.
@@ -1298,10 +1298,17 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
 
             float fillAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].currentPlayerHealth / GameManager.Instance.players[i].charData.playerHealth) : 0;
-            float fillGoldAmountVal = GameManager.Instance.players[i].charData != null? ((float)GameManager.Instance.players[i].roundRam / GameManager.Instance.ramNeededToWinRound) : 0;
+            float winConFillAmount = GameManager.Instance.players[i].charData != null
+                ? (float)winConPoints / GameManager.Instance.WinConPointLimit
+                : 0;
             followPlayerHpBar[i].fillAmount = fillAmountVal;
-            playerRamVals[i].text = /*(GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?"MATCH POINT!":*/$"{GameManager.Instance.players[i].roundRam}";
-            playerGoldBar[i].fillAmount = (GameManager.Instance.ramNeededToWinRound - GameManager.Instance.players[i].roundRam < PlayerController.baseRamKillBonus)?1:fillGoldAmountVal;
+            playerRamVals[i].text = GameManager.Instance.winCon == GameManager.WinCon.Elimination
+                ? $"×{winConPoints}"
+                : $"{winConPoints}";
+            playerGoldBar[i].fillAmount = GameManager.Instance.winCon == GameManager.WinCon.RAMRush
+                && GameManager.Instance.ramNeededToWinRound - winConPoints < PlayerController.baseRamKillBonus
+                    ? 1
+                    : winConFillAmount;
 
             emptyQuadrants[i].SetActive(false);
 

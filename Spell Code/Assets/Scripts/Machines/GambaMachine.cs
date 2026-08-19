@@ -184,6 +184,12 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
 
+                //Fighter-Showdown functionality
+                if (gameManager.gamemode == GameManager.Gamemode.Fighter)
+                {
+
+                }
+
                 //Chaos functionality
                 if (gameManager.gamemode == GameManager.Gamemode.Chaos)
                 {

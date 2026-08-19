@@ -6634,7 +6634,7 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            player.roundRam = 0;
+            player.winConPoints = 0;
             player.storedKillBonus = 0;
             player.chosenSpell = false;
 

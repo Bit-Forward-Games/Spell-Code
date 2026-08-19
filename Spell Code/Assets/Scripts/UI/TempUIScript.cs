@@ -1252,7 +1252,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 continue;
             }
 
-            onPlayerUI[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "On-Player UI").gameObject;
+            onPlayerUI[i] = FindChildContainingName(quadrantPlayer.gameObject, "On-Player UI");
+            bool isFullyEliminated = GameManager.Instance.winCon == GameManager.WinCon.Elimination
+                && !quadrantPlayer.isAlive
+                && quadrantPlayer.winConPoints == 0;
+            if (onPlayerUI[i] != null)
+            {
+                // This also restores the world-space UI when ResetPlayers grants stocks next round.
+                onPlayerUI[i].SetActive(!isFullyEliminated);
+            }
 
             followPlayerHpBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Health Bar").GetComponent<Image>();
             playerStoreBar[i] = FindChildContainingName(GameManager.Instance.players[i].gameObject, "Store Bar").GetComponent<Image>();

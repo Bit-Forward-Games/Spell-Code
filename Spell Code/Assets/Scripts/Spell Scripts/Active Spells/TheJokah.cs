@@ -62,16 +62,7 @@ public class TheJokah : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnStart:
-                // OnStart is NOT once per match: PlayerController fires it from AddSpellToSpellList
-                // (every pickup) and from SpawnPlayer (every round reset). Reassigning the lists
-                // without this dropped the previous generation of copies while their projectiles
-                // stayed registered in ProjectileManager.projectilePrefabs -- which UpdateProjectiles
-                // walks every frame -- until The Jokah itself was destroyed. Tear the old set down
-                // before rebuilding.
-                ClearPendingCopiedSickleOverride();
-                DestroyCreatedSpells(JokahVWaveSpells);
-                DestroyCreatedSpells(JokahBigStoxSpells);
-
+                ClearCreatedSpells();
                 JokahVWaveSpells = new List<SpellData>();
                 JokahBigStoxSpells = new List<SpellData>();
 
@@ -122,15 +113,7 @@ public class TheJokah : SpellData
                             }
 
                             targetList.Add(spellCopy);
-
-                            // Register with the owner so the savestate reaches this copy: its
-                            // cooldown/crit state gets serialized and hashed, and its projectiles
-                            // can encode ownerSpell as an index into extraSpells instead of writing
-                            // -1 and coming back null on the first rollback.
-                            if (owner != null && !owner.extraSpells.Contains(spellCopy))
-                            {
-                                owner.extraSpells.Add(spellCopy);
-                            }
+                            owner.extraSpells.Add(spellCopy);
                         }
                     }
                 }
@@ -246,15 +229,31 @@ public class TheJokah : SpellData
 
     private void OnDestroy()
     {
-        ClearPendingCopiedSickleOverride();
+        ClearCreatedSpells();
+    }
+
+    private void ClearCreatedSpells()
+    {
+        RemoveCreatedSpellsFromOwner(JokahVWaveSpells);
+        RemoveCreatedSpellsFromOwner(JokahBigStoxSpells);
         DestroyCreatedSpells(JokahVWaveSpells);
         DestroyCreatedSpells(JokahBigStoxSpells);
     }
 
-    // Instance method now: tearing a copy down also has to unregister it from owner.extraSpells,
-    // or the savestate keeps serializing a destroyed spell and the indices its projectiles were
-    // written against stop lining up.
-    private void DestroyCreatedSpells(List<SpellData> spells)
+    private void RemoveCreatedSpellsFromOwner(List<SpellData> spells)
+    {
+        if (owner == null || owner.extraSpells == null || spells == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < spells.Count; i++)
+        {
+            owner.extraSpells.Remove(spells[i]);
+        }
+    }
+
+    private static void DestroyCreatedSpells(List<SpellData> spells)
     {
         if (spells == null)
         {

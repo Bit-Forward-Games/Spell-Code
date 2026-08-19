@@ -35,10 +35,8 @@ public class SickleOfTheNight : SpellData
                 if (!defender.hitboxData.basicAttackHitbox)
                 {
                     owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
-                    int extraSpellIndex = owner.extraSpells != null ? owner.extraSpells.IndexOf(this) : -1;
-                    owner.basicSpawnOverrideVariant = extraSpellIndex >= 0 && extraSpellIndex < byte.MaxValue
-                        ? (byte)(extraSpellIndex + 1)
-                        : (byte)0;
+                    basicEnhanceActive = true;
+                    SetBasicEnhancement();
                     targetPID = defender.pID;
                     // `defender` is the authoritative object that was just hit. Resolving it again by
                     // PID can legitimately return null if a sparse online slot disconnects during the
@@ -50,8 +48,9 @@ public class SickleOfTheNight : SpellData
                 break;
             case ProcCondition.OnCastBasic:
                 
-                if (OwnsPendingBasicOverride())
+                if (owner.basicSpawnOverride == spellName && basicEnhanceActive)
                 {
+                    basicEnhanceActive = false;
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                     if(owner.flowState > 0)
                     {
@@ -77,7 +76,7 @@ public class SickleOfTheNight : SpellData
                         targetPID = -1;
                     }
                 }
-                if(!OwnsPendingBasicOverride())
+                if(owner.basicSpawnOverride != spellName || !basicEnhanceActive)
                 {
                     targetPID = -1;
                 }

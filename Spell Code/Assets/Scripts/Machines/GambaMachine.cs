@@ -103,7 +103,7 @@ public class GambaMachine : MonoBehaviour
         {
             if (ownerPlayer != null)
             {
-                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo || gameManager.gamemode == GameManager.Gamemode.Elimination)
+                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo)
                 {
                     //delete other options after selecting one
                     if (ownerPlayer.spellList.Count > 0)
@@ -189,6 +189,12 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
 
+                //Fighter-Showdown functionality
+                if (gameManager.gamemode == GameManager.Gamemode.Fighter)
+                {
+
+                }
+
                 //Chaos functionality
                 if (gameManager.gamemode == GameManager.Gamemode.Chaos)
                 {
@@ -261,7 +267,7 @@ public class GambaMachine : MonoBehaviour
             if (ownerPlayer != null)
             {
                 //default gamba functionality
-                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo || gameManager.gamemode == GameManager.Gamemode.Elimination)
+                if (gameManager.gamemode == GameManager.Gamemode.Normal || gameManager.gamemode == GameManager.Gamemode.Turbo )
                 {
                     //delete other options after selecting one
                     if (ownerPlayer.spellList.Count >= dataManager.totalRoundsPlayed + 1)

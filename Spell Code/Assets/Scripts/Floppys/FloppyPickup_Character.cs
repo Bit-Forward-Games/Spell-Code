@@ -15,8 +15,20 @@ using UnityEngine.Windows;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class FloppyPickup : MonoBehaviour
+public class FloppyPickup_Character : MonoBehaviour
 {
+    public enum Moveset
+    {
+        DemonX_1,
+        DemonX_2,
+        BigStox_1,
+        BigStox_2,
+        Killeez_1,
+        Killeez_2,
+        VWave_1,
+        Vwave_2
+    }
+
     public Animator diskAnimator;
     //Bounds diskBounds;
     public string diskName;
@@ -95,21 +107,21 @@ public class FloppyPickup : MonoBehaviour
             return;
         }
         colliding = CheckPlayerCollision() != null;
-        
+
         if (colliding && overlappingPlayer.pID == ownerPID)
         {
             if (!diskDisplay.IsDisplayCanvasEnabled())
             {
                 diskDisplay.StartFloppyDisplay();
-                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
             }
-            
+
 
             //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
-            {   
-                if(selectHoldCounter == timeToFill)
+            {
+                if (selectHoldCounter == timeToFill)
                 {
                     diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
                 }
@@ -119,7 +131,7 @@ public class FloppyPickup : MonoBehaviour
                 }
                 else if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released)
                 {
-                    if(selectHoldCounter < timeToFill)
+                    if (selectHoldCounter < timeToFill)
                     {
                         if (overlappingPlayer.AddSpellToSpellList(diskName))
                         {
@@ -141,7 +153,7 @@ public class FloppyPickup : MonoBehaviour
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                     break;
                                 case Brand.BigStox:
-                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
                                     break;
                                 case Brand.DarkWeb:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
@@ -153,9 +165,9 @@ public class FloppyPickup : MonoBehaviour
 
                             //if (SceneManager.GetActiveScene().name != "Tutorial")
                             //{
-                                diskDisplay.StopFloppyDisplay();
-                                //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
-                                Destroy(gameObject);
+                            diskDisplay.StopFloppyDisplay();
+                            //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                            Destroy(gameObject);
                             //}
                         }
                         // else
@@ -164,9 +176,9 @@ public class FloppyPickup : MonoBehaviour
                         // }
                     }
                     selectHoldCounter = 0;
-                    
-                    
-                    
+
+
+
                 }
                 else
                 {
@@ -178,7 +190,7 @@ public class FloppyPickup : MonoBehaviour
                 selectHoldCounter = 0;
             }
 
-            
+
         }
         else
         {
@@ -186,7 +198,7 @@ public class FloppyPickup : MonoBehaviour
             diskDisplay.StopFloppyDisplay();
         }
         diskDisplay.selectFill.fillAmount = GetFillPercent();
-        diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1? "purple":"grey"];
+        diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1 ? "purple" : "grey"];
     }
 
     public void SimulateOnline(ulong[] inputs, bool isRealFrame)
@@ -229,15 +241,9 @@ public class FloppyPickup : MonoBehaviour
 
                     if (overlappingPlayer.AddSpellToSpellList(diskName))
                     {
-                        bool isChaosMode = GameManager.Instance != null
-                            && GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
                         if (SceneManager.GetActiveScene().name == "Shop")
                         {
-                            // Normal online shops lock after one choice. Chaos grants the whole
-                            // six-spell loadout, so only mark the player complete after all six
-                            // stacked choices have been acquired.
-                            overlappingPlayer.chosenSpell = !isChaosMode
-                                || overlappingPlayer.spellList.Count >= 6;
+                            overlappingPlayer.chosenSpell = true;
                         }
 
                         if (isRealFrame)
@@ -275,14 +281,9 @@ public class FloppyPickup : MonoBehaviour
                             }
                         }
                         gameObject.SetActive(false);
-                        // The six Chaos disks are stacked and resolve during one simulation pass.
-                        // Broadcasting after every disk makes the host refresh floppyObjects while
-                        // that array is being iterated, which can skip choices and split the peers.
-                        // Publish the completed loadout atomically after the sixth pickup instead.
-                        if (isRealFrame
-                            && (!isChaosMode || overlappingPlayer.spellList.Count >= 6))
+                        if (isRealFrame)
                         {
-                            GameManager.Instance?.RequestAuthoritativeOnlineFloppySnapshot($"floppy pickup P{ownerPID} {diskName}");
+                            GameManager.Instance?.BroadcastAuthoritativeOnlineStateSnapshot($"floppy pickup P{ownerPID} {diskName}");
                         }
                         Destroy(gameObject);
                     }
@@ -319,18 +320,14 @@ public class FloppyPickup : MonoBehaviour
         }
 
         Scene activeScene = SceneManager.GetActiveScene();
-        bool isChaosMode = GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
         if (activeScene.name == "MainMenu")
         {
-            return isChaosMode
-                ? overlappingPlayer.spellList.Count >= 6
-                : overlappingPlayer.spellList.Count > 0;
+            return overlappingPlayer.spellList.Count > 0;
         }
 
         if (activeScene.name == "Shop")
         {
-            return overlappingPlayer.spellList.Count >= 6
-                || (!isChaosMode && overlappingPlayer.chosenSpell);
+            return overlappingPlayer.chosenSpell || overlappingPlayer.spellList.Count >= 6;
         }
 
         return false;
@@ -362,7 +359,7 @@ public class FloppyPickup : MonoBehaviour
     private float GetFillPercent()
     {
         float percent = selectHoldCounter / (float)timeToFill;
-        float normalizedLogarithmicfillPercent = Mathf.Clamp01(Mathf.Log10(percent)+1);
+        float normalizedLogarithmicfillPercent = Mathf.Clamp01(Mathf.Log10(percent) + 1);
         return normalizedLogarithmicfillPercent;
     }
 

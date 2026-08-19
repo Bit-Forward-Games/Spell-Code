@@ -41,9 +41,13 @@ public class GameManager : MonoBehaviour
     {
         Normal,
         Turbo,
-        Elimination,
         Fighter,
         Chaos
+    }
+    public enum WinCon
+    {
+        RAMRush,
+        Elimination
     }
 
     public Gamemode gamemode;
@@ -60,9 +64,18 @@ public class GameManager : MonoBehaviour
     public PlayerController[] players = new PlayerController[4];
     public List<PlayerController> playerNPCs = new List<PlayerController>();
     public int playerCount = 0;
-    [NonSerialized]
-    public ushort ramNeededToWinRound = 1;
+    [NonSerialized] public WinCon winCon = WinCon.Elimination;
+    [NonSerialized] public ushort ramNeededToWinRound = 1;
+    [NonSerialized] public ushort roundLives = 0;
     public static ushort baseRamNeeddedtowin = 400;
+    public static ushort ramIncreasePerRound = 100;
+    public static ushort livesIncreasePerRound = 1;
+
+    public static ushort baseEliminationLives = 1;
+
+    public ushort WinConPointLimit => winCon == WinCon.Elimination
+        ? (ushort)Mathf.Max(1, roundLives)
+        : ramNeededToWinRound;
 
 
     [NonSerialized]
@@ -587,9 +600,16 @@ public class GameManager : MonoBehaviour
         if (SteamManager.DebugToolsEnabled)
         {
             //if = is pressed, player 1 win
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+            if (winCon == WinCon.RAMRush && UnityEngine.Input.GetKeyDown(KeyCode.Equals))
             {
-                players[0].roundRam = 600;
+                players[0].winConPoints = 600;
+            }
+            if (winCon == WinCon.Elimination && UnityEngine.Input.GetKeyDown(KeyCode.Equals))
+            {
+                for(int i = 1; i < playerCount ; i++)
+                {
+                    players[i].winConPoints = 0;
+                }
             }
 
             PrivateBetaDebugHotkeys();
@@ -600,6 +620,7 @@ public class GameManager : MonoBehaviour
     public void SetGamemode(int mode)
     {
         gamemode = (Gamemode)mode;
+        //winCon = gamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
         Debug.Log("Gamemode set to: " + gamemode);
 
         switch (gamemode)
@@ -612,15 +633,15 @@ public class GameManager : MonoBehaviour
                 loadMainMenu();
                 break;
 
-            case Gamemode.Elimination: //2
+            // case Gamemode.Elimination: //NA
+            //     loadMainMenu();
+            //     break;
+
+            case Gamemode.Fighter: //2
                 loadMainMenu();
                 break;
 
-            case Gamemode.Fighter: //3
-                loadMainMenu();
-                break;
-
-            case Gamemode.Chaos: //4
+            case Gamemode.Chaos: //3
                 loadMainMenu();
                 break;
         }
@@ -1113,15 +1134,18 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
+        //WinCon resolvedWinCon = resolvedGamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
             || gamemode != resolvedGamemode;
+            //|| winCon != resolvedWinCon;
 
         // Always reassert both values. GameManager survives scene changes and the offline chooser can
         // change gamemode independently, so returning early for repeated lobby metadata could leave
         // this peer running stale local rules.
         ActiveOnlineGameMode = mode;
         gamemode = resolvedGamemode;
+        //winCon = resolvedWinCon;
 
         if (modeChanged)
         {
@@ -1136,10 +1160,10 @@ public class GameManager : MonoBehaviour
             return Gamemode.Turbo;
         }
 
-        if (string.Equals(gameModeId, "elimination", StringComparison.OrdinalIgnoreCase))
-        {
-            return Gamemode.Elimination;
-        }
+        // if (string.Equals(gameModeId, "elimination", StringComparison.OrdinalIgnoreCase))
+        // {
+        //     return Gamemode.Elimination;
+        // }
 
         if (string.Equals(gameModeId, "fighter", StringComparison.OrdinalIgnoreCase)
             || string.Equals(gameModeId, "fighting-game", StringComparison.OrdinalIgnoreCase))
@@ -3037,7 +3061,14 @@ public class GameManager : MonoBehaviour
         // that path's baseRamNeeddedtowin (400) put the two machines a permanent 100 apart for the
         // same round count, and ramNeededToWinRound is part of SerializeSharedGameplayHashState
         // so the shared hash diverged on frame one and never reconverged.
-        ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + 100 * dataManager.totalRoundsPlayed);
+        if (winCon == WinCon.RAMRush)
+        {
+            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * dataManager.totalRoundsPlayed);
+        }
+        if (winCon == WinCon.Elimination)
+        {
+            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
+        }
         onlineRoundAdvanceApplied = true;
     }
 
@@ -3307,11 +3338,7 @@ public class GameManager : MonoBehaviour
         {
             ApplyPendingStageSelectIfAvailable();
             ApplyPendingGameplayReadyIfAvailable();
-            for (int i = 0; i < playerCount; i++)
-            {
-                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
-                players[i].storedKillBonus = 0;
-            }
+            ResetRoundWinConState();
             bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
             goDoorPrefab.CheckOpenDoor();
             foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
@@ -3795,10 +3822,6 @@ public class GameManager : MonoBehaviour
         {
             if (isOnlineMatchActive)
             {
-                for (int i = 0; i < playerCount; i++)
-                {
-                    players[i].roundRam = 0; // reset round RAM
-                }
                 localPlayerReadyForGameplay = false;
                 remotePlayerReadyForGameplay = false;
                 gameplayReadyPeerSlots.Clear();
@@ -3835,12 +3858,24 @@ public class GameManager : MonoBehaviour
 
     private void HandleRoundEndUI(bool isRealFrame)
     {
-        if (!isRealFrame || !roundOver || roundEndUIShown || lastRoundWinnerPID <= 0)
+        if (!isRealFrame || !roundOver || roundEndUIShown)
         {
             return;
         }
 
         roundEndUIShown = true;
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (!IsPlayerSlotConnected(i)) continue;
+            if (players[i].playerNum != null) players[i].playerNum.enabled = false;
+            if (players[i].inputDisplay != null) players[i].inputDisplay.enabled = false;
+        }
+
+        if (playerWinText != null)
+        {
+            playerWinText.enabled = lastRoundWinnerPID > 0;
+        }
 
         string message;
         if (gameOver)
@@ -3860,9 +3895,10 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            bool skipsShop = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
-            string nextPhase = skipsShop ? "Beginning Next Round..." : "Beginning Shop Phase...";
-            message = "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase;
+            string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
+            message = lastRoundWinnerPID > 0
+                ? "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase
+                : "Round draw! " + nextPhase;
 
             // Online scene transitions wait for BOTH clients to reach the destination scene
             // (scene-sync); at high ping that can take several seconds with the round over and the
@@ -3931,11 +3967,7 @@ public class GameManager : MonoBehaviour
         ///shop specific update
         if (activeScene.name == "Shop")
         {
-            for (int i = 0; i < playerCount; i++)
-            {
-                players[i].roundRam = 0; // reset round RAM to prevent carryover from lobby
-                players[i].storedKillBonus = 0;
-            }
+            ResetRoundWinConState();
             goDoorPrefab.CheckOpenDoor();
 
             if (goDoorPrefab.CheckAllPlayersReady())
@@ -4042,11 +4074,8 @@ public class GameManager : MonoBehaviour
                     }
                     else if (gamemode == Gamemode.Chaos)
                     {
-                        // Reset round RAM HERE, not only once the Shop scene loads
                         for (int i = 0; i < playerCount; i++)
                         {
-                            players[i].roundRam = 0;
-                            players[i].storedKillBonus = 0;
                             players[i].ClearSpellList();
                         }
                         playerWinText.enabled = false;
@@ -4061,11 +4090,6 @@ public class GameManager : MonoBehaviour
                     }
                     else if (AllActivePlayersHaveMaxSpells())
                     {
-                        for (int i = 0; i < playerCount; i++)
-                        {
-                            players[i].roundRam = 0; // reset round RAM
-                            players[i].storedKillBonus = 0;
-                        }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         LoadRandomGameplayStage();
@@ -4078,12 +4102,6 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        // Reset round RAM HERE, not only once the Shop scene loads
-                        for (int i = 0; i < playerCount; i++)
-                        {
-                            players[i].roundRam = 0;
-                            players[i].storedKillBonus = 0;
-                        }
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
                         RoundEnd();
@@ -4246,6 +4264,10 @@ public class GameManager : MonoBehaviour
         // INCREMENT FIRST
         playerCount++;
 
+        // Scene-wide resets only affect players that already exist. Local players can join the
+        // lobby afterward, so initialize this player's round state as part of registration too.
+        ResetPlayerWinConState(existingPlayer, true);
+
         // Update ALL player numbers
         for (int i = 0; i < playerCount; i++)
         {
@@ -4312,6 +4334,17 @@ public class GameManager : MonoBehaviour
 
     public void UpdatePlayerBounties(bool applyVisuals = true, bool roundOver = false)
     {
+        if (winCon != WinCon.RAMRush)
+        {
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (players[i] == null) continue;
+                players[i].ramBounty = 0;
+                players[i].hasHighestBounty = false;
+            }
+            return;
+        }
+
         Debug.Log($"-----------------Updating Bounties------------------");
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
@@ -4324,7 +4357,7 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            averageRoundRam += players[i].roundRam;
+            averageRoundRam += players[i].winConPoints;
             averageRoundWins += players[i].roundsWon;
             activePlayerCount++;
         }
@@ -4349,7 +4382,7 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            int ramRoundBounty = roundOver? 0: (players[i].roundRam - averageRoundRam)/3;
+            int ramRoundBounty = roundOver? 0: (players[i].winConPoints - averageRoundRam)/3;
             int oldBounty = players[i].ramBounty;
             
             players[i].ramBounty = (short)( ramRoundBounty + (100*(players[i].roundsWon - averageRoundWins)));
@@ -4403,6 +4436,11 @@ public class GameManager : MonoBehaviour
     //get the player with the highest bounty but do NOT update bounty VFX. Return -1 if there no player has a bounty
     public int GetPlayerWithHighestBounty()
     {
+        if (winCon != WinCon.RAMRush)
+        {
+            return -1;
+        }
+
         //if all bounties are 0,...
         if(AllBountiesAreZero())
         {
@@ -4434,6 +4472,11 @@ public class GameManager : MonoBehaviour
 
     public bool AllBountiesAreZero()
     {
+        if (winCon != WinCon.RAMRush)
+        {
+            return true;
+        }
+
         //iterate through players array
         for (int i = 0; i < playerCount; i++)
         {
@@ -4456,150 +4499,211 @@ public class GameManager : MonoBehaviour
 
     public bool CheckDeathsAndRoundEnd(PlayerController[] playerControllers)
     {
-
-        if(roundOver) { return true; }
+        if (roundOver) { return true; }
 
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
 
         foreach (PlayerController player in playerControllers)
         {
             // Disconnected players are eliminated for good: never respawn, never score.
-            if (!player.isConnected) { continue; }
+            if (player == null || !player.isConnected || player.isAlive) { continue; }
 
-            //check for player deaths
-            if(!player.isAlive)
+            // An Elimination player at zero stocks has already had their final death processed.
+            // They remain dead until ResetPlayers starts the next round.
+            if (winCon == WinCon.Elimination && player.winConPoints == 0)
             {
-                Debug.Log($"-----------------Player {player.pID} Has just died ------------------");
-                //go through each player and award them ram based on the percentage of the other player's health they took (damage matrix)
-                foreach (PlayerController p in playerControllers)
-                {
-                    if (!p.isConnected) { continue; }
+                continue;
+            }
 
-                    // Never credit the victim for their own death
-                    // Keep their contributions against other players and any legitimate pending kill bonus intact for those players' death payouts
-                    if (isOnlineMatchActive && p == player)
-                    {
-                        damageMatrix[player.pID - 1, p.pID - 1] = 0;
-                        Debug.Log($"[OnlineScoring] Player {p.pID} received no RAM for their own death.");
-                        continue;
-                    }
+            Debug.Log($"-----------------Player {player.pID} Has just died ------------------");
 
-                    int damagePercent = damageMatrix[player.pID - 1, p.pID - 1];
-                    int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * player.ramBounty) / 100);
-                    int totalKillParticipationRamEarned = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;
-                    // Guard the clamp's MAX with Max(0, ...): on a simultaneous multi-kill the death
-                    // loop runs again for this same killer, and an earlier victim's payout (kill
-                    // bonus) can already have pushed p.roundRam to/above the threshold. That makes
-                    // (ramNeededToWinRound-1-p.roundRam) negative; Mathf.Clamp(x, 0, negative) returns
-                    // the negative, and (ushort)(-1)=65535 then overflows p.roundRam back below the
-                    // threshold -- which is why killing 2+ players at once failed to win the round
-                    // Clamping the max at 0 awards 0 here instead of wrapping.
-                    int CollectedGold = Mathf.Clamp(totalKillParticipationRamEarned, 0, Mathf.Max(0, ramNeededToWinRound - 1 - p.roundRam));
-                    p.roundRam += (ushort)CollectedGold;
-                    p.roundRam = (ushort)Mathf.Clamp(p.roundRam + p.storedKillBonus,0,ramNeededToWinRound);
-                    p.SpawnToast($"+{totalKillParticipationRamEarned + p.storedKillBonus} RAM", GameManager.colors["yellow"]);
-                    Debug.Log($" player {p.pID}: +{totalKillParticipationRamEarned + p.storedKillBonus} RAM");
-                    p.storedKillBonus = 0;
-                    
+            if (winCon == WinCon.RAMRush)
+            {
+                AwardRamRushDeath(player, playerControllers);
+            }
+            else if (winCon == WinCon.Elimination)
+            {
+                player.winConPoints--;
+                player.storedKillBonus = 0;
+                Debug.Log($"Player {player.pID} has {player.winConPoints} elimination lives remaining.");
+            }
 
-                    damageMatrix[player.pID - 1, p.pID - 1] = 0; //reset damage matrix for next death
-                }
-                Debug.Log($"-------------------------------------------------------------------");
-                
+            Debug.Log($"-------------------------------------------------------------------");
 
-                // Clear lingering projectiles from the dead player so both clients respawn
-                // into the same clean state instead of carrying old shots across deaths.
-                ProjectileManager.Instance.DeleteTargetPlayerProjectiles(player.pID);
+            // Clear lingering projectiles from the dead player so a respawn cannot carry old shots
+            // forward, and an eliminated player cannot keep affecting the round.
+            ProjectileManager.Instance.DeleteTargetPlayerProjectiles(player.pID);
 
+            bool shouldRespawn = winCon == WinCon.RAMRush
+                || (winCon == WinCon.Elimination && player.winConPoints > 0);
+            if (shouldRespawn)
+            {
                 // Respawn position is deterministic state and must be recomputed during rollback too.
                 FixedVec2 spawnPos = GetRandomSpawnVec2();
                 player.SpawnPlayer(spawnPos);
             }
         }
 
-        //then check winner conditions (most ram at the end of the round)
-        foreach (PlayerController player in playerControllers)
+        if (winCon == WinCon.RAMRush)
         {
-            if (!player.isConnected) { continue; }
-            if (player.roundRam >= ramNeededToWinRound)
+            PlayerController winner = null;
+            ushort highestRam = 0;
+            for (int i = 0; i < playerCount; i++)
             {
-                // Determine winner deterministically here
-                if (!roundOver)
+                if (!IsPlayerSlotConnected(i))
                 {
-                    ushort highestRam = 0;
-                    PlayerController winner = null;
-                    for (int i = 0; i < playerCount; i++)
-                    {
-                        if (!IsPlayerSlotConnected(i))
-                        {
-                            continue;
-                        }
-
-                        if (players[i].roundRam >= ramNeededToWinRound && players[i].roundRam > highestRam)
-                        {
-                            winner = players[i];
-                            highestRam = players[i].roundRam;
-                        }
-                    }
-
-                    if (winner != null)
-                    {
-                        winner.roundsWon += 1;
-                        roundOver = true;
-                        lastRoundWinnerPID = winner.pID;
-                        roundEndUIShown = false;
-
-                        for (int i = 0; i < playerCount; i++)
-                        {
-                            if (!IsPlayerSlotConnected(i))
-                            {
-                                continue;
-                            }
-
-                            if (!isRollback)
-                            {
-                                players[i].playerNum.enabled = false;
-                                players[i].inputDisplay.enabled = false;
-                            }
-                            if (players[i].roundsWon >= 3) 
-                            { 
-                                gameOver = true;
-                                bigWinner = winner;
-                                endWinnerPid = winner.pID;
-                                endWinnerPalette = winner.matchPalettes != null
-                                    && winner.pID - 1 >= 0
-                                    && winner.pID - 1 < winner.matchPalettes.Length
-                                    ? winner.matchPalettes[winner.pID - 1]
-                                    : null;
-                            }
-
-                        }
-                        if (!isRollback)
-                        {
-                            playerWinText.enabled = true;
-                        }
-                        UpdatePlayerBounties(!isRollback, true);
-                    }
+                    continue;
                 }
-                
+
+                PlayerController candidate = players[i];
+                if (candidate.winConPoints >= ramNeededToWinRound && candidate.winConPoints > highestRam)
+                {
+                    winner = candidate;
+                    highestRam = candidate.winConPoints;
+                }
+            }
+
+            if (winner != null)
+            {
+                FinishRound(winner, isRollback);
+                return true;
+            }
+
+            UpdatePlayerBounties(!isRollback);
+            return false;
+        }
+
+        bool hasMultipleMatchParticipants = activeOnlineRoster != null
+            ? CountRegisteredOnlineRosterPlayers() > 1
+            : playerCount > 1;
+        if (winCon == WinCon.Elimination && hasMultipleMatchParticipants)
+        {
+            PlayerController survivor = null;
+            int playersWithLives = 0;
+            foreach (PlayerController player in playerControllers)
+            {
+                if (player == null || !player.isConnected || player.winConPoints == 0) continue;
+                survivor = player;
+                playersWithLives++;
+            }
+
+            if (playersWithLives <= 1)
+            {
+                // survivor == null represents a simultaneous final-stock draw. The round still
+                // advances, but nobody receives a round win.
+                FinishRound(survivor, isRollback);
                 return true;
             }
         }
-        UpdatePlayerBounties(!isRollback);
+
         return false;
+    }
+
+    private void AwardRamRushDeath(PlayerController defeatedPlayer, PlayerController[] playerControllers)
+    {
+        // Award RAM based on each player's share of damage dealt to the defeated player.
+        foreach (PlayerController player in playerControllers)
+        {
+            if (player == null || !player.isConnected) { continue; }
+
+            // Never credit an online victim for their own death. Keep their contributions against
+            // other players and legitimate pending kill bonus intact for those players' payouts.
+            if (isOnlineMatchActive && player == defeatedPlayer)
+            {
+                damageMatrix[defeatedPlayer.pID - 1, player.pID - 1] = 0;
+                Debug.Log($"[OnlineScoring] Player {player.pID} received no RAM for their own death.");
+                continue;
+            }
+
+            int damagePercent = damageMatrix[defeatedPlayer.pID - 1, player.pID - 1];
+            int bountyCut = Math.Max(-PlayerController.baseRamLifeWorth, (damagePercent * defeatedPlayer.ramBounty) / 100);
+            int participationRam = damagePercent * PlayerController.baseRamLifeWorth / 100 + bountyCut;
+
+            // On a simultaneous multi-kill, an earlier payout may already have reached the target.
+            // Clamp the remaining award at zero to prevent a negative int from wrapping to ushort.
+            int collectedRam = Mathf.Clamp(
+                participationRam,
+                0,
+                Mathf.Max(0, ramNeededToWinRound - 1 - player.winConPoints));
+            player.winConPoints += (ushort)collectedRam;
+            player.winConPoints = (ushort)Mathf.Clamp(
+                player.winConPoints + player.storedKillBonus,
+                0,
+                ramNeededToWinRound);
+            player.SpawnToast($"+{participationRam + player.storedKillBonus} RAM", colors["yellow"]);
+            Debug.Log($" player {player.pID}: +{participationRam + player.storedKillBonus} RAM");
+            player.storedKillBonus = 0;
+
+            damageMatrix[defeatedPlayer.pID - 1, player.pID - 1] = 0;
+        }
+    }
+
+    private void FinishRound(PlayerController winner, bool isRollback)
+    {
+        if (roundOver) return;
+
+        roundOver = true;
+        lastRoundWinnerPID = winner != null ? winner.pID : 0;
+        roundEndUIShown = false;
+
+        if (winner != null)
+        {
+            winner.roundsWon += 1;
+            if (winner.roundsWon >= 3)
+            {
+                gameOver = true;
+                bigWinner = winner;
+                endWinnerPid = winner.pID;
+                endWinnerPalette = winner.matchPalettes != null
+                    && winner.pID - 1 >= 0
+                    && winner.pID - 1 < winner.matchPalettes.Length
+                    ? winner.matchPalettes[winner.pID - 1]
+                    : null;
+            }
+        }
+
+        if (winCon == WinCon.RAMRush)
+        {
+            UpdatePlayerBounties(!isRollback, true);
+        }
+    }
+
+    private void ResetPlayerWinConState(PlayerController player, bool isActivePlayer)
+    {
+        if (player == null) return;
+
+        bool isEndScene = SceneManager.GetActiveScene().name == "End";
+        player.winConPoints = isActivePlayer && winCon == WinCon.Elimination && !isEndScene
+            ? WinConPointLimit
+            : (ushort)0;
+        player.storedKillBonus = 0;
+        if (winCon != WinCon.RAMRush)
+        {
+            player.ramBounty = 0;
+            player.hasHighestBounty = false;
+        }
+    }
+
+    private void ResetRoundWinConState()
+    {
+        for (int i = 0; i < players.Length; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null) continue;
+
+            ResetPlayerWinConState(player, i < playerCount && IsPlayerSlotConnected(i));
+        }
+    }
+
+    public bool IsRoundWinner(PlayerController player)
+    {
+        return roundOver && player != null && player.pID == lastRoundWinnerPID;
     }
 
     //reset players after each round
     public void ResetPlayers()
     {
-        // The real fighters are DontDestroyOnLoad and the End scene presents its winner through a
-        // separate authored sprite. Respawning here would re-enable the carried character renderers
-        // (and fire spawn side effects) after the match has already finished.
-        if (SceneManager.GetActiveScene().name == "End")
-        {
-            return;
-        }
-
+        ResetRoundWinConState();
         FixedVec2[] spawnPos = GetSpawnPositions()
             .Select(v => FixedVec2.FromFloat(v.x, v.y))
             .ToArray();
@@ -4658,7 +4762,7 @@ public class GameManager : MonoBehaviour
         // false, and the two simulated that gate differently.
         player.tutorialSpellStored = false;
         player.storedKillBonus = 0;
-        player.roundRam = 0;
+        player.winConPoints = 0;
         player.ramBounty = 0;
         player.times = new List<Fixed>();
         player.SpawnPlayer(FixedVec2.FromFloat(spawnPositions[playerIndex].x, spawnPositions[playerIndex].y));
@@ -5494,10 +5598,10 @@ public class GameManager : MonoBehaviour
 
         endInputEnabled = false;
 
-        //reset all ram values for players so they don't carry over to the end screen or next match
+        // Clear round win-condition state so it cannot carry onto the end screen or next match.
         for (int i = 0; i < playerCount; i++)
         {
-            players[i].roundRam = 0;
+            players[i].winConPoints = 0;
             players[i].storedKillBonus = 0;
 
         }
@@ -5573,7 +5677,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             if (players[i] == null) continue;
-            players[i].roundRam = 0;
+            players[i].winConPoints = 0;
         }
 
         gameOver = false;
@@ -6127,6 +6231,30 @@ public class GameManager : MonoBehaviour
         onlineInputDevicesDirty = true;
     }
 
+    private void RefreshRoundWinConPointLimit()
+    {
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager == null && isOnlineMatchActive)
+        {
+            // ExecuteOrder66 destroys DataManager, so it is legitimately absent on some transitions.
+            return;
+        }
+
+        int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
+        if (winCon == WinCon.RAMRush)
+        {
+            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * roundsPlayed);
+        }
+        else if (winCon == WinCon.Elimination)
+        {
+            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * roundsPlayed);
+        }
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // Hardware capture is wall-clock state, not rollback state. Scene/timeline changes start
@@ -6156,6 +6284,7 @@ public class GameManager : MonoBehaviour
             }
             ResetPlayers();
         }
+        RefreshRoundWinConPointLimit();
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's
@@ -6215,32 +6344,6 @@ public class GameManager : MonoBehaviour
         }
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-
-        int roundsPlayed = 0;
-        bool haveRoundCount = true;
-        if (dataManager == null)
-        {
-            dataManager = DataManager.Instance;
-        }
-        if (dataManager != null)
-        {
-            roundsPlayed = dataManager.totalRoundsPlayed;
-
-        }
-        else if (isOnlineMatchActive)
-        {
-            // ExecuteOrder66 destroys DataManager, so it is legitimately absent on some transitions.
-            haveRoundCount = false;
-        }
-        else
-        {
-            roundsPlayed = 1;
-        }
-
-        if (haveRoundCount)
-        {
-            ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + 100 * roundsPlayed);
-        }
 
         if (scene.name != "MainMenu")
         {
@@ -6386,13 +6489,6 @@ public class GameManager : MonoBehaviour
             localPlayerInput = 5;
             syncedInput = new ulong[Mathf.Max(2, IsRosterBasedOnlineMatch() ? playerCount : 2)];
             timeoutFrames = 0;
-            for (int i = 0; i < playerCount; i++)
-            {
-                if (players[i] != null)
-                {
-                    players[i].roundRam = 0;
-                }
-            }
 
             if (MatchMessageManager.Instance != null)
             {
@@ -6911,7 +7007,9 @@ public class GameManager : MonoBehaviour
                 bw.Write(stageRngState);
 
                 // Serialize round state
+                bw.Write((byte)winCon);
                 bw.Write(ramNeededToWinRound);
+                bw.Write(roundLives);
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
                 bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
@@ -7042,7 +7140,9 @@ public class GameManager : MonoBehaviour
             bw.Write(randomCallCount);
             bw.Write(rngState);
             bw.Write(stageRngState);
+            bw.Write((byte)winCon);
             bw.Write(ramNeededToWinRound);
+            bw.Write(roundLives);
             bw.Write(roundEndUIShown);
             bw.Write(lastRoundWinnerPID);
             bw.Write(CurrentTotalRoundsPlayed);
@@ -7084,9 +7184,11 @@ public class GameManager : MonoBehaviour
             }
 
             bw.Write(rngState);
+            bw.Write((byte)winCon);
             bw.Write(ramNeededToWinRound);
             bw.Write(CurrentTotalRoundsPlayed);
             bw.Write(onlineRoundAdvanceApplied);
+            bw.Write(roundLives);
 
             SerializeLobbyShopHashState(bw);
 
@@ -7391,7 +7493,9 @@ public class GameManager : MonoBehaviour
                 stageRngState = br.ReadUInt32();
 
                 // Deserialize round state
+                winCon = (WinCon)br.ReadByte();
                 ramNeededToWinRound = br.ReadUInt16();
+                roundLives = br.ReadUInt16();
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
                 int savedTotalRoundsPlayed = br.ReadInt32();

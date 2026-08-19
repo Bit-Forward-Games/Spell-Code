@@ -184,11 +184,11 @@ public class PlayerController : MonoBehaviour
     private bool secretNormalPaletteActive = false;
     public ushort currentPlayerHealth = 0;
 
-    //money things
+    // Round win-condition and RAM Rush state
     [NonSerialized]
     public ushort storedKillBonus = 0;
     [NonSerialized]
-    public ushort roundRam = 0;
+    public ushort winConPoints = 0;
     [NonSerialized]
     public short ramBounty = 0;
     [NonSerialized]
@@ -1008,7 +1008,7 @@ public class PlayerController : MonoBehaviour
         chosenStartingSpell = false;
         startingSpellAdded = false;
         storedKillBonus = 0;
-        roundRam = 0;
+        winConPoints = 0;
         ramBounty = 0;
         hasHighestBounty = false;
     }
@@ -1036,7 +1036,10 @@ public class PlayerController : MonoBehaviour
         }
 
         roundsWon = 0;
-
+        storedKillBonus = 0;
+        winConPoints = 0;
+        ramBounty = 0;
+        hasHighestBounty = false;
 
         //data
         spellsFired = 0;
@@ -1230,8 +1233,27 @@ public class PlayerController : MonoBehaviour
         return false; 
     }
 
+    private static int GetCodeWeaveDirection(int currentDirection, int previousDirection)
+    {
+        // When a cardinal is rolled into an adjacent diagonal, record the diagonal's other
+        // cardinal component. For example, down (2) -> down-right (3) records right (6).
+        return (currentDirection, previousDirection) switch
+        {
+            (1, 2) => 4,
+            (1, 4) => 2,
+            (3, 2) => 6,
+            (3, 6) => 2,
+            (7, 4) => 8,
+            (7, 8) => 4,
+            (9, 6) => 8,
+            (9, 8) => 6,
+            _ => currentDirection
+        };
+    }
+
     public void PlayerUpdate(ulong rawInput)
     {
+        int previousInputDirection = input.Direction;
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
         if(pID != 0)
         {
@@ -1292,6 +1314,18 @@ public class PlayerController : MonoBehaviour
             if (spriteRenderer.enabled == true)
             {
                 spriteRenderer.enabled = false;
+            }
+
+            // A zero-stock Elimination player stays out for the round. Hide their world-space
+            // input/name UI on a real frame as well, including after rollback restores an already
+            // eliminated state. ResetPlayers re-enables both for the next round.
+            bool isRealFrame = RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame;
+            if (isRealFrame
+                && GameManager.Instance.winCon == GameManager.WinCon.Elimination
+                && winConPoints == 0)
+            {
+                if (inputDisplay != null) inputDisplay.enabled = false;
+                if (playerNum != null) playerNum.enabled = false;
             }
             return;
 
@@ -1633,8 +1667,17 @@ public class PlayerController : MonoBehaviour
                 {
                     gravity = Fixed.Clamp(gravity + Fixed.FromFloat(0.002f), Fixed.FromInt(0), Fixed.FromInt(1));
                 }
+                int codeDirection = GetCodeWeaveDirection(input.Direction, previousInputDirection);
+                bool validCodeDirection = codeDirection is 2 or 4 or 6 or 8;
+                bool isDiagonalDirection = input.Direction is 1 or 3 or 7 or 9;
+                bool inferredCodeDirection = codeDirection != input.Direction;
+                bool repeatedDiagonal = isDiagonalDirection
+                    && input.Direction == previousInputDirection
+                    && stateSpecificArg != 0;
 
-                if (input.Direction is 5 or 7 or 1 or 3 or 9)
+                // Keep a held diagonal from priming the inferred direction again. This makes
+                // down -> down-right -> right encode as down, right instead of down, right, right.
+                if (input.Direction == 5 || (isDiagonalDirection && !inferredCodeDirection && !repeatedDiagonal))
                 {
                     //make the last bit in stateSpecificArg a 1 to indicate that a  "null" direction was pressed
                     if ((stateSpecificArg & (1u << 4)) == 0)
@@ -1648,7 +1691,7 @@ public class PlayerController : MonoBehaviour
                 }
                 byte currentInput = 0b00;
 
-                switch (input.Direction)
+                switch (codeDirection)
                 {
                     case 2:
                         currentInput = 0b00;
@@ -1684,18 +1727,14 @@ public class PlayerController : MonoBehaviour
                 byte lastInputInQueue = (byte)((stateSpecificArg >> (6 + codeCount * 2)) & 0b11);
 
 
-                if (codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
+                if (validCodeDirection && codeCount < 12 && ((stateSpecificArg & (1u << 4)) != 0 || (currentInput != lastInputInQueue && stateSpecificArg != 0))) //if the 5th bit is a 1, and we have a valid direction input, we can record it
                 {
                     byte tempInput;
-                    bool validCodeDirection = input.Direction is 2 or 4 or 6 or 8;
                     byte codeWriteIndex = (byte)(vibeCoding ? 0 : codeCount);
                     int codeWriteShift = 8 + (codeWriteIndex * 2);
-                    if (validCodeDirection)
-                    {
-                        stateSpecificArg &= ~(0b11u << codeWriteShift);
-                    }
+                    stateSpecificArg &= ~(0b11u << codeWriteShift);
 
-                    switch (input.Direction)
+                    switch (codeDirection)
                     {
                         case 2:
                             // Set the 2 highest significant bits minus 2 bits per codeCount to 00
@@ -3509,7 +3548,10 @@ public class PlayerController : MonoBehaviour
         // Damage attribution is deterministic match state and must update during rollback replays too.
         if(pID != 0)
         {
-            if (hasAttacker && damageAmount > 0 && attacker.pID != 0)
+            if (GameManager.Instance.winCon == GameManager.WinCon.RAMRush
+                && hasAttacker
+                && damageAmount > 0
+                && attacker.pID != 0)
             {
                 GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
             }
@@ -3557,8 +3599,10 @@ public class PlayerController : MonoBehaviour
             //play the death sound
             SFX_Manager.Instance.PlaySound(Sounds.DEATH);
 
-            //if all player bounties are 0,...
-            if(GameManager.Instance.AllBountiesAreZero())
+            // Bounty death effects are a RAM Rush rule. Other win conditions always use the
+            // standard death effect and never consult RAM bounty state.
+            if (GameManager.Instance.winCon != GameManager.WinCon.RAMRush
+                || GameManager.Instance.AllBountiesAreZero())
             {
                 //play the death visual effect
                 VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEATH, position + FixedVec2.FromFloat(0f, 42f), pID);
@@ -3583,7 +3627,9 @@ public class PlayerController : MonoBehaviour
 
             // Online self-damage must not award the victim a kill bonus
             bool isOnlineSelfKill = GameManager.Instance.isOnlineMatchActive && attacker == this;
-            if (hasAttacker && !isOnlineSelfKill)
+            if (GameManager.Instance.winCon == GameManager.WinCon.RAMRush
+                && hasAttacker
+                && !isOnlineSelfKill)
             {
                 attacker.storedKillBonus += baseRamKillBonus;
                 //attacker.SpawnToast($"+{baseRamKillBonus} RAM", GameManager.colors["yellow"]);
@@ -3963,7 +4009,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(isSpawned);
         bw.Write(roundsWon);
         bw.Write(storedKillBonus);
-        bw.Write(roundRam);
+        bw.Write(winConPoints);
         bw.Write(ramBounty);
         bw.Write(chosenStartingSpell);
         bw.Write(startingSpellAdded);
@@ -4102,7 +4148,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Resource meters (managed by the universal passives).
+    // Resource meters plus round/match scoring state.
     public void SerializeCoreResourceHash(BinaryWriter bw)
     {
         bw.Write(flowState);
@@ -4111,6 +4157,10 @@ public class PlayerController : MonoBehaviour
         bw.Write(demonAura);
         bw.Write(demonAuraLifeSpanTimer);
         bw.Write(reps);
+        bw.Write(roundsWon);
+        bw.Write(storedKillBonus);
+        bw.Write(winConPoints);
+        bw.Write(ramBounty);
     }
 
     // Input-mode / spell-code / double-tap state. Jump/platform fields (jumpCount, tapJumpPrimed,
@@ -4350,7 +4400,7 @@ public class PlayerController : MonoBehaviour
         isSpawned = br.ReadBoolean();
         roundsWon = br.ReadInt32();
         storedKillBonus = br.ReadUInt16();
-        roundRam = br.ReadUInt16();
+        winConPoints = br.ReadUInt16();
         ramBounty = br.ReadInt16();
         chosenStartingSpell = br.ReadBoolean();
         bool savedStartingSpellAdded = br.ReadBoolean();

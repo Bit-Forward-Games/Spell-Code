@@ -2467,7 +2467,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         var gm = GameManager.Instance;
         string diag = $"[DESYNC DIAG] Frame {frame} | " +
             $"callCount={gm.randomCallCount} seed={gm.randomSeed} " +
-            $"roundOver={gm.roundOver} gameOver={gm.gameOver} ramToWin={gm.ramNeededToWinRound} " +
+            $"roundOver={gm.roundOver} gameOver={gm.gameOver} winCon={gm.winCon} pointLimit={gm.WinConPointLimit} " +
             $"stageIndex={gm.currentStageIndex} stage={gm.currentStage} rngState={gm.CurrentRngState} stageRngState={gm.CurrentStageRngState} " +
             $"sharedHash={ComputeSharedGameplayHash(gm)} projectileHash={ComputeProjectileHash()}";
         diag += $"\n DamageMatrix=[{FormatDamageMatrix(gm.damageMatrix)}]";
@@ -2479,7 +2479,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             diag += $"\n P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
                     $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
-                    $"roundRam={p.roundRam} totalRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
+                    $"winConPoints={p.winConPoints} storedRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
             diag += $"\n     {p.GetDesyncDiagString()}";
 
             for (int s = 0; s < p.spellList.Count; s++)

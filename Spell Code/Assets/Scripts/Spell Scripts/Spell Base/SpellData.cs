@@ -91,6 +91,8 @@ public abstract class SpellData : MonoBehaviour
     public uint spellInput = 0b_0000_0000_0000_0000_0000_0000_0000_0000;
     [NonSerialized]
     public bool activateFlag = false;
+
+    [NonSerialized] public bool basicEnhanceActive = false;
     //public bool //vibeCasted = false;
     [NonSerialized]
     public PlayerController owner;
@@ -150,9 +152,38 @@ public abstract class SpellData : MonoBehaviour
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
             }
             cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
-            //if(vibeCasted) owner.SpawnToast("VIBE CODED", GameManager.colors["grey"]);
-            //vibeCasted = false;
         }
+    }
+
+    public virtual void SchizoEnsureBasicEnhanceInactive()
+    {
+        if(owner.basicSpawnOverride != spellName)
+        {
+            basicEnhanceActive = false;
+        }
+    }
+
+    public virtual void SetBasicEnhancement()
+    {
+        
+        List<SpellData> sortedSpellList = new List<SpellData>();
+        PlayerController.BuildSortedSpellList(owner.spellList, owner.universalSpells, owner.extraSpells, sortedSpellList);
+
+        for (int i = 0; i < sortedSpellList.Count; i++)
+        {
+            SpellData spell = sortedSpellList[i];
+            bool isStillRegistered = owner.spellList.Contains(spell)
+                || owner.universalSpells.Contains(spell)
+                || owner.extraSpells.Contains(spell);
+            if (isStillRegistered && spell.basicEnhanceActive)
+            {
+                spell.basicEnhanceActive = false;
+            }
+        }
+
+        owner.basicSpawnOverride = spellName;
+        basicEnhanceActive = true;
+
     }
 
     public virtual void LoadSpell()
@@ -179,6 +210,7 @@ public abstract class SpellData : MonoBehaviour
     {
         bw.Write(cooldownCounter);
         bw.Write(activateFlag);
+        bw.Write(basicEnhanceActive);
         // Derived classes should call base.Serialize(bw) then write their own state.
     }
 
@@ -191,6 +223,7 @@ public abstract class SpellData : MonoBehaviour
     {
         cooldownCounter = br.ReadInt32();
         activateFlag = br.ReadBoolean();
+        basicEnhanceActive = br.ReadBoolean();
         // Derived classes should call base.Deserialize(br) then read their own state.
     }
     public bool IsFirstMultiHitAgainstTargetPlayer(PlayerController defender, BaseProjectile projectile)

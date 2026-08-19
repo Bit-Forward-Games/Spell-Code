@@ -43,7 +43,9 @@ public class CashOut : SpellData, IBigStoxActiveSpell
         }
         if (activateFlag)
         {
-            owner.basicSpawnOverride = spellName;
+            // owner.basicSpawnOverride = spellName;
+            // basicEnhanceActive = true;
+            SetBasicEnhancement();
             owner.basicSpawnOverrideVariant = (byte)(doesCrit?1:0);
             // Reset the activate flag
             activateFlag = false;
@@ -70,8 +72,9 @@ public class CashOut : SpellData, IBigStoxActiveSpell
                 break;
             case ProcCondition.OnCastBasic:
             
-            if (owner.basicSpawnOverride == spellName)
+            if (owner.basicSpawnOverride == spellName && basicEnhanceActive)
                 {
+                    basicEnhanceActive = false;
                     doesCrit = owner.basicSpawnOverrideVariant == 1;
                     owner.vSpd = Fixed.FromInt(3); // Launch the player upwards slightly
                     owner.hSpd = owner.facingRight ? Fixed.FromInt(-4) : Fixed.FromInt(4); // Propel the player backwatds slightly

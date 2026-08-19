@@ -1963,6 +1963,7 @@ public class PlayerController : MonoBehaviour
                     else
                     {
                         basicSpawnOverride = string.Empty;
+                        //remember to set the basicEnhanceActive bool to false wherever the basic spawn override is
                     }
                     basicSpawnOverrideVariant = 0;
 
@@ -3518,12 +3519,12 @@ public class PlayerController : MonoBehaviour
     // keep their original relative order (primary list first, then universal and extra, each in order) --
     // byte-identical to LINQ's OrderByDescending. That order is part of deterministic match state
     // (proc-resolution priority), so it must not change.
-    private static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
-    {
-        BuildSortedSpellList(primary, universal, null, buffer);
-    }
+    // public static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
+    // {
+    //     BuildSortedSpellList(primary, universal, null, buffer);
+    // }
 
-    private static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> extra, List<SpellData> buffer)
+    public static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> extra, List<SpellData> buffer)
     {
         buffer.Clear();
 
@@ -4452,6 +4453,7 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
             sortedSpellList[i].SpellUpdate();
+            sortedSpellList[i].SchizoEnsureBasicEnhanceInactive();
         }
     }
     public bool IsStorableState() =>

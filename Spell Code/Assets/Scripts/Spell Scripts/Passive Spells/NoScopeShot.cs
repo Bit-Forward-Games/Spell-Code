@@ -37,10 +37,17 @@ public class NoScopeShot : SpellData
 
                 if (owner.flowState > 0 && cooldownCounter <= 0 && owner.basicSpawnOverride == "")
                 {
-                    owner.basicSpawnOverride = spellName;
+                    // owner.basicSpawnOverride = spellName;
+                    // basicEnhanceActive = true;
+                    
+                    SetBasicEnhancement();
                     owner.flowState = (ushort)Mathf.Max(owner.flowState - flowStateCost,0);
                     cooldownCounter = cooldown;
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[0].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                }
+                else
+                {
+                    basicEnhanceActive = false;
                 }
                 break;
             default:

@@ -42,14 +42,18 @@ public class TeleFragPrism : SpellData
                 
                 break;
             case ProcCondition.ActiveOnCast:
-                owner.basicSpawnOverride = spellName;
+                // owner.basicSpawnOverride = spellName;
+                // basicEnhanceActive = true;
+                
+                SetBasicEnhancement();
                 ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
 
                 break;
             case ProcCondition.OnUpdate:
                 //if you overwrite your basic replacement, delete te prism and reticle
-                if(owner.basicSpawnOverride != spellName)
+                if(owner.basicSpawnOverride != spellName || !basicEnhanceActive)
                 {
+                    basicEnhanceActive = false;
                     ProjectileManager.Instance.DeleteProjectile(projectileInstances[0].GetComponent<BaseProjectile>());
                     ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
                     break;

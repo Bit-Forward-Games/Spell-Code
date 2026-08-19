@@ -257,6 +257,10 @@ public class Bailout : SpellData, IBigStoxActiveSpell
     {
         base.Serialize(bw);
         bw.Write(doesCrit);
+        // AlwaysCrit is an auto-property from IBigStoxActiveSpell, so its backing field was never
+        // serialized. EnableForcedCrit/DisableForcedCrit make it real sim state and ResolveCrit reads
+        // it, so a rollback that did not restore it could flip a crit outcome.
+        bw.Write(((IBigStoxActiveSpell)this).AlwaysCrit);
         bw.Write(oldPos.X.RawValue);
         bw.Write(oldPos.Y.RawValue);
         bw.Write(newPos.X.RawValue);
@@ -275,6 +279,7 @@ public class Bailout : SpellData, IBigStoxActiveSpell
     {
         base.Deserialize(br);
         doesCrit = br.ReadBoolean();
+        ((IBigStoxActiveSpell)this).AlwaysCrit = br.ReadBoolean();
         oldPos = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
         newPos = new FixedVec2(new Fixed(br.ReadInt32()), new Fixed(br.ReadInt32())); // Assuming Fixed32 uses int
         critTrailSegmentCount = br.ReadInt32();

@@ -612,15 +612,15 @@ public class GameManager : MonoBehaviour
                 loadMainMenu();
                 break;
 
-            // case Gamemode.Elimination: //2
+            // case Gamemode.Elimination: //NA
             //     loadMainMenu();
             //     break;
 
-            case Gamemode.Fighter: //3
+            case Gamemode.Fighter: //2
                 loadMainMenu();
                 break;
 
-            case Gamemode.Chaos: //4
+            case Gamemode.Chaos: //3
                 loadMainMenu();
                 break;
         }

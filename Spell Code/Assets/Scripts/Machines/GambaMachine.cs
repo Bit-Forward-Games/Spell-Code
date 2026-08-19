@@ -476,7 +476,7 @@ public class GambaMachine : MonoBehaviour
                 isActive = false;
                 resetTimer = 0;
 
-                //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave
+                //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave, 5 = Dark Web
                 counter++;
                 if (counter > 5) { counter = 1; }
 

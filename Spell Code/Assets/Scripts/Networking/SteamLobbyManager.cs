@@ -61,7 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-43"; // scz-43: Sickle marks preserve absolute coordinates, follow/expire from serialized state, route Jokah's homing basic to its exact copy, and retain copied projectiles across online scene setup.
+    private const string NetcodeVersion = "scz-44"; // scz-44: Hot Streak resolves its chain source through the owner when hotStreakSourcePID is the 0 sentinel (GetPlayerByPID reads 0 as "first NPC",
+                                                    // so an Aegis-reflected crit froze online and used an NPC's position offline), and aborts the chain instead of dereferencing a departed player.
 
 
     private const string MatchmakingKey = "mm";

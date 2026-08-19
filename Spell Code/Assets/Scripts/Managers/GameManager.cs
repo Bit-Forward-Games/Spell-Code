@@ -4099,6 +4099,10 @@ public class GameManager : MonoBehaviour
         // INCREMENT FIRST
         playerCount++;
 
+        // Scene-wide resets only affect players that already exist. Local players can join the
+        // lobby afterward, so initialize this player's round state as part of registration too.
+        ResetPlayerWinConState(existingPlayer, true);
+
         // Update ALL player numbers
         for (int i = 0; i < playerCount; i++)
         {
@@ -4499,24 +4503,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ResetRoundWinConState()
+    private void ResetPlayerWinConState(PlayerController player, bool isActivePlayer)
     {
+        if (player == null) return;
+
         bool isEndScene = SceneManager.GetActiveScene().name == "End";
-        ushort startingPoints = winCon == WinCon.Elimination && !isEndScene
+        player.winConPoints = isActivePlayer && winCon == WinCon.Elimination && !isEndScene
             ? WinConPointLimit
             : (ushort)0;
+        player.storedKillBonus = 0;
+        if (winCon != WinCon.RAMRush)
+        {
+            player.ramBounty = 0;
+            player.hasHighestBounty = false;
+        }
+    }
+
+    private void ResetRoundWinConState()
+    {
         for (int i = 0; i < players.Length; i++)
         {
             PlayerController player = players[i];
             if (player == null) continue;
 
-            player.winConPoints = i < playerCount && IsPlayerSlotConnected(i) ? startingPoints : (ushort)0;
-            player.storedKillBonus = 0;
-            if (winCon != WinCon.RAMRush)
-            {
-                player.ramBounty = 0;
-                player.hasHighestBounty = false;
-            }
+            ResetPlayerWinConState(player, i < playerCount && IsPlayerSlotConnected(i));
         }
     }
 
@@ -5926,8 +5936,33 @@ public class GameManager : MonoBehaviour
     private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
     private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
 
+    private void RefreshRoundWinConPointLimit()
+    {
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager == null && isOnlineMatchActive)
+        {
+            // ExecuteOrder66 destroys DataManager, so it is legitimately absent on some transitions.
+            return;
+        }
+
+        int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
+        if (winCon == WinCon.RAMRush)
+        {
+            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * roundsPlayed);
+        }
+        else if (winCon == WinCon.Elimination)
+        {
+            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * roundsPlayed);
+        }
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        RefreshRoundWinConPointLimit();
         ResetPlayers();
         //Debug.Log($"Scene loaded: {scene.name}");
 
@@ -5993,36 +6028,6 @@ public class GameManager : MonoBehaviour
         }
 
         damageMatrix = new byte[4, 4]; //reset damage matrix on each scene load
-
-        int roundsPlayed = 0;
-        bool haveRoundCount = true;
-        if (dataManager == null)
-        {
-            dataManager = DataManager.Instance;
-        }
-        if (dataManager != null)
-        {
-            roundsPlayed = dataManager.totalRoundsPlayed;
-
-        }
-        else if (isOnlineMatchActive)
-        {
-            // ExecuteOrder66 destroys DataManager, so it is legitimately absent on some transitions.
-            haveRoundCount = false;
-        }
-        else
-        {
-            roundsPlayed = 1;
-        }
-
-        if (haveRoundCount && winCon == WinCon.RAMRush)
-        {
-            ramNeededToWinRound = (ushort)( baseRamNeeddedtowin + ramIncreasePerRound * roundsPlayed);
-        }
-        if (haveRoundCount && winCon == WinCon.Elimination)
-        {
-            roundLives = (ushort)( baseEliminationLives + livesIncreasePerRound * roundsPlayed);
-        }
 
         if (scene.name != "MainMenu")
         {

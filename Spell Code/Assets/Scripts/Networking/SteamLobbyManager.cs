@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-44"; // scz-44: Hot Streak resolves its chain source through the owner when hotStreakSourcePID is the 0 sentinel (GetPlayerByPID reads 0 as "first NPC",
-                                                    // so an Aegis-reflected crit froze online and used an NPC's position offline), and aborts the chain instead of dereferencing a departed player.
+    private const string NetcodeVersion = "scz-45"; // scz-45: Online Chaos Gamba rolls advance a serialized per-player generation that the reset area preserves,
+                                                    // producing a fresh deterministic six-spell set instead of replaying the initial set.
 
 
     private const string MatchmakingKey = "mm";

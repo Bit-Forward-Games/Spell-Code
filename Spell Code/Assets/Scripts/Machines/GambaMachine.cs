@@ -51,6 +51,10 @@ public class GambaMachine : MonoBehaviour
 
     public byte resetTimer = 0;
     public int activatedCount = 0;
+    // Online Chaos uses a stateless, keyed picker so every peer produces the same six spells.
+    // This per-owner generation advances after a completed roll. The MainMenu reset area preserves
+    // it, giving the next activation a fresh key while remaining deterministic through rollback.
+    public int chaosRollGeneration = 0;
 
     //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all.
     //built from the codepoint so the infinity glyph can't be mangled by a source re-encode
@@ -787,8 +791,13 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
-    public void ResetLobbyState()
+    public void ResetLobbyState(bool preserveOnlineChaosRollGeneration = false)
     {
+        if (!preserveOnlineChaosRollGeneration)
+        {
+            chaosRollGeneration = 0;
+        }
+
         resetTimer = 0;
         activatedCount = 0;
 
@@ -806,6 +815,7 @@ public class GambaMachine : MonoBehaviour
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
     {
         ownerPlayer = activeOwner;
+        chaosRollGeneration = 0;
         resetTimer = 0;
         activatedCount = ownerCanUseShop ? 0 : 3;
         ClearFloppysForPID(ownerPID);
@@ -1555,7 +1565,8 @@ public class GambaMachine : MonoBehaviour
                 pid,
                 activatedCount,
                 choiceIndex,
-                spells.Count);
+                spells.Count,
+                chaosRollGeneration);
             string spellToAdd = spells[randomIndex];
             SpawnFloppyDisk(pid, location, spellToAdd, !isRollback, !isRollback);
 
@@ -1573,5 +1584,12 @@ public class GambaMachine : MonoBehaviour
                 target.AddSpellToSpellList(spellToAdd);
             }
         }
+
+        // The initial lobby roll uses generation zero, preserving the existing selection. Advancing
+        // only after the roll mirrors offline's stateful RNG consumption and means merely entering
+        // the reset area before rolling cannot skip a set.
+        chaosRollGeneration = chaosRollGeneration < int.MaxValue
+            ? chaosRollGeneration + 1
+            : 1;
     }
 }

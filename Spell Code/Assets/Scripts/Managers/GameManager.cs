@@ -4687,7 +4687,8 @@ public class GameManager : MonoBehaviour
             GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
             if (gamba != null && gamba.ownerPID == playerIndex + 1)
             {
-                gamba.ResetLobbyState();
+                bool preserveOnlineChaosRoll = isOnlineMatchActive && gamemode == Gamemode.Chaos;
+                gamba.ResetLobbyState(preserveOnlineChaosRoll);
                 gamba.isActive = false;
                 if (isRealFrame) gamba.ApplyVisualState();
                 break;
@@ -5233,7 +5234,12 @@ public class GameManager : MonoBehaviour
         return minValue + (int)(rngState % (uint)range);
     }
 
-    public int GetOnlineShopChoiceRandom(int ownerPid, int activationCount, int choiceIndex, int maxValue)
+    public int GetOnlineShopChoiceRandom(
+        int ownerPid,
+        int activationCount,
+        int choiceIndex,
+        int maxValue,
+        int rollGeneration = 0)
     {
         if (maxValue <= 0)
         {
@@ -5247,6 +5253,7 @@ public class GameManager : MonoBehaviour
             state ^= 0x85EBCA6Bu * (uint)Mathf.Max(1, ownerPid);
             state ^= 0xC2B2AE35u * (uint)Mathf.Max(0, activationCount);
             state ^= 0x27D4EB2Fu * (uint)Mathf.Max(1, choiceIndex + 1);
+            state ^= 0x165667B1u * (uint)Mathf.Max(0, rollGeneration);
 
             state ^= state >> 16;
             state *= 0x7FEB352Du;
@@ -6713,6 +6720,7 @@ public class GameManager : MonoBehaviour
                 && !players[gamba.ownerPID - 1].chosenSpell;
 
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
+            gamba.chaosRollGeneration = 0;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;
             gamba.isActive = ownerCanUseShop;
             gamba.ApplyVisualState();
@@ -6978,6 +6986,7 @@ public class GameManager : MonoBehaviour
                             bw.Write(0);
                             bw.Write((byte)0);
                             bw.Write(0);
+                            bw.Write(0);
                             bw.Write(false);
                             continue;
                         }
@@ -6986,6 +6995,7 @@ public class GameManager : MonoBehaviour
                         bw.Write(gamba != null ? gamba.activatedCount : 0);
                         bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
                         bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+                        bw.Write(gamba != null ? gamba.chaosRollGeneration : 0);
                         bool isActive = gamba != null && gamba.isActive;
                         bw.Write(isActive);
                     }
@@ -7241,6 +7251,7 @@ public class GameManager : MonoBehaviour
             bw.Write(gamba != null ? gamba.activatedCount : 0);
             bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
             bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+            bw.Write(gamba != null ? gamba.chaosRollGeneration : 0);
             bool isActive = gamba != null && gamba.isActive;
             bw.Write(isActive);
         }
@@ -7481,6 +7492,7 @@ public class GameManager : MonoBehaviour
                         int activatedCount = br.ReadInt32();
                         byte resetTimer = br.ReadByte();
                         int startingSpellPos = br.ReadInt32();
+                        int chaosRollGeneration = br.ReadInt32();
                         bool isActive = br.ReadBoolean();
                         if (i < gambas.Count)
                         {
@@ -7490,6 +7502,7 @@ public class GameManager : MonoBehaviour
                                 gamba.activatedCount = activatedCount;
                                 gamba.resetTimer = resetTimer;
                                 gamba.SetStartingSpellPos(startingSpellPos);
+                                gamba.chaosRollGeneration = chaosRollGeneration;
                                 gamba.isActive = isActive;
                                 gamba.ApplyVisualState();
                             }

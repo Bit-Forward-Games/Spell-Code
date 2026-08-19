@@ -1,0 +1,297 @@
+{
+  "dateTime": "8/19/2026 11:21:43 AM",
+  "matchData": [
+    {
+      "matchNum": 1,
+      "matchLength": 3.5,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 1,
+          "basicsFired": 3,
+          "codesHit": 4,
+          "synthesizer": "R-Cade",
+          "accuracy": 1.0,
+          "avgTimeToCast": {
+            "RawValue": 29484
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 29484
+            }
+          ],
+          "spellList": [
+            "Use The Card"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 2,
+      "matchLength": 4.133333,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Use The Card"
+          ]
+        }
+      ]
+    },
+    {
+      "matchNum": 3,
+      "matchLength": 3.55,
+      "playerData": [
+        {
+          "pID": 1,
+          "codesFired": 0,
+          "basicsFired": 0,
+          "codesHit": 0,
+          "synthesizer": "R-Cade",
+          "accuracy": 0.0,
+          "avgTimeToCast": {
+            "RawValue": 0
+          },
+          "matchWon": true,
+          "times": [],
+          "spellList": [
+            "Amon Slash"
+          ]
+        },
+        {
+          "pID": 2,
+          "codesFired": 1,
+          "basicsFired": 2,
+          "codesHit": 3,
+          "synthesizer": "R-Cade",
+          "accuracy": 1.0,
+          "avgTimeToCast": {
+            "RawValue": 9828
+          },
+          "matchWon": true,
+          "times": [
+            {
+              "RawValue": 9828
+            }
+          ],
+          "spellList": [
+            "Use The Card"
+          ]
+        }
+      ]
+    }
+  ],
+  "arenaData": {
+    "deathDict": {
+      "duel_Clover_Arena": [],
+      "duel_Fall_Arena": [],
+      "duel_Glasses_Arena": [],
+      "duel_Hallway_Arena": [],
+      "duel_MiniDiagonal_Arena": [],
+      "duel_Tabletop_Arena": [],
+      "duel_TheRoom_Arena": [],
+      "duel_TwoDots_Arena": [],
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "Birdcage_Arena": [],
+      "BrokenMirror_Arena": [],
+      "Crossroads_Arena": [],
+      "Diagonal_Arena": [],
+      "DoubleShoot_Arena": [],
+      "DualDuel_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Frog_Arena": [],
+      "Loony_Arena": [],
+      "Loopfield_Arena": [],
+      "Parallels_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigAntHill_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigConnectedRooms_Arena": [],
+      "BigCrazyPortals_Arena": [],
+      "BigFightClub_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigNoFloor_Arena": [],
+      "BigQuadrupleDuel_Arena": [],
+      "BigRainingSlingerZ_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": []
+    },
+    "hitDict": {
+      "duel_Clover_Arena": [],
+      "duel_Fall_Arena": [
+        {
+          "x": -128.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.7525767,
+            "y": -0.6585046,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 170.082336,
+          "sqrMagnitude": 28928.0
+        },
+        {
+          "x": -148.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.7974064,
+            "y": -0.603442669,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 185.60173,
+          "sqrMagnitude": 34448.0
+        },
+        {
+          "x": -148.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.7974064,
+            "y": -0.603442669,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 185.60173,
+          "sqrMagnitude": 34448.0
+        },
+        {
+          "x": -148.0,
+          "y": -112.0,
+          "normalized": {
+            "x": -0.7974064,
+            "y": -0.603442669,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 185.60173,
+          "sqrMagnitude": 34448.0
+        }
+      ],
+      "duel_Glasses_Arena": [],
+      "duel_Hallway_Arena": [],
+      "duel_MiniDiagonal_Arena": [],
+      "duel_Tabletop_Arena": [
+        {
+          "x": -168.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9823386,
+            "y": -0.187112108,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.00000012
+          },
+          "magnitude": 171.020462,
+          "sqrMagnitude": 29248.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        },
+        {
+          "x": -180.0,
+          "y": -32.0,
+          "normalized": {
+            "x": -0.9845625,
+            "y": -0.175033346,
+            "magnitude": 1.0,
+            "sqrMagnitude": 1.0
+          },
+          "magnitude": 182.822311,
+          "sqrMagnitude": 33424.0
+        }
+      ],
+      "duel_TheRoom_Arena": [],
+      "duel_TwoDots_Arena": [],
+      "Alley_Arena": [],
+      "Battlefeild_Arena": [],
+      "Birdcage_Arena": [],
+      "BrokenMirror_Arena": [],
+      "Crossroads_Arena": [],
+      "Diagonal_Arena": [],
+      "DoubleShoot_Arena": [],
+      "DualDuel_Arena": [],
+      "Familiar_Arena": [],
+      "Flower_Arena": [],
+      "Frog_Arena": [],
+      "Loony_Arena": [],
+      "Loopfield_Arena": [],
+      "Parallels_Arena": [],
+      "Shattered_Arena": [],
+      "Snake_Arena": [],
+      "TwoValve_Arena": [],
+      "BigAmphitheater_Arena": [],
+      "BigAntHill_Arena": [],
+      "BigApartments_Arena": [],
+      "BigBattlefeild_Arena": [],
+      "BigConnectedRooms_Arena": [],
+      "BigCrazyPortals_Arena": [],
+      "BigFightClub_Arena": [],
+      "BigInAndOut_Arena": [],
+      "BigNoFloor_Arena": [],
+      "BigQuadrupleDuel_Arena": [],
+      "BigRainingSlingerZ_Arena": [],
+      "BigSewer_Arena": [],
+      "BigStacks_Arena": [],
+      "BigTheLongWay_Arena": []
+    }
+  }
+}

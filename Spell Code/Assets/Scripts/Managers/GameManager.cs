@@ -5634,16 +5634,6 @@ public class GameManager : MonoBehaviour
         StopAllPlayerAuras();
         HidePersistentMatchWorldForEndScene();
         sceneManager.LoadScene("End");
-
-        //play the game end stinger 
-        // Guarded: this sits on the end-of-match transition, right after LoadScene. SFX_Manager is a
-        // DontDestroyOnLoad singleton that ExecuteOrder66 destroys, so it can legitimately be absent
-        // here and an exception thrown on this path strands the screen cover mid-transition
-        // rather than just dropping a sound.
-        if (SFX_Manager.Instance != null)
-        {
-            SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
-        }
     }
 
     private void BeginOnlineEndTransition(int transitionId, int winnerPid)
@@ -5700,16 +5690,6 @@ public class GameManager : MonoBehaviour
         HidePersistentMatchWorldForEndScene();
         requestedOnlineEndLoadTransitionId = transitionId;
         sceneManager.LoadScene("End");
-
-        //play the game end stinger 
-        // Guarded: this sits on the end-of-match transition, right after LoadScene. SFX_Manager is a
-        // DontDestroyOnLoad singleton that ExecuteOrder66 destroys, so it can legitimately be absent
-        // here and an exception thrown on this path strands the screen cover mid-transition
-        // rather than just dropping a sound.
-        if (SFX_Manager.Instance != null)
-        {
-            SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
-        }
     }
 
     private void StopAllPlayerAuras()

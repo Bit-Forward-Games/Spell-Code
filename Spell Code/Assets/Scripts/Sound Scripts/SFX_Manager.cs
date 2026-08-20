@@ -15,7 +15,8 @@ public enum Sounds //enum to store the names of the sounds that can play
     SLIDE, CRITICAL_HIT, CRITICAL_CAST, SWEET_SPOT_HIT,
     ARMOR_BREAK, GAMBA_HIT, DIALOGUE_APPEAR, FLOPPY_PICK_UP, CLEAR_MACHINE_HIT,
     PARRY, FLOPPY_ARC, FLOPPY_SPAWN,
-    TELEPORT
+    TELEPORT,
+    GAME_END_STINGER
 }
 
 [RequireComponent(typeof(AudioSource))]

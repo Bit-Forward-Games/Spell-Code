@@ -4727,6 +4727,11 @@ public class GameManager : MonoBehaviour
                 players[i].SpawnPlayer(spawnPos[spawnIndex]);
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
+
+                players[i].demonX = false;
+                players[i].bigStox = false;
+                players[i].killeez = false;
+                players[i].vWave = false;
             }
         }
 
@@ -5630,8 +5635,8 @@ public class GameManager : MonoBehaviour
         HidePersistentMatchWorldForEndScene();
         sceneManager.LoadScene("End");
 
-        //play a new end song
-        //BGM_Manager.Instance.StartAndPlaySong();
+        //play the game end stinger 
+        SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
     private void BeginOnlineEndTransition(int transitionId, int winnerPid)
@@ -5688,6 +5693,9 @@ public class GameManager : MonoBehaviour
         HidePersistentMatchWorldForEndScene();
         requestedOnlineEndLoadTransitionId = transitionId;
         sceneManager.LoadScene("End");
+
+        //play the game end stinger 
+        SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
     private void StopAllPlayerAuras()

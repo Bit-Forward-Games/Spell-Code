@@ -567,13 +567,24 @@ public class SFX_Manager : MonoBehaviour
     public void MuteGamePlaySFX()
     {
         //Debug.Log("Muting sfx audio source");
-        //mute the sfx audio source
-        sfxAudioSource.mute = true;
+        //if this audio source is defined,... (can be reached before Start() has wired the sources up)
+        if (sfxAudioSource)
+        {
+            //mute the sfx audio source
+            sfxAudioSource.mute = true;
+        }
 
         //iterate through each SoundObject in soundObjects,...
-        foreach (SoundObject _soundObject in soundObjects)
+        foreach (SoundObject _soundObject in soundObjects ?? new List<SoundObject>())
         {
-            //iterate through each audio source in audioSources array 
+            //if this sound object has no audio sources yet,...
+            if (_soundObject == null || _soundObject.audioSources == null)
+            {
+                //skip it
+                continue;
+            }
+
+            //iterate through each audio source in audioSources array
             foreach (AudioSource _audioSource in _soundObject.audioSources)
             {
                 //if this audio source is NOT defined,...
@@ -591,9 +602,22 @@ public class SFX_Manager : MonoBehaviour
         //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
         numSpellcodeAudioSources = 4 * numSpellcodeAudioSourcesPerPlayer;
 
-        //iterate through each element of spellcodeAudioSources,...
-        for (int i = 0; i < numSpellcodeAudioSources; i++)
+        //Start() builds this array, so it can still be null when a menu opens during a scene change
+        if (spellcodeAudioSources == null)
         {
+            return;
+        }
+
+        //iterate through each element of spellcodeAudioSources,...
+        for (int i = 0; i < numSpellcodeAudioSources && i < spellcodeAudioSources.Length; i++)
+        {
+            //if this audio source is NOT defined,...
+            if (!spellcodeAudioSources[i])
+            {
+                //skip this audio source
+                continue;
+            }
+
             //mute each spellcode audio source
             spellcodeAudioSources[i].mute = true;
         }
@@ -609,8 +633,15 @@ public class SFX_Manager : MonoBehaviour
         }
 
         //iterate through each SoundObject in soundObjects,...
-        foreach (SoundObject _soundObject in soundObjects)
+        foreach (SoundObject _soundObject in soundObjects ?? new List<SoundObject>())
         {
+            //if this sound object has no audio sources yet,...
+            if (_soundObject == null || _soundObject.audioSources == null)
+            {
+                //skip it
+                continue;
+            }
+
             //iterate through each AudioSource in the audioSources array for each _soundObject,...
             for (int i = 0; i < _soundObject.audioSources.Length; i++)
             {
@@ -629,14 +660,23 @@ public class SFX_Manager : MonoBehaviour
         //determine numSpellcodeAudioSources based on numSpellcodeAudioSourcesPerPlayer
         numSpellcodeAudioSources = 4 * numSpellcodeAudioSourcesPerPlayer;
 
+        // Start() builds this array, and Unity does NOT order Start() between components. Pause.Start
+        // calls Resume(), which calls this, so on a scene change (tutorial -> SoloLobby) Pause can
+        // win the race and find the array still null. Nothing here is worth crashing the transition
+        // for the sources are created unmuted anyway.
+        if (spellcodeAudioSources == null)
+        {
+            return;
+        }
+
         //iterate through each element of spellcodeAudioSources,...
-        for (int i = 0; i < numSpellcodeAudioSources; i++)
+        for (int i = 0; i < numSpellcodeAudioSources && i < spellcodeAudioSources.Length; i++)
         {
             //if this audio source is NOT defined,...
             if (!spellcodeAudioSources[i])
             {
-                //return
-                return;
+                //skip this audio source
+                continue;
             }
 
             //mute each spellcode audio source

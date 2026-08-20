@@ -51,10 +51,15 @@ public class GambaMachine : MonoBehaviour
 
     public byte resetTimer = 0;
     public int activatedCount = 0;
+    // Online Chaos uses a stateless, keyed picker so every peer produces the same six spells.
+    // This per-owner generation advances after a completed roll. The MainMenu reset area preserves
+    // it, giving the next activation a fresh key while remaining deterministic through rollback.
+    public int chaosRollGeneration = 0;
 
     //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all.
     //built from the codepoint so the infinity glyph can't be mangled by a source re-encode
     private const int maxShopRolls = 3;
+    private const int chaosSpellChoiceCount = 6;
     private static readonly string infiniteRollsLabel = char.ConvertFromUtf32(0x221E);
 
     public GameObject floppy;
@@ -195,8 +200,8 @@ public class GambaMachine : MonoBehaviour
                 {
                     if (isActive && CheckHitboxCollision())
                     {
-                        Debug.Log("Hitbox collision detected!");
-                        Debug.Log("SHOP GAMBA");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
 
                         //play the gamba hit sfx
                         SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
@@ -355,8 +360,8 @@ public class GambaMachine : MonoBehaviour
                 {
                     if (isActive && CheckHitboxCollision())
                     {
-                        Debug.Log("Hitbox collision detected!");
-                        Debug.Log("SHOP GAMBA");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
 
                         //play the gamba hit sfx
                         SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
@@ -610,7 +615,12 @@ public class GambaMachine : MonoBehaviour
 
         if (activeScene.name == "MainMenu")
         {
-            if (ownerPlayer.spellList.Count > 0)
+            bool isChaosMode = gameManager.gamemode == GameManager.Gamemode.Chaos;
+            bool ownerFinishedLobbySelection = isChaosMode
+                ? ownerPlayer.spellList.Count >= chaosSpellChoiceCount
+                : ownerPlayer.spellList.Count > 0;
+
+            if (ownerFinishedLobbySelection)
             {
                 isActive = false;
                 activatedCount = 3;
@@ -658,7 +668,11 @@ public class GambaMachine : MonoBehaviour
     {
         if (ownerPlayer == null) return;
 
-        if (ownerPlayer.chosenSpell || ownerPlayer.spellList.Count >= 6)
+        bool isChaosMode = gameManager.gamemode == GameManager.Gamemode.Chaos;
+        bool ownerFinishedShopSelection = ownerPlayer.spellList.Count >= chaosSpellChoiceCount
+            || (!isChaosMode && ownerPlayer.chosenSpell);
+
+        if (ownerFinishedShopSelection)
         {
             activatedCount = 3;
             isActive = false;
@@ -670,14 +684,21 @@ public class GambaMachine : MonoBehaviour
             if (!isRollback) Debug.Log("SHOP GAMBA ONLINE");
             isActive = false;
             resetTimer = 0;
-            activatedCount++;
+            activatedCount = isChaosMode ? maxShopRolls : activatedCount + 1;
 
             ClearFloppysForPID(ownerPID);
 
-            if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
-            if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
-            if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
-            if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            if (isChaosMode)
+            {
+                SpawnChaosFloppysOnline(ownerPID, GetChaosFloppyLocation(ownerPID), isRollback);
+            }
+            else
+            {
+                if (ownerPID == 1) SpawnThreeFloppysOnline(1, diskLocations[0], diskLocations[1], diskLocations[2], isRollback);
+                if (ownerPID == 2) SpawnThreeFloppysOnline(2, diskLocations[3], diskLocations[4], diskLocations[5], isRollback);
+                if (ownerPID == 3) SpawnThreeFloppysOnline(3, diskLocations[6], diskLocations[7], diskLocations[8], isRollback);
+                if (ownerPID == 4) SpawnThreeFloppysOnline(4, diskLocations[9], diskLocations[10], diskLocations[11], isRollback);
+            }
             if (!isRollback)
             {
                 // Play the gamba hit sfx on real frames only (rollback resim revisits this hit and
@@ -740,24 +761,31 @@ public class GambaMachine : MonoBehaviour
         bool playVfx = !isRollback;
         bool logChoice = !isRollback;
 
+        ClearFloppysForPID(ownerPID);
+
+        if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+        {
+            // Chaos is a single six-spell loadout roll rather than the normal, infinitely
+            // rerollable starter. Keeping the machine at its cap also mirrors the offline rule.
+            activatedCount = maxShopRolls;
+            SpawnChaosFloppysOnline(ownerPID, GetChaosFloppyLocation(ownerPID), isRollback);
+            return;
+        }
+
         if (ownerPID == 1)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 2)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[3], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 3)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[8], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         if (ownerPID == 4)
         {
-            ClearFloppysForPID(ownerPID);
             SpawnFloppyDisk(ownerPID, diskLocations[9], startingSpells[startingSpellPos], playVfx, logChoice); //real starter
         }
         // No RNG consumed in this path (named spell), so no rollback RNG needed
@@ -769,8 +797,13 @@ public class GambaMachine : MonoBehaviour
         }
     }
 
-    public void ResetLobbyState()
+    public void ResetLobbyState(bool preserveOnlineChaosRollGeneration = false)
     {
+        if (!preserveOnlineChaosRollGeneration)
+        {
+            chaosRollGeneration = 0;
+        }
+
         resetTimer = 0;
         activatedCount = 0;
 
@@ -788,6 +821,7 @@ public class GambaMachine : MonoBehaviour
     public void ResetShopState(PlayerController activeOwner, bool ownerCanUseShop)
     {
         ownerPlayer = activeOwner;
+        chaosRollGeneration = 0;
         resetTimer = 0;
         activatedCount = ownerCanUseShop ? 0 : 3;
         ClearFloppysForPID(ownerPID);
@@ -836,8 +870,15 @@ public class GambaMachine : MonoBehaviour
         int rollsLeft = Mathf.Max(0, maxShopRolls - activatedCount);
         bool isShop = SceneManager.GetActiveScene().name == "Shop";
 
-        //only the shop counts down, everywhere else players reroll as much as they want
-        string rolls = !isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString();
+        GameManager manager = gameManager != null ? gameManager : GameManager.Instance;
+        bool isChaosMode = manager != null && manager.gamemode == GameManager.Gamemode.Chaos;
+
+        // Chaos has one activation in both the lobby and Shop. Keep activatedCount's existing 0/3
+        // deterministic state (it participates in snapshots and choice keys) and translate only
+        // the presentation to 1/0. Other modes retain their infinite lobby rolls and 3-roll Shop.
+        string rolls = isChaosMode
+            ? (isActive && rollsLeft > 0 ? "1" : "0")
+            : (!isShop && rollsLeft > 0 ? infiniteRollsLabel : rollsLeft.ToString());
         string label = "Rolls: " + rolls;
 
         //setting the text rebuilds the mesh, and this runs a few times per frame per machine
@@ -952,16 +993,16 @@ public class GambaMachine : MonoBehaviour
             {
                 if (spellData.spellType == SpellType.Passive)
                 {
-                    Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
                     return true;
-                }               
+                }
             }
             //passives
             if (floppyList.Count >= 4)
             {
                 if (spellData.spellType == SpellType.Active)
                 {
-                    Debug.Log("Chaos mode is on, active: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, active: " + spellName + " has been removed");
                     return true;
                 }
                 if (spellData.spellType == SpellType.Passive)
@@ -971,12 +1012,12 @@ public class GambaMachine : MonoBehaviour
                         FloppyPickup diskInfo = floppyList[i].GetComponent<FloppyPickup>();
                         if (SpellDictionary.Instance.spellDict[spellName].brands[0] == SpellDictionary.Instance.spellDict[diskInfo.diskName].brands[0])
                         {
-                            Debug.Log("Chaos mode is on, passive: " + spellName + " has been accepted");
+                            if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been accepted");
                             return false;
                         }
                     }
 
-                    Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
+                    if (SteamManager.DebugToolsEnabled) Debug.Log("Chaos mode is on, passive: " + spellName + " has been removed");
                     return true;
                 }
             }
@@ -985,14 +1026,22 @@ public class GambaMachine : MonoBehaviour
         //vibecoding case
         if (player.vibeCoding)
         {
-            if (player.spellList.Count < 4 && spellData.spellType == SpellType.Passive)
+            int activeSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Active);
+            int passiveSpellCount = player.spellList.Count(spell => spell != null && spell.spellType == SpellType.Passive);
+
+            if (activeSpellCount < 4 && spellData.spellType == SpellType.Passive)
             {
                 Debug.Log("Vibe Coding is on, passive: " + spellName + " has been removed");
                 return true;
             }
-            if (player.spellList.Count >= 4 && spellData.spellType == SpellType.Active)
+            if (activeSpellCount >= 4 && spellData.spellType == SpellType.Active)
             {
                 Debug.Log("Vibe Coding is on, active: " + spellName + " has been removed");
+                return true;
+            }
+            if (passiveSpellCount >= 2 && spellData.spellType == SpellType.Passive)
+            {
+                Debug.Log("Vibe Coding passive slots are full: " + spellName + " has been removed");
                 return true;
             }
         }
@@ -1045,7 +1094,7 @@ public class GambaMachine : MonoBehaviour
                 bool BCK = false;
                 for (int i = 0; i < player.spellList.Count; i++)
                 {
-                    if (player.spellList[i].spellName == "Abbadon Uppercut") { AU = true; }
+                    if (player.spellList[i].spellName == "Abaddon Uppercut") { AU = true; }
                     if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
                     if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
                 }
@@ -1123,7 +1172,13 @@ public class GambaMachine : MonoBehaviour
 
             if (spellData.spellName == "" && player.spellList.Count == 1)
             {
-                if (dataManager.totalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
+                // Read through the accessor, not the cached field. GambaMachine only refreshes
+                // dataManager inside FixedUpdate, which early-returns during an online match so a
+                // machine whose Start ran while DataManager was absent (ExecuteOrder66 destroys it)
+                // keeps a null here forever and NREs inside the online sim, which wedges the match
+                // rather than desyncing it. CurrentTotalRoundsPlayed re-resolves and falls back to 0,
+                // and the count itself is host-synced through ApplyOnlineTotalRoundsPlayed.
+                if (gameManager.CurrentTotalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
                 {
                     Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                     return false;
@@ -1227,6 +1282,10 @@ public class GambaMachine : MonoBehaviour
             }
 
             //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // The disk still goes into the per-player list before being hidden: both
+            // RemoveAlreadySpawnedChoicesFromPool and the Chaos branch of ShouldRemoveSpellFromPool
+            // count list entries rather than active objects, so duplicate-avoidance still works.
+            // Offline the grant happens in FixedUpdate; online it happens in SpawnChaosFloppysOnline.
             if (gameManager.gamemode == GameManager.Gamemode.Chaos)
             {
                 if (ownerPID == 1)
@@ -1321,6 +1380,37 @@ public class GambaMachine : MonoBehaviour
             if (floppys.Count > 1)
             {
                 Destroy(disk);
+            }
+
+            //chaos gamemode, disabled the pickup and adds straight to player inventory
+            // Same early-out as the random-name branch above. This branch is the one the ONLINE
+            // path uses (SpawnChaosFloppysOnline always passes an explicit spell name), so without
+            // it online kept playing the floppy arc VFX and toggling the disk back on -- advertising
+            // a pickup that Chaos had already granted.
+            if (gameManager.gamemode == GameManager.Gamemode.Chaos)
+            {
+                if (ownerPID == 1)
+                {
+                    p1_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 2)
+                {
+                    p2_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 3)
+                {
+                    p3_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                if (ownerPID == 4)
+                {
+                    p4_floppys.Add(disk);
+                    if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+                }
+                disk.SetActive(false);
+                return disk;
             }
 
             //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
@@ -1449,5 +1539,69 @@ public class GambaMachine : MonoBehaviour
 
             SpawnFloppyDisk(pid, locations[i], spellToAdd, !isRollback, !isRollback); // use the named overload, no RNG
         }
+    }
+
+    private Vector2 GetChaosFloppyLocation(int pid)
+    {
+        int locationIndex = ((Mathf.Clamp(pid, 1, 4) - 1) * 3) + 1;
+        if (diskLocations != null && locationIndex >= 0 && locationIndex < diskLocations.Length)
+        {
+            return diskLocations[locationIndex];
+        }
+
+        // All authored lobby/shop machines have twelve locations. This fallback keeps a malformed
+        // prefab deterministic and usable instead of throwing in the rollback simulation.
+        return transform.position;
+    }
+
+    private void SpawnChaosFloppysOnline(int pid, Vector2 location, bool isRollback = false)
+    {
+        // Rebuild after every choice. ShouldRemoveSpellFromPool uses the number and brands of the
+        // already-spawned disks to enforce Chaos's authored rule: four unique active spells,
+        // followed by two unique compatible passives. The shared seed + stable sorted pool makes
+        // these choices identical for 2-4 players and during rollback resimulation.
+        for (int choiceIndex = 0; choiceIndex < chaosSpellChoiceCount; choiceIndex++)
+        {
+            BuildAvailableSpellPool(pid);
+            RemoveAlreadySpawnedChoicesFromPool(pid);
+            if (spells.Count == 0)
+            {
+                if (!isRollback)
+                {
+                    Debug.LogWarning($"[Chaos] No valid spell remained for P{pid} choice {choiceIndex + 1}.");
+                }
+                break;
+            }
+
+            int randomIndex = GameManager.Instance.GetOnlineShopChoiceRandom(
+                pid,
+                activatedCount,
+                choiceIndex,
+                spells.Count,
+                chaosRollGeneration);
+            string spellToAdd = spells[randomIndex];
+            SpawnFloppyDisk(pid, location, spellToAdd, !isRollback, !isRollback);
+
+            // Chaos grants the roll immediately instead of making the player walk onto the floppy
+            // Done INSIDE the loop, after the spawn, so the pool rebuilt for the next choice already sees this spell in spellList
+            // Determinism: the pick above is seeded through GetOnlineShopChoiceRandom and
+            // AddSpellToSpellList consumes no RNG, so every peer adds the same spells in the same
+            // order. spellList is serialized, so a rollback restores it and the resim re-adds.
+            PlayerController[] roster = GameManager.Instance.players;
+            PlayerController target = roster != null && pid >= 1 && pid <= roster.Length
+                ? roster[pid - 1]
+                : null;
+            if (target != null)
+            {
+                target.AddSpellToSpellList(spellToAdd);
+            }
+        }
+
+        // The initial lobby roll uses generation zero, preserving the existing selection. Advancing
+        // only after the roll mirrors offline's stateful RNG consumption and means merely entering
+        // the reset area before rolling cannot skip a set.
+        chaosRollGeneration = chaosRollGeneration < int.MaxValue
+            ? chaosRollGeneration + 1
+            : 1;
     }
 }

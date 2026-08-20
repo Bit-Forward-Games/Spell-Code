@@ -38,8 +38,11 @@ public class SickleOfTheNight : SpellData
                     basicEnhanceActive = true;
                     SetBasicEnhancement();
                     targetPID = defender.pID;
-                    PlayerController cachedPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), cachedPlayer.facingRight, cachedPlayer.position, true);
+                    // `defender` is the authoritative object that was just hit. Resolving it again by
+                    // PID can legitimately return null if a sparse online slot disconnects during the
+                    // hit, so use the known object for the initial world-space mark position. The mark
+                    // projectile validates the live roster and fades itself on its next update.
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[4].GetComponent<BaseProjectile>(), defender.facingRight, defender.position, true);
 
                 }
                 break;
@@ -82,6 +85,23 @@ public class SickleOfTheNight : SpellData
                 break;
         }
     }
+
+    /// <summary>
+    /// Identifies which Sickle instance armed the shared basic override, matching the check the
+    /// ActiveOnHit/OnCastBasic paths do inline. basicEnhanceActive is per-instance and serialized by
+    /// SpellData, so a Jokah copy in extraSpells carries its own ownership and rollback restores it.
+    /// This used to key off PlayerController.basicSpawnOverrideVariant, but SetBasicEnhancement
+    /// replaced the write side, leaving the read stranded: a Jokah copy could never match (nothing
+    /// set the index any more) and the base spell only matched while no other spell had written the
+    /// variant for its own purposes CashOut still uses it to carry a crit flag.
+    /// </summary>
+    public bool OwnsPendingBasicOverride()
+    {
+        return owner != null
+            && owner.basicSpawnOverride == spellName
+            && basicEnhanceActive;
+    }
+
     public override void Serialize(System.IO.BinaryWriter bw)
     {
         base.Serialize(bw);

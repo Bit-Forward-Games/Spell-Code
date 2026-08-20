@@ -32,7 +32,11 @@ public class Reps : SpellData
                 }
                 
 
-                if(defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.Killeez) && !defender.hitboxData.parentProjectile.ignoreBrand)
+                // ownerSpell null-guard: an Aegis-reflected projectile restored from a rollback has
+                // ownerSpell == null (the reflector's spellList doesn't contain the original spell,
+                // so it serializes as -1) a bare deref here crashed the sim on that hit. FlowState
+                // already guards its copy of this check.
+                if(defender.hitboxData.parentProjectile.ownerSpell != null && defender.hitboxData.parentProjectile.ownerSpell.brands.Contains(Brand.Killeez) && !defender.hitboxData.parentProjectile.ignoreBrand)
                 {
                     //only grant resource on the first hit of a multihit per player
                     if(!IsFirstMultiHitAgainstTargetPlayer(defender, defender.hitboxData.parentProjectile))

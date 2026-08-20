@@ -72,6 +72,9 @@ public class SceneUiManager : MonoBehaviour
 
     public void ApplyScreenCover( Action onComplete)
     {
+        //mute all gameplay sfx 
+        if (SFX_Manager.Instance != null) SFX_Manager.Instance.MuteGamePlaySFX();
+
         Time.timeScale = 0f;
         FindScreenCoverIfNeeded();
         //screen transtion things
@@ -84,12 +87,18 @@ public class SceneUiManager : MonoBehaviour
             tween.OnComplete(() => {
                     onComplete();
                     Time.timeScale = 1f;
-                });
+
+                    //unmute all gameplay sfx 
+                    if (SFX_Manager.Instance != null) SFX_Manager.Instance.UnMuteGamePlaySFX();
+            });
             return;
         }
 
         onComplete();
         Time.timeScale = 1f;
+
+        //unmute all gameplay sfx 
+        if (SFX_Manager.Instance != null) SFX_Manager.Instance.UnMuteGamePlaySFX();
     }
 
     public void RemoveScreenCover()
@@ -104,10 +113,15 @@ public class SceneUiManager : MonoBehaviour
                 .DOLocalMoveX(postEndLoadPos.x, .5f)
                 .SetDelay(.75f)
                 .SetUpdate(true);
+
+            //unmute all gameplay sfx 
+            if (SFX_Manager.Instance != null) SFX_Manager.Instance.UnMuteGamePlaySFX();
+
             return;
         }
 
-
+        //unmute all gameplay sfx 
+        if (SFX_Manager.Instance != null) SFX_Manager.Instance.UnMuteGamePlaySFX();
     }
 
     public void RemoveScreenCover(Action onComplete)
@@ -165,6 +179,11 @@ public class SceneUiManager : MonoBehaviour
 
     public void SoloLobby()
     {
+        // Returning to the solo hub is an explicit cancellation point. Clear any deferred/in-flight
+        // Steam invite before the screen-cover delay and persistent-manager teardown, otherwise the
+        // static JOINING MATCH latch survives into the rebuilt SoloLobby UI.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
+
 #if !UNITY_EDITOR
         if (DataManager.Instance != null)
         {

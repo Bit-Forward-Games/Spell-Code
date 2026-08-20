@@ -162,6 +162,8 @@ public class GameManager : MonoBehaviour
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
     public GameObject[] floppyObjects;
+    private bool pendingOnlineFloppySnapshot;
+    private string pendingOnlineFloppySnapshotReason;
 
     [SerializeField]
     private List<string> p1_choices;
@@ -315,6 +317,7 @@ public class GameManager : MonoBehaviour
     private GameplayReadyContext pendingRemoteGameplayReadyContext = GameplayReadyContext.None;
     private int onlineTransitionSequence = 0;
     private int activeOnlineTransitionId = 0;
+    private int requestedOnlineEndLoadTransitionId = 0;
     private int lastAppliedGameplayStageTransitionId = 0;
     private int lastAppliedRematchLobbyTransitionId = 0;
     private int lastAppliedRematchLobbySeed = 0;
@@ -553,6 +556,17 @@ public class GameManager : MonoBehaviour
         // exactly the state this watchdog un-sticks.
         UpdateOnlineTransitionWatchdog();
 
+        // A controller connected mid-match only becomes usable once it is paired to the local
+        // player's InputUser. Runs from Update so a pause (timeScale 0) still picks it up.
+        if (onlineInputDevicesDirty)
+        {
+            onlineInputDevicesDirty = false;
+            if (isOnlineMatchActive)
+            {
+                EnsureOnlineLocalPlayerInputActive();
+            }
+        }
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -678,6 +692,15 @@ public class GameManager : MonoBehaviour
 
         //remove player test key ","
         if (UnityEngine.Input.GetKeyDown(KeyCode.Comma)) { Destroy(players[0].gameObject); players[0] = null; playerCount--; }//players[0].inputs.InputDevice }
+
+        // Shift + \ wipes this account's Steam achievements so the unlock paths can be tested
+        // again. A combo rather than a single key like the rest of these: it's the only one
+        // here that destroys progress, and \ is otherwise unused.
+        if (UnityEngine.Input.GetKey(KeyCode.LeftShift)
+            && UnityEngine.Input.GetKeyDown(KeyCode.Backslash))
+        {
+            SteamAchievements.ResetAllForTesting();
+        }
     }
     public void loadMainMenu()
     {
@@ -706,6 +729,9 @@ public class GameManager : MonoBehaviour
 
     public void loadSoloLobby()
     {
+        // Warm transitions (kicks/debug paths) bypass SceneUiManager.SoloLobby, so they need the same
+        // unconditional online-entry cancellation as the normal cold return path.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
         sceneManager.LoadScene("SoloLobby");
         SetStage(-4);
         //ResetPlayers();
@@ -722,6 +748,7 @@ public class GameManager : MonoBehaviour
 
         if (isTransitioning)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             LogSimSkip("isTransitioning");
             return;
         }
@@ -730,6 +757,7 @@ public class GameManager : MonoBehaviour
         // ONLINE LOBBY WAIT STATE
         if (isOnlineMatchActive && isWaitingForOpponent)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             // Check for lobby timeout
             float waitTime = UnityEngine.Time.unscaledTime - lobbyWaitStartTime;
             if (waitTime > LOBBY_TIMEOUT)
@@ -745,6 +773,7 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive && !IsOnlineSimulationScene(activeScene))
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             LogSimSkip($"wrong scene '{activeScene.name}'");
             return;
         }
@@ -781,14 +810,16 @@ public class GameManager : MonoBehaviour
         return scene.name == "MainMenu" || scene.name == "Gameplay" || scene.name == "Shop";
     }
 
-    private ulong GatherInputForOnline()
+    private ulong GatherInputForOnline(out InputPlayerBindings pendingInputCapture)
     {
+        pendingInputCapture = null;
         PlayerController localPlayer = localPlayerIndex >= 0 && localPlayerIndex < players.Length
             ? players[localPlayerIndex]
             : null;
 
         if (StressTestController.Instance != null && StressTestController.Instance.UseDeterministicInput)
         {
+            localPlayer?.inputs.SetOnlineInputCaptureSuppressed(true);
             ulong stressInput = StressTestController.Instance.GetDeterministicInput(frameNumber);
             return PlayerController.PackOnlineControlOptions(stressInput, localPlayer);
         }
@@ -797,6 +828,7 @@ public class GameManager : MonoBehaviour
         {
             if (localPlayer.IsLocalOnlinePauseMenuOpen())
             {
+                localPlayer.inputs.SetOnlineInputCaptureSuppressed(true);
                 // Only NEW frames (current + InputDelay onward) go neutral while paused. The
                 // already-buffered frames were sent to peers and must play out unchanged —
                 // rewriting them (the old NeutralizePendingLocalInputs) desyncs at high ping
@@ -804,11 +836,39 @@ public class GameManager : MonoBehaviour
                 return PlayerController.PackOnlineControlOptions(5UL, localPlayer);
             }
 
-            ulong input = (ulong)localPlayer.inputs.UpdateInputs();
+            localPlayer.inputs.SetOnlineInputCaptureSuppressed(false);
+            ulong input = (ulong)localPlayer.inputs.PeekOnlineInputs();
+            pendingInputCapture = localPlayer.inputs;
             return PlayerController.PackOnlineControlOptions(input, localPlayer);
         }
         return PlayerController.PackOnlineControlOptions(5UL, localPlayer); // neutral
         //return GatherRawInput(); // fallback to raw input gathering if player controller or inputs are not available
+    }
+
+    public void ResetLocalOnlineInputCaptureForNewTimeline()
+    {
+        if (players == null
+            || localPlayerIndex < 0
+            || localPlayerIndex >= players.Length
+            || players[localPlayerIndex] == null)
+        {
+            return;
+        }
+
+        players[localPlayerIndex].inputs.ResetOnlineInputCapture();
+    }
+
+    public void SetLocalOnlineInputCaptureSuppressed(bool suppressed)
+    {
+        if (players == null
+            || localPlayerIndex < 0
+            || localPlayerIndex >= players.Length
+            || players[localPlayerIndex] == null)
+        {
+            return;
+        }
+
+        players[localPlayerIndex].inputs.SetOnlineInputCaptureSuppressed(suppressed);
     }
 
     private InputDevice[] GetOnlineSharedInputDevices()
@@ -894,6 +954,9 @@ public class GameManager : MonoBehaviour
         return players.FirstOrDefault(player => player != null);
     }
 
+    // Set by OnInputDeviceChanged, consumed in Update.
+    private bool onlineInputDevicesDirty;
+
     private void EnsureOnlineLocalPlayerInputActive()
     {
         if (localPlayerIndex < 0 || localPlayerIndex >= players.Length)
@@ -907,11 +970,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // Re-pairing and binding refreshes can synchronously fire canceled/started callbacks.
+        // Baseline around the operation so hot-plugging cannot create a phantom gameplay edge.
+        localPlayer.inputs.SetOnlineInputCaptureSuppressed(true);
         PlayerInput playerInput = localPlayer.GetComponent<PlayerInput>();
         localPlayer.inputs.AssignInputDevice(null);
         ConfigureOnlineLocalPlayerInput(playerInput, localPlayer.inputs);
         SettingsManager.Instance?.TryApplyControlOptionsForPlayer(localPlayer);
         localPlayer.CheckForInputs(true, false);
+        bool keepSuppressed = isTransitioning
+            || isWaitingForOpponent
+            || !IsOnlineSimulationScene(SceneManager.GetActiveScene())
+            || localPlayer.IsLocalOnlinePauseMenuOpen();
+        localPlayer.inputs.SetOnlineInputCaptureSuppressed(keepSuppressed);
     }
 
     //private ulong GatherRawInput()
@@ -1100,8 +1171,32 @@ public class GameManager : MonoBehaviour
             return Gamemode.Fighter;
         }
 
-        // Normal, empty, Chaos (until it has rules), and unknown ids all use the safe baseline.
+        if (string.Equals(gameModeId, "chaos", StringComparison.OrdinalIgnoreCase))
+        {
+            return Gamemode.Chaos;
+        }
+
+        // Normal, empty, and unknown ids all use the safe baseline. Unknown matters for forward
+        // compatibility: a peer on an older build that has never heard of a mode still resolves to
+        // something both machines agree on rather than splitting the rules.
         return Gamemode.Normal;
+    }
+
+    private static string GetOnlineGameModeId(Gamemode mode)
+    {
+        switch (mode)
+        {
+            case Gamemode.Turbo:
+                return "turbo";
+            //case Gamemode.Elimination:
+            //    return "elimination";
+            case Gamemode.Fighter:
+                return "fighting-game";
+            case Gamemode.Chaos:
+                return "chaos";
+            default:
+                return OnlineGameModeSelection.DefaultId;
+        }
     }
 
     public void StartOnlineMatch(OnlineMatchRoster roster)
@@ -1257,6 +1352,7 @@ public class GameManager : MonoBehaviour
 
         isOnlineMatchActive = true;
         isWaitingForOpponent = true;
+        SetLocalOnlineInputCaptureSuppressed(true);
         SetNetworkInfoVisible(true);
         ProjectileManager.Instance.InitializeAllProjectiles();
         SetStage(-1);
@@ -1328,6 +1424,30 @@ public class GameManager : MonoBehaviour
             playerCount,
             preserveExistingDisconnects: true,
             newlyOccupiedSlots: newlyOccupiedSlots);
+
+        // A disconnected slot's machine is permanently closed by SimulateOnline so it cannot
+        // generate choices for an inert placeholder. Re-open only the machines whose slots were
+        // filled by this roster expansion, and bind them to the newly-created player object before
+        // the authoritative lobby snapshot is saved/sent. This is required for sparse P3/P4
+        // drop-ins in both Normal and Chaos modes.
+        if (newlyOccupiedSlots.Count > 0)
+        {
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+            {
+                GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+                int ownerSlot = gamba != null ? gamba.ownerPID - 1 : -1;
+                if (ownerSlot < 0
+                    || ownerSlot >= playerCount
+                    || !newlyOccupiedSlots.Contains(ownerSlot)
+                    || players[ownerSlot] == null)
+                {
+                    continue;
+                }
+
+                gamba.ownerPlayer = players[ownerSlot];
+                gamba.ResetLobbyState();
+            }
+        }
         EnsureOnlineLocalPlayerInputActive();
 
         syncedInput = new ulong[Mathf.Max(2, playerCount)];
@@ -1484,6 +1604,9 @@ public class GameManager : MonoBehaviour
         DeserializeManagedState(stateData);
         ForceSetFrame(snapshotFrame);
         isWaitingForOpponent = false;
+        // Waiting-screen input is local UI input, not deterministic lobby gameplay input. Keep it
+        // suppressed until GatherInputForOnline opens capture and baselines on the first real tick.
+        SetLocalOnlineInputCaptureSuppressed(true);
         isRunning = true;
         lastPacketReceivedTime = UnityEngine.Time.unscaledTime;
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
@@ -1742,6 +1865,9 @@ public class GameManager : MonoBehaviour
         lobbyWaitStartTime = UnityEngine.Time.unscaledTime;
 
         isWaitingForOpponent = false;
+        // Waiting-screen input is local UI input, not deterministic lobby gameplay input. Keep it
+        // suppressed until GatherInputForOnline opens capture and baselines on the first real tick.
+        SetLocalOnlineInputCaptureSuppressed(true);
 
         // Send match start confirmation
         if (MatchMessageManager.Instance != null)
@@ -1765,6 +1891,7 @@ public class GameManager : MonoBehaviour
     {
         onlineTransitionSequence = 0;
         activeOnlineTransitionId = 0;
+        requestedOnlineEndLoadTransitionId = 0;
         lastAppliedGameplayStageTransitionId = 0;
         lastAppliedRematchLobbyTransitionId = 0;
         lastAppliedRematchLobbySeed = 0;
@@ -2242,7 +2369,7 @@ public class GameManager : MonoBehaviour
         bigWinner = players[winnerSlot];
         gameOver = true;
         Debug.LogWarning($"[GameManager] Last player standing: P{endWinnerPid} wins the match by disconnect.");
-        GameEnd();
+        GameEnd(endedByDisconnect: true);
     }
 
     private void ApplyOnlineEndWinner(int winnerPid)
@@ -2741,15 +2868,20 @@ public class GameManager : MonoBehaviour
     {
         int expectedTransitionId = GetExpectedOnlineTransitionId();
         byte currentSceneType = GetNetworkSceneTypeCode();
-        bool isEndToGameplayRematch = packetSceneType == 1
-            && currentSceneType == 4
-            && SceneManager.GetActiveScene().name == "End"
-            && transitionId == OnlineEndOptionsEpoch + 1;
         bool isGameplayStageCorrection = packetSceneType == 1
             && currentSceneType == 1
             && stageIndex >= 0
             && stageIndex < stages.Count
             && stageIndex != currentStageIndex;
+
+        // Rematches now transition End -> MainMenu through REMATCH_LOBBY_TRANSITION. A delayed or
+        // cached gameplay STAGE_SELECT must never bring persistent stage geometry back over End (or
+        // skip the starter lobby by loading Gameplay directly).
+        if (packetSceneType == 1 && currentSceneType == 4)
+        {
+            Debug.LogWarning($"Ignoring gameplay stage select while the End scene is active. Transition={transitionId}, StageIndex={stageIndex}");
+            return false;
+        }
 
         if (packetSceneType == 1
             && transitionId > 0
@@ -2780,8 +2912,7 @@ public class GameManager : MonoBehaviour
 
         if (activeOnlineTransitionId > 0
             && transitionId != activeOnlineTransitionId
-            && !isGameplayStageCorrection
-            && !isEndToGameplayRematch)
+            && !isGameplayStageCorrection)
         {
             if (transitionId > activeOnlineTransitionId)
             {
@@ -2807,17 +2938,7 @@ public class GameManager : MonoBehaviour
         {
             ApplyOnlineConnectedPlayerSlotMask(connectedPlayerSlotMask);
 
-            if (isEndToGameplayRematch)
-            {
-                if (!PrepareRematchFromEnd(OnlineEndOptionsEpoch))
-                {
-                    return false;
-                }
-
-                isRunning = true;
-                BeginTrackedOnlineTransition(transitionId);
-            }
-            else if (activeOnlineTransitionId == 0)
+            if (activeOnlineTransitionId == 0)
             {
                 BeginTrackedOnlineTransition(transitionId);
             }
@@ -2889,7 +3010,10 @@ public class GameManager : MonoBehaviour
 
     public void HandleInputSceneSignatureMismatch(int senderSlot, int packetSceneSignature)
     {
-        if (!isOnlineMatchActive || !IsOnlineHostAuthority() || MatchMessageManager.Instance == null)
+        if (!isOnlineMatchActive
+            || isTransitioning
+            || !IsOnlineHostAuthority()
+            || MatchMessageManager.Instance == null)
         {
             return;
         }
@@ -3267,9 +3391,13 @@ public class GameManager : MonoBehaviour
         }
         if (floppyObjects == null) return;
 
-        for (int i = 0; i < floppyObjects.Length; i++)
+        // Keep this simulation pass stable even if a future callback refreshes floppyObjects.
+        // Snapshot publication is deferred below, but the local copy also makes the iteration
+        // resilient to other scene/state refreshes introduced later.
+        GameObject[] floppiesToSimulate = floppyObjects;
+        for (int i = 0; i < floppiesToSimulate.Length; i++)
         {
-            GameObject floppy = floppyObjects[i];
+            GameObject floppy = floppiesToSimulate[i];
             if (floppy == null) continue;
             FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
             if (disk != null)
@@ -3277,6 +3405,29 @@ public class GameManager : MonoBehaviour
                 disk.SimulateOnline(inputs, isRealFrame);
             }
         }
+
+        if (isRealFrame && pendingOnlineFloppySnapshot)
+        {
+            string reason = pendingOnlineFloppySnapshotReason;
+            pendingOnlineFloppySnapshot = false;
+            pendingOnlineFloppySnapshotReason = null;
+            BroadcastAuthoritativeOnlineStateSnapshot(reason);
+        }
+    }
+
+    public void RequestAuthoritativeOnlineFloppySnapshot(string reason)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        // FloppyPickup runs while SimulateOnlineFloppies is iterating floppyObjects. The host's
+        // authoritative snapshot self-apply refreshes that array, so broadcasting inline can skip
+        // later disks (especially Chaos's six stacked pickups). Coalesce every pickup completed in
+        // this simulation pass and publish the final state after the loop instead.
+        pendingOnlineFloppySnapshot = true;
+        pendingOnlineFloppySnapshotReason = reason;
     }
 
     /// <summary>
@@ -3292,6 +3443,7 @@ public class GameManager : MonoBehaviour
             && activeOnlineRoster != null
             && CountRegisteredOnlineRosterPlayers() < activeOnlineRoster.PlayerCount)
         {
+            SetLocalOnlineInputCaptureSuppressed(true);
             Debug.Log($"[OnlineState] Holding round start: {CountRegisteredOnlineRosterPlayers()}/{activeOnlineRoster.PlayerCount} players registered.");
             return;
         }
@@ -3312,8 +3464,12 @@ public class GameManager : MonoBehaviour
         rbManager.DiagBeginTick();
         rbManager.RollbackEvent();
 
-        localPlayerInput = GatherInputForOnline();
-        rbManager.SendLocalInput(localPlayerInput);
+        localPlayerInput = GatherInputForOnline(out InputPlayerBindings pendingInputCapture);
+        bool acceptedLocalInput = rbManager.SendLocalInput(localPlayerInput);
+        if (acceptedLocalInput && pendingInputCapture != null)
+        {
+            pendingInputCapture.CommitPeekedOnlineInputs();
+        }
 
         if (!rbManager.AllowUpdate())
         {
@@ -3658,7 +3814,9 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         AdvanceRoundCountOnce();
 
-        bool hasMaxSpells = AllActivePlayersHaveMaxSpells();
+        // Chaos always replaces the complete loadout between rounds. A full six-spell inventory
+        // therefore enters the Shop instead of taking Normal's direct next-round shortcut.
+        bool hasMaxSpells = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
 
         if (hasMaxSpells)
         {
@@ -4570,10 +4728,12 @@ public class GameManager : MonoBehaviour
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
 
-                players[i].demonX = false;
-                players[i].bigStox = false;
-                players[i].killeez = false;
-                players[i].vWave = false;
+                // Refresh from the spell list rather than clearing. ResetPlayers runs every round
+                // and does NOT clear spellList, so blanking these left a player's brands not
+                // matching what they hold -- which empties the shop pool for a Punk player on four
+                // actives (Punk filters out actives at that point, cleared flags filter out every
+                // passive) and makes the DarkWeb collab conditions unreachable.
+                players[i].RecomputeBrandFlagsFromSpellList();
             }
         }
 
@@ -4602,6 +4762,12 @@ public class GameManager : MonoBehaviour
         player.spellsFired = 0;
         player.spellsHit = 0;
         player.roundsWon = 0;
+        // SpellCode_Gate.CheckGateBroken reads this to decide whether the gate opens or the
+        // projectile is deleted, and the gate lives in Lobby_Arena as well as Tutorial. It is
+        // [NonSerialized] and only ever SET (in the Tutorial scene), so without this a player who
+        // ran the tutorial and then entered an online match carried true while their peer had
+        // false, and the two simulated that gate differently.
+        player.tutorialSpellStored = false;
         player.storedKillBonus = 0;
         player.winConPoints = 0;
         player.ramBounty = 0;
@@ -4632,7 +4798,8 @@ public class GameManager : MonoBehaviour
             GambaMachine gamba = gambas[i] != null ? gambas[i].GetComponent<GambaMachine>() : null;
             if (gamba != null && gamba.ownerPID == playerIndex + 1)
             {
-                gamba.ResetLobbyState();
+                bool preserveOnlineChaosRoll = isOnlineMatchActive && gamemode == Gamemode.Chaos;
+                gamba.ResetLobbyState(preserveOnlineChaosRoll);
                 gamba.isActive = false;
                 if (isRealFrame) gamba.ApplyVisualState();
                 break;
@@ -4807,9 +4974,8 @@ public class GameManager : MonoBehaviour
         isSaved = false;
         damageMatrix = new byte[4, 4];
 
-        // Undo only the blanket End-screen hiding first. The MainMenu scene arrival then respawns
-        // every retained player with fresh-match visibility at the lobby spawn points.
-        RestorePlayerRenderersAfterEnd();
+        // Keep the real fighters hidden while the active scene is still End. Their exact renderer
+        // states are restored by OnSceneLoaded only after the rematch destination has arrived.
         ResetPlayersForStartingSpellSelection();
 
         // A rematch is a new match, so begin a fresh filtered stage cycle instead of carrying the
@@ -4817,10 +4983,6 @@ public class GameManager : MonoBehaviour
         FillGameStages();
         GameEndScreen.ActiveInstance?.RestoreHiddenMatchUiForRematch();
 
-        if (tempUI != null)
-        {
-            tempUI.gameObject.SetActive(true);
-        }
         if (playerWinText != null)
         {
             playerWinText.enabled = false;
@@ -4854,6 +5016,9 @@ public class GameManager : MonoBehaviour
         }
 
         SetStage(-1);
+        // SetStage establishes the lobby index now so OnSceneLoaded respawns at lobby positions,
+        // but its persistent geometry must remain hidden behind the End -> MainMenu screen wipe.
+        ClearStages();
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(false);
@@ -4990,6 +5155,9 @@ public class GameManager : MonoBehaviour
 
         BeginTrackedOnlineTransition(transitionId);
         SetStage(-1);
+        // Preserve the lobby index/signature for the transition without displaying its persistent
+        // geometry in End during the half-second screen-cover animation.
+        ClearStages();
         if (MainMenuScreen != null)
         {
             MainMenuScreen.SetActive(false);
@@ -5177,7 +5345,12 @@ public class GameManager : MonoBehaviour
         return minValue + (int)(rngState % (uint)range);
     }
 
-    public int GetOnlineShopChoiceRandom(int ownerPid, int activationCount, int choiceIndex, int maxValue)
+    public int GetOnlineShopChoiceRandom(
+        int ownerPid,
+        int activationCount,
+        int choiceIndex,
+        int maxValue,
+        int rollGeneration = 0)
     {
         if (maxValue <= 0)
         {
@@ -5191,6 +5364,7 @@ public class GameManager : MonoBehaviour
             state ^= 0x85EBCA6Bu * (uint)Mathf.Max(1, ownerPid);
             state ^= 0xC2B2AE35u * (uint)Mathf.Max(0, activationCount);
             state ^= 0x27D4EB2Fu * (uint)Mathf.Max(1, choiceIndex + 1);
+            state ^= 0x165667B1u * (uint)Mathf.Max(0, rollGeneration);
 
             state ^= state >> 16;
             state *= 0x7FEB352Du;
@@ -5234,6 +5408,10 @@ public class GameManager : MonoBehaviour
 
         if (isOnlineMatchActive)
         {
+            // The host clears before broadcasting the authoritative pre-transition snapshot. Guests
+            // also run the same idempotent reset in BeginOnlineShopTransition below, so packet order
+            // cannot leave one peer carrying the completed round's Chaos loadout into the Shop.
+            PrepareOnlineChaosShopState();
             int transitionId = GetExpectedOnlineTransitionId();
             if (IsOnlineHostAuthority() && MatchMessageManager.Instance != null)
             {
@@ -5260,6 +5438,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        PrepareOnlineChaosShopState();
         BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
@@ -5372,13 +5551,57 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// called when a game ends (game is a series of matches/rounds)
     /// </summary>
-    public void GameEnd()
+    /// <param name="endedByDisconnect">
+    /// True when the match was decided by everyone else dropping rather than being played out.
+    /// Keeps the "finish a match" achievements off that path: a peer quitting shouldn't satisfy
+    /// "play a full match", and it would otherwise be farmable with a friend who joins and leaves.
+    /// </param>
+    /// <summary>
+    /// Awards the "finished an online match" achievements, from EITHER end-of-match path.
+    /// GameEnd only runs on a client whose own sim plays the game-over transition out, which in
+    /// practice is the host: a guest is driven straight to the End screen by the host's
+    /// authoritative End packet (BeginOnlineEndTransition -> ApplyOnlineEndWinner) and never calls
+    /// GameEnd at all. Awarding only there is why guests never earned Squad Goals
+    /// </summary>
+    private void TryAwardOnlineMatchCompletionAchievement(bool endedByDisconnect, string source)
+    {
+        // Every input to the decision, because a missed unlock otherwise leaves NO trace:
+        // SteamAchievements.TryTrigger returns silently when Steam has not handed over the user's
+        // stats yet, so an absent "[Achievements] ..." line cannot distinguish "never asked" from
+        // "asked and it was refused". This says which, and which path asked.
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[Achievements] Match-end check from {source}. origin={SteamLobbyManager.ActiveMatchOrigin} "
+                + $"online={isOnlineMatchActive} endedByDisconnect={endedByDisconnect} realFrame={SimGuards.IsRealFrame()}.");
+        }
+
+        if (!isOnlineMatchActive || endedByDisconnect || !SimGuards.IsRealFrame())
+        {
+            return;
+        }
+
+        switch (SteamLobbyManager.ActiveMatchOrigin)
+        {
+            case SteamLobbyManager.OnlineMatchOrigin.Friends:
+                SteamAchievements.Unlock(SteamAchievements.FirstFriendsMatch);
+                break;
+            case SteamLobbyManager.OnlineMatchOrigin.Matchmaking:
+                SteamAchievements.Unlock(SteamAchievements.FirstMatchmakingMatch);
+                break;
+        }
+    }
+
+    public void GameEnd(bool endedByDisconnect = false)
     {
         if (!isSaved)
         {
             dataManager.SaveMatch();
             isSaved = true;
         }
+
+        // Awarded per machine, not per slot: every player who saw the match through earns it
+        // on their own account, which is what "play a full match with friends" describes.
+        TryAwardOnlineMatchCompletionAchievement(endedByDisconnect, "GameEnd");
 
         endInputEnabled = false;
 
@@ -5411,10 +5634,8 @@ public class GameManager : MonoBehaviour
             isRunning = false;
         }
         StopAllPlayerAuras();
+        HidePersistentMatchWorldForEndScene();
         sceneManager.LoadScene("End");
-
-        //play the game end stinger 
-        SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
     private void BeginOnlineEndTransition(int transitionId, int winnerPid)
@@ -5423,13 +5644,22 @@ public class GameManager : MonoBehaviour
         preparedOnlineRematchEpoch = -1;
         rematchPreparationStarted = false;
 
-        if (isTransitioning && SceneManager.GetActiveScene().name == "End")
+        // Reliable End packets can be duplicated while the screen-cover tween still leaves the
+        // active scene reported as Gameplay. Track this target explicitly: a different scene
+        // transition can legitimately own the same active id when a disconnect decides the match.
+        if (requestedOnlineEndLoadTransitionId == transitionId)
         {
             ApplyOnlineEndWinner(winnerPid);
             return;
         }
 
         ApplyOnlineEndWinner(winnerPid);
+
+        // This is a guest being told the match was played out to a result, which is the only
+        // end-of-match signal it gets it never runs GameEnd. A disconnect-decided match does not
+        // arrive here: that is adjudicated locally and calls GameEnd(endedByDisconnect: true).
+        TryAwardOnlineMatchCompletionAchievement(false, "OnlineEndTransition");
+
         BeginTrackedOnlineTransition(transitionId);
         localPlayerReadyForGameplay = false;
         remotePlayerReadyForGameplay = false;
@@ -5459,10 +5689,9 @@ public class GameManager : MonoBehaviour
         ProjectileManager.Instance.DeleteAllProjectiles();
         isRunning = false;
         StopAllPlayerAuras();
+        HidePersistentMatchWorldForEndScene();
+        requestedOnlineEndLoadTransitionId = transitionId;
         sceneManager.LoadScene("End");
-
-        //play the game end stinger 
-        SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
     }
 
     private void StopAllPlayerAuras()
@@ -5494,54 +5723,68 @@ public class GameManager : MonoBehaviour
     // and their child renderers ride into the End scene; the winner is shown via GameEndScreen's
     // separate winnerImage sprite, so the real characters (winner AND losers) should be invisible --
     // a carried-over loser was still partly on-camera. Disable the RENDERERS (not the GameObjects) so
-    // each player's PlayerInput stays alive for GameEndScreen's per-player option navigation. Fresh players are
-    // rebuilt on the way to MainMenu (ExecuteOrder66), so this leaves no lingering hidden state.
+    // each player's PlayerInput stays alive for GameEndScreen's per-player option navigation. A
+    // retained rematch restores these exact states only after its destination scene has loaded.
     private void HideAllPlayerCharacters()
     {
-        if (players == null)
+        // Include NPCs and any still-loaded controller that has not made it into players[] (for
+        // example a late-created online object). The End scene's winner art has no PlayerController,
+        // so this cannot hide the authored winner presentation.
+        PlayerController[] loadedPlayers = FindObjectsByType<PlayerController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+        for (int i = 0; i < loadedPlayers.Length; i++)
         {
-            return;
-        }
-
-        // On a rematch these same DontDestroyOnLoad player objects are reused. Remember the exact
-        // visibility state so child masks/effects that were enabled before End can be restored,
-        // without blindly enabling renderers that were intentionally off.
-        if (endScreenRendererVisibility.Count == 0)
-        {
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i] == null)
-                {
-                    continue;
-                }
-
-                Renderer[] playerRenderers = players[i].GetComponentsInChildren<Renderer>(true);
-                for (int r = 0; r < playerRenderers.Length; r++)
-                {
-                    Renderer playerRenderer = playerRenderers[r];
-                    if (playerRenderer != null)
-                    {
-                        endScreenRendererVisibility[playerRenderer] = playerRenderer.enabled;
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < players.Length; i++)
-        {
-            if (players[i] == null)
+            PlayerController player = loadedPlayers[i];
+            if (player == null)
             {
                 continue;
             }
 
-            Renderer[] renderers = players[i].GetComponentsInChildren<Renderer>(true);
+            Renderer[] renderers = player.GetComponentsInChildren<Renderer>(true);
             for (int r = 0; r < renderers.Length; r++)
             {
-                if (renderers[r] != null)
+                Renderer playerRenderer = renderers[r];
+                if (playerRenderer != null)
                 {
-                    renderers[r].enabled = false;
+                    if (!endScreenRendererVisibility.ContainsKey(playerRenderer))
+                    {
+                        endScreenRendererVisibility[playerRenderer] = playerRenderer.enabled;
+                    }
+                    playerRenderer.enabled = false;
                 }
             }
+        }
+    }
+
+    private void HidePersistentMatchWorldForEndScene()
+    {
+        ClearStages();
+        HideAllPlayerCharacters();
+    }
+
+    /// <summary>
+    /// Reasserts the End scene's presentation without touching player input objects. Kept
+    /// idempotent so both the persistent manager's scene callback and GameEndScreen.Start can call
+    /// it regardless of Unity callback ordering.
+    /// </summary>
+    public void EnforceEndScenePresentation()
+    {
+        if (SceneManager.GetActiveScene().name != "End")
+        {
+            return;
+        }
+
+        isRunning = false;
+        HidePersistentMatchWorldForEndScene();
+        try
+        {
+            HidePersistentUiForEndScene();
+        }
+        catch (Exception exception)
+        {
+            // UI teardown must not abort the online End ready handshake or the authored winner UI.
+            Debug.LogException(exception);
         }
     }
 
@@ -5948,8 +6191,49 @@ public class GameManager : MonoBehaviour
         pendingStageSelectRandomCallCount = -1;
     }
 
-    private void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
-    private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        InputSystem.onDeviceChange += OnInputDeviceChanged;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        // InputSystem.onDeviceChange is static, so a missed unsubscribe keeps calling into a
+        // GameManager that ExecuteOrder66 already destroyed.
+        InputSystem.onDeviceChange -= OnInputDeviceChanged;
+    }
+
+    /// <summary>
+    /// Online pairs EVERY connected device to the one local player (ConfigureOnlineLocalPlayerInput),
+    /// but that is a snapshot taken when the match starts -- a controller plugged in afterwards was
+    /// never paired, so only the keyboard kept working. Re-pair whenever a usable device appears.
+    /// Deferred to Update rather than done here because this fires from inside the input system's
+    /// own update, and re-pairing devices mid-callback would mutate the user's device list while it
+    /// is being enumerated.
+    /// </summary>
+    private void OnInputDeviceChanged(InputDevice device, InputDeviceChange change)
+    {
+        if (!isOnlineMatchActive)
+        {
+            return;
+        }
+
+        if (change != InputDeviceChange.Added
+            && change != InputDeviceChange.Reconnected
+            && change != InputDeviceChange.Enabled)
+        {
+            return;
+        }
+
+        if (!InputDeviceManager.IsValidInput(device))
+        {
+            return;
+        }
+
+        onlineInputDevicesDirty = true;
+    }
 
     private void RefreshRoundWinConPointLimit()
     {
@@ -5977,8 +6261,34 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Hardware capture is wall-clock state, not rollback state. Scene/timeline changes start
+        // a fresh input epoch, so no menu/transition edge may spill into the destination scene.
+        ResetLocalOnlineInputCaptureForNewTimeline();
+        if (isOnlineMatchActive)
+        {
+            SetLocalOnlineInputCaptureSuppressed(true);
+        }
+
+        bool isEndScene = scene.name == "End";
+        if (isEndScene)
+        {
+            // Do this before camera/reference/projectile setup: the real players and stage roots are
+            // persistent, and any exception in generic arrival work must not leave them on End.
+            EnforceEndScenePresentation();
+        }
+        else
+        {
+            if (rematchPreparationStarted)
+            {
+                // There is no rendered frame inside this sceneLoaded callback, so restoration here
+                // cannot flash the losing characters over the End screen. Restore before respawn so
+                // SpawnPlayer can correctly make every surviving fighter's root sprite visible even
+                // if that fighter was dead (and therefore hidden) when the match ended.
+                RestorePlayerRenderersAfterEnd();
+            }
+            ResetPlayers();
+        }
         RefreshRoundWinConPointLimit();
-        ResetPlayers();
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's
@@ -5990,7 +6300,7 @@ public class GameManager : MonoBehaviour
         HitboxManager.Instance.GetActiveCamera();
         ProjectileManager.Instance.DeleteAllProjectiles();
 
-        if (scene.name == "End")
+        if (isEndScene)
         {
             endInputEnabled = false;
             rematchPreparationStarted = false;
@@ -5999,11 +6309,6 @@ public class GameManager : MonoBehaviour
             {
                 OnlineEndOptionsEpoch = 0;
             }
-
-            // Clear stage geometry and the persistent HUD off the End screen in BOTH modes, so end screen shows only the winner
-            ClearStages();
-            HidePersistentUiForEndScene();
-            HideAllPlayerCharacters();
 
             if (isOnlineMatchActive)
             {
@@ -6076,6 +6381,10 @@ public class GameManager : MonoBehaviour
             SetStage(-1);
             InitializeRematchLobbySceneState();
             FindAllFloppyDisks();
+            if (tempUI != null)
+            {
+                tempUI.gameObject.SetActive(true);
+            }
             if (MainMenuScreen != null)
             {
                 MainMenuScreen.SetActive(false);
@@ -6201,8 +6510,10 @@ public class GameManager : MonoBehaviour
                 SelectFallbackOnlineGameplayStage();
             }
 
-            ResetPlayers();
             ProjectileManager.Instance.InitializeAllProjectiles();
+            // SpawnPlayer's OnStart pass rebuilds The Jokah's derived spell/projectile copies.
+            // Initialize the inventory pool first so it cannot immediately destroy those copies.
+            ResetPlayers();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();
@@ -6267,8 +6578,9 @@ public class GameManager : MonoBehaviour
             }
 
             InitializeOnlineShopSceneState();
-            ResetPlayers();
             ProjectileManager.Instance.InitializeAllProjectiles();
+            // Keep the final pool topology (including Jokah copies) in the frame-zero snapshot.
+            ResetPlayers();
             if (RollbackManager.Instance != null)
             {
                 RollbackManager.Instance.SaveState();
@@ -6307,6 +6619,34 @@ public class GameManager : MonoBehaviour
             if (players[i] != null)
             {
                 players[i].chosenSpell = false;
+            }
+        }
+    }
+
+    private void PrepareOnlineChaosShopState()
+    {
+        if (!isOnlineMatchActive || gamemode != Gamemode.Chaos)
+        {
+            return;
+        }
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null)
+            {
+                continue;
+            }
+
+            player.winConPoints = 0;
+            player.storedKillBonus = 0;
+            player.chosenSpell = false;
+
+            // This method can run once from the host's RoundEnd and again while entering the scene.
+            // Avoid repeated projectile-pool/UI rebuilds while keeping the reset idempotent.
+            if (player.spellList != null && player.spellList.Count > 0)
+            {
+                player.ClearSpellList();
             }
         }
     }
@@ -6416,12 +6756,15 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < tempMapGOs.Count; i++)
         {
-            tempMapGOs[i].SetActive(false);
+            if (tempMapGOs[i] != null)
+            {
+                tempMapGOs[i].SetActive(false);
+            }
         }
-        lobbyMapGO.SetActive(false);
-        tutorialMapGO.SetActive(false);
-        trainingGroundsGO.SetActive(false);
-        soloLobbyGO.SetActive(false);
+        if (lobbyMapGO != null) lobbyMapGO.SetActive(false);
+        if (tutorialMapGO != null) tutorialMapGO.SetActive(false);
+        if (trainingGroundsGO != null) trainingGroundsGO.SetActive(false);
+        if (soloLobbyGO != null) soloLobbyGO.SetActive(false);
     }
 
     private void HidePersistentUiForEndScene()
@@ -6477,6 +6820,7 @@ public class GameManager : MonoBehaviour
                 && !players[gamba.ownerPID - 1].chosenSpell;
 
             gamba.ownerPlayer = hasActiveOwner ? players[gamba.ownerPID - 1] : null;
+            gamba.chaosRollGeneration = 0;
             gamba.activatedCount = ownerCanUseShop ? 0 : 3;
             gamba.isActive = ownerCanUseShop;
             gamba.ApplyVisualState();
@@ -6552,7 +6896,7 @@ public class GameManager : MonoBehaviour
             {
                 FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
                 return disk != null ? disk.diskName : string.Empty;
-            })
+            }, StringComparer.Ordinal)
             .ToArray();
     }
 
@@ -6629,6 +6973,10 @@ public class GameManager : MonoBehaviour
 
                 // Player State
                 bw.Write(playerCount); // Save number of active players
+                // Mode changes deterministic Gamba, pickup, and round-transition rules. Keep it in
+                // every managed snapshot so a late joiner cannot deserialize Chaos state while
+                // still executing stale Normal rules.
+                bw.Write((byte)gamemode);
                 for (int i = 0; i < playerCount; i++)
                 {
                     if (players[i] != null)
@@ -6669,6 +7017,7 @@ public class GameManager : MonoBehaviour
                 bw.Write(roundEndUIShown);
                 bw.Write(lastRoundWinnerPID);
                 bw.Write(dataManager != null ? dataManager.totalRoundsPlayed : 0);
+                bw.Write(onlineRoundAdvanceApplied);
 
                 bool includeLobbyShopState = ShouldIncludeLobbyShopState();
                 bw.Write(includeLobbyShopState);
@@ -6739,6 +7088,7 @@ public class GameManager : MonoBehaviour
                             bw.Write(0);
                             bw.Write((byte)0);
                             bw.Write(0);
+                            bw.Write(0);
                             bw.Write(false);
                             continue;
                         }
@@ -6747,6 +7097,7 @@ public class GameManager : MonoBehaviour
                         bw.Write(gamba != null ? gamba.activatedCount : 0);
                         bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
                         bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+                        bw.Write(gamba != null ? gamba.chaosRollGeneration : 0);
                         bool isActive = gamba != null && gamba.isActive;
                         bw.Write(isActive);
                     }
@@ -6767,6 +7118,7 @@ public class GameManager : MonoBehaviour
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
             bw.Write(playerCount);
+            bw.Write((byte)gamemode);
             for (int i = 0; i < playerCount; i++)
             {
                 if (players[i] != null)
@@ -6797,6 +7149,8 @@ public class GameManager : MonoBehaviour
             bw.Write(roundLives);
             bw.Write(roundEndUIShown);
             bw.Write(lastRoundWinnerPID);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
 
             List<BaseProjectile> activeProjectiles = ProjectileManager.Instance.projectilePrefabs
                 .Where(projectile => projectile != null && projectile.gameObject.activeSelf)
@@ -6820,6 +7174,7 @@ public class GameManager : MonoBehaviour
         using (MemoryStream memoryStream = new MemoryStream())
         using (BinaryWriter bw = new BinaryWriter(memoryStream))
         {
+            bw.Write((byte)gamemode);
             bw.Write(roundOver);
             bw.Write(gameOver);
             bw.Write(currentStageIndex);
@@ -6835,6 +7190,8 @@ public class GameManager : MonoBehaviour
             bw.Write(rngState);
             bw.Write((byte)winCon);
             bw.Write(ramNeededToWinRound);
+            bw.Write(CurrentTotalRoundsPlayed);
+            bw.Write(onlineRoundAdvanceApplied);
             bw.Write(roundLives);
 
             SerializeLobbyShopHashState(bw);
@@ -6976,6 +7333,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        bw.Write(playerCount);
+        for (int i = 0; i < playerCount; i++)
+        {
+            bw.Write(players[i] != null && players[i].chosenSpell);
+        }
+
         bw.Write(gates.Length);
         foreach (SpellCode_Gate gate in gates)
         {
@@ -6994,6 +7357,7 @@ public class GameManager : MonoBehaviour
             bw.Write(gamba != null ? gamba.activatedCount : 0);
             bw.Write(gamba != null ? gamba.resetTimer : (byte)0);
             bw.Write(gamba != null ? gamba.GetStartingSpellPos() : 0);
+            bw.Write(gamba != null ? gamba.chaosRollGeneration : 0);
             bool isActive = gamba != null && gamba.isActive;
             bw.Write(isActive);
         }
@@ -7075,6 +7439,20 @@ public class GameManager : MonoBehaviour
                     //Debug.LogWarning($"Player count mismatch during Deserialize! Saved: {savedPlayerCount}, Current: {playerCount}.");
                 }
 
+                byte savedGamemodeValue = br.ReadByte();
+                if (!Enum.IsDefined(typeof(Gamemode), (int)savedGamemodeValue))
+                {
+                    throw new InvalidDataException($"Snapshot contains unknown game mode value {savedGamemodeValue}.");
+                }
+
+                Gamemode savedGamemode = (Gamemode)savedGamemodeValue;
+                string savedGameModeId = GetOnlineGameModeId(savedGamemode);
+                if (gamemode != savedGamemode
+                    || !string.Equals(ActiveOnlineGameMode.Id, savedGameModeId, StringComparison.OrdinalIgnoreCase))
+                {
+                    ApplyOnlineGameMode(savedGameModeId);
+                }
+
                 int playersToRead = Mathf.Clamp(savedPlayerCount, 0, players.Length);
                 for (int i = 0; i < playersToRead; i++)
                 {
@@ -7098,7 +7476,7 @@ public class GameManager : MonoBehaviour
                 gameOver = br.ReadBoolean();
                 roundEndFrameCounter = br.ReadInt32();
                 int savedStageIndex = br.ReadInt32();
-                if (savedStageIndex != currentStageIndex)
+                if (SceneManager.GetActiveScene().name != "End" && savedStageIndex != currentStageIndex)
                 {
                     SetStage(savedStageIndex);
                 }
@@ -7125,6 +7503,7 @@ public class GameManager : MonoBehaviour
                 roundEndUIShown = br.ReadBoolean();
                 lastRoundWinnerPID = br.ReadInt32();
                 int savedTotalRoundsPlayed = br.ReadInt32();
+                onlineRoundAdvanceApplied = br.ReadBoolean();
                 if (dataManager == null)
                 {
                     dataManager = DataManager.Instance;
@@ -7221,6 +7600,7 @@ public class GameManager : MonoBehaviour
                         int activatedCount = br.ReadInt32();
                         byte resetTimer = br.ReadByte();
                         int startingSpellPos = br.ReadInt32();
+                        int chaosRollGeneration = br.ReadInt32();
                         bool isActive = br.ReadBoolean();
                         if (i < gambas.Count)
                         {
@@ -7230,6 +7610,7 @@ public class GameManager : MonoBehaviour
                                 gamba.activatedCount = activatedCount;
                                 gamba.resetTimer = resetTimer;
                                 gamba.SetStartingSpellPos(startingSpellPos);
+                                gamba.chaosRollGeneration = chaosRollGeneration;
                                 gamba.isActive = isActive;
                                 gamba.ApplyVisualState();
                             }

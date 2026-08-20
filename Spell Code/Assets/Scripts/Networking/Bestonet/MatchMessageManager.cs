@@ -144,6 +144,8 @@ public class MatchMessageManager : MonoBehaviour
     private readonly Dictionary<SteamId, int> peerPingMs = new Dictionary<SteamId, int>();
     private readonly HashSet<SteamId> connectedPeers = new HashSet<SteamId>();
     private readonly Dictionary<SteamId, CircularArray<float>> sentFrameTimesByPeer = new Dictionary<SteamId, CircularArray<float>>();
+    private readonly Dictionary<SteamId, int> highestTimestampedInputFrameByPeer = new Dictionary<SteamId, int>();
+    private int highestTimestampedLocalInputFrame = -1;
     private readonly Dictionary<SteamId, float> peerLastPacketTime = new Dictionary<SteamId, float>();
     private readonly Dictionary<SteamId, float> peerLastHandshakeSendTime = new Dictionary<SteamId, float>();
     private readonly HashSet<SteamId> handshakeSentToPeers = new HashSet<SteamId>();
@@ -502,7 +504,7 @@ public class MatchMessageManager : MonoBehaviour
             }
 
             // Read scene signature without disturbing the buffered bytes.
-            // Layout: [byte packetType=0][int sceneSignature][int frameAdv][int startFrame][byte count]...
+            // Layout: [type][sceneSignature][frameAdv][batchFirst][batchHigh][chunkStart][count]...
             int bufferedSceneSignature = BitConverter.ToInt32(data, 1);
             int localSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
 
@@ -555,9 +557,9 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    // Stash the latest input packet from this peer so it can be replayed once
-    // our scene signature matches theirs. Newer packets supersede older ones (input packets
-    // carry their own resend window, so only the most recent matters for catch-up).
+    // Stash the newest/highest chunk from this peer so it can be replayed once our scene signature
+    // matches theirs. The sender keeps resending every chunk while its simulation remains active;
+    // retaining the batch-high chunk prevents a reordered older chunk from replacing newer input.
     private void BufferSceneMismatchedInputPacket(SteamId peerId, byte[] originalPacket)
     {
         if (!peerId.IsValid || originalPacket == null || originalPacket.Length == 0)
@@ -569,7 +571,7 @@ public class MatchMessageManager : MonoBehaviour
         // signature combo. Buffering happens every packet (~60/s) while a mismatch persists,
         // so log only when the (peer, theirSignature, ourSignature) triple changes.
         // The packet layout (set in SendInputs) is:
-        //   [byte type=0][int theirSceneSignature][int frameAdv][int startFrame][byte inputCount]...
+        //   [type][sceneSignature][frameAdv][batchFirst][batchHigh][chunkStart][inputCount]...
         if (originalPacket.Length >= 5 && originalPacket[0] == 0 && GameManager.Instance != null)
         {
             int theirSignature = BitConverter.ToInt32(originalPacket, 1);
@@ -581,6 +583,30 @@ public class MatchMessageManager : MonoBehaviour
             {
                 lastLoggedMismatchSignatureByPeer[peerId] = dedupKey;
                 Debug.LogWarning($"[PacketDiag] Buffering input from peer {peerId} due to scene mismatch. theirSig={theirSignature} ourSig={ourSignature}. Will replay when our scene catches up.");
+            }
+        }
+
+        const int fixedInputHeaderBytes = 22;
+        if (originalPacket.Length < fixedInputHeaderBytes)
+        {
+            return;
+        }
+
+        int candidateBatchHigh = BitConverter.ToInt32(originalPacket, 13);
+        int candidateChunkStart = BitConverter.ToInt32(originalPacket, 17);
+        int candidateChunkNewest = candidateChunkStart + originalPacket[21] - 1;
+        if (sceneMismatchedInputByPeer.TryGetValue(peerId, out byte[] existingPacket)
+            && existingPacket != null
+            && existingPacket.Length >= fixedInputHeaderBytes)
+        {
+            int existingBatchHigh = BitConverter.ToInt32(existingPacket, 13);
+            int existingChunkStart = BitConverter.ToInt32(existingPacket, 17);
+            int existingChunkNewest = existingChunkStart + existingPacket[21] - 1;
+            if (candidateBatchHigh < existingBatchHigh
+                || (candidateBatchHigh == existingBatchHigh
+                    && candidateChunkNewest <= existingChunkNewest))
+            {
+                return;
             }
         }
 
@@ -671,6 +697,7 @@ public class MatchMessageManager : MonoBehaviour
         isRunning = true;
         Ping = 100;
         sentFrameTimes.Clear();
+        highestTimestampedLocalInputFrame = -1;
         outboundQueue.Clear();
         inboundQueue.Clear();
         connectedPeers.Clear();
@@ -679,6 +706,7 @@ public class MatchMessageManager : MonoBehaviour
         peerLastPacketTime.Clear();
         peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
+        highestTimestampedInputFrameByPeer.Clear();
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
@@ -704,6 +732,7 @@ public class MatchMessageManager : MonoBehaviour
             peerPingMs[peer.SteamId] = Ping;
             peerLastPacketTime[peer.SteamId] = now;
             sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
+            highestTimestampedInputFrameByPeer[peer.SteamId] = -1;
             if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = peer.SteamId;
@@ -759,6 +788,11 @@ public class MatchMessageManager : MonoBehaviour
                 sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
             }
 
+            if (!highestTimestampedInputFrameByPeer.ContainsKey(peer.SteamId))
+            {
+                highestTimestampedInputFrameByPeer[peer.SteamId] = -1;
+            }
+
             if (!opponentSteamId.IsValid)
             {
                 opponentSteamId = peer.SteamId;
@@ -780,6 +814,7 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerDictionary(peerLastPacketTime, rosterPeerIds);
         PrunePeerDictionary(peerLastHandshakeSendTime, rosterPeerIds);
         PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
+        PrunePeerDictionary(highestTimestampedInputFrameByPeer, rosterPeerIds);
         PrunePeerDictionary(sceneMismatchedInputByPeer, rosterPeerIds);
         PrunePeerDictionary(sceneMismatchedInputAgeByPeer, rosterPeerIds);
         PrunePeerDictionary(lastLoggedMismatchSignatureByPeer, rosterPeerIds);
@@ -889,6 +924,8 @@ public class MatchMessageManager : MonoBehaviour
         peerLastPacketTime.Clear();
         peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
+        highestTimestampedInputFrameByPeer.Clear();
+        highestTimestampedLocalInputFrame = -1;
         handshakeSentToPeers.Clear();
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
@@ -915,6 +952,8 @@ public class MatchMessageManager : MonoBehaviour
     {
         highestRemoteFrameSeen = -1;
         sentFrameTimes.Clear();
+        highestTimestampedLocalInputFrame = -1;
+        highestTimestampedInputFrameByPeer.Clear();
         outboundQueue.Clear();
         inboundQueue.Clear();
         peerHighestRemoteFrameSeen.Clear();
@@ -1266,47 +1305,65 @@ public class MatchMessageManager : MonoBehaviour
         }
 
         int currentLocalFrame = GameManager.Instance.frameNumber;
-        int latestTargetFrame = currentLocalFrame + RollbackManager.Instance.InputDelay;
-        int resendWindow = RollbackManager.Instance.MaxRollBackFrames + RollbackManager.Instance.InputDelay + Mathf.Max(14, EXTRA_RESEND_FRAMES);
-        int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
-
-        int inputCount = latestTargetFrame - firstFrameToSend + 1;
-        if (inputCount <= 0)
+        int latestTargetFrame = RollbackManager.Instance.LatestScheduledLocalInputFrame;
+        if (latestTargetFrame < 0)
         {
             return;
         }
 
-        int maxInputsPerPacket = Mathf.Max(32, MAX_INPUTS_PER_PACKET);
-        if (inputCount > maxInputsPerPacket)
+        // InputDelay may decrease while older future frames are already immutable. Resend through
+        // the scheduler's actual high-water mark rather than recomputing an earlier target.
+        int scheduledLead = Mathf.Max(0, latestTargetFrame - currentLocalFrame);
+        int resendWindow = RollbackManager.Instance.MaxRollBackFrames
+            + scheduledLead
+            + Mathf.Max(14, EXTRA_RESEND_FRAMES);
+        int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
+
+        int totalInputCount = latestTargetFrame - firstFrameToSend + 1;
+        if (totalInputCount <= 0)
         {
-            firstFrameToSend = latestTargetFrame - maxInputsPerPacket + 1;
-            inputCount = maxInputsPerPacket;
+            return;
         }
+
+        int maxInputsPerPacket = Mathf.Clamp(MAX_INPUTS_PER_PACKET, 32, byte.MaxValue);
+        int oldestRetainedFrame = Mathf.Max(0, latestTargetFrame - RollbackManager.InputArraySize + 1);
+        firstFrameToSend = Mathf.Max(firstFrameToSend, oldestRetainedFrame);
 
         try
         {
-            using (MemoryStream memoryStream = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            // A same-scene authoritative snapshot can move localFrame backward while already-sent
+            // future input remains immutable. Send every chunk through the high-water mark instead
+            // of keeping only the newest packet-sized tail, or an unreliably lost upcoming frame
+            // could become impossible for a peer to recover.
+            for (int chunkStartFrame = firstFrameToSend;
+                 chunkStartFrame <= latestTargetFrame;
+                 chunkStartFrame += maxInputsPerPacket)
             {
-                writer.Write((byte)0);
-                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
-                writer.Write(RollbackManager.Instance.localFrameAdvantage);
-                writer.Write(firstFrameToSend);
-                writer.Write((byte)inputCount);
-
-                for (int i = 0; i < inputCount; i++)
+                int chunkInputCount = Mathf.Min(
+                    maxInputsPerPacket,
+                    latestTargetFrame - chunkStartFrame + 1);
+                using (MemoryStream memoryStream = new MemoryStream())
+                using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
-                    int frame = firstFrameToSend + i;
-                    ulong inputToSend = RollbackManager.Instance.clientInputs.ContainsKey(frame)
-                        ? RollbackManager.Instance.clientInputs.GetInput(frame)
-                        : 5UL;
-                    writer.Write(inputToSend);
-                }
+                    writer.Write((byte)0);
+                    writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                    writer.Write(RollbackManager.Instance.localFrameAdvantage);
+                    writer.Write(firstFrameToSend);
+                    writer.Write(latestTargetFrame);
+                    writer.Write(chunkStartFrame);
+                    writer.Write((byte)chunkInputCount);
 
-                byte[] packetData = memoryStream.ToArray();
-                RecordSentInputTimestamp(latestTargetFrame);
-                SendPacketToAll(packetData, INPUT_SEND_TYPE);
+                    for (int i = 0; i < chunkInputCount; i++)
+                    {
+                        int frame = chunkStartFrame + i;
+                        writer.Write(RollbackManager.Instance.GetOrSealScheduledLocalInput(frame));
+                    }
+
+                    SendPacketToAll(memoryStream.ToArray(), INPUT_SEND_TYPE);
+                }
             }
+
+            RecordSentInputTimestamp(latestTargetFrame);
         }
         catch (Exception e)
         {
@@ -1957,9 +2014,25 @@ public class MatchMessageManager : MonoBehaviour
 
                     int packetSceneSignature = reader.ReadInt32();
                     int remoteFrameAdvantage = reader.ReadInt32();
+                    int batchFirstFrame = reader.ReadInt32();
+                    int batchHighWaterFrame = reader.ReadInt32();
                     int startFrame = reader.ReadInt32();
                     int inputCount = reader.ReadByte();
                     int newestPacketFrame = startFrame + inputCount - 1;
+
+                    if (inputCount <= 0
+                        || batchFirstFrame < 0
+                        || startFrame < 0
+                        || batchFirstFrame > startFrame
+                        || batchHighWaterFrame < newestPacketFrame
+                        || batchFirstFrame > batchHighWaterFrame)
+                    {
+                        Debug.LogWarning($"Rejected malformed input packet from {senderSteamId}: batch={batchFirstFrame}-{batchHighWaterFrame}, chunk={startFrame}-{newestPacketFrame}.");
+                        return;
+                    }
+
+                    bool isIntentionalMultiChunkBackfill =
+                        (long)batchHighWaterFrame - batchFirstFrame + 1L > inputCount;
 
                     if (senderSlot < 0 && activeRoster != null)
                     {
@@ -1985,18 +2058,29 @@ public class MatchMessageManager : MonoBehaviour
 
                         if (senderSlot >= 0)
                         {
-                            RollbackManager.Instance.SetRemoteInput(senderSlot, frame, input, newestPacketFrame);
+                            RollbackManager.Instance.SetRemoteInput(
+                                senderSlot,
+                                frame,
+                                input,
+                                batchHighWaterFrame,
+                                isIntentionalMultiChunkBackfill);
                         }
                         else if (!RollbackManager.Instance.receivedInputs.ContainsKey(frame))
                         {
-                            RollbackManager.Instance.SetOpponentInput(frame, input);
+                            RollbackManager.Instance.SetOpponentInput(
+                                frame,
+                                input,
+                                isIntentionalMultiChunkBackfill);
                         }
                         else
                         {
                             ulong existingInput = RollbackManager.Instance.receivedInputs.GetInput(frame);
                             if (existingInput != input && frame > RollbackManager.Instance.syncFrame)
                             {
-                                RollbackManager.Instance.SetOpponentInput(frame, input);
+                                RollbackManager.Instance.SetOpponentInput(
+                                    frame,
+                                    input,
+                                    isIntentionalMultiChunkBackfill);
                             }
                         }
 
@@ -2218,7 +2302,12 @@ public class MatchMessageManager : MonoBehaviour
     private void RecordSentInputTimestamp(int frame)
     {
         float now = Time.unscaledTime;
-        sentFrameTimes.Insert(frame, now);
+        if (frame > highestTimestampedLocalInputFrame)
+        {
+            sentFrameTimes.Insert(frame, now);
+            highestTimestampedLocalInputFrame = frame;
+        }
+
         foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
         {
             if (peer == null || SameSteamId(peer.SteamId, SteamClient.SteamId))
@@ -2237,7 +2326,18 @@ public class MatchMessageManager : MonoBehaviour
                 sentFrameTimesByPeer[peer.SteamId] = peerTimes;
             }
 
+            int highestTimestampedFrame = highestTimestampedInputFrameByPeer.TryGetValue(
+                peer.SteamId,
+                out int existingHighest)
+                ? existingHighest
+                : -1;
+            if (frame <= highestTimestampedFrame)
+            {
+                continue;
+            }
+
             peerTimes.Insert(frame, now);
+            highestTimestampedInputFrameByPeer[peer.SteamId] = frame;
         }
     }
 
@@ -2440,6 +2540,7 @@ public class MatchMessageManager : MonoBehaviour
         peerLastPacketTime.Remove(peerId);
         peerLastHandshakeSendTime.Remove(peerId);
         sentFrameTimesByPeer.Remove(peerId);
+        highestTimestampedInputFrameByPeer.Remove(peerId);
         sceneMismatchedInputByPeer.Remove(peerId);
         sceneMismatchedInputAgeByPeer.Remove(peerId);
         lastLoggedMismatchSignatureByPeer.Remove(peerId);

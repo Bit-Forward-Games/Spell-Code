@@ -36,7 +36,14 @@ public class ChainsOfThanatos : SpellData
             case ProcCondition.ActiveOnHit:
                 markedOpponentPID = defender.pID;
                 defender.SpawnToast("Spellcodes Disabled", GameManager.colors["purple"]);
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, GameManager.Instance.GetPlayerByPID(markedOpponentPID).position, true);
+                // The marked player can be gone entirely (disconnect in a 3/4P match ->
+                // GetPlayerByPID returns null); an unguarded deref throws inside the resim, which
+                // hard-freezes the sim rather than desyncing it.
+                PlayerController newlyMarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
+                if (newlyMarked != null)
+                {
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, newlyMarked.position, true);
+                }
                 break;
             case ProcCondition.OnUpdate:
                 //handle the marked vfx
@@ -46,8 +53,12 @@ public class ChainsOfThanatos : SpellData
                     // match -> GetPlayerByPID returns null; stale -1 pID would even index players[-2])
                     // an unguarded deref crashes the sim on every client.
                     PlayerController marked = markedOpponentPID >= 0 ? GameManager.Instance.GetPlayerByPID(markedOpponentPID) : null;
-                    marked.silenced = true;
-                    
+                    if (marked != null)
+                    {
+                        marked.silenced = true;
+                    }
+
+
                     if (marked != null && marked.isAlive && owner.demonAura > 0)
                     {
                         projectileInstances[1].GetComponent<BaseProjectile>().position = marked.position;
@@ -55,7 +66,10 @@ public class ChainsOfThanatos : SpellData
                     else
                     {
                         ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
-                        GameManager.Instance.GetPlayerByPID(markedOpponentPID).UnSilence();
+                        if (marked != null)
+                        {
+                            marked.UnSilence();
+                        }
                         markedOpponentPID = -1;
                     }
                 }
@@ -63,10 +77,14 @@ public class ChainsOfThanatos : SpellData
                 {
                     if(markedOpponentPID >= 0)
                     {
-                        GameManager.Instance.GetPlayerByPID(markedOpponentPID).UnSilence();
+                        PlayerController staleMarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
+                        if (staleMarked != null)
+                        {
+                            staleMarked.UnSilence();
+                        }
                         markedOpponentPID = -1;
                     }
-                    
+
                 }
                 break;
             case ProcCondition.OnKill:
@@ -76,13 +94,26 @@ public class ChainsOfThanatos : SpellData
                     if (defender.pID == markedOpponentPID)
                     {
                         ProjectileManager.Instance.DeleteProjectile(projectileInstances[1].GetComponent<BaseProjectile>());
-                        GameManager.Instance.GetPlayerByPID(markedOpponentPID).UnSilence();
+                        PlayerController killedMarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
+                        if (killedMarked != null)
+                        {
+                            killedMarked.UnSilence();
+                        }
                         markedOpponentPID = -1;
                     }
                 }
                 else
                 {
-                    GameManager.Instance.GetPlayerByPID(markedOpponentPID).UnSilence();
+                    // No >= 0 check existed here at all, so a kill with nothing marked called
+                    // GetPlayerByPID(-1) -- the exact stale-pID case the comment above warns about.
+                    if (markedOpponentPID >= 0)
+                    {
+                        PlayerController unmarked = GameManager.Instance.GetPlayerByPID(markedOpponentPID);
+                        if (unmarked != null)
+                        {
+                            unmarked.UnSilence();
+                        }
+                    }
                     markedOpponentPID = -1;
                 }
                 break;

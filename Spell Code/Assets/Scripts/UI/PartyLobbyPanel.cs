@@ -138,7 +138,9 @@ public class PartyLobbyPanel : OnlineMenuPanel
         base.Awake();
         ResolveSlotCharacterArt();
         ResolveGameModeLabels();
-        RefreshGameModeButtonLabel();
+        // No lobby exists this early, so seed the caption with the default mode. RefreshGameMode
+        // overwrites it with the real pick as soon as the panel opens.
+        RefreshGameModeButtonLabel(OnlineGameModeSelection.Default);
         ResolvePlayerOptions();
 
         if (gameModePanel != null)
@@ -779,6 +781,7 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (!isHost)
         {
             startMatchLabel.text = waitingForHostText;
+            startMatchLabel.fontSize = 35;
         }
         else if (canStart)
         {
@@ -808,9 +811,14 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         OnlineGameModeSelection mode = lobby.PartyGameMode;
         ResolveGameModeLabels();
-        RefreshGameModeButtonLabel();
+        RefreshGameModeButtonLabel(mode);
 
-        if (selectedGameModeLabel != null && selectedGameModeLabel.text != mode.DisplayName)
+        // The merged layout dropped the standalone "Selected GameMode" field -- the button itself is
+        // the readout now. Only write this when it resolved to a genuinely separate object, or both
+        // writes land on the same TMP and fight over it every frame.
+        if (selectedGameModeLabel != null
+            && selectedGameModeLabel != gameModeButtonLabel
+            && selectedGameModeLabel.text != mode.DisplayName)
         {
             selectedGameModeLabel.text = mode.DisplayName;
         }
@@ -871,16 +879,23 @@ public class PartyLobbyPanel : OnlineMenuPanel
         }
     }
 
-    private void RefreshGameModeButtonLabel()
+    /// <summary>
+    /// The Game Modes button doubles as the "currently chosen gamemode" readout now that the panel
+    /// no longer carries a separate label for it, so it shows the mode name rather than static text.
+    /// DisplayName is never empty in practice (OnlineGameModeSelection degrades an unknown or blank
+    /// mode to "Normal mode"), but fall back to the old caption so the button cannot render blank.
+    /// </summary>
+    private void RefreshGameModeButtonLabel(OnlineGameModeSelection mode)
     {
         if (gameModeButtonLabel == null)
         {
             return;
         }
 
-        if (gameModeButtonLabel.text != GameModeButtonText)
+        string label = !string.IsNullOrEmpty(mode.DisplayName) ? mode.DisplayName : GameModeButtonText;
+        if (gameModeButtonLabel.text != label)
         {
-            gameModeButtonLabel.text = GameModeButtonText;
+            gameModeButtonLabel.text = label;
         }
     }
 
@@ -954,6 +969,28 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (authoredOption != null)
         {
             mode = authoredOption.Selection;
+
+            // The component wins over the name map, so if the two disagree the button silently
+            // publishes a different mode than its name (and its art) says -- which is exactly how
+            // "pick Chaos, get Fighting Game" shipped. Neither source can be trusted over the
+            // other automatically, so say so loudly instead of guessing.
+            Transform namedRoot = button.transform;
+            while (namedRoot.parent != null && namedRoot.parent != gameModePanel.transform)
+            {
+                namedRoot = namedRoot.parent;
+            }
+
+            if (PartyModesByOptionRoot.TryGetValue(namedRoot.name, out OnlineGameModeSelection namedMode)
+                && !string.Equals(namedMode.Id, mode.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError(
+                    $"[PartyLobbyPanel] Game mode option '{namedRoot.name}' carries an OnlineGameModeOption "
+                    + $"with modeId '{mode.Id}' ({mode.DisplayName}), but its name maps to '{namedMode.Id}' "
+                    + $"({namedMode.DisplayName}). The component wins, so this button publishes "
+                    + $"'{mode.Id}'. Fix whichever is wrong in the Inspector.",
+                    button);
+            }
+
             return true;
         }
 

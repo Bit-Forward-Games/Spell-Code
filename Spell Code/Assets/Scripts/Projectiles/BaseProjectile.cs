@@ -24,6 +24,12 @@ public abstract class BaseProjectile : MonoBehaviour
     [NonSerialized] public int logicFrame;
     [NonSerialized] public ushort animationFrame; //which frame of animation the projectile is on
     [NonSerialized] public byte hitstop;
+
+    // Which of the holder's spell lists the serialized ownerSpell index refers to. Inventory spells
+    // dominate, so 0 keeps the common case at the value it already had.
+    private const byte SpellListKindInventory = 0;
+    private const byte SpellListKindExtra = 1;
+    private byte _tempOwnerSpellListKind = SpellListKindInventory;
     [NonSerialized] public ushort lifeSpan = 0; //in logic frames, when lifeSpan == 0 ignore it
     [NonSerialized] public bool fadeOut = false;
     
@@ -396,6 +402,7 @@ public abstract class BaseProjectile : MonoBehaviour
         // freezes the sim in a rollback loop that can never confirm a frame.
         int spellOwnerIndex = -1;
         int spellIndex = -1;
+        byte spellListKind = SpellListKindInventory;
         if (ownerSpell != null)
         {
             // Fast path: the ordinary, un-reflected case.
@@ -428,9 +435,32 @@ public abstract class BaseProjectile : MonoBehaviour
                     }
                 }
             }
+
+            // Not in anybody's inventory: it may be a SIMULATED EXTRA (The Jokah's enhanced copies
+            // live in extraSpells, not spellList). Without this the index wrote -1 and ownerSpell
+            // came back null on the first rollback, silently detaching those projectiles from the
+            // spell that owns them.
+            if (spellOwnerIndex < 0 || spellIndex < 0)
+            {
+                for (int i = 0; i < GameManager.Instance.playerCount; i++)
+                {
+                    PlayerController candidate = GameManager.Instance.players[i];
+                    if (candidate == null || candidate.extraSpells == null) continue;
+
+                    int candidateExtraIndex = candidate.extraSpells.IndexOf(ownerSpell);
+                    if (candidateExtraIndex >= 0)
+                    {
+                        spellOwnerIndex = i;
+                        spellIndex = candidateExtraIndex;
+                        spellListKind = SpellListKindExtra;
+                        break;
+                    }
+                }
+            }
         }
         bw.Write(spellOwnerIndex); // Write -1 if no owner spell (basic attack projectiles have none)
         bw.Write(spellIndex);
+        bw.Write(spellListKind); // which of the holder's lists spellIndex refers to
 
         // Owner BACKUP index (set while a projectile is reflected, e.g. Aegis of Athena). MUST be
         // written. Deserialize reads four reference ints, and the AoA rework added the read without
@@ -484,6 +514,7 @@ public abstract class BaseProjectile : MonoBehaviour
         _tempOwnerIndex = br.ReadInt32();
         _tempOwnerSpellOwnerIndex = br.ReadInt32();
         _tempOwnerSpellIndex = br.ReadInt32();
+        _tempOwnerSpellListKind = br.ReadByte();
         _tempOwnerBackupIndex = br.ReadInt32();
 
         // Clear actual references, they will be restored in ResolveReferences
@@ -512,10 +543,22 @@ public abstract class BaseProjectile : MonoBehaviour
         if (_tempOwnerSpellOwnerIndex >= 0 && _tempOwnerSpellOwnerIndex < GameManager.Instance.playerCount)
         {
             PlayerController spellHolder = GameManager.Instance.players[_tempOwnerSpellOwnerIndex];
-            if (spellHolder != null && spellHolder.spellList != null
-                && _tempOwnerSpellIndex >= 0 && _tempOwnerSpellIndex < spellHolder.spellList.Count)
+
+            // The index is relative to whichever list Serialize recorded. Resolving an extras index
+            // against spellList would silently hand back the WRONG spell rather than null, so the
+            // kind has to pick the list.
+            List<SpellData> holderList = null;
+            if (spellHolder != null)
             {
-                ownerSpell = spellHolder.spellList[_tempOwnerSpellIndex];
+                holderList = _tempOwnerSpellListKind == SpellListKindExtra
+                    ? spellHolder.extraSpells
+                    : spellHolder.spellList;
+            }
+
+            if (holderList != null
+                && _tempOwnerSpellIndex >= 0 && _tempOwnerSpellIndex < holderList.Count)
+            {
+                ownerSpell = holderList[_tempOwnerSpellIndex];
             }
         }
 

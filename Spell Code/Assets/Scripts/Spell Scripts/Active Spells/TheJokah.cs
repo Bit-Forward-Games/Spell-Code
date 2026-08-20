@@ -17,7 +17,7 @@ public class TheJokah : SpellData
         cooldown = 360;
         spellInput = 0b_0000_0000_0000_0111_1001_1110_0000_0110; // Example input sequence
         spellType = SpellType.Active;
-        procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate, ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
+        procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate, ProcCondition.OnCastBasic, ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
         projectilePrefabs = new GameObject[2];
         description = "Casts and enhanced version of one of your VWave<sprite name=\"FlowState\"> or BigStox<sprite name=\"StockStability\"> Spellcodes at random. Hitting Sweet-Spots<sprite name=\"FlowState\"> of other Spellcodes now Crit<sprite name=\"StockStability\">.";
         spawnOffsetX = 0;
@@ -144,6 +144,9 @@ public class TheJokah : SpellData
                     }
                 }
                 break;
+            case ProcCondition.OnCastBasic:
+                ForwardPendingSickleBasic(defender);
+                break;
             case ProcCondition.OnHitSpell:
                 if (JokahVWaveSpells.Contains(defender.hitboxData.parentProjectile.ownerSpell))
                 {
@@ -171,6 +174,36 @@ public class TheJokah : SpellData
         base.Deserialize(br);
         isVWave = br.ReadBoolean();
     }
+
+    private void ForwardPendingSickleBasic(PlayerController defender)
+    {
+        if (owner == null || JokahVWaveSpells == null)
+        {
+            return;
+        }
+
+        // Ask the copies which one is armed rather than looking one up by index. This used to read
+        // PlayerController.basicSpawnOverrideVariant as an extraSpells index, but SetBasicEnhancement
+        // replaced that write and CashOut now stores its crit flag in the same field so the index
+        // was either 0 (never forwarded) or 1 from a CashOut cast, which would have forwarded to
+        // whatever happened to sit at extraSpells[0]. basicEnhanceActive is per-instance and
+        // serialized, so ownership survives rollback.
+        for (int i = 0; i < JokahVWaveSpells.Count; i++)
+        {
+            if (JokahVWaveSpells[i] is SickleOfTheNight enhancedSickle
+                && enhancedSickle.OwnsPendingBasicOverride())
+            {
+                // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell
+                // would let both the inventory spell and its Jokah copy react to the same override.
+                enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
+                return;
+            }
+        }
+    }
+
+    // ClearPendingCopiedSickleOverride was removed here
+    // ClearCreatedSpells now owns teardown, and a lingering basicSpawnOverride string is
+    // inert on its own because every consumer also requires that spell's basicEnhanceActive.
 
     private void OnDestroy()
     {
@@ -213,6 +246,9 @@ public class TheJokah : SpellData
                 continue;
             }
 
+            // Unregistering from owner.extraSpells belongs to RemoveCreatedSpellsFromOwner, which
+            // ClearCreatedSpells always runs first this method is static and has no owner. The
+            // merge spliced a second copy of that removal in here, which is what broke the build.
             for (int j = 0; j < spell.projectileInstances.Count; j++)
             {
                 GameObject projectileObject = spell.projectileInstances[j];

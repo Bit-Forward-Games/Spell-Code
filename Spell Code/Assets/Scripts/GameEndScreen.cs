@@ -53,6 +53,16 @@ public class GameEndScreen : MonoBehaviour
     {
         ActiveInstance = this;
         ResolveEndGameOptionsReferences();
+
+        //play the game end stinger 
+        // Guarded: this sits on the end-of-match transition, right after LoadScene. SFX_Manager is a
+        // DontDestroyOnLoad singleton that ExecuteOrder66 destroys, so it can legitimately be absent
+        // here and an exception thrown on this path strands the screen cover mid-transition
+        // rather than just dropping a sound.
+        if (SFX_Manager.Instance != null)
+        {
+            SFX_Manager.Instance.PlaySound(Sounds.GAME_END_STINGER, 1.0f, 1.0f);
+        }
     }
 
     private void OnDestroy()
@@ -65,6 +75,11 @@ public class GameEndScreen : MonoBehaviour
 
     private void Start()
     {
+        // GameManager is persistent while this component belongs to the newly loaded End scene.
+        // Reassert the world cleanup here as a second lifecycle boundary in case another scene-load
+        // callback ran after GameManager's callback or generic arrival setup failed early.
+        GameManager.Instance?.EnforceEndScenePresentation();
+
         useOnlineEndFlow = GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive;
         optionsVisible = false;
         resolutionTriggered = false;
@@ -830,6 +845,9 @@ public class GameEndScreen : MonoBehaviour
             return;
         }
 
+        // The normal SceneUiManager path performs this cancellation. Keep the manager-missing
+        // fallback equivalent so a static invite/status latch cannot survive the direct scene load.
+        SteamLobbyManager.CancelOnlineEntryAndLeaveLobby();
         SceneManager.LoadScene("SoloLobby");
     }
 

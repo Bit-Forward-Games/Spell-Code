@@ -17,6 +17,29 @@ public class FrameMetadataArray : CircularArray<RollbackManager.FrameMetadata> /
     // Constructor remains the same
     public FrameMetadataArray(int size) : base(size)
     {
+        InvalidateFrames();
+    }
+
+    /// <summary>
+    /// CircularArray clears structs to their default value, which makes every empty slot look like
+    /// a valid frame 0 entry. Explicitly use -1 as the empty sentinel so frame 0 can be write-once
+    /// just like every other online input frame.
+    /// </summary>
+    private void InvalidateFrames()
+    {
+        RollbackManager.FrameMetadata[] values = GetValues();
+        for (int i = 0; i < values.Length; i++)
+        {
+            values[i] = new RollbackManager.FrameMetadata { frame = -1, input = 0UL };
+        }
+
+        LatestInsertedFrame = -1;
+    }
+
+    public new void Clear()
+    {
+        base.Clear();
+        InvalidateFrames();
     }
 
     // Insert method needs the qualified name for the value parameter

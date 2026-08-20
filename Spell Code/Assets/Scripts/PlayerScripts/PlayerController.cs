@@ -244,8 +244,6 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized]
     public List<SpellData> spellList = new List<SpellData>();
-    [NonSerialized]
-    public List<SpellData> extraSpells = new List<SpellData>();
 
     // Per-player pool of spell instances keyed by serialization id
     // RebuildSpellListFromSaved can REUSE instances instead of Destroy()/Instantiate() on every
@@ -260,6 +258,16 @@ public class PlayerController : MonoBehaviour
     [NonSerialized]
     public List<SpellData> sortedSpellList = new List<SpellData>(); // reused buffer; refilled in place by BuildSortedSpellList (no per-call allocation)
     public List<SpellData> universalSpells = new List<SpellData>();
+
+    /// <summary>
+    /// Spells that SIMULATE for this player but are not in their inventory -- currently The Jokah's
+    /// enhanced copies. They need a home the savestate can reach: a spell that lives only in a
+    /// private field is never serialized, so a rollback leaves its cooldown/crit state stale, and
+    /// BaseProjectile encodes ownerSpell as an index into a player's list, so projectiles owned by
+    /// an unlisted spell resolve to null after any rollback. Order is deterministic (built by
+    /// walking spellList), which is what lets the index be the wire value.
+    /// </summary>
+    [NonSerialized] public List<SpellData> extraSpells = new List<SpellData>();
     public GameObject basicProjectileInstance;
     [NonSerialized] public bool collidingWithFloppy = false;
     private int _pendingHitboxProjectileIndex = -1;
@@ -698,6 +706,37 @@ public class PlayerController : MonoBehaviour
         return GetSpellCountByName(spellName) >= GetMaxCopiesForSpell(spellData);
     }
 
+    /// <summary>
+    /// Rebuilds the brand-unlock flags from what the player currently holds. These gate the shop
+    /// pool brand passives are filtered out unless the matching flag is set, and the DarkWeb
+    /// collab conditions need two of them at once so they must describe the CURRENT inventory,
+    /// not just the last spell added. Clearing them without recomputing emptied the pool for a Punk
+    /// player sitting on four actives: the Punk filter drops every active at that point, and cleared
+    /// flags then dropped every passive, so the gamba had nothing left to spawn.
+    /// Derived entirely from the serialized spellList, so it is safe to call from the sim.
+    /// </summary>
+    public void RecomputeBrandFlagsFromSpellList()
+    {
+        vWave = false;
+        killeez = false;
+        demonX = false;
+        bigStox = false;
+        darkWeb = false;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null || spell.brands == null) continue;
+            for (int b = 0; b < spell.brands.Length; b++)
+            {
+                if (spell.brands[b] == Brand.VWave) vWave = true;
+                if (spell.brands[b] == Brand.Killeez) killeez = true;
+                if (spell.brands[b] == Brand.DemonX) demonX = true;
+                if (spell.brands[b] == Brand.BigStox) bigStox = true;
+                if (spell.brands[b] == Brand.DarkWeb) darkWeb = true;
+            }
+        }
+    }
+
     public bool CanAddSpellToSpellList(string spellToAdd)
     {
         if (spellList.Count >= 6)
@@ -705,7 +744,70 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (SpellDictionary.Instance != null
+            && SpellDictionary.Instance.spellDict != null
+            && SpellDictionary.Instance.spellDict.TryGetValue(spellToAdd, out SpellData targetSpell)
+            && targetSpell != null
+            && !HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            return false;
+        }
+
         return !HasReachedSpellCopyLimit(spellToAdd);
+    }
+
+    private int CountSpellsOfType(SpellType spellType)
+    {
+        int count = 0;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == spellType)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private bool HasAvailablePunkSpellSlot(SpellType spellType)
+    {
+        if (!vibeCoding)
+        {
+            return true;
+        }
+
+        if (spellType == SpellType.Active)
+        {
+            return CountSpellsOfType(SpellType.Active) < 4;
+        }
+
+        if (spellType == SpellType.Passive)
+        {
+            return CountSpellsOfType(SpellType.Passive) < 2;
+        }
+
+        return true;
+    }
+
+    private int GetPunkSpellInsertionIndex(SpellType spellType)
+    {
+        if (!vibeCoding || spellType != SpellType.Active)
+        {
+            return spellList.Count;
+        }
+
+        // Punk's directional shortcuts address list indices 0-3. Insert every active before the
+        // first passive so stacked or otherwise out-of-order pickups cannot strand an active in
+        // one of the two passive-only slots. Relative order within each type remains unchanged.
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            if (spellList[i] != null && spellList[i].spellType == SpellType.Passive)
+            {
+                return i;
+            }
+        }
+
+        return spellList.Count;
     }
 
     public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
@@ -731,8 +833,14 @@ public class PlayerController : MonoBehaviour
             return false;
         }
 
+        if (!HasAvailablePunkSpellSlot(targetSpell.spellType))
+        {
+            Debug.LogWarning($"No Punk Mode {targetSpell.spellType} slot remains for {spellToAdd}.");
+            return false;
+        }
+
         SpellData spellInstance = Instantiate(targetSpell);
-        spellList.Add(spellInstance);
+        spellList.Insert(GetPunkSpellInsertionIndex(targetSpell.spellType), spellInstance);
         spellInstance.owner = this;
         if (!string.IsNullOrEmpty(startingSpell) && spellToAdd == startingSpell)
         {
@@ -797,6 +905,14 @@ public class PlayerController : MonoBehaviour
 
         // Remove all references from the list
         spellList.Clear();
+
+        // Simulated extras only exist as derivatives of spellList entries (The Jokah's copies), so
+        // an empty inventory means no extras. Dropping the references here keeps the serialized count
+        // deterministic: the copies' own teardown happens in the owning spell's OnDestroy, which is
+        // deferred and skips its extraSpells.Remove when owner is already null -- that would
+        // otherwise leave a dangling entry that this player still counts and its peer might not.
+        extraSpells.Clear();
+
         startingSpellAdded = false;
         ProjectileManager.Instance.InitializeAllProjectiles();
 
@@ -3954,6 +4070,14 @@ public class PlayerController : MonoBehaviour
             SerializeSpellStateInline(bw, universalSpells[i]);
         }
 
+        // Simulated extras (The Jokah's enhanced copies). Same length-prefixed shape as the two
+        // lists above so a count mismatch can be skipped cleanly rather than shifting the stream.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
+        }
+
         //bw.Write(InputConverter.ConvertFromInputSnapshot(bufferInput));
     }
 
@@ -3971,6 +4095,12 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < universalSpells.Count; i++)
         {
             SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+        // Simulated extras too, or a divergence in a Jokah copy's cooldown/crit stays invisible.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
         }
     }
 
@@ -4102,6 +4232,12 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < universalSpells.Count; i++)
         {
             SerializeSpellStateInline(bw, universalSpells[i]);
+        }
+        // Simulated extras too, so a Jokah copy diverging shows up in pXspell rather than silently.
+        bw.Write(extraSpells.Count);
+        for (int i = 0; i < extraSpells.Count; i++)
+        {
+            SerializeSpellStateInline(bw, extraSpells[i]);
         }
     }
 
@@ -4411,6 +4547,23 @@ public class PlayerController : MonoBehaviour
             }
             br.BaseStream.Position = uDataStart + uDataLength;
         }
+
+        // Simulated extras (The Jokah's copies). Restored by index like the universal set. The local
+        // list is rebuilt deterministically by the owning spell's OnStart, but a rollback can land
+        // either side of that rebuild, so entries beyond the local count are skipped by their length
+        // rather than assumed present -- the stream stays aligned either way.
+        int extraCount = br.ReadInt32();
+        for (int i = 0; i < extraCount; i++)
+        {
+            br.ReadInt32(); // spell id, written for symmetry
+            int eDataLength = br.ReadInt32();
+            long eDataStart = br.BaseStream.Position;
+            if (i < extraSpells.Count && extraSpells[i] != null)
+            {
+                extraSpells[i].Deserialize(br);
+            }
+            br.BaseStream.Position = eDataStart + eDataLength;
+        }
     }
 
     private void TriggerHitRumble(float low, float high, float duration)
@@ -4589,24 +4742,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Recompute brand flags from rebuilt list
-        vWave = false;
-        killeez = false;
-        demonX = false;
-        bigStox = false;
-        darkWeb = false;
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            SpellData spell = spellList[i];
-            if (spell == null || spell.brands == null) continue;
-            for (int b = 0; b < spell.brands.Length; b++)
-            {
-                if (spell.brands[b] == Brand.VWave) vWave = true;
-                if (spell.brands[b] == Brand.Killeez) killeez = true;
-                if (spell.brands[b] == Brand.DemonX) demonX = true;
-                if (spell.brands[b] == Brand.BigStox) bigStox = true;
-                if (spell.brands[b] == Brand.DarkWeb) darkWeb = true;
-            }
-        }
+        RecomputeBrandFlagsFromSpellList();
 
         // Rebuild projectile pool once to match the new spell list.
         // Online-only: when this rebuild is happening inside a managed-state deserialize

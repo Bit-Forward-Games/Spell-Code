@@ -680,16 +680,36 @@ public class Pause : MonoBehaviour
             {
                 lastFellaBrand = grid[tab].spells[selectedSpell].brands[0];
  
-                if (lastFellaBrand != Brand.None)
+                if (lastFellaBrand != Brand.None && fella != null)
                 {
-                    fella.GetComponent<Image>().sprite = fellas[(int)lastFellaBrand - 1];
- 
-                    RectTransform fellaTransform = fella.GetComponent<RectTransform>();
-                    fellaTransform.localScale = new Vector3(fellaTransform.localScale.x, 0f, fellaTransform.localScale.z);
-                    fellaTransform
-                        .DOScaleY(1f, 0.15f)
-                        .SetEase(Ease.OutQuad)
-                        .SetUpdate(true);
+                    // fellas holds one sprite per brand indexed by enum order, but Brand gained
+                    // DarkWeb without a matching sprite being added -- so every DarkWeb spell
+                    // (Spartan Beam, Touch Of Midas) indexed past the end of a 4-entry array. This
+                    // runs from Update, so it threw on every frame the spell stayed selected and
+                    // took the rest of the pause menu with it. Hide the mascot when a brand has no
+                    // art rather than leaving the previous brand's face up next to the wrong spell.
+                    int fellaIndex = (int)lastFellaBrand - 1;
+                    Sprite fellaSprite = fellas != null && fellaIndex >= 0 && fellaIndex < fellas.Length
+                        ? fellas[fellaIndex]
+                        : null;
+
+                    Image fellaImage = fella.GetComponent<Image>();
+                    if (fellaImage != null)
+                    {
+                        fellaImage.enabled = fellaSprite != null;
+                    }
+
+                    if (fellaSprite != null)
+                    {
+                        fellaImage.sprite = fellaSprite;
+
+                        RectTransform fellaTransform = fella.GetComponent<RectTransform>();
+                        fellaTransform.localScale = new Vector3(fellaTransform.localScale.x, 0f, fellaTransform.localScale.z);
+                        fellaTransform
+                            .DOScaleY(1f, 0.15f)
+                            .SetEase(Ease.OutQuad)
+                            .SetUpdate(true);
+                    }
                 }
             }
  
@@ -915,7 +935,8 @@ public class Pause : MonoBehaviour
         RevertTextColorToWhite();
 
         //mute all gameplay sfx but not menu sfx
-        SFX_Manager.Instance.MuteGamePlaySFX();
+        // Instance is absent after ExecuteOrder66 and on a fresh boot, and a throw on the pause path strands the menu it was opening.
+        if (SFX_Manager.Instance != null) SFX_Manager.Instance.MuteGamePlaySFX();
         LoadSettings();
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);

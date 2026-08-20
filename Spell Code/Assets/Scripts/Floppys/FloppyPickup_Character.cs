@@ -29,6 +29,9 @@ public class FloppyPickup_Character : MonoBehaviour
         Vwave_2
     }
 
+    public Moveset moveset;
+    public string[] setList = new string[6];
+
     public Animator diskAnimator;
     //Bounds diskBounds;
     public string diskName;
@@ -116,7 +119,7 @@ public class FloppyPickup_Character : MonoBehaviour
                 diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
             }
 
-
+ 
             //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
 
             if (overlappingPlayer != null)
@@ -399,4 +402,91 @@ public class FloppyPickup_Character : MonoBehaviour
         overlappingPlayer = null;
         return null;
     }
+
+    //Return specific setlist for showdown @patrick
+    //0 = DemonX_1, 1 = DemonX_2, 2 = BigStox_1, 3 = BigStox_2, 4 = Killeez_1, 5 = Killeez_2, 6 = VWave_1, 7 = Vwave_2
+    public string[] SetCharacter(int movesetNum)
+    {
+        moveset = (Moveset)movesetNum;
+
+        switch (moveset)
+        {
+            case Moveset.DemonX_1:
+                diskName = "DemonX_1";
+                setList[0] = "Amon Slash";
+                setList[1] = "Asuran Blades";
+                setList[2] = "Bifrons Blade";
+                setList[3] = "Abbadon Uppercut";
+                setList[4] = "Hell-Chain Sweep";
+                setList[5] = "Demonic Descent";
+                return setList;
+            case Moveset.DemonX_2:
+                diskName = "DemonX_2";
+                setList[0] = "Rip and Tear";
+                setList[1] = "Jigoku Flash Step";
+                setList[2] = "Hell Wave Fist";
+                setList[3] = "Brimstone Cyclone Kick";
+                setList[4] = "Hellish Reposte";
+                setList[5] = "Combo Demon";
+                return setList;
+            case Moveset.BigStox_1:
+                diskName = "BigStox_1";
+                setList[0] = "Use The Card";
+                setList[1] = "Quarter Report";
+                setList[2] = "Coin Toss";
+                setList[3] = "Get A Job";
+                setList[4] = "Blue Chip Trader";
+                setList[5] = "Let It Ride";
+                return setList;
+            case Moveset.BigStox_2:
+                diskName = "BigStox_2";
+                setList[0] = "Cash Out";
+                setList[1] = "Bailout";
+                setList[2] = "Loaded Dice";
+                setList[3] = "Trap Card Trick";
+                setList[4] = "Lucky Break";
+                setList[5] = "Hot Streak";
+                return setList;
+            case Moveset.Killeez_1:
+                diskName = "Killeez_1";
+                setList[0] = "Blade Of Ares";
+                setList[1] = "Might Of Zeus";
+                setList[2] = "Sun Of Apollo";
+                setList[3] = "Trident Of Poseidon";
+                setList[4] = "Boots Of Hermes";
+                setList[5] = "Rod Of Asclepius";
+                return setList;
+            case Moveset.Killeez_2:
+                diskName = "Killeez_2";
+                setList[0] = "Gift Of Prometheus";
+                setList[1] = "Hourglass Of Chronos";
+                setList[2] = "Helm Of Hades";
+                setList[3] = "Armory Of Hephaestus";
+                setList[4] = "Aegis Of Athena";
+                setList[5] = "Quiver Of Artemis";
+                return setList;
+            case Moveset.VWave_1:
+                diskName = "VWave_1";
+                setList[0] = "Skillshot Slash";
+                setList[1] = "Reload Shot";
+                setList[2] = "Pong Shot";
+                setList[3] = "Trickshot Alley";
+                setList[4] = "Mine Crafter";
+                setList[5] = "No-Scope Shot";
+                return setList;
+            case Moveset.Vwave_2:
+                diskName = "Vwave_2";
+                setList[0] = "Shot Reflector";
+                setList[1] = "Tele-Frag Prism";
+                setList[2] = "Get Over Here";
+                setList[3] = "Sickle Of The Night";
+                setList[4] = "Crossmap Clip";
+                setList[5] = "Back To Basics";
+                return setList;
+            default:
+                return setList;
+        }
+    }
 }
+
+

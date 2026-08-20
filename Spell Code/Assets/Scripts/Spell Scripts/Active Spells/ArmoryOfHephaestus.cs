@@ -39,7 +39,9 @@ public class ArmoryOfHephaestus : SpellData
         if (activateFlag)
         {
             activateFlag = false;
-            owner.basicSpawnOverride = spellName;
+            // owner.basicSpawnOverride = spellName;
+            // basicEnhanceActive = true;
+            SetBasicEnhancement();
             cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
         }
     }
@@ -78,10 +80,11 @@ public class ArmoryOfHephaestus : SpellData
                 break;
             case ProcCondition.OnCastBasic:
             
-            if (owner.basicSpawnOverride == spellName)
+            if (owner.basicSpawnOverride == spellName && basicEnhanceActive)
                 {
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[weaponIndex].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                     
+                    basicEnhanceActive = false;
                 }
                 break;
             default:

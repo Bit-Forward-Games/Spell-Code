@@ -2048,6 +2048,7 @@ public class PlayerController : MonoBehaviour
                     else
                     {
                         basicSpawnOverride = string.Empty;
+                        //remember to set the basicEnhanceActive bool to false wherever the basic spawn override is
                     }
                     basicSpawnOverrideVariant = 0;
 
@@ -3193,7 +3194,7 @@ public class PlayerController : MonoBehaviour
     public void UnSilence()
     {   
         silenced = false;
-        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+        BuildSortedSpellList(spellList, universalSpells, extraSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
@@ -3212,7 +3213,7 @@ public class PlayerController : MonoBehaviour
 
         if (silenced)
         {
-            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+            BuildSortedSpellList(spellList, universalSpells, extraSpells, sortedSpellList);
 
             for (int i = 0; i < sortedSpellList.Count; i++)
             {
@@ -3221,7 +3222,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+            BuildSortedSpellList(spellList, universalSpells, extraSpells, sortedSpellList);
 
             for (int i = 0; i < sortedSpellList.Count; i++)
             {
@@ -3600,10 +3601,15 @@ public class PlayerController : MonoBehaviour
     //   list.Concat(universal).Where(s => s != null).OrderByDescending(s => s.priorityOverride).ToList()
     // which allocated four objects on every call and re-ran on every rollback resim. Refills the
     // reused 'buffer' in place. Uses a STABLE insertion sort so spells with equal priorityOverride
-    // keep their original relative order (primary list first, then universal, each in order) --
+    // keep their original relative order (primary list first, then universal and extra, each in order) --
     // byte-identical to LINQ's OrderByDescending. That order is part of deterministic match state
     // (proc-resolution priority), so it must not change.
-    private static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
+    // public static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> buffer)
+    // {
+    //     BuildSortedSpellList(primary, universal, null, buffer);
+    // }
+
+    public static void BuildSortedSpellList(List<SpellData> primary, List<SpellData> universal, List<SpellData> extra, List<SpellData> buffer)
     {
         buffer.Clear();
 
@@ -3619,6 +3625,13 @@ public class PlayerController : MonoBehaviour
             for (int i = 0; i < universal.Count; i++)
             {
                 if (universal[i] != null) buffer.Add(universal[i]);
+            }
+        }
+        if (extra != null)
+        {
+            for (int i = 0; i < extra.Count; i++)
+            {
+                if (extra[i] != null) buffer.Add(extra[i]);
             }
         }
 
@@ -3638,20 +3651,24 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// This is a Helper function that checks all spells in the target player's spell list for the specified ProcCondition and calls their CheckCondition method.
+    /// Checks the target player's equipped, universal, and extra spells for the specified ProcCondition.
     /// </summary>
     /// <param name="targetPlayer"></param>
     /// <param name="targetProcCon"></param>
     public void CheckAllSpellConditionsOfProcCon(PlayerController targetPlayer, ProcCondition targetProcCon, PlayerController defender = null)
     {
         if(silenced && targetPlayer == this) return;
-        BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, sortedSpellList);
+        BuildSortedSpellList(targetPlayer.spellList, targetPlayer.universalSpells, targetPlayer.extraSpells, sortedSpellList);
 
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
-            if (sortedSpellList[i].procConditions.Contains(targetProcCon))
+            SpellData spell = sortedSpellList[i];
+            bool isStillRegistered = targetPlayer.spellList.Contains(spell)
+                || targetPlayer.universalSpells.Contains(spell)
+                || targetPlayer.extraSpells.Contains(spell);
+            if (isStillRegistered && spell.procConditions.Contains(targetProcCon))
             {
-                sortedSpellList[i].CheckCondition(defender, targetProcCon);
+                spell.CheckCondition(defender, targetProcCon);
             }
         }
     }
@@ -4553,11 +4570,12 @@ public class PlayerController : MonoBehaviour
 
     public void ProcEffectUpdate()
     {
-        BuildSortedSpellList(spellList, universalSpells, sortedSpellList);
+        BuildSortedSpellList(spellList, universalSpells, extraSpells, sortedSpellList);
         //go through the player's spell list and update any proc effects
         for (int i = 0; i < sortedSpellList.Count; i++)
         {
             sortedSpellList[i].SpellUpdate();
+            sortedSpellList[i].SchizoEnsureBasicEnhanceInactive();
         }
     }
     public bool IsStorableState() =>

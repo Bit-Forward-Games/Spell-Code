@@ -42,13 +42,16 @@ public class BifronsBlade : SpellData
                 break;
             case ProcCondition.OnCastBasic:
                 
-                if (owner.basicSpawnOverride == spellName)
+                if (owner.basicSpawnOverride == spellName && basicEnhanceActive)
                 {
+                    basicEnhanceActive = false;
                     ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                 }
             break;
                 case ProcCondition.ActiveOnCast:
-                    owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
+                    // owner.basicSpawnOverride = spellName; // Set the flag to override the basic attack spawn
+                    // basicEnhanceActive = true;
+                    SetBasicEnhancement();
                 break;
             default:
                 break;

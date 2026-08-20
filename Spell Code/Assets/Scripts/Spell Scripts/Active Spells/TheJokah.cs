@@ -62,16 +62,7 @@ public class TheJokah : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnStart:
-                // OnStart is NOT once per match: PlayerController fires it from AddSpellToSpellList
-                // (every pickup) and from SpawnPlayer (every round reset). Reassigning the lists
-                // without this dropped the previous generation of copies while their projectiles
-                // stayed registered in ProjectileManager.projectilePrefabs -- which UpdateProjectiles
-                // walks every frame -- until The Jokah itself was destroyed. Tear the old set down
-                // before rebuilding.
-                ClearPendingCopiedSickleOverride();
-                DestroyCreatedSpells(JokahVWaveSpells);
-                DestroyCreatedSpells(JokahBigStoxSpells);
-
+                ClearCreatedSpells();
                 JokahVWaveSpells = new List<SpellData>();
                 JokahBigStoxSpells = new List<SpellData>();
 
@@ -122,15 +113,7 @@ public class TheJokah : SpellData
                             }
 
                             targetList.Add(spellCopy);
-
-                            // Register with the owner so the savestate reaches this copy: its
-                            // cooldown/crit state gets serialized and hashed, and its projectiles
-                            // can encode ownerSpell as an index into extraSpells instead of writing
-                            // -1 and coming back null on the first rollback.
-                            if (owner != null && !owner.extraSpells.Contains(spellCopy))
-                            {
-                                owner.extraSpells.Add(spellCopy);
-                            }
+                            owner.extraSpells.Add(spellCopy);
                         }
                     }
                 }
@@ -194,67 +177,61 @@ public class TheJokah : SpellData
 
     private void ForwardPendingSickleBasic(PlayerController defender)
     {
-        if (owner == null || owner.extraSpells == null || owner.basicSpawnOverrideVariant == 0)
+        if (owner == null || JokahVWaveSpells == null)
         {
             return;
         }
 
-        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
-        if (extraSpellIndex < 0 || extraSpellIndex >= owner.extraSpells.Count)
+        // Ask the copies which one is armed rather than looking one up by index. This used to read
+        // PlayerController.basicSpawnOverrideVariant as an extraSpells index, but SetBasicEnhancement
+        // replaced that write and CashOut now stores its crit flag in the same field so the index
+        // was either 0 (never forwarded) or 1 from a CashOut cast, which would have forwarded to
+        // whatever happened to sit at extraSpells[0]. basicEnhanceActive is per-instance and
+        // serialized, so ownership survives rollback.
+        for (int i = 0; i < JokahVWaveSpells.Count; i++)
         {
-            return;
+            if (JokahVWaveSpells[i] is SickleOfTheNight enhancedSickle
+                && enhancedSickle.OwnsPendingBasicOverride())
+            {
+                // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell
+                // would let both the inventory spell and its Jokah copy react to the same override.
+                enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
+                return;
+            }
         }
-
-        SpellData candidate = owner.extraSpells[extraSpellIndex];
-        SickleOfTheNight enhancedSickle = candidate as SickleOfTheNight;
-        if (enhancedSickle == null
-            || JokahVWaveSpells == null
-            || !JokahVWaveSpells.Contains(candidate)
-            || !enhancedSickle.OwnsPendingBasicOverride())
-        {
-            return;
-        }
-
-        // Route only the armed copied Sickle. Broadcasting OnCastBasic to every extra spell would
-        // let both the inventory spell and its Jokah copy react to the same shared override.
-        enhancedSickle.CheckCondition(defender, ProcCondition.OnCastBasic);
     }
 
-    private void ClearPendingCopiedSickleOverride()
-    {
-        if (owner == null
-            || owner.extraSpells == null
-            || owner.basicSpawnOverride != "Sickle Of The Night"
-            || owner.basicSpawnOverrideVariant == 0)
-        {
-            return;
-        }
-
-        int extraSpellIndex = owner.basicSpawnOverrideVariant - 1;
-        if (extraSpellIndex >= 0
-            && extraSpellIndex < owner.extraSpells.Count
-            && owner.extraSpells[extraSpellIndex] is SickleOfTheNight pendingSickle)
-        {
-            pendingSickle.targetPID = -1;
-        }
-
-        // Every Jokah copy is rebuilt during this OnStart pass. Clear even if a damaged/stale index
-        // could not be resolved, rather than let it point at an unrelated copy after list removals.
-        owner.basicSpawnOverride = string.Empty;
-        owner.basicSpawnOverrideVariant = 0;
-    }
+    // ClearPendingCopiedSickleOverride was removed here
+    // ClearCreatedSpells now owns teardown, and a lingering basicSpawnOverride string is
+    // inert on its own because every consumer also requires that spell's basicEnhanceActive.
 
     private void OnDestroy()
     {
-        ClearPendingCopiedSickleOverride();
+        ClearCreatedSpells();
+    }
+
+    private void ClearCreatedSpells()
+    {
+        RemoveCreatedSpellsFromOwner(JokahVWaveSpells);
+        RemoveCreatedSpellsFromOwner(JokahBigStoxSpells);
         DestroyCreatedSpells(JokahVWaveSpells);
         DestroyCreatedSpells(JokahBigStoxSpells);
     }
 
-    // Instance method now: tearing a copy down also has to unregister it from owner.extraSpells,
-    // or the savestate keeps serializing a destroyed spell and the indices its projectiles were
-    // written against stop lining up.
-    private void DestroyCreatedSpells(List<SpellData> spells)
+    private void RemoveCreatedSpellsFromOwner(List<SpellData> spells)
+    {
+        if (owner == null || owner.extraSpells == null || spells == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < spells.Count; i++)
+        {
+            owner.extraSpells.Remove(spells[i]);
+        }
+    }
+
+    private static void DestroyCreatedSpells(List<SpellData> spells)
     {
         if (spells == null)
         {
@@ -269,11 +246,9 @@ public class TheJokah : SpellData
                 continue;
             }
 
-            if (owner != null && owner.extraSpells != null)
-            {
-                owner.extraSpells.Remove(spell);
-            }
-
+            // Unregistering from owner.extraSpells belongs to RemoveCreatedSpellsFromOwner, which
+            // ClearCreatedSpells always runs first this method is static and has no owner. The
+            // merge spliced a second copy of that removal in here, which is what broke the build.
             for (int j = 0; j < spell.projectileInstances.Count; j++)
             {
                 GameObject projectileObject = spell.projectileInstances[j];

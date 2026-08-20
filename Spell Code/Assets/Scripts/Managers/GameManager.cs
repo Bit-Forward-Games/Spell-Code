@@ -4728,10 +4728,12 @@ public class GameManager : MonoBehaviour
                 players[i].inputDisplay.enabled = true;
                 players[i].playerNum.enabled = true;
 
-                players[i].demonX = false;
-                players[i].bigStox = false;
-                players[i].killeez = false;
-                players[i].vWave = false;
+                // Refresh from the spell list rather than clearing. ResetPlayers runs every round
+                // and does NOT clear spellList, so blanking these left a player's brands not
+                // matching what they hold -- which empties the shop pool for a Punk player on four
+                // actives (Punk filters out actives at that point, cleared flags filter out every
+                // passive) and makes the DarkWeb collab conditions unreachable.
+                players[i].RecomputeBrandFlagsFromSpellList();
             }
         }
 

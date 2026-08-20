@@ -706,6 +706,37 @@ public class PlayerController : MonoBehaviour
         return GetSpellCountByName(spellName) >= GetMaxCopiesForSpell(spellData);
     }
 
+    /// <summary>
+    /// Rebuilds the brand-unlock flags from what the player currently holds. These gate the shop
+    /// pool brand passives are filtered out unless the matching flag is set, and the DarkWeb
+    /// collab conditions need two of them at once so they must describe the CURRENT inventory,
+    /// not just the last spell added. Clearing them without recomputing emptied the pool for a Punk
+    /// player sitting on four actives: the Punk filter drops every active at that point, and cleared
+    /// flags then dropped every passive, so the gamba had nothing left to spawn.
+    /// Derived entirely from the serialized spellList, so it is safe to call from the sim.
+    /// </summary>
+    public void RecomputeBrandFlagsFromSpellList()
+    {
+        vWave = false;
+        killeez = false;
+        demonX = false;
+        bigStox = false;
+        darkWeb = false;
+        for (int i = 0; i < spellList.Count; i++)
+        {
+            SpellData spell = spellList[i];
+            if (spell == null || spell.brands == null) continue;
+            for (int b = 0; b < spell.brands.Length; b++)
+            {
+                if (spell.brands[b] == Brand.VWave) vWave = true;
+                if (spell.brands[b] == Brand.Killeez) killeez = true;
+                if (spell.brands[b] == Brand.DemonX) demonX = true;
+                if (spell.brands[b] == Brand.BigStox) bigStox = true;
+                if (spell.brands[b] == Brand.DarkWeb) darkWeb = true;
+            }
+        }
+    }
+
     public bool CanAddSpellToSpellList(string spellToAdd)
     {
         if (spellList.Count >= 6)
@@ -4711,24 +4742,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Recompute brand flags from rebuilt list
-        vWave = false;
-        killeez = false;
-        demonX = false;
-        bigStox = false;
-        darkWeb = false;
-        for (int i = 0; i < spellList.Count; i++)
-        {
-            SpellData spell = spellList[i];
-            if (spell == null || spell.brands == null) continue;
-            for (int b = 0; b < spell.brands.Length; b++)
-            {
-                if (spell.brands[b] == Brand.VWave) vWave = true;
-                if (spell.brands[b] == Brand.Killeez) killeez = true;
-                if (spell.brands[b] == Brand.DemonX) demonX = true;
-                if (spell.brands[b] == Brand.BigStox) bigStox = true;
-                if (spell.brands[b] == Brand.DarkWeb) darkWeb = true;
-            }
-        }
+        RecomputeBrandFlagsFromSpellList();
 
         // Rebuild projectile pool once to match the new spell list.
         // Online-only: when this rebuild is happening inside a managed-state deserialize

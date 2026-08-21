@@ -416,17 +416,17 @@ public class FloppyPickup_Character : MonoBehaviour
                 setList[0] = "Amon Slash";
                 setList[1] = "Asuran Blades";
                 setList[2] = "Bifrons Blade";
-                setList[3] = "Abbadon Uppercut";
+                setList[3] = "Abaddon Uppercut";
                 setList[4] = "Hell-Chain Sweep";
                 setList[5] = "Demonic Descent";
                 return setList;
             case Moveset.DemonX_2:
                 diskName = "DemonX_2";
-                setList[0] = "Rip and Tear";
+                setList[0] = "Rip And Tear";
                 setList[1] = "Jigoku Flash Step";
                 setList[2] = "Hell Wave Fist";
                 setList[3] = "Brimstone Cyclone Kick";
-                setList[4] = "Hellish Reposte";
+                setList[4] = "Hellish Riposte";
                 setList[5] = "Combo Demon";
                 return setList;
             case Moveset.BigStox_1:

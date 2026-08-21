@@ -1,0 +1,405 @@
+using NUnit.Framework;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.Windows;
+
+
+using Fixed = BestoNet.Types.Fixed32;
+using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
+
+public class FloppyPickup : MonoBehaviour
+{
+    public Animator diskAnimator;
+    //Bounds diskBounds;
+    public string diskName;
+    public SpellFloppyDisplay diskDisplay;
+    public PlayerController overlappingPlayer = null;
+    private SpriteRenderer sprite;
+    public int ownerPID;
+
+    public bool colliding;
+
+    public float colliderRadius = 18f;
+
+    private byte selectHoldCounter = 0;
+
+    private int timeToFill = 30;
+
+
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        diskAnimator = GetComponent<Animator>();
+        GameManager.Instance.FindAllFloppyDisks();
+        diskDisplay.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay(diskName);
+        sprite = GetComponent<SpriteRenderer>();
+        // for (int i = 0; i < SpellDictionary.Instance.spellDict[diskName].brands.Length; i++)
+        // {
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
+        //     {
+        //         diskAnimator.Play("FloppySpin");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
+        //     {
+        //         diskAnimator.Play("FloppySpinKilleez");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
+        //     {
+        //         diskAnimator.Play("FloppySpinDemonX");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
+        //     {
+        //         diskAnimator.Play("FloppySpinBigStox");
+        //     }
+        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DarkWeb)
+        //     {
+        //         diskAnimator.Play("FloppySpinDarkWeb");
+        //     }
+        // }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.VWave)
+        {
+            diskAnimator.Play("FloppySpin");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.Killeez)
+        {
+            diskAnimator.Play("FloppySpinKilleez");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DemonX)
+        {
+            diskAnimator.Play("FloppySpinDemonX");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.BigStox)
+        {
+            diskAnimator.Play("FloppySpinBigStox");
+        }
+        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DarkWeb)
+        {
+            diskAnimator.Play("FloppySpinDarkWeb");
+        }
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
+        {
+            return;
+        }
+        colliding = CheckPlayerCollision() != null;
+        
+        if (colliding && overlappingPlayer.pID == ownerPID)
+        {
+            if (!diskDisplay.IsDisplayCanvasEnabled())
+            {
+                diskDisplay.StartFloppyDisplay();
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+            }
+            
+
+            //diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID-1);
+
+            if (overlappingPlayer != null)
+            {   
+                if(selectHoldCounter == timeToFill)
+                {
+                    diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
+                }
+                if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
+                {
+                    selectHoldCounter++;
+                }
+                else if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Released)
+                {
+                    if(selectHoldCounter < timeToFill)
+                    {
+                        if (overlappingPlayer.AddSpellToSpellList(diskName))
+                        {
+                            Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
+
+                            //play the floppy pick up sfx
+                            SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
+
+                            //play the appropriate floppy pick up vfx
+                            switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                            {
+                                case Brand.VWave:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.DemonX:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.Killeez:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                case Brand.BigStox:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID); 
+                                    break;
+                                case Brand.DarkWeb:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                                default:
+                                    VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                    break;
+                            }
+
+                            //if (SceneManager.GetActiveScene().name != "Tutorial")
+                            //{
+                                diskDisplay.StopFloppyDisplay();
+                                //GameManager.Instance.RemoveFloppyDisk(this); -----doesnt exist but maybe should
+                                Destroy(gameObject);
+                            //}
+                        }
+                        // else
+                        // {
+                        //     selectHoldCounter = 0;
+                        // }
+                    }
+                    selectHoldCounter = 0;
+                    
+                    
+                    
+                }
+                else
+                {
+                    selectHoldCounter = 0;
+                }
+            }
+            else
+            {
+                selectHoldCounter = 0;
+            }
+
+            
+        }
+        else
+        {
+            selectHoldCounter = 0;
+            diskDisplay.StopFloppyDisplay();
+        }
+        diskDisplay.selectFill.fillAmount = GetFillPercent();
+        diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1? "purple":"grey"];
+    }
+
+    public void SimulateOnline(ulong[] inputs, bool isRealFrame)
+    {
+        colliding = (CheckPlayerCollision() != null);
+
+        if (colliding && overlappingPlayer.pID == ownerPID)
+        {
+            if (isRealFrame && !diskDisplay.IsDisplayCanvasEnabled())
+            {
+                diskDisplay.StartFloppyDisplay();
+                diskDisplay.SetFloppyDisplayPosition(overlappingPlayer.pID - 1);
+            }
+
+            InputSnapshot inputSnapshot = InputConverter.ConvertFromLong(5);
+            int ownerIndex = ownerPID - 1;
+            if (inputs != null && ownerIndex >= 0 && ownerIndex < inputs.Length)
+            {
+                inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
+            }
+
+            if (isRealFrame && selectHoldCounter == timeToFill)
+            {
+                diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
+            }
+
+            if (inputSnapshot.ButtonStates[0] == ButtonState.Held)
+            {
+                selectHoldCounter++;
+            }
+            else if (inputSnapshot.ButtonStates[0] == ButtonState.Released)
+            {
+                if (selectHoldCounter < timeToFill)
+                {
+                    if (HasOwnerAlreadyChosenOnlineSpell())
+                    {
+                        selectHoldCounter = 0;
+                        return;
+                    }
+
+                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    {
+                        bool isChaosMode = GameManager.Instance != null
+                            && GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
+                        if (SceneManager.GetActiveScene().name == "Shop")
+                        {
+                            // Normal online shops lock after one choice. Chaos grants the whole
+                            // six-spell loadout, so only mark the player complete after all six
+                            // stacked choices have been acquired.
+                            overlappingPlayer.chosenSpell = !isChaosMode
+                                || overlappingPlayer.spellList.Count >= 6;
+                        }
+
+                        if (isRealFrame)
+                        {
+                            diskDisplay.StopFloppyDisplay();
+                            // Play the floppy pick-up sfx on real frames only (rollback resim
+                            // replays this pickup and would otherwise replay the sound). Null-guarded
+                            // so a missing SFX_Manager can't throw mid-simulation
+                            if (SFX_Manager.Instance != null)
+                            {
+                                SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
+
+                                //play the appropriate floppy pick up vfx
+                                switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                                {
+                                    case Brand.VWave:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.DemonX:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DEMONX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.Killeez:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.KILLEEZ_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.BigStox:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.BIGSTOX_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    case Brand.DarkWeb:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DARKWEB_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                    default:
+                                        VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
+                                        break;
+                                }
+                            }
+                        }
+                        gameObject.SetActive(false);
+                        // The six Chaos disks are stacked and resolve during one simulation pass.
+                        // Broadcasting after every disk makes the host refresh floppyObjects while
+                        // that array is being iterated, which can skip choices and split the peers.
+                        // Publish the completed loadout atomically after the sixth pickup instead.
+                        if (isRealFrame
+                            && (!isChaosMode || overlappingPlayer.spellList.Count >= 6))
+                        {
+                            GameManager.Instance?.RequestAuthoritativeOnlineFloppySnapshot($"floppy pickup P{ownerPID} {diskName}");
+                        }
+                        Destroy(gameObject);
+                    }
+                }
+
+                selectHoldCounter = 0;
+            }
+            else
+            {
+                selectHoldCounter = 0;
+            }
+        }
+        else
+        {
+            selectHoldCounter = 0;
+            if (isRealFrame)
+            {
+                diskDisplay.StopFloppyDisplay();
+            }
+        }
+
+        if (isRealFrame)
+        {
+            diskDisplay.selectFill.fillAmount = GetFillPercent();
+            diskDisplay.selectFill.color = GameManager.colors[diskDisplay.selectFill.fillAmount == 1 ? "purple" : "grey"];
+        }
+    }
+
+    private bool HasOwnerAlreadyChosenOnlineSpell()
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.isOnlineMatchActive || overlappingPlayer == null)
+        {
+            return false;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        bool isChaosMode = GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;
+        if (activeScene.name == "MainMenu")
+        {
+            return isChaosMode
+                ? overlappingPlayer.spellList.Count >= 6
+                : overlappingPlayer.spellList.Count > 0;
+        }
+
+        if (activeScene.name == "Shop")
+        {
+            return overlappingPlayer.spellList.Count >= 6
+                || (!isChaosMode && overlappingPlayer.chosenSpell);
+        }
+
+        return false;
+    }
+
+    public byte GetSelectHoldCounter()
+    {
+        return selectHoldCounter;
+    }
+
+    public void SetSelectHoldCounter(byte value)
+    {
+        selectHoldCounter = value;
+    }
+
+    public bool IsDescriptionVisible()
+    {
+        return diskDisplay != null && diskDisplay.showDesc;
+    }
+
+    public void SetDescriptionVisible(bool visible, bool animate)
+    {
+        if (diskDisplay != null)
+        {
+            diskDisplay.SetDescriptionVisible(visible, animate);
+        }
+    }
+
+    private float GetFillPercent()
+    {
+        float percent = selectHoldCounter / (float)timeToFill;
+        float normalizedLogarithmicfillPercent = Mathf.Clamp01(Mathf.Log10(percent)+1);
+        return normalizedLogarithmicfillPercent;
+    }
+
+    public PlayerController CheckPlayerCollision()
+    {
+        PlayerController player;
+        if (GameManager.Instance.playerCount > 0)
+        {
+            // check if all active players are within a certain range of the door
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                player = GameManager.Instance.players[i];
+                if (player == null || !GameManager.Instance.IsPlayerSlotConnected(i))
+                {
+                    continue;
+                }
+
+                FixedVec2 floppyPos = FixedVec2.FromFloat(transform.position.x, transform.position.y);
+                // Compute squared distance (avoid square root):
+                Fixed dx = Fixed.Abs(player.position.X - floppyPos.X) / Fixed.FromInt(100);
+                Fixed dy = Fixed.Abs(player.position.Y - floppyPos.Y) / Fixed.FromInt(100);
+                Fixed distSq = (dx * dx) + (dy * dy);
+
+                // Convert collider radius to Fixed and square it
+                Fixed radius = Fixed.FromFloat(colliderRadius / 100);
+                Fixed radiusSq = radius * radius;
+
+                // Determine overlap using squared values
+                if (distSq < radiusSq)
+                {
+                    overlappingPlayer = player;
+                    //Debug.Log("Overlapping player ID: " + overlappingPlayer.pID);
+                    return player;
+                }
+            }
+        }
+        overlappingPlayer = null;
+        return null;
+    }
+}

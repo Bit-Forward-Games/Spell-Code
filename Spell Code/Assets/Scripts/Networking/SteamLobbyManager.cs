@@ -61,8 +61,10 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-46"; // scz-46: basic-attack override ownership moved to a per-spell SpellData.basicEnhanceActive flag (one extra byte in EVERY spell payload) replacing the PlayerController.basicSpawnOverrideVariant index;
-                                                    // Sickle and The Jokah now resolve the armed instance through that flag.
+    private const string NetcodeVersion = "scz-47"; // scz-47: win-condition rework -- roundRam renamed to winConPoints, GameManager serializes winCon/ramNeededToWinRound/roundLives,
+                                                    // the shared hash gained gamemode/winCon/roundLives/totalRoundsPlayed/onlineRoundAdvanceApplied,
+                                                    // and the core resource hash gained roundsWon/storedKillBonus/winConPoints/ramBounty.
+                                                    
 
 
     private const string MatchmakingKey = "mm";

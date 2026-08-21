@@ -138,6 +138,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     [Header("Round End UI")] // Round End UI
     public GameObject roundEndUI;
+    public RectTransform roundEndUIRectTransform;
     public GameObject[] offlinePlayer;
     public RectTransform[] winnerPanel;
     public TempSpellDisplay[] spellDisplays;
@@ -719,7 +720,9 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
     public void RoundEndUI()
     {
+        roundEndUIRectTransform.anchoredPosition = new Vector2(0f, 2000f);
         roundEndUI.SetActive(true);
+        roundEndUIRectTransform.DOAnchorPos(new Vector2(roundEndUIRectTransform.anchoredPosition.x, 0), 0.3f).SetEase(Ease.OutQuad).SetUpdate(true);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);

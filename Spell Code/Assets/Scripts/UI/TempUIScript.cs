@@ -567,7 +567,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Hard-stops an in-flight announcer banner and leaves it re-armed. Unlike the coroutine's own
     // exit path this is instant: the point is to clear the screen for the "JOINING/STARTING
     // MATCH..." label, not to play a graceful outro.
-    private void CancelTransitionScreen()
+    // Public because the End-scene teardown has to call it before deactivating TempUI: the banner's
+    // graceful exit runs in a coroutine ON TempUI, so deactivating the object kills the outro and
+    // strands the announcer at full scale over the game end screen. Being instant and re-arming is
+    // exactly what that teardown wants.
+    public void CancelTransitionScreen()
     {
         // Bumping the id makes any live DisplayTransitionScreen bail at its next checkpoint instead
         // of waking up later and re-showing the box we just hid.

@@ -6790,6 +6790,18 @@ public class GameManager : MonoBehaviour
             // end screen. Close it explicitly instead of relying on winning that race.
             tempUI.HideRoundEndUI();
 
+            // Likewise the announcer banner: its outro is a coroutine running ON TempUI, so
+            // deactivating the object kills the outro mid-flight and leaves the banner at full
+            // scale over the game end screen. A guest hits this while the match-over banner is
+            // still up, because it never ran GameEnd and came straight here from the host's packet.
+            tempUI.CancelTransitionScreen();
+
+            // The other TempUI deactivation site already does this; this one did not. The prompt
+            // objects also sit outside TempUI, and closing them is what releases the shared UI
+            // focus/input scoping and restores timeScale, leaving one open here would strand the
+            // panel AND hand the End screen a frozen timeScale with input still scoped to it.
+            tempUI.CloseAllCodeModePrompts();
+
             tempUI.gameObject.SetActive(false);
         }
 

@@ -344,6 +344,17 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""70798768-cd80-4197-81d0-d4c68d005590"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Code"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""cf357d0c-67c6-445d-a4d2-e7e19a512b2b"",
                     ""path"": ""<Keyboard>/escape"",
                     ""interactions"": """",

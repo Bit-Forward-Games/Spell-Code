@@ -96,7 +96,7 @@ public class Pause : MonoBehaviour
 
     [Header("Spell Glossary Variables")]
  
-    private string[] brandName = {"MySpells", "Resources", "DemonX", "BigStoX", "Killeez", "VWave"};
+    private string[] brandName = {"MySpells", "Resources", "DemonX", "BigStoX", "Killeez", "VWave", "Locked"};
     public TextMeshProUGUI spellAddress;
     public TextMeshProUGUI displaySpellName;
     public TextMeshProUGUI displaySpellDescription;
@@ -154,7 +154,7 @@ public class Pause : MonoBehaviour
         public SpellData[] spells;
     }
  
-    public Column[] grid = new Column[6];
+    private Column[] grid = new Column[7];
  
  
     public bool UIRelativeInput
@@ -607,7 +607,7 @@ public class Pause : MonoBehaviour
                     //play the tab select sound
                     SFX_Manager.Instance.PlayMenuSound("Tab Select");
 
-                    tab = (tab == 0) ? 5 : tab - 1;
+                    tab = (tab == 0) ? 6 : tab - 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
                     SpellGlossaryButtonAnimation(backPage, new Vector2(-1342.1f, 527.9f));
@@ -620,7 +620,7 @@ public class Pause : MonoBehaviour
                     //play the tab select sound
                     SFX_Manager.Instance.PlayMenuSound("Tab Select");
 
-                    tab = (tab == 5) ? 0 : tab + 1;
+                    tab = (tab == 6) ? 0 : tab + 1;
                     SpellGlossaryNewTab();
                     SpellSelectBorderAnimation(spellGlossaryPanel[tab].GetComponent<RectTransform>(), 1f);
                     SpellGlossaryButtonAnimation(nextPage, new Vector2(-999f, 527.9f));
@@ -1090,7 +1090,7 @@ public class Pause : MonoBehaviour
  
         Brand[] brandPerColumn = { Brand.None, Brand.None, Brand.DemonX, Brand.BigStox, Brand.Killeez, Brand.VWave, Brand.DarkWeb };
  
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 7; i++)
         {
             grid[i] = new Column();
  

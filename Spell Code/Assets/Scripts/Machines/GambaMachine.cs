@@ -564,7 +564,7 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
                         SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah");
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger");
 
                         // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");

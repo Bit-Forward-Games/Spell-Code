@@ -27368,7 +27368,7 @@ MonoBehaviour:
   - {fileID: 4561071593633359099}
   tempUI: {fileID: 6336463642458857690}
   stages:
-  - {fileID: 11400000, guid: e717a4b5cab4271419293947a1ee1d3d, type: 2}
+  - {fileID: 11400000, guid: e5dcbd89f5b59a042bedf2b9686554aa, type: 2}
   - {fileID: 11400000, guid: d2cff6da98cf9a043a49b1bcbda77878, type: 2}
   - {fileID: 11400000, guid: 4251d7be9fa7716409240ff0a02aab2c, type: 2}
   - {fileID: 11400000, guid: cef4da8c70a527846ac5e2755cc36263, type: 2}
@@ -27479,6 +27479,7 @@ MonoBehaviour:
   roundEndedText: {fileID: 4105334084470263883}
   playersChosenSpell: 0
   floppyObjects: []
+  floppyCharacterObjects: []
   p1_choices: []
   p2_choices: []
   p3_choices: []

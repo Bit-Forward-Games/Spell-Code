@@ -6782,6 +6782,14 @@ public class GameManager : MonoBehaviour
                 pauseMenu.Resume();
             }
 
+            // Same reason as the Pause resume above: the round-end panel is parented under
+            // pfb_GameManager, not under TempUI, and TempUIScript.Update is the only thing that
+            // takes it down. A guest reaches the End screen straight from the host's End packet
+            // without GameEnd ever running locally, so Update never got a frame with roundOver
+            // cleared before this deactivation -- leaving the round-end panel covering the game
+            // end screen. Close it explicitly instead of relying on winning that race.
+            tempUI.HideRoundEndUI();
+
             tempUI.gameObject.SetActive(false);
         }
 

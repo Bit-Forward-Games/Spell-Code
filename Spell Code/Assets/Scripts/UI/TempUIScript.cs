@@ -695,11 +695,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         else if (!GameManager.Instance.roundOver)
         {
             roundWinCounterUpdated = false;
-            roundEndUI.SetActive(false);
-            for (int i = 0; i < GameManager.Instance.playerCount; i++)
-            {
-                winnerPanel[i].gameObject.SetActive(false);
-            }
+            HideRoundEndUI();
         }
 
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -717,6 +713,34 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     }
 
     public bool roundWinCounterUpdated;
+
+    /// <summary>
+    /// Takes the round-end panel down. Update normally does this when roundOver clears, but the
+    /// panel lives under pfb_GameManager rather than under TempUI -- so once TempUI is deactivated
+    /// (which the End scene does) this Update stops running and the panel is stranded on screen,
+    /// covering the game end screen. Callable directly so the End-scene teardown can close it
+    /// first, the same way it resumes the Pause menu before deactivating TempUI.
+    /// </summary>
+    public void HideRoundEndUI()
+    {
+        if (roundEndUI != null)
+        {
+            roundEndUI.SetActive(false);
+        }
+
+        if (winnerPanel == null || GameManager.Instance == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < GameManager.Instance.playerCount && i < winnerPanel.Length; i++)
+        {
+            if (winnerPanel[i] != null)
+            {
+                winnerPanel[i].gameObject.SetActive(false);
+            }
+        }
+    }
 
     public void RoundEndUI()
     {

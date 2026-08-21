@@ -63,6 +63,7 @@ public class GambaMachine : MonoBehaviour
     private static readonly string infiniteRollsLabel = char.ConvertFromUtf32(0x221E);
 
     public GameObject floppy;
+    public GameObject characterFloppy;
     public Vector2[] diskLocations;
     public Vector2[] tutorialLocs;
     public Vector2[] trainingLocs;
@@ -189,10 +190,96 @@ public class GambaMachine : MonoBehaviour
                     }
                 }
 
-                //Fighter-Showdown functionality
+                //Showdown functionality
                 if (gameManager.gamemode == GameManager.Gamemode.Fighter)
                 {
+                    //delete other options after selecting one
+                    if (ownerPlayer.spellList.Count > 0)
+                    {
+                        isActive = false;
 
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                            activatedCount = 3;
+                        }
+
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                            activatedCount = 3;
+                        }
+                    }
+
+                        if (isActive && CheckHitboxCollision())
+                    {
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("Hitbox collision detected!");
+                        if (SteamManager.DebugToolsEnabled) Debug.Log("SHOP GAMBA");
+
+                        //play the gamba hit sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.GAMBA_HIT, 1.0f, 1.0f);
+
+                        //play the floppy arc sfx
+                        SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_ARC, 1.0f, 1.0f);
+
+                        //play the floppy spawn sfx after a 0.5 second delay
+                        SFX_Manager.Instance.WaitThenPlaySound(0.5f, Sounds.FLOPPY_SPAWN, 1.0f, 1.0f);
+
+                        isActive = false;
+                        resetTimer = 0;
+
+                        //Clear inventory, then spawn 6 random floppys, passive rules still apply
+                        if (ownerPID == 1)
+                        {
+                            foreach (GameObject flop in p1_floppys) { Destroy(flop); }
+                            p1_floppys.Clear();
+                            SpawnCharacterDisk(ownerPID, diskLocations[0], startingSpellPos);
+                            SpawnCharacterDisk(ownerPID, diskLocations[2], startingSpellPos + 1);
+                        }
+                        if (ownerPID == 2)
+                        {
+                            foreach (GameObject flop in p2_floppys) { Destroy(flop); }
+                            p2_floppys.Clear();
+                            SpawnCharacterDisk(ownerPID, diskLocations[3], startingSpellPos);
+                            SpawnCharacterDisk(ownerPID, diskLocations[5], startingSpellPos + 1);
+                        }
+                        if (ownerPID == 3)
+                        {
+                            foreach (GameObject flop in p3_floppys) { Destroy(flop); }
+                            p3_floppys.Clear();
+                            SpawnCharacterDisk(ownerPID, diskLocations[8], startingSpellPos);
+                            SpawnCharacterDisk(ownerPID, diskLocations[6], startingSpellPos + 1);
+                        }
+                        if (ownerPID == 4)
+                        {
+                            foreach (GameObject flop in p4_floppys) { Destroy(flop); }
+                            p4_floppys.Clear();
+                            SpawnCharacterDisk(ownerPID, diskLocations[9], startingSpellPos);
+                            SpawnCharacterDisk(ownerPID, diskLocations[11], startingSpellPos + 1);
+                        }
+
+                        startingSpellPos += 2;
+                        if (startingSpellPos > 7)
+                        {
+                            startingSpellPos = 0;
+                        }
+                    }
                 }
 
                 //Chaos functionality
@@ -806,11 +893,17 @@ public class GambaMachine : MonoBehaviour
 
         resetTimer = 0;
         activatedCount = 0;
-
-        if (ownerPID == 1) { startingSpellPos = 0; }
-        if (ownerPID == 2) { startingSpellPos = 1; }
-        if (ownerPID == 3) { startingSpellPos = 2; }
-        if (ownerPID == 4) { startingSpellPos = 3; }
+        if (gameManager.gamemode == GameManager.Gamemode.Fighter)
+        {
+            startingSpellPos = 0;
+        }
+        else
+        {
+            if (ownerPID == 1) { startingSpellPos = 0; }
+            if (ownerPID == 2) { startingSpellPos = 1; }
+            if (ownerPID == 3) { startingSpellPos = 2; }
+            if (ownerPID == 4) { startingSpellPos = 3; }
+        }
 
         ClearFloppysForPID(ownerPID);
         
@@ -1250,6 +1343,77 @@ public class GambaMachine : MonoBehaviour
                 spells.Remove(diskInfo.diskName);
             }
         }
+    }
+
+    public GameObject SpawnCharacterDisk(int ownerPID, Vector2 location, int CharacterID, bool playVfx = true, bool logChoice = true)
+    {
+        List<GameObject> floppys = new List<GameObject>();
+
+        GameObject disk = Instantiate(characterFloppy, location, Quaternion.identity);
+        FloppyPickup_Character info = disk.GetComponent<FloppyPickup_Character>();
+        info.SetCharacter(CharacterID);
+        string[] spellcodes = info.setList;
+        disk.transform.position = new Vector3(disk.transform.position.x, disk.transform.position.y, -1);
+        info.diskName = spellcodes[0];
+        info.ownerPID = ownerPID;
+        floppys.Add(disk);
+        if (floppys.Count > 1)
+        {
+            Destroy(disk);
+        }
+
+        //toggle the floppy off, wait a delay, then toggle it back on so that it spawns as the floppy spawn arc vfx ends
+        ToggleFloppyAfterDelay(disk, 0.5f);
+
+        //play the floppy disk VFX depending on the disk brand
+        if (playVfx)
+        {
+            switch (SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0])
+            {
+                case Brand.VWave:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+                case Brand.DemonX:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DEMONX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+                case Brand.Killeez:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.KILLEEZ_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+                case Brand.BigStox:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.BIGSTOX_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+                case Brand.DarkWeb:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.DARKWEB_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+                default:
+                    VFX_Manager.Instance.PlayTrailVisualEffect(VisualEffects.VWAVE_FLOPPY_ARC, this.gameObject.transform.position, location, 60f, 0.5f, ownerPID, SpellDictionary.Instance.spellDict[spellcodes[1]].brands[0]);
+                    break;
+            }
+        }
+
+        if (ownerPID == 1)
+        {
+            p1_floppys.Add(disk);
+            if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p1_floppys.IndexOf(disk) + ": " + info.diskName);
+        }
+
+        if (ownerPID == 2)
+        {
+            p2_floppys.Add(disk);
+            if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p2_floppys.IndexOf(disk) + ": " + info.diskName);
+        }
+        if (ownerPID == 3)
+        {
+            p3_floppys.Add(disk);
+            if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p3_floppys.IndexOf(disk) + ": " + info.diskName);
+        }
+        if (ownerPID == 4)
+        {
+            p4_floppys.Add(disk);
+            if (logChoice) Debug.Log("Player #" + ownerPID + ", Choice #" + p4_floppys.IndexOf(disk) + ": " + info.diskName);
+        }
+
+        return disk;
     }
 
     public GameObject SpawnFloppyDisk(int ownerPID, Vector2 location, string name = "", bool playVfx = true, bool logChoice = true)

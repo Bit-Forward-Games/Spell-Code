@@ -162,6 +162,7 @@ public class GameManager : MonoBehaviour
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
     public GameObject[] floppyObjects;
+    public GameObject[] floppyCharacterObjects;
     private bool pendingOnlineFloppySnapshot;
     private string pendingOnlineFloppySnapshotReason;
 

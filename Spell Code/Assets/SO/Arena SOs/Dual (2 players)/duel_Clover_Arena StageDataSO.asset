@@ -17,8 +17,6 @@ MonoBehaviour:
   platformExtent:
   - {x: 80, y: 2}
   solidCenter:
-  - {x: 0, y: -160}
-  - {x: 0, y: 160}
   - {x: -248, y: 0}
   - {x: 248, y: 0}
   - {x: 232, y: -16}
@@ -28,8 +26,6 @@ MonoBehaviour:
   - {x: 288, y: 0}
   - {x: -288, y: 0}
   solidExtent:
-  - {x: 16, y: 64}
-  - {x: 16, y: 64}
   - {x: 136, y: 32}
   - {x: 136, y: 32}
   - {x: 152, y: 16}
@@ -59,4 +55,4 @@ MonoBehaviour:
   borderType: 0
   stageType: 1
   dynamicCamera: 1
-  stageName: Clover
+  stageName: 

@@ -16,7 +16,7 @@ public class TouchOfMidas : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.ActiveOnHit, ProcCondition.OnHit, ProcCondition.OnUpdate, ProcCondition.OnCrit};
         projectilePrefabs = new GameObject[1];
-        description = "Hitting this Spellcode turns the opponent into gold, causing all your attacks to Crit<sprite name=\"StockStability\"> against this opponent. The duration of this effect is determined by your Reps<sprite name=\"Reps\">. All Crits<sprite name=\"StockStability\"> grant 1 Rep<sprite name=\"Reps\">";
+        description = "Hitting this Spellcode turns the opponent into gold, causing all your attacks to Crit<sprite name=\"StockStability\"> against this opponent. The duration of this effect is determined by your Reps<sprite name=\"Reps\">. All Crits<sprite name=\"StockStability\"> grant 1 Rep<sprite name=\"Reps\">.";
         spawnOffsetX = 32;
     }
 

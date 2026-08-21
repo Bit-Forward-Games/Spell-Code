@@ -6,22 +6,23 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class ChainsOfThanatosMark_prj : BaseProjectile
+public class DemonTriggerAura_prj : BaseProjectile
 {
     
     protected override void InitializeDefaults()
     {
-        projName = "Chains Of Thanatos Mark";
+        projName = "Demon Trigger Aura";
         lifeSpan = 65535;
+        meleeProjectile = true;
         fadeOut = true;
         fadeIn = true;
         deleteOnHurt = true;
-        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4, 4, 4, 4, 4}, true);
+        animFrames = new AnimFrames(new List<int>(), new List<int>(){ 4, 4, 4, 4}, true);
     }
     
     public override void SpawnProjectile(bool facingRight, FixedVec2 spawnOffset, string nameOverride = "", bool useAbsolutePosition = false)
     {
-        base.SpawnProjectile(facingRight, spawnOffset, "Chains Of Thanatos Mark");
+        base.SpawnProjectile(facingRight, spawnOffset, "Demon Trigger Aura");
         activeHitboxGroupIndex = 0;
     }
     public override void LoadProjectile()

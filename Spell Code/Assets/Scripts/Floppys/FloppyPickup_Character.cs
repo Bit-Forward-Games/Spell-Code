@@ -30,12 +30,12 @@ public class FloppyPickup_Character : MonoBehaviour
     }
 
     public Moveset moveset;
-    public string[] setList = new string[6];
+    public string[] setList = new string[7];
 
     public Animator diskAnimator;
     //Bounds diskBounds;
     public string diskName;
-    public SpellFloppyDisplay diskDisplay;
+    public SpellFloppyDisplay_Character diskDisplay;
     public PlayerController overlappingPlayer = null;
     private SpriteRenderer sprite;
     public int ownerPID;
@@ -55,48 +55,27 @@ public class FloppyPickup_Character : MonoBehaviour
     {
         diskAnimator = GetComponent<Animator>();
         GameManager.Instance.FindAllFloppyDisks();
-        diskDisplay.GetComponent<SpellFloppyDisplay>().SetSpellFloppyDisplay(diskName);
+        diskDisplay.GetComponent<SpellFloppyDisplay_Character>().SetSpellFloppyDisplay(setList);
         sprite = GetComponent<SpriteRenderer>();
-        // for (int i = 0; i < SpellDictionary.Instance.spellDict[diskName].brands.Length; i++)
-        // {
-        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.VWave)
-        //     {
-        //         diskAnimator.Play("FloppySpin");
-        //     }
-        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.Killeez)
-        //     {
-        //         diskAnimator.Play("FloppySpinKilleez");
-        //     }
-        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DemonX)
-        //     {
-        //         diskAnimator.Play("FloppySpinDemonX");
-        //     }
-        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.BigStox)
-        //     {
-        //         diskAnimator.Play("FloppySpinBigStox");
-        //     }
-        //     if (SpellDictionary.Instance.spellDict[diskName].brands[i] == Brand.DarkWeb)
-        //     {
-        //         diskAnimator.Play("FloppySpinDarkWeb");
-        //     }
-        // }
-        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.VWave)
+        diskName = setList[0];
+
+        if (SpellDictionary.Instance.spellDict[setList[1]].brands[0] == Brand.VWave)
         {
             diskAnimator.Play("FloppySpin");
         }
-        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.Killeez)
+        if (SpellDictionary.Instance.spellDict[setList[1]].brands[0] == Brand.Killeez)
         {
             diskAnimator.Play("FloppySpinKilleez");
         }
-        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DemonX)
+        if (SpellDictionary.Instance.spellDict[setList[1]].brands[0] == Brand.DemonX)
         {
             diskAnimator.Play("FloppySpinDemonX");
         }
-        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.BigStox)
+        if (SpellDictionary.Instance.spellDict[setList[1]].brands[0] == Brand.BigStox)
         {
             diskAnimator.Play("FloppySpinBigStox");
         }
-        if (SpellDictionary.Instance.spellDict[diskName].brands[0] == Brand.DarkWeb)
+        if (SpellDictionary.Instance.spellDict[setList[1]].brands[0] == Brand.DarkWeb)
         {
             diskAnimator.Play("FloppySpinDarkWeb");
         }
@@ -126,7 +105,7 @@ public class FloppyPickup_Character : MonoBehaviour
             {
                 if (selectHoldCounter == timeToFill)
                 {
-                    diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
+                    //diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
                 }
                 if (overlappingPlayer.input.ButtonStates[0] == ButtonState.Held)
                 {
@@ -136,15 +115,19 @@ public class FloppyPickup_Character : MonoBehaviour
                 {
                     if (selectHoldCounter < timeToFill)
                     {
-                        if (overlappingPlayer.AddSpellToSpellList(diskName))
+                        if (overlappingPlayer.AddSpellToSpellList(setList[1]))
                         {
                             Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
+                            for (int i = 2; i < setList.Count(); i++)
+                            {
+                                overlappingPlayer.AddSpellToSpellList(setList[i]);
+                            }
 
                             //play the floppy pick up sfx
                             SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
 
                             //play the appropriate floppy pick up vfx
-                            switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                            switch (SpellDictionary.Instance.spellDict[setList[1]].brands[0])
                             {
                                 case Brand.VWave:
                                     VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
@@ -223,10 +206,10 @@ public class FloppyPickup_Character : MonoBehaviour
                 inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
             }
 
-            if (isRealFrame && selectHoldCounter == timeToFill)
-            {
-                diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
-            }
+            //if (isRealFrame && selectHoldCounter == timeToFill)
+            //{
+            //    diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
+            //}
 
             if (inputSnapshot.ButtonStates[0] == ButtonState.Held)
             {
@@ -242,7 +225,7 @@ public class FloppyPickup_Character : MonoBehaviour
                         return;
                     }
 
-                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    if (overlappingPlayer.AddSpellToSpellList(setList[1]))
                     {
                         if (SceneManager.GetActiveScene().name == "Shop")
                         {
@@ -260,7 +243,7 @@ public class FloppyPickup_Character : MonoBehaviour
                                 SFX_Manager.Instance.PlaySound(Sounds.FLOPPY_PICK_UP, 1.0f, 1.0f);
 
                                 //play the appropriate floppy pick up vfx
-                                switch (SpellDictionary.Instance.spellDict[diskName].brands[0])
+                                switch (SpellDictionary.Instance.spellDict[setList[1]].brands[0])
                                 {
                                     case Brand.VWave:
                                         VFX_Manager.Instance.PlayVisualEffect(VisualEffects.VWAVE_FLOPPY_PICKUP, new FixedVec2(Fixed.FromFloat(this.gameObject.transform.position.x), Fixed.FromFloat(this.gameObject.transform.position.y)), ownerPID);
@@ -346,18 +329,18 @@ public class FloppyPickup_Character : MonoBehaviour
         selectHoldCounter = value;
     }
 
-    public bool IsDescriptionVisible()
-    {
-        return diskDisplay != null && diskDisplay.showDesc;
-    }
+    //public bool IsDescriptionVisible()
+    //{
+    //    return diskDisplay != null && diskDisplay.showDesc;
+    //}
 
-    public void SetDescriptionVisible(bool visible, bool animate)
-    {
-        if (diskDisplay != null)
-        {
-            diskDisplay.SetDescriptionVisible(visible, animate);
-        }
-    }
+    //public void SetDescriptionVisible(bool visible, bool animate)
+    //{
+    //    if (diskDisplay != null)
+    //    {
+    //        diskDisplay.SetDescriptionVisible(visible, animate);
+    //    }
+    //}
 
     private float GetFillPercent()
     {
@@ -412,76 +395,76 @@ public class FloppyPickup_Character : MonoBehaviour
         switch (moveset)
         {
             case Moveset.DemonX_1:
-                diskName = "DemonX_1";
-                setList[0] = "Amon Slash";
-                setList[1] = "Asuran Blades";
-                setList[2] = "Bifrons Blade";
-                setList[3] = "Abaddon Uppercut";
-                setList[4] = "Hell-Chain Sweep";
-                setList[5] = "Demonic Descent";
+                setList[0] = "DemonX_1";
+                setList[1] = "Amon Slash";
+                setList[2] = "Asuran Blades";
+                setList[3] = "Bifrons Blade";
+                setList[4] = "Abaddon Uppercut";
+                setList[5] = "Hell-Chain Sweep";
+                setList[6] = "Demonic Descent";
                 return setList;
             case Moveset.DemonX_2:
-                diskName = "DemonX_2";
-                setList[0] = "Rip And Tear";
-                setList[1] = "Jigoku Flash Step";
-                setList[2] = "Hell Wave Fist";
-                setList[3] = "Brimstone Cyclone Kick";
-                setList[4] = "Hellish Riposte";
-                setList[5] = "Combo Demon";
+                setList[0] = "DemonX_2";
+                setList[1] = "Rip And Tear";
+                setList[2] = "Jigoku Flash Step";
+                setList[3] = "Hell Wave Fist";
+                setList[4] = "Brimstone Cyclone Kick";
+                setList[5] = "Hellish Riposte";
+                setList[6] = "Combo Demon";
                 return setList;
             case Moveset.BigStox_1:
-                diskName = "BigStox_1";
-                setList[0] = "Use The Card";
-                setList[1] = "Quarter Report";
-                setList[2] = "Coin Toss";
-                setList[3] = "Get A Job";
-                setList[4] = "Blue Chip Trader";
-                setList[5] = "Let It Ride";
+                setList[0] = "BigStox_1";
+                setList[1] = "Use The Card";
+                setList[2] = "Quarter Report";
+                setList[3] = "Coin Toss";
+                setList[4] = "Get A Job";
+                setList[5] = "Blue Chip Trader";
+                setList[6] = "Let It Ride";
                 return setList;
             case Moveset.BigStox_2:
-                diskName = "BigStox_2";
-                setList[0] = "Cash Out";
-                setList[1] = "Bailout";
-                setList[2] = "Loaded Dice";
-                setList[3] = "Trap Card Trick";
-                setList[4] = "Lucky Break";
-                setList[5] = "Hot Streak";
+                setList[0] = "BigStox_2";
+                setList[1] = "Cash Out";
+                setList[2] = "Bailout";
+                setList[3] = "Loaded Dice";
+                setList[4] = "Trap Card Trick";
+                setList[5] = "Lucky Break";
+                setList[6] = "Hot Streak";
                 return setList;
             case Moveset.Killeez_1:
-                diskName = "Killeez_1";
-                setList[0] = "Blade Of Ares";
-                setList[1] = "Might Of Zeus";
-                setList[2] = "Sun Of Apollo";
-                setList[3] = "Trident Of Poseidon";
-                setList[4] = "Boots Of Hermes";
-                setList[5] = "Rod Of Asclepius";
+                setList[0] = "Killeez_1";
+                setList[1] = "Blade Of Ares";
+                setList[2] = "Might Of Zeus";
+                setList[3] = "Sun Of Apollo";
+                setList[4] = "Trident Of Poseidon";
+                setList[5] = "Boots Of Hermes";
+                setList[6] = "Rod Of Asclepius";
                 return setList;
             case Moveset.Killeez_2:
-                diskName = "Killeez_2";
-                setList[0] = "Gift Of Prometheus";
-                setList[1] = "Hourglass Of Chronos";
-                setList[2] = "Helm Of Hades";
-                setList[3] = "Armory Of Hephaestus";
-                setList[4] = "Aegis Of Athena";
-                setList[5] = "Quiver Of Artemis";
+                setList[0] = "Killeez_2";
+                setList[1] = "Gift Of Prometheus";
+                setList[2] = "Hourglass Of Chronos";
+                setList[3] = "Helm Of Hades";
+                setList[4] = "Armory Of Hephaestus";
+                setList[5] = "Aegis Of Athena";
+                setList[6] = "Quiver Of Artemis";
                 return setList;
             case Moveset.VWave_1:
-                diskName = "VWave_1";
-                setList[0] = "Skillshot Slash";
-                setList[1] = "Reload Shot";
-                setList[2] = "Pong Shot";
-                setList[3] = "Trickshot Alley";
-                setList[4] = "Mine Crafter";
-                setList[5] = "No-Scope Shot";
+                setList[0] = "VWave_1";
+                setList[1] = "Skillshot Slash";
+                setList[2] = "Reload Shot";
+                setList[3] = "Pong Shot";
+                setList[4] = "Trickshot Alley";
+                setList[5] = "Mine Crafter";
+                setList[6] = "No-Scope Shot";
                 return setList;
             case Moveset.Vwave_2:
-                diskName = "Vwave_2";
-                setList[0] = "Shot Reflector";
-                setList[1] = "Tele-Frag Prism";
-                setList[2] = "Get Over Here";
-                setList[3] = "Sickle Of The Night";
-                setList[4] = "Crossmap Clip";
-                setList[5] = "Back To Basics";
+                setList[0] = "Vwave_2";
+                setList[1] = "Shot Reflector";
+                setList[2] = "Tele-Frag Prism";
+                setList[3] = "Get Over Here";
+                setList[4] = "Sickle Of The Night";
+                setList[5] = "Crossmap Clip";
+                setList[6] = "Back To Basics";
                 return setList;
             default:
                 return setList;

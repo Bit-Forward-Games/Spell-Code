@@ -183,6 +183,9 @@ MonoBehaviour:
   machineID: 0
   spells: []
   p1_floppys: []
+  p2_floppys: []
+  p3_floppys: []
+  p4_floppys: []
   hurtbox:
     xOffset: 0
     yOffset: 0
@@ -191,7 +194,9 @@ MonoBehaviour:
   colliderRadius: 16
   resetTimer: 0
   activatedCount: 0
+  chaosRollGeneration: 0
   floppy: {fileID: 2806504647812706647, guid: 2a5b19df33862834294e45f69628e494, type: 3}
+  characterFloppy: {fileID: 3772563110749952917, guid: d981d032fbea1514fb067694576a51a5, type: 3}
   diskLocations:
   - {x: -207, y: 97}
   - {x: -143, y: 97}

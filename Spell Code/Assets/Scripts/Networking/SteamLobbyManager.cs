@@ -61,7 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-50"; // scz-50: new spell Demon Trigger (appended as spell 57 / projectiles 80-85), and the Clover arena lost two collision solids (solidCenter/solidExtent at x0,y+-160) so its geometry differs from previous build.
+    private const string NetcodeVersion = "scz-51"; // scz-51: Showdown/Fighter now runs online. Gamba spawns character disks in the online lobby path, FloppyPickup_Character now simulates in SimulateOnlineFloppies,
+                                                    // and the floppy savestate gained a trailing isCharacter discriminator byte per disk (wire format change).
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

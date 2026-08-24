@@ -859,6 +859,43 @@ public class GambaMachine : MonoBehaviour
             return;
         }
 
+        if (gameManager.gamemode == GameManager.Gamemode.Fighter)
+        {
+            // Showdown offers two whole characters per roll instead of one starter spell.
+            // No RNG is consumed (the character ids come straight off
+            // startingSpellPos, which is serialized), so this is rollback-safe.
+            // activatedCount is deliberately left alone here, unlike Chaos: Showdown lets the player
+            // keep rerolling characters until they actually pick one, and SimulateOnline caps the
+            // machine at that point via the ownerFinishedLobbySelection branch.
+            if (ownerPID == 1)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[0], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[2], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 2)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[3], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[5], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 3)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[8], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[6], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 4)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[9], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[11], startingSpellPos + 1, playVfx, logChoice);
+            }
+
+            startingSpellPos += 2;
+            if (startingSpellPos > 7)
+            {
+                startingSpellPos = 0;
+            }
+            return;
+        }
+
         if (ownerPID == 1)
         {
             SpawnFloppyDisk(ownerPID, diskLocations[2], startingSpells[startingSpellPos], playVfx, logChoice); //real starter

@@ -227,6 +227,14 @@ public class FloppyPickup_Character : MonoBehaviour
 
                     if (overlappingPlayer.AddSpellToSpellList(setList[1]))
                     {
+                        // Grant the rest of the character's moveset, same as the offline path. This
+                        // is a sim mutation, so it runs on rollback frames too - only the sfx/vfx
+                        // below are gated behind isRealFrame.
+                        for (int i = 2; i < setList.Length; i++)
+                        {
+                            overlappingPlayer.AddSpellToSpellList(setList[i]);
+                        }
+
                         if (SceneManager.GetActiveScene().name == "Shop")
                         {
                             overlappingPlayer.chosenSpell = true;
@@ -329,18 +337,22 @@ public class FloppyPickup_Character : MonoBehaviour
         selectHoldCounter = value;
     }
 
-    //public bool IsDescriptionVisible()
-    //{
-    //    return diskDisplay != null && diskDisplay.showDesc;
-    //}
+    /// <summary>
+    /// Maps a saved diskName back to the character id it was spawned with. setList[0] is written as
+    /// the Moveset enum name precisely so this round-trips after a rollback destroys and respawns
+    /// the disk.
+    /// </summary>
+    public static bool TryParseCharacterId(string diskName, out int characterId)
+    {
+        if (!string.IsNullOrEmpty(diskName) && Enum.TryParse(diskName, out Moveset moveset))
+        {
+            characterId = (int)moveset;
+            return true;
+        }
 
-    //public void SetDescriptionVisible(bool visible, bool animate)
-    //{
-    //    if (diskDisplay != null)
-    //    {
-    //        diskDisplay.SetDescriptionVisible(visible, animate);
-    //    }
-    //}
+        characterId = -1;
+        return false;
+    }
 
     private float GetFillPercent()
     {

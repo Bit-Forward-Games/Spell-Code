@@ -941,6 +941,11 @@ public class Pause : MonoBehaviour
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
+
+    public void ConfirmationWindow()
+    {
+        
+    }
  
     public void Options()
     {

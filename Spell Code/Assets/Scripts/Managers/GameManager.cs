@@ -574,9 +574,21 @@ public class GameManager : MonoBehaviour
             Scene activeScene = SceneManager.GetActiveScene();
             // Modal menus freeze the sim (timeScale = 0 stops FixedUpdate), but PlayerInputManager
             // listens for join presses on unscaled input from Update — without this gate a new
-            // player could join the lobby while someone has the game paused.
-            gameObject.GetComponent<PlayerInputManager>().enabled =
-                (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby") && !IsModalMenuOpen();
+            // player could join the lobby while someone has the game paused. Attract mode owns
+            // that input too: its dismissing press must not also join P1 and hide the title.
+            bool attractOwnsSoloLobbyInput = activeScene.name == "SoloLobby"
+                && SoloManager.IsBlockingPause;
+            if (attractOwnsSoloLobbyInput)
+            {
+                BlockPlayerJoiningForAttractMode();
+            }
+            else
+            {
+                gameObject.GetComponent<PlayerInputManager>().enabled =
+                    (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+                    && !IsModalMenuOpen()
+                    && !(activeScene.name == "SoloLobby" && playerCount >= 1);
+            }
             SetNetworkInfoVisible(false);
         }
         else
@@ -703,6 +715,22 @@ public class GameManager : MonoBehaviour
             SteamAchievements.ResetAllForTesting();
         }
     }
+
+    /// <summary>
+    /// Stops PlayerInputManager before attract mode's dismissing input is dispatched. The normal
+    /// SoloLobby frame loop restores joining after SoloManager releases its input block.
+    /// </summary>
+    public void BlockPlayerJoiningForAttractMode()
+    {
+        if (isOnlineMatchActive || playerInputManager == null)
+        {
+            return;
+        }
+
+        playerInputManager.DisableJoining();
+        playerInputManager.enabled = false;
+    }
+
     public void loadMainMenu()
     {
         sceneManager.LoadScene("MainMenu");
@@ -4013,7 +4041,10 @@ public class GameManager : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            if (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+            bool attractOwnsSoloLobbyInput = activeScene.name == "SoloLobby"
+                && SoloManager.IsBlockingPause;
+            if ((activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+                && !attractOwnsSoloLobbyInput)
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();

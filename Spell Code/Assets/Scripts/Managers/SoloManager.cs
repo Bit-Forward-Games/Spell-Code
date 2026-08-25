@@ -221,6 +221,14 @@ public class SoloManager : MonoBehaviour
             return false;
         }
 
+        // Attract mode belongs to the press-to-start screen. Once P1 has joined, the player is
+        // already inside the solo lobby; starting the video there would cover active gameplay.
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null && gameManager.playerCount > 0)
+        {
+            return false;
+        }
+
         // A menu that froze time (pause, options, the tutorial prompt) means the player is present.
         if (Time.timeScale == 0f)
         {
@@ -228,6 +236,13 @@ public class SoloManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private bool ShouldPlayVideoAudio()
+    {
+        return playVideoAudio
+            && attractVideo != null
+            && attractVideo.audioTrackCount > 0;
     }
 
     private void StartAttract()
@@ -241,9 +256,12 @@ public class SoloManager : MonoBehaviour
         isPlaying = true;
         idleTimer = 0f;
         attractBlockingPause = true;
+        // PlayerInputManager receives join actions independently of this MonoBehaviour's Update.
+        // Disable it now, before the first input that dismisses attract mode can also join P1.
+        GameManager.Instance?.BlockPlayerJoiningForAttractMode();
         overlayRoot.SetActive(true);
 
-        if (playVideoAudio && !bgmPaused && BGM_Manager.Instance != null)
+        if (ShouldPlayVideoAudio() && !bgmPaused && BGM_Manager.Instance != null)
         {
             BGM_Manager.Instance.PauseSong();
             bgmPaused = true;
@@ -346,8 +364,13 @@ public class SoloManager : MonoBehaviour
 
         Canvas canvas = overlayRoot.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        // Above everything else the game puts on screen, including the transition cover.
-        canvas.sortingOrder = 32760;
+        // MainMenuScreen is authored on the UI sorting layer at order 32766. The old attract
+        // canvas used the Default layer at 32760, so the video played invisibly behind the title
+        // screen and appeared for only the one frame where Escape hid that screen. Put this root
+        // at the absolute front of the same UI layer.
+        canvas.overrideSorting = true;
+        canvas.sortingLayerName = "UI";
+        canvas.sortingOrder = short.MaxValue;
 
         CanvasScaler scaler = overlayRoot.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -379,10 +402,16 @@ public class SoloManager : MonoBehaviour
         videoPlayer = video.AddComponent<VideoPlayer>();
         videoPlayer.playOnAwake = false;
         videoPlayer.waitForFirstFrame = true;
-        videoPlayer.skipOnDrop = true;
+        // Preserve every frame. This matches SpellVideoPlayer and avoids making a low/VFR source
+        // look even choppier by dropping frames whenever the decoder briefly falls behind.
+        videoPlayer.skipOnDrop = false;
         videoPlayer.isLooping = loopVideo;
         videoPlayer.renderMode = VideoRenderMode.APIOnly;
-        videoPlayer.audioOutputMode = playVideoAudio ? VideoAudioOutputMode.Direct : VideoAudioOutputMode.None;
+        // Silent clips should leave the lobby BGM alone instead of making a held final frame feel
+        // like the whole game froze.
+        videoPlayer.audioOutputMode = ShouldPlayVideoAudio()
+            ? VideoAudioOutputMode.Direct
+            : VideoAudioOutputMode.None;
         videoPlayer.clip = attractVideo;
 
         if (!videoEventsRegistered)

@@ -148,6 +148,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fac0977aec77ffe4492394014d7109a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoloManager
+  idleSecondsBeforeVideo: 30
+  attractVideo: {fileID: 0}
+  loopVideo: 1
+  playVideoAudio: 1
+  fadeSeconds: 0.4
+  stickDeadzone: 0.35
 --- !u!4 &445811631
 Transform:
   m_ObjectHideFlags: 0

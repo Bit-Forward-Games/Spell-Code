@@ -3068,7 +3068,15 @@ public class GameManager : MonoBehaviour
         }
         if (winCon == WinCon.Elimination)
         {
-            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
+            if (roundLives < 3)
+            {
+                roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
+            }
+
+            if (roundLives >= 3)
+            {
+                roundLives = 3;
+            }
         }
         onlineRoundAdvanceApplied = true;
     }

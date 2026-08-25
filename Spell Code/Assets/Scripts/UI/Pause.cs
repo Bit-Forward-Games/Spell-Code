@@ -47,6 +47,7 @@ public class Pause : MonoBehaviour
     private bool settingsLoaded;
  
     public GameObject _pauseMenuFirst;
+    public GameObject _confirmationMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
     public GameObject _volumeMenuFirst;
@@ -147,6 +148,7 @@ public class Pause : MonoBehaviour
     public int displayIndex;
     public TextMeshProUGUI resolutionOptionString;
     public TextMeshProUGUI displayOptionString;
+    public RectTransform confirmationWindow;
     
     [System.Serializable]
     public class Column
@@ -801,6 +803,7 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
+        confirmationWindow.gameObject.SetActive(false);
         RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
@@ -942,9 +945,31 @@ public class Pause : MonoBehaviour
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
 
-    public void ConfirmationWindow()
+    private int window;
+
+    public void OpenConfirmationWindow(int windowIndex)
     {
-        
+        confirmationWindow.gameObject.SetActive(true);
+        pausemenu.SetActive(false);
+        StartCoroutine(SelectFirst(_confirmationMenuFirst));
+
+        window = windowIndex;
+    }
+
+    public void CloseConfirmationWindow()
+    {
+        confirmationWindow.gameObject.SetActive(false);
+        pausemenu.SetActive(true);
+    }
+
+    public void PressedConfirm()
+    {
+        CloseConfirmationWindow();
+
+        if (window == 0)
+            ReturnToLobby();
+        else if (window == 1)
+            QuitGame();
     }
  
     public void Options()

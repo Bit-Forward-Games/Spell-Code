@@ -913,6 +913,8 @@ public class Pause : MonoBehaviour
             SFX_Manager.Instance.PlayMenuSound("Pause");
         }
 
+        PauseMenuAnimation(true);
+
         paused = true;
         options = false;
         controls = false;
@@ -943,6 +945,23 @@ public class Pause : MonoBehaviour
         LoadSettings();
         //menuSfxAudioMixer.SetFloat("MenuSFXVolume", Mathf.Log10(sfxVolumeSlider.value) * 20f);
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
+    }
+
+    public void PauseMenuAnimation(bool menuOpen)
+    {
+        RectTransform pauseMenuRect = pausemenu.GetComponent<RectTransform>();
+        
+        if (menuOpen)
+        {
+            pauseMenuRect.anchoredPosition = new Vector2(858f, 1074f);
+            pauseMenuRect.localRotation = Quaternion.Euler(0, 0, -46.62f);
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.9f).SetEase(Ease.OutBounce).SetUpdate(true);
+            pauseMenuRect.DORotate(new Vector3(0, 0, -8.285f), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
+        }
+        else if (!menuOpen)
+        {
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -1000f), 0.9f).SetEase(Ease.InQuad).SetUpdate(true);
+        }
     }
 
     private int window;

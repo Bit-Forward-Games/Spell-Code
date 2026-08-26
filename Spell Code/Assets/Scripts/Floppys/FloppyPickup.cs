@@ -121,7 +121,7 @@ public class FloppyPickup : MonoBehaviour
                 {
                     if(selectHoldCounter < timeToFill)
                     {
-                        if (overlappingPlayer.AddSpellToSpellList(diskName))
+                        if (overlappingPlayer.AddSpellToSpellList(diskName, fromFloppyPickup: true))
                         {
                             Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
 
@@ -227,7 +227,7 @@ public class FloppyPickup : MonoBehaviour
                         return;
                     }
 
-                    if (overlappingPlayer.AddSpellToSpellList(diskName))
+                    if (overlappingPlayer.AddSpellToSpellList(diskName, fromFloppyPickup: true))
                     {
                         bool isChaosMode = GameManager.Instance != null
                             && GameManager.Instance.gamemode == GameManager.Gamemode.Chaos;

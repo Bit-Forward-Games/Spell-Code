@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -72,6 +72,7 @@ public class GameManager : MonoBehaviour
     public static ushort livesIncreasePerRound = 1;
 
     public static ushort baseEliminationLives = 1;
+    public static ushort maxEliminationLives = 3;
 
     public ushort WinConPointLimit => winCon == WinCon.Elimination
         ? (ushort)Mathf.Max(1, 3)
@@ -3096,15 +3097,7 @@ public class GameManager : MonoBehaviour
         }
         if (winCon == WinCon.Elimination)
         {
-            if (roundLives < 3)
-            {
-                roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
-            }
-
-            if (roundLives >= 3)
-            {
-                roundLives = 3;
-            }
+            roundLives = ComputeEliminationRoundLives(dataManager.totalRoundsPlayed);
         }
         onlineRoundAdvanceApplied = true;
     }
@@ -6349,6 +6342,25 @@ public class GameManager : MonoBehaviour
         onlineInputDevicesDirty = true;
     }
 
+    /// <summary>
+    /// Single source of truth for the Elimination life count.
+    ///
+    /// Two paths write roundLives, ApplyOnlineTotalRoundsPlayed on the online round advance, and
+    /// RefreshRoundWinConPointLimit from OnSceneLoaded (which runs on EVERY scene load, offline and
+    /// online). roundLives is part of the shared gameplay hash, so the cap has to live in the formula
+    /// rather than at one call site: capping in only one path meant the scene load recomputed it
+    /// uncapped and silently undid the cap, and left offline uncapped entirely.
+    ///
+    /// Deliberately a pure function of roundsPlayed. The original cap branched on the CURRENT
+    /// roundLives (`if (roundLives < 3)`), which makes the result depend on prior state and
+    /// therefore on whatever a rollback happened to restore.
+    /// </summary>
+    private static ushort ComputeEliminationRoundLives(int roundsPlayed)
+    {
+        int lives = baseEliminationLives + livesIncreasePerRound * Mathf.Max(0, roundsPlayed);
+        return (ushort)Mathf.Min(lives, maxEliminationLives);
+    }
+
     private void RefreshRoundWinConPointLimit()
     {
         if (dataManager == null)
@@ -6369,7 +6381,7 @@ public class GameManager : MonoBehaviour
         }
         else if (winCon == WinCon.Elimination)
         {
-            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * roundsPlayed);
+            roundLives = ComputeEliminationRoundLives(roundsPlayed);
         }
     }
 

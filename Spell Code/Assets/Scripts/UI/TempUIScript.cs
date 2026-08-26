@@ -1196,7 +1196,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
         // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
-        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened)
+        // A selector can be on screen with its flag already clear, any path that SetActive(true)s
+        // one without going through SetSoloMenuActive/SetMultiplayerMenuActive leaves the two out of
+        // step, and a flags-only check then refuses to clean it up and it survives into the match.
+        // Checked on the three selector panels only, NOT on the shared gamemodesMenu container:
+        // OnlineMenuPanel.EnsureVisibleInHierarchy legitimately switches that container on for the
+        // Friends Lobby / Matchmaking panels, and treating it as stale here would run
+        // CloseGamemodeMenus (which forces timeScale back to 1) out from under a panel that is still
+        // open and deliberately freezing the game.
+        bool anySelectorVisible =
+            (soloGamemodesMenu != null && soloGamemodesMenu.activeSelf)
+            || (multiplayerGamemodesMenu != null && multiplayerGamemodesMenu.activeSelf)
+            || (multiplayerGamemodesChooserMenu != null && multiplayerGamemodesChooserMenu.activeSelf);
+
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened
+            && !anySelectorVisible)
         {
             return;
         }

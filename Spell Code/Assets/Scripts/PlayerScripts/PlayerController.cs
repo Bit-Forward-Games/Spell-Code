@@ -3872,10 +3872,18 @@ public class PlayerController : MonoBehaviour
         if (hitboxData != null && _pendingHitboxOwnerIndex >= 0)
         {
             // Use specific projectile index if available
-            if (_pendingHitboxProjectileIndex >= 0 &&
-                _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count)
+            // projectilePrefabs is append-only, so a retired slot is null and an index that is still
+            // IN RANGE can resolve to nothing. Fall through to the owner search rather than assigning
+            // a null parentProjectile, which only NREs later, inside the resim.
+            BaseProjectile indexedProjectile =
+                _pendingHitboxProjectileIndex >= 0
+                && _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count
+                    ? ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex]
+                    : null;
+
+            if (indexedProjectile != null)
             {
-                hitboxData.parentProjectile = ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex];
+                hitboxData.parentProjectile = indexedProjectile;
             }
             else if (_pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
             {

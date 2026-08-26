@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-53"; // scz-53: Elimination roundLives is now capped (maxEliminationLives=3) in one shared formula used by both writers. roundLives is in the shared gameplay hash,
-                                                    // so old builds computing it uncapped must not pair with new ones.
+    private const string NetcodeVersion = "scz-54"; // scz-54: null-slot guards for the append-only projectile pool. PlayerController.ResolveReferences now falls through to the owner search instead of assigning a null parentProjectile,
+                                                    // which is a rollback-path behaviour change.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

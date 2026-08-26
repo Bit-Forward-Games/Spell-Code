@@ -977,6 +977,8 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
+        CloseConfirmationWindow();
+
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
         ScopeUiInputToPausePlayer();
  
@@ -1003,9 +1005,7 @@ public class Pause : MonoBehaviour
         if (menuOpen)
         {
             pauseMenuRect.anchoredPosition = new Vector2(858f, 1074f);
-            pauseMenuRect.localRotation = Quaternion.Euler(0, 0, -46.62f);
-            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.9f).SetEase(Ease.OutBounce).SetUpdate(true);
-            pauseMenuRect.DORotate(new Vector3(0, 0, -8.285f), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
         }
         else if (!menuOpen)
         {
@@ -1018,7 +1018,11 @@ public class Pause : MonoBehaviour
     public void OpenConfirmationWindow(int windowIndex)
     {
         confirmationWindow.gameObject.SetActive(true);
-        pausemenu.SetActive(false);
+        RectTransform confirmationWindowRect = confirmationWindow.GetComponent<RectTransform>();
+        // pausemenu.SetActive(false);
+        confirmationWindowRect.anchoredPosition = new Vector2(-50.044f, 2000f);
+        confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+        pausemenu.GetComponent<RectTransform>().DOAnchorPos(new Vector2(-50.044f, -2000f), 0.4f).SetEase(Ease.InQuad).SetUpdate(true);
         StartCoroutine(SelectFirst(_confirmationMenuFirst));
 
         window = windowIndex;
@@ -1026,10 +1030,20 @@ public class Pause : MonoBehaviour
 
     public void CloseConfirmationWindow()
     {
-        confirmationWindow.gameObject.SetActive(false);
+        StartCoroutine(CloseConfirmationWindowAnimation());
         pausemenu.SetActive(true);
     }
 
+    public IEnumerator CloseConfirmationWindowAnimation()
+    {
+        RectTransform confirmationWindowRect = confirmationWindow.GetComponent<RectTransform>();
+        // pausemenu.SetActive(false);
+        confirmationWindowRect.anchoredPosition = new Vector2(confirmationWindowRect.anchoredPosition.x, confirmationWindowRect.anchoredPosition.y);
+        confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -2000f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+        yield return new WaitForSeconds(0.4f);
+        confirmationWindow.gameObject.SetActive(false);
+    }
+    
     public void PressedConfirm()
     {
         CloseConfirmationWindow();
@@ -1137,6 +1151,12 @@ public class Pause : MonoBehaviour
 
     public void Controls()
     {
+        RectTransform controlsMenuTransform = controlsMenu.GetComponent<RectTransform>();
+
+        controlsMenuTransform.anchoredPosition  = new Vector2(controlsMenuTransform.anchoredPosition.x, 2500f);
+
+        controlsMenuTransform.DOAnchorPos(new Vector2(controlsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+        
         controls = true;
         options = false;
         pausemenu.SetActive(false);
@@ -1183,6 +1203,16 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+
+        RectTransform spellsMenuRect = spellsMenu.GetComponent<RectTransform>();
+        spellsMenuRect.localScale = new Vector3(0f, 0f, 0f);
+        spellsMenuRect
+            .DOScale(new Vector3(0.5f, 0.5f, 0.5f), 0.35f)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+
+        spellsMenuRect.anchoredPosition = new Vector2(-50.044f, 2000f);
+        spellsMenuRect.DOAnchorPos(new Vector2(0f, 0f), 0.2f).SetEase(Ease.OutBack).SetUpdate(true);
  
         tab = 0;
  

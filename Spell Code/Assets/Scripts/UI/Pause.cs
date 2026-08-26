@@ -47,6 +47,7 @@ public class Pause : MonoBehaviour
     private bool settingsLoaded;
  
     public GameObject _pauseMenuFirst;
+    public GameObject _confirmationMenuFirst;
     public GameObject _optionsMenuFirst;
     public GameObject _controlsMenuFirst;
     public GameObject _volumeMenuFirst;
@@ -147,6 +148,7 @@ public class Pause : MonoBehaviour
     public int displayIndex;
     public TextMeshProUGUI resolutionOptionString;
     public TextMeshProUGUI displayOptionString;
+    public RectTransform confirmationWindow;
     
     [System.Serializable]
     public class Column
@@ -801,6 +803,7 @@ public class Pause : MonoBehaviour
         displayMenu.SetActive(false);
         darkPanel.SetActive(false);
         spellsMenu.SetActive(false);
+        confirmationWindow.gameObject.SetActive(false);
         RestoreUiInputDevices();
  
         EventSystem.current.SetSelectedGameObject(null);
@@ -910,6 +913,8 @@ public class Pause : MonoBehaviour
             SFX_Manager.Instance.PlayMenuSound("Pause");
         }
 
+        PauseMenuAnimation(true);
+
         paused = true;
         options = false;
         controls = false;
@@ -942,9 +947,48 @@ public class Pause : MonoBehaviour
         //sfxAudioMixer.SetFloat("SFXVolume", Mathf.Log10(0.00001f) * 20f);
     }
 
-    public void ConfirmationWindow()
+    public void PauseMenuAnimation(bool menuOpen)
     {
+        RectTransform pauseMenuRect = pausemenu.GetComponent<RectTransform>();
         
+        if (menuOpen)
+        {
+            pauseMenuRect.anchoredPosition = new Vector2(858f, 1074f);
+            pauseMenuRect.localRotation = Quaternion.Euler(0, 0, -46.62f);
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.9f).SetEase(Ease.OutBounce).SetUpdate(true);
+            pauseMenuRect.DORotate(new Vector3(0, 0, -8.285f), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
+        }
+        else if (!menuOpen)
+        {
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -1000f), 0.9f).SetEase(Ease.InQuad).SetUpdate(true);
+        }
+    }
+
+    private int window;
+
+    public void OpenConfirmationWindow(int windowIndex)
+    {
+        confirmationWindow.gameObject.SetActive(true);
+        pausemenu.SetActive(false);
+        StartCoroutine(SelectFirst(_confirmationMenuFirst));
+
+        window = windowIndex;
+    }
+
+    public void CloseConfirmationWindow()
+    {
+        confirmationWindow.gameObject.SetActive(false);
+        pausemenu.SetActive(true);
+    }
+
+    public void PressedConfirm()
+    {
+        CloseConfirmationWindow();
+
+        if (window == 0)
+            ReturnToLobby();
+        else if (window == 1)
+            QuitGame();
     }
  
     public void Options()

@@ -115,12 +115,12 @@ public class FloppyPickup_Character : MonoBehaviour
                 {
                     if (selectHoldCounter < timeToFill)
                     {
-                        if (overlappingPlayer.AddSpellToSpellList(setList[1]))
+                        if (overlappingPlayer.AddSpellToSpellList(setList[1], fromFloppyPickup: true))
                         {
                             Debug.Log("Player " + ownerPID + " has acquired: " + diskName);
                             for (int i = 2; i < setList.Count(); i++)
                             {
-                                overlappingPlayer.AddSpellToSpellList(setList[i]);
+                                overlappingPlayer.AddSpellToSpellList(setList[i], fromFloppyPickup: true);
                             }
 
                             //play the floppy pick up sfx
@@ -225,8 +225,16 @@ public class FloppyPickup_Character : MonoBehaviour
                         return;
                     }
 
-                    if (overlappingPlayer.AddSpellToSpellList(setList[1]))
+                    if (overlappingPlayer.AddSpellToSpellList(setList[1], fromFloppyPickup: true))
                     {
+                        // Grant the rest of the character's moveset, same as the offline path. This
+                        // is a sim mutation, so it runs on rollback frames too - only the sfx/vfx
+                        // below are gated behind isRealFrame.
+                        for (int i = 2; i < setList.Length; i++)
+                        {
+                            overlappingPlayer.AddSpellToSpellList(setList[i], fromFloppyPickup: true);
+                        }
+
                         if (SceneManager.GetActiveScene().name == "Shop")
                         {
                             overlappingPlayer.chosenSpell = true;

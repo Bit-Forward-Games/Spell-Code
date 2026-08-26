@@ -810,7 +810,29 @@ public class PlayerController : MonoBehaviour
         return spellList.Count;
     }
 
-    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
+    /// <summary>
+    /// The Steam achievement for discovering a specific spell, or null for one that has none.
+    /// </summary>
+    private static string GetSpellDiscoveryAchievement(SpellData spell)
+    {
+        switch (spell)
+        {
+            case BeamOfSparta _: return SteamAchievements.SpellSpartanBeam;
+            case TouchOfMidas _: return SteamAchievements.SpellTouchOfMidas;
+            case ChainsOfThanatos _: return SteamAchievements.SpellChainsOfThanatos;
+            case DemonTrigger _: return SteamAchievements.SpellDemonTrigger;
+            case TheJokah _: return SteamAchievements.SpellTheJokah;
+            case WolfOfWallstreet _: return SteamAchievements.SpellWolfOfWallstreet;
+            default: return null;
+        }
+    }
+
+    /// <param name="fromFloppyPickup">
+    /// True only when a player physically picked a floppy up. Gates the discovery achievements:
+    /// spells also arrive from the gamba machine, a character's starting loadout, and the
+    /// savestate restore that re-adds a starting spell, and none of those are a discovery.
+    /// </param>
+    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true, bool fromFloppyPickup = false)
     {
         if (spellList.Count >= 6)
         {
@@ -855,6 +877,21 @@ public class PlayerController : MonoBehaviour
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+
+        // Discovery achievements, floppy pickups only. The SimGuards check is still needed on
+        // top of that: a real pickup re-runs on every rollback resim pass, and runs for every
+        // player on every peer's machine, so without it one pickup would fire repeatedly and
+        // credit this account for what a remote player found.
+        if (fromFloppyPickup && SimGuards.IsLocalRealFrame(playerIndex))
+        {
+            // Null for a spell with no achievement; Unlock ignores that.
+            SteamAchievements.Unlock(GetSpellDiscoveryAchievement(targetSpell));
+
+            if (targetSpell.brands != null && Array.IndexOf(targetSpell.brands, Brand.DarkWeb) >= 0)
+            {
+                SteamAchievements.Unlock(SteamAchievements.FirstDarkWebSpell);
+            }
+        }
 
         //trigger bools depending on brand
         for (int i = 0; i < targetSpell.brands.Length; i++)

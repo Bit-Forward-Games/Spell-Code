@@ -646,12 +646,12 @@ public class GambaMachine : MonoBehaviour
                         break;
                     //Dark Web
                     case 5:
-                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger");
+                        if (SteamAchievements.IsUnlocked("ACH_SpartanBeam")) { SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta"); }
+                        if (SteamAchievements.IsUnlocked("ACH_TouchOfMidas")) { SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas"); }
+                        if (SteamAchievements.IsUnlocked("ACH_ChainsOfThanatos")) { SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos"); }
+                        if (SteamAchievements.IsUnlocked("ACH_DemonTrigger")) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
+                        if (SteamAchievements.IsUnlocked("ACH_TheJokah")) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
+                        if (SteamAchievements.IsUnlocked("ACH_WolfOfWallstreet")) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
 
                         // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");

@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-51"; // scz-51: Showdown/Fighter now runs online. Gamba spawns character disks in the online lobby path, FloppyPickup_Character now simulates in SimulateOnlineFloppies,
-                                                    // and the floppy savestate gained a trailing isCharacter discriminator byte per disk (wire format change).
+    private const string NetcodeVersion = "scz-52"; // scz-52: projectile pool is append-only. UpdateProjectiles no longer compacts null slots and The Jokah nulls its slot instead of List.Remove,
+                                                    // so prefabIndex (the savestate + projectile-hash key) stays stable across machines.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

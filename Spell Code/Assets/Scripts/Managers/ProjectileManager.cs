@@ -81,8 +81,14 @@ public class ProjectileManager : MonoBehaviour
         {
             if(projectilePrefabs[i] == null)
             {
-                projectilePrefabs.RemoveAt(i);
-                i--;
+                // Leave the hole. A projectile's INDEX in this list (prefabIndex) is what both the
+                // rollback savestate and the projectile hash key off, and DeserializeActiveProjectileStates
+                // restores state via masterList[prefabIndex]. Compacting with RemoveAt renumbers every
+                // projectile after this one, and the destroy that nulls a slot happens on Unity's
+                // end-of-frame schedule rather than the sim's - so one machine renumbers a frame before
+                // the other, their projectile hashes diverge, and saved state gets restored into the
+                // WRONG projectile. Every consumer already skips nulls; the list is rebuilt wholesale
+                // by InitializeAllProjectiles, so holes don't accumulate across matches.
                 continue;
             }
             if (projectilePrefabs[i].gameObject.activeSelf)
@@ -356,11 +362,41 @@ public class ProjectileManager : MonoBehaviour
         SFX_Manager.Instance.PlaySpellcodeSound(targetProjectile.projName + " End", 1.0f, 1.0f);
     }
 
+    /// <summary>
+    /// Retires a projectile from the pool WITHOUT shifting the indices of the ones after it.
+    /// Callers that own dynamically-created projectiles (The Jokah's spell copies) must use this
+    /// instead of projectilePrefabs.Remove: prefabIndex is the savestate/hash key, so a List.Remove
+    /// renumbers every later projectile and desyncs the two machines against each other.
+    /// </summary>
+    public void UnregisterProjectilePrefab(BaseProjectile projectile)
+    {
+        if (projectile == null)
+        {
+            return;
+        }
+
+        int prefabIndex = projectilePrefabs.IndexOf(projectile);
+        if (prefabIndex >= 0)
+        {
+            projectilePrefabs[prefabIndex] = null;
+        }
+
+        // activeProjectiles is rebuilt from projectilePrefabs each frame and is not index-keyed, so
+        // removing outright is correct here.
+        activeProjectiles.Remove(projectile);
+    }
+
     public List<BaseProjectile> GetMatchingProjectiles(string projectileName, PlayerController owner)
     {
         List<BaseProjectile> matchingProjectiles = new List<BaseProjectile>();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
+            // Null-guarded because retired slots are now left in place to keep prefabIndex stable.
+            if (projectilePrefabs[i] == null)
+            {
+                continue;
+            }
+
             if (projectilePrefabs[i].projName == projectileName && projectilePrefabs[i].owner == owner)
             {
                 matchingProjectiles.Add(projectilePrefabs[i]);

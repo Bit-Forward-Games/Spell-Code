@@ -260,8 +260,13 @@ public class TheJokah : SpellData
                 BaseProjectile projectile = projectileObject.GetComponent<BaseProjectile>();
                 if (ProjectileManager.Instance != null)
                 {
-                    ProjectileManager.Instance.projectilePrefabs.Remove(projectile);
-                    ProjectileManager.Instance.activeProjectiles.Remove(projectile);
+                    // Nulls the pool slot instead of removing it. A List.Remove here renumbered every
+                    // projectile after this one, and prefabIndex is the key the rollback savestate and
+                    // the projectile hash both use -- so the two machines disagreed about which
+                    // projectile a given index meant. This path is reachable from OnDestroy, which
+                    // runs on Unity's schedule rather than the sim's, so the renumbering did not even
+                    // happen on the same frame on both machines.
+                    ProjectileManager.Instance.UnregisterProjectilePrefab(projectile);
                 }
 
                 Destroy(projectileObject);

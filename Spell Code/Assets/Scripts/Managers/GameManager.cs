@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
     public PlayerController[] players = new PlayerController[4];
     public List<PlayerController> playerNPCs = new List<PlayerController>();
     public int playerCount = 0;
-    [NonSerialized] public WinCon winCon = WinCon.Elimination;
+    [NonSerialized] public WinCon winCon = WinCon.RAMRush;
     [NonSerialized] public ushort ramNeededToWinRound = 1;
     [NonSerialized] public ushort roundLives = 0;
     public static ushort baseRamNeeddedtowin = 400;
@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
     public static ushort baseEliminationLives = 1;
 
     public ushort WinConPointLimit => winCon == WinCon.Elimination
-        ? (ushort)Mathf.Max(1, roundLives)
+        ? (ushort)Mathf.Max(1, 3)
         : ramNeededToWinRound;
 
 

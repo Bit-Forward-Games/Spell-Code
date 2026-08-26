@@ -109,6 +109,24 @@ public static class SteamAchievements
         Unlock(apiName);
     }
 
+    public static bool IsUnlocked(string apiName)
+    {
+        if (string.IsNullOrEmpty(apiName) || !SteamClient.IsValid)
+        {
+            return false;
+        }
+
+        try
+        {
+            return new Achievement(apiName).State;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Achievements] Could not read '{apiName}': {e.Message}");
+            return false;
+        }
+    }
+
     /// <summary>
     /// Wipes every achievement and stat this account holds for the current App ID, so the
     /// unlock paths can be exercised again from cold. Debug branches only: the call site is

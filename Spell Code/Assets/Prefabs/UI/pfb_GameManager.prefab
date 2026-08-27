@@ -27847,6 +27847,7 @@ MonoBehaviour:
   gameOver: 0
   prevSceneWasShop: 0
   isTransitioning: 0
+  screenTransitioning: 0
   gates:
   - {fileID: 1049873779782086816}
   - {fileID: 8724005506065256066}

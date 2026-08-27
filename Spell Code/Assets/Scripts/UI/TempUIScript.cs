@@ -264,6 +264,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             gamemodesMenu.SetActive(true);
             soloGamemodesMenu.SetActive(true);
+            MenuAnimation(soloGamemodesMenu);
             soloGamemodesMenuOpened = true;
             EventSystem.current.SetSelectedGameObject(_soloGamemodesMenuFirst);
             Time.timeScale = 0f;
@@ -374,6 +375,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
             }
 
             gamemodesMenu.SetActive(true);
+            MenuAnimation(gamemodesMenu);
             multiplayerGamemodesMenu.SetActive(true);
             multiplayerGamemodesMenuOpened = true;
             EventSystem.current.SetSelectedGameObject(_multiplayerGamemodesMenuFirst);
@@ -383,6 +385,13 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         {
             CloseGamemodeMenus();
         }
+    }
+
+    public void MenuAnimation(GameObject gamemodesMenu)
+    {
+        RectTransform gamemodesMenuTransform = gamemodesMenu.GetComponent<RectTransform>();
+        gamemodesMenuTransform.anchoredPosition = new Vector2(gamemodesMenuTransform.anchoredPosition.x + 2000, gamemodesMenuTransform.anchoredPosition.y);
+        gamemodesMenuTransform.DOAnchorPos(new Vector2(0, gamemodesMenuTransform.anchoredPosition.y), 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
     }
 
     public void SetMultiplayerGameModesMenuActive(bool setOpen)

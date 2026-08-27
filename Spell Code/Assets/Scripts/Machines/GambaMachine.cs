@@ -1167,7 +1167,7 @@ public class GambaMachine : MonoBehaviour
                 return false;
             }
 
-            if (spellData.spellName == "" && (player.demonX && player.vWave))
+            if (spellData.spellName == "Demon Trigger" && (player.demonX && player.vWave))
             {
                 Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                 return false;

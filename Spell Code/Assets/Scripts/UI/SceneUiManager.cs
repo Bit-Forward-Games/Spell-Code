@@ -74,7 +74,7 @@ public class SceneUiManager : MonoBehaviour
     {
         //mute all gameplay sfx 
         if (SFX_Manager.Instance != null) SFX_Manager.Instance.MuteGamePlaySFX();
-
+        GameManager.Instance.screenTransitioning = true;
         Time.timeScale = 0f;
         FindScreenCoverIfNeeded();
         //screen transtion things

@@ -1323,7 +1323,7 @@ public class PlayerController : MonoBehaviour
     {
         int previousInputDirection = input.Direction;
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
-        if(pID != 0)
+        if(pID != 0 && !GameManager.Instance.screenTransitioning)
         {
             input = InputConverter.ConvertFromLong(rawInput);
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
@@ -1978,7 +1978,6 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame == AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Take(3).Sum())
                 {
-                    //uint testCode = stateSpecificArg & ~(1u << 4);
                     stateSpecificArg &= ~(1u << 4);
 #region Secret Dev Codes
                     if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input

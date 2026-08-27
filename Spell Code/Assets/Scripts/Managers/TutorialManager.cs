@@ -100,7 +100,7 @@ public class Tutorial : MonoBehaviour
 
         if (!npcHit)
         {
-            if (npc.isHit) { npcHit = true; }
+            if (npc.hitboxData != null) { npcHit = true; }
         }
         if (npcHit)
         {

@@ -302,7 +302,11 @@ public class Pause : MonoBehaviour
                     break;
             }
  
-            spellNameText.text = spell.spellName;
+            // GameObject name carries the spell identity for PopulateDictionaryTab's matching
+            // further down; the label itself gets masked to "???" for a still-locked Dark Web
+            // spell, so matching can no longer key off the displayed text.
+            spellGlossaryList[i].name = spell.spellName;
+            spellNameText.text = IsLockedDarkWebSpell(spell) ? "???" : spell.spellName;
             
             spellGlossaryList[i].SetActive(false);
         }
@@ -639,9 +643,14 @@ public class Pause : MonoBehaviour
 
         if (grid[tab] != null && grid[tab].spells.Length > 0 && grid[tab].spells[selectedSpell] != null)
         {
+            SpellData addressSpell = grid[tab].spells[selectedSpell];
+            string addressSpellName = IsLockedDarkWebSpell(addressSpell)
+                ? "???"
+                : addressSpell.spellName.Replace(" ", "");
+
             spellAddress.text = "http://www.myspellcodelist.com/"
                 + brandName[tab].Replace(" ", "") + "/"
-                + grid[tab].spells[selectedSpell].spellName.Replace(" ", "");
+                + addressSpellName;
         }
         else spellAddress.text = "http://www.myspellcodelist.com/";
     }
@@ -653,6 +662,28 @@ public class Pause : MonoBehaviour
     }
 
     private Brand lastFellaBrand = (Brand)(-1);
+
+    // Dark Web spells are the only ones gated behind a Steam achievement (see
+    // SteamAchievements.cs). Any other brand is never "locked" for glossary purposes.
+    // Reuses PlayerController.GetSpellDiscoveryAchievement -- the same lookup that fires the
+    // unlock in the first place -- so the glossary can never show a spell as unlocked before
+    // the achievement that unlocks it has actually fired, or vice versa.
+    private bool IsLockedDarkWebSpell(SpellData spell)
+    {
+        if (spell == null || spell.brands == null
+            || !System.Array.Exists(spell.brands, b => b == Brand.DarkWeb))
+        {
+            return false;
+        }
+
+        string apiName = PlayerController.GetSpellDiscoveryAchievement(spell);
+        if (string.IsNullOrEmpty(apiName))
+        {
+            return false;
+        }
+
+        return !SteamAchievements.IsUnlocked(apiName);
+    }
  
     private void UpdateSpellDisplay()
     {
@@ -671,12 +702,30 @@ public class Pause : MonoBehaviour
         
         if (grid[tab] != null && grid[tab].spells.Length > 0)
         {
-            displaySpellName.text = grid[tab].spells[selectedSpell].spellName;
-            displaySpellDescription.text = "Description: " + grid[tab].spells[selectedSpell].description;
-            spellSelectedText.text = grid[tab].spells[selectedSpell].spellName;
-            videoPlayer.SetVideo(grid[tab].spells[selectedSpell].SpellVideo);
-            cooldownText.text = "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
-            inputText.text = "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
+            SpellData currentSpell = grid[tab].spells[selectedSpell];
+            bool isLockedDarkWebSpell = IsLockedDarkWebSpell(currentSpell);
+
+            if (isLockedDarkWebSpell)
+            {
+                displaySpellName.text = "???";
+                displaySpellDescription.text = "Description: ???";
+                spellSelectedText.text = "???";
+                videoPlayer.SetVideo(null);
+            }
+            else
+            {
+                displaySpellName.text = currentSpell.spellName;
+                displaySpellDescription.text = "Description: " + currentSpell.description;
+                spellSelectedText.text = currentSpell.spellName;
+                videoPlayer.SetVideo(currentSpell.SpellVideo);
+            }
+
+            cooldownText.text = isLockedDarkWebSpell
+                ? "Cooldown:  ???"
+                : "Cooldown:  " + Mathf.FloorToInt((float)grid[tab].spells[selectedSpell].cooldown/60f) + "s";
+            inputText.text = isLockedDarkWebSpell
+                ? "Input:  ???"
+                : "Input:  " + PlayerController.ConvertCodeToString(grid[tab].spells[selectedSpell].spellInput);
             
             if (grid[tab].spells[selectedSpell].brands[0] != lastFellaBrand)
             {
@@ -928,6 +977,8 @@ public class Pause : MonoBehaviour
         spellsMenu.SetActive(false);
         darkPanel.SetActive(true);
 
+        CloseConfirmationWindow();
+
         playerPausedText.text = "P" + (playerPauseIndex + 1) + (IsOnlineMatchActive() ? " Menu" : " Paused");
         ScopeUiInputToPausePlayer();
  
@@ -954,9 +1005,7 @@ public class Pause : MonoBehaviour
         if (menuOpen)
         {
             pauseMenuRect.anchoredPosition = new Vector2(858f, 1074f);
-            pauseMenuRect.localRotation = Quaternion.Euler(0, 0, -46.62f);
-            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.9f).SetEase(Ease.OutBounce).SetUpdate(true);
-            pauseMenuRect.DORotate(new Vector3(0, 0, -8.285f), 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
+            pauseMenuRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
         }
         else if (!menuOpen)
         {
@@ -969,7 +1018,11 @@ public class Pause : MonoBehaviour
     public void OpenConfirmationWindow(int windowIndex)
     {
         confirmationWindow.gameObject.SetActive(true);
-        pausemenu.SetActive(false);
+        RectTransform confirmationWindowRect = confirmationWindow.GetComponent<RectTransform>();
+        // pausemenu.SetActive(false);
+        confirmationWindowRect.anchoredPosition = new Vector2(-50.044f, 2000f);
+        confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+        pausemenu.GetComponent<RectTransform>().DOAnchorPos(new Vector2(-50.044f, -2000f), 0.4f).SetEase(Ease.InQuad).SetUpdate(true);
         StartCoroutine(SelectFirst(_confirmationMenuFirst));
 
         window = windowIndex;
@@ -977,10 +1030,20 @@ public class Pause : MonoBehaviour
 
     public void CloseConfirmationWindow()
     {
-        confirmationWindow.gameObject.SetActive(false);
+        StartCoroutine(CloseConfirmationWindowAnimation());
         pausemenu.SetActive(true);
     }
 
+    public IEnumerator CloseConfirmationWindowAnimation()
+    {
+        RectTransform confirmationWindowRect = confirmationWindow.GetComponent<RectTransform>();
+        // pausemenu.SetActive(false);
+        confirmationWindowRect.anchoredPosition = new Vector2(confirmationWindowRect.anchoredPosition.x, confirmationWindowRect.anchoredPosition.y);
+        confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -2000f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+        yield return new WaitForSeconds(0.4f);
+        confirmationWindow.gameObject.SetActive(false);
+    }
+    
     public void PressedConfirm()
     {
         CloseConfirmationWindow();
@@ -1088,6 +1151,12 @@ public class Pause : MonoBehaviour
 
     public void Controls()
     {
+        RectTransform controlsMenuTransform = controlsMenu.GetComponent<RectTransform>();
+
+        controlsMenuTransform.anchoredPosition  = new Vector2(controlsMenuTransform.anchoredPosition.x, 2500f);
+
+        controlsMenuTransform.DOAnchorPos(new Vector2(controlsMenuTransform.anchoredPosition.x, 0), 0.5f).SetEase(Ease.OutQuad).SetUpdate(true);
+        
         controls = true;
         options = false;
         pausemenu.SetActive(false);
@@ -1134,6 +1203,16 @@ public class Pause : MonoBehaviour
         pausemenu.SetActive(false);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);
+
+        RectTransform spellsMenuRect = spellsMenu.GetComponent<RectTransform>();
+        spellsMenuRect.localScale = new Vector3(0f, 0f, 0f);
+        spellsMenuRect
+            .DOScale(new Vector3(0.5f, 0.5f, 0.5f), 0.35f)
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
+
+        spellsMenuRect.anchoredPosition = new Vector2(-50.044f, 2000f);
+        spellsMenuRect.DOAnchorPos(new Vector2(0f, 0f), 0.2f).SetEase(Ease.OutBack).SetUpdate(true);
  
         tab = 0;
  
@@ -1235,8 +1314,17 @@ public class Pause : MonoBehaviour
                 continue;
             }
             
-            if (spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>().text == grid[tab].spells[j].spellName)
+            if (spellGlossaryList[i].name == grid[tab].spells[j].spellName)
             {
+                // Refresh the label every time this tab is populated, not just at Start, so an
+                // achievement earned mid-session flips "???" to the real name without needing
+                // the pause menu reopened.
+                TextMeshProUGUI spellNameText = spellGlossaryList[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (spellNameText != null)
+                {
+                    spellNameText.text = IsLockedDarkWebSpell(grid[tab].spells[j]) ? "???" : grid[tab].spells[j].spellName;
+                }
+
                 spellTabList.Add(spellGlossaryList[i]);
                 spellGlossaryList[i].SetActive(true);
                 RectTransform rt = spellGlossaryList[i].GetComponent<RectTransform>();
@@ -1300,7 +1388,7 @@ public class Pause : MonoBehaviour
                 }
             }
 
-            if (spellNameText != null) spellNameText.text = spell.spellName;
+            if (spellNameText != null) spellNameText.text = IsLockedDarkWebSpell(spell) ? "???" : spell.spellName;
 
             spellTabList.Add(entry);
             entry.SetActive(true);

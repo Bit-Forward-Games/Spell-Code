@@ -813,7 +813,7 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// The Steam achievement for discovering a specific spell, or null for one that has none.
     /// </summary>
-    private static string GetSpellDiscoveryAchievement(SpellData spell)
+    public static string GetSpellDiscoveryAchievement(SpellData spell)
     {
         switch (spell)
         {

@@ -133,8 +133,12 @@ public class HitboxManager : MonoBehaviour
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                             {
+                                if(defendingPlayer.hitboxData != null && 
+                                    defendingPlayer.hitboxData.parentProjectile.owner != hitbox.parentProjectile.owner)
+                                {
+                                    defendingPlayer.isHitByNewPlayer = true;                                    
+                                }
                                 defendingPlayer.hitboxData = hitbox;
-                                defendingPlayer.isHit = true;
                                 
                                 // Monotonic per-hit counter (in state hash, deterministic). UI
                                 // watches this to fire its damage bar animation exactly once per

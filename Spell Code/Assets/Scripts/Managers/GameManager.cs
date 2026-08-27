@@ -142,6 +142,7 @@ public class GameManager : MonoBehaviour
 
     public bool prevSceneWasShop;
     public bool isTransitioning = false;
+    public bool screenTransitioning = false;
 
     public SpellCode_Gate[] gates = new SpellCode_Gate[4];
     private readonly Dictionary<Vector2, SpellCode_Gate> gateLookup = new();
@@ -6613,6 +6614,7 @@ public class GameManager : MonoBehaviour
         sceneManager.RemoveScreenCover(()=>
         {
             BGM_Manager.Instance.StartAndPlaySong();
+            screenTransitioning = false;
         });
     }
 

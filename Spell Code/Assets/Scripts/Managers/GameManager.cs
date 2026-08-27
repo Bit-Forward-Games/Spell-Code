@@ -1385,7 +1385,9 @@ public class GameManager : MonoBehaviour
         isWaitingForOpponent = true;
         SetLocalOnlineInputCaptureSuppressed(true);
         SetNetworkInfoVisible(true);
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        // ResetPlayers immediately regenerates Jokah copies. Build only the ordinary pool here so
+        // those final copies append after it without leaving retired extra-spell slots.
+        ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
@@ -6637,7 +6639,7 @@ public class GameManager : MonoBehaviour
                 SelectFallbackOnlineGameplayStage();
             }
 
-            ProjectileManager.Instance.InitializeAllProjectiles();
+            ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
             // SpawnPlayer's OnStart pass rebuilds The Jokah's derived spell/projectile copies.
             // Initialize the inventory pool first so it cannot immediately destroy those copies.
             ResetPlayers();
@@ -6705,7 +6707,7 @@ public class GameManager : MonoBehaviour
             }
 
             InitializeOnlineShopSceneState();
-            ProjectileManager.Instance.InitializeAllProjectiles();
+            ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
             // Keep the final pool topology (including Jokah copies) in the frame-zero snapshot.
             ResetPlayers();
             if (RollbackManager.Instance != null)

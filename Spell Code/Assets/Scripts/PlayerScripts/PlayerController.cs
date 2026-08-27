@@ -1,4 +1,4 @@
-﻿using BestoNet.Types;
+using BestoNet.Types;
 using DG.Tweening.Plugins;
 using System;
 using System.Collections;
@@ -872,8 +872,10 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
-        ProjectileManager.Instance.InitializeAllProjectiles();
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
+        // OnStart regenerates The Jokah's derived SpellData copies. Rebuild the global pool after
+        // that final topology exists so all inventory projectiles precede all generated extras.
+        ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
@@ -965,10 +967,26 @@ public class PlayerController : MonoBehaviour
         {
             if (spellList[i] != null && spellList[i].spellName == spellToRemove)
             {
-                Destroy(spellList[i]);
+                SpellData removedSpell = spellList[i];
+                if (removedSpell is TheJokah removedJokah)
+                {
+                    removedJokah.ClearCreatedSpells();
+                }
+                Destroy(removedSpell);
                 spellList.RemoveAt(i);
                 startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
                     && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
+
+                // Removing a VWave/BigStox spell changes every remaining Jokah's derived spell set.
+                // Reconcile that set before rebuilding, otherwise the removed spell's copy survives
+                // in extraSpells and a newly-required copy can be absent after rollback.
+                for (int spellIndex = 0; spellIndex < spellList.Count; spellIndex++)
+                {
+                    if (spellList[spellIndex] is TheJokah jokah)
+                    {
+                        jokah.RebuildCreatedSpells();
+                    }
+                }
                 ProjectileManager.Instance.InitializeAllProjectiles();
 
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -1323,7 +1341,21 @@ public class PlayerController : MonoBehaviour
     {
         int previousInputDirection = input.Direction;
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
-        if(pID != 0 && !GameManager.Instance.screenTransitioning)
+        // screenTransitioning is a LOCAL, unserialized flag: SceneUiManager sets it alongside the
+        // screen cover and clears it from a DOTween callback, so it is wall-clock state, not sim
+        // state. Gating input on it during an ONLINE match desyncs two ways, the cover finishes at
+        // a different real-world moment on each machine, and because the flag is not in the savestate
+        // a rollback re-reads its CURRENT value instead of the value that frame originally had, so
+        // the resim applies input the original frame skipped (or vice versa). Offline there is one
+        // timeline and no rollback, so the intended behaviour is kept there.
+        //
+        // Also null-guarded: the very next line already tolerates a missing GameManager.
+        GameManager inputManager = GameManager.Instance;
+        bool blockedByScreenTransition = inputManager != null
+            && !inputManager.isOnlineMatchActive
+            && inputManager.screenTransitioning;
+
+        if(pID != 0 && !blockedByScreenTransition)
         {
             input = InputConverter.ConvertFromLong(rawInput);
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
@@ -4597,6 +4629,33 @@ public class PlayerController : MonoBehaviour
         // either side of that rebuild, so entries beyond the local count are skipped by their length
         // rather than assumed present -- the stream stays aligned either way.
         int extraCount = br.ReadInt32();
+        bool needsJokahDefinitionRebuild = extraSpells.Count != extraCount;
+        for (int spellIndex = 0; spellIndex < spellList.Count && !needsJokahDefinitionRebuild; spellIndex++)
+        {
+            if (spellList[spellIndex] is TheJokah jokah
+                && (jokah.JokahVWaveSpells == null || jokah.JokahBigStoxSpells == null))
+            {
+                needsJokahDefinitionRebuild = true;
+            }
+        }
+
+        if (needsJokahDefinitionRebuild)
+        {
+            // A late join can already have the correct inventory identities while still lacking
+            // Jokah's nonserialized derived list. Recreate it before consuming the indexed states.
+            for (int spellIndex = 0; spellIndex < spellList.Count; spellIndex++)
+            {
+                if (spellList[spellIndex] is TheJokah jokah)
+                {
+                    jokah.RebuildCreatedSpells();
+                }
+            }
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RequestProjectilePoolRebuild();
+            }
+        }
         for (int i = 0; i < extraCount; i++)
         {
             br.ReadInt32(); // spell id, written for symmetry
@@ -4758,6 +4817,12 @@ public class PlayerController : MonoBehaviour
             SpellData spell = spellList[i];
             if (spell != null)
             {
+                if (spell is TheJokah jokah)
+                {
+                    // Pooled SpellData objects are disabled rather than destroyed, so OnDestroy
+                    // cannot remove this Jokah instance's old generated copies for us.
+                    jokah.ClearCreatedSpells();
+                }
                 ReturnSpellInstanceToPool(spell);
             }
         }

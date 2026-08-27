@@ -181,7 +181,7 @@ public class ProjectileManager : MonoBehaviour
 
     }
 
-    public void InitializeAllProjectiles()
+    public void InitializeAllProjectiles(bool rebuildExtraSpells = true)
     {
         var __hitchSw = (GameManager.Instance != null && GameManager.Instance.logSnapshotHitchTiming)
             ? System.Diagnostics.Stopwatch.StartNew() : null;
@@ -279,10 +279,107 @@ public class ProjectileManager : MonoBehaviour
             }
         }
 
+        if (rebuildExtraSpells)
+        {
+            // Jokah copies are appended only after every ordinary human/NPC pool. prefabIndex is
+            // serialized rollback state, so interleaving extras per player would give the same
+            // projectile a different index than the initial OnStart construction order.
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                PlayerController player = GameManager.Instance.players[i];
+                if (player == null || !GameManager.Instance.IsPlayerSlotConnected(i))
+                {
+                    continue;
+                }
+
+                RebuildExtraSpellProjectiles(player);
+            }
+
+            // NPCs currently skip Jokah's OnStart construction, but rebuilding any existing extras
+            // here prevents the same destroyed-reference failure if AI loadouts gain Jokah support.
+            for (int i = 0; i < GameManager.Instance.playerNPCs.Count; i++)
+            {
+                PlayerController npc = GameManager.Instance.playerNPCs[i];
+                if (npc != null)
+                {
+                    RebuildExtraSpellProjectiles(npc);
+                }
+            }
+        }
+
         SynchronizeActiveProjectiles();
         if (__hitchSw != null && GameManager.Instance != null)
         {
             GameManager.Instance.LogHitchTiming("InitializeAllProjectiles", __hitchSw, projectilePrefabs.Count);
+        }
+    }
+
+    private void RebuildExtraSpellProjectiles(PlayerController owner)
+    {
+        if (owner == null || owner.extraSpells == null)
+        {
+            return;
+        }
+
+        for (int spellIndex = 0; spellIndex < owner.extraSpells.Count; spellIndex++)
+        {
+            SpellData extraSpell = owner.extraSpells[spellIndex];
+            if (extraSpell == null)
+            {
+                continue;
+            }
+
+            extraSpell.owner = owner;
+            if (extraSpell.projectileInstances == null)
+            {
+                extraSpell.projectileInstances = new List<GameObject>();
+            }
+            else
+            {
+                extraSpell.projectileInstances.Clear();
+            }
+            GameObject[] sourceProjectilePrefabs = extraSpell.projectilePrefabs;
+            if (sourceProjectilePrefabs == null)
+            {
+                Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' has no projectile prefab array.");
+                continue;
+            }
+
+            bool hasValidProjectileTemplates = true;
+            for (int projectileIndex = 0; projectileIndex < sourceProjectilePrefabs.Length; projectileIndex++)
+            {
+                GameObject projectileTemplate = sourceProjectilePrefabs[projectileIndex];
+                if (projectileTemplate == null)
+                {
+                    Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' has a missing projectile prefab at index {projectileIndex}.");
+                    hasValidProjectileTemplates = false;
+                }
+                else if (projectileTemplate.GetComponent<BaseProjectile>() == null)
+                {
+                    Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' projectile prefab at index {projectileIndex} has no BaseProjectile.");
+                    hasValidProjectileTemplates = false;
+                }
+            }
+
+            // Keep projectileInstances empty when any required indexed template is malformed. A
+            // partially compacted list could turn a spell's projectile 1 into index 0.
+            if (!hasValidProjectileTemplates)
+            {
+                continue;
+            }
+
+            for (int projectileIndex = 0; projectileIndex < sourceProjectilePrefabs.Length; projectileIndex++)
+            {
+                GameObject spawnedProjectile = Instantiate(sourceProjectilePrefabs[projectileIndex]);
+                BaseProjectile baseProjectile = spawnedProjectile.GetComponent<BaseProjectile>();
+                baseProjectile.LoadProjectile();
+                projectilePrefabs.Add(baseProjectile);
+                baseProjectile.owner = owner;
+                baseProjectile.ownerSpell = extraSpell;
+                extraSpell.projectileInstances.Add(spawnedProjectile);
+                TheJokah.ApplyCopiedProjectilePresentation(extraSpell, spawnedProjectile);
+                spawnedProjectile.SetActive(false);
+            }
         }
     }
 

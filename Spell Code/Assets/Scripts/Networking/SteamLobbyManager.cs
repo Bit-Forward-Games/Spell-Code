@@ -61,9 +61,9 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-49"; // scz-49: ResetPlayers RECOMPUTES the demonX/bigStox/killeez/vWave brand-unlock flags from the player's spell list instead of clearing them,
-                                                    // clearing emptied the shop pool for a Punk player holding four actives and made the DarkWeb collab conditions unreachable
-                                                
+    private const string NetcodeVersion = "scz-56"; // scz-56: projectile-pool rebuilds now restore The Jokah's generated projectiles in stable player/list order,
+                                                    // which changes deterministic prefabIndex topology. Includes scz-55's spell-pool and online input-gating fixes.
+
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
     private const string SizeKey = "size";

@@ -357,6 +357,19 @@ public class PartyLobbyPanel : OnlineMenuPanel
             return;
         }
 
+        // The same teardown every other online entry runs before its scene transition (compare
+        // QuickMatchPanel.StartQuickMatch and OnlinePlayMenu.CloseForOnlineEntry). The host's own
+        // Start Match was the one entry point that skipped it, which is why the host, and only the
+        // host, arrived in the match with the multiplayer gamemodes panel still on screen: Open()
+        // ran EnsureVisibleInHierarchy to switch the shared GameModesPanel container back on so this
+        // panel could render under it, and nothing put it back. Guests were fine because they are
+        // pulled in by the host's start signal, which goes through the normal entry cleanup.
+        //
+        // Close() before starting so OpenPanelCount reaches 0 and RestoreAncestorsHiddenByOpen puts
+        // that container back.
+        TempUI?.CloseGamemodesMenuForOnlineEntry();
+        Close();
+
         lobby.StartPartyMatch();
     }
 

@@ -1,4 +1,4 @@
-﻿//using Ardalis.SmartEnum;
+//using Ardalis.SmartEnum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -220,6 +220,15 @@ public class AnimationManager : MonoBehaviour
         for(int i = 0; i < ProjectileManager.Instance.projectilePrefabs.Count; i++)
         {
             BaseProjectile proj = ProjectileManager.Instance.projectilePrefabs[i];
+            // projectilePrefabs is append-only (retired slots are nulled rather than removed, so
+            // prefabIndex stays stable for the savestate/hash). Without this guard the first retired
+            // slot threw here every frame, which aborted the rest of the render loop: every
+            // projectile after that index kept its last transform and never advanced its animation.
+            if (proj == null)
+            {
+                continue;
+            }
+
             if (proj.gameObject.activeSelf)
             {
                 // Get the projectile's owner

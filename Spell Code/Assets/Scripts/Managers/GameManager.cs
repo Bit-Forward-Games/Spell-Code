@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
     public PlayerController[] players = new PlayerController[4];
     public List<PlayerController> playerNPCs = new List<PlayerController>();
     public int playerCount = 0;
-    [NonSerialized] public WinCon winCon = WinCon.Elimination;
+    [NonSerialized] public WinCon winCon = WinCon.RAMRush;
     [NonSerialized] public ushort ramNeededToWinRound = 1;
     [NonSerialized] public ushort roundLives = 0;
     public static ushort baseRamNeeddedtowin = 400;
@@ -72,9 +72,10 @@ public class GameManager : MonoBehaviour
     public static ushort livesIncreasePerRound = 1;
 
     public static ushort baseEliminationLives = 1;
+    public static ushort maxEliminationLives = 3;
 
     public ushort WinConPointLimit => winCon == WinCon.Elimination
-        ? (ushort)Mathf.Max(1, roundLives)
+        ? (ushort)Mathf.Max(1, 3)
         : ramNeededToWinRound;
 
 
@@ -142,6 +143,7 @@ public class GameManager : MonoBehaviour
 
     public bool prevSceneWasShop;
     public bool isTransitioning = false;
+    public bool screenTransitioning = false;
 
     public SpellCode_Gate[] gates = new SpellCode_Gate[4];
     private readonly Dictionary<Vector2, SpellCode_Gate> gateLookup = new();
@@ -162,6 +164,7 @@ public class GameManager : MonoBehaviour
     //main menu stuff (we will likely remove all of this later, its just a rehash of shop manager stuff)
     public bool playersChosenSpell;
     public GameObject[] floppyObjects;
+    public GameObject[] floppyCharacterObjects;
     private bool pendingOnlineFloppySnapshot;
     private string pendingOnlineFloppySnapshotReason;
 
@@ -573,9 +576,21 @@ public class GameManager : MonoBehaviour
             Scene activeScene = SceneManager.GetActiveScene();
             // Modal menus freeze the sim (timeScale = 0 stops FixedUpdate), but PlayerInputManager
             // listens for join presses on unscaled input from Update — without this gate a new
-            // player could join the lobby while someone has the game paused.
-            gameObject.GetComponent<PlayerInputManager>().enabled =
-                (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby") && !IsModalMenuOpen();
+            // player could join the lobby while someone has the game paused. Attract mode owns
+            // that input too: its dismissing press must not also join P1 and hide the title.
+            bool attractOwnsSoloLobbyInput = activeScene.name == "SoloLobby"
+                && SoloManager.IsBlockingPause;
+            if (attractOwnsSoloLobbyInput)
+            {
+                BlockPlayerJoiningForAttractMode();
+            }
+            else
+            {
+                gameObject.GetComponent<PlayerInputManager>().enabled =
+                    (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+                    && !IsModalMenuOpen()
+                    && !(activeScene.name == "SoloLobby" && playerCount >= 1);
+            }
             SetNetworkInfoVisible(false);
         }
         else
@@ -702,6 +717,22 @@ public class GameManager : MonoBehaviour
             SteamAchievements.ResetAllForTesting();
         }
     }
+
+    /// <summary>
+    /// Stops PlayerInputManager before attract mode's dismissing input is dispatched. The normal
+    /// SoloLobby frame loop restores joining after SoloManager releases its input block.
+    /// </summary>
+    public void BlockPlayerJoiningForAttractMode()
+    {
+        if (isOnlineMatchActive || playerInputManager == null)
+        {
+            return;
+        }
+
+        playerInputManager.DisableJoining();
+        playerInputManager.enabled = false;
+    }
+
     public void loadMainMenu()
     {
         sceneManager.LoadScene("MainMenu");
@@ -1354,7 +1385,9 @@ public class GameManager : MonoBehaviour
         isWaitingForOpponent = true;
         SetLocalOnlineInputCaptureSuppressed(true);
         SetNetworkInfoVisible(true);
-        ProjectileManager.Instance.InitializeAllProjectiles();
+        // ResetPlayers immediately regenerates Jokah copies. Build only the ordinary pool here so
+        // those final copies append after it without leaving retired extra-spell slots.
+        ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
         SetStage(-1);
         ResetPlayers();
         isRunning = true;
@@ -3067,7 +3100,7 @@ public class GameManager : MonoBehaviour
         }
         if (winCon == WinCon.Elimination)
         {
-            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * dataManager.totalRoundsPlayed);
+            roundLives = ComputeEliminationRoundLives(dataManager.totalRoundsPlayed);
         }
         onlineRoundAdvanceApplied = true;
     }
@@ -3399,10 +3432,19 @@ public class GameManager : MonoBehaviour
         {
             GameObject floppy = floppiesToSimulate[i];
             if (floppy == null) continue;
+            // Character disks run their own SimulateOnline. They were skipped entirely here before,
+            // which is why Fighter mode had nothing pickable online.
             FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
             if (disk != null)
             {
                 disk.SimulateOnline(inputs, isRealFrame);
+                continue;
+            }
+
+            FloppyPickup_Character characterDisk = floppy.GetComponent<FloppyPickup_Character>();
+            if (characterDisk != null)
+            {
+                characterDisk.SimulateOnline(inputs, isRealFrame);
             }
         }
 
@@ -3643,23 +3685,50 @@ public class GameManager : MonoBehaviour
         {
             GameObject floppy = activeFloppies[i];
             FloppyPickup disk = floppy != null ? floppy.GetComponent<FloppyPickup>() : null;
-            if (floppy == null || disk == null)
+            FloppyPickup_Character characterDisk = (floppy != null && disk == null)
+                ? floppy.GetComponent<FloppyPickup_Character>()
+                : null;
+
+            // Gather first, write once. The empty-slot case and the two pickup types used to each
+            // have their own write block, which is an easy way to drift out of byte-symmetry with
+            // DeserializeFloppyState.
+            int ownerPid = 0;
+            string diskName = string.Empty;
+            float posX = 0f;
+            float posY = 0f;
+            byte holdCounter = 0;
+            bool showDescription = false;
+            bool isCharacter = false;
+
+            if (disk != null)
             {
-                bw.Write(0);
-                bw.Write(string.Empty);
-                bw.Write(0f);
-                bw.Write(0f);
-                bw.Write((byte)0);
-                bw.Write(false);
-                continue;
+                ownerPid = disk.ownerPID;
+                diskName = disk.diskName ?? string.Empty;
+                posX = floppy.transform.position.x;
+                posY = floppy.transform.position.y;
+                holdCounter = disk.GetSelectHoldCounter();
+                showDescription = disk.IsDescriptionVisible();
+            }
+            else if (characterDisk != null)
+            {
+                ownerPid = characterDisk.ownerPID;
+                diskName = characterDisk.diskName ?? string.Empty;
+                posX = floppy.transform.position.x;
+                posY = floppy.transform.position.y;
+                holdCounter = characterDisk.GetSelectHoldCounter();
+                // Character disks have no description toggle - SpellFloppyDisplay_Character shows the
+                // whole six-spell setlist outright.
+                showDescription = false;
+                isCharacter = true;
             }
 
-            bw.Write(disk.ownerPID);
-            bw.Write(disk.diskName ?? string.Empty);
-            bw.Write(floppy.transform.position.x);
-            bw.Write(floppy.transform.position.y);
-            bw.Write(disk.GetSelectHoldCounter());
-            bw.Write(disk.IsDescriptionVisible());
+            bw.Write(ownerPid);
+            bw.Write(diskName);
+            bw.Write(posX);
+            bw.Write(posY);
+            bw.Write(holdCounter);
+            bw.Write(showDescription);
+            bw.Write(isCharacter);
         }
     }
 
@@ -3676,7 +3745,8 @@ public class GameManager : MonoBehaviour
             float posY = br.ReadSingle();
             byte holdCounter = br.ReadByte();
             bool showDescription = br.ReadBoolean();
-            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription));
+            bool isCharacter = br.ReadBoolean();
+            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription, isCharacter));
         }
 
         FindAllFloppyDisks();
@@ -3687,8 +3757,7 @@ public class GameManager : MonoBehaviour
                 GameObject floppy = floppyObjects[i];
                 if (floppy == null) continue;
 
-                FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
-                int savedIndex = FindMatchingSavedFloppyIndex(disk, floppy.transform.position);
+                int savedIndex = FindMatchingSavedFloppyIndex(floppy);
                 if (savedIndex < 0)
                 {
                     floppy.SetActive(false);
@@ -3697,7 +3766,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 SavedFloppyState savedFloppy = savedFloppyStateBuffer[savedIndex];
-                ApplySavedFloppyState(floppy, disk, savedFloppy);
+                ApplySavedFloppyState(floppy, savedFloppy);
                 savedFloppy.restored = true;
                 savedFloppyStateBuffer[savedIndex] = savedFloppy;
             }
@@ -3723,14 +3792,27 @@ public class GameManager : MonoBehaviour
                     continue;
                 }
 
-                GameObject restoredDisk = gamba.SpawnFloppyDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.diskName, false, false);
+                GameObject restoredDisk;
+                if (savedFloppy.isCharacter)
+                {
+                    // Showdown character disk. diskName is the Moveset enum name, which is what
+                    // makes the id recoverable here; if it somehow doesn't parse, leave the disk
+                    // unrestored rather than respawning an arbitrary character on one peer only.
+                    if (!FloppyPickup_Character.TryParseCharacterId(savedFloppy.diskName, out int characterId))
+                    {
+                        break;
+                    }
+
+                    restoredDisk = gamba.SpawnCharacterDisk(savedFloppy.ownerPid, savedFloppy.position, characterId, false, false);
+                }
+                else
+                {
+                    restoredDisk = gamba.SpawnFloppyDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.diskName, false, false);
+                }
+
                 if (restoredDisk != null)
                 {
-                    FloppyPickup disk = restoredDisk.GetComponent<FloppyPickup>();
-                    if (disk != null)
-                    {
-                        ApplySavedFloppyState(restoredDisk, disk, savedFloppy);
-                    }
+                    ApplySavedFloppyState(restoredDisk, savedFloppy);
                 }
                 break;
             }
@@ -3739,19 +3821,33 @@ public class GameManager : MonoBehaviour
         FindAllFloppyDisks();
     }
 
-    private int FindMatchingSavedFloppyIndex(FloppyPickup disk, Vector3 currentPosition)
+    private int FindMatchingSavedFloppyIndex(GameObject floppy)
     {
-        if (disk == null)
+        if (floppy == null)
         {
             return -1;
         }
+
+        bool isCharacter = IsCharacterFloppy(floppy);
+        if (!isCharacter && floppy.GetComponent<FloppyPickup>() == null)
+        {
+            return -1;
+        }
+
+        int ownerPid = GetFloppyOwnerPID(floppy);
+        // Normalized to string.Empty on both sides. Serialize already wrote null names as empty, so
+        // comparing a raw null field against the saved "" used to fail the match and get the disk
+        // destroyed.
+        string diskName = GetFloppyDiskName(floppy);
+        Vector3 currentPosition = floppy.transform.position;
 
         for (int i = 0; i < savedFloppyStateBuffer.Count; i++)
         {
             SavedFloppyState savedFloppy = savedFloppyStateBuffer[i];
             if (savedFloppy.restored
-                || savedFloppy.ownerPid != disk.ownerPID
-                || savedFloppy.diskName != disk.diskName
+                || savedFloppy.isCharacter != isCharacter
+                || savedFloppy.ownerPid != ownerPid
+                || savedFloppy.diskName != diskName
                 || !ApproximatelySameFloppyPosition(currentPosition, savedFloppy.position))
             {
                 continue;
@@ -3770,23 +3866,34 @@ public class GameManager : MonoBehaviour
             && Mathf.Abs(currentPosition.y - savedPosition.y) <= tolerance;
     }
 
-    private static void ApplySavedFloppyState(GameObject floppy, FloppyPickup disk, SavedFloppyState savedFloppy)
+    private static void ApplySavedFloppyState(GameObject floppy, SavedFloppyState savedFloppy)
     {
-        if (floppy != null)
-        {
-            floppy.transform.position = new Vector3(savedFloppy.position.x, savedFloppy.position.y, floppy.transform.position.z);
-            floppy.SetActive(true);
-        }
-
-        if (disk == null)
+        if (floppy == null)
         {
             return;
         }
 
-        disk.ownerPID = savedFloppy.ownerPid;
-        disk.diskName = savedFloppy.diskName;
-        disk.SetSelectHoldCounter(savedFloppy.holdCounter);
-        disk.SetDescriptionVisible(savedFloppy.showDescription, false);
+        floppy.transform.position = new Vector3(savedFloppy.position.x, savedFloppy.position.y, floppy.transform.position.z);
+        floppy.SetActive(true);
+
+        FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
+        if (disk != null)
+        {
+            disk.ownerPID = savedFloppy.ownerPid;
+            disk.diskName = savedFloppy.diskName;
+            disk.SetSelectHoldCounter(savedFloppy.holdCounter);
+            disk.SetDescriptionVisible(savedFloppy.showDescription, false);
+            return;
+        }
+
+        FloppyPickup_Character characterDisk = floppy.GetComponent<FloppyPickup_Character>();
+        if (characterDisk != null)
+        {
+            // No description state to restore - character disks don't have the toggle.
+            characterDisk.ownerPID = savedFloppy.ownerPid;
+            characterDisk.diskName = savedFloppy.diskName;
+            characterDisk.SetSelectHoldCounter(savedFloppy.holdCounter);
+        }
     }
 
     private void PerformRoundTransition()
@@ -3938,7 +4045,10 @@ public class GameManager : MonoBehaviour
         Scene activeScene = SceneManager.GetActiveScene();
         if (playerInputManager != null)
         {
-            if (activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+            bool attractOwnsSoloLobbyInput = activeScene.name == "SoloLobby"
+                && SoloManager.IsBlockingPause;
+            if ((activeScene.name == "MainMenu" || activeScene.name == "SoloLobby")
+                && !attractOwnsSoloLobbyInput)
             {
                 playerInputManager.enabled = true;
                 playerInputManager.EnableJoining();
@@ -6235,6 +6345,25 @@ public class GameManager : MonoBehaviour
         onlineInputDevicesDirty = true;
     }
 
+    /// <summary>
+    /// Single source of truth for the Elimination life count.
+    ///
+    /// Two paths write roundLives, ApplyOnlineTotalRoundsPlayed on the online round advance, and
+    /// RefreshRoundWinConPointLimit from OnSceneLoaded (which runs on EVERY scene load, offline and
+    /// online). roundLives is part of the shared gameplay hash, so the cap has to live in the formula
+    /// rather than at one call site: capping in only one path meant the scene load recomputed it
+    /// uncapped and silently undid the cap, and left offline uncapped entirely.
+    ///
+    /// Deliberately a pure function of roundsPlayed. The original cap branched on the CURRENT
+    /// roundLives (`if (roundLives < 3)`), which makes the result depend on prior state and
+    /// therefore on whatever a rollback happened to restore.
+    /// </summary>
+    private static ushort ComputeEliminationRoundLives(int roundsPlayed)
+    {
+        int lives = baseEliminationLives + livesIncreasePerRound * Mathf.Max(0, roundsPlayed);
+        return (ushort)Mathf.Min(lives, maxEliminationLives);
+    }
+
     private void RefreshRoundWinConPointLimit()
     {
         if (dataManager == null)
@@ -6255,7 +6384,7 @@ public class GameManager : MonoBehaviour
         }
         else if (winCon == WinCon.Elimination)
         {
-            roundLives = (ushort)(baseEliminationLives + livesIncreasePerRound * roundsPlayed);
+            roundLives = ComputeEliminationRoundLives(roundsPlayed);
         }
     }
 
@@ -6510,7 +6639,7 @@ public class GameManager : MonoBehaviour
                 SelectFallbackOnlineGameplayStage();
             }
 
-            ProjectileManager.Instance.InitializeAllProjectiles();
+            ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
             // SpawnPlayer's OnStart pass rebuilds The Jokah's derived spell/projectile copies.
             // Initialize the inventory pool first so it cannot immediately destroy those copies.
             ResetPlayers();
@@ -6578,7 +6707,7 @@ public class GameManager : MonoBehaviour
             }
 
             InitializeOnlineShopSceneState();
-            ProjectileManager.Instance.InitializeAllProjectiles();
+            ProjectileManager.Instance.InitializeAllProjectiles(rebuildExtraSpells: false);
             // Keep the final pool topology (including Jokah copies) in the frame-zero snapshot.
             ResetPlayers();
             if (RollbackManager.Instance != null)
@@ -6604,6 +6733,7 @@ public class GameManager : MonoBehaviour
         sceneManager.RemoveScreenCover(()=>
         {
             BGM_Manager.Instance.StartAndPlaySong();
+            screenTransitioning = false;
         });
     }
 
@@ -6904,20 +7034,50 @@ public class GameManager : MonoBehaviour
 
     public void FindAllFloppyDisks()
     {
+        // Sort keys go through the helpers below because Showdown's character disks carry the
+        // "FloppyDisk" tag too. When this resolved GetComponent<FloppyPickup>() only, every character
+        // disk collapsed to the int.MaxValue/string.Empty keys and ordered by position alone.
         floppyObjects = GameObject.FindGameObjectsWithTag("FloppyDisk")
-            .OrderBy(go =>
-            {
-                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
-                return disk != null ? disk.ownerPID : int.MaxValue;
-            })
+            .OrderBy(go => GetFloppyOwnerPID(go))
             .ThenBy(go => go != null ? go.transform.position.x : float.MaxValue)
             .ThenBy(go => go != null ? go.transform.position.y : float.MaxValue)
-            .ThenBy(go =>
-            {
-                FloppyPickup disk = go != null ? go.GetComponent<FloppyPickup>() : null;
-                return disk != null ? disk.diskName : string.Empty;
-            }, StringComparer.Ordinal)
+            .ThenBy(go => GetFloppyDiskName(go), StringComparer.Ordinal)
+            // Final tiebreak so a spell disk and a character disk sharing a slot still order
+            // identically on both peers.
+            .ThenBy(go => IsCharacterFloppy(go) ? 1 : 0)
             .ToArray();
+    }
+
+    // Two components can sit on a "FloppyDisk"-tagged object: FloppyPickup for spell disks and
+    // FloppyPickup_Character for Showdown's character disks. Anything walking floppyObjects has to
+    // check for both. Resolving only FloppyPickup is what kept character disks out of the online sim
+    // and, worse, made them unmatchable in FindMatchingSavedFloppyIndex - whose caller destroys
+    // whatever fails to match, so a single rollback wiped them off the stage.
+    private static int GetFloppyOwnerPID(GameObject floppy)
+    {
+        if (floppy == null) return int.MaxValue;
+
+        FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
+        if (disk != null) return disk.ownerPID;
+
+        FloppyPickup_Character characterDisk = floppy.GetComponent<FloppyPickup_Character>();
+        return characterDisk != null ? characterDisk.ownerPID : int.MaxValue;
+    }
+
+    private static string GetFloppyDiskName(GameObject floppy)
+    {
+        if (floppy == null) return string.Empty;
+
+        FloppyPickup disk = floppy.GetComponent<FloppyPickup>();
+        if (disk != null) return disk.diskName ?? string.Empty;
+
+        FloppyPickup_Character characterDisk = floppy.GetComponent<FloppyPickup_Character>();
+        return characterDisk != null ? characterDisk.diskName ?? string.Empty : string.Empty;
+    }
+
+    private static bool IsCharacterFloppy(GameObject floppy)
+    {
+        return floppy != null && floppy.GetComponent<FloppyPickup_Character>() != null;
     }
 
     public GameObject[] FindFloppyDisksofPID(int ownerPID)
@@ -6959,15 +7119,19 @@ public class GameManager : MonoBehaviour
         public Vector2 position;
         public byte holdCounter;
         public bool showDescription;
+        // Which pickup type this entry came from, so a restore respawns through the right gamba
+        // method and can't match a spell disk against a saved character disk.
+        public bool isCharacter;
         public bool restored;
 
-        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription)
+        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription, bool isCharacter)
         {
             this.ownerPid = ownerPid;
             this.diskName = diskName;
             this.position = position;
             this.holdCounter = holdCounter;
             this.showDescription = showDescription;
+            this.isCharacter = isCharacter;
             this.restored = false;
         }
     }

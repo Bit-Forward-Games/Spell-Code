@@ -19,7 +19,7 @@ public class TheJokah : SpellData
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] { ProcCondition.OnStart, ProcCondition.ActiveOnCast, ProcCondition.OnUpdate, ProcCondition.OnCastBasic, ProcCondition.OnHitSpell, ProcCondition.OnSweetSpot};
         projectilePrefabs = new GameObject[2];
-        description = "Casts and enhanced version of one of your VWave<sprite name=\"FlowState\"> or BigStox<sprite name=\"StockStability\"> Spellcodes at random. Hitting Sweet-Spots<sprite name=\"FlowState\"> of other Spellcodes now Crit<sprite name=\"StockStability\">.";
+        description = "Casts an enhanced version of one of your VWave<sprite name=\"FlowState\"> or BigStox<sprite name=\"StockStability\"> Spellcodes at random. Hitting Sweet-Spots<sprite name=\"FlowState\"> of other Spellcodes now Crit<sprite name=\"StockStability\">.";
         spawnOffsetX = 0;
     }
 
@@ -62,61 +62,7 @@ public class TheJokah : SpellData
         switch(targetProcCon)
         {
             case ProcCondition.OnStart:
-                ClearCreatedSpells();
-                JokahVWaveSpells = new List<SpellData>();
-                JokahBigStoxSpells = new List<SpellData>();
-
-                foreach(SpellData spell in owner.spellList)
-                {
-                    if(spell.spellType == SpellType.Active)
-                    {
-                        List<SpellData> targetList = null;
-                        switch (spell.brands[0])
-                        {
-                            case Brand.BigStox:
-                                targetList = JokahBigStoxSpells;
-                                break;
-                            case Brand.VWave:
-                                targetList = JokahVWaveSpells;
-                                break;
-                        }
-
-                        if (targetList != null)
-                        {
-                            SpellData spellCopy = Instantiate(spell);
-                            spellCopy.owner = owner;
-                            spellCopy.projectileInstances.Clear();
-
-                            if (spellCopy is IBigStoxActiveSpell bigStoxCopy)
-                            {
-                                bigStoxCopy.EnableForcedCrit();
-                            }
-
-                            spellCopy.projectilePrefabs = new GameObject[spell.projectilePrefabs.Length];
-
-                            for (int i = 0; i < spell.projectilePrefabs.Length; i++)
-                            {
-                                GameObject projectileCopy = Instantiate(spell.projectilePrefabs[i]);
-
-                                
-                                projectileCopy.GetComponent<BaseProjectile>().LoadProjectile();
-                                ProjectileManager.Instance.projectilePrefabs.Add(projectileCopy.GetComponent<BaseProjectile>());
-                                projectileCopy.GetComponent<BaseProjectile>().owner = owner;
-                                projectileCopy.GetComponent<BaseProjectile>().ownerSpell = spellCopy;
-                                spellCopy.projectileInstances.Add(projectileCopy);
-                                //color the spell all red if vwave
-                                if(projectileCopy.GetComponent<BaseProjectile>().ownerSpell.brands[0] == Brand.VWave)
-                                {
-                                    projectileCopy.GetComponent<SpriteRenderer>().color = GameManager.colors["red"];
-                                }
-                                projectileCopy.SetActive(false);
-                            }
-
-                            targetList.Add(spellCopy);
-                            owner.extraSpells.Add(spellCopy);
-                        }
-                    }
-                }
+                RebuildCreatedSpells();
                 break;
             case ProcCondition.ActiveOnCast:
                 
@@ -175,6 +121,124 @@ public class TheJokah : SpellData
         isVWave = br.ReadBoolean();
     }
 
+    /// <summary>
+    /// Recreates the enhanced spell copies derived from the owner's current inventory. Each copy
+    /// retains the original prefab templates so a global pool rebuild can recreate its runtime
+    /// projectiles without rerunning OnStart or resetting serialized spell state.
+    /// </summary>
+    public void RebuildCreatedSpells()
+    {
+        ClearCreatedSpells();
+        JokahVWaveSpells = new List<SpellData>();
+        JokahBigStoxSpells = new List<SpellData>();
+
+        if (owner == null || owner.spellList == null)
+        {
+            return;
+        }
+
+        foreach (SpellData spell in owner.spellList)
+        {
+            if (spell == null
+                || spell.spellType != SpellType.Active
+                || spell.brands == null
+                || spell.brands.Length == 0)
+            {
+                continue;
+            }
+
+            List<SpellData> targetList = null;
+            switch (spell.brands[0])
+            {
+                case Brand.BigStox:
+                    targetList = JokahBigStoxSpells;
+                    break;
+                case Brand.VWave:
+                    targetList = JokahVWaveSpells;
+                    break;
+            }
+
+            if (targetList == null)
+            {
+                continue;
+            }
+
+            SpellData spellCopy = Instantiate(spell);
+            spellCopy.owner = owner;
+            spellCopy.projectileInstances = new List<GameObject>();
+
+            if (spellCopy is IBigStoxActiveSpell bigStoxCopy)
+            {
+                bigStoxCopy.EnableForcedCrit();
+            }
+
+            GameObject[] sourceProjectilePrefabs = spell.projectilePrefabs ?? Array.Empty<GameObject>();
+            spellCopy.projectilePrefabs = new GameObject[sourceProjectilePrefabs.Length];
+
+            bool hasValidProjectileTemplates = true;
+            for (int i = 0; i < sourceProjectilePrefabs.Length; i++)
+            {
+                GameObject projectileTemplate = sourceProjectilePrefabs[i];
+                // Store the persistent source asset, never the runtime object that a pool rebuild
+                // destroys. This was the missing half of rebuilding Jokah's extra spells.
+                spellCopy.projectilePrefabs[i] = projectileTemplate;
+                if (projectileTemplate == null)
+                {
+                    Debug.LogError($"The Jokah: '{spell.spellName}' has a missing projectile prefab at index {i}.");
+                    hasValidProjectileTemplates = false;
+                }
+                else if (projectileTemplate.GetComponent<BaseProjectile>() == null)
+                {
+                    Debug.LogError($"The Jokah: '{spell.spellName}' projectile prefab at index {i} has no BaseProjectile.");
+                    hasValidProjectileTemplates = false;
+                }
+            }
+
+            // Reject the whole copied spell when one indexed projectile is invalid. Compacting only
+            // projectileInstances would make spells that directly use indices 0/1 cast the wrong
+            // variant or throw again.
+            if (!hasValidProjectileTemplates)
+            {
+                Destroy(spellCopy.gameObject);
+                continue;
+            }
+
+            for (int i = 0; i < sourceProjectilePrefabs.Length; i++)
+            {
+                GameObject projectileCopy = Instantiate(sourceProjectilePrefabs[i]);
+                BaseProjectile copiedProjectile = projectileCopy.GetComponent<BaseProjectile>();
+                copiedProjectile.LoadProjectile();
+                ProjectileManager.Instance.projectilePrefabs.Add(copiedProjectile);
+                copiedProjectile.owner = owner;
+                copiedProjectile.ownerSpell = spellCopy;
+                spellCopy.projectileInstances.Add(projectileCopy);
+                ApplyCopiedProjectilePresentation(spellCopy, projectileCopy);
+                projectileCopy.SetActive(false);
+            }
+
+            targetList.Add(spellCopy);
+            owner.extraSpells.Add(spellCopy);
+        }
+    }
+
+    public static void ApplyCopiedProjectilePresentation(SpellData copiedSpell, GameObject projectileObject)
+    {
+        if (copiedSpell == null
+            || copiedSpell.brands == null
+            || copiedSpell.brands.Length == 0
+            || copiedSpell.brands[0] != Brand.VWave
+            || projectileObject == null)
+        {
+            return;
+        }
+
+        SpriteRenderer spriteRenderer = projectileObject.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null && GameManager.colors.TryGetValue("red", out Color enhancedColor))
+        {
+            spriteRenderer.color = enhancedColor;
+        }
+    }
+
     private void ForwardPendingSickleBasic(PlayerController defender)
     {
         if (owner == null || JokahVWaveSpells == null)
@@ -210,7 +274,7 @@ public class TheJokah : SpellData
         ClearCreatedSpells();
     }
 
-    private void ClearCreatedSpells()
+    public void ClearCreatedSpells()
     {
         RemoveCreatedSpellsFromOwner(JokahVWaveSpells);
         RemoveCreatedSpellsFromOwner(JokahBigStoxSpells);
@@ -260,8 +324,13 @@ public class TheJokah : SpellData
                 BaseProjectile projectile = projectileObject.GetComponent<BaseProjectile>();
                 if (ProjectileManager.Instance != null)
                 {
-                    ProjectileManager.Instance.projectilePrefabs.Remove(projectile);
-                    ProjectileManager.Instance.activeProjectiles.Remove(projectile);
+                    // Nulls the pool slot instead of removing it. A List.Remove here renumbered every
+                    // projectile after this one, and prefabIndex is the key the rollback savestate and
+                    // the projectile hash both use -- so the two machines disagreed about which
+                    // projectile a given index meant. This path is reachable from OnDestroy, which
+                    // runs on Unity's schedule rather than the sim's, so the renumbering did not even
+                    // happen on the same frame on both machines.
+                    ProjectileManager.Instance.UnregisterProjectilePrefab(projectile);
                 }
 
                 Destroy(projectileObject);

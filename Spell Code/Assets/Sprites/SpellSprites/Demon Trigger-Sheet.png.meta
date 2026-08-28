@@ -1,0 +1,1181 @@
+fileFormatVersion: 2
+guid: b00bc0142e7c23946a8949b89befe0cd
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8225622050841232203
+    second: Demon Trigger-Sheet_0
+  - first:
+      213: 358047797253428921
+    second: Demon Trigger-Sheet_1
+  - first:
+      213: -2401958539347359286
+    second: Demon Trigger-Sheet_2
+  - first:
+      213: -1977189412359210468
+    second: Demon Trigger-Sheet_3
+  - first:
+      213: 142519638712353734
+    second: Demon Trigger-Sheet_4
+  - first:
+      213: 5933373846264851650
+    second: Demon Trigger-Sheet_5
+  - first:
+      213: 7353786332047430611
+    second: Demon Trigger-Sheet_6
+  - first:
+      213: 1590548223874026000
+    second: Demon Trigger-Sheet_7
+  - first:
+      213: 1912552862361813116
+    second: Demon Trigger-Sheet_8
+  - first:
+      213: 5288242431341288140
+    second: Demon Trigger-Sheet_9
+  - first:
+      213: -1814737256527064060
+    second: Demon Trigger-Sheet_10
+  - first:
+      213: -143846544388302087
+    second: Demon Trigger-Sheet_11
+  - first:
+      213: -1552365684153536962
+    second: Demon Trigger-Sheet_12
+  - first:
+      213: -2371842062894740012
+    second: Demon Trigger-Sheet_13
+  - first:
+      213: -4691583573971176916
+    second: Demon Trigger-Sheet_14
+  - first:
+      213: -3611407300037256109
+    second: Demon Trigger-Sheet_15
+  - first:
+      213: -8022864819074179547
+    second: Demon Trigger-Sheet_16
+  - first:
+      213: -745627912072255184
+    second: Demon Trigger-Sheet_17
+  - first:
+      213: -646409317930335907
+    second: Demon Trigger-Sheet_18
+  - first:
+      213: 74970253251722338
+    second: Demon Trigger-Sheet_19
+  - first:
+      213: 6838642229822709565
+    second: Demon Trigger-Sheet_20
+  - first:
+      213: 357863538906888916
+    second: Demon Trigger-Sheet_21
+  - first:
+      213: 1149252562399127834
+    second: Demon Trigger-Sheet_22
+  - first:
+      213: 3567956531063371169
+    second: Demon Trigger-Sheet_23
+  - first:
+      213: -439956610443671622
+    second: Demon Trigger-Sheet_24
+  - first:
+      213: -8701077644930834333
+    second: Demon Trigger-Sheet_25
+  - first:
+      213: -1428295731887738341
+    second: Demon Trigger-Sheet_26
+  - first:
+      213: -6004738405702846543
+    second: Demon Trigger-Sheet_27
+  - first:
+      213: 1276180312561338384
+    second: Demon Trigger-Sheet_28
+  - first:
+      213: 3729635777488275846
+    second: Demon Trigger-Sheet_29
+  - first:
+      213: -578559126185234599
+    second: Demon Trigger-Sheet_30
+  - first:
+      213: -4459189836063737008
+    second: Demon Trigger-Sheet_31
+  - first:
+      213: -7013800360704122856
+    second: Demon Trigger-Sheet_32
+  - first:
+      213: 2996629161822292614
+    second: Demon Trigger-Sheet_33
+  - first:
+      213: -6469446998307265011
+    second: Demon Trigger-Sheet_34
+  - first:
+      213: -1871390939511877493
+    second: Demon Trigger-Sheet_35
+  - first:
+      213: 5267658890879361715
+    second: Demon Trigger-Sheet_36
+  - first:
+      213: 4428259057127101900
+    second: Demon Trigger-Sheet_37
+  - first:
+      213: -1014287906048710989
+    second: Demon Trigger-Sheet_38
+  - first:
+      213: -335787948758548429
+    second: Demon Trigger-Sheet_39
+  - first:
+      213: 4170545958643535857
+    second: Demon Trigger-Sheet_40
+  - first:
+      213: -1004791756208380067
+    second: Demon Trigger-Sheet_41
+  - first:
+      213: 7785387135909208996
+    second: Demon Trigger-Sheet_42
+  - first:
+      213: 2303155745849034471
+    second: Demon Trigger-Sheet_43
+  - first:
+      213: -5640554656369933534
+    second: Demon Trigger-Sheet_44
+  - first:
+      213: -8676150808381858553
+    second: Demon Trigger-Sheet_45
+  - first:
+      213: -6872906084697779259
+    second: Demon Trigger-Sheet_46
+  - first:
+      213: -1530397138001391293
+    second: Demon Trigger-Sheet_47
+  - first:
+      213: -6690784210072531
+    second: Demon Trigger-Sheet_48
+  - first:
+      213: 4475580413764085918
+    second: Demon Trigger-Sheet_49
+  - first:
+      213: 3676736990415009312
+    second: Demon Trigger-Sheet_50
+  - first:
+      213: -7912546990889548939
+    second: Demon Trigger-Sheet_51
+  - first:
+      213: 3032927794695982535
+    second: Demon Trigger-Sheet_52
+  - first:
+      213: -5892172485785005522
+    second: Demon Trigger-Sheet_53
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 320
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b43030d8ca7472270800000000000000
+      internalID: 8225622050841232203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 320
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6d6e7139a08f400800000000000000
+      internalID: 358047797253428921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 320
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac90cf04f678aaed0800000000000000
+      internalID: -2401958539347359286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 320
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a7aae74bc9f84e0800000000000000
+      internalID: -1977189412359210468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c387f63bd45af100800000000000000
+      internalID: 142519638712353734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cca53aa314975250800000000000000
+      internalID: 5933373846264851650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d35fcbf4b5ed0660800000000000000
+      internalID: 7353786332047430611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ac32abe23c21610800000000000000
+      internalID: 1590548223874026000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c708b37f1b0ca8a10800000000000000
+      internalID: 1912552862361813116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccade36197c936940800000000000000
+      internalID: 5288242431341288140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40499008412c0d6e0800000000000000
+      internalID: -1814737256527064060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fa519b7454f00ef0800000000000000
+      internalID: -143846544388302087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3ea58292a3e47ae0800000000000000
+      internalID: -1552365684153536962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 256
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dd44d9d536851fd0800000000000000
+      internalID: -2371842062894740012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c22f367b89524eeb0800000000000000
+      internalID: -4691583573971176916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35cd606d134b1edc0800000000000000
+      internalID: -3611407300037256109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52eda1a34fe09a090800000000000000
+      internalID: -8022864819074179547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 039215e4d5ff6a5f0800000000000000
+      internalID: -745627912072255184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d518241762e7707f0800000000000000
+      internalID: -646409317930335907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 192
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26c3ac15c095a0100800000000000000
+      internalID: 74970253251722338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d3f519610ecb7ee50800000000000000
+      internalID: 6838642229822709565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dafb9a1ef267f400800000000000000
+      internalID: 357863538906888916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a19e103dd17f2ff00800000000000000
+      internalID: 1149252562399127834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a53118af8de38130800000000000000
+      internalID: 3567956531063371169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab78be53bc5f4e9f0800000000000000
+      internalID: -439956610443671622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_25
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 128
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3602ec27bff8f3780800000000000000
+      internalID: -8701077644930834333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_26
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b12ff9a699cad2ce0800000000000000
+      internalID: -1428295731887738341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_27
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b7bfe60c32eaaca0800000000000000
+      internalID: -6004738405702846543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_28
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 018c0979b37e5b110800000000000000
+      internalID: 1276180312561338384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_29
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 689c6caaaf352c330800000000000000
+      internalID: 3729635777488275846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95f2b224a8b88f7f0800000000000000
+      internalID: -578559126185234599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 64
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05b736b4876cd12c0800000000000000
+      internalID: -4459189836063737008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81069be8bb9f9ae90800000000000000
+      internalID: -7013800360704122856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68a8ef9885a269920800000000000000
+      internalID: 2996629161822292614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d06adac4b38e736a0800000000000000
+      internalID: -6469446998307265011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8092860bdb7706e0800000000000000
+      internalID: -1871390939511877493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_36
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b2eacc1adb7a1940800000000000000
+      internalID: 5267658890879361715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Demon Trigger-Sheet_37
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 0
+        width: 96
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.09375}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc597798626547d30800000000000000
+      internalID: 4428259057127101900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b0dff35ba53ec494fa5c26b23d278ddc
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":96.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.09375},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":1,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Demon Trigger-Sheet_0: 8225622050841232203
+      Demon Trigger-Sheet_1: 358047797253428921
+      Demon Trigger-Sheet_10: -1814737256527064060
+      Demon Trigger-Sheet_11: -143846544388302087
+      Demon Trigger-Sheet_12: -1552365684153536962
+      Demon Trigger-Sheet_13: -2371842062894740012
+      Demon Trigger-Sheet_14: -4691583573971176916
+      Demon Trigger-Sheet_15: -3611407300037256109
+      Demon Trigger-Sheet_16: -8022864819074179547
+      Demon Trigger-Sheet_17: -745627912072255184
+      Demon Trigger-Sheet_18: -646409317930335907
+      Demon Trigger-Sheet_19: 74970253251722338
+      Demon Trigger-Sheet_2: -2401958539347359286
+      Demon Trigger-Sheet_20: 6838642229822709565
+      Demon Trigger-Sheet_21: 357863538906888916
+      Demon Trigger-Sheet_22: 1149252562399127834
+      Demon Trigger-Sheet_23: 3567956531063371169
+      Demon Trigger-Sheet_24: -439956610443671622
+      Demon Trigger-Sheet_25: -8701077644930834333
+      Demon Trigger-Sheet_26: -1428295731887738341
+      Demon Trigger-Sheet_27: -6004738405702846543
+      Demon Trigger-Sheet_28: 1276180312561338384
+      Demon Trigger-Sheet_29: 3729635777488275846
+      Demon Trigger-Sheet_3: -1977189412359210468
+      Demon Trigger-Sheet_30: -578559126185234599
+      Demon Trigger-Sheet_31: -4459189836063737008
+      Demon Trigger-Sheet_32: -7013800360704122856
+      Demon Trigger-Sheet_33: 2996629161822292614
+      Demon Trigger-Sheet_34: -6469446998307265011
+      Demon Trigger-Sheet_35: -1871390939511877493
+      Demon Trigger-Sheet_36: 5267658890879361715
+      Demon Trigger-Sheet_37: 4428259057127101900
+      Demon Trigger-Sheet_4: 142519638712353734
+      Demon Trigger-Sheet_5: 5933373846264851650
+      Demon Trigger-Sheet_6: 7353786332047430611
+      Demon Trigger-Sheet_7: 1590548223874026000
+      Demon Trigger-Sheet_8: 1912552862361813116
+      Demon Trigger-Sheet_9: 5288242431341288140
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

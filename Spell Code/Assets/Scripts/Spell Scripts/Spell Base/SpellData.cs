@@ -242,7 +242,9 @@ public abstract class SpellData : MonoBehaviour
             if (projectileInstance == null) continue;
 
             BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
-            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
+            // Rollback snapshots only restore active projectile instances. Letting an inactive pool
+            // entry contribute here can merge future hit flags back into a replayed active projectile.
+            if (projectile == null || !projectile.gameObject.activeSelf || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
 
             if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr))
             {
@@ -267,7 +269,7 @@ public abstract class SpellData : MonoBehaviour
             if (projectileInstance == null) continue;
 
             BaseProjectile projectile = projectileInstance.GetComponent<BaseProjectile>();
-            if (projectile == null || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
+            if (projectile == null || !projectile.gameObject.activeSelf || string.IsNullOrEmpty(projectile.projName) || projectile.playerHitArr == null) continue;
 
             if (!sharedIgnoreMap.TryGetValue(projectile.projName, out bool[] mergedIgnoreArr)) continue;
 

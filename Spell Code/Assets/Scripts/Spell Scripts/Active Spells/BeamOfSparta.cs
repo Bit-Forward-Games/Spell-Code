@@ -21,7 +21,7 @@ public class BeamOfSparta : SpellData
         procConditions = new ProcCondition[] { ProcCondition.OnUpdate, ProcCondition.OnSweetSpot };
         projectilePrefabs = new GameObject[10];
         projIDsToShareHitstop = new ushort[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        description = "Charge up a massive beam. The range of this beam is determined by your Reps<sprite name=\"Reps\">, doubled when in Flow State<sprite name=\"FlowState\">. Hitting Sweet-Spots<sprite name=\"FlowState\"> grant 1 rep<sprite name=\"Reps\">";
+        description = "Charge up a massive beam. The range of this beam is determined by your Reps<sprite name=\"Reps\">, doubled when in Flow State<sprite name=\"FlowState\">. Hitting Sweet-Spots<sprite name=\"FlowState\"> grant 1 rep<sprite name=\"Reps\">.";
         
 
     }

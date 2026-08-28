@@ -1,4 +1,4 @@
-﻿using BestoNet.Types;
+using BestoNet.Types;
 using DG.Tweening.Plugins;
 using System;
 using System.Collections;
@@ -206,7 +206,7 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized]
     public HitboxData hitboxData = null; //this represents what they are hit by
-    public bool isHit = false;
+    public bool isHitByNewPlayer = false;
 
     public bool dodgedFlag = false;
 
@@ -229,7 +229,9 @@ public class PlayerController : MonoBehaviour
 
     public uint storedCodeMaxDuration = 0; //NAME THIS
     public uint storedCodeDuration = 0; //how many more logic frames the stored code will last before auto-releasing
-
+    public Fixed prorationVal = Fixed.FromInt(1);
+    public const float prorationPerHit = .1f;
+    public const int maxComboHits = 6;
     public byte comboCounter = 0;
     public ushort comboResetTimer = 0;
     public byte hitstop = 0;
@@ -550,12 +552,13 @@ public class PlayerController : MonoBehaviour
         portalCooldown = 0;
         portalPrimed = true; // rollback-critical portal entry gate
         comboCounter = 0;
+        prorationVal = Fixed.FromInt(1);
         comboResetTimer = 0;
         armor = false;
         silenced = false;
         basicSpawnOverride = string.Empty;
         basicSpawnOverrideVariant = 0;
-        isHit = false;
+        isHitByNewPlayer = false;
         damageBarHitCount = 0;
         hitboxData = null;
         currentPlayerHealth = charData.playerHealth;
@@ -810,7 +813,29 @@ public class PlayerController : MonoBehaviour
         return spellList.Count;
     }
 
-    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true)
+    /// <summary>
+    /// The Steam achievement for discovering a specific spell, or null for one that has none.
+    /// </summary>
+    public static string GetSpellDiscoveryAchievement(SpellData spell)
+    {
+        switch (spell)
+        {
+            case BeamOfSparta _: return SteamAchievements.SpellSpartanBeam;
+            case TouchOfMidas _: return SteamAchievements.SpellTouchOfMidas;
+            case ChainsOfThanatos _: return SteamAchievements.SpellChainsOfThanatos;
+            case DemonTrigger _: return SteamAchievements.SpellDemonTrigger;
+            case TheJokah _: return SteamAchievements.SpellTheJokah;
+            case WolfOfWallstreet _: return SteamAchievements.SpellWolfOfWallstreet;
+            default: return null;
+        }
+    }
+
+    /// <param name="fromFloppyPickup">
+    /// True only when a player physically picked a floppy up. Gates the discovery achievements:
+    /// spells also arrive from the gamba machine, a character's starting loadout, and the
+    /// savestate restore that re-adds a starting spell, and none of those are a discovery.
+    /// </param>
+    public bool AddSpellToSpellList(string spellToAdd, bool applyLoadEffects = true, bool fromFloppyPickup = false)
     {
         if (spellList.Count >= 6)
         {
@@ -850,11 +875,28 @@ public class PlayerController : MonoBehaviour
         {
             spellInstance.LoadSpell();
         }
-        ProjectileManager.Instance.InitializeAllProjectiles();
         CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnStart);
+        // OnStart regenerates The Jokah's derived SpellData copies. Rebuild the global pool after
+        // that final topology exists so all inventory projectiles precede all generated extras.
+        ProjectileManager.Instance.InitializeAllProjectiles();
 
         int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
         GameManager.Instance.spellDisplays[playerIndex].UpdateSpellDisplay(playerIndex);
+
+        // Discovery achievements, floppy pickups only. The SimGuards check is still needed on
+        // top of that: a real pickup re-runs on every rollback resim pass, and runs for every
+        // player on every peer's machine, so without it one pickup would fire repeatedly and
+        // credit this account for what a remote player found.
+        if (fromFloppyPickup && SimGuards.IsLocalRealFrame(playerIndex))
+        {
+            // Null for a spell with no achievement; Unlock ignores that.
+            SteamAchievements.Unlock(GetSpellDiscoveryAchievement(targetSpell));
+
+            if (targetSpell.brands != null && Array.IndexOf(targetSpell.brands, Brand.DarkWeb) >= 0)
+            {
+                SteamAchievements.Unlock(SteamAchievements.FirstDarkWebSpell);
+            }
+        }
 
         //trigger bools depending on brand
         for (int i = 0; i < targetSpell.brands.Length; i++)
@@ -928,10 +970,26 @@ public class PlayerController : MonoBehaviour
         {
             if (spellList[i] != null && spellList[i].spellName == spellToRemove)
             {
-                Destroy(spellList[i]);
+                SpellData removedSpell = spellList[i];
+                if (removedSpell is TheJokah removedJokah)
+                {
+                    removedJokah.ClearCreatedSpells();
+                }
+                Destroy(removedSpell);
                 spellList.RemoveAt(i);
                 startingSpellAdded = !string.IsNullOrEmpty(startingSpell)
                     && spellList.Exists(spell => spell != null && spell.spellName == startingSpell);
+
+                // Removing a VWave/BigStox spell changes every remaining Jokah's derived spell set.
+                // Reconcile that set before rebuilding, otherwise the removed spell's copy survives
+                // in extraSpells and a newly-required copy can be absent after rollback.
+                for (int spellIndex = 0; spellIndex < spellList.Count; spellIndex++)
+                {
+                    if (spellList[spellIndex] is TheJokah jokah)
+                    {
+                        jokah.RebuildCreatedSpells();
+                    }
+                }
                 ProjectileManager.Instance.InitializeAllProjectiles();
 
                 int playerIndex = Array.IndexOf(GameManager.Instance.players, this);
@@ -1286,7 +1344,21 @@ public class PlayerController : MonoBehaviour
     {
         int previousInputDirection = input.Direction;
         prevDoubleTapDirection = input.Direction != 5? (ushort)input.Direction: prevDoubleTapDirection;
-        if(pID != 0)
+        // screenTransitioning is a LOCAL, unserialized flag: SceneUiManager sets it alongside the
+        // screen cover and clears it from a DOTween callback, so it is wall-clock state, not sim
+        // state. Gating input on it during an ONLINE match desyncs two ways, the cover finishes at
+        // a different real-world moment on each machine, and because the flag is not in the savestate
+        // a rollback re-reads its CURRENT value instead of the value that frame originally had, so
+        // the resim applies input the original frame skipped (or vice versa). Offline there is one
+        // timeline and no rollback, so the intended behaviour is kept there.
+        //
+        // Also null-guarded: the very next line already tolerates a missing GameManager.
+        GameManager inputManager = GameManager.Instance;
+        bool blockedByScreenTransition = inputManager != null
+            && !inputManager.isOnlineMatchActive
+            && inputManager.screenTransitioning;
+
+        if(pID != 0 && !blockedByScreenTransition)
         {
             input = InputConverter.ConvertFromLong(rawInput);
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
@@ -1486,6 +1558,7 @@ public class PlayerController : MonoBehaviour
             if(comboResetTimer <= 0)
             {
                 comboCounter = 0;
+                prorationVal = Fixed.FromInt(1);
             }
         }
 
@@ -1941,7 +2014,6 @@ public class PlayerController : MonoBehaviour
 
                 if (logicFrame == AnimationManager.Instance.GetFrameLengthsForCurrentState(this).Take(3).Sum())
                 {
-                    //uint testCode = stateSpecificArg & ~(1u << 4);
                     stateSpecificArg &= ~(1u << 4);
 #region Secret Dev Codes
                     if (stateSpecificArg == 0b_0000_0000_0110_0110_0000_1111_0000_1000) //Konami Code input
@@ -3412,7 +3484,6 @@ public class PlayerController : MonoBehaviour
                     SFX_Manager.Instance.PlaySound(Sounds.ARMOR_HIT, 1.0f, 1.0f);
                 }
 
-                isHit = false;
                 hitboxData = null;
                 return;
             }
@@ -3433,7 +3504,6 @@ public class PlayerController : MonoBehaviour
                     CheckAllSpellConditionsOfProcCon(this,ProcCondition.OnBlock, attacker);
                     
 
-                    isHit = false;
                     hitboxData = null;
                     return;
                 }
@@ -3456,7 +3526,7 @@ public class PlayerController : MonoBehaviour
             {
                 //don't take damage in the lobby
                 SpawnToast($"NO DAMAGE IN LOBBY!", GameManager.colors["white"]);
-                isHit = false;
+                isHitByNewPlayer = false;
                 hitboxData = null;
                 return;
             }
@@ -3470,12 +3540,24 @@ public class PlayerController : MonoBehaviour
                 
                 ProjectileManager.Instance.DeleteTargetPlayerProjectiles(pID, false);
 
-                if(!multiHitDamageInstance) comboCounter++;
-                if (comboCounter >= 4)
+                if(!multiHitDamageInstance)
+                {
+                    comboCounter++;
+                    prorationVal -= Fixed.FromFloat(prorationPerHit);
+
+                    if (isHitByNewPlayer)//if its a new player, DO IT AGAIN
+                    {
+                        comboCounter++;
+                        prorationVal -= Fixed.FromFloat(prorationPerHit);
+                        isHitByNewPlayer = false;
+                    }
+                }
+                if (comboCounter >= maxComboHits)
                 {
                     SpawnToast("COMBO BREAK!!!", GameManager.colors["purple"]);
                     iframes = 120;
                     comboCounter = 0;
+                    prorationVal = Fixed.FromInt(1);
                     SetState(PlayerState.Tech);
 
                     //Play the combo break VFX
@@ -3543,7 +3625,6 @@ public class PlayerController : MonoBehaviour
             }
 
 
-            isHit = false;
             hitboxData = null;
 
         }
@@ -3557,23 +3638,18 @@ public class PlayerController : MonoBehaviour
             CheckAllSpellConditionsOfProcCon(this, ProcCondition.OnDodge);
             dodgedFlag = false;
             hitboxData = null;
-            // The damage block above is skipped for a dodge (`!dodgedFlag`), and that block is what
-            // normally clears isHit. Without this, isHit latches true for the rest of the match.
-            // It's hashed state, so it stays consistent across clients either way, but a stuck flag
-            // still misreports the player as hit (TutorialManager reads it).
-            isHit = false;
         }
     }
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
         //if(pID == 0)return; //if this is a training dummy then don't handle damage
-
+        int proratedDamage = (int)(Fixed.FromInt(damageAmount) * prorationVal).ToFloat(); 
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
         if (!isRollback && damageAmount > 0)
         {
             TriggerHitRumble(0.2f, 0.6f, 0.12f);
-            SpawnDamageNumber(damageAmount, damageTextColor);
+            SpawnDamageNumber(proratedDamage, damageTextColor);
         }
 
         // Damage attribution is deterministic match state and must update during rollback replays too.
@@ -3581,10 +3657,10 @@ public class PlayerController : MonoBehaviour
         {
             if (GameManager.Instance.winCon == GameManager.WinCon.RAMRush
                 && hasAttacker
-                && damageAmount > 0
+                && proratedDamage > 0
                 && attacker.pID != 0)
             {
-                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(damageAmount, 0, currentPlayerHealth);
+                GameManager.Instance.damageMatrix[pID - 1, attacker.pID - 1] += (byte)Math.Clamp(proratedDamage, 0, currentPlayerHealth);
             }
 
             if (DataManager.Instance != null &&
@@ -3601,9 +3677,8 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-
         //checking for death
-        if (damageAmount >= currentPlayerHealth)
+        if (proratedDamage >= currentPlayerHealth)
         {
             if (pID == 0)
             {
@@ -3670,7 +3745,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             // Reduce health 
-            currentPlayerHealth = (ushort)(currentPlayerHealth - (int)damageAmount);
+            currentPlayerHealth = (ushort)(currentPlayerHealth - proratedDamage);
         }
     }
 
@@ -3835,10 +3910,18 @@ public class PlayerController : MonoBehaviour
         if (hitboxData != null && _pendingHitboxOwnerIndex >= 0)
         {
             // Use specific projectile index if available
-            if (_pendingHitboxProjectileIndex >= 0 &&
-                _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count)
+            // projectilePrefabs is append-only, so a retired slot is null and an index that is still
+            // IN RANGE can resolve to nothing. Fall through to the owner search rather than assigning
+            // a null parentProjectile, which only NREs later, inside the resim.
+            BaseProjectile indexedProjectile =
+                _pendingHitboxProjectileIndex >= 0
+                && _pendingHitboxProjectileIndex < ProjectileManager.Instance.projectilePrefabs.Count
+                    ? ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex]
+                    : null;
+
+            if (indexedProjectile != null)
             {
-                hitboxData.parentProjectile = ProjectileManager.Instance.projectilePrefabs[_pendingHitboxProjectileIndex];
+                hitboxData.parentProjectile = indexedProjectile;
             }
             else if (_pendingHitboxOwnerIndex < GameManager.Instance.players.Length)
             {
@@ -3929,7 +4012,7 @@ public class PlayerController : MonoBehaviour
         return $"grav={gravity.RawValue} lerp={lerpDelay} ssArg={stateSpecificArg} jc={jumpCount}/{maxJumpCount} " +
                $"grnd={isGrounded} plat={onPlatform} portal={portalCooldown}:primed={portalPrimed} tmr={timer.RawValue} animF={animationFrame} prev={prevState} " +
                $"tjp={tapJumpPrimed} tci={toggleCodeInput} rel={relativeInputs} hs={hitstop}/{hitstopActive} " +
-               $"sArm={superArmor} arm={armor} cmb={comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
+               $"sArm={superArmor} arm={armor} cmb={prorationVal}/{comboCounter}/{comboResetTimer} ifr={iframes} dmgBar={damageBarHitCount} " +
                $"stk={stockStability}/{stockStabilityModified} demonT={demonAuraLifeSpanTimer} reps={reps} tap={tapJump} " +
                $"vibe={vibeCoding} djs={diagonalSlide} " +
                $"sCode={storedCode}/{storedCodeDuration} basicOvr={basicSpawnOverride}:{basicSpawnOverrideVariant} chSpell={chosenSpell} in=[{inStr}]";
@@ -3967,6 +4050,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(superArmor);
+        bw.Write(prorationVal.RawValue);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
@@ -3979,7 +4063,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
-        bw.Write(isHit);
+        bw.Write(isHitByNewPlayer);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
         bw.Write(dodgedFlag);
@@ -4145,6 +4229,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(hitstop);
         bw.Write(hitstopActive);
         bw.Write(superArmor);
+        bw.Write(prorationVal.RawValue);
         bw.Write(comboCounter);
         bw.Write(comboResetTimer);
         bw.Write(armor);
@@ -4152,7 +4237,7 @@ public class PlayerController : MonoBehaviour
         bw.Write(currentPlayerHealth);
         bw.Write(isAlive);
         bw.Write(isConnected);
-        bw.Write(isHit);
+        bw.Write(isHitByNewPlayer);
         bw.Write(damageBarHitCount);
         bw.Write(iframes);
         bw.Write(dodgedFlag);
@@ -4360,6 +4445,7 @@ public class PlayerController : MonoBehaviour
         //hitboxActive = br.ReadBoolean();
         hitstopActive = br.ReadBoolean();
         superArmor = br.ReadBoolean();
+        prorationVal = new Fixed(br.ReadInt32());
         comboCounter = br.ReadByte();
         comboResetTimer = br.ReadUInt16();
         armor = br.ReadBoolean();
@@ -4377,7 +4463,7 @@ public class PlayerController : MonoBehaviour
         currentPlayerHealth = br.ReadUInt16();
         isAlive = br.ReadBoolean();
         isConnected = br.ReadBoolean();
-        isHit = br.ReadBoolean();
+        isHitByNewPlayer = br.ReadBoolean();
         damageBarHitCount = br.ReadUInt32();
         iframes = br.ReadUInt16();
         dodgedFlag = br.ReadBoolean();
@@ -4553,6 +4639,33 @@ public class PlayerController : MonoBehaviour
         // either side of that rebuild, so entries beyond the local count are skipped by their length
         // rather than assumed present -- the stream stays aligned either way.
         int extraCount = br.ReadInt32();
+        bool needsJokahDefinitionRebuild = extraSpells.Count != extraCount;
+        for (int spellIndex = 0; spellIndex < spellList.Count && !needsJokahDefinitionRebuild; spellIndex++)
+        {
+            if (spellList[spellIndex] is TheJokah jokah
+                && (jokah.JokahVWaveSpells == null || jokah.JokahBigStoxSpells == null))
+            {
+                needsJokahDefinitionRebuild = true;
+            }
+        }
+
+        if (needsJokahDefinitionRebuild)
+        {
+            // A late join can already have the correct inventory identities while still lacking
+            // Jokah's nonserialized derived list. Recreate it before consuming the indexed states.
+            for (int spellIndex = 0; spellIndex < spellList.Count; spellIndex++)
+            {
+                if (spellList[spellIndex] is TheJokah jokah)
+                {
+                    jokah.RebuildCreatedSpells();
+                }
+            }
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.RequestProjectilePoolRebuild();
+            }
+        }
         for (int i = 0; i < extraCount; i++)
         {
             br.ReadInt32(); // spell id, written for symmetry
@@ -4714,6 +4827,12 @@ public class PlayerController : MonoBehaviour
             SpellData spell = spellList[i];
             if (spell != null)
             {
+                if (spell is TheJokah jokah)
+                {
+                    // Pooled SpellData objects are disabled rather than destroyed, so OnDestroy
+                    // cannot remove this Jokah instance's old generated copies for us.
+                    jokah.ClearCreatedSpells();
+                }
                 ReturnSpellInstanceToPool(spell);
             }
         }

@@ -19,7 +19,7 @@ public class WolfOfWallstreet : SpellData, IBigStoxActiveSpell
         spellType = SpellType.Active;
         procConditions = new ProcCondition[] {ProcCondition.ActiveOnCast, ProcCondition.ActiveOnHit, ProcCondition.OnHitSpell};
         projectilePrefabs = new GameObject[2];
-        description = "Medium-range lunging job application. This Spellcode has armor. Gains super armor, extra range, and stun on Crit<sprite name=\"StockStability\">.";
+        description = "2 Medium-range lunging swipes. This Spellcode has armor. Gains super armorand extra damage on Crit<sprite name=\"StockStability\">, or when Demon Aura<sprite name=\"DemonAura\"> is S rank or higher. While Demon Aura<sprite name=\"DemonAura\"> is S rank or higher, hitting Spellcodes which grant Demon Aura<sprite name=\"DemonAura\"> also Crit<sprite name=\"StockStability\">.";
         //spawnOffsetX = 36;
         spawnOffsetY = 36;
     }

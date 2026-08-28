@@ -12,7 +12,6 @@ public class ChainsOfThanatosMark_prj : BaseProjectile
     protected override void InitializeDefaults()
     {
         projName = "Chains Of Thanatos Mark";
-        deleteOnHit = false;
         lifeSpan = 65535;
         fadeOut = true;
         fadeIn = true;
@@ -28,7 +27,6 @@ public class ChainsOfThanatosMark_prj : BaseProjectile
     public override void LoadProjectile()
     {
 
-        deleteOnHit = false;
         deleteOnHurt = true;
         projectileHitboxes = new HitboxGroup[1];
         projectileHitboxes[0] = new HitboxGroup

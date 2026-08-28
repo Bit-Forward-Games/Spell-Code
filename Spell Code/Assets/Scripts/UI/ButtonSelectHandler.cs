@@ -259,10 +259,13 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
             if (name.Contains("Code Mode"))
             {
-                Transform textImageTransform = transform.Find("Text Image");
-                if (textImageTransform!= null) 
+                if (!codeModeSelected)
                 {
-                    textImageTransform.gameObject.SetActive(false);
+                    Transform textImageTransform = transform.Find("Text Image");
+                    if (textImageTransform!= null) 
+                    {
+                        textImageTransform.gameObject.SetActive(false);
+                    }
                 }
             } 
 

@@ -13,36 +13,42 @@ public class SpellFloppyDisplay_Character : MonoBehaviour
     [Header("Spell_1")]
     public TextMeshProUGUI spellDesc_1;
     public TextMeshProUGUI spellName_1;
+    public Image spellColor_1;
     //public TextMeshProUGUI spellCooldown_1;
     //public TextMeshProUGUI spellInput_1;
 
     [Header("Spell_2")]
     public TextMeshProUGUI spellDesc_2;
     public TextMeshProUGUI spellName_2;
+    public Image spellColor_2;
     //public TextMeshProUGUI spellCooldown_2;
     //public TextMeshProUGUI spellInput_2;
 
     [Header("Spell_3")]
     public TextMeshProUGUI spellDesc_3;
     public TextMeshProUGUI spellName_3;
+    public Image spellColor_3;
     //public TextMeshProUGUI spellCooldown_3;
     //public TextMeshProUGUI spellInput_3;
 
     [Header("Spell_4")]
     public TextMeshProUGUI spellDesc_4;
     public TextMeshProUGUI spellName_4;
+    public Image spellColor_4;
     //public TextMeshProUGUI spellCooldown_4;
     //public TextMeshProUGUI spellInput_4;
 
     [Header("Spell_5")]
     public TextMeshProUGUI spellDesc_5;
     public TextMeshProUGUI spellName_5;
+    public Image spellColor_5;
     //public TextMeshProUGUI spellCooldown_5;
     //public TextMeshProUGUI spellInput_5;
 
     [Header("Spell_6")]
     public TextMeshProUGUI spellDesc_6;
     public TextMeshProUGUI spellName_6;
+    public Image spellColor_6;
     //public TextMeshProUGUI spellCooldown_6;
     //public TextMeshProUGUI spellInput_6;
 
@@ -70,6 +76,7 @@ public class SpellFloppyDisplay_Character : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI[] spellNames = new TextMeshProUGUI[6];
+    private Image[] spellColors = new Image[6];
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -91,9 +98,34 @@ public class SpellFloppyDisplay_Character : MonoBehaviour
         spellNames[4] = spellName_5;
         spellNames[5] = spellName_6;
 
+        spellColors[0] = spellColor_1;
+        spellColors[1] = spellColor_2;
+        spellColors[2] = spellColor_3;
+        spellColors[3] = spellColor_4;
+        spellColors[4] = spellColor_5;
+        spellColors[5] = spellColor_6;
+
         for (int i = 1; i < spells.Length; i++)
         {
             spellNames[i - 1].text = spells[i];
+            switch (SpellDictionary.Instance.spellDict[spells[i]].brands[0])
+            {
+                case Brand.Killeez:
+                    spellColors[i - 1].color = GameManager.colors["yellow"];
+                    break;
+                case Brand.VWave:
+                    spellColors[i - 1].color = GameManager.colors["green"];
+                    break;
+                case Brand.DemonX:
+                    spellColors[i - 1].color = GameManager.colors["red"];
+                    break;
+                case Brand.BigStox:
+                    spellColors[i - 1].color = GameManager.colors["blue"];
+                    break;
+                case Brand.DarkWeb:
+                    spellColors[i - 1].color = GameManager.colors["evil color"];
+                    break;
+            }
         }
 
         switch (spellData.brands[0])

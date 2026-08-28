@@ -61,7 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-58"; // scz-58: session/epoch-scoped frame-zero input bootstrap for deterministic online scenes.
+    private const string NetcodeVersion = "scz-59"; // scz-59: gamba machines now trigger on ANY of the owner's basicAttackHitbox-flagged projectiles, not just basicProjectileInstance.
+                                                    // CheckOnlineHitboxCollision routes through the same check, so this changes the online lobby/shop sim rule 
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

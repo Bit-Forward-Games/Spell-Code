@@ -3792,6 +3792,7 @@ public class GameManager : MonoBehaviour
             byte holdCounter = 0;
             bool showDescription = false;
             bool isCharacter = false;
+            byte characterId = 0;
 
             if (disk != null)
             {
@@ -3813,6 +3814,7 @@ public class GameManager : MonoBehaviour
                 // whole six-spell setlist outright.
                 showDescription = false;
                 isCharacter = true;
+                characterId = (byte)characterDisk.moveset;
             }
 
             bw.Write(ownerPid);
@@ -3822,6 +3824,7 @@ public class GameManager : MonoBehaviour
             bw.Write(holdCounter);
             bw.Write(showDescription);
             bw.Write(isCharacter);
+            bw.Write(characterId);
         }
     }
 
@@ -3839,7 +3842,8 @@ public class GameManager : MonoBehaviour
             byte holdCounter = br.ReadByte();
             bool showDescription = br.ReadBoolean();
             bool isCharacter = br.ReadBoolean();
-            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription, isCharacter));
+            byte characterId = br.ReadByte();
+            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription, isCharacter, characterId));
         }
 
         FindAllFloppyDisks();
@@ -3888,15 +3892,12 @@ public class GameManager : MonoBehaviour
                 GameObject restoredDisk;
                 if (savedFloppy.isCharacter)
                 {
-                    // Showdown character disk. diskName is the Moveset enum name, which is what
-                    // makes the id recoverable here; if it somehow doesn't parse, leave the disk
-                    // unrestored rather than respawning an arbitrary character on one peer only.
-                    if (!FloppyPickup_Character.TryParseCharacterId(savedFloppy.diskName, out int characterId))
-                    {
-                        break;
-                    }
-
-                    restoredDisk = gamba.SpawnCharacterDisk(savedFloppy.ownerPid, savedFloppy.position, characterId, false, false);
+                    // Showdown character disk. The moveset id comes straight out of the savestate.
+                    // It used to be parsed back out of diskName, which worked only while diskName
+                    // happened to be the Moveset enum name -- renaming those to display names
+                    // ("The Shinobi") made every parse fail, so a disk destroyed during a rollback
+                    // could never be respawned and the two peers ended up with different floppies.
+                    restoredDisk = gamba.SpawnCharacterDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.characterId, false, false);
                 }
                 else
                 {
@@ -7222,9 +7223,14 @@ public class GameManager : MonoBehaviour
         // Which pickup type this entry came from, so a restore respawns through the right gamba
         // method and can't match a spell disk against a saved character disk.
         public bool isCharacter;
+        // The Showdown moveset id, stored outright rather than derived from diskName. diskName used
+        // to be the Moveset enum name so a restore could parse it back, but it is a DISPLAY name
+        // ("The Shinobi"), and renaming it silently stopped every character disk from being
+        // restorable. Never key savestate data off a string design is free to rename.
+        public byte characterId;
         public bool restored;
 
-        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription, bool isCharacter)
+        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription, bool isCharacter, byte characterId)
         {
             this.ownerPid = ownerPid;
             this.diskName = diskName;
@@ -7232,6 +7238,7 @@ public class GameManager : MonoBehaviour
             this.holdCounter = holdCounter;
             this.showDescription = showDescription;
             this.isCharacter = isCharacter;
+            this.characterId = characterId;
             this.restored = false;
         }
     }

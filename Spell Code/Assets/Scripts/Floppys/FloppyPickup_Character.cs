@@ -337,23 +337,6 @@ public class FloppyPickup_Character : MonoBehaviour
         selectHoldCounter = value;
     }
 
-    /// <summary>
-    /// Maps a saved diskName back to the character id it was spawned with. setList[0] is written as
-    /// the Moveset enum name precisely so this round-trips after a rollback destroys and respawns
-    /// the disk.
-    /// </summary>
-    public static bool TryParseCharacterId(string diskName, out int characterId)
-    {
-        if (!string.IsNullOrEmpty(diskName) && Enum.TryParse(diskName, out Moveset moveset))
-        {
-            characterId = (int)moveset;
-            return true;
-        }
-
-        characterId = -1;
-        return false;
-    }
-
     private float GetFillPercent()
     {
         float percent = selectHoldCounter / (float)timeToFill;

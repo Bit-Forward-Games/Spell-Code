@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-60"; // scz-60: Hot Streak (both variants) and Jigoku Flash Step no longer NRE when their homing/marked target stops resolving (disconnected slot, or pID 0 online).
-                                                    // They now delete the projectile / use the defender directly instead of throwing inside UpdateProjectiles, so a build with this fix advances state where the old one froze
+    private const string NetcodeVersion = "scz-61"; // scz-61: Showdown movesets changed (different spells per character) AND the floppy savestate gained a trailing characterId byte per disk,
+                                                    // because setList[0] became a display name and could no longer be parsed back to the Moveset enum on restore. Wire format + sim rule change
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

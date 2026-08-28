@@ -403,75 +403,75 @@ public class FloppyPickup_Character : MonoBehaviour
         switch (moveset)
         {
             case Moveset.DemonX_1:
-                setList[0] = "DemonX_1";
+                setList[0] = "The Shinobi";
                 setList[1] = "Amon Slash";
                 setList[2] = "Asuran Blades";
                 setList[3] = "Bifrons Blade";
-                setList[4] = "Abaddon Uppercut";
+                setList[4] = "Jigoku Flash Step";
                 setList[5] = "Hell-Chain Sweep";
-                setList[6] = "Demonic Descent";
+                setList[6] = "Hellish Riposte";
                 return setList;
             case Moveset.DemonX_2:
-                setList[0] = "DemonX_2";
-                setList[1] = "Rip And Tear";
-                setList[2] = "Jigoku Flash Step";
-                setList[3] = "Hell Wave Fist";
-                setList[4] = "Brimstone Cyclone Kick";
-                setList[5] = "Hellish Riposte";
+                setList[0] = "The Martial Artist";
+                setList[1] = "Hell Wave Fist";
+                setList[2] = "Brimstone Cyclone Kick";
+                setList[3] = "Abaddon Uppercut";
+                setList[4] = "Rip And Tear";
+                setList[5] = "Demonic Descent";
                 setList[6] = "Combo Demon";
                 return setList;
             case Moveset.BigStox_1:
-                setList[0] = "BigStox_1";
+                setList[0] = "The Businessman";
                 setList[1] = "Use The Card";
                 setList[2] = "Quarter Report";
-                setList[3] = "Coin Toss";
-                setList[4] = "Get A Job";
+                setList[3] = "Get A Job";
+                setList[4] = "Bailout";
                 setList[5] = "Blue Chip Trader";
-                setList[6] = "Let It Ride";
+                setList[6] = "Lucky Break";
                 return setList;
             case Moveset.BigStox_2:
-                setList[0] = "BigStox_2";
-                setList[1] = "Cash Out";
-                setList[2] = "Bailout";
+                setList[0] = "The Gambler";
+                setList[1] = "Coin Toss";
+                setList[2] = "Cash Out";
                 setList[3] = "Loaded Dice";
                 setList[4] = "Trap Card Trick";
-                setList[5] = "Lucky Break";
+                setList[5] = "Let It Ride";
                 setList[6] = "Hot Streak";
                 return setList;
             case Moveset.Killeez_1:
-                setList[0] = "Killeez_1";
+                setList[0] = "The Artificer";
                 setList[1] = "Blade Of Ares";
-                setList[2] = "Might Of Zeus";
-                setList[3] = "Sun Of Apollo";
-                setList[4] = "Trident Of Poseidon";
-                setList[5] = "Boots Of Hermes";
-                setList[6] = "Rod Of Asclepius";
-                return setList;
-            case Moveset.Killeez_2:
-                setList[0] = "Killeez_2";
-                setList[1] = "Gift Of Prometheus";
-                setList[2] = "Hourglass Of Chronos";
+                setList[2] = "Trident Of Poseidon";
                 setList[3] = "Helm Of Hades";
                 setList[4] = "Armory Of Hephaestus";
                 setList[5] = "Aegis Of Athena";
+                setList[6] = "Rod Of Asclepius";
+                return setList;
+            case Moveset.Killeez_2:
+                setList[0] = "The Hero";
+                setList[1] = "Might Of Zeus";
+                setList[2] = "Sun Of Apollo";
+                setList[3] = "Gift Of Prometheus";
+                setList[4] = "Hourglass Of Chronos";
+                setList[5] = "Boots Of Hermes";
                 setList[6] = "Quiver Of Artemis";
                 return setList;
             case Moveset.VWave_1:
-                setList[0] = "VWave_1";
+                setList[0] = "The Streamer";
                 setList[1] = "Skillshot Slash";
                 setList[2] = "Reload Shot";
-                setList[3] = "Pong Shot";
-                setList[4] = "Trickshot Alley";
-                setList[5] = "Mine Crafter";
+                setList[3] = "Tele-Frag Prism";
+                setList[4] = "Shot Reflector";
+                setList[5] = "Crossmap Clip";
                 setList[6] = "No-Scope Shot";
                 return setList;
             case Moveset.Vwave_2:
-                setList[0] = "Vwave_2";
-                setList[1] = "Shot Reflector";
-                setList[2] = "Tele-Frag Prism";
-                setList[3] = "Get Over Here";
-                setList[4] = "Sickle Of The Night";
-                setList[5] = "Crossmap Clip";
+                setList[0] = "The OG";
+                setList[1] = "Pong Shot";
+                setList[2] = "Trickshot Alley";
+                setList[3] = "Sickle Of The Night";
+                setList[4] = "Get Over Here";
+                setList[5] = "Mine Crafter";
                 setList[6] = "Back To Basics";
                 return setList;
             default:

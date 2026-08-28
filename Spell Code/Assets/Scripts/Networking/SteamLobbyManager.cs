@@ -61,7 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-57"; // scz-57: combo proration damage is computed with integer fixed-point instead of going through ToFloat().
+    private const string NetcodeVersion = "scz-61"; // scz-61: Showdown movesets changed (different spells per character) AND the floppy savestate gained a trailing characterId byte per disk,
+                                                    // because setList[0] became a display name and could no longer be parsed back to the Moveset enum on restore. Wire format + sim rule change
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -304,6 +305,13 @@ public class SteamLobbyManager : MonoBehaviour
         currentLobby.HasValue
         && !inviteJoinMetadataPending
         && IsPartyLobby(currentLobby.Value);
+
+    public bool IsCurrentLobbyMatchSession(ulong matchSessionId)
+    {
+        return matchSessionId != 0UL
+            && currentLobby.HasValue
+            && currentLobby.Value.Id.Value == matchSessionId;
+    }
 
     /// <summary>True when this client owns the party lobby (i.e. occupies slot 1 and may press Start).</summary>
     public bool IsPartyHost =>
@@ -3774,6 +3782,7 @@ public class SteamLobbyManager : MonoBehaviour
             .Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
         OnlineMatchRoster roster = new OnlineMatchRoster
         {
+            MatchSessionId = lobby.Id.Value,
             LocalPlayerSlot = -1
         };
         HashSet<ulong> usedSteamIds = new HashSet<ulong>();
@@ -3887,7 +3896,8 @@ public class SteamLobbyManager : MonoBehaviour
 
         OnlineMatchRoster roster = new OnlineMatchRoster
         {
-            HostSteamId = lobby.Owner.Id
+            HostSteamId = lobby.Owner.Id,
+            MatchSessionId = lobby.Id.Value
         };
 
         for (int i = 0; i < members.Count; i++)

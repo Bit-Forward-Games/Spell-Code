@@ -816,6 +816,14 @@ public class GameManager : MonoBehaviour
                 StopMatch(networkFailureReason);
                 return;
             }
+
+            // The specialized bootstrap watchdog can tear the match down from inside
+            // CheckNetworkHealth. Do not fall through into offline RunFrame in the old
+            // scene during that same FixedUpdate.
+            if (!isOnlineMatchActive || !isRunning)
+            {
+                return;
+            }
         }
 
         if (isOnlineMatchActive)
@@ -1567,9 +1575,19 @@ public class GameManager : MonoBehaviour
         return applied;
     }
 
-    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData, bool forceApply = false, byte snapshotSceneType = 0, int snapshotSceneSignature = 0)
+    public bool ApplyOnlineLobbyRosterSnapshot(
+        OnlineMatchRoster roster,
+        int snapshotFrame,
+        byte[] stateData,
+        bool forceApply = false,
+        byte snapshotSceneType = 0,
+        int snapshotSceneSignature = 0,
+        int snapshotTimelineEpoch = 0)
     {
-        if (roster == null || stateData == null || stateData.Length == 0)
+        if (roster == null
+            || stateData == null
+            || stateData.Length == 0
+            || snapshotTimelineEpoch < 0)
         {
             return false;
         }
@@ -1625,6 +1643,13 @@ public class GameManager : MonoBehaviour
             {
                 return false;
             }
+
+            // A drop-in can join while the retained online session is several rematch/
+            // shop transitions past epoch zero. StartOnlineMatch resets local tracking,
+            // so adopt the host snapshot's stable completed epoch before any scoped
+            // input/READY packet is processed.
+            onlineTransitionSequence = snapshotTimelineEpoch;
+            activeOnlineTransitionId = 0;
         }
 
         bool rosterAlreadyApplied = DoesActiveOnlineRosterMatch(roster);
@@ -1789,6 +1814,26 @@ public class GameManager : MonoBehaviour
         if (MatchMessageManager.Instance != null)
         {
             MatchMessageManager.Instance.PumpNetwork();
+        }
+
+        // RollbackManager owns the stricter frame-zero startup-stream watchdog. Its
+        // recovery is host-authoritative and distinguishes a dead peer from one that is
+        // sending packets for the wrong scene. Do not let this generic any-packet timeout
+        // locally StopMatch first; transport has already been pumped above.
+        RollbackManager rollbackManager = RollbackManager.Instance;
+        if (rollbackManager != null)
+        {
+            rollbackManager.TickInitialRemoteInputStreamBootstrap();
+            if (!isOnlineMatchActive || !isRunning)
+            {
+                return true;
+            }
+
+            if (rollbackManager != null
+                && rollbackManager.IsHoldingForInitialRemoteInputStreams())
+            {
+                return true;
+            }
         }
 
         // Don't check during lobby phase
@@ -2086,9 +2131,17 @@ public class GameManager : MonoBehaviour
     private bool DropUnresponsivePeerOutsideSimulation(int slot, string context)
     {
         int dropFrame = frameNumber;
+        ulong matchSessionId = MatchMessageManager.Instance?.ActiveMatchSessionId ?? 0UL;
+        int timelineEpoch = GetOnlineTimelineEpoch();
+        int sceneSignature = GetNetworkSceneSignature();
         pendingPeerDropFrames[slot] = dropFrame;
         peerDropAcknowledgedSlots[slot] = new HashSet<int> { localPlayerIndex };
-        StartCoroutine(BroadcastPeerDropOutsideSimulationUntilAcknowledged(slot, dropFrame));
+        StartCoroutine(BroadcastPeerDropOutsideSimulationUntilAcknowledged(
+            slot,
+            dropFrame,
+            matchSessionId,
+            timelineEpoch,
+            sceneSignature));
         ApplyPeerDropOutsideSimulation(slot, dropFrame);
         Debug.LogWarning($"[OnlineMatch] Timed out P{slot + 1} during {context}; removed from the connected-player quorum.");
         return true;
@@ -2101,8 +2154,18 @@ public class GameManager : MonoBehaviour
 
     public void ApplyPeerDropOutsideSimulation(int slot, int dropFrame)
     {
+        bool heldAtDeterministicStartup = RollbackManager.Instance != null
+            && RollbackManager.Instance.IsHoldingForInitialRemoteInputStreams();
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        bool refreshDeterministicFrameZero =
+            (activeSceneName == "Gameplay" || activeSceneName == "Shop")
+            && (isTransitioning || heldAtDeterministicStartup)
+            && RollbackManager.Instance != null
+            && RollbackManager.Instance.localFrame == 0;
         if (!isOnlineMatchActive
-            || (SceneManager.GetActiveScene().name != "End" && !isTransitioning)
+            || (activeSceneName != "End"
+                && !isTransitioning
+                && !heldAtDeterministicStartup)
             || slot < 0
             || slot >= players.Length
             || slot == localPlayerIndex)
@@ -2123,6 +2186,15 @@ public class GameManager : MonoBehaviour
         pendingGameplayReadyBySlot.Remove(slot);
         pendingGameplayReadyTransitionBySlot.Remove(slot);
         pendingSceneReadyBySlot.Remove(slot);
+
+        // The scene-ready path saved frame zero before its liveness watchdog could
+        // remove a peer. Replace that snapshot with the reduced roster on both the host
+        // and every receiver, otherwise a later rollback could resurrect the dropped
+        // player's pre-drop state on only some machines.
+        if (refreshDeterministicFrameZero && RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.SaveState();
+        }
 
         if (isTransitioning)
         {
@@ -2145,11 +2217,26 @@ public class GameManager : MonoBehaviour
         acknowledgedSlots.Add(senderSlot);
     }
 
-    private IEnumerator BroadcastPeerDropOutsideSimulationUntilAcknowledged(int slot, int dropFrame)
+    private IEnumerator BroadcastPeerDropOutsideSimulationUntilAcknowledged(
+        int slot,
+        int dropFrame,
+        ulong matchSessionId,
+        int timelineEpoch,
+        int sceneSignature)
     {
-        while (isOnlineMatchActive && !HaveAllSurvivingPeerDropAcknowledgements(slot, dropFrame))
+        while (isOnlineMatchActive
+            && MatchMessageManager.Instance != null
+            && MatchMessageManager.Instance.ActiveMatchSessionId == matchSessionId
+            && GetOnlineTimelineEpoch() == timelineEpoch
+            && !HaveAllSurvivingPeerDropAcknowledgements(slot, dropFrame))
         {
-            MatchMessageManager.Instance?.SendPeerDrop(slot, dropFrame);
+            MatchMessageManager.Instance?.SendPeerDrop(
+                slot,
+                dropFrame,
+                outsideSimulation: true,
+                matchSessionId: matchSessionId,
+                timelineEpoch: timelineEpoch,
+                sceneSignature: sceneSignature);
             yield return new WaitForSecondsRealtime(0.25f);
         }
 
@@ -2367,6 +2454,12 @@ public class GameManager : MonoBehaviour
         }
 
         return count;
+    }
+
+    public bool IsOnlineRosterPlayerRegistrationComplete()
+    {
+        return activeOnlineRoster?.Peers != null
+            && CountRegisteredOnlineRosterPlayers() >= activeOnlineRoster.PlayerCount;
     }
 
     /// <summary>
@@ -3699,6 +3792,7 @@ public class GameManager : MonoBehaviour
             byte holdCounter = 0;
             bool showDescription = false;
             bool isCharacter = false;
+            byte characterId = 0;
 
             if (disk != null)
             {
@@ -3720,6 +3814,7 @@ public class GameManager : MonoBehaviour
                 // whole six-spell setlist outright.
                 showDescription = false;
                 isCharacter = true;
+                characterId = (byte)characterDisk.moveset;
             }
 
             bw.Write(ownerPid);
@@ -3729,6 +3824,7 @@ public class GameManager : MonoBehaviour
             bw.Write(holdCounter);
             bw.Write(showDescription);
             bw.Write(isCharacter);
+            bw.Write(characterId);
         }
     }
 
@@ -3746,7 +3842,8 @@ public class GameManager : MonoBehaviour
             byte holdCounter = br.ReadByte();
             bool showDescription = br.ReadBoolean();
             bool isCharacter = br.ReadBoolean();
-            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription, isCharacter));
+            byte characterId = br.ReadByte();
+            savedFloppyStateBuffer.Add(new SavedFloppyState(ownerPid, diskName, new Vector2(posX, posY), holdCounter, showDescription, isCharacter, characterId));
         }
 
         FindAllFloppyDisks();
@@ -3795,15 +3892,12 @@ public class GameManager : MonoBehaviour
                 GameObject restoredDisk;
                 if (savedFloppy.isCharacter)
                 {
-                    // Showdown character disk. diskName is the Moveset enum name, which is what
-                    // makes the id recoverable here; if it somehow doesn't parse, leave the disk
-                    // unrestored rather than respawning an arbitrary character on one peer only.
-                    if (!FloppyPickup_Character.TryParseCharacterId(savedFloppy.diskName, out int characterId))
-                    {
-                        break;
-                    }
-
-                    restoredDisk = gamba.SpawnCharacterDisk(savedFloppy.ownerPid, savedFloppy.position, characterId, false, false);
+                    // Showdown character disk. The moveset id comes straight out of the savestate.
+                    // It used to be parsed back out of diskName, which worked only while diskName
+                    // happened to be the Moveset enum name -- renaming those to display names
+                    // ("The Shinobi") made every parse fail, so a disk destroyed during a rollback
+                    // could never be respawned and the two peers ended up with different floppies.
+                    restoredDisk = gamba.SpawnCharacterDisk(savedFloppy.ownerPid, savedFloppy.position, savedFloppy.characterId, false, false);
                 }
                 else
                 {
@@ -6021,6 +6115,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int GetOnlineTimelineEpoch()
+    {
+        return activeOnlineTransitionId > 0
+            ? activeOnlineTransitionId
+            : onlineTransitionSequence;
+    }
+
     public int GetNetworkSceneSignature()
     {
         string activeSceneName = SceneManager.GetActiveScene().name;
@@ -7122,9 +7223,14 @@ public class GameManager : MonoBehaviour
         // Which pickup type this entry came from, so a restore respawns through the right gamba
         // method and can't match a spell disk against a saved character disk.
         public bool isCharacter;
+        // The Showdown moveset id, stored outright rather than derived from diskName. diskName used
+        // to be the Moveset enum name so a restore could parse it back, but it is a DISPLAY name
+        // ("The Shinobi"), and renaming it silently stopped every character disk from being
+        // restorable. Never key savestate data off a string design is free to rename.
+        public byte characterId;
         public bool restored;
 
-        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription, bool isCharacter)
+        public SavedFloppyState(int ownerPid, string diskName, Vector2 position, byte holdCounter, bool showDescription, bool isCharacter, byte characterId)
         {
             this.ownerPid = ownerPid;
             this.diskName = diskName;
@@ -7132,6 +7238,7 @@ public class GameManager : MonoBehaviour
             this.holdCounter = holdCounter;
             this.showDescription = showDescription;
             this.isCharacter = isCharacter;
+            this.characterId = characterId;
             this.restored = false;
         }
     }
@@ -7885,7 +7992,11 @@ public class GameManager : MonoBehaviour
 
     private bool DoesActiveOnlineRosterMatch(OnlineMatchRoster roster)
     {
-        if (activeOnlineRoster == null || roster == null || activeOnlineRoster.PlayerCount != roster.PlayerCount)
+        if (activeOnlineRoster == null
+            || roster == null
+            || activeOnlineRoster.PlayerCount != roster.PlayerCount
+            || activeOnlineRoster.MatchSessionId != roster.MatchSessionId
+            || activeOnlineRoster.HostSteamId != roster.HostSteamId)
         {
             return false;
         }
@@ -7906,6 +8017,7 @@ public class GameManager : MonoBehaviour
     {
         slotCount = 0;
         if (roster?.Peers == null
+            || roster.MatchSessionId == 0UL
             || roster.PlayerCount < 2
             || players == null
             || roster.PlayerCount > players.Length

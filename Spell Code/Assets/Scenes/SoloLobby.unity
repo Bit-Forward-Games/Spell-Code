@@ -449,6 +449,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 1407857980670715718, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: displayName
+      value: Showdown
+      objectReference: {fileID: 0}
     - target: {fileID: 1543310459374702453, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 

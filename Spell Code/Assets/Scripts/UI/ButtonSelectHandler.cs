@@ -301,6 +301,15 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
 
     void Update()
     {
+        // Both of these are dereferenced every frame while this button is selected, and neither is
+        // guaranteed. EventSystem.current is null between scene loads / after a teardown, and `pause`
+        // is a plain inspector reference that is simply unassigned on buttons outside the pause UI
+        // (the party lobby's Host/Friend Profile buttons, for example).
+        if (EventSystem.current == null || pause == null)
+        {
+            return;
+        }
+
         if (EventSystem.current.currentSelectedGameObject == gameObject)
         {
             // 2. Check if the user is actively holding down the Submit key/button

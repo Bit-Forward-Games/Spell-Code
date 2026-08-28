@@ -631,11 +631,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// The win condition implied by a gamemode. Single source of truth, because winCon is part of
+    /// the shared gameplay hash and BOTH the offline chooser (SetGamemode, wired to an OnClick) and
+    /// the online mode resolution (ApplyOnlineGameMode) have to arrive at the same answer. gamemode
+    /// itself is already hashed and agreed between peers, so deriving winCon from it is deterministic.
+    /// </summary>
+    private static WinCon ResolveWinConForGamemode(Gamemode mode)
+    {
+        return mode == Gamemode.Fighter ? WinCon.Elimination : WinCon.RAMRush;
+    }
+
     //int because OnClick() doesn't accept enums as parameters
     public void SetGamemode(int mode)
     {
         gamemode = (Gamemode)mode;
-        //winCon = gamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        // Assigned for EVERY mode, not just the one that needs Elimination. winCon is [NonSerialized]
+        // and GameManager survives scene changes, so setting it only in the Fighter case left it
+        // stuck on Elimination for every later Normal/Turbo/Chaos match until the game restarted.
+        winCon = ResolveWinConForGamemode(gamemode);
         Debug.Log("Gamemode set to: " + gamemode);
 
         switch (gamemode)
@@ -1173,18 +1187,23 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
-        //WinCon resolvedWinCon = resolvedGamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode);
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
-            || gamemode != resolvedGamemode;
-            //|| winCon != resolvedWinCon;
+            || gamemode != resolvedGamemode
+            || winCon != resolvedWinCon;
 
         // Always reassert both values. GameManager survives scene changes and the offline chooser can
         // change gamemode independently, so returning early for repeated lobby metadata could leave
         // this peer running stale local rules.
         ActiveOnlineGameMode = mode;
         gamemode = resolvedGamemode;
-        //winCon = resolvedWinCon;
+        // winCon is [NonSerialized] and survives scene changes,
+        // so a peer that picked Showdown in the OFFLINE chooser earlier in the session
+        // would otherwise carry Elimination into an online Normal match and winCon is hashed, so
+        // the two peers would disagree on frame one. This is also what makes Showdown actually run
+        // Elimination online rather than only offline.
+        winCon = resolvedWinCon;
 
         if (modeChanged)
         {
@@ -4015,9 +4034,9 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         AdvanceRoundCountOnce();
 
-        // Chaos always replaces the complete loadout between rounds. A full six-spell inventory
-        // therefore enters the Shop instead of taking Normal's direct next-round shortcut.
-        bool hasMaxSpells = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
+        // The Chaos exception this used to spell out inline now lives in ShouldSkipShopPhase, so the
+        // online transition, the offline one and the round-end label can't drift apart again.
+        bool hasMaxSpells = ShouldSkipShopPhase();
 
         if (hasMaxSpells)
         {
@@ -4096,7 +4115,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
+            string nextPhase = ShouldSkipShopPhase() ? "Beginning Next Round..." : "Beginning Shop Phase...";
             message = lastRoundWinnerPID > 0
                 ? "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase
                 : "Round draw! " + nextPhase;
@@ -4292,7 +4311,7 @@ public class GameManager : MonoBehaviour
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
-                    else if (AllActivePlayersHaveMaxSpells())
+                    else if (ShouldSkipShopPhase())
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
@@ -4385,6 +4404,26 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the round transition goes straight to the next round instead of the Shop.
+    ///
+    /// Deterministic: gamemode is hashed and agreed between peers, and AllActivePlayersHaveMaxSpells
+    /// reads spellList, which is sim state.
+    /// </summary>
+    private bool ShouldSkipShopPhase()
+    {
+        // Chaos replaces the complete loadout between rounds, so a full six-spell inventory still
+        // enters the Shop rather than taking Normal's direct next-round shortcut.
+        if (gamemode == Gamemode.Chaos)
+        {
+            return false;
+        }
+
+        // Showdown hands out a whole six-spell moveset from the character disk, so there is nothing
+        // left to buy.
+        return gamemode == Gamemode.Fighter || AllActivePlayersHaveMaxSpells();
     }
 
     private bool AllActivePlayersHaveMaxSpells()

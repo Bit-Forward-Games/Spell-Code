@@ -4311,7 +4311,7 @@ public class GameManager : MonoBehaviour
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
-                    else if (AllActivePlayersHaveMaxSpells())
+                    else if (AllActivePlayersHaveMaxSpells() || gamemode == Gamemode.Fighter)
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;

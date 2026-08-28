@@ -36,7 +36,12 @@ public class JigokuFlashStep : SpellData
         {
             case ProcCondition.ActiveOnHit:
                 markedOpponentPID = defender.pID;
-                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, GameManager.Instance.GetPlayerByPID(markedOpponentPID).position, true);
+                // Use defender.position directly instead of looking the pID straight back up.
+                // GetPlayerByPID returns null for pID 0 (playerNPCs is empty online) and for a slot
+                // that is not connected, and this deref was unguarded,an NRE here is inside the
+                // sim, which freezes the online match rather than just skipping a spawn. defender is
+                // already known non-null on the line above, and resolves to the same object.
+                ProjectileManager.Instance.SpawnProjectile(projectileInstances[1].GetComponent<BaseProjectile>(), true, defender.position, true);
                 break;
             case ProcCondition.OnCast:
                 if(markedOpponentPID >= 0)

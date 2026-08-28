@@ -62,9 +62,17 @@ public class HotStreak_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        if (targetPID >= 0)
+
+        // GetPlayerByPID returns null for a disconnected slot (what happens as players drop out at match end)
+        // and for pID 0 online (playerNPCs is empty), and targetPID >= 0 includes 0.
+        // The unguarded deref threw inside UpdateProjectiles, which stops
+        // the online frame completing and hard-freezes the match.
+        PlayerController cachedTargetPlayer = targetPID >= 0
+            ? GameManager.Instance.GetPlayerByPID(targetPID)
+            : null;
+
+        if (cachedTargetPlayer != null)
         {
-            PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
             FixedVec2 directionVector = GetDirectionTo(cachedTargetPlayer.position);
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);

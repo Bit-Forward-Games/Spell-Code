@@ -15,6 +15,7 @@ public class OnlineMatchPeerInfo
 public class OnlineMatchRoster
 {
     public SteamId HostSteamId;
+    public ulong MatchSessionId;
     public int LocalPlayerSlot;
     public List<OnlineMatchPeerInfo> Peers = new List<OnlineMatchPeerInfo>();
 
@@ -117,6 +118,8 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_LOBBY_ROSTER_UPDATE = 43;
     private const byte PACKET_TYPE_PEER_DROP = 50;
     private const byte PACKET_TYPE_PEER_DROP_ACK = 51;
+    private const byte PACKET_TYPE_INITIAL_INPUT_STREAM_READY = 52;
+    private const byte PACKET_TYPE_MATCH_ABORT = 53;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
     private const float READY_SIGNAL_RESEND_SECONDS = 0.75f;
     // Connection-establishment grace. A P2P failure that lands before the match simulation has
@@ -133,6 +136,7 @@ public class MatchMessageManager : MonoBehaviour
 
     private SteamId opponentSteamId;
     public SteamId GetOpponentSteamId() => opponentSteamId;
+    public ulong ActiveMatchSessionId => activeRoster?.MatchSessionId ?? 0UL;
 
     private bool isRunning;
     private bool localReadySent;
@@ -496,19 +500,33 @@ public class MatchMessageManager : MonoBehaviour
         {
             SteamId peer = entry.Key;
             byte[] data = entry.Value;
-            if (data == null || data.Length < 6)
+            const int fixedInputHeaderBytes = 34;
+            if (data == null
+                || data.Length < fixedInputHeaderBytes
+                || activeRoster == null)
             {
                 expiredPeers ??= new List<SteamId>();
                 expiredPeers.Add(peer);
                 continue;
             }
 
-            // Read scene signature without disturbing the buffered bytes.
-            // Layout: [type][sceneSignature][frameAdv][batchFirst][batchHigh][chunkStart][count]...
-            int bufferedSceneSignature = BitConverter.ToInt32(data, 1);
+            // Read deterministic context without disturbing the buffered bytes.
+            // Layout: [type][session][epoch][sceneSignature][frameAdv]
+            //         [batchFirst][batchHigh][chunkStart][count]...
+            ulong bufferedSessionId = BitConverter.ToUInt64(data, 1);
+            int bufferedTimelineEpoch = BitConverter.ToInt32(data, 9);
+            int bufferedSceneSignature = BitConverter.ToInt32(data, 13);
+            int localTimelineEpoch = GameManager.Instance.GetOnlineTimelineEpoch();
             int localSceneSignature = GameManager.Instance.GetNetworkSceneSignature();
 
-            if (bufferedSceneSignature == localSceneSignature)
+            if (bufferedSessionId != activeRoster.MatchSessionId
+                || bufferedTimelineEpoch < localTimelineEpoch)
+            {
+                expiredPeers ??= new List<SteamId>();
+                expiredPeers.Add(peer);
+            }
+            else if (bufferedTimelineEpoch == localTimelineEpoch
+                && bufferedSceneSignature == localSceneSignature)
             {
                 replayablePeers ??= new List<SteamId>();
                 replayablePeers.Add(peer);
@@ -567,44 +585,55 @@ public class MatchMessageManager : MonoBehaviour
             return;
         }
 
-        // Diagnostic: log the first time we buffer a packet for this peer at this scene
-        // signature combo. Buffering happens every packet (~60/s) while a mismatch persists,
-        // so log only when the (peer, theirSignature, ourSignature) triple changes.
+        // Diagnostic: log the first time we buffer a packet for this peer at this
+        // epoch/scene-signature combo. Buffering happens every packet (~60/s) while a
+        // mismatch persists, so log only when that context changes.
         // The packet layout (set in SendInputs) is:
-        //   [type][sceneSignature][frameAdv][batchFirst][batchHigh][chunkStart][inputCount]...
-        if (originalPacket.Length >= 5 && originalPacket[0] == 0 && GameManager.Instance != null)
+        //   [type][session][epoch][sceneSignature][frameAdv]
+        //   [batchFirst][batchHigh][chunkStart][inputCount]...
+        const int fixedInputHeaderBytes = 34;
+        if (originalPacket.Length >= fixedInputHeaderBytes
+            && originalPacket[0] == 0
+            && GameManager.Instance != null)
         {
-            int theirSignature = BitConverter.ToInt32(originalPacket, 1);
+            int theirEpoch = BitConverter.ToInt32(originalPacket, 9);
+            int theirSignature = BitConverter.ToInt32(originalPacket, 13);
             int ourSignature = GameManager.Instance.GetNetworkSceneSignature();
             // Use a composite int as the dedup key: theirSig XOR ourSig (cheap, collisions
             // would just suppress an extra log line, no functional impact).
-            int dedupKey = theirSignature ^ (ourSignature << 1);
+            int dedupKey = theirSignature ^ (ourSignature << 1) ^ (theirEpoch * 397);
             if (!lastLoggedMismatchSignatureByPeer.TryGetValue(peerId, out int prev) || prev != dedupKey)
             {
                 lastLoggedMismatchSignatureByPeer[peerId] = dedupKey;
-                Debug.LogWarning($"[PacketDiag] Buffering input from peer {peerId} due to scene mismatch. theirSig={theirSignature} ourSig={ourSignature}. Will replay when our scene catches up.");
+                Debug.LogWarning($"[PacketDiag] Buffering input from peer {peerId} due to timeline/scene mismatch. theirEpoch={theirEpoch} ourEpoch={GameManager.Instance.GetOnlineTimelineEpoch()} theirSig={theirSignature} ourSig={ourSignature}. Will replay when our scene catches up.");
             }
         }
 
-        const int fixedInputHeaderBytes = 22;
         if (originalPacket.Length < fixedInputHeaderBytes)
         {
             return;
         }
 
-        int candidateBatchHigh = BitConverter.ToInt32(originalPacket, 13);
-        int candidateChunkStart = BitConverter.ToInt32(originalPacket, 17);
-        int candidateChunkNewest = candidateChunkStart + originalPacket[21] - 1;
+        ulong candidateSessionId = BitConverter.ToUInt64(originalPacket, 1);
+        int candidateEpoch = BitConverter.ToInt32(originalPacket, 9);
+        int candidateBatchHigh = BitConverter.ToInt32(originalPacket, 25);
+        int candidateChunkStart = BitConverter.ToInt32(originalPacket, 29);
+        int candidateChunkNewest = candidateChunkStart + originalPacket[33] - 1;
         if (sceneMismatchedInputByPeer.TryGetValue(peerId, out byte[] existingPacket)
             && existingPacket != null
             && existingPacket.Length >= fixedInputHeaderBytes)
         {
-            int existingBatchHigh = BitConverter.ToInt32(existingPacket, 13);
-            int existingChunkStart = BitConverter.ToInt32(existingPacket, 17);
-            int existingChunkNewest = existingChunkStart + existingPacket[21] - 1;
-            if (candidateBatchHigh < existingBatchHigh
-                || (candidateBatchHigh == existingBatchHigh
-                    && candidateChunkNewest <= existingChunkNewest))
+            ulong existingSessionId = BitConverter.ToUInt64(existingPacket, 1);
+            int existingEpoch = BitConverter.ToInt32(existingPacket, 9);
+            int existingBatchHigh = BitConverter.ToInt32(existingPacket, 25);
+            int existingChunkStart = BitConverter.ToInt32(existingPacket, 29);
+            int existingChunkNewest = existingChunkStart + existingPacket[33] - 1;
+            if (candidateSessionId == existingSessionId
+                && (candidateEpoch < existingEpoch
+                    || (candidateEpoch == existingEpoch
+                        && (candidateBatchHigh < existingBatchHigh
+                            || (candidateBatchHigh == existingBatchHigh
+                                && candidateChunkNewest <= existingChunkNewest)))))
             {
                 return;
             }
@@ -676,6 +705,11 @@ public class MatchMessageManager : MonoBehaviour
         OnlineMatchRoster roster = new OnlineMatchRoster
         {
             HostSteamId = SteamClient.SteamId,
+            // Legacy two-player entry has no lobby token. This stable pair identity keeps
+            // packet layouts valid; current party/matchmaking flows use the lobby id below.
+            MatchSessionId = SteamClient.SteamId.Value
+                ^ opponentId.Value
+                ^ 0x9E3779B97F4A7C15UL,
             LocalPlayerSlot = GameManager.Instance != null ? GameManager.Instance.localPlayerIndex : 0
         };
         roster.Peers.Add(new OnlineMatchPeerInfo { SteamId = SteamClient.SteamId, PlayerSlot = roster.LocalPlayerSlot });
@@ -1236,11 +1270,86 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    public void SendInitialInputStreamReady(
+        ulong matchSessionId,
+        int timelineEpoch,
+        int sceneSignature,
+        int matchSeed)
+    {
+        if (!HasRemotePeers())
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_INITIAL_INPUT_STREAM_READY);
+                writer.Write(matchSessionId);
+                writer.Write(timelineEpoch);
+                writer.Write(sceneSignature);
+                writer.Write(matchSeed);
+                SendPacketToAll(memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending initial input-stream READY: {e}");
+        }
+    }
+
+    public void SendMatchAbortToAll(string reason)
+    {
+        byte[] packet = BuildMatchAbortPacket(reason);
+        if (packet != null)
+        {
+            SendPacketToAllDirect(packet, P2PSend.Reliable);
+        }
+    }
+
+    private byte[] BuildMatchAbortPacket(string reason)
+    {
+        if (!HasRemotePeers()
+            || GameManager.Instance == null
+            || !GameManager.Instance.IsOnlineHostAuthority())
+        {
+            return null;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_MATCH_ABORT);
+                writer.Write(activeRoster.MatchSessionId);
+                writer.Write(GameManager.Instance.GetOnlineTimelineEpoch());
+                writer.Write(string.IsNullOrWhiteSpace(reason)
+                    ? "Host aborted the online match"
+                    : reason.Substring(0, Mathf.Min(reason.Length, 256)));
+                return memoryStream.ToArray();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error building match-abort packet: {e}");
+            return null;
+        }
+    }
+
     /// <summary>
     /// Host-authoritative notification that a peer has dropped from the match.
     /// All surviving peers apply the drop deterministically at <paramref name="dropFrame"/>.
     /// </summary>
-    public void SendPeerDrop(int slot, int dropFrame)
+    public void SendPeerDrop(
+        int slot,
+        int dropFrame,
+        bool outsideSimulation = false,
+        ulong? matchSessionId = null,
+        int? timelineEpoch = null,
+        int? sceneSignature = null)
     {
         if (!HasRemotePeers())
         {
@@ -1253,6 +1362,16 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_PEER_DROP);
+                writer.Write(matchSessionId ?? activeRoster.MatchSessionId);
+                writer.Write(timelineEpoch
+                    ?? (GameManager.Instance != null
+                        ? GameManager.Instance.GetOnlineTimelineEpoch()
+                        : 0));
+                writer.Write(sceneSignature
+                    ?? (GameManager.Instance != null
+                        ? GameManager.Instance.GetNetworkSceneSignature()
+                        : 0));
+                writer.Write(outsideSimulation);
                 writer.Write(slot);
                 writer.Write(dropFrame);
                 SendPacketToAllExceptSlot(memoryStream.ToArray(), P2PSend.Reliable, slot);
@@ -1346,6 +1465,10 @@ public class MatchMessageManager : MonoBehaviour
                 using (BinaryWriter writer = new BinaryWriter(memoryStream))
                 {
                     writer.Write((byte)0);
+                    writer.Write(ActiveMatchSessionId);
+                    writer.Write(GameManager.Instance != null
+                        ? GameManager.Instance.GetOnlineTimelineEpoch()
+                        : 0);
                     writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
                     writer.Write(RollbackManager.Instance.localFrameAdvantage);
                     writer.Write(firstFrameToSend);
@@ -1467,7 +1590,12 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendPeerDropAcknowledgement(int droppedSlot, int dropFrame)
+    public void SendPeerDropAcknowledgement(
+        ulong matchSessionId,
+        int timelineEpoch,
+        int sceneSignature,
+        int droppedSlot,
+        int dropFrame)
     {
         if (!HasRemotePeers()
             || activeRoster == null
@@ -1483,6 +1611,9 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_PEER_DROP_ACK);
+                writer.Write(matchSessionId);
+                writer.Write(timelineEpoch);
+                writer.Write(sceneSignature);
                 writer.Write(droppedSlot);
                 writer.Write(dropFrame);
                 SendPacket(activeRoster.HostSteamId, memoryStream.ToArray(), P2PSend.Reliable);
@@ -1532,6 +1663,10 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write(PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT);
                 WriteRoster(writer, roster);
+                writer.Write(GameManager.Instance != null
+                    ? GameManager.Instance.GetOnlineTimelineEpoch()
+                    : 0);
+                writer.Write(ComputeRosterContextHash(roster));
                 writer.Write(frame);
                 writer.Write(stateData.Length);
                 writer.Write(stateData);
@@ -1561,6 +1696,10 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write(PACKET_TYPE_LOBBY_ROSTER_UPDATE);
                 WriteRoster(writer, roster);
+                writer.Write(GameManager.Instance != null
+                    ? GameManager.Instance.GetOnlineTimelineEpoch()
+                    : 0);
+                writer.Write(ComputeRosterContextHash(roster));
                 SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1570,7 +1709,11 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    private void SendLobbyRosterSnapshotAck(SteamId peerId)
+    private void SendLobbyRosterSnapshotAck(
+        SteamId peerId,
+        ulong matchSessionId,
+        int timelineEpoch,
+        uint rosterContextHash)
     {
         if (!peerId.IsValid)
         {
@@ -1583,6 +1726,9 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK);
+                writer.Write(matchSessionId);
+                writer.Write(timelineEpoch);
+                writer.Write(rosterContextHash);
                 SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
             }
         }
@@ -1758,7 +1904,27 @@ public class MatchMessageManager : MonoBehaviour
                 if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT)
                 {
                     OnlineMatchRoster roster = ReadRoster(reader);
-                    if (roster.HostSteamId.IsValid && !SameSteamId(senderSteamId, roster.HostSteamId))
+                    if (!roster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, roster.HostSteamId)
+                        || (activeRoster != null
+                            && (activeRoster.MatchSessionId != roster.MatchSessionId
+                                || !SameSteamId(
+                                    activeRoster.HostSteamId,
+                                    roster.HostSteamId)))
+                        || (activeRoster == null
+                            && SteamLobbyManager.Instance != null
+                            && !SteamLobbyManager.Instance.IsCurrentLobbyMatchSession(
+                                roster.MatchSessionId)))
+                    {
+                        return;
+                    }
+
+                    int timelineEpoch = reader.ReadInt32();
+                    uint rosterContextHash = reader.ReadUInt32();
+                    if (rosterContextHash != ComputeRosterContextHash(roster)
+                        || (GameManager.Instance != null
+                            && GameManager.Instance.isOnlineMatchActive
+                            && timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()))
                     {
                         return;
                     }
@@ -1770,25 +1936,66 @@ public class MatchMessageManager : MonoBehaviour
                     byte snapshotSceneType = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadByte() : (byte)0;
                     int snapshotSceneSignature = reader.BaseStream.Position < reader.BaseStream.Length ? reader.ReadInt32() : 0;
                     bool applied = GameManager.Instance != null
-                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(roster, frame, stateData, forceApply, snapshotSceneType, snapshotSceneSignature);
-                    UpdateRoster(roster);
+                        && GameManager.Instance.ApplyOnlineLobbyRosterSnapshot(
+                            roster,
+                            frame,
+                            stateData,
+                            forceApply,
+                            snapshotSceneType,
+                            snapshotSceneSignature,
+                            timelineEpoch);
                     if (applied)
                     {
-                        SendLobbyRosterSnapshotAck(senderSteamId);
+                        UpdateRoster(roster);
+                        SendLobbyRosterSnapshotAck(
+                            senderSteamId,
+                            roster.MatchSessionId,
+                            timelineEpoch,
+                            rosterContextHash);
                     }
                     return;
                 }
 
                 if (packetType == PACKET_TYPE_LOBBY_ROSTER_SNAPSHOT_ACK)
                 {
-                    GameManager.Instance?.OnOnlineLobbySnapshotAcknowledged(senderSteamId);
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    uint rosterContextHash = reader.ReadUInt32();
+                    if (activeRoster != null
+                        && activeRoster.MatchSessionId == matchSessionId
+                        && GameManager.Instance != null
+                        && timelineEpoch == GameManager.Instance.GetOnlineTimelineEpoch()
+                        && rosterContextHash == ComputeRosterContextHash(activeRoster))
+                    {
+                        GameManager.Instance?.OnOnlineLobbySnapshotAcknowledged(senderSteamId);
+                    }
                     return;
                 }
 
                 if (packetType == PACKET_TYPE_LOBBY_ROSTER_UPDATE)
                 {
                     OnlineMatchRoster roster = ReadRoster(reader);
-                    if (roster.HostSteamId.IsValid && !SameSteamId(senderSteamId, roster.HostSteamId))
+                    if (!roster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, roster.HostSteamId)
+                        || (activeRoster != null
+                            && (activeRoster.MatchSessionId != roster.MatchSessionId
+                                || !SameSteamId(
+                                    activeRoster.HostSteamId,
+                                    roster.HostSteamId)))
+                        || (activeRoster == null
+                            && SteamLobbyManager.Instance != null
+                            && !SteamLobbyManager.Instance.IsCurrentLobbyMatchSession(
+                                roster.MatchSessionId)))
+                    {
+                        return;
+                    }
+
+                    int timelineEpoch = reader.ReadInt32();
+                    uint rosterContextHash = reader.ReadUInt32();
+                    if (rosterContextHash != ComputeRosterContextHash(roster)
+                        || (GameManager.Instance != null
+                            && GameManager.Instance.isOnlineMatchActive
+                            && timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()))
                     {
                         return;
                     }
@@ -1967,14 +2174,153 @@ public class MatchMessageManager : MonoBehaviour
                     return;
                 }
 
+                if (packetType == PACKET_TYPE_INITIAL_INPUT_STREAM_READY)
+                {
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    int sceneSignature = reader.ReadInt32();
+                    int matchSeed = reader.ReadInt32();
+                    if (senderSlot >= 0 && RollbackManager.Instance != null)
+                    {
+                        RollbackManager.Instance.ReceiveInitialInputStreamReady(
+                            senderSlot,
+                            matchSessionId,
+                            timelineEpoch,
+                            sceneSignature,
+                            matchSeed);
+                    }
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_MATCH_ABORT)
+                {
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    string reason = reader.ReadString();
+                    // Only the roster host may terminate the match for every peer.
+                    if (activeRoster == null
+                        || !activeRoster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, activeRoster.HostSteamId)
+                        || activeRoster.MatchSessionId != matchSessionId
+                        || GameManager.Instance == null
+                        || !GameManager.Instance.isOnlineMatchActive
+                        // A client stuck before the host's scene transition may be one epoch
+                        // behind and still needs this rescue. An abort older than our current
+                        // epoch is delayed traffic from a scene that already finished.
+                        || timelineEpoch < GameManager.Instance.GetOnlineTimelineEpoch())
+                    {
+                        return;
+                    }
+
+                    Debug.LogWarning($"[OnlineMatch] Host aborted match startup: {reason}");
+                    GameManager.Instance.ResetToMainMenuAfterHostDisconnect(
+                        $"Host aborted match startup: {reason}");
+                    return;
+                }
+
                 if (packetType == PACKET_TYPE_PEER_DROP)
                 {
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    int sceneSignature = reader.ReadInt32();
+                    bool outsideSimulation = reader.ReadBoolean();
                     int droppedSlot = reader.ReadInt32();
                     int dropFrame = reader.ReadInt32();
                     // Only the host adjudicates drops; ignore any spoofed/non-host sender.
-                    if (activeRoster != null && activeRoster.HostSteamId.IsValid
-                        && !SameSteamId(senderSteamId, activeRoster.HostSteamId))
+                    if (activeRoster == null
+                        || !activeRoster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, activeRoster.HostSteamId)
+                        || activeRoster.MatchSessionId != matchSessionId
+                        || GameManager.Instance == null
+                        || !GameManager.Instance.isOnlineMatchActive
+                        || timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch())
                     {
+                        return;
+                    }
+
+                    bool exactSceneContext =
+                        sceneSignature == GameManager.Instance.GetNetworkSceneSignature();
+                    bool startupHold = RollbackManager.Instance != null
+                        && RollbackManager.Instance.IsHoldingForInitialRemoteInputStreams();
+                    if (!exactSceneContext
+                        && !GameManager.Instance.isTransitioning
+                        && !(outsideSimulation && startupHold))
+                    {
+                        return;
+                    }
+
+                    // Transition/End drops are explicitly tagged by the host. Apply that
+                    // topology change the same way even if this packet lands just after
+                    // the transition completed and the new deterministic scene is held
+                    // at frame zero. This removes arrival-time-dependent survivor sets.
+                    if (outsideSimulation)
+                    {
+                        bool slotAlreadyDisconnected =
+                            !GameManager.Instance.IsPlayerSlotConnected(droppedSlot);
+                        bool canStillApplyOutsideSimulation =
+                            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "End"
+                            || GameManager.Instance.isTransitioning
+                            || startupHold;
+
+                        if (!slotAlreadyDisconnected && !canStillApplyOutsideSimulation)
+                        {
+                            // This survivor already advanced after the host applied a
+                            // transition-time frame-zero topology change. Applying it now
+                            // would create a different baseline; leave the invalid branch.
+                            SendPeerDropAcknowledgement(
+                                matchSessionId,
+                                timelineEpoch,
+                                sceneSignature,
+                                droppedSlot,
+                                dropFrame);
+                            GameManager.Instance.ResetToMainMenuAfterHostDisconnect(
+                                $"Received a startup roster change after local simulation began " +
+                                $"(P{droppedSlot + 1} disconnected)");
+                            return;
+                        }
+
+                        GameManager.Instance.ApplyPeerDropOutsideSimulation(droppedSlot, dropFrame);
+                        if (GameManager.Instance.IsPlayerSlotConnected(droppedSlot))
+                        {
+                            SendPeerDropAcknowledgement(
+                                matchSessionId,
+                                timelineEpoch,
+                                sceneSignature,
+                                droppedSlot,
+                                dropFrame);
+                            GameManager.Instance.ResetToMainMenuAfterHostDisconnect(
+                                $"Could not apply the host's startup roster change " +
+                                $"(P{droppedSlot + 1} disconnected)");
+                            return;
+                        }
+
+                        SendPeerDropAcknowledgement(
+                            matchSessionId,
+                            timelineEpoch,
+                            sceneSignature,
+                            droppedSlot,
+                            dropFrame);
+                        return;
+                    }
+
+                    // A client still held at frame zero cannot safely apply a drop chosen by a
+                    // survivor that has already released the startup barrier: the same nominal
+                    // drop frame would be clamped against two different simulation timelines.
+                    // Leave the match instead of manufacturing another deterministic branch.
+                    if (startupHold && exactSceneContext)
+                    {
+                        SendPeerDropAcknowledgement(
+                            matchSessionId,
+                            timelineEpoch,
+                            sceneSignature,
+                            droppedSlot,
+                            dropFrame);
+                        Debug.LogWarning(
+                            $"[OnlineMatch] P{droppedSlot + 1} dropped while this client was still " +
+                            "waiting for the startup input handshake; returning to the solo lobby.");
+                        GameManager.Instance?.ResetToMainMenuAfterHostDisconnect(
+                            $"Match roster changed before startup synchronization completed " +
+                            $"(P{droppedSlot + 1} disconnected)");
                         return;
                     }
 
@@ -1988,16 +2334,27 @@ public class MatchMessageManager : MonoBehaviour
                     {
                         RollbackManager.Instance.DropRemoteSlot(droppedSlot, dropFrame);
                     }
-                    SendPeerDropAcknowledgement(droppedSlot, dropFrame);
+                    SendPeerDropAcknowledgement(
+                        matchSessionId,
+                        timelineEpoch,
+                        sceneSignature,
+                        droppedSlot,
+                        dropFrame);
                     return;
                 }
 
                 if (packetType == PACKET_TYPE_PEER_DROP_ACK)
                 {
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    reader.ReadInt32(); // scene signature is diagnostic context for this drop
                     int droppedSlot = reader.ReadInt32();
                     int dropFrame = reader.ReadInt32();
                     if (senderSlot >= 0
+                        && activeRoster != null
+                        && activeRoster.MatchSessionId == matchSessionId
                         && GameManager.Instance != null
+                        && timelineEpoch == GameManager.Instance.GetOnlineTimelineEpoch()
                         && GameManager.Instance.IsOnlineHostAuthority())
                     {
                         GameManager.Instance.OnPeerDropAcknowledged(senderSlot, droppedSlot, dropFrame);
@@ -2012,6 +2369,8 @@ public class MatchMessageManager : MonoBehaviour
                         return;
                     }
 
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
                     int packetSceneSignature = reader.ReadInt32();
                     int remoteFrameAdvantage = reader.ReadInt32();
                     int batchFirstFrame = reader.ReadInt32();
@@ -2039,14 +2398,32 @@ public class MatchMessageManager : MonoBehaviour
                         return;
                     }
 
-                    if (GameManager.Instance != null && packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
+                    if (activeRoster == null
+                        || activeRoster.MatchSessionId != matchSessionId
+                        || GameManager.Instance == null)
+                    {
+                        return;
+                    }
+
+                    int localTimelineEpoch = GameManager.Instance.GetOnlineTimelineEpoch();
+                    if (timelineEpoch < localTimelineEpoch)
+                    {
+                        return;
+                    }
+
+                    if (timelineEpoch > localTimelineEpoch
+                        || packetSceneSignature != GameManager.Instance.GetNetworkSceneSignature())
                     {
                         // Instead of silently discarding the entire packet (which
                         // dropped every input frame inside, every peer's advantage/ping update,
                         // and could mask their inputs for the whole transition window) we now
                         // buffer the most recent mismatched packet and replay it the moment our
-                        // scene signature catches up. Host-side correction is still triggered.
-                        GameManager.Instance.HandleInputSceneSignatureMismatch(senderSlot, packetSceneSignature);
+                        // timeline/scene catches up. Host-side correction is still triggered
+                        // for a same-epoch scene mismatch.
+                        if (timelineEpoch == localTimelineEpoch)
+                        {
+                            GameManager.Instance.HandleInputSceneSignatureMismatch(senderSlot, packetSceneSignature);
+                        }
                         BufferSceneMismatchedInputPacket(senderSteamId, messageData);
                         return;
                     }
@@ -2223,6 +2600,37 @@ public class MatchMessageManager : MonoBehaviour
         return any;
     }
 
+    // Match-abort notifications bypass the optional stress-test delay/drop queue.
+    // They must be submitted to Steam's reliable channel before local StopMatch clears
+    // this manager's roster and queued packets.
+    private bool SendPacketToAllDirect(byte[] data, P2PSend sendType)
+    {
+        if (activeRoster?.Peers == null || data == null || data.Length == 0)
+        {
+            return false;
+        }
+
+        bool any = false;
+        foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+        {
+            if (peer == null
+                || SameSteamId(peer.SteamId, SteamClient.SteamId)
+                || IsPeerSlotRemovedFromTransport(peer.PlayerSlot))
+            {
+                continue;
+            }
+
+            any |= SteamNetworking.SendP2PPacket(
+                peer.SteamId,
+                data,
+                data.Length,
+                MATCH_MESSAGE_CHANNEL,
+                sendType);
+        }
+
+        return any;
+    }
+
     private bool SendPacketToAllExceptSlot(byte[] data, P2PSend sendType, int excludedSlot)
     {
         bool any = false;
@@ -2247,6 +2655,7 @@ public class MatchMessageManager : MonoBehaviour
     private void WriteRoster(BinaryWriter writer, OnlineMatchRoster roster)
     {
         writer.Write(roster.HostSteamId.Value);
+        writer.Write(roster.MatchSessionId);
         writer.Write(roster.Peers?.Count ?? 0);
         if (roster.Peers == null)
         {
@@ -2261,11 +2670,59 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
+    private static uint ComputeRosterContextHash(OnlineMatchRoster roster)
+    {
+        const uint fnvOffset = 2166136261u;
+        const uint fnvPrime = 16777619u;
+        uint hash = fnvOffset;
+
+        void MixUInt64(ulong value)
+        {
+            for (int shift = 0; shift < 64; shift += 8)
+            {
+                hash ^= (byte)(value >> shift);
+                hash *= fnvPrime;
+            }
+        }
+
+        void MixInt32(int value)
+        {
+            uint bits = unchecked((uint)value);
+            for (int shift = 0; shift < 32; shift += 8)
+            {
+                hash ^= (byte)(bits >> shift);
+                hash *= fnvPrime;
+            }
+        }
+
+        if (roster == null)
+        {
+            return 0u;
+        }
+
+        MixUInt64(roster.MatchSessionId);
+        MixUInt64(roster.HostSteamId.Value);
+
+        List<OnlineMatchPeerInfo> orderedPeers = roster.Peers != null
+            ? roster.Peers.FindAll(peer => peer != null)
+            : new List<OnlineMatchPeerInfo>();
+        orderedPeers.Sort((a, b) => a.PlayerSlot.CompareTo(b.PlayerSlot));
+        MixInt32(orderedPeers.Count);
+        for (int i = 0; i < orderedPeers.Count; i++)
+        {
+            MixInt32(orderedPeers[i].PlayerSlot);
+            MixUInt64(orderedPeers[i].SteamId.Value);
+        }
+
+        return hash;
+    }
+
     private OnlineMatchRoster ReadRoster(BinaryReader reader)
     {
         OnlineMatchRoster roster = new OnlineMatchRoster
         {
             HostSteamId = reader.ReadUInt64(),
+            MatchSessionId = reader.ReadUInt64(),
             LocalPlayerSlot = -1
         };
 

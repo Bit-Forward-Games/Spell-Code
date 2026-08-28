@@ -1017,17 +1017,15 @@ public class GambaMachine : MonoBehaviour
 
     public bool CheckHitboxCollision()
     {
-        if(ownerPlayer == null || ownerPlayer.basicProjectileInstance == null ||
-            !ProjectileManager.Instance.activeProjectiles.Contains(ownerPlayer.basicProjectileInstance.GetComponent<BaseProjectile>()))
+        HitboxManager hitboxManager = HitboxManager.Instance;
+        if (ownerPlayer == null || hitboxManager == null)
         {
             return false;
         }
 
-        return HitboxManager.Instance.ProcessSingleProjectileCollisison(
-            ownerPlayer.basicProjectileInstance.GetComponent<BaseProjectile>(), 
-            hurtbox, 
-            FixedVec2.FromFloat(transform.position.x, transform.position.y), 
-            true);
+        Vector3 machinePosition = transform.position;
+        return hitboxManager.ProcessPlayerBasicAttackCollision(ownerPlayer, hurtbox,
+            FixedVec2.FromFloat(machinePosition.x, machinePosition.y), true);
     }
 
     private bool CheckOnlineHitboxCollision()

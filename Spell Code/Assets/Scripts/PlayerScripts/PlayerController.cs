@@ -3643,7 +3643,11 @@ public class PlayerController : MonoBehaviour
     private void HandleDamage(PlayerController attacker, int damageAmount, Color? damageTextColor = null)
     {
         //if(pID == 0)return; //if this is a training dummy then don't handle damage
-        int proratedDamage = (int)(Fixed.FromInt(damageAmount) * prorationVal).ToFloat(); 
+        // Integer-only conversion. Routing damage through ToFloat() put a float in the middle of a
+        // hashed sim value (currentPlayerHealth and damageMatrix both derive from this). Dividing by
+        // FromInt(1).RawValue is the fixed-point scale without hardcoding FractionBits, which is
+        // private. Truncates toward zero, matching the old cast for the positive damage values here.
+        int proratedDamage = (Fixed.FromInt(damageAmount) * prorationVal).RawValue / Fixed.FromInt(1).RawValue;
         bool isRollback = RollbackManager.Instance != null && RollbackManager.Instance.isRollbackFrame;
         bool hasAttacker = attacker != null;
         if (!isRollback && damageAmount > 0)

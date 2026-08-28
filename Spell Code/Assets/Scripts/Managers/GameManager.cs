@@ -640,6 +640,7 @@ public class GameManager : MonoBehaviour
             //     break;
 
             case Gamemode.Fighter: //2
+                winCon = WinCon.Elimination;
                 loadMainMenu();
                 break;
 

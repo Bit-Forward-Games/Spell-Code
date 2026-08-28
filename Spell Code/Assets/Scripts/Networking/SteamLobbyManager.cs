@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-62"; // scz-62: winCon is now derived from the gamemode in one shared resolver used by BOTH the offline chooser and the online mode resolution.
-                                                    // Showdown runs Elimination online (it previously only did offline), and winCon no longer leaks between matches.
+    private const string NetcodeVersion = "scz-63"; // scz-63: Showdown now skips the Shop phase ONLINE as well as offline (one shared ShouldSkipShopPhase rule). That changes the online round flow,
+                                                    // so it must not pair with scz-62, where the online path still routed Showdown through the Shop.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

@@ -4034,9 +4034,9 @@ public class GameManager : MonoBehaviour
         playerWinText.enabled = false;
         AdvanceRoundCountOnce();
 
-        // Chaos always replaces the complete loadout between rounds. A full six-spell inventory
-        // therefore enters the Shop instead of taking Normal's direct next-round shortcut.
-        bool hasMaxSpells = gamemode != Gamemode.Chaos && AllActivePlayersHaveMaxSpells();
+        // The Chaos exception this used to spell out inline now lives in ShouldSkipShopPhase, so the
+        // online transition, the offline one and the round-end label can't drift apart again.
+        bool hasMaxSpells = ShouldSkipShopPhase();
 
         if (hasMaxSpells)
         {
@@ -4115,7 +4115,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            string nextPhase = AllActivePlayersHaveMaxSpells() ? "Beginning Next Round..." : "Beginning Shop Phase...";
+            string nextPhase = ShouldSkipShopPhase() ? "Beginning Next Round..." : "Beginning Shop Phase...";
             message = lastRoundWinnerPID > 0
                 ? "Player " + lastRoundWinnerPID + " wins the round! " + nextPhase
                 : "Round draw! " + nextPhase;
@@ -4311,7 +4311,7 @@ public class GameManager : MonoBehaviour
                         roundEndUIShown = false;
                         lastRoundWinnerPID = -1;
                     }
-                    else if (AllActivePlayersHaveMaxSpells() || gamemode == Gamemode.Fighter)
+                    else if (ShouldSkipShopPhase())
                     {
                         playerWinText.enabled = false;
                         dataManager.totalRoundsPlayed += 1;
@@ -4404,6 +4404,26 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Whether the round transition goes straight to the next round instead of the Shop.
+    ///
+    /// Deterministic: gamemode is hashed and agreed between peers, and AllActivePlayersHaveMaxSpells
+    /// reads spellList, which is sim state.
+    /// </summary>
+    private bool ShouldSkipShopPhase()
+    {
+        // Chaos replaces the complete loadout between rounds, so a full six-spell inventory still
+        // enters the Shop rather than taking Normal's direct next-round shortcut.
+        if (gamemode == Gamemode.Chaos)
+        {
+            return false;
+        }
+
+        // Showdown hands out a whole six-spell moveset from the character disk, so there is nothing
+        // left to buy.
+        return gamemode == Gamemode.Fighter || AllActivePlayersHaveMaxSpells();
     }
 
     private bool AllActivePlayersHaveMaxSpells()

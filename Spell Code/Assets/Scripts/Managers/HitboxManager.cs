@@ -259,6 +259,34 @@ public class HitboxManager : MonoBehaviour
         return ProcessSingleProjectileCollisison(projectile, hurtboxData, defenderPos, out _, defenderFacingRight);
     }
 
+    public bool ProcessPlayerBasicAttackCollision(PlayerController owner, HurtboxData hurtboxData,
+        FixedVec2 defenderPos, bool defenderFacingRight = true)
+    {
+        ProjectileManager projectileManager = ProjectileManager.Instance;
+        if (owner == null || projectileManager == null)
+        {
+            return false;
+        }
+
+        List<BaseProjectile> activeProjectiles = projectileManager.activeProjectiles;
+        for (int i = 0; i < activeProjectiles.Count; i++)
+        {
+            BaseProjectile projectile = activeProjectiles[i];
+            if (projectile == null || projectile.owner == null || projectile.owner.pID != owner.pID)
+            {
+                continue;
+            }
+
+            if (ProcessSingleProjectileCollision(projectile, hurtboxData, defenderPos, out _,
+                defenderFacingRight, true))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Logged at most once per session: the condition persists for a projectile's whole life, so
     // logging per occurrence would flood the player.log.
     private static bool hasLoggedHitboxGroupIndexOverflow;
@@ -305,38 +333,67 @@ public class HitboxManager : MonoBehaviour
 
     public bool ProcessSingleProjectileCollisison(BaseProjectile projectile, HurtboxData hurtboxData, FixedVec2 defenderPos, out HitboxData collidedHitbox, bool defenderFacingRight = true)
     {
+        return ProcessSingleProjectileCollision(projectile, hurtboxData, defenderPos, out collidedHitbox,
+            defenderFacingRight, false);
+    }
+
+    private bool ProcessSingleProjectileCollision(BaseProjectile projectile, HurtboxData hurtboxData,
+        FixedVec2 defenderPos, out HitboxData collidedHitbox, bool defenderFacingRight,
+        bool basicAttackOnly)
+    {
         collidedHitbox = null;
         if (!TryGetActiveHitboxGroup(projectile, out HitboxGroup activeGroup)) return false;
-        // Combine all hitbox lists into one sequence
-        var activeProjHit = activeGroup.hitbox1
-            .Concat(activeGroup.hitbox2)
-            .Concat(activeGroup.hitbox3)
-            .Concat(activeGroup.hitbox4);
 
+        return ProcessProjectileHitboxList(activeGroup.hitbox1, projectile, hurtboxData, defenderPos,
+                   out collidedHitbox, defenderFacingRight, basicAttackOnly) ||
+               ProcessProjectileHitboxList(activeGroup.hitbox2, projectile, hurtboxData, defenderPos,
+                   out collidedHitbox, defenderFacingRight, basicAttackOnly) ||
+               ProcessProjectileHitboxList(activeGroup.hitbox3, projectile, hurtboxData, defenderPos,
+                   out collidedHitbox, defenderFacingRight, basicAttackOnly) ||
+               ProcessProjectileHitboxList(activeGroup.hitbox4, projectile, hurtboxData, defenderPos,
+                   out collidedHitbox, defenderFacingRight, basicAttackOnly);
+    }
 
-        foreach (HitboxData hitbox in activeProjHit)
+    private bool ProcessProjectileHitboxList(List<HitboxData> hitboxes, BaseProjectile projectile,
+        HurtboxData hurtboxData, FixedVec2 defenderPos, out HitboxData collidedHitbox,
+        bool defenderFacingRight, bool basicAttackOnly)
+    {
+        collidedHitbox = null;
+        if (hitboxes == null)
         {
+            return false;
+        }
+
+        for (int i = 0; i < hitboxes.Count; i++)
+        {
+            HitboxData hitbox = hitboxes[i];
+            if (hitbox == null || (basicAttackOnly && !hitbox.basicAttackHitbox))
+            {
+                continue;
+            }
+
             if (CheckCollision(hitbox, projectile.position, hurtboxData, defenderPos,
-                        projectile.facingRight, defenderFacingRight))
+                projectile.facingRight, defenderFacingRight))
             {
                 collidedHitbox = hitbox;
-                if(hitbox.hitstun > 0)
+                if (hitbox.hitstun > 0)
+                {
+                    if (projectile.meleeProjectile && projectile.owner != null)
                     {
-                        if (projectile.meleeProjectile)
-                        {
-                            projectile.owner.hitstop = hitstopVal;
-                        }
-                        //defendingPlayer.hitstop = hitstopVal;
-                        // Don't re-shake on rollback resims (the owner.hitstop above is
-                        // hashed sim state, so it stays unguarded).
-                        if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
-                        {
-                            cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
-                        }
+                        projectile.owner.hitstop = hitstopVal;
                     }
+                    //defendingPlayer.hitstop = hitstopVal;
+                    // Don't re-shake on rollback resims (the owner.hitstop above is
+                    // hashed sim state, so it stays unguarded).
+                    if (RollbackManager.Instance == null || !RollbackManager.Instance.isRollbackFrame)
+                    {
+                        cachedForScreenShakeCamera.ScreenShake(hitstopVal / 60.0f, hitstopVal / 2.0f);
+                    }
+                }
                 return true;
             }
         }
+
         return false;
     }
 

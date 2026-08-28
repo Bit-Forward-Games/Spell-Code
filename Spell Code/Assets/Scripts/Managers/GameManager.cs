@@ -816,6 +816,14 @@ public class GameManager : MonoBehaviour
                 StopMatch(networkFailureReason);
                 return;
             }
+
+            // The specialized bootstrap watchdog can tear the match down from inside
+            // CheckNetworkHealth. Do not fall through into offline RunFrame in the old
+            // scene during that same FixedUpdate.
+            if (!isOnlineMatchActive || !isRunning)
+            {
+                return;
+            }
         }
 
         if (isOnlineMatchActive)
@@ -1567,9 +1575,19 @@ public class GameManager : MonoBehaviour
         return applied;
     }
 
-    public bool ApplyOnlineLobbyRosterSnapshot(OnlineMatchRoster roster, int snapshotFrame, byte[] stateData, bool forceApply = false, byte snapshotSceneType = 0, int snapshotSceneSignature = 0)
+    public bool ApplyOnlineLobbyRosterSnapshot(
+        OnlineMatchRoster roster,
+        int snapshotFrame,
+        byte[] stateData,
+        bool forceApply = false,
+        byte snapshotSceneType = 0,
+        int snapshotSceneSignature = 0,
+        int snapshotTimelineEpoch = 0)
     {
-        if (roster == null || stateData == null || stateData.Length == 0)
+        if (roster == null
+            || stateData == null
+            || stateData.Length == 0
+            || snapshotTimelineEpoch < 0)
         {
             return false;
         }
@@ -1625,6 +1643,13 @@ public class GameManager : MonoBehaviour
             {
                 return false;
             }
+
+            // A drop-in can join while the retained online session is several rematch/
+            // shop transitions past epoch zero. StartOnlineMatch resets local tracking,
+            // so adopt the host snapshot's stable completed epoch before any scoped
+            // input/READY packet is processed.
+            onlineTransitionSequence = snapshotTimelineEpoch;
+            activeOnlineTransitionId = 0;
         }
 
         bool rosterAlreadyApplied = DoesActiveOnlineRosterMatch(roster);
@@ -1789,6 +1814,26 @@ public class GameManager : MonoBehaviour
         if (MatchMessageManager.Instance != null)
         {
             MatchMessageManager.Instance.PumpNetwork();
+        }
+
+        // RollbackManager owns the stricter frame-zero startup-stream watchdog. Its
+        // recovery is host-authoritative and distinguishes a dead peer from one that is
+        // sending packets for the wrong scene. Do not let this generic any-packet timeout
+        // locally StopMatch first; transport has already been pumped above.
+        RollbackManager rollbackManager = RollbackManager.Instance;
+        if (rollbackManager != null)
+        {
+            rollbackManager.TickInitialRemoteInputStreamBootstrap();
+            if (!isOnlineMatchActive || !isRunning)
+            {
+                return true;
+            }
+
+            if (rollbackManager != null
+                && rollbackManager.IsHoldingForInitialRemoteInputStreams())
+            {
+                return true;
+            }
         }
 
         // Don't check during lobby phase
@@ -2086,9 +2131,17 @@ public class GameManager : MonoBehaviour
     private bool DropUnresponsivePeerOutsideSimulation(int slot, string context)
     {
         int dropFrame = frameNumber;
+        ulong matchSessionId = MatchMessageManager.Instance?.ActiveMatchSessionId ?? 0UL;
+        int timelineEpoch = GetOnlineTimelineEpoch();
+        int sceneSignature = GetNetworkSceneSignature();
         pendingPeerDropFrames[slot] = dropFrame;
         peerDropAcknowledgedSlots[slot] = new HashSet<int> { localPlayerIndex };
-        StartCoroutine(BroadcastPeerDropOutsideSimulationUntilAcknowledged(slot, dropFrame));
+        StartCoroutine(BroadcastPeerDropOutsideSimulationUntilAcknowledged(
+            slot,
+            dropFrame,
+            matchSessionId,
+            timelineEpoch,
+            sceneSignature));
         ApplyPeerDropOutsideSimulation(slot, dropFrame);
         Debug.LogWarning($"[OnlineMatch] Timed out P{slot + 1} during {context}; removed from the connected-player quorum.");
         return true;
@@ -2101,8 +2154,18 @@ public class GameManager : MonoBehaviour
 
     public void ApplyPeerDropOutsideSimulation(int slot, int dropFrame)
     {
+        bool heldAtDeterministicStartup = RollbackManager.Instance != null
+            && RollbackManager.Instance.IsHoldingForInitialRemoteInputStreams();
+        string activeSceneName = SceneManager.GetActiveScene().name;
+        bool refreshDeterministicFrameZero =
+            (activeSceneName == "Gameplay" || activeSceneName == "Shop")
+            && (isTransitioning || heldAtDeterministicStartup)
+            && RollbackManager.Instance != null
+            && RollbackManager.Instance.localFrame == 0;
         if (!isOnlineMatchActive
-            || (SceneManager.GetActiveScene().name != "End" && !isTransitioning)
+            || (activeSceneName != "End"
+                && !isTransitioning
+                && !heldAtDeterministicStartup)
             || slot < 0
             || slot >= players.Length
             || slot == localPlayerIndex)
@@ -2123,6 +2186,15 @@ public class GameManager : MonoBehaviour
         pendingGameplayReadyBySlot.Remove(slot);
         pendingGameplayReadyTransitionBySlot.Remove(slot);
         pendingSceneReadyBySlot.Remove(slot);
+
+        // The scene-ready path saved frame zero before its liveness watchdog could
+        // remove a peer. Replace that snapshot with the reduced roster on both the host
+        // and every receiver, otherwise a later rollback could resurrect the dropped
+        // player's pre-drop state on only some machines.
+        if (refreshDeterministicFrameZero && RollbackManager.Instance != null)
+        {
+            RollbackManager.Instance.SaveState();
+        }
 
         if (isTransitioning)
         {
@@ -2145,11 +2217,26 @@ public class GameManager : MonoBehaviour
         acknowledgedSlots.Add(senderSlot);
     }
 
-    private IEnumerator BroadcastPeerDropOutsideSimulationUntilAcknowledged(int slot, int dropFrame)
+    private IEnumerator BroadcastPeerDropOutsideSimulationUntilAcknowledged(
+        int slot,
+        int dropFrame,
+        ulong matchSessionId,
+        int timelineEpoch,
+        int sceneSignature)
     {
-        while (isOnlineMatchActive && !HaveAllSurvivingPeerDropAcknowledgements(slot, dropFrame))
+        while (isOnlineMatchActive
+            && MatchMessageManager.Instance != null
+            && MatchMessageManager.Instance.ActiveMatchSessionId == matchSessionId
+            && GetOnlineTimelineEpoch() == timelineEpoch
+            && !HaveAllSurvivingPeerDropAcknowledgements(slot, dropFrame))
         {
-            MatchMessageManager.Instance?.SendPeerDrop(slot, dropFrame);
+            MatchMessageManager.Instance?.SendPeerDrop(
+                slot,
+                dropFrame,
+                outsideSimulation: true,
+                matchSessionId: matchSessionId,
+                timelineEpoch: timelineEpoch,
+                sceneSignature: sceneSignature);
             yield return new WaitForSecondsRealtime(0.25f);
         }
 
@@ -2367,6 +2454,12 @@ public class GameManager : MonoBehaviour
         }
 
         return count;
+    }
+
+    public bool IsOnlineRosterPlayerRegistrationComplete()
+    {
+        return activeOnlineRoster?.Peers != null
+            && CountRegisteredOnlineRosterPlayers() >= activeOnlineRoster.PlayerCount;
     }
 
     /// <summary>
@@ -6021,6 +6114,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public int GetOnlineTimelineEpoch()
+    {
+        return activeOnlineTransitionId > 0
+            ? activeOnlineTransitionId
+            : onlineTransitionSequence;
+    }
+
     public int GetNetworkSceneSignature()
     {
         string activeSceneName = SceneManager.GetActiveScene().name;
@@ -7885,7 +7985,11 @@ public class GameManager : MonoBehaviour
 
     private bool DoesActiveOnlineRosterMatch(OnlineMatchRoster roster)
     {
-        if (activeOnlineRoster == null || roster == null || activeOnlineRoster.PlayerCount != roster.PlayerCount)
+        if (activeOnlineRoster == null
+            || roster == null
+            || activeOnlineRoster.PlayerCount != roster.PlayerCount
+            || activeOnlineRoster.MatchSessionId != roster.MatchSessionId
+            || activeOnlineRoster.HostSteamId != roster.HostSteamId)
         {
             return false;
         }
@@ -7906,6 +8010,7 @@ public class GameManager : MonoBehaviour
     {
         slotCount = 0;
         if (roster?.Peers == null
+            || roster.MatchSessionId == 0UL
             || roster.PlayerCount < 2
             || players == null
             || roster.PlayerCount > players.Length

@@ -1767,6 +1767,13 @@ public class Pause : MonoBehaviour
             return false;
         }
 
+        // Same rule for the SoloLobby attract video: the Escape/Start press that dismisses it must
+        // not also open Pause behind it. SoloManager holds this until the press is released.
+        if (SoloManager.IsBlockingPause)
+        {
+            return false;
+        }
+
         // Block while this player still has their code-mode prompt up
         PlayerController pausingPlayer = GetPlayerAtIndex(playerPauseIndex);
         if (pausingPlayer != null && pausingPlayer.choosingCodeMode)

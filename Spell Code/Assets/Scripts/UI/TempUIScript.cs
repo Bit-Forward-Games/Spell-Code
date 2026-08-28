@@ -576,7 +576,11 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     // Hard-stops an in-flight announcer banner and leaves it re-armed. Unlike the coroutine's own
     // exit path this is instant: the point is to clear the screen for the "JOINING/STARTING
     // MATCH..." label, not to play a graceful outro.
-    private void CancelTransitionScreen()
+    // Public because the End-scene teardown has to call it before deactivating TempUI: the banner's
+    // graceful exit runs in a coroutine ON TempUI, so deactivating the object kills the outro and
+    // strands the announcer at full scale over the game end screen. Being instant and re-arming is
+    // exactly what that teardown wants.
+    public void CancelTransitionScreen()
     {
         // Bumping the id makes any live DisplayTransitionScreen bail at its next checkpoint instead
         // of waking up later and re-showing the box we just hid.
@@ -704,11 +708,7 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         else if (!GameManager.Instance.roundOver)
         {
             roundWinCounterUpdated = false;
-            roundEndUI.SetActive(false);
-            for (int i = 0; i < GameManager.Instance.playerCount; i++)
-            {
-                winnerPanel[i].gameObject.SetActive(false);
-            }
+            HideRoundEndUI();
         }
 
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -726,6 +726,34 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     }
 
     public bool roundWinCounterUpdated;
+
+    /// <summary>
+    /// Takes the round-end panel down. Update normally does this when roundOver clears, but the
+    /// panel lives under pfb_GameManager rather than under TempUI -- so once TempUI is deactivated
+    /// (which the End scene does) this Update stops running and the panel is stranded on screen,
+    /// covering the game end screen. Callable directly so the End-scene teardown can close it
+    /// first, the same way it resumes the Pause menu before deactivating TempUI.
+    /// </summary>
+    public void HideRoundEndUI()
+    {
+        if (roundEndUI != null)
+        {
+            roundEndUI.SetActive(false);
+        }
+
+        if (winnerPanel == null || GameManager.Instance == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < GameManager.Instance.playerCount && i < winnerPanel.Length; i++)
+        {
+            if (winnerPanel[i] != null)
+            {
+                winnerPanel[i].gameObject.SetActive(false);
+            }
+        }
+    }
 
     public void RoundEndUI()
     {
@@ -1177,7 +1205,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
     {
         // A normal pause is handled later by GameManager.StartOnlineMatch. Do not force timeScale
         // back to 1 while that pause UI is still open; this cleanup is only for the mode selectors.
-        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened)
+        // A selector can be on screen with its flag already clear, any path that SetActive(true)s
+        // one without going through SetSoloMenuActive/SetMultiplayerMenuActive leaves the two out of
+        // step, and a flags-only check then refuses to clean it up and it survives into the match.
+        // Checked on the three selector panels only, NOT on the shared gamemodesMenu container:
+        // OnlineMenuPanel.EnsureVisibleInHierarchy legitimately switches that container on for the
+        // Friends Lobby / Matchmaking panels, and treating it as stale here would run
+        // CloseGamemodeMenus (which forces timeScale back to 1) out from under a panel that is still
+        // open and deliberately freezing the game.
+        bool anySelectorVisible =
+            (soloGamemodesMenu != null && soloGamemodesMenu.activeSelf)
+            || (multiplayerGamemodesMenu != null && multiplayerGamemodesMenu.activeSelf)
+            || (multiplayerGamemodesChooserMenu != null && multiplayerGamemodesChooserMenu.activeSelf);
+
+        if (!soloGamemodesMenuOpened && !multiplayerGamemodesMenuOpened && !multiplayerGamemodesChooserMenuOpened
+            && !anySelectorVisible)
         {
             return;
         }

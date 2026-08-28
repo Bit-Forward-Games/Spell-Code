@@ -17,7 +17,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return false;
             }
 
-            if (Instance != null && Instance.IsWaitingForInitialRemoteInputStreams())
+            if (Instance != null && Instance.IsWaitingForDeterministicSceneInputStreams())
             {
                 return false;
             }
@@ -87,6 +87,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, byte> remoteLastReceivedDirectionBySlot = new Dictionary<int, byte>();
         private readonly Dictionary<int, int> remoteHeldDirectionStreakBySlot = new Dictionary<int, int>();
         private readonly HashSet<int> pendingRemoteInputSlots = new HashSet<int>();
+        private readonly HashSet<int> initialInputStreamReadySlots = new HashSet<int>();
         private readonly Dictionary<int, int> lobbyLeadAlignedInputPacketBySlot = new Dictionary<int, int>();
         private int? pendingRosterFrameOffset = null;
         private readonly List<int> remotePlayerSlots = new List<int>();
@@ -160,6 +161,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int TimeoutFrames = 60; // Frames without sync before timeout
         [SerializeField] public float TransitionStartupTimeoutGraceSeconds = 10f; // Grace after scene loads/focus stalls
         [SerializeField] public float PeerDropTimeoutGraceSeconds = 1f; // Brief rebase grace without masking another simultaneous drop
+        [SerializeField, Min(1f)] private float InitialRemoteInputStreamTimeoutSeconds = 10f;
+        [SerializeField, Min(1f)] private float ResponsiveInitialRemoteInputStreamHardTimeoutSeconds = 20f;
 
         // --- Constants ---
         // Make array sizes configurable or keep as constants
@@ -188,6 +191,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int lastRemoteFrameForTimeout = 0;
         private int remoteFrameStallTicks = 0;
         private float timeoutGraceUntilRealtime = 0f;
+        private bool deterministicBootstrapHoldLogged = false;
+        private float initialRemoteInputStreamWaitStartedRealtime = -1f;
+        private float nextInitialInputStreamReadySendRealtime = -1f;
+        private float initialInputStreamReadyBroadcastUntilRealtime = -1f;
+        private const float InitialInputStreamReadyResendSeconds = 0.5f;
         // Packet-loss smoothing runtime state. All zero/-1 when no loss is happening,
         // so the AllowUpdate fast path stays free of overhead.
         private int packetLossSignal = 0;            // Decaying score; rises on detected gaps
@@ -511,6 +519,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
             PruneSlotDictionary(lobbyLeadAlignedInputPacketBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
+            initialInputStreamReadySlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
             PrunePendingRemoteHashes(validRemoteSlots);
         }
 
@@ -628,6 +637,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteLastReceivedDirectionBySlot.Clear();
             remoteHeldDirectionStreakBySlot.Clear();
             pendingRemoteInputSlots.Clear();
+            initialInputStreamReadySlots.Clear();
             lobbyLeadAlignedInputPacketBySlot.Clear();
             pendingRosterFrameOffset = null;
 
@@ -638,6 +648,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remoteFrame = 0;
             lastRemoteFrameForTimeout = 0;
             remoteFrameStallTicks = 0;
+            deterministicBootstrapHoldLogged = false;
+            initialRemoteInputStreamWaitStartedRealtime = -1f;
+            nextInitialInputStreamReadySendRealtime = -1f;
+            initialInputStreamReadyBroadcastUntilRealtime = -1f;
             ResetTimeoutGrace(TransitionStartupTimeoutGraceSeconds);
             packetLossSignal = 0;
             highestRemoteInputFrameSeen = -1;
@@ -836,8 +850,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             EnsureRemoteCollectionsInitialized();
             pendingRemoteInputSlots.Clear();
+            initialInputStreamReadySlots.Clear();
             pendingRosterFrameOffset = null;
             lobbyLeadAlignedInputPacketBySlot.Clear();
+            deterministicBootstrapHoldLogged = false;
+            initialRemoteInputStreamWaitStartedRealtime = -1f;
+            nextInitialInputStreamReadySendRealtime = -1f;
+            initialInputStreamReadyBroadcastUntilRealtime = -1f;
             for (int i = 0; i < remotePlayerSlots.Count; i++)
             {
                 pendingRemoteInputSlots.Add(remotePlayerSlots[i]);
@@ -944,6 +963,179 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return usePeerRoster
                 && remotePlayerSlots.Count > 0
                 && pendingRemoteInputSlots.Count > 0;
+        }
+
+        private bool IsDeterministicOnlineScene()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            return usePeerRoster
+                && GameManager.Instance != null
+                && GameManager.Instance.isOnlineMatchActive
+                && (sceneName == "Gameplay" || sceneName == "Shop");
+        }
+
+        private bool IsWaitingForDeterministicSceneInputStreams()
+        {
+            return IsDeterministicOnlineScene()
+                && (IsWaitingForInitialRemoteInputStreams()
+                    || !AreAllRemoteInputStreamsReady()
+                    || !GameManager.Instance.IsOnlineRosterPlayerRegistrationComplete());
+        }
+
+        public bool IsHoldingForInitialRemoteInputStreams()
+        {
+            return IsWaitingForDeterministicSceneInputStreams()
+                && !GameManager.Instance.isTransitioning;
+        }
+
+        private bool AreAllRemoteInputStreamsReady()
+        {
+            for (int i = 0; i < remotePlayerSlots.Count; i++)
+            {
+                if (!initialInputStreamReadySlots.Contains(remotePlayerSlots[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private int[] GetInitialInputStreamBlockingSlots()
+        {
+            return remotePlayerSlots
+                .Where(slot => pendingRemoteInputSlots.Contains(slot)
+                    || !initialInputStreamReadySlots.Contains(slot))
+                .OrderBy(slot => slot)
+                .ToArray();
+        }
+
+        public void ReceiveInitialInputStreamReady(
+            int slot,
+            ulong matchSessionId,
+            int timelineEpoch,
+            int sceneSignature,
+            int matchSeed)
+        {
+            if (!IsDeterministicOnlineScene()
+                || GameManager.Instance == null
+                || matchManager == null
+                || matchSessionId == 0UL
+                || matchSessionId != matchManager.ActiveMatchSessionId
+                || timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()
+                || sceneSignature != GameManager.Instance.GetNetworkSceneSignature()
+                || matchSeed != GameManager.Instance.randomSeed
+                || !remotePlayerSlots.Contains(slot))
+            {
+                return;
+            }
+
+            if (initialInputStreamReadySlots.Add(slot))
+            {
+                Debug.Log($"[Rollback] P{slot + 1} confirmed complete deterministic startup input streams. Ready={initialInputStreamReadySlots.Count}/{remotePlayerSlots.Count}.");
+            }
+        }
+
+        public void TickInitialRemoteInputStreamBootstrap()
+        {
+            GameManager gameManager = GameManager.Instance;
+            if (!IsDeterministicOnlineScene() || gameManager == null)
+            {
+                initialRemoteInputStreamWaitStartedRealtime = -1f;
+                return;
+            }
+
+            // Scene-ready already has its own slow-loader grace. Start both the READY
+            // broadcast and this watchdog only after that transition has completed.
+            if (gameManager.isTransitioning)
+            {
+                initialRemoteInputStreamWaitStartedRealtime = -1f;
+                return;
+            }
+
+            float now = UnityEngine.Time.unscaledTime;
+            float softTimeoutSeconds = Mathf.Max(
+                1f,
+                InitialRemoteInputStreamTimeoutSeconds);
+            float hardTimeoutSeconds = Mathf.Max(
+                softTimeoutSeconds,
+                ResponsiveInitialRemoteInputStreamHardTimeoutSeconds);
+            bool localRegistrationComplete =
+                gameManager.IsOnlineRosterPlayerRegistrationComplete();
+            if (pendingRemoteInputSlots.Count == 0 && localRegistrationComplete)
+            {
+                if (initialInputStreamReadyBroadcastUntilRealtime < 0f)
+                {
+                    initialInputStreamReadyBroadcastUntilRealtime = now
+                        + hardTimeoutSeconds;
+                    nextInitialInputStreamReadySendRealtime = -1f;
+                }
+
+                // Keep re-announcing after this client releases. Another peer may still
+                // be waiting for our READY because its first reliable packet was delayed
+                // or deliberately dropped by the network stress harness.
+                if (matchManager != null
+                    && now <= initialInputStreamReadyBroadcastUntilRealtime
+                    && now >= nextInitialInputStreamReadySendRealtime)
+                {
+                    matchManager.SendInitialInputStreamReady(
+                        matchManager.ActiveMatchSessionId,
+                        gameManager.GetOnlineTimelineEpoch(),
+                        gameManager.GetNetworkSceneSignature(),
+                        gameManager.randomSeed);
+                    nextInitialInputStreamReadySendRealtime =
+                        now + InitialInputStreamReadyResendSeconds;
+                }
+            }
+
+            if (!IsWaitingForDeterministicSceneInputStreams())
+            {
+                initialRemoteInputStreamWaitStartedRealtime = -1f;
+                return;
+            }
+
+            if (initialRemoteInputStreamWaitStartedRealtime < 0f)
+            {
+                initialRemoteInputStreamWaitStartedRealtime = now;
+            }
+
+            int[] blockingSlots = GetInitialInputStreamBlockingSlots();
+            float livenessWindow = softTimeoutSeconds;
+            bool anyBlockingPeerResponsive = false;
+            if (matchManager != null)
+            {
+                for (int i = 0; i < blockingSlots.Length; i++)
+                {
+                    if (matchManager.IsPeerResponsive(blockingSlots[i], livenessWindow))
+                    {
+                        anyBlockingPeerResponsive = true;
+                        break;
+                    }
+                }
+            }
+
+            bool localIsHost = gameManager.IsOnlineHostAuthority();
+            int hostSlot = GetOnlineHostSlot();
+            bool hostResponsive = localIsHost
+                || (matchManager != null
+                    && hostSlot >= 0
+                    && matchManager.IsPeerResponsive(hostSlot, livenessWindow));
+            bool useHardTimeout = anyBlockingPeerResponsive
+                || (!localIsHost && hostResponsive);
+            if (!localRegistrationComplete)
+            {
+                // This machine cannot publish a valid startup window until all roster
+                // player objects exist. Waiting longer cannot be repaired by a peer READY.
+                useHardTimeout = false;
+            }
+            float timeoutSeconds = useHardTimeout
+                ? hardTimeoutSeconds
+                : softTimeoutSeconds;
+
+            if (now - initialRemoteInputStreamWaitStartedRealtime >= timeoutSeconds)
+            {
+                ResolveInitialRemoteInputStreamTimeout(anyBlockingPeerResponsive);
+            }
         }
 
         private int GetEffectiveRemoteFrame(int fallbackFrame)
@@ -1102,6 +1294,15 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     public void RollbackEvent()
     {
         if (DelayBased || GameManager.Instance == null || !GameManager.Instance.isRunning)
+        {
+            return;
+        }
+
+        // A deterministic scene may not confirm even one opening frame until every
+        // occupied remote slot has supplied its current-scene input stream. Otherwise
+        // the first active peer can advance syncFrame past a slower peer's real opening
+        // inputs, causing those inputs to be discarded permanently when they arrive.
+        if (IsWaitingForDeterministicSceneInputStreams())
         {
             return;
         }
@@ -1359,6 +1560,78 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return worst;
         }
 
+        private void ResolveInitialRemoteInputStreamTimeout(bool anyBlockingPeerResponsive)
+        {
+            GameManager gameManager = GameManager.Instance;
+            if (gameManager == null)
+            {
+                return;
+            }
+
+            int[] blockingSlots = GetInitialInputStreamBlockingSlots();
+            bool localRegistrationIncomplete =
+                !gameManager.IsOnlineRosterPlayerRegistrationComplete();
+            if (blockingSlots.Length == 0 && !localRegistrationIncomplete)
+            {
+                initialRemoteInputStreamWaitStartedRealtime = -1f;
+                return;
+            }
+
+            string slotList = string.Join(", ", blockingSlots.Select(slot => $"P{slot + 1}"));
+            string blockerDescription = localRegistrationIncomplete
+                ? (blockingSlots.Length > 0
+                    ? $"{slotList}; local roster registration"
+                    : "local roster registration")
+                : slotList;
+            initialRemoteInputStreamWaitStartedRealtime = -1f;
+            Debug.LogWarning($"[Rollback] Timed out waiting for roster-wide current-scene startup readiness. Blockers={blockerDescription}, responsive={anyBlockingPeerResponsive}.");
+
+            if (matchManager == null)
+            {
+                gameManager.ResetToMainMenuAfterHostDisconnect(
+                    $"Network transport disappeared while waiting for startup readiness [{blockerDescription}]");
+                return;
+            }
+
+            string abortReason;
+
+            // Guests never make an authority decision about another peer. If the host
+            // failed to adjudicate the missing stream by the hard deadline, leave the
+            // invalid mesh instead of allowing a split set of survivors.
+            if (!gameManager.IsOnlineHostAuthority())
+            {
+                gameManager.ResetToMainMenuAfterHostDisconnect(
+                    $"Timed out waiting for required startup readiness [{blockerDescription}]");
+                return;
+            }
+
+            if (localRegistrationIncomplete)
+            {
+                abortReason =
+                    "Local online roster player registration did not complete at match start";
+            }
+            else if (localFrame != 0 || syncFrame != 0 || !HasStateForFrame(0))
+            {
+                abortReason =
+                    $"Startup barrier left frame zero before readiness completed [{slotList}]";
+            }
+            else if (anyBlockingPeerResponsive)
+            {
+                abortReason = $"Startup input stream protocol mismatch for [{slotList}]";
+            }
+            else
+            {
+                abortReason = $"One or more peers did not complete match startup [{slotList}]";
+            }
+
+            // Even with roster-wide READY, reliable confirmations can reach survivors
+            // at slightly different times. Never issue a frame-zero PEER_DROP on timeout:
+            // another survivor might already have advanced and would clamp that drop to
+            // a different sync frame. Abort the startup for the whole roster instead.
+            matchManager.SendMatchAbortToAll(abortReason);
+            gameManager.ResetToMainMenuAfterHostDisconnect(abortReason);
+        }
+
         /// <summary>
         /// Determines if the simulation should run this frame based on input availability (for delay-based)
         /// or frame advantage limits (for rollback).
@@ -1368,6 +1641,30 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (GameManager.Instance == null) return false;
 
             int currentFrame = frameOverride ?? localFrame; // Use cached frame number unless the caller is testing the next simulation frame
+
+            // RunOnlineFrame gathers and sends the local startup window before this
+            // method is called, so holding simulation here still lets every peer finish
+            // the handshake. GameManager's unscaled network-health loop also keeps
+            // pumping transport while frame zero is held.
+            if (IsWaitingForDeterministicSceneInputStreams())
+            {
+                if (!deterministicBootstrapHoldLogged)
+                {
+                    deterministicBootstrapHoldLogged = true;
+                    string blockingSlots = string.Join(", ", GetInitialInputStreamBlockingSlots()
+                        .Select(slot => $"P{slot + 1}"));
+                    Debug.Log($"[Rollback] Holding deterministic scene at frame {currentFrame} until every peer confirms complete current-scene input streams. BlockingSlots={blockingSlots}.");
+                }
+
+                return false;
+            }
+
+            if (deterministicBootstrapHoldLogged)
+            {
+                deterministicBootstrapHoldLogged = false;
+                Debug.Log($"[Rollback] Deterministic input-stream bootstrap complete at frame {currentFrame}.");
+            }
+
             int effectiveRemoteFrame = GetEffectiveRemoteFrame(currentFrame);
             bool timeoutGraceActive = UnityEngine.Time.unscaledTime < timeoutGraceUntilRealtime
                 || GameManager.Instance.isTransitioning;
@@ -3062,6 +3359,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
 
             int currentFrame = localFrame;
+            bool isDeterministicMatchScene = IsDeterministicOnlineScene();
             int frameOffset;
             if (SceneManager.GetActiveScene().name != "MainMenu")
             {
@@ -3104,6 +3402,33 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 staleSlotAdvantages.Clear();
             }
             remoteAdvantageFreshSamplesBySlot[slot] = 0;
+
+            if (isDeterministicMatchScene)
+            {
+                // Gameplay and Shop share a frame-zero timeline. Do not rebase this
+                // stream to the receiver's arrival frame, synthesize received history,
+                // or replace the frame-zero scene snapshot. The packet being processed
+                // already contains the sender's immutable opening input window, and
+                // SetRemoteFrame will record its real high-water mark afterward.
+                if (!remoteFrameBySlot.ContainsKey(slot))
+                {
+                    remoteFrameBySlot[slot] = 0;
+                }
+                if (!predictedRemoteFrameBySlot.ContainsKey(slot))
+                {
+                    predictedRemoteFrameBySlot[slot] = 0;
+                }
+
+                Debug.Log($"[Rollback] Remote slot {slot} deterministic input stream active at frame {frame}. FrameOffset=0. Preserved frame-zero rollback baseline (localFrame={currentFrame}, pendingStreams={pendingRemoteInputSlots.Count}).");
+
+                if (pendingRemoteInputSlots.Count == 0)
+                {
+                    pendingRosterFrameOffset = null;
+                    initialRemoteInputStreamWaitStartedRealtime = -1f;
+                }
+                return 0;
+            }
+
             remoteFrameBySlot[slot] = Mathf.Max(currentFrame, remoteFrameBySlot.TryGetValue(slot, out int remote) ? remote : 0);
             predictedRemoteFrameBySlot[slot] = Mathf.Max(currentFrame, predictedRemoteFrameBySlot.TryGetValue(slot, out int predicted) ? predicted : 0);
             remoteFrame = GetEffectiveRemoteFrame(currentFrame);
@@ -3132,6 +3457,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (pendingRemoteInputSlots.Count == 0)
             {
                 pendingRosterFrameOffset = null;
+                initialRemoteInputStreamWaitStartedRealtime = -1f;
             }
             return frameOffset;
         }

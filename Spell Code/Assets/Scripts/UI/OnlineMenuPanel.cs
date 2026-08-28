@@ -88,6 +88,16 @@ public abstract class OnlineMenuPanel : MonoBehaviour
             return;
         }
 
+        // Close any local pause menu before this panel takes over the screen. 
+        // MUST happen before the freezeGameWhileOpen block below, Resume() ends by forcing
+        // Time.timeScale back to 1, which would undo this panel's freeze if it ran after.
+        // Purely local UI, no sim state is touched.
+        Pause openingPause = PauseMenu;
+        if (openingPause != null && openingPause.paused)
+        {
+            openingPause.Resume();
+        }
+
         IsOpen = true;
         OpenPanelCount++;
         panelRoot.SetActive(true);

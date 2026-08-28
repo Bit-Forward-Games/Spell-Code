@@ -148,6 +148,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fac0977aec77ffe4492394014d7109a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SoloManager
+  idleSecondsBeforeVideo: 30
+  attractVideo: {fileID: 0}
+  loopVideo: 1
+  playVideoAudio: 1
+  fadeSeconds: 0.4
+  stickDeadzone: 0.35
 --- !u!4 &445811631
 Transform:
   m_ObjectHideFlags: 0
@@ -442,6 +448,10 @@ PrefabInstance:
     - target: {fileID: 1363725861422972179, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407857980670715718, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      propertyPath: displayName
+      value: Showdown
       objectReference: {fileID: 0}
     - target: {fileID: 1543310459374702453, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

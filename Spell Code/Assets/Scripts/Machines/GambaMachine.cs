@@ -646,12 +646,12 @@ public class GambaMachine : MonoBehaviour
                         break;
                     //Dark Web
                     case 5:
-                        if (SteamAchievements.IsUnlocked("ACH_SpartanBeam")) { SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta"); }
-                        if (SteamAchievements.IsUnlocked("ACH_TouchOfMidas")) { SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas"); }
-                        if (SteamAchievements.IsUnlocked("ACH_ChainsOfThanatos")) { SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos"); }
-                        if (SteamAchievements.IsUnlocked("ACH_DemonTrigger")) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
-                        if (SteamAchievements.IsUnlocked("ACH_TheJokah")) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
-                        if (SteamAchievements.IsUnlocked("ACH_WolfOfWallstreet")) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellSpartanBeam)) { SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTouchOfMidas)) { SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellChainsOfThanatos)) { SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTheJokah)) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellWolfOfWallstreet)) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
+                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellDemonTrigger)) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
 
                         // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
                         // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
@@ -856,6 +856,43 @@ public class GambaMachine : MonoBehaviour
             // rerollable starter. Keeping the machine at its cap also mirrors the offline rule.
             activatedCount = maxShopRolls;
             SpawnChaosFloppysOnline(ownerPID, GetChaosFloppyLocation(ownerPID), isRollback);
+            return;
+        }
+
+        if (gameManager.gamemode == GameManager.Gamemode.Fighter)
+        {
+            // Showdown offers two whole characters per roll instead of one starter spell.
+            // No RNG is consumed (the character ids come straight off
+            // startingSpellPos, which is serialized), so this is rollback-safe.
+            // activatedCount is deliberately left alone here, unlike Chaos: Showdown lets the player
+            // keep rerolling characters until they actually pick one, and SimulateOnline caps the
+            // machine at that point via the ownerFinishedLobbySelection branch.
+            if (ownerPID == 1)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[0], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[2], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 2)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[3], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[5], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 3)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[8], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[6], startingSpellPos + 1, playVfx, logChoice);
+            }
+            if (ownerPID == 4)
+            {
+                SpawnCharacterDisk(ownerPID, diskLocations[9], startingSpellPos, playVfx, logChoice);
+                SpawnCharacterDisk(ownerPID, diskLocations[11], startingSpellPos + 1, playVfx, logChoice);
+            }
+
+            startingSpellPos += 2;
+            if (startingSpellPos > 7)
+            {
+                startingSpellPos = 0;
+            }
             return;
         }
 
@@ -1070,7 +1107,7 @@ public class GambaMachine : MonoBehaviour
             return false;
         }
 
-        Brand primaryBrand = spellData.brands != null
+        Brand primaryBrand = spellData.brands != null && spellData.brands.Length > 0
             ? spellData.brands[0]
             : Brand.None;
 

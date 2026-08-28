@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -133,10 +133,17 @@ public class HitboxManager : MonoBehaviour
                             if (CheckCollision(hitbox, projectile.position, hurtbox, defendingPlayer.position,
                                 projectile.facingRight, defendingPlayer.facingRight))
                             {
-                                if(defendingPlayer.hitboxData != null && 
-                                    defendingPlayer.hitboxData.parentProjectile.owner != hitbox.parentProjectile.owner)
+                                // parentProjectile is legitimately null on some hits, and a retired
+                                // pool slot can leave it null too
+                                // Both sides need guarding: an NRE here is INSIDE the sim, so the resim
+                                // never confirms the frame and the match hard-freezes rather than just
+                                // dropping a combo flag.
+                                if (defendingPlayer.hitboxData != null
+                                    && defendingPlayer.hitboxData.parentProjectile != null
+                                    && hitbox.parentProjectile != null
+                                    && defendingPlayer.hitboxData.parentProjectile.owner != hitbox.parentProjectile.owner)
                                 {
-                                    defendingPlayer.isHitByNewPlayer = true;                                    
+                                    defendingPlayer.isHitByNewPlayer = true;
                                 }
                                 defendingPlayer.hitboxData = hitbox;
                                 

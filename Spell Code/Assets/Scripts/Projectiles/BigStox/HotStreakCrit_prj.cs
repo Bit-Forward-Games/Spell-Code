@@ -62,9 +62,18 @@ public class HotStreakCrit_prj : BaseProjectile
     public override void ProjectileUpdate()
     {
         base.ProjectileUpdate();
-        if (targetPID >= 0)
+
+        // A homing target can stop resolving mid-flight. GetPlayerByPID returns null for a slot that
+        // is no longer connected, for pID 0 it looks in playerNPCs, which is empty in an online match. targetPID >= 0
+        // includes 0, so both cases reached the deref below and threw INSIDE UpdateProjectiles, so
+        // the online frame never completed, the resim could never confirm it, and the match froze.
+        // Losing the target means the same thing as never having one, so take the delete path.
+        PlayerController cachedTargetPlayer = targetPID >= 0
+            ? GameManager.Instance.GetPlayerByPID(targetPID)
+            : null;
+
+        if (cachedTargetPlayer != null)
         {
-            PlayerController cachedTargetPlayer = GameManager.Instance.GetPlayerByPID(targetPID);
             FixedVec2 directionVector = GetDirectionTo(cachedTargetPlayer.position);
             hSpeed = directionVector.X * Fixed.FromInt(speed);
             vSpeed = directionVector.Y * Fixed.FromInt(speed);

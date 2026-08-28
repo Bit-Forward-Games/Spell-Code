@@ -337,19 +337,6 @@ public class FloppyPickup_Character : MonoBehaviour
         selectHoldCounter = value;
     }
 
-    //public bool IsDescriptionVisible()
-    //{
-    //    return diskDisplay != null && diskDisplay.showDesc;
-    //}
-
-    //public void SetDescriptionVisible(bool visible, bool animate)
-    //{
-    //    if (diskDisplay != null)
-    //    {
-    //        diskDisplay.SetDescriptionVisible(visible, animate);
-    //    }
-    //}
-
     private float GetFillPercent()
     {
         float percent = selectHoldCounter / (float)timeToFill;

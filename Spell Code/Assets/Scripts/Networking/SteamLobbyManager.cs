@@ -61,8 +61,7 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-56"; // scz-56: projectile-pool rebuilds now restore The Jokah's generated projectiles in stable player/list order,
-                                                    // which changes deterministic prefabIndex topology. Includes scz-55's spell-pool and online input-gating fixes.
+    private const string NetcodeVersion = "scz-57"; // scz-57: combo proration damage is computed with integer fixed-point instead of going through ToFloat().
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

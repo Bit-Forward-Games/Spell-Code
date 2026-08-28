@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-59"; // scz-59: gamba machines now trigger on ANY of the owner's basicAttackHitbox-flagged projectiles, not just basicProjectileInstance.
-                                                    // CheckOnlineHitboxCollision routes through the same check, so this changes the online lobby/shop sim rule 
+    private const string NetcodeVersion = "scz-60"; // scz-60: Hot Streak (both variants) and Jigoku Flash Step no longer NRE when their homing/marked target stops resolving (disconnected slot, or pID 0 online).
+                                                    // They now delete the projectile / use the defender directly instead of throwing inside UpdateProjectiles, so a build with this fix advances state where the old one froze
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-61"; // scz-61: Showdown movesets changed (different spells per character) AND the floppy savestate gained a trailing characterId byte per disk,
-                                                    // because setList[0] became a display name and could no longer be parsed back to the Moveset enum on restore. Wire format + sim rule change
+    private const string NetcodeVersion = "scz-62"; // scz-62: winCon is now derived from the gamemode in one shared resolver used by BOTH the offline chooser and the online mode resolution.
+                                                    // Showdown runs Elimination online (it previously only did offline), and winCon no longer leaks between matches.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

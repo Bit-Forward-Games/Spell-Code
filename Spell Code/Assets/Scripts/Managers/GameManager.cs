@@ -631,11 +631,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// The win condition implied by a gamemode. Single source of truth, because winCon is part of
+    /// the shared gameplay hash and BOTH the offline chooser (SetGamemode, wired to an OnClick) and
+    /// the online mode resolution (ApplyOnlineGameMode) have to arrive at the same answer. gamemode
+    /// itself is already hashed and agreed between peers, so deriving winCon from it is deterministic.
+    /// </summary>
+    private static WinCon ResolveWinConForGamemode(Gamemode mode)
+    {
+        return mode == Gamemode.Fighter ? WinCon.Elimination : WinCon.RAMRush;
+    }
+
     //int because OnClick() doesn't accept enums as parameters
     public void SetGamemode(int mode)
     {
         gamemode = (Gamemode)mode;
-        //winCon = gamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        // Assigned for EVERY mode, not just the one that needs Elimination. winCon is [NonSerialized]
+        // and GameManager survives scene changes, so setting it only in the Fighter case left it
+        // stuck on Elimination for every later Normal/Turbo/Chaos match until the game restarted.
+        winCon = ResolveWinConForGamemode(gamemode);
         Debug.Log("Gamemode set to: " + gamemode);
 
         switch (gamemode)
@@ -653,7 +667,6 @@ public class GameManager : MonoBehaviour
             //     break;
 
             case Gamemode.Fighter: //2
-                winCon = WinCon.Elimination;
                 loadMainMenu();
                 break;
 
@@ -1174,18 +1187,23 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
-        //WinCon resolvedWinCon = resolvedGamemode == Gamemode.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode);
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
-            || gamemode != resolvedGamemode;
-            //|| winCon != resolvedWinCon;
+            || gamemode != resolvedGamemode
+            || winCon != resolvedWinCon;
 
         // Always reassert both values. GameManager survives scene changes and the offline chooser can
         // change gamemode independently, so returning early for repeated lobby metadata could leave
         // this peer running stale local rules.
         ActiveOnlineGameMode = mode;
         gamemode = resolvedGamemode;
-        //winCon = resolvedWinCon;
+        // winCon is [NonSerialized] and survives scene changes,
+        // so a peer that picked Showdown in the OFFLINE chooser earlier in the session
+        // would otherwise carry Elimination into an online Normal match and winCon is hashed, so
+        // the two peers would disagree on frame one. This is also what makes Showdown actually run
+        // Elimination online rather than only offline.
+        winCon = resolvedWinCon;
 
         if (modeChanged)
         {

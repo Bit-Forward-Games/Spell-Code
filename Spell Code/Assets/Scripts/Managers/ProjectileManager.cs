@@ -81,8 +81,14 @@ public class ProjectileManager : MonoBehaviour
         {
             if(projectilePrefabs[i] == null)
             {
-                projectilePrefabs.RemoveAt(i);
-                i--;
+                // Leave the hole. A projectile's INDEX in this list (prefabIndex) is what both the
+                // rollback savestate and the projectile hash key off, and DeserializeActiveProjectileStates
+                // restores state via masterList[prefabIndex]. Compacting with RemoveAt renumbers every
+                // projectile after this one, and the destroy that nulls a slot happens on Unity's
+                // end-of-frame schedule rather than the sim's - so one machine renumbers a frame before
+                // the other, their projectile hashes diverge, and saved state gets restored into the
+                // WRONG projectile. Every consumer already skips nulls; the list is rebuilt wholesale
+                // by InitializeAllProjectiles, so holes don't accumulate across matches.
                 continue;
             }
             if (projectilePrefabs[i].gameObject.activeSelf)
@@ -175,7 +181,7 @@ public class ProjectileManager : MonoBehaviour
 
     }
 
-    public void InitializeAllProjectiles()
+    public void InitializeAllProjectiles(bool rebuildExtraSpells = true)
     {
         var __hitchSw = (GameManager.Instance != null && GameManager.Instance.logSnapshotHitchTiming)
             ? System.Diagnostics.Stopwatch.StartNew() : null;
@@ -273,10 +279,107 @@ public class ProjectileManager : MonoBehaviour
             }
         }
 
+        if (rebuildExtraSpells)
+        {
+            // Jokah copies are appended only after every ordinary human/NPC pool. prefabIndex is
+            // serialized rollback state, so interleaving extras per player would give the same
+            // projectile a different index than the initial OnStart construction order.
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                PlayerController player = GameManager.Instance.players[i];
+                if (player == null || !GameManager.Instance.IsPlayerSlotConnected(i))
+                {
+                    continue;
+                }
+
+                RebuildExtraSpellProjectiles(player);
+            }
+
+            // NPCs currently skip Jokah's OnStart construction, but rebuilding any existing extras
+            // here prevents the same destroyed-reference failure if AI loadouts gain Jokah support.
+            for (int i = 0; i < GameManager.Instance.playerNPCs.Count; i++)
+            {
+                PlayerController npc = GameManager.Instance.playerNPCs[i];
+                if (npc != null)
+                {
+                    RebuildExtraSpellProjectiles(npc);
+                }
+            }
+        }
+
         SynchronizeActiveProjectiles();
         if (__hitchSw != null && GameManager.Instance != null)
         {
             GameManager.Instance.LogHitchTiming("InitializeAllProjectiles", __hitchSw, projectilePrefabs.Count);
+        }
+    }
+
+    private void RebuildExtraSpellProjectiles(PlayerController owner)
+    {
+        if (owner == null || owner.extraSpells == null)
+        {
+            return;
+        }
+
+        for (int spellIndex = 0; spellIndex < owner.extraSpells.Count; spellIndex++)
+        {
+            SpellData extraSpell = owner.extraSpells[spellIndex];
+            if (extraSpell == null)
+            {
+                continue;
+            }
+
+            extraSpell.owner = owner;
+            if (extraSpell.projectileInstances == null)
+            {
+                extraSpell.projectileInstances = new List<GameObject>();
+            }
+            else
+            {
+                extraSpell.projectileInstances.Clear();
+            }
+            GameObject[] sourceProjectilePrefabs = extraSpell.projectilePrefabs;
+            if (sourceProjectilePrefabs == null)
+            {
+                Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' has no projectile prefab array.");
+                continue;
+            }
+
+            bool hasValidProjectileTemplates = true;
+            for (int projectileIndex = 0; projectileIndex < sourceProjectilePrefabs.Length; projectileIndex++)
+            {
+                GameObject projectileTemplate = sourceProjectilePrefabs[projectileIndex];
+                if (projectileTemplate == null)
+                {
+                    Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' has a missing projectile prefab at index {projectileIndex}.");
+                    hasValidProjectileTemplates = false;
+                }
+                else if (projectileTemplate.GetComponent<BaseProjectile>() == null)
+                {
+                    Debug.LogError($"ProjectileManager.InitializeAllProjectiles: Extra spell '{extraSpell.spellName}' projectile prefab at index {projectileIndex} has no BaseProjectile.");
+                    hasValidProjectileTemplates = false;
+                }
+            }
+
+            // Keep projectileInstances empty when any required indexed template is malformed. A
+            // partially compacted list could turn a spell's projectile 1 into index 0.
+            if (!hasValidProjectileTemplates)
+            {
+                continue;
+            }
+
+            for (int projectileIndex = 0; projectileIndex < sourceProjectilePrefabs.Length; projectileIndex++)
+            {
+                GameObject spawnedProjectile = Instantiate(sourceProjectilePrefabs[projectileIndex]);
+                BaseProjectile baseProjectile = spawnedProjectile.GetComponent<BaseProjectile>();
+                baseProjectile.LoadProjectile();
+                projectilePrefabs.Add(baseProjectile);
+                baseProjectile.owner = owner;
+                baseProjectile.ownerSpell = extraSpell;
+                extraSpell.projectileInstances.Add(spawnedProjectile);
+                TheJokah.ApplyCopiedProjectilePresentation(extraSpell, spawnedProjectile);
+                spawnedProjectile.SetActive(false);
+            }
         }
     }
 
@@ -356,11 +459,41 @@ public class ProjectileManager : MonoBehaviour
         SFX_Manager.Instance.PlaySpellcodeSound(targetProjectile.projName + " End", 1.0f, 1.0f);
     }
 
+    /// <summary>
+    /// Retires a projectile from the pool WITHOUT shifting the indices of the ones after it.
+    /// Callers that own dynamically-created projectiles (The Jokah's spell copies) must use this
+    /// instead of projectilePrefabs.Remove: prefabIndex is the savestate/hash key, so a List.Remove
+    /// renumbers every later projectile and desyncs the two machines against each other.
+    /// </summary>
+    public void UnregisterProjectilePrefab(BaseProjectile projectile)
+    {
+        if (projectile == null)
+        {
+            return;
+        }
+
+        int prefabIndex = projectilePrefabs.IndexOf(projectile);
+        if (prefabIndex >= 0)
+        {
+            projectilePrefabs[prefabIndex] = null;
+        }
+
+        // activeProjectiles is rebuilt from projectilePrefabs each frame and is not index-keyed, so
+        // removing outright is correct here.
+        activeProjectiles.Remove(projectile);
+    }
+
     public List<BaseProjectile> GetMatchingProjectiles(string projectileName, PlayerController owner)
     {
         List<BaseProjectile> matchingProjectiles = new List<BaseProjectile>();
         for (int i = 0; i < projectilePrefabs.Count; i++)
         {
+            // Null-guarded because retired slots are now left in place to keep prefabIndex stable.
+            if (projectilePrefabs[i] == null)
+            {
+                continue;
+            }
+
             if (projectilePrefabs[i].projName == projectileName && projectilePrefabs[i].owner == owner)
             {
                 matchingProjectiles.Add(projectilePrefabs[i]);

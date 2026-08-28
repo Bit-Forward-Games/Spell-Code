@@ -2478,7 +2478,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             if (p == null) continue;
             diag += $"\n P{i}: pos=({p.position.X.RawValue},{p.position.Y.RawValue}) hp={p.currentPlayerHealth} " +
                     $"state={p.state} hSpd={p.hSpd.RawValue} vSpd={p.vSpd.RawValue} logicFrame={p.logicFrame} " +
-                    $"flow={p.flowState} demon={p.demonAura} isHit={p.isHit} isAlive={p.isAlive} facingRight={p.facingRight} " +
+                    $"flow={p.flowState} demon={p.demonAura} isHit={p.isHitByNewPlayer} isAlive={p.isAlive} facingRight={p.facingRight} " +
                     $"winConPoints={p.winConPoints} storedRam={p.storedKillBonus} hash={ComputePlayerHash(p)}";
             diag += $"\n     {p.GetDesyncDiagString()}";
 

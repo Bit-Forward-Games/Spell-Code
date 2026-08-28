@@ -38,7 +38,18 @@ public static class SteamAchievements
     // Global Slinger. The same, for a match formed through Quick Match.
     public const string FirstMatchmakingMatch = "ACH_First_Matchmaking";
 
-    // One per unlockable spell, add as the spells land:
+    // The Dark Web spells, awarded the first time the player picks one up. The class each one
+    // maps to lives in PlayerController.GetSpellDiscoveryAchievement.
+    public const string SpellSpartanBeam = "ACH_SpartanBeam";              // Overkill Protocol
+    public const string SpellTouchOfMidas = "ACH_TouchOfMidas";            // Gold Standard
+    public const string SpellChainsOfThanatos = "ACH_ChainsOfThanatos";    // Access Denied
+    public const string SpellDemonTrigger = "ACH_DemonTrigger";            // Daemon Thread
+    public const string SpellTheJokah = "ACH_TheJokah";                    // Random Access
+    public const string SpellWolfOfWallstreet = "ACH_WolfOfWallstreet";    // Margin Call
+
+    // The Dark Side. Any Brand.DarkWeb spell, so it lands alongside whichever of the six the
+    // player finds first.
+    public const string FirstDarkWebSpell = "ACH_DarkWeb";
 
 
     // Retry policy
@@ -107,6 +118,24 @@ public static class SteamAchievements
         }
 
         Unlock(apiName);
+    }
+
+    public static bool IsUnlocked(string apiName)
+    {
+        if (string.IsNullOrEmpty(apiName) || !SteamClient.IsValid)
+        {
+            return false;
+        }
+
+        try
+        {
+            return new Achievement(apiName).State;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Achievements] Could not read '{apiName}': {e.Message}");
+            return false;
+        }
     }
 
     /// <summary>

@@ -1109,7 +1109,7 @@ public class GambaMachine : MonoBehaviour
             return false;
         }
 
-        Brand primaryBrand = spellData.brands != null && spellData.brands.Length > 0
+        Brand primaryBrand = spellData.brands != null
             ? spellData.brands[0]
             : Brand.None;
 

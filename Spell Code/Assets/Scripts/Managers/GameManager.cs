@@ -4588,7 +4588,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"-----------------Updating Bounties------------------");
+        
         ushort averageRoundRam = 0;
         int averageRoundWins = 0;
         int activePlayerCount = 0;
@@ -8395,7 +8395,7 @@ public class GameManager : MonoBehaviour
         //Debug.Log("Before culling: gameStages.Count = " + gameStages.Count);
 
         //delete random stages from gameStages until gameStages.Length equals 9
-        while (gameStages.Count > 9)
+        while (gameStages.Count > 3)
         {
             gameStages.RemoveAt(GetNextStageRandom(0, gameStages.Count));
         }

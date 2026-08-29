@@ -576,7 +576,7 @@ public class GambaMachine : MonoBehaviour
 
                 //1 = DemonX, 2 = BigStox, 3 = Killeez, 4 = VWave, 5 = Dark Web
                 counter++;
-                if (counter > 5) { counter = 1; }
+                if (counter > 4) { counter = 1; }
 
                 switch (counter)
                 {
@@ -589,12 +589,12 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Hell-Chain Sweep");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demonic Descent");
 
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Rip And Tear");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Brimstone Cyclone Kick");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Combo Demon");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Rip And Tear");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Jigoku Flash Step");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Hell Wave Fist");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Brimstone Cyclone Kick");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Hellish Riposte");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Combo Demon");
                         break;
                     //BigStox
                     case 2:
@@ -605,12 +605,12 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Blue Chip Trader");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Let It Ride");
 
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Loaded Dice");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Trap Card Trick");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Hot Streak");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Cash Out");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Bailout");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Loaded Dice");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Trap Card Trick");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Lucky Break");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Hot Streak");
                         break;
                     //Killeez
                     case 3:
@@ -621,12 +621,12 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Boots Of Hermes");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "Rod Of Asclepius");
 
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Armory Of Hephaestus");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Quiver Of Artemis");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Gift Of Prometheus");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Hourglass Of Chronos");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Helm Of Hades");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Armory Of Hephaestus");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Aegis Of Athena");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Quiver Of Artemis");
                         break;
                     //VWave
                     case 4:
@@ -637,30 +637,30 @@ public class GambaMachine : MonoBehaviour
                         SpawnFloppyDisk(ownerPID, trainingLocs[4], "Mine Crafter");
                         SpawnFloppyDisk(ownerPID, trainingLocs[5], "No-Scope Shot");
 
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
+                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
                         break;
                     //Dark Web
                     case 5:
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellSpartanBeam)) { SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta"); }
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTouchOfMidas)) { SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas"); }
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellChainsOfThanatos)) { SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos"); }
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTheJokah)) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellWolfOfWallstreet)) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
-                        if (SteamAchievements.IsUnlocked(SteamAchievements.SpellDemonTrigger)) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellSpartanBeam)) { SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTouchOfMidas)) { SpawnFloppyDisk(ownerPID, trainingLocs[1], "Touch Of Midas"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellChainsOfThanatos)) { SpawnFloppyDisk(ownerPID, trainingLocs[2], "Chains Of Thanatos"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTheJokah)) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellWolfOfWallstreet)) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
+//                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellDemonTrigger)) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
 
-#if UNITY_EDITOR
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Beam Of Sparta");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Chains Of Thanatos");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Demon Trigger");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "The Jokah");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Touch Of Midas");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Wolf Of Wallstreet");
-#endif
+// #if UNITY_EDITOR
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[6], "Beam Of Sparta");
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[7], "Chains Of Thanatos");
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[8], "Demon Trigger");
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[9], "The Jokah");
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[10], "Touch Of Midas");
+//                         SpawnFloppyDisk(ownerPID, trainingLocs[11], "Wolf Of Wallstreet");
+// #endif
                         break;
                 }
 
@@ -1177,147 +1177,147 @@ public class GambaMachine : MonoBehaviour
         }
 
         //all darkweb Spellcodes @patrick
-        if (primaryBrand == Brand.DarkWeb)
-        {
-            //Collabs
-            if (spellData.spellName == "Beam Of Sparta" && (player.killeez && player.vWave))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        // if (primaryBrand == Brand.DarkWeb)
+        // {
+        //     //Collabs
+        //     if (spellData.spellName == "Beam Of Sparta" && (player.killeez && player.vWave))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
             
-            if (spellData.spellName == "Touch Of Midas" && (player.killeez && player.bigStox))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     if (spellData.spellName == "Touch Of Midas" && (player.killeez && player.bigStox))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            if (spellData.spellName == "Chains Of Thanatos" && (player.killeez && player.demonX))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     if (spellData.spellName == "Chains Of Thanatos" && (player.killeez && player.demonX))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            if (spellData.spellName == "Wolf Of Wallstreet" && (player.demonX && player.bigStox))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     if (spellData.spellName == "Wolf Of Wallstreet" && (player.demonX && player.bigStox))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            if (spellData.spellName == "Demon Trigger" && (player.demonX && player.vWave))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     if (spellData.spellName == "Demon Trigger" && (player.demonX && player.vWave))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            if (spellData.spellName == "The Jokah" && (player.bigStox && player.vWave))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     if (spellData.spellName == "The Jokah" && (player.bigStox && player.vWave))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            //Combos
-            if (spellData.spellName == "")
-            {
-                bool AU = false;
-                bool HWF = false;
-                bool BCK = false;
-                for (int i = 0; i < player.spellList.Count; i++)
-                {
-                    if (player.spellList[i].spellName == "Abaddon Uppercut") { AU = true; }
-                    if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
-                    if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
-                }
+        //     //Combos
+        //     if (spellData.spellName == "")
+        //     {
+        //         bool AU = false;
+        //         bool HWF = false;
+        //         bool BCK = false;
+        //         for (int i = 0; i < player.spellList.Count; i++)
+        //         {
+        //             if (player.spellList[i].spellName == "Abaddon Uppercut") { AU = true; }
+        //             if (player.spellList[i].spellName == "Hell Wave Fist") { HWF = true; }
+        //             if (player.spellList[i].spellName == "Brimstone Cyclone Kick") { BCK = true; }
+        //         }
 
-                if (AU && HWF && BCK)
-                {
-                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                    return false;
-                }
-            }
+        //         if (AU && HWF && BCK)
+        //         {
+        //             Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //             return false;
+        //         }
+        //     }
 
-            if (spellData.spellName == "")
-            {
-                bool BO = false;
-                bool CO = false;
-                bool CT = false;
-                for (int i = 0; i < player.spellList.Count; i++)
-                {
-                    if (player.spellList[i].spellName == "Bailout") { BO = true; }
-                    if (player.spellList[i].spellName == "Cash Out") { CO = true; }
-                    if (player.spellList[i].spellName == "Coin Toss") { CT = true; }
-                }
+        //     if (spellData.spellName == "")
+        //     {
+        //         bool BO = false;
+        //         bool CO = false;
+        //         bool CT = false;
+        //         for (int i = 0; i < player.spellList.Count; i++)
+        //         {
+        //             if (player.spellList[i].spellName == "Bailout") { BO = true; }
+        //             if (player.spellList[i].spellName == "Cash Out") { CO = true; }
+        //             if (player.spellList[i].spellName == "Coin Toss") { CT = true; }
+        //         }
 
-                if (BO && CO && CT)
-                {
-                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                    return false;
-                }
-            }
+        //         if (BO && CO && CT)
+        //         {
+        //             Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //             return false;
+        //         }
+        //     }
 
-            if (spellData.spellName == "")
-            {
-                bool MoZ = false;
-                bool ToP = false;
-                bool HoH = false;
-                for (int i = 0; i < player.spellList.Count; i++)
-                {
-                    if (player.spellList[i].spellName == "Might Of Zeus") { MoZ = true; }
-                    if (player.spellList[i].spellName == "Trident Of Poseidon") { ToP = true; }
-                    if (player.spellList[i].spellName == "Helm Of Hades") { HoH = true; }
-                }
+        //     if (spellData.spellName == "")
+        //     {
+        //         bool MoZ = false;
+        //         bool ToP = false;
+        //         bool HoH = false;
+        //         for (int i = 0; i < player.spellList.Count; i++)
+        //         {
+        //             if (player.spellList[i].spellName == "Might Of Zeus") { MoZ = true; }
+        //             if (player.spellList[i].spellName == "Trident Of Poseidon") { ToP = true; }
+        //             if (player.spellList[i].spellName == "Helm Of Hades") { HoH = true; }
+        //         }
 
-                if (MoZ && ToP && HoH)
-                {
-                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                    return false;
-                }
-            }
+        //         if (MoZ && ToP && HoH)
+        //         {
+        //             Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //             return false;
+        //         }
+        //     }
 
-            if (spellData.spellName == "")
-            {
-                bool TSA = false;
-                bool PS = false;
-                bool SOTN = false;
-                for (int i = 0; i < player.spellList.Count; i++)
-                {
-                    if (player.spellList[i].spellName == "Trickshot Alley") { TSA = true; }
-                    if (player.spellList[i].spellName == "Pong Shot") { PS = true; }
-                    if (player.spellList[i].spellName == "Sickle Of The Night") { SOTN = true; }
-                }
+        //     if (spellData.spellName == "")
+        //     {
+        //         bool TSA = false;
+        //         bool PS = false;
+        //         bool SOTN = false;
+        //         for (int i = 0; i < player.spellList.Count; i++)
+        //         {
+        //             if (player.spellList[i].spellName == "Trickshot Alley") { TSA = true; }
+        //             if (player.spellList[i].spellName == "Pong Shot") { PS = true; }
+        //             if (player.spellList[i].spellName == "Sickle Of The Night") { SOTN = true; }
+        //         }
 
-                if (TSA && PS && SOTN)
-                {
-                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                    return false;
-                }
-            }
+        //         if (TSA && PS && SOTN)
+        //         {
+        //             Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //             return false;
+        //         }
+        //     }
 
-            //Uniques
-            if (spellData.spellName == "" && (player.demonX && player.bigStox && player.killeez && player.vWave))
-            {
-                Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                return false;
-            }
+        //     //Uniques
+        //     if (spellData.spellName == "" && (player.demonX && player.bigStox && player.killeez && player.vWave))
+        //     {
+        //         Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //         return false;
+        //     }
 
-            if (spellData.spellName == "" && player.spellList.Count == 1)
-            {
-                // Read through the accessor, not the cached field. GambaMachine only refreshes
-                // dataManager inside FixedUpdate, which early-returns during an online match so a
-                // machine whose Start ran while DataManager was absent (ExecuteOrder66 destroys it)
-                // keeps a null here forever and NREs inside the online sim, which wedges the match
-                // rather than desyncing it. CurrentTotalRoundsPlayed re-resolves and falls back to 0,
-                // and the count itself is host-synced through ApplyOnlineTotalRoundsPlayed.
-                if (gameManager.CurrentTotalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
-                {
-                    Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
-                    return false;
-                }
-            }
+        //     if (spellData.spellName == "" && player.spellList.Count == 1)
+        //     {
+        //         // Read through the accessor, not the cached field. GambaMachine only refreshes
+        //         // dataManager inside FixedUpdate, which early-returns during an online match so a
+        //         // machine whose Start ran while DataManager was absent (ExecuteOrder66 destroys it)
+        //         // keeps a null here forever and NREs inside the online sim, which wedges the match
+        //         // rather than desyncing it. CurrentTotalRoundsPlayed re-resolves and falls back to 0,
+        //         // and the count itself is host-synced through ApplyOnlineTotalRoundsPlayed.
+        //         if (gameManager.CurrentTotalRoundsPlayed >= gameManager.playerCount && player.roundsWon > 1)
+        //         {
+        //             Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
+        //             return false;
+        //         }
+        //     }
 
-            Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
-            return true;
-        }
+        //     Debug.Log("DarKWeb Spellcode: " + spellName + " has been removed");
+        //     return true;
+        // }
 
         if (player.HasReachedSpellCopyLimit(spellName))
         {

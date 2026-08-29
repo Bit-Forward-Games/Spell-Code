@@ -8,7 +8,7 @@ using UnityEngine.UI;
 ///
 /// Wiring per mode button:
 ///   1. Add this component.
-///   2. Set Mode Id to something short and permanent ("normal", "stock", "timed"). This string is
+///   2. Set Mode Id to something short and permanent ("classic", "stock", "timed"). This string is
 ///      what travels between machines -- renaming it later breaks compatibility with older builds,
 ///      so treat it like a save key, not a label.
 ///   3. Set Display Name to what should appear in the Friends Lobby's "Selected GameMode" field.

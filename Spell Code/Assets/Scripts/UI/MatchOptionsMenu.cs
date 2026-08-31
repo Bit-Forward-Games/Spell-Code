@@ -387,6 +387,8 @@ public class MatchOptionsMenu : MonoBehaviour
     /// </summary>
     public void ApplyToGameManager()
     {
+        // A match already in progress has its rules baked into the start token; changing them now
+        // would put this peer on different numbers to everyone else.
         if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
         {
             return;
@@ -408,6 +410,26 @@ public class MatchOptionsMenu : MonoBehaviour
         // count it would clamp the player's own setting away, so raise it to at least that. If you
         // want the cap itself to be tunable it wants its own row rather than this inference.
         GameManager.maxEliminationLives = (ushort)Mathf.Max(3, startingLives);
+
+        PublishRulesIfPartyHost();
+    }
+
+    /// <summary>
+    /// Publishes the rules to the party lobby so every peer runs the host's numbers. The host applies
+    /// them locally above AND publishes here; guests never push their own -- SetPartyMatchRules is
+    /// host-only, and the receiving side (ApplyOnlineMatchRules) overwrites whatever a guest had set
+    /// locally. That one-way flow is what keeps winCon / ramNeededToWinRound / roundLives -- all
+    /// hashed -- identical on every machine.
+    /// </summary>
+    private static void PublishRulesIfPartyHost()
+    {
+        SteamLobbyManager lobby = SteamLobbyManager.Instance;
+        if (lobby == null || !lobby.IsPartyHost)
+        {
+            return;
+        }
+
+        lobby.SetPartyMatchRules(GameManager.EncodeMatchRules());
     }
 
     /// <summary>
@@ -417,12 +439,8 @@ public class MatchOptionsMenu : MonoBehaviour
     /// </summary>
     public static void ResetGameManagerRulesToDefaults()
     {
-        GameManager.useCustomWinCon = false;
-        GameManager.customWinCon = GameManager.WinCon.RAMRush;
-        GameManager.baseRamNeeddedtowin = DefaultRamToWin;
-        GameManager.ramIncreasePerRound = DefaultRamPerRound;
-        GameManager.baseEliminationLives = DefaultStartingLives;
-        GameManager.livesIncreasePerRound = DefaultLivesPerRound;
-        GameManager.maxEliminationLives = 3;
+        // The values live on GameManager, so it owns the defaults -- ApplyOnlineMatchRules needs the
+        // same reset when a host publishes no custom rules, and two copies would drift.
+        GameManager.ResetMatchRulesToDefaults();
     }
 }

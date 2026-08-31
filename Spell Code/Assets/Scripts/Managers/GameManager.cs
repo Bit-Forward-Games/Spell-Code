@@ -80,6 +80,111 @@ public class GameManager : MonoBehaviour
     public static bool useCustomWinCon = false;
     public static WinCon customWinCon = WinCon.RAMRush;
 
+    private const ushort DefaultRamToWin = 400;
+    private const ushort DefaultRamPerRound = 100;
+    private const ushort DefaultStartingLives = 1;
+    private const ushort DefaultLivesPerRound = 1;
+    private const ushort DefaultMaxLives = 3;
+
+    /// <summary>Stock rules. These statics survive scene loads, so anything starting a match that
+    /// should not inherit a previous custom rule set has to call this.</summary>
+    public static void ResetMatchRulesToDefaults()
+    {
+        useCustomWinCon = false;
+        customWinCon = WinCon.RAMRush;
+        baseRamNeeddedtowin = DefaultRamToWin;
+        ramIncreasePerRound = DefaultRamPerRound;
+        baseEliminationLives = DefaultStartingLives;
+        livesIncreasePerRound = DefaultLivesPerRound;
+        maxEliminationLives = DefaultMaxLives;
+    }
+
+    /// <summary>
+    /// Compact wire form of the custom rules, published in lobby metadata AND embedded in the match
+    /// start token. Empty string means "no custom rules", which every peer reads as stock values.
+    ///
+    /// Versioned: every field here feeds ramNeededToWinRound / roundLives / winCon, all of which are
+    /// in SerializeSharedGameplayHashState. A peer that misreads the string would desync on frame
+    /// one, so an unrecognised version falls back to stock rather than guessing at the layout.
+    /// </summary>
+    public static string EncodeMatchRules()
+    {
+        if (!useCustomWinCon)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(",",
+            "1",
+            ((int)customWinCon).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            baseRamNeeddedtowin.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ramIncreasePerRound.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            baseEliminationLives.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            livesIncreasePerRound.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            maxEliminationLives.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// Applies rules received from the host. EVERY peer (the host included) goes through here rather
+    /// than through its own panel, so the lobby metadata is the single authority and two peers can
+    /// never be running different numbers.
+    /// </summary>
+    public void ApplyOnlineMatchRules(string encoded)
+    {
+        if (string.IsNullOrEmpty(encoded))
+        {
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        string[] parts = encoded.Split(',');
+        if (parts.Length != 7 || parts[0] != "1")
+        {
+            Debug.LogWarning($"[GameManager] Unrecognised match rules '{encoded}'. Falling back to stock rules.");
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        if (!TryParseRuleField(parts[1], out int winConValue)
+            || !TryParseRuleField(parts[2], out int ram)
+            || !TryParseRuleField(parts[3], out int ramPerRound)
+            || !TryParseRuleField(parts[4], out int lives)
+            || !TryParseRuleField(parts[5], out int livesPerRound)
+            || !TryParseRuleField(parts[6], out int maxLives))
+        {
+            Debug.LogWarning($"[GameManager] Malformed match rules '{encoded}'. Falling back to stock rules.");
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        useCustomWinCon = true;
+        customWinCon = winConValue == (int)WinCon.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        baseRamNeeddedtowin = (ushort)Mathf.Clamp(ram, 0, ushort.MaxValue);
+        ramIncreasePerRound = (ushort)Mathf.Clamp(ramPerRound, 0, ushort.MaxValue);
+        baseEliminationLives = (ushort)Mathf.Clamp(lives, 0, ushort.MaxValue);
+        livesIncreasePerRound = (ushort)Mathf.Clamp(livesPerRound, 0, ushort.MaxValue);
+        maxEliminationLives = (ushort)Mathf.Clamp(maxLives, 1, ushort.MaxValue);
+
+        // winCon is derived from the gamemode, so re-derive it now that the override has landed, then
+        // recompute the limits the round logic reads.
+        winCon = ResolveWinConForGamemode(gamemode, true);
+        RefreshRoundWinConPointLimit();
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] applied online rules '{encoded}' -> winCon={winCon} ramBase={baseRamNeeddedtowin} livesBase={baseEliminationLives}");
+        }
+    }
+
+    private static bool TryParseRuleField(string text, out int value)
+    {
+        return int.TryParse(text, System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture, out value);
+    }
+
     public ushort WinConPointLimit => winCon == WinCon.Elimination
         ? (ushort)Mathf.Max(1, 3)
         : ramNeededToWinRound;
@@ -645,9 +750,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     /// <param name="allowCustomRules">
     /// Whether the Match Options override may be consulted. TRUE for the offline chooser, FALSE for
-    /// the online path: the override is a LOCAL static that is not transmitted, so honouring it
-    /// online would put two peers on different win conditions -- and winCon is part of
-    /// SerializeSharedGameplayHashState, so they would diverge on frame one.
+    /// the online path too, now that the override is transmitted from the host and applied by
+    /// ApplyOnlineMatchRules. It stays a parameter so a future caller has to state its intent:
+    /// winCon is in SerializeSharedGameplayHashState, so an unsynced local value desyncs frame one.
     /// </param>
     private static WinCon ResolveWinConForGamemode(Gamemode mode, bool allowCustomRules)
     {
@@ -1227,7 +1332,7 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
-        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode, false);
+        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode, true);
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
             || gamemode != resolvedGamemode

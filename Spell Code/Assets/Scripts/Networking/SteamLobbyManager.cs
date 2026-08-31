@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-63"; // scz-63: Showdown now skips the Shop phase ONLINE as well as offline (one shared ShouldSkipShopPhase rule). That changes the online round flow,
-                                                    // so it must not pair with scz-62, where the online path still routed Showdown through the Shop.
+    private const string NetcodeVersion = "scz-64"; // scz-64: custom match rules are transmitted online. New "matchRules" lobby key, rules embedded in the match start token after a ~,
+                                                    // and ApplyOnlineMatchRules applies the host's values on every peer.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";
@@ -90,6 +90,8 @@ public class SteamLobbyManager : MonoBehaviour
     // even if that mode does not exist in its own build.
     private const string GameModeKey = "gameMode";
     private const string GameModeNameKey = "gameModeName";
+    // Custom match rules, published by the host exactly like the game mode. Empty means stock rules.
+    private const string MatchRulesKey = "matchRules";
 
     // Quick Match accepted sizes. A searcher can accept 2-player matches, 4-player matches, or both,
     // so a single "size" value cannot express the request: each accepted size gets its own
@@ -508,6 +510,35 @@ public class SteamLobbyManager : MonoBehaviour
     public bool SetPartyGameMode(string gameModeId)
     {
         return SetPartyGameMode(gameModeId, null);
+    }
+
+    /// <summary>
+    /// The custom match rules in force. Guests read the host's published string, exactly like
+    /// PartyGameMode -- a guest's own Match Options panel never drives an online match.
+    /// </summary>
+    public string PartyMatchRules =>
+        currentLobby.HasValue ? currentLobby.Value.GetData(MatchRulesKey) : string.Empty;
+
+    /// <summary>
+    /// Host-only publish of the custom rules. Mirrors SetPartyGameMode, including refusing to change
+    /// anything once the match has been armed or started -- the rules are baked into the match start
+    /// token at that point, and moving them afterwards would leave peers on different numbers.
+    /// </summary>
+    public bool SetPartyMatchRules(string encodedRules)
+    {
+        if (!IsPartyHost
+            || partyStartRequested
+            || (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive))
+        {
+            return false;
+        }
+
+        currentLobby.Value.SetData(MatchRulesKey, encodedRules ?? string.Empty);
+        if (debugLogs)
+        {
+            Debug.Log($"[SteamLobbyManager] Party match rules set to '{encodedRules}'.");
+        }
+        return true;
     }
 
     /// <summary>
@@ -3343,6 +3374,10 @@ public class SteamLobbyManager : MonoBehaviour
             {
                 // Drop-in joiner: make sure they land on the same rules as everyone already playing.
                 GameManager.Instance.ApplyOnlineGameMode(lobby.GetData(GameModeKey), lobby.GetData(GameModeNameKey));
+
+                // Rules AFTER the mode: ApplyOnlineMatchRules re-derives winCon from the gamemode it just set.
+
+                GameManager.Instance.ApplyOnlineMatchRules(lobby.GetData(MatchRulesKey));
                 RememberRosterPeers(roster);
                 if (SameSteamId(lobby.Owner.Id, SteamClient.SteamId))
                 {
@@ -3443,6 +3478,10 @@ public class SteamLobbyManager : MonoBehaviour
             ? lobby.GetData(GameModeNameKey)
             : null;
         GameManager.Instance.ApplyOnlineGameMode(committedGameModeId, committedGameModeName);
+
+        // Committed rules come from the TOKEN, not live lobby data, for the same reason the mode does.
+
+        GameManager.Instance.ApplyOnlineMatchRules(GetMatchRulesFromMatchStartToken(lobby, matchStartToken));
 
         if (!SameSteamId(lobby.Owner.Id, SteamClient.SteamId) && joiningAlreadyRunningMatch)
         {
@@ -3685,7 +3724,13 @@ public class SteamLobbyManager : MonoBehaviour
     {
         // The game mode is part of the token so a host who changes modes after arming the lobby
         // invalidates the old ready state instead of leaving a guest to start on the previous rules.
-        string token = $"{lobby.Id.Value}|{OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id}|r";
+        // The custom rules ride in the same field, after a '~', for exactly the same reason: editing
+        // RAM-to-win or starting lives after arming has to invalidate the ready state too, or a guest
+        // starts the match on the numbers the host has already moved on from.
+        string modeId = OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id;
+        string rules = lobby.GetData(MatchRulesKey);
+        string modeField = string.IsNullOrEmpty(rules) ? modeId : $"{modeId}~{rules}";
+        string token = $"{lobby.Id.Value}|{modeField}|r";
         if (roster?.Peers == null)
         {
             return token;
@@ -3718,6 +3763,14 @@ public class SteamLobbyManager : MonoBehaviour
             string committedModeId = token.Substring(
                 expectedPrefix.Length,
                 rosterMarker - expectedPrefix.Length);
+
+            // Strip the custom rules BuildMatchStartToken appends after '~'.
+            int rulesMarker = committedModeId.IndexOf('~');
+            if (rulesMarker >= 0)
+            {
+                committedModeId = committedModeId.Substring(0, rulesMarker);
+            }
+
             if (!string.IsNullOrEmpty(committedModeId))
             {
                 return committedModeId;
@@ -3725,6 +3778,40 @@ public class SteamLobbyManager : MonoBehaviour
         }
 
         return OnlineGameModeSelection.Resolve(lobby.GetData(GameModeKey), null).Id;
+    }
+
+    /// <summary>
+    /// The custom rules committed into the match start token. Read from the token rather than live
+    /// lobby data so a guest starts on exactly the rules the token was armed with, even if the host
+    /// edits the panel while the guest is mid-handshake.
+    /// </summary>
+    private string GetMatchRulesFromMatchStartToken(Lobby lobby, string token)
+    {
+        string expectedPrefix = $"{lobby.Id.Value}|";
+        int rosterMarker = string.IsNullOrEmpty(token)
+            ? -1
+            : token.LastIndexOf("|r:", StringComparison.Ordinal);
+
+        if (token != null
+            && token.StartsWith(expectedPrefix, StringComparison.Ordinal)
+            && rosterMarker > expectedPrefix.Length)
+        {
+            string modeField = token.Substring(
+                expectedPrefix.Length,
+                rosterMarker - expectedPrefix.Length);
+
+            int rulesMarker = modeField.IndexOf('~');
+            if (rulesMarker >= 0)
+            {
+                return modeField.Substring(rulesMarker + 1);
+            }
+
+            // A token that carries a mode but no '~' was armed with stock rules. Return empty rather
+            // than falling through to live lobby data, or a host edit made after arming would leak in.
+            return string.Empty;
+        }
+
+        return lobby.GetData(MatchRulesKey);
     }
 
     private bool MatchStartTokenNamesLobbyOwner(Lobby lobby, string token)

@@ -74,6 +74,12 @@ public class GameManager : MonoBehaviour
     public static ushort baseEliminationLives = 1;
     public static ushort maxEliminationLives = 3;
 
+    // Custom match rules (the Match Options panel) can pick the win condition for the modes that
+    // don't force one. Kept as an explicit opt-in flag rather than just a value, so "the player never
+    // opened the panel" stays distinguishable from "the player chose RAM Rush".
+    public static bool useCustomWinCon = false;
+    public static WinCon customWinCon = WinCon.RAMRush;
+
     public ushort WinConPointLimit => winCon == WinCon.Elimination
         ? (ushort)Mathf.Max(1, 3)
         : ramNeededToWinRound;
@@ -637,9 +643,26 @@ public class GameManager : MonoBehaviour
     /// the online mode resolution (ApplyOnlineGameMode) have to arrive at the same answer. gamemode
     /// itself is already hashed and agreed between peers, so deriving winCon from it is deterministic.
     /// </summary>
-    private static WinCon ResolveWinConForGamemode(Gamemode mode)
+    /// <param name="allowCustomRules">
+    /// Whether the Match Options override may be consulted. TRUE for the offline chooser, FALSE for
+    /// the online path: the override is a LOCAL static that is not transmitted, so honouring it
+    /// online would put two peers on different win conditions -- and winCon is part of
+    /// SerializeSharedGameplayHashState, so they would diverge on frame one.
+    /// </param>
+    private static WinCon ResolveWinConForGamemode(Gamemode mode, bool allowCustomRules)
     {
-        return mode == Gamemode.Fighter ? WinCon.Elimination : WinCon.RAMRush;
+        // Showdown forces Elimination regardless of custom rules; it has no RAM economy to win with.
+        if (mode == Gamemode.Fighter)
+        {
+            return WinCon.Elimination;
+        }
+
+        if (allowCustomRules && useCustomWinCon)
+        {
+            return customWinCon;
+        }
+
+        return WinCon.RAMRush;
     }
 
     //int because OnClick() doesn't accept enums as parameters
@@ -649,7 +672,24 @@ public class GameManager : MonoBehaviour
         // Assigned for EVERY mode, not just the one that needs Elimination. winCon is [NonSerialized]
         // and GameManager survives scene changes, so setting it only in the Fighter case left it
         // stuck on Elimination for every later Normal/Turbo/Chaos match until the game restarted.
-        winCon = ResolveWinConForGamemode(gamemode);
+        winCon = ResolveWinConForGamemode(gamemode, true);
+
+        // Picking a mode here starts a NEW match, so the round counter goes back to zero.
+        // totalRoundsPlayed lives on the DontDestroyOnLoad DataManager and was otherwise only ever
+        // cleared by PrepareRematchFromEnd, so it accumulated for the whole session, and both
+        // ramNeededToWinRound and roundLives grow with it. That is why a custom "1 starting life"
+        // match still began at the 3-life cap: base 1 + 1 per round x however many rounds had been
+        // played since launch, clamped by maxEliminationLives.
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager != null)
+        {
+            dataManager.totalRoundsPlayed = 0;
+        }
+
         Debug.Log("Gamemode set to: " + gamemode);
 
         switch (gamemode)
@@ -1187,7 +1227,7 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
-        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode);
+        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode, false);
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
             || gamemode != resolvedGamemode
@@ -4919,6 +4959,13 @@ public class GameManager : MonoBehaviour
         player.winConPoints = isActivePlayer && winCon == WinCon.Elimination && !isEndScene
             ? WinConPointLimit
             : (ushort)0;
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] seeded P{player.pID} winConPoints={player.winConPoints}"
+                + $" (scene={SceneManager.GetActiveScene().name} winCon={winCon} limit={WinConPointLimit}"
+                + $" roundLives={roundLives} livesBase={baseEliminationLives} rounds={CurrentTotalRoundsPlayed})");
+        }
         player.storedKillBonus = 0;
         if (winCon != WinCon.RAMRush)
         {
@@ -6526,6 +6573,13 @@ public class GameManager : MonoBehaviour
         {
             roundLives = ComputeEliminationRoundLives(roundsPlayed);
         }
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] {winCon} roundsPlayed={roundsPlayed} | ram base={baseRamNeeddedtowin} +{ramIncreasePerRound}/round -> {ramNeededToWinRound}"
+                + $" | lives base={baseEliminationLives} +{livesIncreasePerRound}/round cap={maxEliminationLives} -> {roundLives}"
+                + $" | customWinCon={(useCustomWinCon ? customWinCon.ToString() : "off")}");
+        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -6537,6 +6591,14 @@ public class GameManager : MonoBehaviour
         {
             SetLocalOnlineInputCaptureSuppressed(true);
         }
+
+        // MUST run before ResetPlayers below. ResetPlayerWinConState seeds every player's
+        // winConPoints from WinConPointLimit, which reads roundLives / ramNeededToWinRound -- and
+        // both are [NonSerialized] fields on this singleton, so they survive scene loads holding the
+        // PREVIOUS match's values. Refreshing after the reset meant a match started on the last
+        // match's limit: a Showdown match leaves roundLives at 3, so a custom Elimination match set
+        // to 1 life still started everyone on 3.
+        RefreshRoundWinConPointLimit();
 
         bool isEndScene = scene.name == "End";
         if (isEndScene)
@@ -6557,7 +6619,6 @@ public class GameManager : MonoBehaviour
             }
             ResetPlayers();
         }
-        RefreshRoundWinConPointLimit();
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's

@@ -671,6 +671,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 return;
             }
 
+            // Same reasoning for the custom match rules panel: it sits on top of Multiplayer
+            // Gamemodes Panel 2 and owns confirm/back while open. Without this, submit would also
+            // fire the gamemode button underneath it, and Back would close the whole door menu
+            // instead of stepping back one level to Panel 2.
+            if (MatchOptionsMenu.IsOpen)
+            {
+                return;
+            }
+
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();

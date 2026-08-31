@@ -256158,6 +256158,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: TempUI
       objectReference: {fileID: 0}
+    - target: {fileID: 4102471203772558805, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0e87d205c880c4d56990fada24593b20, type: 3}
+    - target: {fileID: 4147228958410139490, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 347.741
+      objectReference: {fileID: 0}
+    - target: {fileID: 4147228958410139490, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 513.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 4147228958410139490, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -129.922
+      objectReference: {fileID: 0}
+    - target: {fileID: 4147228958410139490, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -141.67989
+      objectReference: {fileID: 0}
     - target: {fileID: 4183655130790838303, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_Colors.m_NormalColor.b
       value: 0.6792453
@@ -256258,6 +256278,26 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4428397201038456740, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 348.527
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428397201038456740, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 513.511
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428397201038456740, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -129.557
+      objectReference: {fileID: 0}
+    - target: {fileID: 4428397201038456740, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -142.506
+      objectReference: {fileID: 0}
+    - target: {fileID: 4535936643558896693, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0e87d205c880c4d56990fada24593b20, type: 3}
     - target: {fileID: 4602005356084543758, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: textBoxUI
       value: 
@@ -256574,6 +256614,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5745555035031578046, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0e87d205c880c4d56990fada24593b20, type: 3}
     - target: {fileID: 5792545932172785446, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_Color.b
       value: 1
@@ -256670,6 +256714,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Demom Aura Icon 2
       objectReference: {fileID: 0}
+    - target: {fileID: 7189558939190076900, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0e87d205c880c4d56990fada24593b20, type: 3}
+    - target: {fileID: 7342281773776210050, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 347.865
+      objectReference: {fileID: 0}
+    - target: {fileID: 7342281773776210050, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 512.337
+      objectReference: {fileID: 0}
+    - target: {fileID: 7342281773776210050, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -129.508
+      objectReference: {fileID: 0}
+    - target: {fileID: 7342281773776210050, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -142.208
+      objectReference: {fileID: 0}
     - target: {fileID: 7439173148290924557, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_Color.b
       value: 0.6981132
@@ -256681,6 +256745,22 @@ PrefabInstance:
     - target: {fileID: 7439173148290924557, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_Color.r
       value: 0.6981132
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463647550352147452, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 347.741
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463647550352147452, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 512.544
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463647550352147452, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -129.922
+      objectReference: {fileID: 0}
+    - target: {fileID: 7463647550352147452, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -142.36798
       objectReference: {fileID: 0}
     - target: {fileID: 7490638595760300080, guid: 32cb9b92580e9f04c9b1e4bd3e4277a1, type: 3}
       propertyPath: m_IsActive

@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-64"; // scz-64: custom match rules are transmitted online. New "matchRules" lobby key, rules embedded in the match start token after a ~,
-                                                    // and ApplyOnlineMatchRules applies the host's values on every peer.
+    private const string NetcodeVersion = "scz-66"; // scz-66: Match Options rules are NORMAL-mode only. Showdown is pinned back to a flat 3 lives and Turbo/Chaos keep stock RAM numbers regardless of the panel.
+                                                    // ApplyOnlineTotalRoundsPlayed now delegates to RefreshRoundWinConPointLimit instead of duplicating the formulas.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

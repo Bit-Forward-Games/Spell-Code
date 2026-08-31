@@ -86,6 +86,16 @@ public class GameManager : MonoBehaviour
     private const ushort DefaultLivesPerRound = 1;
     private const ushort DefaultMaxLives = 3;
 
+    /// <summary>
+    /// Whether the Match Options rule set is in force right now. The panel is a NORMAL-mode feature:
+    /// Showdown runs a fixed 3 lives, and Turbo/Chaos keep the stock RAM numbers, so every consumer
+    /// of the tunable values checks this rather than reading the statics directly.
+    ///
+    /// gamemode is hashed and agreed between peers, and the rules themselves arrive from the host,
+    /// so this evaluates identically on every machine.
+    /// </summary>
+    private bool CustomRulesApplyNow => useCustomWinCon && gamemode == Gamemode.Normal;
+
     /// <summary>Stock rules. These statics survive scene loads, so anything starting a match that
     /// should not inherit a previous custom rule set has to call this.</summary>
     public static void ResetMatchRulesToDefaults()
@@ -185,8 +195,12 @@ public class GameManager : MonoBehaviour
             System.Globalization.CultureInfo.InvariantCulture, out value);
     }
 
+    // Elimination reads roundLives. This used to be Mathf.Max(1, 3) -- a hardcoded 3 -- so every
+    // Elimination match ran on exactly 3 lives and the whole roundLives formula
+    // (baseEliminationLives, livesIncreasePerRound, maxEliminationLives) was computed, hashed, and
+    // then ignored. The Max(1, ...) floor stays so a rule set of 0 can't start a player already dead.
     public ushort WinConPointLimit => winCon == WinCon.Elimination
-        ? (ushort)Mathf.Max(1, 3)
+        ? (ushort)Mathf.Max(1, roundLives)
         : ramNeededToWinRound;
 
 
@@ -762,7 +776,9 @@ public class GameManager : MonoBehaviour
             return WinCon.Elimination;
         }
 
-        if (allowCustomRules && useCustomWinCon)
+        // Match Options are a Normal-mode feature. Turbo and Chaos keep RAM Rush regardless of what
+        // the panel was last set to.
+        if (allowCustomRules && useCustomWinCon && mode == Gamemode.Normal)
         {
             return customWinCon;
         }
@@ -1431,6 +1447,27 @@ public class GameManager : MonoBehaviour
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
+
+        // A new online match starts at round zero, same as SetGamemode does for the offline chooser.
+        // totalRoundsPlayed otherwise carries over from earlier matches in this session and inflates
+        // ramNeededToWinRound / roundLives. Every peer cold-starting does this identically so they
+        // still agree; a drop-in joiner arriving mid-match has its value overwritten by the host
+        // snapshot (which carries totalRoundsPlayed) rather than by this line.
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager != null)
+        {
+            dataManager.totalRoundsPlayed = 0;
+        }
+
+        // Recompute the limits from the round count we just zeroed, BEFORE ResetPlayers below seeds
+        // every player's winConPoints from WinConPointLimit. Idempotent: ApplyOnlineMatchRules and
+        // OnSceneLoaded call this too.
+        RefreshRoundWinConPointLimit();
+
         ApplyOnlineRoster(roster);
 
         onboardManager = FindFirstObjectByType<OnboardManager>();
@@ -3347,18 +3384,13 @@ public class GameManager : MonoBehaviour
         }
 
         dataManager.totalRoundsPlayed = Mathf.Max(0, totalRoundsPlayed);
-        // Must use the SAME base as the OnSceneLoaded computation. This hardcoded 300 against
-        // that path's baseRamNeeddedtowin (400) put the two machines a permanent 100 apart for the
-        // same round count, and ramNeededToWinRound is part of SerializeSharedGameplayHashState
-        // so the shared hash diverged on frame one and never reconverged.
-        if (winCon == WinCon.RAMRush)
-        {
-            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * dataManager.totalRoundsPlayed);
-        }
-        if (winCon == WinCon.Elimination)
-        {
-            roundLives = ComputeEliminationRoundLives(dataManager.totalRoundsPlayed);
-        }
+
+        // Delegated instead of repeating the formulas. This path used to carry its own copy with a
+        // hardcoded 300 against the other path's 400, which put the two machines a permanent 100
+        // apart for the same round count -- and ramNeededToWinRound is in
+        // SerializeSharedGameplayHashState, so the shared hash diverged on frame one and never
+        // reconverged. One writer means that class of drift can't come back.
+        RefreshRoundWinConPointLimit();
         onlineRoundAdvanceApplied = true;
     }
 
@@ -6650,8 +6682,16 @@ public class GameManager : MonoBehaviour
     /// roundLives (`if (roundLives < 3)`), which makes the result depend on prior state and
     /// therefore on whatever a rollback happened to restore.
     /// </summary>
-    private static ushort ComputeEliminationRoundLives(int roundsPlayed)
+    private ushort ComputeEliminationRoundLives(int roundsPlayed)
     {
+        // Showdown is a flat 3 lives by design and ignores the Match Options rules, which are
+        // Normal-only. No other mode reaches the tunable formula below: Fighter forces Elimination,
+        // Normal reaches it only via a custom rule set, and Turbo/Chaos are always RAM Rush.
+        if (!CustomRulesApplyNow)
+        {
+            return DefaultMaxLives;
+        }
+
         int lives = baseEliminationLives + livesIncreasePerRound * Mathf.Max(0, roundsPlayed);
         return (ushort)Mathf.Min(lives, maxEliminationLives);
     }
@@ -6672,7 +6712,9 @@ public class GameManager : MonoBehaviour
         int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
         if (winCon == WinCon.RAMRush)
         {
-            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * roundsPlayed);
+            ushort ramBase = CustomRulesApplyNow ? baseRamNeeddedtowin : DefaultRamToWin;
+            ushort ramStep = CustomRulesApplyNow ? ramIncreasePerRound : DefaultRamPerRound;
+            ramNeededToWinRound = (ushort)(ramBase + ramStep * roundsPlayed);
         }
         else if (winCon == WinCon.Elimination)
         {

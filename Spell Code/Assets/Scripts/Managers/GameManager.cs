@@ -7364,7 +7364,8 @@ public class GameManager : MonoBehaviour
         if (SettingsManager.Instance.IsFirstLaunch())
         {
             SettingsManager.Instance.MarkFirstLaunchComplete();
-            tempUI.OpenTutorialPromptMenu();
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (activeScene.name == "SoloLobby") tempUI.OpenTutorialPromptMenu();
         }
     }
 

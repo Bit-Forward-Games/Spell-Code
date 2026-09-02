@@ -4572,9 +4572,12 @@ public class GameManager : MonoBehaviour
             players[i].PlayerUpdate((ulong)inputs[i]);
         }
 
+        // Training dummies are CPU slots, so they gather input through GetInputs() like every other
+        // slot instead of being handed a hardcoded neutral. playerNPCs is only ever populated
+        // offline, so this never runs inside a rollback resim.
         for (int i = 0; i < playerNPCs.Count; i++)
         {
-            playerNPCs[i].PlayerUpdate(5);
+            playerNPCs[i].PlayerUpdate(playerNPCs[i].GetInputs());
         }
 
         for (int i = 0; i < playerCount; i++)

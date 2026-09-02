@@ -313,6 +313,17 @@ public class GameManager : MonoBehaviour
     private const float NETWORK_INFO_DISPLAY_REFRESH_SECONDS = 2f;
     private float nextNetworkInfoDisplayRefreshTime = 0f;
 
+    // Split so the debug toggle and the game's own "should this be on screen at all" logic don't
+    // fight each other. The game pushes networkInfoRequestedVisible from ~8 call sites as the match
+    // state changes; the toggle only ever SUPPRESSES that, so flipping it can't force the panel up
+    // somewhere the game deliberately hides it (the End scene, offline, mid-transition).
+    // Purely local presentation: nothing here is simulated or hashed.
+    private bool networkInfoRequestedVisible;
+    private bool networkInfoToggledOn = true;
+
+    /// <summary>Whether the ping / rollback-frames panel is allowed on screen.</summary>
+    public bool NetworkInfoPanelEnabled => networkInfoToggledOn;
+
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
     public bool opponentIsReady = false;
@@ -891,6 +902,13 @@ public class GameManager : MonoBehaviour
         {
             SteamAchievements.ResetAllForTesting();
         }
+
+        // "." toggles the ping / rollback-frames readout. Punctuation like the rest of these keys so
+        // it can't collide with a gameplay binding while a match is running.
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Period))
+        {
+            ToggleNetworkInfoPanel();
+        }
     }
 
     /// <summary>
@@ -1274,17 +1292,37 @@ public class GameManager : MonoBehaviour
 
     private void SetNetworkInfoVisible(bool isVisible)
     {
+        networkInfoRequestedVisible = isVisible;
+        ApplyNetworkInfoVisibility();
+    }
+
+    private void ApplyNetworkInfoVisibility()
+    {
         ResolveNetworkInfoReferences();
 
-        if (networkInfo != null && networkInfo.activeSelf != isVisible)
+        bool shouldShow = networkInfoRequestedVisible && networkInfoToggledOn;
+
+        if (networkInfo != null && networkInfo.activeSelf != shouldShow)
         {
-            networkInfo.SetActive(isVisible);
+            networkInfo.SetActive(shouldShow);
         }
 
-        if (!isVisible)
+        if (!shouldShow)
         {
             nextNetworkInfoDisplayRefreshTime = 0f;
         }
+    }
+
+    /// <summary>
+    /// Flips the ping / rollback-frames panel. Reachable from the private beta's debug hotkeys, so it
+    /// is gated by SteamManager.DebugToolsEnabled at the call site rather than here -- the method
+    /// itself is safe to call from anywhere (a settings toggle later, for instance).
+    /// </summary>
+    public void ToggleNetworkInfoPanel()
+    {
+        networkInfoToggledOn = !networkInfoToggledOn;
+        ApplyNetworkInfoVisibility();
+        Debug.Log($"[NetworkInfo] Panel {(networkInfoToggledOn ? "enabled" : "disabled")}.");
     }
 
     private void UpdateNetworkInfoDisplay()
@@ -7293,10 +7331,10 @@ public class GameManager : MonoBehaviour
             roundEndedText.enabled = false;
         }
 
-        if (networkInfo != null)
-        {
-            networkInfo.SetActive(false);
-        }
+        // Through the helper rather than SetActive directly, so networkInfoRequestedVisible stays in
+        // step -- otherwise the tracked state says "visible" while the object is off, and the next
+        // toggle re-shows it somewhere it should stay hidden.
+        SetNetworkInfoVisible(false);
     }
 
     private void InitializeOnlineShopSceneState()

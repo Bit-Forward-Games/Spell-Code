@@ -4809,6 +4809,12 @@ public class GameManager : MonoBehaviour
         bot.isBot = true;
         bot.inputSource = InputSource.CPU;
 
+        // Bots pick their own control options rather than answering the prompt
+        // Synthesizer (vibeCoding false) is the neutral mode: full multi-direction
+        // codes, standard cooldowns, no extra spell-slot cap. Punk is the difficulty lever
+        SetBotCodeMode(bot, punkMode: false);
+        bot.relativeInputs = false;
+
         int newPlayerIndex = playerCount;
         players[newPlayerIndex] = bot;
         bot._playerPauseIndex = newPlayerIndex;
@@ -4835,6 +4841,25 @@ public class GameManager : MonoBehaviour
         // players[], so Array.IndexOf resolves a real pID and its slot's spawn position rather than
         // falling through to the training-dummy branch.
         return bot;
+    }
+
+    /// <summary>
+    /// Picks a bot's input mode. Punk (vibeCoding) exists for humans as an accessibility win: one
+    /// direction tap fires one of the first four actives instead of typing a full code. A bot gets
+    /// nothing from that -- it can enter a twelve-direction code perfectly every time -- while still
+    /// paying Punk's costs: cooldown becomes cooldown + codeLength * 30 frames, and the spell list
+    /// caps at four actives and two passives. That makes Punk a genuine, diegetic handicap rather
+    /// than a fake reaction-time nerf, which is why phase 9 should hand it to Easy bots and leave
+    /// Synthesizer to the harder tiers.
+    /// </summary>
+    public void SetBotCodeMode(PlayerController bot, bool punkMode)
+    {
+        if (bot == null || !bot.isBot)
+        {
+            return;
+        }
+
+        bot.vibeCoding = punkMode;
     }
 
     public bool IsGateOpenAtPosition(float x, float y)

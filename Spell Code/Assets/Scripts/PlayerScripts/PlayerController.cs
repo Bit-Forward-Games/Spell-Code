@@ -658,6 +658,15 @@ public class PlayerController : MonoBehaviour
         // flag, so without this the code-mode prompt pops straight over the party lobby the moment
         // VS Friends is chosen -- and dismissing it hands UI input and timeScale back to the player.
         // The prompt belongs to a match that has actually started, which the panel closing signals.
+        // A CPU slot never answers this prompt. Navigation below reads codeModePlayer.input.Direction
+        // -- the owning slot's own sim input -- so a bot emitting neutral forever leaves the
+        // highlight stuck on the default with no device able to move it, for the bot or for anyone
+        // else. Its code mode is assigned outright at spawn instead; see GameManager.AddBotPlayer.
+        if (inputSource != InputSource.Human)
+        {
+            return;
+        }
+
         bool onlineMenuOpen = OnlineMenuPanel.OpenPanelCount > 0;
 
         bool showOfflinePrompt = !onlineMatch

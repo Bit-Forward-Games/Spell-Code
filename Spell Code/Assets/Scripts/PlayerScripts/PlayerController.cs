@@ -354,6 +354,12 @@ public class PlayerController : MonoBehaviour
     // not to be in GameManager.players; bot slots will set this explicitly while keeping a real pID.
     public InputSource inputSource = InputSource.Human;
 
+    // True for a CPU that holds a real slot in GameManager.players, as opposed to a training dummy
+    // parked in playerNPCs. Both are inputSource == CPU, so this is what separates a participant
+    // from a prop -- and it is what stops GetPlayerControllers filing a bot away as a dummy just
+    // because it arrived without an input device.
+    public bool isBot = false;
+
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
     public bool vWave = false;
@@ -1409,7 +1415,10 @@ public class PlayerController : MonoBehaviour
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
+            // inputSource gate first: a bot must never open the pause menu. Its AI has no reason to
+            // emit Pause today, but the menu takes over UI device scoping and timeScale for whoever
+            // opens it, so a stray press would hand the game to a slot with no human behind it.
+            if (inputSource == InputSource.Human && input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)

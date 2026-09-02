@@ -69,6 +69,15 @@ public class Exit_Door : MonoBehaviour
                 continue;
             }
 
+            // a bot cannot walk yet, and this loop demands every
+            // connected player physically stand in the door, so an idle bot would stall the lobby
+            // forever. Counting bots as ready keeps the join flow testable until phase 8 teaches
+            // them to navigate -- delete this branch then, not before.
+            if (player.isBot)
+            {
+                continue;
+            }
+
             if (!IsPlayerInsideDoor(player))
             {
                 //player is out of range

@@ -750,6 +750,16 @@ public class GameManager : MonoBehaviour
 
         if (SteamManager.DebugToolsEnabled)
         {
+            // stands in for the real add-bot control,
+            // Debug builds only.
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B) && !isOnlineMatchActive)
+            {
+                PlayerController spawnedBot = AddBotPlayer();
+                Debug.Log(spawnedBot != null
+                    ? $"[Bot] Added bot at slot P{playerCount}. playerCount={playerCount}"
+                    : "[Bot] AddBotPlayer refused: lobby full.");
+            }
+
             //if = is pressed, player 1 win
             if (winCon == WinCon.RAMRush && UnityEngine.Input.GetKeyDown(KeyCode.Equals))
             {
@@ -4685,6 +4695,15 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // AddBotPlayer files its own controller into players[]. Unity fires this join event from
+        // PlayerInput.OnEnable, which runs inside Instantiate and therefore gets here first, seeing
+        // a controller with no paired device -- which the diversion below would file away as a
+        // training dummy. Let AddBotPlayer finish and do the registration itself.
+        if (botSpawnInProgress)
+        {
+            return;
+        }
+
         // Check if this player is already registered
         PlayerController existingPlayer = playerInput.GetComponent<PlayerController>();
         if (existingPlayer == null)
@@ -4702,7 +4721,9 @@ public class GameManager : MonoBehaviour
         }
 
         //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
-        if (!playerInput.user.valid || existingPlayer.npcOverride)
+        // A bot also arrives without a valid user, but it is a participant rather than a prop, so it
+        // is exempt: this is the belt-and-braces pair to the botSpawnInProgress guard above.
+        if ((!playerInput.user.valid || existingPlayer.npcOverride) && !existingPlayer.isBot)
         {
             if (!playerNPCs.Contains(existingPlayer)){
                 playerNPCs.Add(existingPlayer);
@@ -4739,6 +4760,81 @@ public class GameManager : MonoBehaviour
         }
 
         //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+    }
+
+    // Set only while AddBotPlayer is inside Instantiate. See the guard in GetPlayerControllers.
+    private bool botSpawnInProgress = false;
+
+    /// <summary>
+    /// Spawns a CPU opponent into the next free player slot and returns it, or null when the lobby
+    /// is full or a match is online. Deliberately mirrors what GetPlayerControllers does for a human
+    /// join, minus the input device: the bot lands in players[] at a real index, so pID, spawn
+    /// position, palette, starting spell, win-condition state and the HUD label all resolve through
+    /// the same paths a human already uses instead of needing bot-specific copies.
+    /// </summary>
+    public PlayerController AddBotPlayer()
+    {
+        if (isOnlineMatchActive)
+        {
+            Debug.LogWarning("AddBotPlayer ignored: bots are offline-only.");
+            return null;
+        }
+
+        if (playerCount >= players.Length)
+        {
+            return null;
+        }
+
+        botSpawnInProgress = true;
+        GameObject botObject;
+        try
+        {
+            botObject = InstantiateOnlinePlayerObject();
+        }
+        finally
+        {
+            // Cleared in a finally so a throw inside Instantiate cannot leave the flag stuck on,
+            // which would silently swallow every later human join.
+            botSpawnInProgress = false;
+        }
+
+        PlayerController bot = botObject.GetComponent<PlayerController>();
+        if (bot == null)
+        {
+            Debug.LogError("AddBotPlayer: playerPrefab has no PlayerController.");
+            Destroy(botObject);
+            return null;
+        }
+
+        bot.isBot = true;
+        bot.inputSource = InputSource.CPU;
+
+        int newPlayerIndex = playerCount;
+        players[newPlayerIndex] = bot;
+        bot._playerPauseIndex = newPlayerIndex;
+
+        // No device to pair and nothing should go looking for one. This is the same treatment a
+        // remote online player gets, for the same reason: its input arrives from somewhere that
+        // isn't hardware.
+        MarkOnlineRemotePlayerInputInactive(bot);
+        AnimationManager.Instance.InitializePlayerVisuals(bot, newPlayerIndex);
+
+        playerCount++;
+
+        ResetPlayerWinConState(bot, true);
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null && players[i].playerNum != null)
+            {
+                players[i].playerNum.text = "P" + (i + 1);
+            }
+        }
+
+        // InitCharacter is left to the bot's own Start() later this frame: by then it is in
+        // players[], so Array.IndexOf resolves a real pID and its slot's spawn position rather than
+        // falling through to the training-dummy branch.
+        return bot;
     }
 
     public bool IsGateOpenAtPosition(float x, float y)

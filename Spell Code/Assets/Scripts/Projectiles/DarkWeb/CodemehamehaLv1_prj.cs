@@ -10,7 +10,7 @@ public class Codemehameha_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "Chains Of Thanatos";
+        projName = "Codemehameha Lv1";
         //hSpeed = 3f;
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames

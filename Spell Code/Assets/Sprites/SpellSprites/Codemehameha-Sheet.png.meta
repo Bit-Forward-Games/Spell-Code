@@ -1,0 +1,769 @@
+fileFormatVersion: 2
+guid: fd0945f6cc4d92745933c6bc8e596936
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4407970805089553232
+    second: Codemehameha-Sheet_0
+  - first:
+      213: -2110970430809466238
+    second: Codemehameha-Sheet_1
+  - first:
+      213: -2318700424018090543
+    second: Codemehameha-Sheet_2
+  - first:
+      213: 4078063025946810274
+    second: Codemehameha-Sheet_3
+  - first:
+      213: -8761338463873492262
+    second: Codemehameha-Sheet_4
+  - first:
+      213: -2627347255616225959
+    second: Codemehameha-Sheet_5
+  - first:
+      213: -2161546814280185851
+    second: Codemehameha-Sheet_6
+  - first:
+      213: -8367493210643678862
+    second: Codemehameha-Sheet_7
+  - first:
+      213: -4098931858398390963
+    second: Codemehameha-Sheet_8
+  - first:
+      213: -7819236856264595107
+    second: Codemehameha-Sheet_9
+  - first:
+      213: 6289917239492954785
+    second: Codemehameha-Sheet_10
+  - first:
+      213: 8399548612771968175
+    second: Codemehameha-Sheet_11
+  - first:
+      213: -6689176417757504103
+    second: Codemehameha-Sheet_12
+  - first:
+      213: 8710764281926368027
+    second: Codemehameha-Sheet_13
+  - first:
+      213: 3760679906766776606
+    second: Codemehameha-Sheet_14
+  - first:
+      213: 2949961739080723643
+    second: Codemehameha-Sheet_15
+  - first:
+      213: 9147597510963002866
+    second: Codemehameha-Sheet_16
+  - first:
+      213: 7832279428796232291
+    second: Codemehameha-Sheet_17
+  - first:
+      213: -706980127228934462
+    second: Codemehameha-Sheet_18
+  - first:
+      213: -1966912365691733079
+    second: Codemehameha-Sheet_19
+  - first:
+      213: 9103927229835151222
+    second: Codemehameha-Sheet_20
+  - first:
+      213: -3087718339664983821
+    second: Codemehameha-Sheet_21
+  - first:
+      213: 5781227344525366056
+    second: Codemehameha-Sheet_22
+  - first:
+      213: 812677675554563166
+    second: Codemehameha-Sheet_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 0.5
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05bc7a1c7124c2d30800000000000000
+      internalID: 4407970805089553232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28a9f3cd39354b2e0800000000000000
+      internalID: -2110970430809466238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d5aad5df3252dfd0800000000000000
+      internalID: -2318700424018090543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a7d63137b0389830800000000000000
+      internalID: 4078063025946810274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ada9adf2619796680800000000000000
+      internalID: -8761338463873492262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95db56f5799c98bd0800000000000000
+      internalID: -2627347255616225959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 508c371ff94a002e0800000000000000
+      internalID: -2161546814280185851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 1792
+        y: 192
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 279371ff141b0eb80800000000000000
+      internalID: -8367493210643678862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d45d1ad113bad17c0800000000000000
+      internalID: -4098931858398390963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d59e4bfd18d7c7390800000000000000
+      internalID: -7819236856264595107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aa459667664a4750800000000000000
+      internalID: 6289917239492954785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa4f5e9e5f0319470800000000000000
+      internalID: 8399548612771968175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99dd4a32d754b23a0800000000000000
+      internalID: -6689176417757504103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1bb16a76f9d2e870800000000000000
+      internalID: 8710764281926368027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1968c4437e903430800000000000000
+      internalID: 3760679906766776606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 1792
+        y: 96
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bbc66e6729e50f820800000000000000
+      internalID: 2949961739080723643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd723d587bc2fe70800000000000000
+      internalID: 9147597510963002866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 362bffea4a8d1bc60800000000000000
+      internalID: 7832279428796232291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c6424de15d4036f0800000000000000
+      internalID: -706980127228934462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9abfe92ef9f14b4e0800000000000000
+      internalID: -1966912365691733079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6778453b495a75e70800000000000000
+      internalID: 9103927229835151222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f84fcd87883625d0800000000000000
+      internalID: -3087718339664983821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 1536
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 823953cb3ab0b3050800000000000000
+      internalID: 5781227344525366056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Codemehameha-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 1792
+        y: 0
+        width: 256
+        height: 96
+      alignment: 9
+      pivot: {x: 0.10546875, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e54e1584a06374b00800000000000000
+      internalID: 812677675554563166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 25b7701c95bb3a94a87629bdc6b82e45
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":8.0,"y":3.0},"gridSpriteSize":{"x":256.0,"y":96.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.10546875,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":1,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Codemehameha-Sheet_0: 4407970805089553232
+      Codemehameha-Sheet_1: -2110970430809466238
+      Codemehameha-Sheet_10: 6289917239492954785
+      Codemehameha-Sheet_11: 8399548612771968175
+      Codemehameha-Sheet_12: -6689176417757504103
+      Codemehameha-Sheet_13: 8710764281926368027
+      Codemehameha-Sheet_14: 3760679906766776606
+      Codemehameha-Sheet_15: 2949961739080723643
+      Codemehameha-Sheet_16: 9147597510963002866
+      Codemehameha-Sheet_17: 7832279428796232291
+      Codemehameha-Sheet_18: -706980127228934462
+      Codemehameha-Sheet_19: -1966912365691733079
+      Codemehameha-Sheet_2: -2318700424018090543
+      Codemehameha-Sheet_20: 9103927229835151222
+      Codemehameha-Sheet_21: -3087718339664983821
+      Codemehameha-Sheet_22: 5781227344525366056
+      Codemehameha-Sheet_23: 812677675554563166
+      Codemehameha-Sheet_3: 4078063025946810274
+      Codemehameha-Sheet_4: -8761338463873492262
+      Codemehameha-Sheet_5: -2627347255616225959
+      Codemehameha-Sheet_6: -2161546814280185851
+      Codemehameha-Sheet_7: -8367493210643678862
+      Codemehameha-Sheet_8: -4098931858398390963
+      Codemehameha-Sheet_9: -7819236856264595107
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

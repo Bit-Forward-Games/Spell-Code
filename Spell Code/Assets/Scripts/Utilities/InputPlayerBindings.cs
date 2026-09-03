@@ -269,6 +269,8 @@ public class InputPlayerBindings : MonoBehaviour
     private InputAction pauseAction;
 
     private InputAction slideMacroAction;
+    private InputAction addBotAction;
+    private InputAction removeBotAction;
 
     // Last device that actually drove one of this player's actions. See ActiveInputDevice.
     private InputDevice lastUsedDevice;
@@ -279,6 +281,17 @@ public class InputPlayerBindings : MonoBehaviour
 
     private bool[] pauseButton = new bool[2];
     private ButtonState[] buttons = new ButtonState[3];
+
+    // Lobby commands, not gameplay. These deliberately stay out of the packed InputSnapshot -- they
+    // are addressed to the GameManager, never to a character, so nothing downstream of the sim needs
+    // to know about them. Their edges are still derived here, from a level read once per fixed tick,
+    // for the same reason every other button's are: sampling a press edge from a MonoBehaviour
+    // Update is a render-vs-fixed race that survives the editor and dies in a vsynced build.
+    private bool[] addBotButton = new bool[2];
+    private bool[] removeBotButton = new bool[2];
+
+    public ButtonState AddBotState { get; private set; }
+    public ButtonState RemoveBotState { get; private set; }
 
     // Online rollback can inspect the same simulation frame more than once while pacing holds it.
     // Keep physical transitions separate from the legacy FixedUpdate sampler so a rejected duplicate
@@ -351,6 +364,8 @@ public class InputPlayerBindings : MonoBehaviour
         jumpAction = playerActionMap.FindAction("Jump");
         pauseAction = playerActionMap.FindAction("Pause");
         slideMacroAction = playerActionMap.FindAction("Slide");
+        addBotAction = playerActionMap.FindAction("AddBot");
+        removeBotAction = playerActionMap.FindAction("RemoveBot");
 
         playerActionMap.Enable();
         inputActionAsset.Enable();
@@ -514,6 +529,8 @@ public class InputPlayerBindings : MonoBehaviour
             // PlayerInput gives each instantiated online player its own action-map clone.
             // Refresh Slide with the rest or joining clients keep reading the prefab map.
             slideMacroAction = playerActionMap.FindAction("Slide");
+            addBotAction = playerActionMap.FindAction("AddBot");
+            removeBotAction = playerActionMap.FindAction("RemoveBot");
             IsActive = true;
             RefreshOnlineInputSubscriptions();
         }
@@ -767,6 +784,16 @@ public class InputPlayerBindings : MonoBehaviour
         buttons[0] = GetCurrentState(codeButton[0], codeButton[1]);
         buttons[1] = GetCurrentState(jumpButton[0], jumpButton[1]);
         buttons[2] = GetCurrentState(pauseButton[0], pauseButton[1]);
+
+        // Same previous/current edge derivation as the gameplay buttons above, but published on the
+        // side rather than packed: GameManager reads these after the input gather to run the lobby's
+        // add/remove-bot commands. Null-tolerant so an action map predating these bindings still runs.
+        addBotButton[0] = addBotButton[1];
+        removeBotButton[0] = removeBotButton[1];
+        addBotButton[1] = addBotAction != null && addBotAction.inProgress;
+        removeBotButton[1] = removeBotAction != null && removeBotAction.inProgress;
+        AddBotState = GetCurrentState(addBotButton[0], addBotButton[1]);
+        RemoveBotState = GetCurrentState(removeBotButton[0], removeBotButton[1]);
 
         
 

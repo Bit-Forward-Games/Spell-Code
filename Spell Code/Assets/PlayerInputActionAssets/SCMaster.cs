@@ -163,6 +163,24 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AddBot"",
+                    ""type"": ""Button"",
+                    ""id"": ""1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RemoveBot"",
+                    ""type"": ""Button"",
+                    ""id"": ""2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -396,6 +414,50 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
                     ""action"": ""Slide"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3c4d5e6f-7a8b-4c9d-8e1f-2a3b4c5d6e7f"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard"",
+                    ""action"": ""AddBot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4d5e6f7a-8b9c-4d0e-9f2a-3b4c5d6e7f80"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""AddBot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5e6f7a8b-9c0d-4e1f-8a3b-4c5d6e7f8091"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard"",
+                    ""action"": ""RemoveBot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6f7a8b9c-0d1e-4f2a-8b4c-5d6e7f8091a2"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""RemoveBot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -435,6 +497,8 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
         m_Gameplay_Jump = m_Gameplay.FindAction("Jump", throwIfNotFound: true);
         m_Gameplay_Pause = m_Gameplay.FindAction("Pause", throwIfNotFound: true);
         m_Gameplay_Slide = m_Gameplay.FindAction("Slide", throwIfNotFound: true);
+        m_Gameplay_AddBot = m_Gameplay.FindAction("AddBot", throwIfNotFound: true);
+        m_Gameplay_RemoveBot = m_Gameplay.FindAction("RemoveBot", throwIfNotFound: true);
     }
 
     ~@SCMaster()
@@ -523,6 +587,8 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Jump;
     private readonly InputAction m_Gameplay_Pause;
     private readonly InputAction m_Gameplay_Slide;
+    private readonly InputAction m_Gameplay_AddBot;
+    private readonly InputAction m_Gameplay_RemoveBot;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -566,6 +632,14 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Slide".
         /// </summary>
         public InputAction @Slide => m_Wrapper.m_Gameplay_Slide;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/AddBot".
+        /// </summary>
+        public InputAction @AddBot => m_Wrapper.m_Gameplay_AddBot;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/RemoveBot".
+        /// </summary>
+        public InputAction @RemoveBot => m_Wrapper.m_Gameplay_RemoveBot;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -616,6 +690,12 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
             @Slide.started += instance.OnSlide;
             @Slide.performed += instance.OnSlide;
             @Slide.canceled += instance.OnSlide;
+            @AddBot.started += instance.OnAddBot;
+            @AddBot.performed += instance.OnAddBot;
+            @AddBot.canceled += instance.OnAddBot;
+            @RemoveBot.started += instance.OnRemoveBot;
+            @RemoveBot.performed += instance.OnRemoveBot;
+            @RemoveBot.canceled += instance.OnRemoveBot;
         }
 
         /// <summary>
@@ -651,6 +731,12 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
             @Slide.started -= instance.OnSlide;
             @Slide.performed -= instance.OnSlide;
             @Slide.canceled -= instance.OnSlide;
+            @AddBot.started -= instance.OnAddBot;
+            @AddBot.performed -= instance.OnAddBot;
+            @AddBot.canceled -= instance.OnAddBot;
+            @RemoveBot.started -= instance.OnRemoveBot;
+            @RemoveBot.performed -= instance.OnRemoveBot;
+            @RemoveBot.canceled -= instance.OnRemoveBot;
         }
 
         /// <summary>
@@ -773,5 +859,19 @@ public partial class @SCMaster: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSlide(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "AddBot" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnAddBot(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "RemoveBot" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRemoveBot(InputAction.CallbackContext context);
     }
 }

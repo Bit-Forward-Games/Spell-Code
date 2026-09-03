@@ -49,6 +49,19 @@ public enum InputSource
     CPU
 }
 
+/// <summary>
+/// How hard a CPU opponent plays. Carried and selectable now so the join flow can be built and
+/// tested end to end, but inert until phase 9 wires the tiers to reaction delay, how readily the bot
+/// commits to a long code, and spell-choice quality. Lives beside InputSource because it describes
+/// the player slot rather than the manager that spawns it.
+/// </summary>
+public enum BotDifficulty
+{
+    Easy,
+    Medium,
+    Hard
+}
+
 public struct AttackData
 {
     ushort hitstun;
@@ -359,6 +372,9 @@ public class PlayerController : MonoBehaviour
     // from a prop -- and it is what stops GetPlayerControllers filing a bot away as a dummy just
     // because it arrived without an input device.
     public bool isBot = false;
+
+    // Chosen by the host at the difficulty prompt. Does nothing yet -- see BotDifficulty.
+    public BotDifficulty botDifficulty = BotDifficulty.Medium;
 
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true

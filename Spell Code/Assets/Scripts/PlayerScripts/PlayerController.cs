@@ -1232,7 +1232,9 @@ public class PlayerController : MonoBehaviour
                 return 5UL; // neutral direction, no buttons
             }
 
-            npcAI.NPCUpdate();
+            // Tick, not NPCUpdate: the base class runs its perception pass on the reaction cadence
+            // around the behaviour's own logic, then resolves held levels into button edges.
+            npcAI.Tick();
             return (ulong)(ushort)InputConverter.ConvertFromInputSnapshot(npcAI.npcInputSnapshot);
         }
 

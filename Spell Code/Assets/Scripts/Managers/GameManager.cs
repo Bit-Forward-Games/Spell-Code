@@ -4843,6 +4843,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Bots carry their behaviour on their own object, unlike training dummies,
+        // which are prefab instances held in an AIMachine's list
+        ChaseAI botBehavior = bot.gameObject.AddComponent<ChaseAI>();
+        botBehavior.owner = bot;
+        bot.npcAI = botBehavior;
+
         // Initialise now rather than waiting for the bot's own Start(), which is the same thing the
         // online spawn path does and for the same reason. AddBotPlayer is reached from RunFrame, so
         // UpdateGameState simulates this slot later in THIS tick -- before Start would have run --

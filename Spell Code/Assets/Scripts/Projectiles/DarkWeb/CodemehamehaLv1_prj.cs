@@ -6,7 +6,11 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class Codemehameha_prj : BaseProjectile
+// Class name must match the file name: BaseProjectile is a MonoBehaviour, and Unity refuses to
+// attach a script whose type does not match its file ("the class defined in script file named X
+// does not match the file name"). This was authored as Codemehameha_prj in CodemehamehaLv1_prj.cs,
+// which made it unassignable to the projectile prefab. Every sibling in this folder matches.
+public class CodemehamehaLv1_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {

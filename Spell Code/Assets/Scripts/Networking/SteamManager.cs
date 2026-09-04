@@ -163,6 +163,10 @@ public class SteamManager : MonoBehaviour
         // Retries any unlock that was requested before Steam (or the user's stats) was
         // ready. Self-guarding and a single lookup when nothing is queued.
         SteamAchievements.Pump();
+
+        // Keeps the friends-list status line in step with what the player is doing.
+        // Self-throttling, and only touches Steam when the status actually changes.
+        SteamRichPresence.Pump();
     }
 
     void OnApplicationQuit()

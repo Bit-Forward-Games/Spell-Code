@@ -769,12 +769,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         roundEndUIRectTransform.anchoredPosition = new Vector2(0f, 2000f);
         roundEndUI.SetActive(true);
         roundEndUIRectTransform.DOAnchorPos(new Vector2(roundEndUIRectTransform.anchoredPosition.x, 0), 0.3f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);
-            offlinePlayer[i].SetActive(false);
 
-            if (GameManager.Instance.IsRoundWinner(GameManager.Instance.players[i]))
+            PlayerController roundPlayer = GameManager.Instance.players[i];
+            bool isActivePlayer = roundPlayer != null && roundPlayer.isConnected;
+
+            // Only hide the "no player here" placeholder if this slot is genuinely occupied.
+            if (isActivePlayer)
+            {
+                offlinePlayer[i].SetActive(false);
+            }
+
+            if (isActivePlayer && GameManager.Instance.IsRoundWinner(roundPlayer))
             {
                 winnerPanel[i].gameObject.SetActive(true);
             }

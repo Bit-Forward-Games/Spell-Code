@@ -30,6 +30,9 @@ public abstract class NpcAI : MonoBehaviour
     private bool previousCode;
     private bool previousJump;
 
+    // Ticks since the last jump tap, so TapJump can enforce its refractory gap.
+    private int framesSinceJumpTap = int.MaxValue / 2;
+
     public abstract string BehaviorName { get; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -127,6 +130,107 @@ public abstract class NpcAI : MonoBehaviour
 
     #endregion
 
+    #region Terrain
+
+    protected StageDataSO Stage =>
+        GameManager.Instance != null ? GameManager.Instance.GetCurrentStageDataSO() : null;
+
+    /// <summary>
+    /// True when something walkable sits under worldX, no more than probeDepth below fromY. Reads
+    /// the stage's solid and platform AABBs straight off StageDataSO -- the same arrays
+    /// CheckStageDataSOCollision walks -- so there is no raycast and no physics dependency.
+    /// </summary>
+    protected bool HasGroundAt(float worldX, float fromY, float probeDepth = 96f)
+    {
+        StageDataSO stage = Stage;
+        if (stage == null)
+        {
+            return false;
+        }
+
+        // A little headroom above the query point, so standing exactly on a surface still counts.
+        float lowest = fromY - probeDepth;
+        float highest = fromY + 8f;
+
+        return HasSurfaceWithin(stage.solidCenter, stage.solidExtent, worldX, lowest, highest)
+            || HasSurfaceWithin(stage.platformCenter, stage.platformExtent, worldX, lowest, highest);
+    }
+
+    private static bool HasSurfaceWithin(Vector2[] centers, Vector2[] extents, float worldX, float lowest, float highest)
+    {
+        if (centers == null || extents == null)
+        {
+            return false;
+        }
+
+        int count = Mathf.Min(centers.Length, extents.Length);
+        for (int i = 0; i < count; i++)
+        {
+            // Extents are half-extents, matching how the collision pass reads them.
+            if (worldX < centers[i].x - extents[i].x || worldX > centers[i].x + extents[i].x)
+            {
+                continue;
+            }
+
+            float top = centers[i].y + extents[i].y;
+            if (top >= lowest && top <= highest)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when taking a step in this numpad direction keeps the owner on the stage: there is
+    /// ground to arrive on, and the step stays inside the stage borders. Vertical and neutral
+    /// directions are always safe, since they aren't a step.
+    /// </summary>
+    protected bool IsStepSafe(int numpadDirection, float lookAhead = 44f)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        // 2, 5 and 8 are the middle column: no horizontal movement to vet.
+        if (numpadDirection % 3 == 2)
+        {
+            return true;
+        }
+
+        float stepX = owner.position.X.ToFloat()
+            + (numpadDirection % 3 == 0 ? lookAhead : -lookAhead);
+
+        StageDataSO stage = Stage;
+        if (stage != null && stage.borderMin != stage.borderMax
+            && (stepX < stage.borderMin.x || stepX > stage.borderMax.x))
+        {
+            return false;
+        }
+
+        // The hazard being vetted is a fall, not an obstacle. A surface ABOVE the step is a step-up
+        // or a wall: harmless to walk into, and refusing it would freeze the bot in front of every
+        // raised ledge instead of letting it bump the wall and jump. So probe below, then again
+        // from higher up to catch anything standing at or above foot level.
+        float footY = owner.position.Y.ToFloat();
+        return HasGroundAt(stepX, footY) || HasGroundAt(stepX, footY + 96f);
+    }
+
+    /// <summary>True when there is nothing to land on directly below the owner.</summary>
+    protected bool OverAVoid(float probeDepth = 160f)
+    {
+        return owner != null
+            && !HasGroundAt(owner.position.X.ToFloat(), owner.position.Y.ToFloat(), probeDepth);
+    }
+
+    protected bool IsFalling => owner != null && owner.vSpd.ToFloat() < 0f;
+
+    protected bool CanJump => owner != null && owner.jumpCount > 0;
+
+    #endregion
+
     #region Intent
 
     /// <summary>Stand still: neutral direction, no buttons.</summary>
@@ -192,6 +296,25 @@ public abstract class NpcAI : MonoBehaviour
         intentCode = held;
     }
 
+    /// <summary>
+    /// Asks for a single jump. Use this rather than HoldJump for ordinary jumping: the owner only
+    /// jumps on the Pressed edge, so a behaviour that simply holds the button jumps once and then
+    /// never again, even after landing. This keeps the button released between taps and enforces a
+    /// refractory gap so a standing condition can't burn every air jump in three frames.
+    /// HoldJump is still the right call for shaping one jump's height, since releasing mid-rise
+    /// cuts it short.
+    /// </summary>
+    protected void TapJump(int minFramesBetweenTaps = 12)
+    {
+        intentUsed = true;
+        if (framesSinceJumpTap < minFramesBetweenTaps)
+        {
+            return;
+        }
+
+        intentJump = true;
+    }
+
     #endregion
 
     /// <summary>
@@ -221,6 +344,8 @@ public abstract class NpcAI : MonoBehaviour
         intentJump = false;
 
         NPCUpdate();
+
+        framesSinceJumpTap = intentJump ? 0 : Mathf.Min(framesSinceJumpTap + 1, int.MaxValue / 2);
 
         // A behaviour that never touched the intent API wrote npcInputSnapshot itself, the way the
         // training dummies always have. Leave their snapshot exactly as they left it.

@@ -4858,6 +4858,9 @@ public class GameManager : MonoBehaviour
         // alone: re-running InitCharacter is idempotent apart from a harmless second SpawnPlayer.
         bot.InitCharacter();
 
+        // InitCharacter is what picks startingSpell from the slot's pID, so this has to follow it.
+        GrantBotStartingSpell(bot);
+
         return bot;
     }
 
@@ -4867,8 +4870,7 @@ public class GameManager : MonoBehaviour
     /// nothing from that -- it can enter a twelve-direction code perfectly every time -- while still
     /// paying Punk's costs: cooldown becomes cooldown + codeLength * 30 frames, and the spell list
     /// caps at four actives and two passives. That makes Punk a genuine, diegetic handicap rather
-    /// than a fake reaction-time nerf, which is why phase 9 should hand it to Easy bots and leave
-    /// Synthesizer to the harder tiers.
+    /// than a fake reaction-time nerf
     /// </summary>
     public void SetBotCodeMode(PlayerController bot, bool punkMode)
     {
@@ -5698,7 +5700,22 @@ public class GameManager : MonoBehaviour
 
             player.isConnected = true;
             player.ResetPlayerForStartingSpellSelection();
+            GrantBotStartingSpell(player);
         }
+    }
+
+    /// <summary>
+    /// Hands a bot its starter outright. Everyone else picks one off a Gamba floppy in the MainMenu
+    /// lobby, ResetPlayerForStartingSpellSelection empties the list for exactly that reason
+    /// </summary>
+    private void GrantBotStartingSpell(PlayerController bot)
+    {
+        if (bot == null || !bot.isBot || bot.startingSpellAdded || string.IsNullOrEmpty(bot.startingSpell))
+        {
+            return;
+        }
+
+        bot.AddSpellToSpellList(bot.startingSpell);
     }
 
     /// <summary>

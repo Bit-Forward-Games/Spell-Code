@@ -51,8 +51,8 @@ public enum InputSource
 
 /// <summary>
 /// How hard a CPU opponent plays. Carried and selectable now so the join flow can be built and
-/// tested end to end, but inert until phase 9 wires the tiers to reaction delay, how readily the bot
-/// commits to a long code, and spell-choice quality. Lives beside InputSource because it describes
+/// tested end to end, but inert until how readily the bot commits to a long code, 
+/// and spell-choice quality. Lives beside InputSource because it describes
 /// the player slot rather than the manager that spawns it.
 /// </summary>
 public enum BotDifficulty

@@ -13,7 +13,7 @@ public abstract class NpcAI : MonoBehaviour
     /// <summary>
     /// How many frames this behaviour's view of the world is allowed to go stale. 0 re-perceives
     /// every frame, which is superhuman; larger values are the honest way to model a slower
-    /// opponent, because the bot acts on where things *were*. Phase 9 maps difficulty onto this.
+    /// opponent, because the bot acts on where things *were*.
     /// </summary>
     [NonSerialized] public int reactionFrames = 0;
 
@@ -231,6 +231,189 @@ public abstract class NpcAI : MonoBehaviour
 
     #endregion
 
+    #region Casting
+
+    private uint castCode;
+    private int castStepIndex;
+    private int castStepFrames;
+    private bool castOnNeutralPhase;
+    private bool casting;
+
+    protected bool IsCasting => casting;
+
+    /// <summary>
+    /// Frames to hold each half of a code step. One is enough, since the sim reads input every
+    /// frame, but two is cheap insurance and reads less like a machine.
+    /// </summary>
+    protected int castStepHoldFrames = 2;
+
+    /// <summary>
+    /// Starts entering a spell's code. Generic across every spell in the game with no per-spell
+    /// authoring, because spellInput already carries the whole sequence: bits 0-3 hold the length,
+    /// and each pair from bit 8 up is one direction.
+    /// </summary>
+    protected bool BeginCast(SpellData spell)
+    {
+        if (spell == null || spell.spellType != SpellType.Active || spell.cooldownCounter > 0)
+        {
+            return false;
+        }
+
+        return BeginCast(spell.spellInput);
+    }
+
+    /// <summary>A bare Code press and release, with no directions entered.</summary>
+    protected bool BeginBasicAttack() => BeginCast(0u);
+
+    protected bool BeginCast(uint spellInput)
+    {
+        if (owner == null || casting)
+        {
+            return false;
+        }
+
+        // Pressing Code while stood on a floppy picks the floppy up instead of opening code entry,
+        // so the press would be swallowed and the whole sequence would go in as movement.
+        if (owner.collidingWithFloppy)
+        {
+            return false;
+        }
+
+        castCode = spellInput;
+        castStepIndex = 0;
+        castStepFrames = 0;
+        castOnNeutralPhase = true;
+        casting = true;
+        return true;
+    }
+
+    protected void CancelCast()
+    {
+        casting = false;
+        castCode = 0;
+        castStepIndex = 0;
+        castStepFrames = 0;
+        castOnNeutralPhase = true;
+    }
+
+    /// <summary>
+    /// Emits one tick of an in-progress cast, returning false when there is nothing to emit.
+    ///
+    /// The sequence alternates neutral and direction. Neutral is not padding: a direction is only
+    /// recorded while the code is "primed", and neutral is what sets that bit. Alternating is also
+    /// what lets the same direction appear twice in a row, since a held direction matches the last
+    /// entry in the queue and is ignored.
+    /// </summary>
+    private bool AdvanceCast()
+    {
+        if (!casting || owner == null)
+        {
+            return false;
+        }
+
+        // Getting hit ends code entry, so drop the plan rather than spending frames finishing a
+        // code the owner is no longer in a state to enter.
+        if (owner.state == PlayerState.Hitstun || owner.state == PlayerState.Tech)
+        {
+            CancelCast();
+            return false;
+        }
+
+        HoldCode(true);
+
+        int length = (int)(castCode & 0xF);
+        if (castStepIndex >= length)
+        {
+            // Whole sequence is in. Hold a moment so the last direction settles, then release --
+            // release is what actually casts.
+            if (castStepFrames < castStepHoldFrames)
+            {
+                castStepFrames++;
+                Neutral();
+                return true;
+            }
+
+            HoldCode(false);
+            casting = false;
+            return true;
+        }
+
+        if (castOnNeutralPhase)
+        {
+            Neutral();
+        }
+        else
+        {
+            SetDirection(CodeStepToNumpad(castCode, castStepIndex));
+        }
+
+        castStepFrames++;
+        if (castStepFrames >= castStepHoldFrames)
+        {
+            castStepFrames = 0;
+            if (!castOnNeutralPhase)
+            {
+                castStepIndex++;
+            }
+
+            castOnNeutralPhase = !castOnNeutralPhase;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Unpacks one step of a code into the numpad direction that produces it. Assumes absolute
+    /// directions: bots are set to relativeInputs = false at spawn, which is exactly so this
+    /// mapping doesn't have to track the owner's facing mid-code.
+    /// </summary>
+    private static int CodeStepToNumpad(uint code, int stepIndex)
+    {
+        byte bits = (byte)((code >> (8 + (stepIndex * 2))) & 0b11);
+        switch (bits)
+        {
+            case 0b00: return 2;
+            case 0b01: return 6;
+            case 0b10: return 4;
+            default: return 8;
+        }
+    }
+
+    /// <summary>
+    /// The shortest ready active spell, or null. Shortest first because length is the commitment:
+    /// it costs more frames to enter and CodeRelease recovery grows with it.
+    /// </summary>
+    protected SpellData ShortestReadySpell()
+    {
+        if (owner == null || owner.spellList == null)
+        {
+            return null;
+        }
+
+        SpellData shortest = null;
+        int shortestLength = int.MaxValue;
+
+        for (int i = 0; i < owner.spellList.Count; i++)
+        {
+            SpellData spell = owner.spellList[i];
+            if (spell == null || spell.spellType != SpellType.Active || spell.cooldownCounter > 0)
+            {
+                continue;
+            }
+
+            int length = PlayerController.GetSpellInputLength(spell);
+            if (length > 0 && length < shortestLength)
+            {
+                shortestLength = length;
+                shortest = spell;
+            }
+        }
+
+        return shortest;
+    }
+
+    #endregion
+
     #region Intent
 
     /// <summary>Stand still: neutral direction, no buttons.</summary>
@@ -343,7 +526,18 @@ public abstract class NpcAI : MonoBehaviour
         intentCode = false;
         intentJump = false;
 
-        NPCUpdate();
+        // A cast in progress owns the inputs outright. Running the behaviour alongside it would let
+        // a movement direction overwrite a code step and silently corrupt the sequence into either
+        // the wrong spell or none at all.
+        if (!AdvanceCast())
+        {
+            NPCUpdate();
+
+            // If the behaviour started a cast just now, emit its opening frame here. Without this
+            // the tick that begins a cast sets no intent at all, and the base would leave last
+            // tick's snapshot standing -- a stale frame of movement right as the code opens.
+            AdvanceCast();
+        }
 
         framesSinceJumpTap = intentJump ? 0 : Mathf.Min(framesSinceJumpTap + 1, int.MaxValue / 2);
 

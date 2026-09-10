@@ -526,6 +526,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (ownsLocalUiControl)
         {
             gamemodesMenuPlayerIndex = -1;
+
+            // ...and not even then, if the pause menu is up. While paused, Pause owns timeScale and
+            // the UI device scoping. A prompt closing underneath it released both: the game carried
+            // on running with the pause menu still drawn over it
+            if (pause != null && pause.paused)
+            {
+                return;
+            }
+
             pause?.RestoreScopedUiInputDevices();
             Time.timeScale = 1f;
         }

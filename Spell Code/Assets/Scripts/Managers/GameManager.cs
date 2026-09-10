@@ -706,6 +706,14 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Also from Update, and for the same reason: pausing here would otherwise run inside the
+        // input system's device callback.
+        if (offlineGamepadLost)
+        {
+            offlineGamepadLost = false;
+            TryAutoPauseForLostGamepad();
+        }
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -1188,6 +1196,11 @@ public class GameManager : MonoBehaviour
 
     // Set by OnInputDeviceChanged, consumed in Update.
     private bool onlineInputDevicesDirty;
+
+    // Set by OnInputDeviceChanged when a gamepad vanishes during an offline match, consumed in
+    // Update. Same deferral reason as onlineInputDevicesDirty: the callback fires from inside the
+    // input system's own update, and pausing re-scopes the UI device list and moves timeScale.
+    private bool offlineGamepadLost;
 
     private void EnsureOnlineLocalPlayerInputActive()
     {
@@ -6687,24 +6700,106 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void OnInputDeviceChanged(InputDevice device, InputDeviceChange change)
     {
-        if (!isOnlineMatchActive)
-        {
-            return;
-        }
-
-        if (change != InputDeviceChange.Added
-            && change != InputDeviceChange.Reconnected
-            && change != InputDeviceChange.Enabled)
-        {
-            return;
-        }
-
         if (!InputDeviceManager.IsValidInput(device))
         {
             return;
         }
 
-        onlineInputDevicesDirty = true;
+        if (isOnlineMatchActive)
+        {
+            if (change == InputDeviceChange.Added
+                || change == InputDeviceChange.Reconnected
+                || change == InputDeviceChange.Enabled)
+            {
+                onlineInputDevicesDirty = true;
+            }
+
+            return;
+        }
+
+        // Offline: a pad dying mid-match leaves whoever was holding it unable to move OR pause, so
+        // open the pause menu for them. Gamepads only -- losing the keyboard is not the case this is
+        // for, and Removed/Disconnected/Disabled all mean the same thing to a player mid-round.
+        if (device is Gamepad
+            && (change == InputDeviceChange.Removed
+                || change == InputDeviceChange.Disconnected
+                || change == InputDeviceChange.Disabled))
+        {
+            offlineGamepadLost = true;
+        }
+    }
+
+    /// <summary>
+    /// Opens the pause menu after a gamepad drops out of an offline match.
+    /// </summary>
+    private void TryAutoPauseForLostGamepad()
+    {
+        if (isOnlineMatchActive || !isRunning)
+        {
+            return;
+        }
+
+        Pause pauseMenu = tempUI != null ? tempUI.GetComponent<Pause>() : null;
+        if (pauseMenu == null || pauseMenu.paused)
+        {
+            return;
+        }
+
+        // Scope the menu to a player who still HAS a device. Pausing as the player who just lost
+        // their pad would leave TryGetPausePlayerDevices with nothing to scope to, and it bails out
+        // without scoping at all, leaving the menu on whatever device list happened to be set.
+        int driverIndex = FindPlayerIndexWithUsableDevice();
+        if (driverIndex < 0)
+        {
+            return;
+        }
+
+        // CanOpenPauseMenu reads playerPauseIndex, so it has to see the index we intend to use.
+        // Restored if the gate refuses, rather than leaving the pause menu pointing somewhere new.
+        int previousPauseIndex = pauseMenu.playerPauseIndex;
+        pauseMenu.playerPauseIndex = driverIndex;
+
+        if (!pauseMenu.CanOpenPauseMenu())
+        {
+            pauseMenu.playerPauseIndex = previousPauseIndex;
+            return;
+        }
+
+        pauseMenu.Pausing();
+    }
+
+    /// <summary>
+    /// First connected player still holding a usable device. InputDevice.added is the check that
+    /// matters: a removed pad is still referenced by the PlayerInput that was paired to it, so
+    /// IsValidInput alone would happily hand back the controller that just got unplugged.
+    /// </summary>
+    private int FindPlayerIndexWithUsableDevice()
+    {
+        for (int i = 0; i < playerCount && i < players.Length; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null)
+            {
+                continue;
+            }
+
+            PlayerInput playerInput = player.GetComponent<PlayerInput>();
+            if (playerInput == null)
+            {
+                continue;
+            }
+
+            for (int d = 0; d < playerInput.devices.Count; d++)
+            {
+                InputDevice device = playerInput.devices[d];
+                if (device != null && device.added && InputDeviceManager.IsValidInput(device))
+                {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>

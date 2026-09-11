@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// The bot's neutral game: hold a spacing band against the nearest opponent, jump what needs
@@ -33,6 +34,14 @@ public class ChaseAI : NpcAI
     // Breathing room between attempts, so a ready spell doesn't get thrown every frame it's up.
     private const int FramesBetweenAttempts = 24;
 
+    // How close to stand to the lobby gate before casting at it, so even the shortest-range
+    // starting spell connects rather than dying in mid-air.
+    private const float GateCastDistance = 60f;
+
+    // The go door counts a player as inside within 36 units; stop a bit tighter than that so a
+    // bot settling into place doesn't drift back out and un-ready everyone.
+    private const float DoorArrivalRadius = 24f;
+
     private int framesSinceAttempt;
 
     public override string BehaviorName => "Chase";
@@ -40,6 +49,24 @@ public class ChaseAI : NpcAI
     public override void NPCUpdate()
     {
         framesSinceAttempt++;
+
+        // In the lobby the spell gate walls this slot in until its owner shoots it, so nothing else
+        // the bot might want is reachable until it's down. Handle it before anything else.
+        SpellCode_Gate gate = OwnGate();
+        if (gate != null && !gate.isOpen)
+        {
+            BreakOwnGate(gate);
+            return;
+        }
+
+        // Lobby and shop are staging rooms, not fights: the match only starts once every player is
+        // stood inside the go door, so head there and wait rather than chasing people around.
+        GO_Door goDoor = InStagingScene() ? GameManager.Instance?.goDoorPrefab : null;
+        if (goDoor != null)
+        {
+            MoveToDoor(goDoor);
+            return;
+        }
 
         if (!HasTarget)
         {
@@ -80,6 +107,99 @@ public class ChaseAI : NpcAI
     }
 
     /// <summary>
+    /// True in the scenes where the go door decides when the match starts.
+    /// goDoorPrefab hangs off the persistent GameManager, so it can't be trusted to go
+    /// null in an arena, and a bot walking to a door mid-fight would be a lot worse than this.
+    /// </summary>
+    private static bool InStagingScene()
+    {
+        string scene = SceneManager.GetActiveScene().name;
+        return scene == "MainMenu" || scene == "Shop";
+    }
+
+    /// <summary>
+    /// Walks into the go door and stands there. GO_Door.CheckAllPlayersReady requires every
+    /// connected player to be inside its radius AND grounded, so arriving means standing still.
+    /// </summary>
+    private void MoveToDoor(GO_Door door)
+    {
+        if (owner == null)
+        {
+            Neutral();
+            return;
+        }
+
+        float offsetX = door.transform.position.x - owner.position.X.ToFloat();
+        float offsetY = door.transform.position.y - owner.position.Y.ToFloat();
+        bool alignedX = Mathf.Abs(offsetX) <= DoorArrivalRadius;
+
+        // The door measures both axes, so being level with it matters as much as being beside it.
+        if (alignedX && Mathf.Abs(offsetY) <= DoorArrivalRadius)
+        {
+            Neutral();
+            return;
+        }
+
+        // TravelTowardX rather than a bare SetDirection: the route to the door has bumps to hop and
+        // lips the ledge probe won't vouch for, and plain ledge safety turns both into a dead stop.
+        TravelTowardX(door.transform.position.x, DoorArrivalRadius);
+
+        // Lined up underneath a door that sits higher up: climb to it.
+        if (alignedX && IsGrounded && offsetY > ClimbThreshold && CanJump)
+        {
+            TapJump();
+        }
+    }
+
+    /// <summary>
+    /// Walks up to this bot's own lobby gate, faces it, and casts at it until it breaks.
+    ///
+    /// It has to be a spell, not a basic attack: the gate deletes any incoming projectile whose
+    /// ownerSpell is null, so basic attacks bounce off it forever. The Gamba machine would also
+    /// block the break while it's active, but it switches itself off as soon as its owner holds a
+    /// spell, and bots are handed their starter at spawn -- so by the time one gets here it's off.
+    /// </summary>
+    private void BreakOwnGate(SpellCode_Gate gate)
+    {
+        if (owner == null)
+        {
+            Neutral();
+            return;
+        }
+
+        float offset = gate.transform.position.x - owner.position.X.ToFloat();
+        bool gateIsRight = offset > 0f;
+        int toward = gateIsRight ? 6 : 4;
+
+        // Face it first -- a spell projectile comes out in whichever direction the owner faces --
+        // and close in if a short-range spell would fall short.
+        if (owner.facingRight != gateIsRight)
+        {
+            SetDirection(toward);
+            return;
+        }
+
+        if (Mathf.Abs(offset) > GateCastDistance)
+        {
+            TravelTowardX(gate.transform.position.x, GateCastDistance);
+            return;
+        }
+
+        Neutral();
+
+        if (!IsGrounded || framesSinceAttempt < FramesBetweenAttempts)
+        {
+            return;
+        }
+
+        SpellData spell = AnyReadySpell();
+        if (spell != null && BeginCast(spell))
+        {
+            framesSinceAttempt = 0;
+        }
+    }
+
+    /// <summary>
     /// Decides whether to start a code this tick, and starts it if so. Returns true when a cast
     /// began, at which point the base class drives the inputs until the sequence finishes.
     /// </summary>
@@ -106,7 +226,7 @@ public class ChaseAI : NpcAI
             return false;
         }
 
-        SpellData spell = ShortestReadySpell();
+        SpellData spell = ChooseSpell();
         if (spell != null && HasRoomFor(spell) && BeginCast(spell))
         {
             framesSinceAttempt = 0;

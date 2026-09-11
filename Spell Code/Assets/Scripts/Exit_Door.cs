@@ -69,13 +69,6 @@ public class Exit_Door : MonoBehaviour
                 continue;
             }
 
-            // a bot cannot walk yet, and this loop demands every
-            // connected player physically stand in the door, so an idle bot would stall the forever
-            if (player.isBot)
-            {
-                continue;
-            }
-
             if (!IsPlayerInsideDoor(player))
             {
                 //player is out of range

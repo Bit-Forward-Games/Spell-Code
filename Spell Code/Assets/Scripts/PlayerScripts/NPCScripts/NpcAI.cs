@@ -33,6 +33,10 @@ public abstract class NpcAI : MonoBehaviour
     // Ticks since the last jump tap, so TapJump can enforce its refractory gap.
     private int framesSinceJumpTap = int.MaxValue / 2;
 
+    // Horizontal progress tracking, for IsStuck.
+    private float lastTrackedX;
+    private int framesWithoutProgress;
+
     public abstract string BehaviorName { get; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -229,6 +233,127 @@ public abstract class NpcAI : MonoBehaviour
 
     protected bool CanJump => owner != null && owner.jumpCount > 0;
 
+    /// <summary>
+    /// True when the owner is pressed against something in this direction. The collision pass
+    /// resolves along the smallest penetration axis, so even a shin-high bump blocks horizontally
+    /// and sets this rather than letting the owner step up onto it.
+    /// </summary>
+    protected bool BlockedTowards(int numpadDirection)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        if (numpadDirection % 3 == 0)
+        {
+            return owner.touchingRightWall;
+        }
+
+        if (numpadDirection % 3 == 1)
+        {
+            return owner.touchingLeftWall;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when there is somewhere to land further along in this direction, past whatever the next
+    /// step falls into. This is what separates a gap worth jumping from the edge of the world.
+    /// </summary>
+    protected bool HasLandingBeyond(int numpadDirection, float from = 44f, float to = 150f, float stride = 18f)
+    {
+        if (owner == null || numpadDirection % 3 == 2)
+        {
+            return false;
+        }
+
+        float sign = numpadDirection % 3 == 0 ? 1f : -1f;
+        float footY = owner.position.Y.ToFloat();
+
+        for (float distance = from; distance <= to; distance += stride)
+        {
+            float probeX = owner.position.X.ToFloat() + (sign * distance);
+            if (HasGroundAt(probeX, footY) || HasGroundAt(probeX, footY + 96f))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when the owner has been asking to move but hasn't actually gone anywhere. A catch-all
+    /// for geometry the probes read as walkable and the collision pass disagrees about.
+    /// </summary>
+    protected bool IsStuck(int stuckFrames = 20) => framesWithoutProgress >= stuckFrames;
+
+    /// <summary>
+    /// Walks toward a world X, jumping over what can be jumped and refusing only a genuine drop.
+    /// Use this rather than SetDirection whenever the bot is trying to *get somewhere*: plain
+    /// ledge safety on its own turns every bump and gap into a permanent stop.
+    /// </summary>
+    protected void TravelTowardX(float worldX, float arriveWithin = 0f)
+    {
+        if (owner == null)
+        {
+            Neutral();
+            return;
+        }
+
+        float offset = worldX - owner.position.X.ToFloat();
+        if (Mathf.Abs(offset) <= arriveWithin)
+        {
+            Neutral();
+            return;
+        }
+
+        int toward = offset > 0f ? 6 : 4;
+
+        // Airborne, every step is fine -- that's how the bot crosses anything.
+        bool stepSafe = !IsGrounded || IsStepSafe(toward);
+        if (!stepSafe && !HasLandingBeyond(toward))
+        {
+            // Nothing to land on out there. This one really is the edge.
+            Neutral();
+            return;
+        }
+
+        SetDirection(toward);
+
+        if (IsGrounded && CanJump && (BlockedTowards(toward) || !stepSafe || IsStuck()))
+        {
+            TapJump();
+        }
+    }
+
+    /// <summary>
+    /// This bot's own lobby gate, or null when there isn't one in the current scene. A gate only
+    /// ever breaks to a projectile fired by its own owner, so there is no point looking at anyone
+    /// else's.
+    /// </summary>
+    protected SpellCode_Gate OwnGate()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || owner == null || gameManager.gates == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < gameManager.gates.Length; i++)
+        {
+            SpellCode_Gate gate = gameManager.gates[i];
+            if (gate != null && gate.ownerPID == owner.pID)
+            {
+                return gate;
+            }
+        }
+
+        return null;
+    }
+
     #endregion
 
     #region Casting
@@ -380,18 +505,47 @@ public abstract class NpcAI : MonoBehaviour
     }
 
     /// <summary>
-    /// The shortest ready active spell, or null. Shortest first because length is the commitment:
-    /// it costs more frames to enter and CodeRelease recovery grows with it.
+    /// Picks the best ready active spell for the situation, or null when none of them fit it.
+    /// Every ready spell is scored on how well its range band matches the actual gap, then adjusted
+    /// for what the spell is for and whether the target is off the ground.
     /// </summary>
-    protected SpellData ShortestReadySpell()
+    /// <summary>
+    /// Any ready active spell, for when the situation doesn't call for a judgement -- shooting an
+    /// obstacle, say, where the only thing that matters is that a spell projectile comes out.
+    /// </summary>
+    protected SpellData AnyReadySpell()
     {
         if (owner == null || owner.spellList == null)
         {
             return null;
         }
 
-        SpellData shortest = null;
-        int shortestLength = int.MaxValue;
+        for (int i = 0; i < owner.spellList.Count; i++)
+        {
+            SpellData spell = owner.spellList[i];
+            if (spell != null
+                && spell.spellType == SpellType.Active
+                && spell.cooldownCounter <= 0
+                && PlayerController.GetSpellInputLength(spell) > 0)
+            {
+                return spell;
+            }
+        }
+
+        return null;
+    }
+
+    protected SpellData ChooseSpell()
+    {
+        if (owner == null || owner.spellList == null || !HasTarget)
+        {
+            return null;
+        }
+
+        bool targetAirborne = !TargetIsGrounded && TargetOffsetY > 32f;
+
+        SpellData best = null;
+        float bestScore = 0f;
 
         for (int i = 0; i < owner.spellList.Count; i++)
         {
@@ -401,15 +555,74 @@ public abstract class NpcAI : MonoBehaviour
                 continue;
             }
 
-            int length = PlayerController.GetSpellInputLength(spell);
-            if (length > 0 && length < shortestLength)
+            if (PlayerController.GetSpellInputLength(spell) <= 0)
             {
-                shortestLength = length;
-                shortest = spell;
+                continue;
+            }
+
+            float score = ScoreSpell(spell, TargetDistanceX, targetAirborne);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = spell;
             }
         }
 
-        return shortest;
+        return best;
+    }
+
+    private static float ScoreSpell(SpellData spell, float distance, bool targetAirborne)
+    {
+        SpellTactics.Profile profile = SpellTactics.For(spell);
+
+        float ideal = SpellTactics.IdealDistance(profile.Range);
+        float tolerance = SpellTactics.BandTolerance(profile.Range);
+        float missBy = Mathf.Abs(distance - ideal);
+
+        // Outside its band entirely: wrong tool, whatever else it has going for it.
+        if (missBy > tolerance)
+        {
+            return 0f;
+        }
+
+        // 1 dead centre, tapering to 0 at the edge of the band.
+        float score = 1f - (missBy / tolerance);
+
+        switch (profile.Role)
+        {
+            case SpellRole.Zone:
+                // Worth laying while they are still on their way in, not once they have arrived.
+                if (distance < ideal * 0.6f)
+                {
+                    return 0f;
+                }
+                score *= 0.8f;
+                break;
+
+            case SpellRole.Enhance:
+                // A buff costs recovery and does no damage, so it needs real space to be worth it.
+                if (distance < SpellTactics.IdealDistance(SpellRange.Medium))
+                {
+                    return 0f;
+                }
+                score *= 0.9f;
+                break;
+
+            case SpellRole.Utility:
+                // Defensive and positional: wanted in reaction to something, and nothing yet asks
+                // for one. Never opened with rather than thrown out at random.
+                return 0f;
+        }
+
+        if (targetAirborne)
+        {
+            score += profile.HitsAbove ? 0.6f : -0.5f;
+        }
+
+        // Break ties toward shorter codes: fewer frames to enter, less recovery to sit through.
+        score -= PlayerController.GetSpellInputLength(spell) * 0.03f;
+
+        return Mathf.Max(score, 0f);
     }
 
     #endregion
@@ -540,6 +753,7 @@ public abstract class NpcAI : MonoBehaviour
         }
 
         framesSinceJumpTap = intentJump ? 0 : Mathf.Min(framesSinceJumpTap + 1, int.MaxValue / 2);
+        UpdateStuckTracking();
 
         // A behaviour that never touched the intent API wrote npcInputSnapshot itself, the way the
         // training dummies always have. Leave their snapshot exactly as they left it.
@@ -557,6 +771,32 @@ public abstract class NpcAI : MonoBehaviour
 
         previousCode = intentCode;
         previousJump = intentJump;
+    }
+
+    /// <summary>
+    /// Counts ticks where the bot asked to move and the owner didn't actually shift. Position is a
+    /// frame behind here -- PlayerUpdate runs after GetInputs -- which is fine for spotting a stall.
+    /// </summary>
+    private void UpdateStuckTracking()
+    {
+        if (owner == null)
+        {
+            return;
+        }
+
+        float currentX = owner.position.X.ToFloat();
+        bool askedToMove = intentUsed && intentDirection % 3 != 2;
+
+        if (askedToMove && Mathf.Abs(currentX - lastTrackedX) < 0.35f)
+        {
+            framesWithoutProgress++;
+        }
+        else
+        {
+            framesWithoutProgress = 0;
+        }
+
+        lastTrackedX = currentX;
     }
 
     private static ButtonState ResolveEdge(bool previous, bool current)

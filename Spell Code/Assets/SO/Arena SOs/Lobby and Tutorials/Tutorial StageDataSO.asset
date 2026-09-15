@@ -107,12 +107,12 @@ MonoBehaviour:
   - {x: 1479, y: -969}
   - {x: 1351, y: -969}
   portalBs:
-  - {x: 1956, y: 647}
   - {x: 1223, y: 22}
-  borderMin: {x: 0, y: 0, z: 0}
-  borderMax: {x: 0, y: 0, z: 0}
-  camBorderMin: {x: 0, y: 0, z: 0}
-  camBorderMax: {x: 0, y: 0, z: 0}
+  - {x: 1956, y: 647}
+  borderMin: {x: -500, y: -2000, z: 0}
+  borderMax: {x: 6000, y: 6000, z: 0}
+  camBorderMin: {x: -500, y: -2000, z: 0}
+  camBorderMax: {x: 6000, y: 6000, z: 0}
   borderType: 0
   stageType: 3
   dynamicCamera: 1

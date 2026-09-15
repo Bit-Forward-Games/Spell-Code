@@ -356,6 +356,68 @@ public abstract class NpcAI : MonoBehaviour
 
     #endregion
 
+    #region Shopping
+
+    private const int FloppyScanInterval = 15;
+
+    private FloppyPickup cachedFloppy;
+    private int framesUntilFloppyScan;
+
+    /// <summary>True while the owner can still take another spell.</summary>
+    protected bool HasSpellRoom => owner != null && owner.spellList != null && owner.spellList.Count < 6;
+
+    /// <summary>This bot's own Gamba machine, or null when there isn't one in this scene.</summary>
+    protected GambaMachine OwnGamba()
+    {
+        GameManager gameManager = GameManager.Instance;
+        return gameManager != null && owner != null ? gameManager.GetGambaForPID(owner.pID) : null;
+    }
+
+    /// <summary>
+    /// The nearest floppy this bot is allowed to take, or null. Floppies are per-player, so anyone
+    /// else's are invisible here. Scanned on an interval rather than every tick, and re-checked for
+    /// null in between because a disk vanishes the moment it's collected.
+    /// </summary>
+    protected FloppyPickup NearestOwnFloppy()
+    {
+        if (owner == null)
+        {
+            return null;
+        }
+
+        if (framesUntilFloppyScan > 0)
+        {
+            framesUntilFloppyScan--;
+            return cachedFloppy != null ? cachedFloppy : null;
+        }
+
+        framesUntilFloppyScan = FloppyScanInterval;
+        cachedFloppy = null;
+
+        FloppyPickup[] floppies = FindObjectsByType<FloppyPickup>(FindObjectsSortMode.None);
+        float nearest = float.MaxValue;
+
+        for (int i = 0; i < floppies.Length; i++)
+        {
+            FloppyPickup floppy = floppies[i];
+            if (floppy == null || floppy.ownerPID != owner.pID)
+            {
+                continue;
+            }
+
+            float distance = Mathf.Abs(floppy.transform.position.x - owner.position.X.ToFloat());
+            if (distance < nearest)
+            {
+                nearest = distance;
+                cachedFloppy = floppy;
+            }
+        }
+
+        return cachedFloppy;
+    }
+
+    #endregion
+
     #region Casting
 
     private uint castCode;
@@ -371,6 +433,10 @@ public abstract class NpcAI : MonoBehaviour
     /// frame, but two is cheap insurance and reads less like a machine.
     /// </summary>
     protected int castStepHoldFrames = 2;
+
+    // Hold length for the cast actually running, so one action can ask for a shorter press than the
+    // default without permanently retuning code entry.
+    private int activeCastHoldFrames = 2;
 
     /// <summary>
     /// Starts entering a spell's code. Generic across every spell in the game with no per-spell
@@ -390,7 +456,18 @@ public abstract class NpcAI : MonoBehaviour
     /// <summary>A bare Code press and release, with no directions entered.</summary>
     protected bool BeginBasicAttack() => BeginCast(0u);
 
-    protected bool BeginCast(uint spellInput)
+    /// <summary>
+    /// Taps Code to take the floppy the owner is stood on. Deliberately allowed on a floppy, where
+    /// BeginCast normally refuses: here the press being swallowed as a pickup is the point.
+    ///
+    /// Held for a single frame rather than the usual two. The disk collects on the RELEASE edge and
+    /// accepts any hold under 30 frames, including none at all, so the shortest possible press
+    /// gives the best chance of the release landing while the bot is still inside the disk's small
+    /// pickup radius, which matters when it has to jump to reach one.
+    /// </summary>
+    protected bool BeginFloppyPickup() => BeginCast(0u, allowOnFloppy: true, holdFrames: 1);
+
+    protected bool BeginCast(uint spellInput, bool allowOnFloppy = false, int holdFrames = 0)
     {
         if (owner == null || casting)
         {
@@ -398,8 +475,9 @@ public abstract class NpcAI : MonoBehaviour
         }
 
         // Pressing Code while stood on a floppy picks the floppy up instead of opening code entry,
-        // so the press would be swallowed and the whole sequence would go in as movement.
-        if (owner.collidingWithFloppy)
+        // so the press would be swallowed and the whole sequence would go in as movement. The one
+        // caller that *wants* that swallowing opts in.
+        if (owner.collidingWithFloppy && !allowOnFloppy)
         {
             return false;
         }
@@ -408,6 +486,7 @@ public abstract class NpcAI : MonoBehaviour
         castStepIndex = 0;
         castStepFrames = 0;
         castOnNeutralPhase = true;
+        activeCastHoldFrames = holdFrames > 0 ? holdFrames : castStepHoldFrames;
         casting = true;
         return true;
     }
@@ -451,7 +530,7 @@ public abstract class NpcAI : MonoBehaviour
         {
             // Whole sequence is in. Hold a moment so the last direction settles, then release --
             // release is what actually casts.
-            if (castStepFrames < castStepHoldFrames)
+            if (castStepFrames < activeCastHoldFrames)
             {
                 castStepFrames++;
                 Neutral();
@@ -473,7 +552,7 @@ public abstract class NpcAI : MonoBehaviour
         }
 
         castStepFrames++;
-        if (castStepFrames >= castStepHoldFrames)
+        if (castStepFrames >= activeCastHoldFrames)
         {
             castStepFrames = 0;
             if (!castOnNeutralPhase)

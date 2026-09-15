@@ -3656,6 +3656,29 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
     }
 
+    /// <summary>
+    /// The Gamba machine belonging to a pID, or null. Goes through the cached lookup rather than
+    /// letting callers scan the scene for themselves.
+    /// </summary>
+    public GambaMachine GetGambaForPID(int pID)
+    {
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            if (gambaGO == null)
+            {
+                continue;
+            }
+
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba != null && gamba.ownerPID == pID)
+            {
+                return gamba;
+            }
+        }
+
+        return null;
+    }
+
     private List<GameObject> GetValidGambaObjects(bool refreshIfNeeded = false)
     {
         if (gambas == null)
@@ -4858,9 +4881,8 @@ public class GameManager : MonoBehaviour
         // alone: re-running InitCharacter is idempotent apart from a harmless second SpawnPlayer.
         bot.InitCharacter();
 
-        // InitCharacter is what picks startingSpell from the slot's pID, so this has to follow it.
-        GrantBotStartingSpell(bot);
-
+        // Deliberately spawned with an empty spell list: bots take their starter off their own Gamba
+        // in the lobby now, the same way a player does.
         return bot;
     }
 
@@ -5700,22 +5722,7 @@ public class GameManager : MonoBehaviour
 
             player.isConnected = true;
             player.ResetPlayerForStartingSpellSelection();
-            GrantBotStartingSpell(player);
         }
-    }
-
-    /// <summary>
-    /// Hands a bot its starter outright. Everyone else picks one off a Gamba floppy in the MainMenu
-    /// lobby, ResetPlayerForStartingSpellSelection empties the list for exactly that reason
-    /// </summary>
-    private void GrantBotStartingSpell(PlayerController bot)
-    {
-        if (bot == null || !bot.isBot || bot.startingSpellAdded || string.IsNullOrEmpty(bot.startingSpell))
-        {
-            return;
-        }
-
-        bot.AddSpellToSpellList(bot.startingSpell);
     }
 
     /// <summary>

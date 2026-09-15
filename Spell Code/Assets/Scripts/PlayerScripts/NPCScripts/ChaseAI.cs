@@ -42,6 +42,9 @@ public class ChaseAI : NpcAI
     // bot settling into place doesn't drift back out and un-ready everyone.
     private const float DoorArrivalRadius = 24f;
 
+    // A floppy only registers an overlapping player within 18 units, so stand well inside that.
+    private const float FloppyReachRadius = 12f;
+
     private int framesSinceAttempt;
 
     public override string BehaviorName => "Chase";
@@ -50,8 +53,17 @@ public class ChaseAI : NpcAI
     {
         framesSinceAttempt++;
 
-        // In the lobby the spell gate walls this slot in until its owner shoots it, so nothing else
-        // the bot might want is reachable until it's down. Handle it before anything else.
+        bool staging = InStagingScene();
+
+        // Shop first, and specifically before the gate: the gate only breaks to a spell projectile,
+        // so a bot with an empty spell list has nothing to break it with and would stand there forever. 
+        if (staging && HasSpellRoom && TryShop())
+        {
+            return;
+        }
+
+        // The lobby gate walls this slot in until its owner shoots it, so nothing past it is
+        // reachable until it's down.
         SpellCode_Gate gate = OwnGate();
         if (gate != null && !gate.isOpen)
         {
@@ -61,7 +73,7 @@ public class ChaseAI : NpcAI
 
         // Lobby and shop are staging rooms, not fights: the match only starts once every player is
         // stood inside the go door, so head there and wait rather than chasing people around.
-        GO_Door goDoor = InStagingScene() ? GameManager.Instance?.goDoorPrefab : null;
+        GO_Door goDoor = staging ? GameManager.Instance?.goDoorPrefab : null;
         if (goDoor != null)
         {
             MoveToDoor(goDoor);
@@ -115,6 +127,92 @@ public class ChaseAI : NpcAI
     {
         string scene = SceneManager.GetActiveScene().name;
         return scene == "MainMenu" || scene == "Shop";
+    }
+
+    /// <summary>
+    /// Collects a spell if there's one going. Returns true when the bot is busy shopping and the
+    /// caller should leave it alone this tick.
+    ///
+    /// Two different hits are needed here, and they are not interchangeable: the Gamba only responds
+    /// to the owner's BASIC attack (ProcessPlayerBasicAttackCollision), while the lobby gate only
+    /// breaks to a SPELL projectile. Swapping them silently does nothing at all.
+    /// </summary>
+    private bool TryShop()
+    {
+        FloppyPickup floppy = NearestOwnFloppy();
+        if (floppy != null)
+        {
+            CollectFloppy(floppy);
+            return true;
+        }
+
+        // No disks out: knock the Gamba to deal some. It re-arms on its own every 60 frames, up to
+        // three times, so there is no need to track spins here.
+        GambaMachine gamba = OwnGamba();
+        if (gamba == null || !gamba.isActive)
+        {
+            return false;
+        }
+
+        float offset = gamba.transform.position.x - owner.position.X.ToFloat();
+        bool gambaIsRight = offset > 0f;
+
+        if (owner.facingRight != gambaIsRight)
+        {
+            SetDirection(gambaIsRight ? 6 : 4);
+            return true;
+        }
+
+        if (Mathf.Abs(offset) > GateCastDistance)
+        {
+            TravelTowardX(gamba.transform.position.x, GateCastDistance);
+            return true;
+        }
+
+        Neutral();
+        if (IsGrounded && framesSinceAttempt >= FramesBetweenAttempts && BeginBasicAttack())
+        {
+            framesSinceAttempt = 0;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Walks onto a floppy and taps Code to take it. The pickup radius is 18, so this has to stand
+    /// much closer than the door does.
+    /// </summary>
+    private void CollectFloppy(FloppyPickup floppy)
+    {
+        float offsetX = floppy.transform.position.x - owner.position.X.ToFloat();
+        float offsetY = floppy.transform.position.y - owner.position.Y.ToFloat();
+
+        // Line up under it first.
+        if (Mathf.Abs(offsetX) > FloppyReachRadius)
+        {
+            TravelTowardX(floppy.transform.position.x, FloppyReachRadius);
+            return;
+        }
+
+        Neutral();
+
+        // collidingWithFloppy is the same 2D radius check the disk itself runs, so trust it rather
+        // than re-deriving the answer. Until it says yes, the bot is not actually on the disk --
+        // and a disk hanging even half a body above the floor is out of reach from the ground,
+        // because that radius is only 18 and measures BOTH axes.
+        if (!owner.collidingWithFloppy)
+        {
+            if (IsGrounded && offsetY > FloppyReachRadius && CanJump)
+            {
+                TapJump();
+            }
+            return;
+        }
+
+        if (framesSinceAttempt >= FramesBetweenAttempts && BeginFloppyPickup())
+        {
+            framesSinceAttempt = 0;
+        }
     }
 
     /// <summary>

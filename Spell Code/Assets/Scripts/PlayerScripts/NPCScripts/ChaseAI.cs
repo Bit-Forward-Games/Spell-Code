@@ -47,6 +47,73 @@ public class ChaseAI : NpcAI
 
     private int framesSinceAttempt;
 
+    // How hard a fat bounty pulls a RAM Rush bot off the nearest opponent, per point of bounty
+    // against one unit of distance. Bounties run to the hundreds, so this is deliberately small.
+    private const float BountyWeight = 0.25f;
+
+    // How hard a nearly-eliminated opponent pulls, per stock they're down.
+    private const float StockWeight = 60f;
+
+    /// <summary>
+    /// True when losing one more exchange ends this bot's match. Only Elimination has that cliff --
+    /// RAM Rush respawns you -- so this is what makes the two modes feel different to play against.
+    /// </summary>
+    private bool IsOnLastStock()
+    {
+        GameManager gameManager = GameManager.Instance;
+        return gameManager != null
+            && gameManager.winCon == GameManager.WinCon.Elimination
+            && owner != null
+            && owner.winConPoints <= 1;
+    }
+
+    /// <summary>
+    /// Nearest opponent, adjusted for what the mode actually rewards: in RAM Rush the RAM comes out
+    /// of whoever you defeat and scales with their bounty, so a fat target is worth walking past a
+    /// closer one for. In Elimination there is no bounty, only stocks, so finish whoever is nearest
+    /// to being out.
+    /// </summary>
+    protected override PlayerController SelectTarget()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || owner == null)
+        {
+            return base.SelectTarget();
+        }
+
+        PlayerController best = null;
+        float bestScore = float.MinValue;
+
+        for (int i = 0; i < gameManager.playerCount; i++)
+        {
+            PlayerController candidate = gameManager.players[i];
+            if (candidate == null || candidate == owner || !candidate.isAlive || !candidate.isConnected)
+            {
+                continue;
+            }
+
+            // Closer is always better; the mode bonus decides how much closer is worth it.
+            float score = -Mathf.Abs(candidate.position.X.ToFloat() - owner.position.X.ToFloat());
+
+            if (gameManager.winCon == GameManager.WinCon.RAMRush)
+            {
+                score += candidate.ramBounty * BountyWeight;
+            }
+            else if (gameManager.winCon == GameManager.WinCon.Elimination)
+            {
+                score += (gameManager.WinConPointLimit - candidate.winConPoints) * StockWeight;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+
+        return best;
+    }
+
     public override string BehaviorName => "Chase";
 
     public override void NPCUpdate()
@@ -89,6 +156,13 @@ public class ChaseAI : NpcAI
         // Attack before moving: once a cast starts the base class owns the inputs for the whole
         // sequence, so there is no point choosing a direction we'd immediately hand over.
         if (TryAttack())
+        {
+            return;
+        }
+
+        // Target is below and we're stood on a one-way platform: drop through rather than pacing
+        // about on top of it waiting for them to come up.
+        if (TryDropToward(owner.position.Y.ToFloat() + TargetOffsetY))
         {
             return;
         }
@@ -139,7 +213,7 @@ public class ChaseAI : NpcAI
     /// </summary>
     private bool TryShop()
     {
-        FloppyPickup floppy = NearestOwnFloppy();
+        FloppyPickup floppy = BestOwnFloppy();
         if (floppy != null)
         {
             CollectFloppy(floppy);
@@ -202,9 +276,9 @@ public class ChaseAI : NpcAI
         // because that radius is only 18 and measures BOTH axes.
         if (!owner.collidingWithFloppy)
         {
-            if (IsGrounded && offsetY > FloppyReachRadius && CanJump)
+            if (!TryDropToward(floppy.transform.position.y, FloppyReachRadius))
             {
-                TapJump();
+                ClimbTo(floppy.transform.position.y, FloppyReachRadius);
             }
             return;
         }
@@ -242,10 +316,10 @@ public class ChaseAI : NpcAI
         // lips the ledge probe won't vouch for, and plain ledge safety turns both into a dead stop.
         TravelTowardX(door.transform.position.x, DoorArrivalRadius);
 
-        // Lined up underneath a door that sits higher up: climb to it.
-        if (alignedX && IsGrounded && offsetY > ClimbThreshold && CanJump)
+        // Lined up with a door on another level: climb to it, or drop through to it.
+        if (alignedX && !TryDropToward(door.transform.position.y, DoorArrivalRadius))
         {
-            TapJump();
+            ClimbTo(door.transform.position.y, ClimbThreshold);
         }
     }
 
@@ -349,7 +423,15 @@ public class ChaseAI : NpcAI
     private bool HasRoomFor(SpellData spell)
     {
         int length = PlayerController.GetSpellInputLength(spell);
-        return TargetDistanceX >= MinCastSpace + (length * SpacePerCodeStep);
+        float required = MinCastSpace + (length * SpacePerCodeStep);
+
+        // On the last stock a trade is a loss, so demand more room before committing to anything.
+        if (IsOnLastStock())
+        {
+            required *= 1.6f;
+        }
+
+        return TargetDistanceX >= required;
     }
 
     /// <summary>
@@ -361,12 +443,15 @@ public class ChaseAI : NpcAI
         int toward = TargetOffsetX > 0f ? 6 : 4;
         int away = TargetOffsetX > 0f ? 4 : 6;
 
-        if (TargetDistanceX > PreferredDistance + BandWidth)
+        // Sit further out when a single mistake ends the match.
+        float preferred = IsOnLastStock() ? PreferredDistance * 1.35f : PreferredDistance;
+
+        if (TargetDistanceX > preferred + BandWidth)
         {
             return toward;
         }
 
-        if (TargetDistanceX < PreferredDistance - BandWidth)
+        if (TargetDistanceX < preferred - BandWidth)
         {
             return away;
         }
@@ -383,9 +468,21 @@ public class ChaseAI : NpcAI
 
         if (!IsGrounded)
         {
+            if (!IsFalling)
+            {
+                return false;
+            }
+
             // Recovery: falling with nothing underneath means the bot is off the stage and its
             // remaining jumps are the only way back.
-            return IsFalling && OverAVoid();
+            if (OverAVoid())
+            {
+                return true;
+            }
+
+            // Falling short of a target that's still overhead -- spend the air jump finishing the
+            // climb rather than dropping back to where the first jump started.
+            return TargetOffsetY > ClimbThreshold;
         }
 
         // The target is somewhere above a platform, most likely. Climb toward it.

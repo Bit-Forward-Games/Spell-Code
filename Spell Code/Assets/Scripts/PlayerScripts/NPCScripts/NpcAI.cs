@@ -33,6 +33,9 @@ public abstract class NpcAI : MonoBehaviour
     // Ticks since the last jump tap, so TapJump can enforce its refractory gap.
     private int framesSinceJumpTap = int.MaxValue / 2;
 
+    // True while a jump is in progress and the button should stay down for height.
+    private bool jumpHolding;
+
     // Horizontal progress tracking, for IsStuck.
     private float lastTrackedX;
     private int framesWithoutProgress;
@@ -374,11 +377,14 @@ public abstract class NpcAI : MonoBehaviour
     }
 
     /// <summary>
-    /// The nearest floppy this bot is allowed to take, or null. Floppies are per-player, so anyone
-    /// else's are invisible here. Scanned on an interval rather than every tick, and re-checked for
-    /// null in between because a disk vanishes the moment it's collected.
+    /// The floppy this bot should take, or null. Floppies are per-player, so anyone else's are
+    /// invisible here. The Shop puts several out at once, so this picks on what the spell is worth
+    /// to this kit rather than which disk happens to be closest.
+    ///
+    /// Scanned on an interval rather than every tick, and re-checked for null in between because a
+    /// disk vanishes the moment it's collected.
     /// </summary>
-    protected FloppyPickup NearestOwnFloppy()
+    protected FloppyPickup BestOwnFloppy()
     {
         if (owner == null)
         {
@@ -395,7 +401,7 @@ public abstract class NpcAI : MonoBehaviour
         cachedFloppy = null;
 
         FloppyPickup[] floppies = FindObjectsByType<FloppyPickup>(FindObjectsSortMode.None);
-        float nearest = float.MaxValue;
+        float bestScore = float.MinValue;
 
         for (int i = 0; i < floppies.Length; i++)
         {
@@ -405,15 +411,68 @@ public abstract class NpcAI : MonoBehaviour
                 continue;
             }
 
+            // Distance still breaks ties, just quietly: a disk worth more is worth a longer walk.
             float distance = Mathf.Abs(floppy.transform.position.x - owner.position.X.ToFloat());
-            if (distance < nearest)
+            float score = ScoreFloppy(floppy) - (distance * 0.002f);
+
+            if (score > bestScore)
             {
-                nearest = distance;
+                bestScore = score;
                 cachedFloppy = floppy;
             }
         }
 
         return cachedFloppy;
+    }
+
+    /// <summary>
+    /// How much a disk is worth to this bot. Favours range bands the kit is thin on, so a bot ends
+    /// up with an answer at more than one distance instead of four versions of the same poke.
+    /// </summary>
+    private float ScoreFloppy(FloppyPickup floppy)
+    {
+        SpellDictionary dictionary = SpellDictionary.Instance;
+        if (dictionary == null
+            || floppy == null
+            || string.IsNullOrEmpty(floppy.diskName)
+            || !dictionary.spellDict.TryGetValue(floppy.diskName, out SpellData spell)
+            || spell == null)
+        {
+            // An unrecognised disk is still better than walking away empty-handed.
+            return 0.5f;
+        }
+
+        SpellTactics.Profile profile = SpellTactics.For(spell);
+
+        int alreadyInBand = 0;
+        if (owner.spellList != null)
+        {
+            for (int i = 0; i < owner.spellList.Count; i++)
+            {
+                SpellData held = owner.spellList[i];
+                if (held != null
+                    && held.spellType == SpellType.Active
+                    && SpellTactics.For(held).Range == profile.Range)
+                {
+                    alreadyInBand++;
+                }
+            }
+        }
+
+        float score = 1f / (1f + alreadyInBand);
+
+        switch (profile.Role)
+        {
+            case SpellRole.Attack:
+                score += 0.35f;
+                break;
+            case SpellRole.Utility:
+                // Nothing triggers these yet, so they're close to dead weight in a bot's hands.
+                score -= 0.2f;
+                break;
+        }
+
+        return score;
     }
 
     #endregion
@@ -779,15 +838,91 @@ public abstract class NpcAI : MonoBehaviour
     /// HoldJump is still the right call for shaping one jump's height, since releasing mid-rise
     /// cuts it short.
     /// </summary>
-    protected void TapJump(int minFramesBetweenTaps = 12)
+    protected void TapJump(int minFramesBetweenTaps = 6)
     {
         intentUsed = true;
-        if (framesSinceJumpTap < minFramesBetweenTaps)
+
+        // Only starts a jump. Holding it for height is ApplyJumpHold's job, because by the time the
+        // owner is rising no behaviour is asking to jump any more.
+        if (jumpHolding || framesSinceJumpTap < minFramesBetweenTaps)
         {
             return;
         }
 
         intentJump = true;
+        jumpHolding = true;
+    }
+
+    /// <summary>
+    /// Keeps the jump button down for as long as the owner is rising, then releases at the apex so
+    /// the next press still has an edge to land on.
+    ///
+    /// This runs from Tick rather than from TapJump because behaviours stop asking to jump the
+    /// moment they leave the ground -- they gate on IsGrounded or IsFalling, and mid-ascent neither
+    /// holds. PlayerUpdate re-applies DOUBLE gravity on every rising frame where jump is not held,
+    /// so a button released at the start of the climb produces the minimum hop, every time.
+    /// </summary>
+    private void ApplyJumpHold()
+    {
+        if (!jumpHolding)
+        {
+            return;
+        }
+
+        if (owner != null && owner.vSpd.ToFloat() > 0f)
+        {
+            intentJump = true;
+            intentUsed = true;
+            return;
+        }
+
+        jumpHolding = false;
+    }
+
+    /// <summary>
+    /// Falls through the one-way platform the owner is stood on, when the thing it wants is below.
+    /// Down plus jump is the drop input, and this is gated on onPlatform because the same input on
+    /// solid ground is a slide instead.
+    /// </summary>
+    protected bool TryDropToward(float targetWorldY, float threshold = 48f)
+    {
+        if (owner == null || !IsGrounded || !owner.onPlatform)
+        {
+            return false;
+        }
+
+        if (owner.position.Y.ToFloat() - targetWorldY <= threshold)
+        {
+            return false;
+        }
+
+        SetDirection(2);
+        HoldJump(true);
+        return true;
+    }
+
+    /// <summary>
+    /// Jumps to reach something overhead, including the second jump that finishes a climb the first
+    /// one fell short of. Safe to call every tick while the goal is above: TapJump owns both the
+    /// hold-for-height and the gap between jumps.
+    /// </summary>
+    protected void ClimbTo(float targetWorldY, float threshold)
+    {
+        if (owner == null || !CanJump)
+        {
+            return;
+        }
+
+        if (targetWorldY - owner.position.Y.ToFloat() <= threshold)
+        {
+            return;
+        }
+
+        // From the ground, or while falling short partway up -- either way another jump is the move.
+        if (IsGrounded || IsFalling)
+        {
+            TapJump();
+        }
     }
 
     #endregion
@@ -830,6 +965,8 @@ public abstract class NpcAI : MonoBehaviour
             // tick's snapshot standing -- a stale frame of movement right as the code opens.
             AdvanceCast();
         }
+
+        ApplyJumpHold();
 
         framesSinceJumpTap = intentJump ? 0 : Mathf.Min(framesSinceJumpTap + 1, int.MaxValue / 2);
         UpdateStuckTracking();

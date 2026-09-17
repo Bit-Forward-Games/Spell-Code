@@ -91,6 +91,18 @@ public class ProjectileManager : MonoBehaviour
                 // by InitializeAllProjectiles, so holes don't accumulate across matches.
                 continue;
             }
+            PlayerController owner = projectilePrefabs[i].owner;
+            if (owner != null && owner.pID == 0 && !GameManager.Instance.CanSimulateOfflineNpc(owner))
+            {
+                // NPC shots outlive their stage because projectiles are persistent pooled objects.
+                // Retire them before collision processing, keeping their pool indices intact.
+                if (projectilePrefabs[i].gameObject.activeSelf)
+                {
+                    DeleteProjectile(projectilePrefabs[i]);
+                }
+                continue;
+            }
+
             if (projectilePrefabs[i].gameObject.activeSelf)
             {
                 RegisterActiveProjectile(projectilePrefabs[i]);
@@ -156,12 +168,13 @@ public class ProjectileManager : MonoBehaviour
 
     public void DeleteTargetPlayerProjectiles(int pID, bool deleteHurtOverride = true)
     {
-        PlayerController targetPlayer;
-        if(pID == 0)
-        {targetPlayer = GameManager.Instance.playerNPCs[0];
-        }
-        else
-        {targetPlayer = GameManager.Instance.players[pID-1];
+        // Human cleanup also runs after a disconnect; keep resolving their roster slot directly.
+        PlayerController targetPlayer = pID == 0
+            ? GameManager.Instance.GetPlayerByPID(0)
+            : GameManager.Instance.players[pID - 1];
+        if (targetPlayer == null)
+        {
+            return;
         }
         
         List<BaseProjectile> projList = new List<BaseProjectile>();
@@ -238,10 +251,14 @@ public class ProjectileManager : MonoBehaviour
             }
         }
 
-        //loop through all npcs
+        // Keep initialized offline pools even for hidden maps so revisiting training works.
+        // Online pools must depend only on the roster, never on a peer's prior offline NPCs.
         for (int i = 0; i < GameManager.Instance.playerNPCs.Count; i++)
         {
-            if (GameManager.Instance.playerNPCs[i] == null || GameManager.Instance.playerNPCs[i].charData == null)
+            if (GameManager.Instance.isOnlineMatchActive
+                || GameManager.Instance.IsOnlineMatchInitializing
+                || GameManager.Instance.playerNPCs[i] == null
+                || GameManager.Instance.playerNPCs[i].charData == null)
             {
                 continue;
             }
@@ -300,7 +317,9 @@ public class ProjectileManager : MonoBehaviour
             for (int i = 0; i < GameManager.Instance.playerNPCs.Count; i++)
             {
                 PlayerController npc = GameManager.Instance.playerNPCs[i];
-                if (npc != null)
+                if (!GameManager.Instance.isOnlineMatchActive
+                    && !GameManager.Instance.IsOnlineMatchInitializing
+                    && npc != null)
                 {
                     RebuildExtraSpellProjectiles(npc);
                 }

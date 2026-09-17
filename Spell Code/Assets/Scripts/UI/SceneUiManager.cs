@@ -55,6 +55,15 @@ public class SceneUiManager : MonoBehaviour
     /// <param name="sceneName"></param>
     public void LoadScene(string sceneName)
     {
+        // TempUI survives scene loads. Most SoloLobby buttons close their selector before asking
+        // for MainMenu, but external invites and other deferred entry paths can bypass that button
+        // cleanup and carry the Online/Local panel into the lobby. Enforce the destination state
+        // before the screen-cover delay begins. The helper only closes selector panels, so it
+        // leaves the Friends Lobby and other online panels that share their parent untouched.
+        if (sceneName == "MainMenu")
+        {
+            GameManager.Instance?.tempUI?.CloseGamemodesMenuForOnlineEntry();
+        }
 
         //stop repeating all sounds
         if (SFX_Manager.Instance != null)

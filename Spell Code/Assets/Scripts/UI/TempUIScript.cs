@@ -526,6 +526,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         if (ownsLocalUiControl)
         {
             gamemodesMenuPlayerIndex = -1;
+
+            // ...and not even then, if the pause menu is up. While paused, Pause owns timeScale and
+            // the UI device scoping. A prompt closing underneath it released both: the game carried
+            // on running with the pause menu still drawn over it
+            if (pause != null && pause.paused)
+            {
+                return;
+            }
+
             pause?.RestoreScopedUiInputDevices();
             Time.timeScale = 1f;
         }
@@ -671,6 +680,15 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
                 return;
             }
 
+            // Same reasoning for the custom match rules panel: it sits on top of Multiplayer
+            // Gamemodes Panel 2 and owns confirm/back while open. Without this, submit would also
+            // fire the gamemode button underneath it, and Back would close the whole door menu
+            // instead of stepping back one level to Panel 2.
+            if (MatchOptionsMenu.IsOpen)
+            {
+                return;
+            }
+
             if (pause != null && pause.WasPausePlayerSubmitPressedThisFrame())
             {
                 pause.TriggerSelectedButton();
@@ -760,12 +778,21 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
         roundEndUIRectTransform.anchoredPosition = new Vector2(0f, 2000f);
         roundEndUI.SetActive(true);
         roundEndUIRectTransform.DOAnchorPos(new Vector2(roundEndUIRectTransform.anchoredPosition.x, 0), 0.3f).SetEase(Ease.OutQuad).SetUpdate(true);
+
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             spellDisplays[i].UpdateRoundWinCounter(roundWinTextImage[i], i);
-            offlinePlayer[i].SetActive(false);
 
-            if (GameManager.Instance.IsRoundWinner(GameManager.Instance.players[i]))
+            PlayerController roundPlayer = GameManager.Instance.players[i];
+            bool isActivePlayer = roundPlayer != null && roundPlayer.isConnected;
+
+            // Only hide the "no player here" placeholder if this slot is genuinely occupied.
+            if (isActivePlayer)
+            {
+                offlinePlayer[i].SetActive(false);
+            }
+
+            if (isActivePlayer && GameManager.Instance.IsRoundWinner(roundPlayer))
             {
                 winnerPanel[i].gameObject.SetActive(true);
             }

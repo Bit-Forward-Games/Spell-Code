@@ -653,12 +653,14 @@ public class GambaMachine : MonoBehaviour
                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellWolfOfWallstreet)) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellDemonTrigger)) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
 
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[6], "Shot Reflector");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[7], "Tele-Frag Prism");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[8], "Get Over Here");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[9], "Sickle Of The Night");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[10], "Crossmap Clip");
-                        // SpawnFloppyDisk(ownerPID, trainingLocs[11], "Back To Basics");
+#if UNITY_EDITOR
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Beam Of Sparta");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Chains Of Thanatos");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Demon Trigger");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "The Jokah");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Touch Of Midas");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Wolf Of Wallstreet");
+#endif
                         break;
                 }
 

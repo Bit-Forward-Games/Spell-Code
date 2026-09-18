@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// The bot's neutral game: hold a spacing band against the nearest opponent, jump what needs
-/// jumping, and never walk off a ledge.
+/// jumping, and follow safe platform routes between levels.
 ///
 /// Facing comes free: the owner's Idle and Run states both turn toward the held direction before
 /// accelerating, so holding 4 or 6 is the entire instruction.
@@ -16,8 +16,8 @@ public class ChaseAI : NpcAI
     private const float PreferredDistance = 90f;
     private const float BandWidth = 34f;
 
-    // How far above the owner the target has to be before climbing to it is worth a jump.
-    private const float ClimbThreshold = 56f;
+    // Height separation at which reaching the target's level takes priority over combat spacing.
+    private const float ClimbThreshold = 32f;
 
     // Room a code needs before it's worth starting, plus the extra each step demands. Entering a
     // code takes frames and CodeRelease recovery grows with its length, so a long code is only
@@ -153,16 +153,18 @@ public class ChaseAI : NpcAI
             return;
         }
 
-        // Attack before moving: once a cast starts the base class owns the inputs for the whole
-        // sequence, so there is no point choosing a direction we'd immediately hand over.
-        if (TryAttack())
+        // Reach the opponent's level before spacing or casting. Horizontal attack range alone
+        // used to keep a bot firing beneath an opponent instead of taking the platform route.
+        if (IsNavigating || Mathf.Abs(TargetOffsetY) > ClimbThreshold)
         {
+            TravelToward(new Vector2(owner.position.X.ToFloat() + TargetOffsetX,
+                owner.position.Y.ToFloat() + TargetOffsetY), 12f, ClimbThreshold);
             return;
         }
 
-        // Target is below and we're stood on a one-way platform: drop through rather than pacing
-        // about on top of it waiting for them to come up.
-        if (TryDropToward(owner.position.Y.ToFloat() + TargetOffsetY))
+        // Attack before moving: once a cast starts the base class owns the inputs for the whole
+        // sequence, so there is no point choosing a direction we'd immediately hand over.
+        if (TryAttack())
         {
             return;
         }
@@ -258,31 +260,18 @@ public class ChaseAI : NpcAI
     /// </summary>
     private void CollectFloppy(FloppyPickup floppy)
     {
-        float offsetX = floppy.transform.position.x - owner.position.X.ToFloat();
-        float offsetY = floppy.transform.position.y - owner.position.Y.ToFloat();
-
-        // Line up under it first.
-        if (Mathf.Abs(offsetX) > FloppyReachRadius)
+        Vector2 target = floppy.transform.position;
+        Vector2 position = new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat());
+        // collidingWithFloppy may describe a different disk. Only stop for the selected pickup.
+        if (!owner.collidingWithFloppy
+            || (target - position).sqrMagnitude > floppy.colliderRadius * floppy.colliderRadius)
         {
-            TravelTowardX(floppy.transform.position.x, FloppyReachRadius);
+            TravelToward(target, FloppyReachRadius, FloppyReachRadius);
             return;
         }
 
+        StopNavigation();
         Neutral();
-
-        // collidingWithFloppy is the same 2D radius check the disk itself runs, so trust it rather
-        // than re-deriving the answer. Until it says yes, the bot is not actually on the disk --
-        // and a disk hanging even half a body above the floor is out of reach from the ground,
-        // because that radius is only 18 and measures BOTH axes.
-        if (!owner.collidingWithFloppy)
-        {
-            if (!TryDropToward(floppy.transform.position.y, FloppyReachRadius))
-            {
-                ClimbTo(floppy.transform.position.y, FloppyReachRadius);
-            }
-            return;
-        }
-
         if (framesSinceAttempt >= FramesBetweenAttempts && BeginFloppyPickup())
         {
             framesSinceAttempt = 0;
@@ -301,26 +290,7 @@ public class ChaseAI : NpcAI
             return;
         }
 
-        float offsetX = door.transform.position.x - owner.position.X.ToFloat();
-        float offsetY = door.transform.position.y - owner.position.Y.ToFloat();
-        bool alignedX = Mathf.Abs(offsetX) <= DoorArrivalRadius;
-
-        // The door measures both axes, so being level with it matters as much as being beside it.
-        if (alignedX && Mathf.Abs(offsetY) <= DoorArrivalRadius)
-        {
-            Neutral();
-            return;
-        }
-
-        // TravelTowardX rather than a bare SetDirection: the route to the door has bumps to hop and
-        // lips the ledge probe won't vouch for, and plain ledge safety turns both into a dead stop.
-        TravelTowardX(door.transform.position.x, DoorArrivalRadius);
-
-        // Lined up with a door on another level: climb to it, or drop through to it.
-        if (alignedX && !TryDropToward(door.transform.position.y, DoorArrivalRadius))
-        {
-            ClimbTo(door.transform.position.y, ClimbThreshold);
-        }
+        TravelToward(door.transform.position, DoorArrivalRadius, DoorArrivalRadius);
     }
 
     /// <summary>
@@ -473,22 +443,9 @@ public class ChaseAI : NpcAI
                 return false;
             }
 
-            // Recovery: falling with nothing underneath means the bot is off the stage and its
-            // remaining jumps are the only way back.
-            if (OverAVoid())
-            {
-                return true;
-            }
-
-            // Falling short of a target that's still overhead -- spend the air jump finishing the
-            // climb rather than dropping back to where the first jump started.
-            return TargetOffsetY > ClimbThreshold;
-        }
-
-        // The target is somewhere above a platform, most likely. Climb toward it.
-        if (TargetOffsetY > ClimbThreshold)
-        {
-            return true;
+            // Vertical pursuit is handled by TravelToward. This is recovery after knockback
+            // or an unplanned departure from the stage.
+            return OverAVoid();
         }
 
         // Walled in while trying to move: hop the obstacle instead of grinding into it forever.

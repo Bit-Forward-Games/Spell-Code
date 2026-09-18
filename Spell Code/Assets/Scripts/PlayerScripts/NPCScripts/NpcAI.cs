@@ -36,6 +36,23 @@ public abstract class NpcAI : MonoBehaviour
     // True while a jump is in progress and the button should stay down for height.
     private bool jumpHolding;
 
+    private readonly BotPlatformNavigator platformNavigator = new BotPlatformNavigator();
+    private BotPlatformNavigator.Step navigationStep;
+    private StageDataSO navigationStage;
+    private Vector2 navigationGoal;
+    private bool hasNavigationStep;
+    private bool navigationAirborne;
+    private bool navigationClearedLedge;
+    private int navigationFrames;
+    private int navigationJumpsRemaining;
+
+    private bool droppingThroughPlatform;
+    private StageDataSO dropStage;
+    private float dropSurfaceY;
+    private int dropFrames;
+
+    protected bool IsNavigating => hasNavigationStep;
+
     // Horizontal progress tracking, for IsStuck.
     private float lastTrackedX;
     private int framesWithoutProgress;
@@ -329,6 +346,175 @@ public abstract class NpcAI : MonoBehaviour
         if (IsGrounded && CanJump && (BlockedTowards(toward) || !stepSafe || IsStuck()))
         {
             TapJump();
+        }
+    }
+
+    /// <summary>
+    /// Travels between walkable surfaces, preserving a chosen landing until the bot touches down.
+    /// Both pickups and opponents use this, so horizontal alignment cannot prevent a climb/drop.
+    /// </summary>
+    protected void TravelToward(Vector2 target, float arriveWithin = 12f, float heightTolerance = 24f)
+    {
+        if (owner == null)
+        {
+            Neutral();
+            return;
+        }
+
+        Vector2 position = new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat());
+        StageDataSO stage = Stage;
+        if (navigationStage != stage || State == PlayerState.Hitstun || State == PlayerState.Tech
+            || (hasNavigationStep && ++navigationFrames > 180)
+            || (hasNavigationStep && !navigationAirborne && (target - navigationGoal).sqrMagnitude > 4096f))
+        {
+            StopNavigation();
+        }
+
+        if (hasNavigationStep && !IsGrounded && !navigationAirborne)
+        {
+            navigationAirborne = true;
+            navigationFrames = 0;
+        }
+        if (hasNavigationStep && navigationAirborne && IsGrounded)
+        {
+            StopNavigation();
+        }
+
+        if (!hasNavigationStep)
+        {
+            if (Mathf.Abs(target.x - position.x) <= arriveWithin
+                && Mathf.Abs(target.y - position.y) <= heightTolerance)
+            {
+                SteerTowardX(target.x, arriveWithin);
+                return;
+            }
+
+            // Plan from a supported surface. If knocked off a route, recover using the existing
+            // air steering until a landing provides a new starting surface.
+            if (!IsGrounded || !platformNavigator.TryGetNextStep(stage, position, target,
+                owner.playerWidth.ToFloat() * 0.5f, owner.playerHeight.ToFloat(),
+                owner.jumpForce.ToFloat(), PlayerController.baseGravity, owner.runSpeed.ToFloat(),
+                owner.maxJumpCount, out navigationStep))
+            {
+                TravelTowardX(target.x, arriveWithin);
+                if (target.y > position.y + heightTolerance || (IsFalling && OverAVoid()))
+                {
+                    ClimbTo(Mathf.Max(target.y, position.y + heightTolerance + 1f), heightTolerance);
+                }
+                return;
+            }
+
+            if (navigationStep.kind == BotPlatformNavigator.Kind.Walk)
+            {
+                SteerTowardX(navigationStep.landing.x, arriveWithin);
+                // Some disks hover above their supporting floor rather than resting on it.
+                if (Mathf.Abs(target.x - position.x) <= arriveWithin)
+                {
+                    ClimbTo(target.y, heightTolerance);
+                }
+                return;
+            }
+
+            navigationStage = stage;
+            navigationGoal = target;
+            navigationFrames = 0;
+            navigationAirborne = false;
+            navigationClearedLedge = false;
+            navigationJumpsRemaining = navigationStep.jumpsRequired;
+            hasNavigationStep = true;
+        }
+
+        if (!navigationAirborne)
+        {
+            float takeoffTolerance = navigationStep.kind == BotPlatformNavigator.Kind.Drop ? 5f : 1f;
+            if (Mathf.Abs(position.x - navigationStep.takeoff.x) > takeoffTolerance)
+            {
+                // The planner has checked this approach. In particular, a planned fall MUST be
+                // allowed past the edge; the generic ledge guard would forbid the entire route.
+                SteerTowardX(navigationStep.takeoff.x, takeoffTolerance);
+                return;
+            }
+
+            Neutral();
+            if (navigationStep.kind == BotPlatformNavigator.Kind.Drop)
+            {
+                TryDropToward(navigationStep.landing.y, 0f);
+            }
+            else if (navigationStep.kind == BotPlatformNavigator.Kind.Jump
+                && (State == PlayerState.Idle || State == PlayerState.Run) && CanJump
+                && Mathf.Abs(owner.hSpd.ToFloat()) < 0.1f)
+            {
+                TapJump();
+                if (intentJump)
+                {
+                    navigationJumpsRemaining--;
+                }
+            }
+            return;
+        }
+
+        if (navigationStep.kind == BotPlatformNavigator.Kind.Fall
+            && position.y >= navigationStep.takeoff.y - 2f)
+        {
+            // Keep moving off the lip through the zero-velocity airborne frame. Turning back
+            // toward a lower target at once can put the body back on the source surface.
+            SteerTowardX(navigationStep.takeoff.x, 0f);
+            return;
+        }
+
+        float landingX = navigationStep.landing.x;
+        navigationClearedLedge |= position.y >= navigationStep.landing.y + 2f;
+        if (navigationStep.kind == BotPlatformNavigator.Kind.Jump
+            && !navigationStep.destinationOneWay && !navigationClearedLedge)
+        {
+            // Rise beside a solid ledge, then move over its top. Moving inward any earlier
+            // strikes its side/underside and wastes the jump.
+            float clearance = owner.playerWidth.ToFloat() * 0.5f + 3f;
+            if (navigationStep.takeoff.x < navigationStep.destinationLeft)
+            {
+                landingX = Mathf.Min(landingX, navigationStep.destinationLeft - clearance);
+            }
+            else if (navigationStep.takeoff.x > navigationStep.destinationRight)
+            {
+                landingX = Mathf.Max(landingX, navigationStep.destinationRight + clearance);
+            }
+        }
+        SteerTowardX(landingX, 4f);
+
+        if (navigationJumpsRemaining > 0 && IsFalling && CanJump)
+        {
+            TapJump();
+            if (intentJump)
+            {
+                navigationJumpsRemaining--;
+            }
+        }
+    }
+
+    protected void StopNavigation()
+    {
+        hasNavigationStep = false;
+        navigationAirborne = false;
+        navigationClearedLedge = false;
+        navigationFrames = 0;
+        navigationJumpsRemaining = 0;
+    }
+
+    private void SteerTowardX(float worldX, float tolerance)
+    {
+        float offset = worldX - owner.position.X.ToFloat();
+        float speed = owner.hSpd.ToFloat();
+        // Neutral braking changes speed by one every three frames in the air, four on the
+        // ground. Account for that drift when lining up a takeoff or a narrow landing.
+        float brakingDistance = Mathf.Abs(speed) * (Mathf.Abs(speed) + 1f) * (IsGrounded ? 2f : 1.5f);
+        if (Mathf.Abs(offset) <= tolerance
+            || (speed * offset > 0f && Mathf.Abs(offset) <= brakingDistance))
+        {
+            Neutral();
+        }
+        else
+        {
+            SetDirection(offset > 0f ? 6 : 4);
         }
     }
 
@@ -864,8 +1050,10 @@ public abstract class NpcAI : MonoBehaviour
     /// </summary>
     private void ApplyJumpHold()
     {
-        if (!jumpHolding)
+        if (!jumpHolding || intentJump)
         {
+            // TapJump runs before PlayerUpdate applies the impulse. Its launch tick still has
+            // zero vertical speed, so do not mistake a fresh press for the end of the jump.
             return;
         }
 
@@ -886,16 +1074,47 @@ public abstract class NpcAI : MonoBehaviour
     /// </summary>
     protected bool TryDropToward(float targetWorldY, float threshold = 48f)
     {
-        if (owner == null || !IsGrounded || !owner.onPlatform)
+        if (owner == null || !IsGrounded || !owner.onPlatform
+            || owner.position.Y.ToFloat() - targetWorldY <= threshold)
         {
             return false;
         }
 
-        if (owner.position.Y.ToFloat() - targetWorldY <= threshold)
+        // Run interprets a down+jump press as a slide. Settle to Idle, and release any previous
+        // jump, before issuing the drop. A held jump must not leak out of ApplyJumpHold either.
+        jumpHolding = false;
+        Neutral();
+        HoldJump(false);
+        if (State != PlayerState.Idle || previousJump || Mathf.Abs(owner.hSpd.ToFloat()) > 0.1f)
+        {
+            return true;
+        }
+
+        droppingThroughPlatform = true;
+        dropStage = Stage;
+        dropSurfaceY = owner.position.Y.ToFloat();
+        dropFrames = 0;
+        return ContinuePlatformDrop();
+    }
+
+    private bool ContinuePlatformDrop()
+    {
+        if (!droppingThroughPlatform)
         {
             return false;
         }
 
+        if (owner == null || Stage != dropStage || ++dropFrames > 24
+            || owner.position.Y.ToFloat() < dropSurfaceY - 2f
+            || State == PlayerState.Hitstun || State == PlayerState.Tech)
+        {
+            droppingThroughPlatform = false;
+            return false;
+        }
+
+        // Ignoring a platform first clears grounded while vertical speed is still zero. Hold
+        // through that frame and the next until feet are below the top, or collision re-lands us.
+        jumpHolding = false;
         SetDirection(2);
         HoldJump(true);
         return true;
@@ -958,7 +1177,10 @@ public abstract class NpcAI : MonoBehaviour
         // the wrong spell or none at all.
         if (!AdvanceCast())
         {
-            NPCUpdate();
+            if (!ContinuePlatformDrop())
+            {
+                NPCUpdate();
+            }
 
             // If the behaviour started a cast just now, emit its opening frame here. Without this
             // the tick that begins a cast sets no intent at all, and the base would leave last

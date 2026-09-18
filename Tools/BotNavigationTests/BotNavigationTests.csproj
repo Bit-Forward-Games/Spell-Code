@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="MovementSimulation.cs" />
+    <Compile Include="UnityStubs.cs" />
+    <Compile Include="GameStubs.cs" />
+    <Compile Include="../../Spell Code/Assets/SO/StageDataSO.cs" Link="StageDataSO.cs" />
+    <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/BotPlatformNavigator.cs" Link="BotPlatformNavigator.cs" />
+    <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/NpcAI.cs" Link="NpcAI.cs" />
+    <None Include="../../Spell Code/Assets/SO/Arena SOs/Lobby and Tutorials/Lobby_Arena StageDataSO.asset" Link="Lobby_Arena StageDataSO.asset" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
+
+
+

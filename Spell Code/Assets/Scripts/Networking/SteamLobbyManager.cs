@@ -61,8 +61,10 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-66"; // scz-66: Match Options rules are NORMAL-mode only. Showdown is pinned back to a flat 3 lives and Turbo/Chaos keep stock RAM numbers regardless of the panel.
-                                                    // ApplyOnlineTotalRoundsPlayed now delegates to RefreshRoundWinConPointLimit instead of duplicating the formulas.
+    private const string NetcodeVersion = "scz-67"; // scz-67: Codemehameha Lv1's hitbox was reshaped into a wide beam (yOffset 32->10, width 84->136, height 64->20),
+                                                    // xKnockback 2->3, and its active window starts 4 frames earlier (13->9, still ending at 16), so it is live for 8 frames instead of 4.
+                                                    // Online also stops simulating NPCs entirely: CanSimulateOfflineNpc gates PlayerUpdate, HitboxManager's collision array,
+                                                    // and NPC projectile-pool construction, so a peer who played Training first no longer carries extra pool entries into a match.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

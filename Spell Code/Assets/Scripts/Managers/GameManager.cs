@@ -4628,7 +4628,11 @@ public class GameManager : MonoBehaviour
         // offline, so this never runs inside a rollback resim.
         for (int i = 0; i < playerNPCs.Count; i++)
         {
-            playerNPCs[i].PlayerUpdate(playerNPCs[i].GetInputs());
+            PlayerController npc = playerNPCs[i];
+            if (CanSimulateOfflineNpc(npc))
+            {
+                npc.PlayerUpdate(5);
+            }
         }
 
         for (int i = 0; i < playerCount; i++)
@@ -6084,11 +6088,21 @@ public class GameManager : MonoBehaviour
         return Mathf.Clamp(participantIndex, 0, spawnCount - 1);
     }
 
+    public bool CanSimulateOfflineNpc(PlayerController npc)
+    {
+        // Tutorial/training maps persist beneath GameManager when hidden. Their NPCs are not
+        // part of online snapshots, so neither inactive maps nor online sessions may simulate them.
+        return !isOnlineMatchActive
+            && !IsOnlineMatchInitializing
+            && npc != null
+            && npc.isActiveAndEnabled;
+    }
+
     public PlayerController GetPlayerByPID(int pID)
     {
         if (pID == 0)
         {
-            return playerNPCs.Count > 0 ? playerNPCs[0] : null;
+            return playerNPCs.Find(CanSimulateOfflineNpc);
         }
 
         int slot = pID - 1;

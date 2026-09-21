@@ -56,11 +56,11 @@ public class GambaMachine : MonoBehaviour
     // it, giving the next activation a fresh key while remaining deterministic through rollback.
     public int chaosRollGeneration = 0;
 
-    //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all.
-    //built from the codepoint so the infinity glyph can't be mangled by a source re-encode
+    //the shop gives every player maxShopRolls activations, the lobby doesn't cap them at all, so it
+    //parks the label on a number high enough to read as "keep rolling" rather than counting down
     private const int maxShopRolls = 3;
     private const int chaosSpellChoiceCount = 6;
-    private static readonly string infiniteRollsLabel = char.ConvertFromUtf32(0x221E);
+    private const string infiniteRollsLabel = "99";
 
     public GameObject floppy;
     public GameObject characterFloppy;

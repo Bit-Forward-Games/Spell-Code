@@ -4631,7 +4631,7 @@ public class GameManager : MonoBehaviour
             PlayerController npc = playerNPCs[i];
             if (CanSimulateOfflineNpc(npc))
             {
-                npc.PlayerUpdate(5);
+                npc.PlayerUpdate(npc.GetInputs());
             }
         }
 

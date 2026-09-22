@@ -652,14 +652,16 @@ public class GambaMachine : MonoBehaviour
                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellTheJokah)) { SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah"); }
                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellWolfOfWallstreet)) { SpawnFloppyDisk(ownerPID, trainingLocs[4], "Wolf Of Wallstreet"); }
                         if (SteamAchievements.IsUnlocked(SteamAchievements.SpellDemonTrigger)) { SpawnFloppyDisk(ownerPID, trainingLocs[5], "Demon Trigger"); }
+                        //if (SteamAchievements.IsUnlocked(SteamAchievements.FirstDarkWebSpell)) { SpawnFloppyDisk(ownerPID, trainingLocs[6], "Codemehameha"); }
 
 #if UNITY_EDITOR
-                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Beam Of Sparta");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[7], "Chains Of Thanatos");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[8], "Demon Trigger");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[9], "The Jokah");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[10], "Touch Of Midas");
-                        SpawnFloppyDisk(ownerPID, trainingLocs[11], "Wolf Of Wallstreet");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[0], "Beam Of Sparta");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[1], "Chains Of Thanatos");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[2], "Demon Trigger");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[3], "The Jokah");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[4], "Touch Of Midas");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[5], "Wolf Of Wallstreet");
+                        SpawnFloppyDisk(ownerPID, trainingLocs[6], "Codemehameha");
 #endif
                         break;
                 }
@@ -1294,7 +1296,7 @@ public class GambaMachine : MonoBehaviour
             }
 
             //Uniques
-            if (spellData.spellName == "" && (player.demonX && player.bigStox && player.killeez && player.vWave))
+            if (spellData.spellName == "Codemehameha" && (player.demonX && player.bigStox && player.killeez && player.vWave))
             {
                 Debug.Log("DarKWeb Spellcode: " + spellName + " has been added");
                 return false;
